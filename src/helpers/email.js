@@ -1,8 +1,12 @@
+const Boom = require('@hapi/boom');
 const nodemailer = require('nodemailer');
 const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
 const AuthenticationHelper = require('./authentication');
 const { SENDER_MAIL, TRAINER, HELPER, COACH, CLIENT_ADMIN, TRAINEE } = require('./constants');
+const translate = require('./translate');
+
+const { language } = translate;
 
 exports.sendEmail = async mailOptions => (process.env.NODE_ENV === 'production'
   ? NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions)
@@ -79,8 +83,11 @@ exports.sendWelcome = async (type, email, company) => {
       subject,
       html: EmailOptionsHelper.welcomeTraineeContent(),
     };
-
-    return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
+    try {
+      return NodemailerHelper.sendinBlueTransporter().sendMail(mailOptions);
+    } catch (error) {
+      throw Boom.failedDependency(translate[language].emailNotSent);
+    }
   }
 
   switch (type) {

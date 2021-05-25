@@ -1,6 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const pickBy = require('lodash/pickBy');
+const omit = require('lodash/omit');
 const EventHistory = require('../models/EventHistory');
 const User = require('../models/User');
 const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } = require('./constants');
@@ -31,6 +32,7 @@ exports.getListQuery = (query, credentials) => {
 exports.createEventHistory = async (payload, credentials, action) => {
   const { _id: createdBy } = credentials;
   const {
+    _id: eventId,
     customer,
     startDate,
     endDate,
@@ -46,16 +48,7 @@ exports.createEventHistory = async (payload, credentials, action) => {
     company: get(credentials, 'company._id', null),
     createdBy,
     action,
-    event: pickBy({
-      type,
-      startDate,
-      endDate,
-      customer,
-      absence,
-      internalHour,
-      misc,
-      repetition,
-    }),
+    event: pickBy({ eventId, type, startDate, endDate, customer, absence, internalHour, misc, repetition }),
   };
 
   if (address && Object.keys(address).length) eventHistory.event.address = address;
@@ -82,7 +75,7 @@ const areDaysChanged = (event, payload) => !moment(event.startDate).isSame(paylo
   !moment(event.endDate).isSame(payload.endDate, 'day');
 
 const isAuxiliaryUpdated = (event, payload) => (!event.auxiliary && payload.auxiliary) ||
-  (event.auxiliary && event.auxiliary.toHexString() !== payload.auxiliary);
+  (event.auxiliary && !UtilsHelper.areObjectIdsEquals(event.auxiliary, payload.auxiliary));
 
 const areHoursChanged = (event, payload) => {
   const eventStartHour = moment(event.startDate).format('HH:mm');
@@ -103,7 +96,7 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
     company: companyId,
     createdBy,
     action: EVENT_UPDATE,
-    event: { type, startDate, endDate, customer, misc },
+    event: { eventId: event._id, type, startDate, endDate, customer, misc },
   };
   if (payload.shouldUpdateRepetition) history.event.repetition = repetition;
   if (event.type === INTERNAL_HOUR) history.event.internalHour = payload.internalHour || event.internalHour;
@@ -134,33 +127,38 @@ exports.formatHistoryForAuxiliaryUpdate = async (mainInfo, payload, event, compa
   let auxiliaries = [];
   let update = [];
   if (event.auxiliary && payload.auxiliary) {
-    auxiliaries = [event.auxiliary.toHexString(), payload.auxiliary];
-    update = { auxiliary: { from: event.auxiliary.toHexString(), to: payload.auxiliary } };
+    auxiliaries = [event.auxiliary, payload.auxiliary];
+    update = { auxiliary: { from: event.auxiliary, to: payload.auxiliary } };
 
     const auxiliaryList = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] } })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
+
     for (const aux of auxiliaryList) {
-      if (!sectors.includes(aux.sector._id)) sectors.push(aux.sector);
+      if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector._id)) sectors.push(aux.sector._id);
     }
   } else if (event.auxiliary) {
-    auxiliaries = [event.auxiliary.toHexString()];
-    update = { auxiliary: { from: event.auxiliary.toHexString() } };
+    auxiliaries = [event.auxiliary];
+    update = { auxiliary: { from: event.auxiliary } };
+
     const aux = await User.findOne({ _id: event.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
-    if (!sectors.includes(aux.sector)) sectors.push(aux.sector.toHexString());
+
+    if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector)) sectors.push(aux.sector);
   } else if (payload.auxiliary) {
     auxiliaries = [payload.auxiliary];
     update = { auxiliary: { to: payload.auxiliary } };
+
     const aux = await User.findOne({ _id: payload.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
-    if (!sectors.includes(aux.sector)) sectors.push(aux.sector.toHexString());
+
+    if (!UtilsHelper.doesArrayIncludeId(sectors, aux.sector)) sectors.push(aux.sector);
   }
 
-  if (payload.sector && !sectors.includes(payload.sector)) sectors.push(payload.sector);
-  if (event.sector && !sectors.includes(event.sector.toHexString())) sectors.push(event.sector.toHexString());
+  if (payload.sector && !UtilsHelper.doesArrayIncludeId(sectors, payload.sector)) sectors.push(payload.sector);
+  if (event.sector && !UtilsHelper.doesArrayIncludeId(sectors, event.sector)) sectors.push(event.sector);
 
   return { ...mainInfo, sectors, auxiliaries, update };
 };
@@ -227,3 +225,12 @@ exports.formatHistoryForCancelUpdate = async (mainInfo, payload, companyId) => {
 
   return datesUpdateHistory;
 };
+
+exports.createTimeStampHistory = async (event, payload) => EventHistory.create({
+  event: { ...omit(event, ['_id', 'startDate']), eventId: event._id, startDate: payload.startDate },
+  company: event.company,
+  action: payload.action,
+  manualTimeStampingReason: payload.reason,
+  auxiliaries: [event.auxiliary],
+  update: { startHour: { from: event.startDate, to: payload.startDate } },
+});

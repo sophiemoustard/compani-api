@@ -24,7 +24,7 @@ exports.authorizeGetStats = async (req) => {
   }
 
   if (req.query.auxiliary) {
-    const auxiliary = await User.findOne({ _id: req.query.auxiliary, company: companyId });
+    const auxiliary = await User.countDocuments({ _id: req.query.auxiliary, company: companyId });
     if (!auxiliary) throw Boom.forbidden();
   }
 

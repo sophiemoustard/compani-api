@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
 const EventsHelper = require('../helpers/events');
+const EventTimeStampingHelper = require('../helpers/eventTimeStamping');
 const { deleteRepetition } = require('../helpers/eventsRepetition');
 
 const { language } = translate;
@@ -151,6 +152,17 @@ const getUnassignedHoursBySector = async (req) => {
   }
 };
 
+const timeStampEvent = async (req) => {
+  try {
+    await EventTimeStampingHelper.addTimeStamp(req.pre.event, req.payload);
+
+    return { message: translate[language].eventTimeStamped };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boolean.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -162,4 +174,5 @@ module.exports = {
   getWorkingStats,
   getPaidTransportStatsBySector,
   getUnassignedHoursBySector,
+  timeStampEvent,
 };

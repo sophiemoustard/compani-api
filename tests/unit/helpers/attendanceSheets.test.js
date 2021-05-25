@@ -100,7 +100,7 @@ describe('create', () => {
     await attendanceSheetHelper.create(payload);
     sinon.assert.calledOnceWithExactly(
       uploadCourseFile,
-      { fileName: 'emargement_03-avril-2020', file: 'test.pdf' }
+      { fileName: 'emargement_3 avril 2020', file: 'test.pdf' }
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -122,7 +122,7 @@ describe('create', () => {
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: '', args: [{ _id: 'id de quelqun' }] },
+        { query: '', args: [{ _id: 'id de quelqun' }, { identity: 1 }] },
         { query: 'lean' },
       ]
     );

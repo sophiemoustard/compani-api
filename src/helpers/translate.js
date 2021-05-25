@@ -49,6 +49,7 @@ module.exports = {
     unknownRole: 'Role does not exist.',
     /* Email */
     emailSent: 'Email successfully sent.',
+    emailNotSent: 'An error occurred while sending the email.',
     /* Reset password token */
     resetPasswordTokenFound: 'Reset password token found.',
     resetPasswordTokenNotFound: 'Reset password token not found.',
@@ -138,6 +139,11 @@ module.exports = {
     eventsDeleted: 'Events deleted.',
     eventDatesNotOnSameDay: 'Start and end dates should be on the same day.',
     eventsConflict: 'Events in conflict.',
+    eventTimeStamped: 'Event timestamped.',
+    alreadyTimeStamped: 'The event is already timestamped.',
+    timeStampConflict: 'The timestamp is in conflict with an event.',
+    timeStampOtherConflict: 'Timestamp error. Contact technical support.',
+    timeStampTooLate: 'Can\'t timestamp startDate after event ends.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -305,6 +311,7 @@ module.exports = {
     partnerCreated: 'Partner created.',
     partnersFound: 'Partners found.',
     partnersNotFound: 'Partners not found.',
+    partnerUpdated: 'Partner updated.',
     /* Helper */
     helpersFound: 'Helpers found.',
     helpersNotFound: 'Helpers not found.',
@@ -314,6 +321,8 @@ module.exports = {
     customerPartnersFound: 'Customer partners found.',
     customerPartnersNotFound: 'Customer partners not found.',
     customerPartnerAlreadyExists: 'Customer partner already exists.',
+    customerPartnerUpdated: 'Customer partner updated.',
+    customerPartnerRemoved: 'Customer partner removed.',
   },
   'fr-FR': {
     /* Global errors */
@@ -364,6 +373,7 @@ module.exports = {
     unknownRole: 'Le rôle n\'existe pas.',
     /* Email */
     emailSent: 'Email envoyé avec succès.',
+    emailNotSent: 'Erreur lors de l\'envoi de l\'email.',
     /* Reset password token */
     resetPasswordTokenFound: 'Token de changement de password trouvé.',
     resetPasswordTokenNotFound: 'Token de changement de password non trouvé.',
@@ -451,6 +461,11 @@ module.exports = {
     eventsDeleted: 'Evènements supprimé.',
     eventDatesNotOnSameDay: 'Les dates de début et de fin devraient être le même jour.',
     eventsConflict: 'Evènement en conflit avec les évènements de l\'auxiliaire.',
+    eventTimeStamped: 'Evènement horodaté.',
+    alreadyTimeStamped: 'L\'évènement est déja horodaté.',
+    timeStampConflict: 'L\'horodatage est en conflit avec un évènement.',
+    timeStampOtherConflict: 'Problème lors de l\'horodatage. Contactez le support technique.',
+    timeStampTooLate: 'Vous ne pouvez pas horodater le début d\'un évènement terminé.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',
@@ -618,6 +633,7 @@ module.exports = {
     partnerCreated: 'Partenaire créé.',
     partnersFound: 'Liste des partenaires trouvée.',
     partnersNotFound: 'Liste des partenaires non trouvée.',
+    partnerUpdated: 'Partenaire mis à jour.',
     /* Helper */
     helpersFound: 'Liste des aidants trouvée.',
     helpersNotFound: 'Liste des aidants non trouvée.',
@@ -627,6 +643,7 @@ module.exports = {
     customerPartnersFound: 'Liste des partenaires bénéficiaire trouvée.',
     customerPartnersNotFound: 'Liste des partenaires bénéficiaire non trouvée.',
     customerPartnerAlreadyExists: 'Ce partenaire existe déjà.',
-
+    customerPartnerUpdated: 'Partenaire mis à jour.',
+    customerPartnerRemoved: 'Partenaire supprimé.',
   },
 };

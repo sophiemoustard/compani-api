@@ -60,7 +60,6 @@ describe('exportCustomers', () => {
       'Souscriptions',
       'Nombre de financements',
       'Date de création',
-      'Statut',
     ]);
     SinonMongoose.calledWithExactly(
       findCustomer,
@@ -139,7 +138,6 @@ describe('exportCustomers', () => {
       'Au service de sa majesté\r\n Service public\r\n Service civique',
       2,
       '12/12/2012',
-      'Actif',
     ]);
     SinonMongoose.calledWithExactly(
       findCustomer,
@@ -168,7 +166,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '',
     ]);
     SinonMongoose.calledWithExactly(
       findCustomer,
@@ -415,7 +413,6 @@ describe('exportHelpers', () => {
       'Bénéficiaire - Rue',
       'Bénéficiaire - Code postal',
       'Bénéficiaire - Ville',
-      'Bénéficiaire - Statut',
       'Date de création',
     ]);
     SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
@@ -427,11 +424,7 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: {
-              path: 'customer',
-              select: 'identity contact',
-              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-            },
+            populate: { path: 'customer', select: 'identity contact' },
             match: { company: credentials.company._id },
           }],
         },
@@ -472,7 +465,6 @@ describe('exportHelpers', () => {
         '',
         '',
         '',
-        'Inactif',
         '01/02/2019',
       ]
     );
@@ -485,11 +477,7 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: {
-              path: 'customer',
-              select: 'identity contact',
-              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-            },
+            populate: { path: 'customer', select: 'identity contact' },
             match: { company: credentials.company._id },
           }],
         },
@@ -505,7 +493,6 @@ describe('exportHelpers', () => {
       customers: {
         customer: {
           _id: new ObjectID(),
-          firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
           identity: { title: 'mr', lastname: 'Patate' },
           local: { phone: '' },
           contact: {
@@ -540,7 +527,6 @@ describe('exportHelpers', () => {
       '37 rue de Ponthieu',
       '75008',
       'Paris',
-      'Actif',
       '',
     ]);
     SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
@@ -552,11 +538,7 @@ describe('exportHelpers', () => {
           query: 'populate',
           args: [{
             path: 'customers',
-            populate: {
-              path: 'customer',
-              select: 'identity contact',
-              populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
-            },
+            populate: { path: 'customer', select: 'identity contact' },
             match: { company: credentials.company._id },
           }],
         },

@@ -55,6 +55,7 @@ describe('GET /helpers', () => {
 
   describe('Other roles', () => {
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },

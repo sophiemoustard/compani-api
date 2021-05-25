@@ -9,15 +9,10 @@ const { checkQuestionnaireAnswersList } = require('./utils');
 exports.authorizeAddActivityHistory = async (req) => {
   const { user: userId, activity: activityId, questionnaireAnswersList } = req.payload;
 
-  const activity = await Activity
-    .findOne({ _id: activityId })
-    .populate({
-      path: 'steps',
-      select: '_id -activities',
-      populate: { path: 'subProgram', select: '_id -steps' },
-    })
+  const activity = await Activity.findOne({ _id: activityId })
+    .populate({ path: 'steps', select: '_id -activities', populate: { path: 'subProgram', select: '_id -steps' } })
     .lean();
-  const user = await User.findOne({ _id: userId }).lean();
+  const user = await User.countDocuments({ _id: userId });
 
   if (!activity || !user) throw Boom.notFound();
 

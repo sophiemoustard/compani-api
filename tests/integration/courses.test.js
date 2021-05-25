@@ -36,6 +36,7 @@ const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
+const NodemailerHelper = require('../../src/helpers/nodemailer');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -1421,6 +1422,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
 
 describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
   let authToken;
+  let sendinBlueTransporter;
+  let sendNotificationToUser;
   const intraCourseIdFromAuthCompany = coursesList[0]._id;
   const intraCourseIdFromOtherCompany = coursesList[1]._id;
   const intraCourseIdWithTrainee = coursesList[2]._id;
@@ -1428,15 +1431,20 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
 
   beforeEach(populateDB);
 
+  beforeEach(() => {
+    sendinBlueTransporter = sinon.stub(NodemailerHelper, 'sendinBlueTransporter')
+      .returns({ sendMail: sinon.stub().returns('emailSent') });
+    sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
+  });
+  afterEach(() => {
+    sendinBlueTransporter.restore();
+    sendNotificationToUser.restore();
+  });
+
   describe('intra', () => {
     describe('VENDOR_ADMIN', () => {
-      let sendNotificationToUser;
       beforeEach(async () => {
         authToken = await getToken('vendor_admin');
-        sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
-      });
-      afterEach(() => {
-        sendNotificationToUser.restore();
       });
 
       it('should add existing user to course trainees', async () => {
@@ -1453,7 +1461,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
 
         const courseHistory = await CourseHistory.countDocuments({
           course: intraCourseIdFromAuthCompany,
@@ -1500,7 +1507,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         expect(newUser.serialNumber).toBeDefined();
         expect(newUser.role).toBeUndefined();
         expect(newUser.origin).toEqual(WEBAPP);
-        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([newUser._id]));
 
         const courseHistory = await CourseHistory.countDocuments({
           course: intraCourseIdFromAuthCompany,
@@ -1508,6 +1514,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           action: TRAINEE_ADDITION,
         });
         expect(courseHistory).toEqual(1);
+        sinon.assert.calledWithExactly(sendinBlueTransporter);
       });
 
       it('should add user to course trainees, and update user by adding his company', async () => {
@@ -1524,7 +1531,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
           .lean({ autopopulate: true });
         expect(updatedUser).toBeDefined();
         expect(updatedUser.company).toBeDefined();
-        expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([updatedUser._id]));
       });
 
       it('should return a 409 error if user is not from the course company', async () => {
@@ -1663,6 +1669,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         });
 
         expect(response.statusCode).toBe(200);
+        sinon.assert.calledWithExactly(sendinBlueTransporter);
       });
     });
   });
@@ -1683,7 +1690,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([auxiliary._id]));
     });
 
     it('should return a 400 error if trainee exist, has no company, and missing company parameter', async () => {

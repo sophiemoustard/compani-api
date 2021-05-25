@@ -44,7 +44,7 @@ describe('list', () => {
 
     const result = await CustomerPartnersHelper.list(customer, credentials);
 
-    expect(result).toMatchObject(customerPartners.map(customerPartner => customerPartner.partner));
+    expect(result).toMatchObject(customerPartners);
     SinonMongoose.calledWithExactly(
       find,
       [
@@ -60,5 +60,81 @@ describe('list', () => {
         { query: 'lean' },
       ]
     );
+  });
+});
+
+describe('update', () => {
+  let findOneAndUpdate;
+  let updateOne;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(CustomerPartner, 'findOneAndUpdate');
+    updateOne = sinon.stub(CustomerPartner, 'updateOne');
+  });
+  afterEach(() => {
+    findOneAndUpdate.restore();
+    updateOne.restore();
+  });
+
+  it('should update the prescriber partner', async () => {
+    const customerPartnerId = new ObjectID();
+    const customerPartner = { _id: customerPartnerId, customer: new ObjectID() };
+
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customerPartner], ['lean']));
+
+    await CustomerPartnersHelper.update(customerPartnerId, { prescriber: true });
+
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerPartnerId }, { $set: { prescriber: true } }, { fields: { customer: 1 } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: { $ne: customerPartnerId }, customer: customerPartner.customer, prescriber: true },
+      { $set: { prescriber: false } }
+    );
+  });
+  it('should remove the prescriber partner', async () => {
+    const customerPartnerId = new ObjectID();
+    const customerPartner = { _id: customerPartnerId, customer: new ObjectID() };
+
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customerPartner], ['lean']));
+
+    await CustomerPartnersHelper.update(customerPartnerId, { prescriber: false });
+
+    sinon.assert.notCalled(updateOne);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdate,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerPartnerId }, { $set: { prescriber: false } }, { fields: { customer: 1 } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('remove', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(CustomerPartner, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should delete a customer partner', async () => {
+    const customerPartnerId = new ObjectID();
+
+    await CustomerPartnersHelper.remove(customerPartnerId);
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerPartnerId });
   });
 });

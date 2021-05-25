@@ -3,7 +3,7 @@ const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { populateDBForAuthentication, authCompany, rolesList, userList, otherCompany } = require('./authenticationSeed');
-const { COACH, WEBAPP } = require('../../../src/helpers/constants.js');
+const { COACH, WEBAPP } = require('../../../src/helpers/constants');
 const { vendorAdmin } = require('../../seed/userSeed');
 
 const coachFromAuthCompany = userList
