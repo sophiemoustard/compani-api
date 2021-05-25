@@ -108,7 +108,7 @@ exports.getCourseTrainee = async (req) => {
     if (trainee) {
       if (course.type === INTRA) {
         const traineeCompany = trainee.company ? trainee.company._id.toHexString() : null;
-        const conflictBetweenCompanies = course.company._id.toHexString() !== traineeCompany;
+        const conflictBetweenCompanies = !UtilsHelper.areObjectIdsEquals(course.company._id, traineeCompany);
         if (traineeCompany && conflictBetweenCompanies) {
           throw Boom.conflict(translate[language].courseTraineeNotFromCourseCompany);
         }
@@ -117,11 +117,11 @@ exports.getCourseTrainee = async (req) => {
         if (missingPayloadCompany) throw Boom.badRequest();
       }
 
-      const traineeAlreadyRegistered = course.trainees.some(t => t.toHexString() === trainee._id.toHexString());
+      const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, trainee._id));
       if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
     } else {
-      const missingFields = !payload.company ||
-        ['local.email', 'identity.lastname', 'contact.phone'].some(key => !get(payload, key));
+      const missingFields = ['company', 'local.email', 'identity.lastname', 'contact.phone']
+        .some(key => !get(payload, key));
       if (missingFields) throw Boom.badRequest();
     }
 

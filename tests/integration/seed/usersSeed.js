@@ -5,6 +5,7 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const UserCompany = require('../../../src/models/UserCompany');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
@@ -291,13 +292,14 @@ const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id
 const isExistingRole = (roleId, roleName) => roleId === rolesList.find(r => r.name === roleName)._id;
 
 const populateDB = async () => {
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Contract.deleteMany({});
-  await Establishment.deleteMany({});
-  await Course.deleteMany({});
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Contract.deleteMany();
+  await Establishment.deleteMany();
+  await Course.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await User.create([
