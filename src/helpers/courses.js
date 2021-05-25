@@ -336,11 +336,11 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .lean();
 
 exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
-  const addedTrainee = trainee || await UsersHelper.createUser({ ...payload, origin: WEBAPP });
+  const addedTrainee = trainee || await UsersHelper.createUser({ ...payload, origin: WEBAPP }, credentials);
 
   if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
 
-  await Course.updateOne({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } }, { new: true });
+  await Course.updateOne({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } });
 
   const promises = [
     CourseHistoriesHelper.createHistoryOnTraineeAddition(

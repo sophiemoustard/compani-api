@@ -101,7 +101,7 @@ exports.authorizeCourseGetByTrainee = async (req) => {
 exports.getCourseTrainee = async (req) => {
   try {
     const { payload } = req;
-    const course = await Course.findOne({ _id: req.params._id }).lean();
+    const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1 }).lean();
     if (!course) throw Boom.notFound();
 
     const trainee = await User.findOne({ 'local.email': payload.local.email }).lean();
@@ -120,8 +120,8 @@ exports.getCourseTrainee = async (req) => {
       const traineeAlreadyRegistered = course.trainees.some(t => t.toHexString() === trainee._id.toHexString());
       if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
     } else {
-      const missingFields = !payload.company || !get(payload, 'local.email') || !get(payload, 'identity.lastname') ||
-        !get(req.payload, 'contact.phone');
+      const missingFields = !payload.company ||
+        ['local.email', 'identity.lastname', 'contact.phone'].some(key => !get(payload, key));
       if (missingFields) throw Boom.badRequest();
     }
 
