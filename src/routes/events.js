@@ -25,6 +25,8 @@ const {
   OTHER,
   WORK_ACCIDENT,
   MANUAL_TIME_STAMPING_REASONS,
+  CUSTOMER,
+  AUXILIARY,
 } = require('../helpers/constants');
 const {
   EVENT_TYPES,
@@ -99,8 +101,8 @@ exports.plugin = {
             auxiliary: objectIdOrArray,
             sector: objectIdOrArray,
             customer: objectIdOrArray,
-            type: Joi.string(),
-            groupBy: Joi.string(),
+            type: Joi.string().valid(...EVENT_TYPES),
+            groupBy: Joi.string().valid(CUSTOMER, AUXILIARY),
           }),
         },
         pre: [{ method: authorizeEventGet }],
