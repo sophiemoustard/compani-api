@@ -9,6 +9,7 @@ const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const UserCompany = require('../models/UserCompany');
 const Company = require('../models/Company');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
@@ -165,8 +166,17 @@ exports.createAndSaveFile = async (params, payload) => {
   return uploadedFile;
 };
 
+const createUserCompany = async (payload, company) => {
+  const user = await User.create({ ...payload, company });
+  await UserCompany.create({ user: user._id, company });
+
+  return user;
+};
+
 /**
- * 1st case : User creates his account => no credentials => handle payload as given
+ * 1st case : No role / no company => handle payload as given
+ *  - User creates his account
+ *  - Vendor admin creates program tester
  * 2nd case : Client role creates user for his organization => set company with the one in credentials
  * + role (if needed)
  *  - if sector is given => add sector history (for auxiliary and planning referent)
@@ -179,13 +189,14 @@ exports.createUser = async (userPayload, credentials) => {
   if (!credentials) return User.create(payload);
 
   const companyId = payload.company || get(credentials, 'company._id');
-  if (!userPayload.role) return User.create({ ...payload, company: companyId });
+  if (!userPayload.role) return createUserCompany(payload, companyId);
 
   const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
   if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
-  const user = await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId });
+
+  const user = await createUserCompany({ ...payload, role: { [role.interface]: role._id } }, companyId);
 
   if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
 

@@ -9,6 +9,7 @@ const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
+const UserCompany = require('../../src/models/UserCompany');
 const SectorHistory = require('../../src/models/SectorHistory');
 const {
   HELPER,
@@ -142,10 +143,16 @@ describe('POST /users', () => {
       expect(res.result.data.user.local.email).toBe(payload.local.email);
       expect(res.result.data.user.serialNumber).toEqual(expect.any(String));
 
-      const userSectorHistory = await SectorHistory
-        .findOne({ auxiliary: res.result.data.user._id, sector: userSectors[0]._id, startDate: { $exists: false } })
-        .lean();
-      expect(userSectorHistory).toBeDefined();
+      const userId = res.result.data.user._id;
+      const userSectorHistory = await SectorHistory.countDocuments({
+        auxiliary: userId,
+        sector: userSectors[0]._id,
+        startDate: { $exists: false },
+      });
+      expect(userSectorHistory).toEqual(1);
+
+      const userCompanyCount = await UserCompany.countDocuments({ user: userId, company: authCompany._id });
+      expect(userCompanyCount).toEqual(1);
     });
 
     it('should not create user if password in payload', async () => {

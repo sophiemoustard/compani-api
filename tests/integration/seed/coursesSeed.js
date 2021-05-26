@@ -8,6 +8,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
+const UserCompany = require('../../../src/models/UserCompany');
 const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
@@ -299,16 +300,17 @@ const slots = [
 ];
 
 const populateDB = async () => {
-  await Course.deleteMany({});
-  await SubProgram.deleteMany({});
-  await Program.deleteMany({});
-  await User.deleteMany({});
-  await CourseSlot.deleteMany({});
-  await CourseSmsHistory.deleteMany({});
-  await Step.deleteMany({});
-  await Activity.deleteMany({});
-  await Card.deleteMany({});
-  await ActivityHistory.deleteMany({});
+  await Course.deleteMany();
+  await SubProgram.deleteMany();
+  await Program.deleteMany();
+  await User.deleteMany();
+  await CourseSlot.deleteMany();
+  await CourseSmsHistory.deleteMany();
+  await Step.deleteMany();
+  await Activity.deleteMany();
+  await Card.deleteMany();
+  await ActivityHistory.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
