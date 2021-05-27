@@ -34,28 +34,25 @@ exports.formatTable = (items, options) => {
   return out;
 };
 
-exports.generatePdf = async (data, templateUrl, options = { format: 'A4', printBackground: true }) => {
-  let browser;
-  try {
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    const page = await browser.newPage();
-    const templatePath = path.resolve('./', templateUrl);
-    const content = await exports.readFile(templatePath, 'utf8');
-    handlebars.registerHelper('table', exports.formatTable);
-    handlebars.registerHelper('times', function (n, block) {
-      let accum = '';
-      for (let i = 0; i < n; ++i) accum += block.fn(this);
-      return accum;
-    });
-    const template = handlebars.compile(content);
-    const html = template(data);
-    await page.setContent(html);
-    const pdf = await page.pdf(options);
-    await browser.close();
+const browserPromise = puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
 
-    return pdf;
-  } catch (e) {
-    if (browser) await browser.close();
-    throw e;
-  }
+exports.generatePdf = async (data, templateUrl, options = { format: 'A4', printBackground: true }) => {
+  const browser = await browserPromise;
+  const page = await browser.newPage();
+  const templatePath = path.resolve('./', templateUrl);
+  const content = await exports.readFile(templatePath, 'utf8');
+
+  handlebars.registerHelper('table', exports.formatTable);
+  handlebars.registerHelper('times', function (n, block) {
+    let accum = '';
+    for (let i = 0; i < n; ++i) accum += block.fn(this);
+    return accum;
+  });
+
+  const template = handlebars.compile(content);
+  const html = template(data);
+  await page.setContent(html);
+  const pdf = await page.pdf(options);
+
+  return pdf;
 };
