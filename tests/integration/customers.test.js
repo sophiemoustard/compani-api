@@ -153,6 +153,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       const areAllCustomersFromCompany = res.result.data.customers
         .every(customer => customer.company.toHexString() === authCompany._id.toHexString());
@@ -190,6 +191,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       const areAllCustomersFromCompany = res.result.data.customers
         .every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
@@ -205,6 +207,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers/first-intervention',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(Object.values(res.result.data.customers)).toHaveLength(customers.length);
@@ -240,6 +243,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers/first-intervention',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       expect(Object.values(res.result.data.customers)).toHaveLength(1);
       expect(Object.values(res.result.data.customers).every(cus => has(cus, 'firstIntervention'))).toBeTruthy();
@@ -253,6 +257,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers/billed-events',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
       expect(res.result.data.customers[0].subscriptions).toBeDefined();
@@ -290,6 +295,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers/billed-events',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
       const areAllCustomersFromCompany = res.result.data.customers.every(async (customer) => {
@@ -307,6 +313,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers/subscriptions',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
       expect(res.result.data.customers.length).toEqual(7);
@@ -402,6 +409,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: `/customers/${customerId.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
         _id: customerId,
@@ -443,6 +451,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: `/customers/${id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(404);
     });
 
@@ -452,6 +461,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: `/customers/${otherCompanyCustomer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(403);
     });
 
@@ -504,6 +514,7 @@ describe('CUSTOMERS ROUTES', () => {
         payload: updatePayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toEqual(expect.objectContaining({
         identity: expect.objectContaining({
@@ -598,6 +609,7 @@ describe('CUSTOMERS ROUTES', () => {
         payload: { stoppedAt: new Date(), stopReason: DEATH },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
     });
 
@@ -608,6 +620,7 @@ describe('CUSTOMERS ROUTES', () => {
         payload: updatePayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(404);
     });
 
@@ -620,6 +633,7 @@ describe('CUSTOMERS ROUTES', () => {
         payload: { contact: { phone: '123dcsnejnf' } },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(400);
     });
 
@@ -632,6 +646,20 @@ describe('CUSTOMERS ROUTES', () => {
         payload: { stopReason: DEATH },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 400 error if wrong stop reason', async () => {
+      const customer = customersList[0];
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        payload: { stoppedAt: new Date(), stopReason: 'test' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
       expect(res.statusCode).toBe(400);
     });
 
@@ -644,10 +672,11 @@ describe('CUSTOMERS ROUTES', () => {
         payload: { stoppedAt: new Date(), stopReason: DEATH },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(403);
     });
 
-    it('should return 403 if stoppedDate before activatedDate', async () => {
+    it('should return 403 if stoppedDate before createdAt', async () => {
       const customer = customersList[10];
 
       const res = await app.inject({
@@ -656,6 +685,7 @@ describe('CUSTOMERS ROUTES', () => {
         payload: { stoppedAt: new Date('2021-05-23'), stopReason: DEATH },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(403);
     });
 
@@ -674,6 +704,7 @@ describe('CUSTOMERS ROUTES', () => {
             },
           },
         });
+
         expect(res.statusCode).toBe(200);
       });
 
@@ -706,6 +737,7 @@ describe('CUSTOMERS ROUTES', () => {
         payload: updatePayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(403);
     });
   });
@@ -743,6 +775,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: `/customers/${new ObjectID().toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(404);
     });
 
@@ -752,6 +785,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: `/customers/${otherCompanyCustomer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(404);
     });
 
@@ -1357,6 +1391,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
+
       expect(res.statusCode).toBe(200);
       sinon.assert.calledOnce(createDocumentStub);
       sinon.assert.calledOnce(generateDocxStub);
@@ -1378,6 +1413,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
+
       expect(res.statusCode).toBe(403);
     });
 
@@ -1504,6 +1540,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(400);
     });
 
@@ -1525,6 +1562,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(403);
     });
 

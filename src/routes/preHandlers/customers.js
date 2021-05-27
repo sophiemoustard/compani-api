@@ -50,9 +50,10 @@ exports.authorizeCustomerUpdate = async (req) => {
     }
 
     if (req.payload.stoppedAt) {
-      const customer = await Customer.findOne({ _id: req.params._id }, { stoppedAt: 1, stopReason: 1, createdAt: 1 })
-        .lean();
-      if (customer.stoppedAt || customer.createdAt > req.payload.stoppedAt) return Boom.forbidden();
+      const customer = await Customer.countDocuments(
+        { _id: req.params._id, $or: [{ stoppedAt: { $exists: true } }, { createdAt: { $gt: req.payload.stoppedAt } }] }
+      );
+      if (customer) return Boom.forbidden();
     }
   }
 
