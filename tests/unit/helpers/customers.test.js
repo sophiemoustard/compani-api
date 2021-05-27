@@ -21,7 +21,6 @@ const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SinonMongoose = require('../sinonMongoose');
-const { DEATH } = require('../../../src/helpers/constants');
 
 describe('getCustomersBySector', () => {
   let getCustomersFromEvent;
@@ -761,35 +760,6 @@ describe('updateCustomer', () => {
         {
           query: 'findOneAndUpdate',
           args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should update status', async () => {
-    const customerId = new ObjectID();
-    const payload = { stoppedAt: new Date(), stopReason: DEATH };
-    const customerResult = { _id: customerId, stoppedAt: new Date(), stopReason: DEATH };
-
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
-
-    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
-
-    expect(result).toBe(customerResult);
-    sinon.assert.notCalled(formatPaymentPayload);
-    sinon.assert.notCalled(updateCustomerEvents);
-    sinon.assert.notCalled(updateCustomerReferent);
-    SinonMongoose.calledWithExactly(
-      findOneAndUpdateCustomer,
-      [
-        {
-          query: 'findOneAndUpdate',
-          args: [
-            { _id: customerId },
-            { $set: { stoppedAt: new Date(), stopReason: DEATH } },
-            { new: true },
-          ],
         },
         { query: 'lean' },
       ]

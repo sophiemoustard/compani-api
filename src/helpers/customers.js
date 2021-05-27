@@ -151,10 +151,11 @@ exports.updateCustomerEvents = async (customerId, payload) => {
   }
 };
 
-exports.formatPayload = async (customerId, customerPayload, company) => {
+exports.formatPayloadAndUpdateEvents = async (customerId, customerPayload, company) => {
   if (has(customerPayload, 'payment.iban')) {
     return exports.formatPaymentPayload(customerId, customerPayload, company);
   }
+
   if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
     await exports.updateCustomerEvents(customerId, customerPayload);
   }
@@ -170,7 +171,7 @@ exports.updateCustomer = async (customerId, customerPayload, credentials) => {
     return Customer.findOne({ _id: customerId }).lean();
   }
 
-  const payload = await exports.formatPayload(customerId, customerPayload, company);
+  const payload = await exports.formatPayloadAndUpdateEvents(customerId, customerPayload, company);
 
   return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
