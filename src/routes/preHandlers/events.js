@@ -28,7 +28,10 @@ const { language } = translate;
 
 exports.getEvent = async (req) => {
   try {
-    const event = await Event.findById(req.params._id).lean();
+    const event = await Event.findById(req.params._id)
+      .populate({ path: 'startDateTimeStampedCount', options: { requestingOwnInfos: true } })
+      .lean({ virtuals: true });
+
     if (!event) throw Boom.notFound(translate[language].eventNotFound);
 
     return event;
@@ -102,7 +105,7 @@ exports.authorizeEventDeletion = async (req) => {
   }
 
   const companyId = get(req, 'auth.credentials.company._id', null);
-  if (event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
 
   return null;
 };
@@ -117,9 +120,21 @@ exports.authorizeEventCreation = async (req) => {
   return exports.checkEventCreationOrUpdate(req);
 };
 
+const dateDiff = (firstDate, secondDate) => Math.abs(new Date(firstDate) - new Date(secondDate));
+
 exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
   const event = cloneDeep(req.pre.event);
+
+  if (event.startDateTimeStampedCount) {
+    if (
+      dateDiff(event.startDate, req.payload.startDate) !== 0 ||
+      !UtilsHelper.areObjectIdsEquals(event.auxiliary, req.payload.auxiliary) ||
+      event.isCancelled !== req.payload.isCancelled
+    ) {
+      throw Boom.forbidden();
+    }
+  }
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
   if (isAuxiliary) {
