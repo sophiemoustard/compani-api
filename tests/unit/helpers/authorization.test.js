@@ -43,7 +43,8 @@ describe('validate', () => {
     SinonMongoose.calledWithExactly(
       findById,
       [
-        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'findById', args: [userId, '_id identity role local'] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -133,7 +134,8 @@ describe('validate', () => {
     SinonMongoose.calledWithExactly(
       findById,
       [
-        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'findById', args: [userId, '_id identity role local'] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -174,7 +176,8 @@ describe('validate', () => {
     SinonMongoose.calledWithExactly(
       findById,
       [
-        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'findById', args: [userId, '_id identity role local'] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -213,7 +216,8 @@ describe('validate', () => {
     SinonMongoose.calledWithExactly(
       findById,
       [
-        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'findById', args: [userId, '_id identity role local'] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -289,7 +293,8 @@ describe('validate', () => {
     SinonMongoose.calledWithExactly(
       findById,
       [
-        { query: 'findById', args: [userId, '_id identity role company local'] },
+        { query: 'findById', args: [userId, '_id identity role local'] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
