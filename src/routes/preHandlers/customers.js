@@ -32,7 +32,7 @@ exports.validateCustomerCompany = async (params, payload, companyId) => {
   if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 };
 
-exports.checkAuthorization = async (req) => {
+exports.authorizeCustomerUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   await exports.validateCustomerCompany(req.params, req.payload, companyId);
 
@@ -48,12 +48,17 @@ exports.checkAuthorization = async (req) => {
         .lean();
       if (!thirdPartypayer) return Boom.forbidden();
     }
+
+    if (req.payload.stoppedAt) {
+      const customer = await Customer.countDocuments(
+        { _id: req.params._id, $or: [{ stoppedAt: { $exists: true } }, { createdAt: { $gt: req.payload.stoppedAt } }] }
+      );
+      if (customer) return Boom.forbidden();
+    }
   }
 
   return null;
 };
-
-exports.authorizeCustomerUpdate = async req => exports.checkAuthorization(req);
 
 exports.authorizeSubscriptionCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
