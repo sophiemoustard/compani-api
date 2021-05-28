@@ -130,11 +130,10 @@ exports.userExists = async (email, credentials) => {
   if (!credentials) return { exists: true, user: {} };
 
   const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-  const targetUserHasCompany = !!targetUser.company;
   const sameCompany = !!targetUser.company &&
     UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), targetUser.company);
 
-  return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
+  return loggedUserhasVendorRole || sameCompany || !targetUser.company
     ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
     : { exists: !!targetUser, user: {} };
 };
