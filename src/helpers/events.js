@@ -275,7 +275,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
       populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
     })
     .populate({ path: 'customer', select: 'identity subscriptions contact' })
-    .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
+    .populate({ path: 'internalHour', match: { company: companyId } })
     .lean();
 
   if (updatedEvent.type === ABSENCE) {
