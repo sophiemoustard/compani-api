@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const {
   INTERNAL_HOUR,
   ABSENCE,
@@ -54,6 +55,7 @@ const EVENT_CANCELLATION_CONDITIONS = [INVOICED_AND_PAID, INVOICED_AND_NOT_PAID,
 const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK, EVERY_TWO_WEEKS];
 
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { TIMESTAMPING_ACTIONS } = require('./EventHistory');
 
 const EventSchema = mongoose.Schema(
   {
@@ -116,8 +118,21 @@ const EventSchema = mongoose.Schema(
 
 EventSchema.virtual('histories', { ref: 'EventHistory', localField: '_id', foreignField: 'event.eventId' });
 
+EventSchema.virtual(
+  'startDateTimeStampedCount',
+  {
+    ref: 'EventHistory',
+    localField: '_id',
+    foreignField: 'event.eventId',
+    options: { match: { action: { $in: TIMESTAMPING_ACTIONS } } },
+    count: true,
+  }
+);
+
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
+
+EventSchema.plugin(mongooseLeanVirtuals);
 
 module.exports = mongoose.model('Event', EventSchema);
 module.exports.EVENT_TYPES = EVENT_TYPES;
