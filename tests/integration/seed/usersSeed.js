@@ -160,7 +160,7 @@ const usersSeedList = [
     local: { email: 'kitty@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     company: authCompany._id,
-    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+    role: { client: rolesList.find(role => role.name === 'coach')._id },
     inactivityDate: '2018-11-01T12:52:27.461Z',
     origin: WEBAPP,
   },

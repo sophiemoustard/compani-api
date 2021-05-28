@@ -98,6 +98,7 @@ exports.getUser = async (userId, credentials) => {
 
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -129,12 +130,10 @@ exports.userExists = async (email, credentials) => {
   if (!credentials) return { exists: true, user: {} };
 
   const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-  const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
-  const targetUserHasCompany = !!targetUser.company;
-  const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
-  const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
+  const sameCompany = !!targetUser.company &&
+    UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), targetUser.company);
 
-  return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
+  return loggedUserhasVendorRole || sameCompany || !targetUser.company
     ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
     : { exists: !!targetUser, user: {} };
 };
