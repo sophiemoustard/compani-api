@@ -29,7 +29,7 @@ exports.generatePDF = async (data) => {
 
   const printer = new PdfPrinter(fonts);
   const image = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png');
-  const image2 = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/compani_text_orange.png');
+  const compani = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/compani_text_orange.png');
   const image3 = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/aux-prisededecision.png');
   const image4 = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/tsb_signature.png');
 
@@ -37,81 +37,49 @@ exports.generatePDF = async (data) => {
   trainees.forEach((trainee) => {
     const body = [
       [
-        {
-          text: 'Créneaux',
-          bold: true,
-          fillColor: '#7B0046',
-          color: 'white',
-        },
-        {
-          text: 'Durée',
-          bold: true,
-          fillColor: '#7B0046',
-          color: 'white',
-        },
-        {
-          text: 'Signature stagiaire',
-          bold: true,
-          fillColor: '#7B0046',
-          color: 'white',
-        },
-        {
-          text: 'Signature formateur',
-          bold: true,
-          fillColor: '#7B0046',
-          color: 'white',
-        },
+        { text: 'Créneaux', bold: true, fillColor: '#7B0046', color: 'white', alignment: 'center' },
+        { text: 'Durée', bold: true, fillColor: '#7B0046', color: 'white', alignment: 'center' },
+        { text: 'Signature stagiaire', bold: true, fillColor: '#7B0046', color: 'white', alignment: 'center' },
+        { text: 'Signature formateur', bold: true, fillColor: '#7B0046', color: 'white', alignment: 'center' },
       ],
     ];
+
     trainee.course.slots.forEach((slot) => {
       body.push([
         {
           stack: [
-            {
-              text: `${slot.date}`,
-              maxWidth: 151,
-            },
-            {
-              text: `${slot.address}`,
-              maxWidth: 151,
-            },
+            { text: `${slot.date}`, maxWidth: 151, fontSize: 12 },
+            { text: `${slot.address}`, maxWidth: 151, fontSize: 10 },
           ],
-          maxWidth: 151,
         },
         {
           stack: [
-            {
-              text: `${slot.duration}`,
-              maxWidth: 75,
-            },
-            {
-              text: `${slot.startHour} - ${slot.endHour}`,
-              maxWidth: 75,
-            },
+            { text: `${slot.duration}`, maxWidth: 75, fontSize: 12 },
+            { text: `${slot.startHour} - ${slot.endHour}`, maxWidth: 75, fontSize: 10 },
           ],
-          maxWidth: 75,
         },
-        {
-          text: '',
-        },
-        {
-          text: '',
-        },
+        { text: '' },
+        { text: '' },
       ]);
     });
 
     document.content.push(
-      { image: image2, width: 200, height: 40 },
       {
         columns: [
           { image, width: 80 },
-          {
-            text: `Émargements - ${trainee.traineeName}`,
-            fontSize: 18,
-            bold: true,
-            marginBottom: 5,
-          },
+          [
+            { image: compani, width: 168, height: 36, alignment: 'right' },
+            {
+              text: `Émargements - ${trainee.traineeName}`,
+              fontSize: 16,
+              bold: true,
+              margin: 20,
+              alignment: 'center',
+              color: '#7B0046',
+            },
+          ],
         ],
+        marginBottom: 20,
       },
       {
         columns: [
@@ -122,21 +90,13 @@ exports.generatePDF = async (data) => {
             { text: `Structure : ${trainee.company}` },
             { text: `Formateur : ${trainee.course.trainer}` },
           ],
-          { image: image3, width: 60 },
+          { image: image3, width: 72 },
         ],
+        marginBottom: 20,
       },
-      {
-        table: {
-          body,
-        },
-        marginBottom: 5,
-      },
+      { table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 20 },
       { text: 'Signature et tampon de l\'organisme de formation :' },
-      {
-        image: image4,
-        width: 110,
-        pageBreak: 'after',
-      }
+      { image: image4, width: 112, pageBreak: 'after', marginTop: 8 }
     );
   });
 
