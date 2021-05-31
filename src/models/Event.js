@@ -127,7 +127,7 @@ EventSchema.virtual(
     options: {
       match: {
         action: { $in: TIMESTAMPING_ACTIONS },
-        //        'update.startHour': { $exists: true },
+        'update.startHour': { $exists: true },
       },
     },
     count: true,
