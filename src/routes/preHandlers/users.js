@@ -100,7 +100,7 @@ const checkRole = async (userFromDB, payload) => {
 
 const checkCustomer = async (userCompany, payload) => {
   const role = await Role.findOne({ name: HELPER }).lean();
-  if (!UtilsHelper.areObjectIdsEquals(get(payload, 'role', null), role._id)) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(payload.role, role._id)) throw Boom.forbidden();
   const customerCount = await Customer.countDocuments({ _id: payload.customer, company: userCompany });
 
   if (!customerCount) throw Boom.forbidden();
