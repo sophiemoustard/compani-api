@@ -452,7 +452,7 @@ exports.generateAttendanceSheets = async (courseId) => {
 
   const pdf = course.type === INTRA
     ? await PdfHelper.generatePdf(exports.formatIntraCourseForPdf(course), './src/data/intraAttendanceSheet.html')
-    : await generatePDF();
+    : await generatePDF(exports.formatInterCourseForPdf(course));
 
   return { fileName: 'emargement.pdf', pdf };
 };
