@@ -1,7 +1,7 @@
-const http = require('http');
-// const axios = require('axios');
+const axios = require('axios');
 const PdfPrinter = require('pdfmake');
 const font = require('pdfmake/build/vfs_fonts');
+const getStream = require('get-stream');
 
 // PDFMake requires Roboto
 const fonts = {
@@ -12,22 +12,26 @@ const fonts = {
 };
 
 // function to get base64 from url for images
-// const getBase64ImageFromURL = async (url) => {
-//   try {
-//     const image = await axios.get(url, { responseType: 'arraybuffer' });
-//     const raw = Buffer.from(image.data).toString('base64');
+const getBase64ImageFromURL = async (url) => {
+  try {
+    const image = await axios.get(url, { responseType: 'arraybuffer' });
+    const raw = Buffer.from(image.data).toString('base64');
 
-//     return `data:${image.headers['content-type']};base64,${raw}`;
-//   } catch (e) {
-//     console.error(e);
-//     return null;
-//   }
-// };
+    return `data:${image.headers['content-type']};base64,${raw}`;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+};
 
 exports.generatePDF = async (data) => {
   const { trainees } = data;
 
   const printer = new PdfPrinter(fonts);
+  const image = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png');
+  const image2 = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/compani_text_orange.png');
+  const image3 = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/aux-prisededecision.png');
+  const image4 = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/tsb_signature.png');
 
   const document = { content: [], styles: {} };
   trainees.forEach((trainee) => {
@@ -97,33 +101,46 @@ exports.generatePDF = async (data) => {
     });
 
     document.content.push(
+      { image: image2, width: 200, height: 40 },
       {
-        text: `Émargements - ${trainee.traineeName}`,
-        fontSize: 18,
-        bold: true,
-        marginBottom: 5,
+        columns: [
+          { image, width: 80 },
+          {
+            text: `Émargements - ${trainee.traineeName}`,
+            fontSize: 18,
+            bold: true,
+            marginBottom: 5,
+          },
+        ],
       },
-      { text: `Nom de la formation : ${trainee.course.name}`, bold: true },
-      { text: `Dates : du ${trainee.course.firstDate} au ${trainee.course.lastDate}` },
-      { text: `Durée : ${trainee.course.duration}` },
-      { text: `Structure : ${trainee.company}` },
-      { text: `Formateur : ${trainee.course.trainer}` },
+      {
+        columns: [
+          [
+            { text: `Nom de la formation : ${trainee.course.name}`, bold: true },
+            { text: `Dates : du ${trainee.course.firstDate} au ${trainee.course.lastDate}` },
+            { text: `Durée : ${trainee.course.duration}` },
+            { text: `Structure : ${trainee.company}` },
+            { text: `Formateur : ${trainee.course.trainer}` },
+          ],
+          { image: image3, width: 60 },
+        ],
+      },
       {
         table: {
           body,
         },
         marginBottom: 5,
       },
+      { text: 'Signature et tampon de l\'organisme de formation :' },
       {
-        text: 'Signature et tampon de l\'organisme de formation :',
+        image: image4,
+        width: 110,
         pageBreak: 'after',
       }
     );
   });
 
   const doc = printer.createPdfKitDocument(document);
-  doc.pipe(http.request(process.env.WEBSITE_HOSTNAME));
   doc.end();
-
-  return doc;
+  return getStream.buffer(doc);
 };
