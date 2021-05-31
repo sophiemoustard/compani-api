@@ -9,6 +9,10 @@ const fonts = {
     normal: Buffer.from(font.pdfMake.vfs['Roboto-Regular.ttf'], 'base64'),
     bold: Buffer.from(font.pdfMake.vfs['Roboto-Medium.ttf'], 'base64'),
   },
+  SourceSans: {
+    normal: 'src/data/SourceSansPro-Regular.ttf',
+    bold: 'src/data/SourceSansPro-Bold.ttf',
+  },
 };
 
 // function to get base64 from url for images
@@ -33,7 +37,7 @@ exports.generatePDF = async (data) => {
   const image3 = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/aux-prisededecision.png');
   const image4 = await getBase64ImageFromURL('https://storage.googleapis.com/compani-main/tsb_signature.png');
 
-  const document = { content: [], styles: {} };
+  const document = { content: [], defaultStyle: { font: 'SourceSans', fontSize: 10 }, styles: {} };
   trainees.forEach((trainee) => {
     const body = [
       [
@@ -48,14 +52,14 @@ exports.generatePDF = async (data) => {
       body.push([
         {
           stack: [
-            { text: `${slot.date}`, maxWidth: 151, fontSize: 12 },
-            { text: `${slot.address}`, maxWidth: 151, fontSize: 10 },
+            { text: `${slot.date}`, maxWidth: 151 },
+            { text: `${slot.address}`, maxWidth: 151, fontSize: 8 },
           ],
         },
         {
           stack: [
-            { text: `${slot.duration}`, maxWidth: 75, fontSize: 12 },
-            { text: `${slot.startHour} - ${slot.endHour}`, maxWidth: 75, fontSize: 10 },
+            { text: `${slot.duration}`, maxWidth: 75 },
+            { text: `${slot.startHour} - ${slot.endHour}`, maxWidth: 75, fontSize: 8 },
           ],
         },
         { text: '' },
@@ -66,20 +70,24 @@ exports.generatePDF = async (data) => {
     document.content.push(
       {
         columns: [
-          { image, width: 80 },
+          { image, width: 64 },
           [
-            { image: compani, width: 168, height: 36, alignment: 'right' },
+            { image: compani, width: 132, height: 28, alignment: 'right' },
             {
               text: `Émargements - ${trainee.traineeName}`,
               fontSize: 16,
               bold: true,
-              margin: 20,
-              alignment: 'center',
+              margin: [0, 40, 0, 0],
+              alignment: 'left',
               color: '#7B0046',
             },
           ],
         ],
         marginBottom: 20,
+      },
+      {
+        canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 100, r: 0, color: '#fef4e4' }],
+        absolutePosition: { x: 40, y: 150 },
       },
       {
         columns: [
@@ -90,13 +98,13 @@ exports.generatePDF = async (data) => {
             { text: `Structure : ${trainee.company}` },
             { text: `Formateur : ${trainee.course.trainer}` },
           ],
-          { image: image3, width: 72 },
+          { image: image3, width: 64 },
         ],
-        marginBottom: 20,
+        margin: [15, 0, 20, 15],
       },
-      { table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 20 },
+      { table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 10 },
       { text: 'Signature et tampon de l\'organisme de formation :' },
-      { image: image4, width: 112, pageBreak: 'after', marginTop: 8 }
+      { image: image4, width: 80, pageBreak: 'after', marginTop: 8, alignment: 'right' }
     );
   });
 
