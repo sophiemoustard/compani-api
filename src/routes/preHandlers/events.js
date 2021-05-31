@@ -120,17 +120,15 @@ exports.authorizeEventCreation = async (req) => {
   return exports.checkEventCreationOrUpdate(req);
 };
 
-const dateDiff = (firstDate, secondDate) => Math.abs(new Date(firstDate) - new Date(secondDate));
-
 exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
   const event = cloneDeep(req.pre.event);
 
   if (event.startDateTimeStampedCount) {
     if (
-      dateDiff(event.startDate, req.payload.startDate) !== 0 ||
-      !UtilsHelper.areObjectIdsEquals(event.auxiliary, req.payload.auxiliary) ||
-      event.isCancelled !== req.payload.isCancelled
+      (req.payload.startDate && DatesHelper.dateDiff(event.startDate, req.payload.startDate) !== 0) ||
+      (req.payload.auxiliary && !UtilsHelper.areObjectIdsEquals(event.auxiliary, req.payload.auxiliary)) ||
+      (req.payload.isCancelled && event.isCancelled !== req.payload.isCancelled)
     ) {
       throw Boom.forbidden();
     }
