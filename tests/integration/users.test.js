@@ -1060,6 +1060,8 @@ describe('PUT /users/:id/', () => {
 
     it('should add helper role to user if no company', async () => {
       const role = await Role.findOne({ name: HELPER }).lean();
+      expect(await UserCompany.countDocuments({ user: userList[8]._id })).toBe(0);
+
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[8]._id}`,
@@ -1068,6 +1070,7 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(res.statusCode).toBe(200);
+      expect(await UserCompany.countDocuments({ user: userList[8]._id })).toBe(1);
     });
 
     it('should not add helper role to user if customer is not from the same company as user', async () => {
