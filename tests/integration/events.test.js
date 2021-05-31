@@ -34,6 +34,8 @@ const {
   MATERNITY_LEAVE,
   PARENTAL_LEAVE,
   NEVER,
+  INVOICED_AND_PAID,
+  AUXILIARY_INITIATIVE,
 } = require('../../src/helpers/constants');
 const UtilsHelper = require('../../src/helpers/utils');
 const Repetition = require('../../src/models/Repetition');
@@ -1528,6 +1530,54 @@ describe('PUT /events/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/events/${eventsList[0]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
+    it('should return a 403 event is timeStamped and user tries to update startDate', async () => {
+      const payload = {
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-01-23T12:00:00.000Z',
+        sector: sectors[0]._id.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[23]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
+    it('should return a 403 event is timeStamped and user tries to update auxiliary', async () => {
+      const payload = { auxiliary: new ObjectID() };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[23]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
+    it('should return a 403 event is timeStamped and user tries to update isCancelled', async () => {
+      const payload = {
+        auxiliary: auxiliaries[2]._id,
+        isCancelled: true,
+        cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
+        misc: 'blablabla',
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[23]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
