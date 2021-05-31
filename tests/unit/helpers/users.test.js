@@ -1007,6 +1007,7 @@ describe('updateUser', () => {
   let roleFindById;
   let updateHistoryOnSectorUpdateStub;
   let createHelper;
+  let userCompanyCreate;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
 
@@ -1015,12 +1016,14 @@ describe('updateUser', () => {
     roleFindById = sinon.stub(Role, 'findById');
     updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
     createHelper = sinon.stub(HelpersHelper, 'create');
+    userCompanyCreate = sinon.stub(UserCompany, 'create');
   });
   afterEach(() => {
     userUpdateOne.restore();
     roleFindById.restore();
     updateHistoryOnSectorUpdateStub.restore();
     createHelper.restore();
+    userCompanyCreate.restore();
   });
 
   it('should update a user', async () => {
@@ -1034,6 +1037,7 @@ describe('updateUser', () => {
     );
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+    sinon.assert.notCalled(userCompanyCreate);
   });
 
   it('should update a user without company', async () => {
@@ -1045,6 +1049,7 @@ describe('updateUser', () => {
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+    sinon.assert.notCalled(userCompanyCreate);
   });
 
   it('should update a user and create helper', async () => {
@@ -1069,6 +1074,7 @@ describe('updateUser', () => {
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
+    sinon.assert.notCalled(userCompanyCreate);
   });
 
   it('should update a user and create sector history', async () => {
@@ -1088,6 +1094,7 @@ describe('updateUser', () => {
       credentials.company._id
     );
     sinon.assert.notCalled(roleFindById);
+    sinon.assert.notCalled(userCompanyCreate);
   });
 
   it('should update a user role', async () => {
@@ -1112,6 +1119,23 @@ describe('updateUser', () => {
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+    sinon.assert.notCalled(userCompanyCreate);
+  });
+
+  it('should update a user company', async () => {
+    const payload = { company: new ObjectID() };
+
+    await UsersHelper.updateUser(userId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      userUpdateOne,
+      { _id: userId, company: credentials.company._id },
+      { $set: flat(payload) }
+    );
+    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: payload.company });
+    sinon.assert.notCalled(createHelper);
+    sinon.assert.notCalled(roleFindById);
+    sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
   });
 
   it('should return a 400 error if role does not exists', async () => {
@@ -1131,6 +1155,7 @@ describe('updateUser', () => {
       sinon.assert.notCalled(createHelper);
       sinon.assert.notCalled(userUpdateOne);
       sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
+      sinon.assert.notCalled(userCompanyCreate);
     }
   });
 });
