@@ -107,9 +107,8 @@ exports.getCourseTrainee = async (req) => {
     const trainee = await User.findOne({ 'local.email': payload.local.email }).lean();
     if (trainee) {
       if (course.type === INTRA) {
-        const traineeCompany = trainee.company ? trainee.company._id.toHexString() : null;
-        const conflictBetweenCompanies = !UtilsHelper.areObjectIdsEquals(course.company._id, traineeCompany);
-        if (traineeCompany && conflictBetweenCompanies) {
+        const conflictBetweenCompanies = !UtilsHelper.areObjectIdsEquals(course.company._id, trainee.company);
+        if (trainee.company && conflictBetweenCompanies) {
           throw Boom.conflict(translate[language].courseTraineeNotFromCourseCompany);
         }
       } else if (course.type === INTER_B2B) {
