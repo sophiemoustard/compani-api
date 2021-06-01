@@ -737,107 +737,147 @@ describe('formatDraftBillsForTPP', () => {
 });
 
 describe('getDraftBillsPerSubscription', () => {
-  const events = [
-    { _id: 1, startDate: new Date('2019/02/15').setHours(8), endDate: new Date('2019/02/15').setHours(10) },
-    { _id: 2, startDate: new Date('2019/01/15').setHours(8), endDate: new Date('2019/01/15').setHours(10) },
-  ];
-  const subscription = {
-    versions: [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
-    service: {
-      versions: [{ startDate: new Date('2019/01/01'), vat: 20 }],
-    },
-  };
-  const query = {
-    billingStartDate: new Date('2019/02/01'),
-  };
   let getLastVersion;
   let getMatchingVersion;
-  let getMatchingFunding;
-  let getEventBilling;
-  let formatDraftBillsForCustomer;
-  let formatDraftBillsForTPP;
   let getExclTaxes;
+  let computeBillingInfoForEvents;
   beforeEach(() => {
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
     getMatchingVersion = sinon.stub(UtilsHelper, 'getMatchingVersion');
-    getMatchingFunding = sinon.stub(DraftBillsHelper, 'getMatchingFunding');
-    getEventBilling = sinon.stub(DraftBillsHelper, 'getEventBilling');
-    formatDraftBillsForCustomer = sinon.stub(DraftBillsHelper, 'formatDraftBillsForCustomer');
-    formatDraftBillsForTPP = sinon.stub(DraftBillsHelper, 'formatDraftBillsForTPP');
     getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+    computeBillingInfoForEvents = sinon.stub(DraftBillsHelper, 'computeBillingInfoForEvents');
   });
   afterEach(() => {
     getLastVersion.restore();
     getMatchingVersion.restore();
-    getMatchingFunding.restore();
-    getEventBilling.restore();
-    formatDraftBillsForCustomer.restore();
-    formatDraftBillsForTPP.restore();
     getExclTaxes.restore();
+    computeBillingInfoForEvents.restore();
   });
 
   it('should return draft bill', () => {
-    const fundings = [];
+    const tppId = new ObjectID();
+    const fundings = [{ thirdPartyPayer: { _id: tppId } }];
+    const events = [
+      { _id: 1, startDate: new Date('2019/02/15').setHours(8), endDate: new Date('2019/02/15').setHours(10) },
+    ];
+    const subscription = {
+      versions: [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
+      service: { versions: [{ startDate: new Date('2019/01/01'), vat: 20 }] },
+    };
+
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
-    getEventBilling.returns({ customerPrice: 12 });
-    formatDraftBillsForCustomer.returns({ exclTaxes: 70, inclTaxes: 84 });
     getExclTaxes.returns(70);
+    computeBillingInfoForEvents.returns({
+      customerPrices: { exclTaxes: 35 },
+      thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
+      startDate: moment('2019/02/01', 'YY/MM/DD'),
+    });
 
-    const result = DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, query);
+    const result =
+      DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, '2019/02/01', '2019/03/01');
 
-    expect(moment(result.customer.startDate).format('DD/MM/YYYY')).toEqual('15/01/2019');
-    expect(result.customer.exclTaxes).toEqual(70);
-    expect(result.customer.inclTaxes).toEqual(84);
-    sinon.assert.notCalled(getMatchingFunding);
-    sinon.assert.notCalled(formatDraftBillsForTPP);
-    sinon.assert.calledWithExactly(
+    expect(result.customer.exclTaxes).toEqual(35);
+    expect(result.customer.unitExclTaxes).toEqual(70);
+    expect(result.customer.unitInclTaxes).toEqual(21);
+    expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
+    sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
       'createdAt'
     );
+    sinon.assert.calledOnceWithExactly(getMatchingVersion, '2019/03/01', subscription.service, 'startDate');
+    sinon.assert.calledOnceWithExactly(getExclTaxes, 21, 20);
+    sinon.assert.calledOnceWithExactly(
+      computeBillingInfoForEvents,
+      events,
+      subscription.service,
+      fundings,
+      '2019/02/01',
+      21
+    );
   });
 
-  it('should return draft bill with tpp', () => {
-    const tppId = new ObjectID();
-    const fundings = [
-      {
-        _id: 'version',
-        thirdPartyPayer: { _id: tppId },
-        careDays: [1, 4, 5],
-        startDate: new Date('2019/01/01'),
-        frequency: 'once',
-        nature: 'fixed',
-        amountTTC: 200,
-        history: { amountTTC: 185 },
-      },
-      {
-        _id: 'version2',
-        thirdPartyPayer: { _id: new ObjectID() },
-        careDays: [0],
-        startDate: new Date('2019/01/01'),
-        frequency: 'once',
-        nature: 'fixed',
-        amountTTC: 200,
-        history: { amountTTC: 185 },
-      },
+  it('should return draft bill for customer only', () => {
+    const events = [
+      { _id: 1, startDate: new Date('2019/02/15').setHours(8), endDate: new Date('2019/02/15').setHours(10) },
     ];
+    const subscription = {
+      versions: [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
+      service: { versions: [{ startDate: new Date('2019/01/01'), vat: 20 }] },
+    };
+
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
-    getMatchingFunding.returns(fundings[0]);
-    getEventBilling.returns({ customerPrice: 12, thirdPartyPayerPrice: 15 });
-    formatDraftBillsForCustomer.returns({ exclTaxes: 57.5, inclTaxes: 69 });
-    formatDraftBillsForTPP.returns({ [tppId]: { exclTaxes: 12.5, inclTaxes: 15 } });
-    getExclTaxes.returns(17.5);
+    getExclTaxes.returns(70);
+    computeBillingInfoForEvents.returns({
+      customerPrices: { exclTaxes: 35 },
+      startDate: moment('2019/02/01', 'YY/MM/DD'),
+    });
 
-    const result = DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, query);
+    const result =
+      DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, null, '2019/02/01', '2019/03/01');
 
-    expect(moment(result.customer.startDate).format('DD/MM/YYYY')).toEqual('15/01/2019');
-    expect(result.customer.exclTaxes).toEqual(57.5);
-    expect(result.customer.inclTaxes).toEqual(69);
-    expect(result.customer.unitExclTaxes).toEqual(17.5);
-    expect(result.thirdPartyPayer[tppId].exclTaxes).toEqual(12.5);
-    expect(result.thirdPartyPayer[tppId].inclTaxes).toEqual(15);
+    expect(result.customer.exclTaxes).toEqual(35);
+    expect(result.customer.unitExclTaxes).toEqual(70);
+    expect(result.customer.unitInclTaxes).toEqual(21);
+    sinon.assert.calledOnceWithExactly(
+      getLastVersion,
+      [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
+      'createdAt'
+    );
+    sinon.assert.calledOnceWithExactly(getMatchingVersion, '2019/03/01', subscription.service, 'startDate');
+    sinon.assert.calledOnceWithExactly(getExclTaxes, 21, 20);
+    sinon.assert.calledOnceWithExactly(
+      computeBillingInfoForEvents,
+      events,
+      subscription.service,
+      null,
+      '2019/02/01',
+      21
+    );
+  });
+
+  it('should return draft bill for tpp only', () => {
+    const tppId = new ObjectID();
+    const fundings = [{ thirdPartyPayer: { _id: tppId } }];
+    const events = [
+      { _id: 1, startDate: new Date('2019/02/15').setHours(8), endDate: new Date('2019/02/15').setHours(10) },
+    ];
+    const subscription = {
+      versions: [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
+      service: { versions: [{ startDate: new Date('2019/01/01'), vat: 20 }] },
+    };
+
+    getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
+    getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
+    getExclTaxes.returns(70);
+    computeBillingInfoForEvents.returns({
+      customerPrices: { exclTaxes: 0 },
+      thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
+      startDate: moment('2019/02/01', 'YY/MM/DD'),
+    });
+
+    const result =
+      DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, '2019/02/01', '2019/03/01');
+
+    expect(result.customer).toBeUndefined();
+    expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
+    sinon.assert.calledOnceWithExactly(
+      getLastVersion,
+      [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
+      'createdAt'
+    );
+    sinon.assert.calledOnceWithExactly(getMatchingVersion, '2019/03/01', subscription.service, 'startDate');
+    sinon.assert.calledOnceWithExactly(getExclTaxes, 21, 20);
+    sinon.assert.calledOnceWithExactly(
+      computeBillingInfoForEvents,
+      events,
+      subscription.service,
+      fundings,
+      '2019/02/01',
+      21
+    );
   });
 });
 
