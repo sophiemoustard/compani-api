@@ -196,6 +196,7 @@ describe('GET /events', () => {
       },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -321,6 +322,7 @@ describe('GET /events/credit-notes', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
     const query = {
       startDate: moment('2019-01-01').toDate(),
@@ -397,6 +399,7 @@ describe('GET /events/working-stats', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -487,6 +490,7 @@ describe('GET /events/paid-transport', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -588,6 +592,7 @@ describe('GET /events/unassigned-hours', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -1185,6 +1190,7 @@ describe('POST /events', () => {
       },
       { name: 'client_admin', expectedCode: 403, erp: false },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -1545,7 +1551,7 @@ describe('PUT /events/{_id}', () => {
     });
 
     it('should return a 403 event is timeStamped and user tries to update auxiliary', async () => {
-      const payload = { auxiliary: new ObjectID() };
+      const payload = { auxiliary: auxiliaries[1]._id };
 
       const response = await app.inject({
         method: 'PUT',
@@ -1589,9 +1595,9 @@ describe('PUT /events/{_id}', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -1663,6 +1669,7 @@ describe('DELETE /events/{_id}', () => {
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -1743,6 +1750,7 @@ describe('DELETE /events', () => {
     beforeEach(populateDB);
 
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
@@ -1797,6 +1805,7 @@ describe('DELETE /{_id}/repetition', () => {
     beforeEach(populateDB);
 
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200, customCredentials: auxiliaries[0].local },

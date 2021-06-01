@@ -124,14 +124,13 @@ exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
   const event = cloneDeep(req.pre.event);
 
-  if (event.startDateTimeStampedCount) {
-    if (
-      (req.payload.startDate && DatesHelper.dateDiff(event.startDate, req.payload.startDate) !== 0) ||
-      (req.payload.auxiliary && !UtilsHelper.areObjectIdsEquals(event.auxiliary, req.payload.auxiliary)) ||
-      (req.payload.isCancelled && event.isCancelled !== req.payload.isCancelled)
-    ) {
-      throw Boom.forbidden();
-    }
+  const updateStartDateOnTimeStampedEvent = event.startDateTimeStampedCount &&
+    req.payload.startDate && DatesHelper.dateDiff(event.startDate, req.payload.startDate) !== 0;
+  const updateAuxiliaryOnTimeStampedEvent = event.startDateTimeStampedCount &&
+    req.payload.auxiliary && !UtilsHelper.areObjectIdsEquals(event.auxiliary, req.payload.auxiliary);
+  const cancelTimeStampedEvent = event.startDateTimeStampedCount && req.payload.isCancelled;
+  if (updateStartDateOnTimeStampedEvent || updateAuxiliaryOnTimeStampedEvent || cancelTimeStampedEvent) {
+    throw Boom.forbidden();
   }
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
