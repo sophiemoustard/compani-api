@@ -1,4 +1,4 @@
-const PdfHelper = require('../helpers/pdf');
+const FileHelper = require('../helpers/file');
 
 const getSlotTableContent = slot => [
   { stack: [{ text: `${slot.date}` }, { text: `${slot.address}`, fontSize: 8 }] },
@@ -10,14 +10,14 @@ const getSlotTableContent = slot => [
 exports.getPdfContent = async (data) => {
   const { trainees } = data;
 
-  const conscience = await PdfHelper
-    .getBase64ImageFromURL('https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png');
-  const compani = await PdfHelper
-    .getBase64ImageFromURL('https://storage.googleapis.com/compani-main/compani_text_orange.png');
-  const decision = await PdfHelper
-    .getBase64ImageFromURL('https://storage.googleapis.com/compani-main/aux-prisededecision.png');
-  const signature = await PdfHelper
-    .getBase64ImageFromURL('https://storage.googleapis.com/compani-main/tsb_signature.png');
+  const conscience = await FileHelper
+    .urlToBase64('https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png');
+  const compani = await FileHelper
+    .urlToBase64('https://storage.googleapis.com/compani-main/compani_text_orange.png');
+  const decision = await FileHelper
+    .urlToBase64('https://storage.googleapis.com/compani-main/aux-prisededecision.png');
+  const signature = await FileHelper
+    .urlToBase64('https://storage.googleapis.com/compani-main/tsb_signature.png');
 
   const content = [];
   trainees.forEach((trainee) => {

@@ -1,6 +1,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const axios = require('axios');
 
 const fsPromises = fs.promises;
 
@@ -23,6 +24,18 @@ exports.fileToBase64 = filePath => new Promise((resolve, reject) => {
   });
   fileStream.once('error', err => reject(err));
 });
+
+exports.urlToBase64 = async (url) => {
+  try {
+    const image = await axios.get(url, { responseType: 'arraybuffer' });
+    const raw = Buffer.from(image.data).toString('base64');
+
+    return `data:${image.headers['content-type']};base64,${raw}`;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+};
 
 exports.exportToCsv = async (data) => {
   let csvContent = '\ufeff'; // UTF16LE BOM for Microsoft Excel
