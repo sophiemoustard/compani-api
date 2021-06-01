@@ -19,7 +19,7 @@ exports.populateSurcharge = async (subscription, companyId) => {
       ...subscription.service,
       versions: subscription.service.versions
         .map(v => (v.surcharge
-          ? { ...v, surcharge: surcharges.find(s => s._id.toHexString() === v.surcharge.toHexString()) }
+          ? { ...v, surcharge: surcharges.find(s => utils.areObjectIdsEquals(s._id, v.surcharge)) }
           : v
         ))
         .sort((a, b) => b.startDate - a.startDate),
@@ -212,7 +212,7 @@ exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   return { ...billing, customerPrice: price, thirdPartyPayerPrice: 0 };
 };
 
-exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service, funding) => {
+exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
   const inclTaxesCustomer = exports.getInclTaxes(eventPrice.customerPrice, service.vat);
   const { endDate, startDate, _id: eventId, auxiliary } = event;
   const prices = {
@@ -231,12 +231,9 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
     prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
   }
 
-  const cusParticipationRateIsZero = funding && funding.customerParticipationRate === 0;
-  const timeNotChargedToCustomer = cusParticipationRateIsZero ? eventPrice.chargedTime : 0;
-
   return {
     eventsList: [...customerPrices.eventsList, { ...prices }],
-    hours: customerPrices.hours + ((moment(endDate).diff(moment(startDate), 'm') - timeNotChargedToCustomer) / 60),
+    hours: customerPrices.hours + ((moment(endDate).diff(moment(startDate), 'm')) / 60),
     exclTaxes: customerPrices.exclTaxes + eventPrice.customerPrice,
     inclTaxes: customerPrices.inclTaxes + inclTaxesCustomer,
   };
@@ -284,15 +281,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
       : null;
     const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
-    if (eventPrice.customerPrice) {
-      customerPrices = exports.formatDraftBillsForCustomer(
-        customerPrices,
-        event,
-        eventPrice,
-        matchingService,
-        matchingFunding
-      );
-    }
+    customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
     if (matchingFunding && eventPrice.thirdPartyPayerPrice) {
       thirdPartyPayerPrices = exports.formatDraftBillsForTPP(
         thirdPartyPayerPrices,
@@ -329,7 +318,8 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
           ...thirdPartyPayerPrices[key],
           _id: mongoose.Types.ObjectId(),
           externalBilling: false,
-          thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
+          thirdPartyPayer: fundings.find(fund =>
+            utils.areObjectIdsEquals(fund.thirdPartyPayer._id, key)).thirdPartyPayer,
         },
       }),
       {}
