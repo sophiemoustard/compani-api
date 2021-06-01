@@ -124,11 +124,7 @@ const UserSchema = mongoose.Schema({
     },
   },
   isConfirmed: { type: Boolean, default: false },
-  company: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Company',
-    autopopulate: { select: '-__v -updatedAt', maxDepth: 2 },
-  },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   inactivityDate: { type: Date, default: null },
   biography: { type: String },

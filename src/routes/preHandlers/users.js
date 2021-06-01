@@ -133,7 +133,7 @@ exports.authorizeUserGetById = async (req) => {
   }
 
   const isClientFromDifferentCompany = !isVendorUser && user.company &&
-    user.company.toHexString() !== companyId.toHexString();
+    !UtilsHelper.areObjectIdsEquals(user.company, companyId);
   if (isClientFromDifferentCompany) throw Boom.forbidden();
 
   return null;
@@ -150,7 +150,7 @@ exports.authorizeUserDeletion = async (req) => {
   const role = await Role.findById(clientRoleId).lean();
   if (role.name !== HELPER) throw Boom.forbidden();
 
-  if (user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(user.company, companyId)) throw Boom.forbidden();
 
   return null;
 };
@@ -158,7 +158,7 @@ exports.authorizeUserDeletion = async (req) => {
 exports.authorizeUserUpdateWithoutCompany = (req) => {
   const { credentials } = req.auth;
   const addNewCompanyToTargetUser = !req.pre.user.company && req.payload.company;
-  const loggedUserHasVendorRole = get(credentials, 'role.vendor', null);
+  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
 
   return !!loggedUserHasVendorRole || !!addNewCompanyToTargetUser;
 };
