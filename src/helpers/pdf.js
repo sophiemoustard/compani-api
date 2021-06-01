@@ -4,6 +4,9 @@ const fs = require('fs');
 const util = require('util');
 const handlebars = require('handlebars');
 const puppeteer = require('puppeteer');
+const axios = require('axios');
+const PdfPrinter = require('pdfmake');
+const getStream = require('get-stream');
 
 exports.readFile = util.promisify(fs.readFile);
 
@@ -58,4 +61,26 @@ exports.generatePdf = async (data, templateUrl, options = { format: 'A4', printB
     if (browser) await browser.close();
     throw e;
   }
+};
+
+exports.getBase64ImageFromURL = async (url) => {
+  try {
+    const image = await axios.get(url, { responseType: 'arraybuffer' });
+    const raw = Buffer.from(image.data).toString('base64');
+
+    return `data:${image.headers['content-type']};base64,${raw}`;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+};
+
+const fonts = { SourceSans: { normal: 'src/data/SourceSansPro-Regular.ttf', bold: 'src/data/SourceSansPro-Bold.ttf' } };
+
+exports.generatePDF = async (template) => {
+  const printer = new PdfPrinter(fonts);
+  const doc = printer.createPdfKitDocument(template);
+  doc.end();
+
+  return getStream.buffer(doc);
 };
