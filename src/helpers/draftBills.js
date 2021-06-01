@@ -290,6 +290,7 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
         matchingService
       );
     }
+
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
