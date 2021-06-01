@@ -124,7 +124,13 @@ EventSchema.virtual(
     ref: 'EventHistory',
     localField: '_id',
     foreignField: 'event.eventId',
-    options: { match: { action: { $in: TIMESTAMPING_ACTIONS }, 'update.startHour': { $exists: true } } },
+    options: {
+      match: doc => ({
+        action: { $in: TIMESTAMPING_ACTIONS },
+        'update.startHour': { $exists: true },
+        company: doc.company,
+      }),
+    },
     count: true,
   }
 );

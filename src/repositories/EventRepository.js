@@ -66,7 +66,7 @@ exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
         { path: 'createdBy' },
       ],
     })
-    .populate({ path: 'startDateTimeStampedCount', options: { requestingOwnInfos: true } })
+    .populate({ path: 'startDateTimeStampedCount' })
     .lean();
 
   return groupBy(events.map(exports.formatEvent), groupByFunc);
