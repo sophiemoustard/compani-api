@@ -17,6 +17,7 @@ const {
   PAYMENT_TYPES_LIST,
   INTERNAL_HOUR,
   INTERVENTION,
+  MANUAL_TIME_STAMPING,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const DraftPayHelper = require('./draftPay');
@@ -116,8 +117,18 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       EVENT_TYPE_LIST[event.type],
       get(event, 'internalHour.name', ''),
       event.subscription ? getServiceName(event.subscription.service) : '',
-      moment(event.startDate).format('DD/MM/YYYY HH:mm'),
-      moment(event.endDate).format('DD/MM/YYYY HH:mm'),
+      [
+        get(event, 'histories.update.startHour.from') || '',
+        get(event, 'histories.update.startHour.to') || '',
+        get(event, 'histories.action', '') || '',
+        get(event, 'histories.action') === MANUAL_TIME_STAMPING ? get(event, 'histories.manualTimeStampingReason') : '',
+      ],
+      [
+        get(event, 'histories.update.endHour.from') || event.endDate,
+        get(event, 'histories.update.endHour.to') || '',
+        get(event, 'histories.action') || '',
+        get(event, 'histories.action') === MANUAL_TIME_STAMPING ? get(event, 'histories.manualTimeStampingReason') : '',
+      ],
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
       get(event, 'sector.name') || get(auxiliarySector, 'sector.name') || '',
