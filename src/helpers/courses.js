@@ -23,7 +23,7 @@ const drive = require('../models/Google/Drive');
 const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT, TRAINEE } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
-const { generatePDF } = require('../data/interAttendanceSheet');
+const interAttendanceSheet = require('../data/interAttendanceSheet');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -452,7 +452,7 @@ exports.generateAttendanceSheets = async (courseId) => {
 
   const pdf = course.type === INTRA
     ? await PdfHelper.generatePdf(exports.formatIntraCourseForPdf(course), './src/data/intraAttendanceSheet.html')
-    : await generatePDF(exports.formatInterCourseForPdf(course));
+    : await PdfHelper.generatePDF(await interAttendanceSheet.getPdfContent(exports.formatInterCourseForPdf(course)));
 
   return { fileName: 'emargement.pdf', pdf };
 };
