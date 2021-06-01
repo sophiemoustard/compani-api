@@ -29,13 +29,14 @@ const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
+const TIMESTAMPING_ACTIONS = require('../models/EventHistory');
 
 const workingEventExportHeader = [
   'Type',
   'Heure interne',
   'Service',
-  'Début',
-  'Fin',
+  ['Début planifié', 'Début horodaté', 'Type d\'horodatage', 'Motif'],
+  ['Fin planifiée', 'Fin horodatée', 'Type d\'horodatage', 'Motif'],
   'Durée',
   'Répétition',
   'Équipe',
@@ -81,6 +82,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     .populate({ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } })
     .populate('internalHour')
     .populate('sector')
+    .populate({ path: 'histories', match: { action: { $in: TIMESTAMPING_ACTIONS }, company: companyId } })
     .lean();
 
   const eventsWithPopulatedSubscription = events.map((event) => {
