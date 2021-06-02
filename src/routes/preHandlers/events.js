@@ -29,8 +29,8 @@ const { language } = translate;
 exports.getEvent = async (req) => {
   try {
     const event = await Event.findById(req.params._id)
-      .populate({ path: 'startDateTimeStampedCount', options: { requestingOwnInfos: true } })
-      .lean({ virtuals: true });
+      .populate('startDateTimeStampedCount')
+      .lean();
 
     if (!event) throw Boom.notFound(translate[language].eventNotFound);
 
@@ -124,14 +124,12 @@ exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
   const event = cloneDeep(req.pre.event);
 
-  const updateStartDateOnTimeStampedEvent = event.startDateTimeStampedCount &&
-    req.payload.startDate && DatesHelper.dateDiff(event.startDate, req.payload.startDate) !== 0;
-  const updateAuxiliaryOnTimeStampedEvent = event.startDateTimeStampedCount &&
-    req.payload.auxiliary && !UtilsHelper.areObjectIdsEquals(event.auxiliary, req.payload.auxiliary);
-  const cancelTimeStampedEvent = event.startDateTimeStampedCount && req.payload.isCancelled;
-  if (updateStartDateOnTimeStampedEvent || updateAuxiliaryOnTimeStampedEvent || cancelTimeStampedEvent) {
-    throw Boom.forbidden();
-  }
+  const updateStartDate = req.payload.startDate && DatesHelper.dateDiff(event.startDate, req.payload.startDate) !== 0;
+  const updateAuxiliary = req.payload.auxiliary &&
+    !UtilsHelper.areObjectIdsEquals(event.auxiliary, req.payload.auxiliary);
+  const cancelEvent = req.payload.isCancelled;
+  const forbiddenUpdateOnTimeStampedEvent = updateStartDate || updateAuxiliary || cancelEvent;
+  if (event.startDateTimeStampedCount && forbiddenUpdateOnTimeStampedEvent) throw Boom.forbidden();
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
   if (isAuxiliary) {

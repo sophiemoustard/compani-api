@@ -6,8 +6,8 @@ module.exports = {
   validateQuery(next) {
     const query = this.getQuery();
     const isPopulate = get(query, '_id.$in', null);
-    const hasCompany = (query.$and && query.$and.some(q => !!get(q, 'company', null))) ||
-      (query.$or && query.$or.every(q => !!get(q, 'company', null))) ||
+    const hasCompany = (query.$and && query.$and.some(q => !!q.company)) ||
+      (query.$or && query.$or.every(q => !!q.company)) ||
       query.company;
     const { isVendorUser, requestingOwnInfos, allCompanies } = this.getOptions();
 
