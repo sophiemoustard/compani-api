@@ -597,8 +597,14 @@ describe('getEventBilling', () => {
 
 describe('formatDraftBillsForCustomer', () => {
   let getInclTaxes;
-  beforeEach(() => { getInclTaxes = sinon.stub(DraftBillsHelper, 'getInclTaxes'); });
-  afterEach(() => { getInclTaxes.restore(); });
+
+  beforeEach(() => {
+    getInclTaxes = sinon.stub(DraftBillsHelper, 'getInclTaxes');
+  });
+
+  afterEach(() => {
+    getInclTaxes.restore();
+  });
 
   it('should format bill for customer', () => {
     const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };

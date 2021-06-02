@@ -6,7 +6,7 @@ const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE, FIXED, BILLING_DIRECT } = require('./constants');
-const utils = require('./utils');
+const UtilsHelper = require('./utils');
 const SurchargesHelper = require('./surcharges');
 
 exports.populateSurcharge = async (subscription, companyId) => {
@@ -19,7 +19,7 @@ exports.populateSurcharge = async (subscription, companyId) => {
       ...subscription.service,
       versions: subscription.service.versions
         .map(v => (v.surcharge
-          ? { ...v, surcharge: surcharges.find(s => utils.areObjectIdsEquals(s._id, v.surcharge)) }
+          ? { ...v, surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }
           : v
         ))
         .sort((a, b) => b.startDate - a.startDate),
@@ -35,7 +35,7 @@ exports.populateSurcharge = async (subscription, companyId) => {
 exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
   const populatedFundings = [];
   for (let i = 0, l = fundings.length; i < l; i++) {
-    const funding = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
+    const funding = UtilsHelper.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
     const tpp = tppList.find(tppTmp => tppTmp._id.toHexString() === funding.thirdPartyPayer.toHexString());
     if (!tpp || tpp.billingMode !== BILLING_DIRECT) continue;
 
@@ -274,7 +274,7 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
   let thirdPartyPayerPrices = {};
   let startDate = moment(billingStartDate);
   for (const event of events) {
-    const matchingService = utils.getMatchingVersion(event.startDate, service, 'startDate');
+    const matchingService = UtilsHelper.getMatchingVersion(event.startDate, service, 'startDate');
     const matchingFunding = fundings && fundings.length > 0
       ? exports.getMatchingFunding(event.startDate, fundings)
       : null;
@@ -298,8 +298,8 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
 };
 
 exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingStartDate, endDate) => {
-  const { unitTTCRate } = utils.getLastVersion(subscription.versions, 'createdAt');
-  const serviceMatchingVersion = utils.getMatchingVersion(endDate, subscription.service, 'startDate');
+  const { unitTTCRate } = UtilsHelper.getLastVersion(subscription.versions, 'createdAt');
+  const serviceMatchingVersion = UtilsHelper.getMatchingVersion(endDate, subscription.service, 'startDate');
   const { customerPrices, thirdPartyPayerPrices, startDate } =
     exports.computeBillingInfoForEvents(events, subscription.service, fundings, billingStartDate, unitTTCRate);
 
@@ -326,7 +326,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
           _id: new ObjectID(),
           externalBilling: false,
           thirdPartyPayer: fundings.find(fund =>
-            utils.areObjectIdsEquals(fund.thirdPartyPayer._id, tppId)).thirdPartyPayer,
+            UtilsHelper.areObjectIdsEquals(fund.thirdPartyPayer._id, tppId)).thirdPartyPayer,
         },
       }),
       {}
