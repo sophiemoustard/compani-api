@@ -171,8 +171,14 @@ describe('exportWorkingEventsHistory', () => {
     'Type',
     'Heure interne',
     'Service',
-    'Début',
-    'Fin',
+    'Début planifié',
+    'Début horodaté',
+    'Type d\'horodatage',
+    'Motif',
+    'Fin planifiée',
+    'Fin horodatée',
+    'Type d\'horodatage',
+    'Motif',
     'Durée',
     'Répétition',
     'Équipe',
@@ -216,8 +222,20 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: auxiliaryId,
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
+      histories: [
+        { update: {
+          startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' },
+        },
+        event: {
+          type: 'intervention',
+          auxiliary: auxiliaryId,
+        },
+        auxiliaries: [auxiliaryId],
+        action: 'manual_time_stamping',
+        manualTimeStampingReason: 'qrcode_missing' },
+      ],
     },
     {
       isCancelled: false,
@@ -232,8 +250,30 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
+      histories: [
+        { update: {
+          startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' },
+        },
+        event: {
+          type: 'intervention',
+          auxiliary: auxiliaryId,
+        },
+        auxiliaries: [auxiliaryId],
+        action: 'manual_time_stamping',
+        manualTimeStampingReason: 'qrcode_missing' },
+        { update: {
+          endHour: { from: '2019-05-20T10:00:00', to: '2019-05-20T10:03:24' },
+        },
+        event: {
+          type: 'intervention',
+          auxiliary: auxiliaryId,
+        },
+        auxiliaries: [auxiliaryId],
+        action: 'manual_time_stamping',
+        manualTimeStampingReason: 'camera_error' },
+      ],
     },
     {
       isCancelled: true,
@@ -247,9 +287,10 @@ describe('exportWorkingEventsHistory', () => {
         _id: new ObjectID(),
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
       misc: 'brbr',
+      histories: [{}],
     },
   ];
   let getWorkingEventsForExport;
@@ -283,16 +324,17 @@ describe('exportWorkingEventsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
-        'Girafes - 75', expect.any(ObjectID), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme',
-        'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
-      ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
-        'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
+      ['Intervention', '', 'Lala', '2019-05-20T08:00:00', '2019-05-20T08:01:18', 'manual_time_stamping',
+        'qrcode_missing', '2019-05-20T10:00:00', '', '', '', '2,00', 'Une fois par semaine', 'Girafes - 75',
+        expect.any(ObjectID), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
         'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75',
-        '', '', '', '', 'Oui', expect.any(ObjectID), 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui',
-        'Facturée & non payée',
-        'Initiative de l\'intervenant'],
+      ['Intervention', '', 'Lala', '2019-05-20T08:00:00', '2019-05-20T08:01:18', 'manual_time_stamping',
+        'qrcode_missing', '2019-05-20T10:00:00', '2019-05-20T10:03:24', 'manual_time_stamping', 'camera_error', '2,00',
+        'Une fois par semaine', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
+        'Oui', 'Non', '', ''],
+      ['Heure interne', 'Formation', '', '2019-05-20T08:00:00', '', '', '', '2019-05-20T10:00:00', '', '', '', '2,00', '',
+        'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui',
+        'Facturée & non payée', 'Initiative de l\'intervenant'],
     ]);
   });
 });
