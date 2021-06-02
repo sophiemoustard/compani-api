@@ -124,13 +124,6 @@ exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
   const event = cloneDeep(req.pre.event);
 
-  const updateStartDate = req.payload.startDate && DatesHelper.dateDiff(event.startDate, req.payload.startDate) !== 0;
-  const updateAuxiliary = req.payload.auxiliary &&
-    !UtilsHelper.areObjectIdsEquals(event.auxiliary, req.payload.auxiliary);
-  const cancelEvent = req.payload.isCancelled;
-  const forbiddenUpdateOnTimeStampedEvent = updateStartDate || updateAuxiliary || cancelEvent;
-  if (event.startDateTimeStampedCount && forbiddenUpdateOnTimeStampedEvent) throw Boom.forbidden();
-
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
   if (isAuxiliary) {
     if (event.auxiliary) event.auxiliary = event.auxiliary.toHexString();

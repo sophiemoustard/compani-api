@@ -1533,7 +1533,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return a 403 event is timeStamped and user tries to update startDate', async () => {
+    it('should return a 422 event is timeStamped and user tries to update startDate', async () => {
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
@@ -1547,10 +1547,10 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(422);
     });
 
-    it('should return a 403 event is timeStamped and user tries to update auxiliary', async () => {
+    it('should return a 422 event is timeStamped and user tries to update auxiliary', async () => {
       const payload = { auxiliary: auxiliaries[1]._id };
 
       const response = await app.inject({
@@ -1560,10 +1560,10 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(422);
     });
 
-    it('should return a 403 event is timeStamped and user tries to update isCancelled', async () => {
+    it('should return a 422 event is timeStamped and user tries to update isCancelled', async () => {
       const payload = {
         auxiliary: auxiliaries[2]._id,
         isCancelled: true,
@@ -1578,7 +1578,7 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(422);
     });
   });
 
