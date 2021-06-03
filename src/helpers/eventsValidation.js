@@ -74,8 +74,7 @@ exports.isCreationAllowed = async (event, credentials) => {
 };
 
 exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
-  const updateStartDate = payload.startDate &&
-    DatesHelper.diff(eventFromDB.startDate, payload.startDate) !== 0;
+  const updateStartDate = payload.startDate && DatesHelper.diff(eventFromDB.startDate, payload.startDate) !== 0;
   const updateAuxiliary = payload.auxiliary &&
     !UtilsHelper.areObjectIdsEquals(eventFromDB.auxiliary, payload.auxiliary);
   const cancelEvent = payload.isCancelled;

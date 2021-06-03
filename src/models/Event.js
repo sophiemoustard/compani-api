@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const {
   INTERNAL_HOUR,
   ABSENCE,
@@ -136,8 +135,6 @@ EventSchema.virtual(
 
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
-
-EventSchema.plugin(mongooseLeanVirtuals);
 
 module.exports = mongoose.model('Event', EventSchema);
 module.exports.EVENT_TYPES = EVENT_TYPES;

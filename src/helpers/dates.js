@@ -6,7 +6,7 @@ exports.isAfter = (date1, date2) => new Date(date1) > new Date(date2);
 
 exports.isSameOrAfter = (date1, date2) => new Date(date1) >= new Date(date2);
 
-exports.diff = (firstDate, secondDate) => new Date(firstDate) - new Date(secondDate);
+exports.diff = (date1, date2) => new Date(date1) - new Date(date2);
 
 exports.getStartOfDay = date => (new Date(date)).setHours(0, 0, 0, 0);
 
