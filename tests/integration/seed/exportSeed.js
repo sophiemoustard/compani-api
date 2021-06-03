@@ -17,6 +17,7 @@ const FinalPay = require('../../../src/models/FinalPay');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
+const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const { authCustomer } = require('../../seed/customerSeed');
 const { rolesList, populateDBForAuthentication, authCompany, userList } = require('./authenticationSeed');
@@ -39,6 +40,8 @@ const {
   MONTHLY,
   ONCE,
   WEBAPP,
+  MANUAL_TIME_STAMPING,
+  QRCODE_MISSING,
 } = require('../../../src/helpers/constants');
 
 const sector = {
@@ -497,6 +500,25 @@ const eventList = [
   },
 ];
 
+const eventHistoriesList = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    event: { eventId: eventList[3]._id },
+    action: MANUAL_TIME_STAMPING,
+    manualTimeStampingReason: QRCODE_MISSING,
+    update: { startHour: { from: '2019-01-17T14:30:19.543Z', to: '2019-01-17T14:35:19.543Z' } },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    event: { eventId: eventList[3]._id },
+    action: MANUAL_TIME_STAMPING,
+    manualTimeStampingReason: QRCODE_MISSING,
+    update: { endHour: { from: '2019-01-17T16:30:19.543Z', to: '2019-01-17T16:35:19.543Z' } },
+  },
+];
+
 const billsList = [
   {
     _id: new ObjectID(),
@@ -849,6 +871,7 @@ const populateEvents = async () => {
   await InternalHour.deleteMany();
   await Service.deleteMany();
   await Contract.deleteMany();
+  await EventHistory.deleteMany();
 
   await populateDBForAuthentication();
   await Event.insertMany(eventList);
@@ -859,6 +882,7 @@ const populateEvents = async () => {
   await new InternalHour(internalHour).save();
   await Service.insertMany(serviceList);
   await Contract.insertMany(contractList);
+  await EventHistory.insertMany(eventHistoriesList);
 };
 
 const populateSectorHistories = async () => {
