@@ -17,6 +17,7 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
 const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
+const DatesHelper = require('../../../src/helpers/dates');
 
 describe('getWorkingEventsForExport', () => {
   const auxiliaryId = new ObjectID();
@@ -287,15 +288,18 @@ describe('exportWorkingEventsHistory', () => {
   let getWorkingEventsForExport;
   let getLastVersion;
   let getAuxiliariesWithSectorHistory;
+  let formatDateAndTime;
   beforeEach(() => {
     getWorkingEventsForExport = sinon.stub(ExportHelper, 'getWorkingEventsForExport');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
     getAuxiliariesWithSectorHistory = sinon.stub(UserRepository, 'getAuxiliariesWithSectorHistory');
+    formatDateAndTime = sinon.stub(DatesHelper, 'formatDateAndTime');
   });
   afterEach(() => {
     getWorkingEventsForExport.restore();
     getLastVersion.restore();
     getAuxiliariesWithSectorHistory.restore();
+    formatDateAndTime.restore();
   });
 
   it('should return an array containing just the header', async () => {
@@ -306,9 +310,22 @@ describe('exportWorkingEventsHistory', () => {
     expect(exportArray).toEqual([header]);
   });
 
-  it('should return an array with the header and 2 rows', async () => {
+  it('should return an array with the header and 3 rows', async () => {
     getWorkingEventsForExport.returns(events);
     getAuxiliariesWithSectorHistory.returns(auxiliaries);
+    formatDateAndTime.onCall(0).returns('20/05/2019 à 10:00:00');
+    formatDateAndTime.onCall(1).returns('20/05/2019 à 10:01:18');
+    formatDateAndTime.onCall(2).returns('20/05/2019 à 12:00:00');
+    formatDateAndTime.onCall(3).returns('');
+    formatDateAndTime.onCall(4).returns('20/05/2019 à 10:00:00');
+    formatDateAndTime.onCall(5).returns('20/05/2019 à 10:01:18');
+    formatDateAndTime.onCall(6).returns('20/05/2019 à 12:00:00');
+    formatDateAndTime.onCall(7).returns('20/05/2019 à 12:03:24');
+    formatDateAndTime.onCall(8).returns('20/05/2019 à 10:00:00');
+    formatDateAndTime.onCall(9).returns('');
+    formatDateAndTime.onCall(10).returns('20/05/2019 à 12:00:00');
+    formatDateAndTime.onCall(11).returns('');
+
     getLastVersion.callsFake(ver => ver[0]);
 
     const exportArray = await ExportHelper.exportWorkingEventsHistory(null, null);

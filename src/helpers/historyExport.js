@@ -21,7 +21,7 @@ const {
   TIMESTAMPING_ACTION_TYPE_LIST,
   MANUAL_TIME_STAMPING_REASONS,
 } = require('./constants');
-const { formatDateAndTime } = require('./dates');
+const DatesHelper = require('./dates');
 const UtilsHelper = require('./utils');
 const DraftPayHelper = require('./draftPay');
 const Event = require('../models/Event');
@@ -129,15 +129,15 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       EVENT_TYPE_LIST[event.type],
       get(event, 'internalHour.name', ''),
       event.subscription ? getServiceName(event.subscription.service) : '',
-      formatDateAndTime(get(startHourTimeStamping, 'update.startHour.from'), 'DDMMMMYYYYhhmmss') ||
-        formatDateAndTime(event.startDate, 'DDMMMMYYYYhhmmss'),
-      formatDateAndTime(get(startHourTimeStamping, 'update.startHour.to'), 'DDMMMMYYYYhhmmss') || '',
+      DatesHelper.formatDateAndTime(get(startHourTimeStamping, 'update.startHour.from'), 'DDMMMMYYYYhhmmss') ||
+        DatesHelper.formatDateAndTime(event.startDate, 'DDMMMMYYYYhhmmss'),
+      DatesHelper.formatDateAndTime(get(startHourTimeStamping, 'update.startHour.to'), 'DDMMMMYYYYhhmmss') || '',
       TIMESTAMPING_ACTION_TYPE_LIST[get(startHourTimeStamping, 'action')] || '',
       get(startHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(startHourTimeStamping, 'manualTimeStampingReason')] : '',
-      formatDateAndTime(get(endHourTimeStamping, 'update.endHour.from'), 'DDMMMMYYYYhhmmss') ||
-        formatDateAndTime(event.endDate, 'DDMMMMYYYYhhmmss'),
-      formatDateAndTime(get(endHourTimeStamping, 'update.endHour.to'), 'DDMMMMYYYYhhmmss') || '',
+      DatesHelper.formatDateAndTime(get(endHourTimeStamping, 'update.endHour.from'), 'DDMMMMYYYYhhmmss') ||
+        DatesHelper.formatDateAndTime(event.endDate, 'DDMMMMYYYYhhmmss'),
+      DatesHelper.formatDateAndTime(get(endHourTimeStamping, 'update.endHour.to'), 'DDMMMMYYYYhhmmss') || '',
       TIMESTAMPING_ACTION_TYPE_LIST[get(endHourTimeStamping, 'action')] || '',
       get(endHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
