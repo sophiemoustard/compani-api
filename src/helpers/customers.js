@@ -5,7 +5,7 @@ const moment = require('moment');
 const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
-const GDriveStorageHelper = require('./gDriveStorage');
+const translate = require('./translate');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
@@ -17,12 +17,13 @@ const CustomerPartner = require('../models/CustomerPartner');
 const Rum = require('../models/Rum');
 const User = require('../models/User');
 const EventRepository = require('../repositories/EventRepository');
-const translate = require('./translate');
+const CustomerRepository = require('../repositories/CustomerRepository');
 const { INTERVENTION } = require('./constants');
+const GDriveStorageHelper = require('./gDriveStorage');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
-const CustomerRepository = require('../repositories/CustomerRepository');
+const EventHelper = require('./events');
 
 const { language } = translate;
 
@@ -159,8 +160,15 @@ const formatPayload = async (customerId, customerPayload, company) => {
   return { $set: flat(customerPayload, { safe: true }) };
 };
 
+const handleCustomerStop = async (customerId, customerPayload, credentials) => {
+  await EventHelper.deleteList(customerId, customerPayload.stoppedAt, null, credentials);
+};
+
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   const { company } = credentials;
+
+  if (customerPayload.stoppedAt) handleCustomerStop(customerId, customerPayload, credentials);
+
   if (has(customerPayload, 'referent')) {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
 

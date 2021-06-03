@@ -19,6 +19,7 @@ const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories'
 const FundingsHelper = require('../../../src/helpers/fundings');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
+const EventHelper = require('../../../src/helpers/events');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -526,12 +527,13 @@ describe('updateCustomerEvents', () => {
   });
 });
 
-describe('updateCustomer', () => {
+describe('updateCustomer #tag', () => {
   let findOneCustomer;
   let findOneAndUpdateCustomer;
   let formatPaymentPayload;
   let updateCustomerEvents;
   let updateCustomerReferent;
+  let deleteList;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneCustomer = sinon.stub(Customer, 'findOne');
@@ -539,6 +541,7 @@ describe('updateCustomer', () => {
     formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
     updateCustomerEvents = sinon.stub(CustomerHelper, 'updateCustomerEvents');
     updateCustomerReferent = sinon.stub(ReferentHistoriesHelper, 'updateCustomerReferent');
+    deleteList = sinon.stub(EventHelper, 'deleteList');
   });
   afterEach(() => {
     findOneCustomer.restore();
@@ -546,6 +549,7 @@ describe('updateCustomer', () => {
     formatPaymentPayload.restore();
     updateCustomerEvents.restore();
     updateCustomerReferent.restore();
+    deleteList.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -562,6 +566,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(findOneAndUpdateCustomer);
+    sinon.assert.notCalled(deleteList);
     sinon.assert.calledOnceWithExactly(updateCustomerReferent, customer._id, payload.referent, credentials.company);
     SinonMongoose.calledWithExactly(
       findOneCustomer,
@@ -591,6 +596,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(findOneCustomer);
+    sinon.assert.notCalled(deleteList);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
@@ -629,6 +635,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(findOneCustomer);
+    sinon.assert.notCalled(deleteList);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
@@ -649,6 +656,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteList);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -674,6 +682,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteList);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -699,6 +708,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteList);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -729,6 +739,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteList);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -739,6 +750,32 @@ describe('updateCustomer', () => {
         { query: 'lean' },
       ]
     );
+  });
+
+  it('should deleted customers events if customer is stopped', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = { stoppedAt: '2021-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
+    const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
+
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
+
+    expect(result).toBe(customerResult);
+    sinon.assert.calledOnceWithExactly(deleteList, customerId, '2021-06-25T16:34:04.144Z', null, credentials);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.notCalled(updateCustomerReferent);
   });
 
   it('should update a customer', async () => {
