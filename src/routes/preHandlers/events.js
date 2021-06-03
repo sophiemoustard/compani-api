@@ -28,7 +28,10 @@ const { language } = translate;
 
 exports.getEvent = async (req) => {
   try {
-    const event = await Event.findById(req.params._id).lean();
+    const event = await Event.findById(req.params._id)
+      .populate('startDateTimeStampedCount')
+      .lean();
+
     if (!event) throw Boom.notFound(translate[language].eventNotFound);
 
     return event;
@@ -102,7 +105,7 @@ exports.authorizeEventDeletion = async (req) => {
   }
 
   const companyId = get(req, 'auth.credentials.company._id', null);
-  if (event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
 
   return null;
 };

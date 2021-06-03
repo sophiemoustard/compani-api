@@ -10,6 +10,7 @@ const ContractsHelper = require('./contracts');
 const EventRepository = require('../repositories/EventRepository');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
+const DatesHelper = require('./dates');
 
 const { language } = translate;
 
@@ -73,6 +74,13 @@ exports.isCreationAllowed = async (event, credentials) => {
 };
 
 exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
+  const updateStartDate = payload.startDate && DatesHelper.diff(eventFromDB.startDate, payload.startDate) !== 0;
+  const updateAuxiliary = payload.auxiliary &&
+    !UtilsHelper.areObjectIdsEquals(eventFromDB.auxiliary, payload.auxiliary);
+  const cancelEvent = payload.isCancelled;
+  const forbiddenUpdateOnTimeStampedEvent = updateStartDate || updateAuxiliary || cancelEvent;
+  if (eventFromDB.startDateTimeStampedCount && forbiddenUpdateOnTimeStampedEvent) return false;
+
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
