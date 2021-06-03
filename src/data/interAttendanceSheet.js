@@ -20,7 +20,8 @@ exports.getPdfContent = async (data) => {
     .urlToBase64('https://storage.googleapis.com/compani-main/tsb_signature.png');
 
   const content = [];
-  trainees.forEach((trainee) => {
+  const lastPage = trainees.length - 1;
+  trainees.forEach((trainee, i) => {
     const body = [
       [
         { text: 'Créneaux', style: 'header' },
@@ -62,7 +63,7 @@ exports.getPdfContent = async (data) => {
       },
       { table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 8 },
       { text: 'Signature et tampon de l\'organisme de formation :' },
-      { image: signature, width: 80, pageBreak: 'after', marginTop: 8, alignment: 'right' }
+      { image: signature, width: 80, pageBreak: i === lastPage ? 'none' : 'after', marginTop: 8, alignment: 'right' }
     );
   });
 
