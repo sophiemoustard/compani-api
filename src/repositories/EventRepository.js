@@ -67,6 +67,7 @@ exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
       ],
     })
     .populate('startDateTimeStampedCount')
+    .populate('endDateTimeStampedCount')
     .lean();
 
   return groupBy(events.map(exports.formatEvent), groupByFunc);

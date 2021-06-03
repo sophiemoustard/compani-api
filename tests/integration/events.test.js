@@ -1533,7 +1533,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return a 422 event is timeStamped and user tries to update startDate', async () => {
+    it('should return a 422 event is startDate timeStamped and user tries to update date', async () => {
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
@@ -1550,7 +1550,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toEqual(422);
     });
 
-    it('should return a 422 event is timeStamped and user tries to update auxiliary', async () => {
+    it('should return a 422 event is startDate timeStamped and user tries to update auxiliary', async () => {
       const payload = { auxiliary: auxiliaries[1]._id };
 
       const response = await app.inject({
@@ -1563,7 +1563,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toEqual(422);
     });
 
-    it('should return a 422 event is timeStamped and user tries to update isCancelled', async () => {
+    it('should return a 422 event is startDate timeStamped and user tries to update isCancelled', async () => {
       const payload = {
         auxiliary: auxiliaries[2]._id,
         isCancelled: true,
@@ -1574,6 +1574,54 @@ describe('PUT /events/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/events/${eventsList[23]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
+
+    it('should return a 422 event is endDate timeStamped and user tries to update date', async () => {
+      const payload = {
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-01-23T12:00:00.000Z',
+        sector: sectors[0]._id.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[24]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
+
+    it('should return a 422 event is endDate timeStamped and user tries to update auxiliary', async () => {
+      const payload = { auxiliary: auxiliaries[1]._id };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[24]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
+
+    it('should return a 422 event is endDate timeStamped and user tries to update isCancelled', async () => {
+      const payload = {
+        auxiliary: auxiliaries[3]._id,
+        isCancelled: true,
+        cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
+        misc: 'blablabla',
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[24]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });

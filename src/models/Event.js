@@ -133,6 +133,23 @@ EventSchema.virtual(
   }
 );
 
+EventSchema.virtual(
+  'endDateTimeStampedCount',
+  {
+    ref: 'EventHistory',
+    localField: '_id',
+    foreignField: 'event.eventId',
+    options: {
+      match: doc => ({
+        action: { $in: TIMESTAMPING_ACTIONS },
+        'update.endHour': { $exists: true },
+        company: doc.company,
+      }),
+    },
+    count: true,
+  }
+);
+
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
 
