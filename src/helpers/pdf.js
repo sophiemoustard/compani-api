@@ -68,6 +68,8 @@ exports.generatePDF = async (template) => {
   const printer = new PdfPrinter(fonts);
   const doc = printer.createPdfKitDocument(template);
   doc.end();
+  // const pdf = await getStream.buffer(doc);
 
+  // fs.rmdirSync('src/data/tmp', { recursive: true });
   return getStream.buffer(doc);
 };

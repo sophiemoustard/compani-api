@@ -10,14 +10,19 @@ const getSlotTableContent = slot => [
 exports.getPdfContent = async (data) => {
   const { trainees } = data;
 
-  const conscience = await FileHelper
-    .urlToBase64('https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png');
-  const compani = await FileHelper
-    .urlToBase64('https://storage.googleapis.com/compani-main/compani_text_orange.png');
-  const decision = await FileHelper
-    .urlToBase64('https://storage.googleapis.com/compani-main/aux-prisededecision.png');
-  const signature = await FileHelper
-    .urlToBase64('https://storage.googleapis.com/compani-main/tsb_signature.png');
+  const imageList = [
+    { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
+    { url: 'https://storage.googleapis.com/compani-main/compani_text_orange.png', name: 'compani.png' },
+    { url: 'https://storage.googleapis.com/compani-main/aux-prisededecision.png', name: 'decision.png' },
+    { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
+  ];
+
+  await FileHelper.downloadImages(imageList);
+
+  const conscience = 'src/data/tmp/conscience.png';
+  const compani = 'src/data/tmp/compani.png';
+  const decision = 'src/data/tmp/decision.png';
+  const signature = 'src/data/tmp/signature.png';
 
   const content = [];
   const lastPage = trainees.length - 1;
