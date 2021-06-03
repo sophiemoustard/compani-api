@@ -25,15 +25,26 @@ exports.fileToBase64 = filePath => new Promise((resolve, reject) => {
   fileStream.once('error', err => reject(err));
 });
 
-exports.urlToBase64 = async (url) => {
+exports.downloadImages = async (imageList) => {
+  if (!fs.existsSync('src/data/tmp')) {
+    fs.mkdirSync('src/data/tmp');
+  }
   try {
-    const image = await axios.get(url, { responseType: 'arraybuffer' });
-    const raw = Buffer.from(image.data).toString('base64');
-
-    return `data:${image.headers['content-type']};base64,${raw}`;
+    imageList.forEach(async (image) => {
+      const { url, name } = image;
+      await axios.get(url, { responseType: 'stream' })
+        .then(
+          response =>
+            new Promise((resolve, reject) => {
+              response.data
+                .pipe(fs.createWriteStream(`src/data/tmp/${name}`))
+                .on('finish', () => resolve())
+                .on('error', e => reject(e));
+            })
+        );
+    });
   } catch (e) {
     console.error(e);
-    return null;
   }
 };
 
