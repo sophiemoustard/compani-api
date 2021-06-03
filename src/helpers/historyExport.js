@@ -18,7 +18,10 @@ const {
   INTERNAL_HOUR,
   INTERVENTION,
   MANUAL_TIME_STAMPING,
+  TIMESTAMPING_ACTION_TYPE_LIST,
+  MANUAL_TIME_STAMPING_REASONS,
 } = require('./constants');
+const { formatDateAndTime } = require('./dates');
 const UtilsHelper = require('./utils');
 const DraftPayHelper = require('./draftPay');
 const Event = require('../models/Event');
@@ -126,16 +129,18 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       EVENT_TYPE_LIST[event.type],
       get(event, 'internalHour.name', ''),
       event.subscription ? getServiceName(event.subscription.service) : '',
-      get(startHourTimeStamping, 'update.startHour.from') || event.startDate,
-      get(startHourTimeStamping, 'update.startHour.to') || '',
-      get(startHourTimeStamping, 'action') || '',
+      formatDateAndTime(get(startHourTimeStamping, 'update.startHour.from'), 'DDMMMMYYYYhhmmss') ||
+        formatDateAndTime(event.startDate, 'DDMMMMYYYYhhmmss'),
+      formatDateAndTime(get(startHourTimeStamping, 'update.startHour.to'), 'DDMMMMYYYYhhmmss') || '',
+      TIMESTAMPING_ACTION_TYPE_LIST[get(startHourTimeStamping, 'action')] || '',
       get(startHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
-        ? get(startHourTimeStamping, 'manualTimeStampingReason') : '',
-      get(endHourTimeStamping, 'update.endHour.from') || event.endDate,
-      get(endHourTimeStamping, 'update.endHour.to') || '',
-      get(endHourTimeStamping, 'action') || '',
+        ? MANUAL_TIME_STAMPING_REASONS[get(startHourTimeStamping, 'manualTimeStampingReason')] : '',
+      formatDateAndTime(get(endHourTimeStamping, 'update.endHour.from'), 'DDMMMMYYYYhhmmss') ||
+        formatDateAndTime(event.endDate, 'DDMMMMYYYYhhmmss'),
+      formatDateAndTime(get(endHourTimeStamping, 'update.endHour.to'), 'DDMMMMYYYYhhmmss') || '',
+      TIMESTAMPING_ACTION_TYPE_LIST[get(endHourTimeStamping, 'action')] || '',
       get(endHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
-        ? get(endHourTimeStamping, 'manualTimeStampingReason') : '',
+        ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
       get(event, 'sector.name') || get(auxiliarySector, 'sector.name') || '',

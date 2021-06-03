@@ -225,16 +225,13 @@ describe('exportWorkingEventsHistory', () => {
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-20T10:00:00',
       histories: [
-        { update: {
-          startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' },
+        {
+          update: { startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' } },
+          event: { type: 'intervention', auxiliary: auxiliaryId },
+          auxiliaries: [auxiliaryId],
+          action: 'manual_time_stamping',
+          manualTimeStampingReason: 'qrcode_missing',
         },
-        event: {
-          type: 'intervention',
-          auxiliary: auxiliaryId,
-        },
-        auxiliaries: [auxiliaryId],
-        action: 'manual_time_stamping',
-        manualTimeStampingReason: 'qrcode_missing' },
       ],
     },
     {
@@ -253,26 +250,20 @@ describe('exportWorkingEventsHistory', () => {
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-20T10:00:00',
       histories: [
-        { update: {
-          startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' },
+        {
+          update: { startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' } },
+          event: { type: 'intervention', auxiliary: auxiliaryId },
+          auxiliaries: [auxiliaryId],
+          action: 'manual_time_stamping',
+          manualTimeStampingReason: 'qrcode_missing',
         },
-        event: {
-          type: 'intervention',
-          auxiliary: auxiliaryId,
+        {
+          update: { endHour: { from: '2019-05-20T10:00:00', to: '2019-05-20T10:03:24' } },
+          event: { type: 'intervention', auxiliary: auxiliaryId },
+          auxiliaries: [auxiliaryId],
+          action: 'manual_time_stamping',
+          manualTimeStampingReason: 'camera_error',
         },
-        auxiliaries: [auxiliaryId],
-        action: 'manual_time_stamping',
-        manualTimeStampingReason: 'qrcode_missing' },
-        { update: {
-          endHour: { from: '2019-05-20T10:00:00', to: '2019-05-20T10:03:24' },
-        },
-        event: {
-          type: 'intervention',
-          auxiliary: auxiliaryId,
-        },
-        auxiliaries: [auxiliaryId],
-        action: 'manual_time_stamping',
-        manualTimeStampingReason: 'camera_error' },
       ],
     },
     {
@@ -290,7 +281,7 @@ describe('exportWorkingEventsHistory', () => {
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-20T10:00:00',
       misc: 'brbr',
-      histories: [{}],
+      histories: [],
     },
   ];
   let getWorkingEventsForExport;
