@@ -974,7 +974,7 @@ describe('PUT /users/:id/', () => {
       expect(secondRespons.statusCode).toBe(200);
       const updatedUser = await User.findById(userId)
         .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
-        .lean({ autopopulate: true });
+        .lean();
 
       expect(updatedUser.sector).toEqual(userSectors[2]._id);
       const histories = await SectorHistory.find({ auxiliary: userId, company: authCompany }).lean();

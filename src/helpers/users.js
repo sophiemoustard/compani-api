@@ -41,6 +41,7 @@ exports.getUsersList = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -57,6 +58,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
@@ -205,6 +207,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true, autopopulate: true });
 };
 
