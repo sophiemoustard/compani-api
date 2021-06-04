@@ -76,6 +76,12 @@ const getServiceName = (service) => {
 const getMatchingSector = (histories, event) => histories.filter(sh => moment(sh.startDate).isBefore(event.startDate))
   .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
 
+const displayDate = (timestamp = null, path, scheduledDate = null) => {
+  if (timestamp) return DatesHelper.formatDateAndTime(get(timestamp, path), 'DDMMMMYYYYhhmmss');
+  if (scheduledDate) return DatesHelper.formatDateAndTime(scheduledDate, 'DDMMMMYYYYhhmmss');
+  return '';
+};
+
 exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
   const payload = {
     company: companyId,
@@ -113,6 +119,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
   const auxiliaries = await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId);
 
   const rows = [workingEventExportHeader];
+
   for (const event of events) {
     let repetition = get(event.repetition, 'frequency');
     repetition = NEVER === repetition ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
@@ -129,15 +136,13 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       EVENT_TYPE_LIST[event.type],
       get(event, 'internalHour.name', ''),
       event.subscription ? getServiceName(event.subscription.service) : '',
-      DatesHelper.formatDateAndTime(get(startHourTimeStamping, 'update.startHour.from'), 'DDMMMMYYYYhhmmss') ||
-        DatesHelper.formatDateAndTime(event.startDate, 'DDMMMMYYYYhhmmss'),
-      DatesHelper.formatDateAndTime(get(startHourTimeStamping, 'update.startHour.to'), 'DDMMMMYYYYhhmmss') || '',
+      displayDate(startHourTimeStamping, 'update.startHour.from', event.startDate),
+      displayDate(startHourTimeStamping, 'update.startHour.to'),
       TIMESTAMPING_ACTION_TYPE_LIST[get(startHourTimeStamping, 'action')] || '',
       get(startHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(startHourTimeStamping, 'manualTimeStampingReason')] : '',
-      DatesHelper.formatDateAndTime(get(endHourTimeStamping, 'update.endHour.from'), 'DDMMMMYYYYhhmmss') ||
-        DatesHelper.formatDateAndTime(event.endDate, 'DDMMMMYYYYhhmmss'),
-      DatesHelper.formatDateAndTime(get(endHourTimeStamping, 'update.endHour.to'), 'DDMMMMYYYYhhmmss') || '',
+      displayDate(endHourTimeStamping, 'update.endHour.from', event.endDate),
+      displayDate(endHourTimeStamping, 'update.endHour.to'),
       TIMESTAMPING_ACTION_TYPE_LIST[get(endHourTimeStamping, 'action')] || '',
       get(endHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',

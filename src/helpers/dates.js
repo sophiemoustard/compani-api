@@ -36,10 +36,10 @@ exports.format = (date, format = '') => {
 
 exports.formatDateAndTime = (date, format = '') => {
   if (!date) return null;
-
   const options = format.split(' ').map(f => DATE_FORMATS[f]);
 
-  return new Date(date).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', ...Object.assign({}, ...options) });
+  return new Date(date).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', ...Object.assign({}, ...options) })
+    .replace('à ', '');
 };
 
 exports.descendingSort = key => (a, b) => new Date(b[key]) - new Date(a[key]);
