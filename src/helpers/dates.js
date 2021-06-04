@@ -12,6 +12,12 @@ exports.getStartOfDay = date => (new Date(date)).setHours(0, 0, 0, 0);
 
 exports.getEndOfDay = date => (new Date(date)).setHours(23, 59, 59, 999);
 
+exports.addDays = (date, days) => {
+  const myDate = new Date(date);
+
+  return new Date(myDate.setDate(myDate.getDate() + days));
+};
+
 const DATE_FORMATS = {
   D: { day: 'numeric' },
   DD: { day: '2-digit' },
