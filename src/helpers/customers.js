@@ -159,6 +159,7 @@ const formatPayload = async (customerId, customerPayload, company) => {
 };
 
 const handleCustomerStop = async (customerId, customerPayload, credentials) => {
+  const { company } = credentials;
   const timeStampedEventsCount = await EventHistory.countDocuments({
     'event.customer': customerId,
     startDate: { $gte: customerPayload.stoppedAt },
@@ -167,6 +168,9 @@ const handleCustomerStop = async (customerId, customerPayload, credentials) => {
   if (timeStampedEventsCount > 0) throw Boom.conflict();
 
   await EventHelper.deleteList(customerId, customerPayload.stoppedAt, null, credentials);
+
+  const customerRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
+  console.log('ici', customerRepetitions);
 };
 
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {

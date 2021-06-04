@@ -535,6 +535,7 @@ describe('updateCustomer', () => {
   let updateCustomerReferent;
   let deleteListEvent;
   let countDocumentsEventHistory;
+  let findRepetition;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneCustomer = sinon.stub(Customer, 'findOne');
@@ -544,6 +545,7 @@ describe('updateCustomer', () => {
     updateCustomerReferent = sinon.stub(ReferentHistoriesHelper, 'updateCustomerReferent');
     deleteListEvent = sinon.stub(EventHelper, 'deleteList');
     countDocumentsEventHistory = sinon.stub(EventHistory, 'countDocuments');
+    findRepetition = sinon.stub(Repetition, 'find');
   });
   afterEach(() => {
     findOneCustomer.restore();
@@ -553,6 +555,7 @@ describe('updateCustomer', () => {
     updateCustomerReferent.restore();
     deleteListEvent.restore();
     countDocumentsEventHistory.restore();
+    findRepetition.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -622,7 +625,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
     const customerResult = {
       payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] },
@@ -647,7 +650,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if primaryAddress is changed', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -673,7 +676,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if secondaryAddress is changed', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -699,7 +702,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -725,7 +728,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '' } } };
     const customerResult = {
       contact: {
@@ -755,12 +758,22 @@ describe('updateCustomer', () => {
     );
   });
 
-  it('should deleted customers events if customer is stopped', async () => {
-    const customerId = 'qwertyuiop';
+  it('should deleted customer\'s events and repetition if customer is stopped #tag', async () => {
+    const customerId = new ObjectID();
     const payload = { stoppedAt: '2021-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
+    const parentId = new ObjectID();
+    const repetition = {
+      type: 'intervention',
+      customer: customerId,
+      frequency: 'every_day',
+      parentId,
+      startDate: '2019-12-01T09:00:00',
+      endDate: '2019-12-01T10:00:00',
+    };
     const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
 
     findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries([repetition], ['lean']));
     countDocumentsEventHistory.returns(0);
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
@@ -784,7 +797,7 @@ describe('updateCustomer', () => {
 
   it('should not delete events on stop if some are timeStamped', async () => {
     try {
-      const customerId = 'qwertyuiop';
+      const customerId = new ObjectID();
       const payload = { stoppedAt: '2021-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
       const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
 
@@ -804,7 +817,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update a customer', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
     const customerResult = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
 

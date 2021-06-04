@@ -29,7 +29,6 @@ const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
-const EventHistory = require('../models/EventHistory');
 const EventRepository = require('../repositories/EventRepository');
 const { AUXILIARY, CUSTOMER } = require('./constants');
 
