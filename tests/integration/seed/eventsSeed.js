@@ -718,6 +718,7 @@ const eventsList = [
     customer: customerAuxiliary._id,
     subscription: customerAuxiliary.subscriptions[2]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
+    isCancelled: false,
     address: {
       fullAddress: '23 rue du test 92160 Antony',
       street: '23 rue du test',
@@ -737,6 +738,7 @@ const eventsList = [
     customer: customerAuxiliary._id,
     subscription: customerAuxiliary.subscriptions[2]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
+    isCancelled: false,
     address: {
       fullAddress: '24 rue du test 92160 Antony',
       street: '24 rue du test',
