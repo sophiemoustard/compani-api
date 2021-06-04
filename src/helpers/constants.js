@@ -393,10 +393,21 @@ module.exports = {
   BLENDED_COURSE_REGISTRATION: 'blended_course_registration',
   // TIMESTAMP
   MANUAL_TIME_STAMPING: 'manual_time_stamping',
+  get TIMESTAMPING_ACTION_TYPE_LIST() {
+    return {
+      [this.MANUAL_TIME_STAMPING]: 'Manuel',
+    };
+  },
   QRCODE_MISSING: 'qrcode_missing',
   QRCODE_ERROR: 'qrcode_error',
   CAMERA_ERROR: 'camera_error',
-  get MANUAL_TIME_STAMPING_REASONS() { return [this.QRCODE_MISSING, this.QRCODE_ERROR, this.CAMERA_ERROR]; },
+  get MANUAL_TIME_STAMPING_REASONS() {
+    return {
+      [this.QRCODE_MISSING]: 'QR Code manquant',
+      [this.QRCODE_ERROR]: 'Erreur de QR Code',
+      [this.CAMERA_ERROR]: 'Problème de caméra',
+    };
+  },
   // STOP REASONS
   QUALITY: 'quality',
   HOSPITALIZATION: 'hospitalization',
