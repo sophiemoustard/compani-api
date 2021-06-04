@@ -112,6 +112,7 @@ describe('getUsersList', () => {
       [
         { query: 'find', args: [{ ...query, company: companyId }, {}, { autopopulate: false }] },
         { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'company', select: '-__v -createdAt -updatedAt' }] },
         {
           query: 'populate',
           args: [{
@@ -146,6 +147,7 @@ describe('getUsersList', () => {
       [
         { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
         { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'company', select: '-__v -createdAt -updatedAt' }] },
         {
           query: 'populate',
           args: [{
@@ -206,6 +208,7 @@ describe('getUsersListWithSectorHistories', () => {
       [
         { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
         { query: 'populate', args: [{ path: 'role.client', select: '-__v -createdAt -updatedAt' }] },
+        { query: 'populate', args: [{ path: 'company', select: '-__v -createdAt -updatedAt' }] },
         {
           query: 'populate',
           args: [{
@@ -801,6 +804,7 @@ describe('createUser', () => {
       [
         { query: 'findOne', args: [{ _id: userId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'populate', args: [{ path: 'company', select: '-__v -createdAt -updatedAt' }] },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
@@ -842,6 +846,7 @@ describe('createUser', () => {
       [
         { query: 'findOne', args: [{ _id: userId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: companyId } }] },
+        { query: 'populate', args: [{ path: 'company', select: '-__v -createdAt -updatedAt' }] },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
@@ -883,6 +888,7 @@ describe('createUser', () => {
       [
         { query: 'findOne', args: [{ _id: userId }] },
         { query: 'populate', args: [{ path: 'sector', select: '_id sector', match: { company: payload.company } }] },
+        { query: 'populate', args: [{ path: 'company', select: '-__v -createdAt -updatedAt' }] },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
