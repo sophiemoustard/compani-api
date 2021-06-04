@@ -29,6 +29,7 @@ const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
+const EventHistory = require('../models/EventHistory');
 const EventRepository = require('../repositories/EventRepository');
 const { AUXILIARY, CUSTOMER } = require('./constants');
 
@@ -363,8 +364,9 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
     startDate: { $gte: moment(startDate).toDate() },
   };
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
+
   const billedEventsCount = await Event.countDocuments({ ...query, company: new ObjectID(companyId), isBilled: true });
-  if (billedEventsCount > 0) throw Boom.conflict('Some events are already billed');
+  if (billedEventsCount > 0) throw Boom.conflict();
 
   const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query, companyId);
   for (const group of eventsGroupedByParentId) {
@@ -405,7 +407,7 @@ exports.deleteEvent = async (event, credentials) => {
 exports.deleteEvents = async (events, credentials) => {
   const promises = [];
   if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) {
-    throw Boom.conflict('Some events are already billed');
+    throw Boom.conflict();
   }
 
   for (const event of events) {

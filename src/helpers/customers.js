@@ -153,21 +153,26 @@ exports.updateCustomerEvents = async (customerId, payload) => {
 };
 
 const formatPayload = async (customerId, customerPayload, company) => {
-  if (has(customerPayload, 'payment.iban')) {
-    return exports.formatPaymentPayload(customerId, customerPayload, company);
-  }
+  if (has(customerPayload, 'payment.iban')) return exports.formatPaymentPayload(customerId, customerPayload, company);
 
   return { $set: flat(customerPayload, { safe: true }) };
 };
 
 const handleCustomerStop = async (customerId, customerPayload, credentials) => {
+  const timeStampedEventsCount = await EventHistory.countDocuments({
+    'event.customer': customerId,
+    startDate: { $gte: customerPayload.stoppedAt },
+    action: { $in: EventHistory.TIMESTAMPING_ACTIONS },
+  });
+  if (timeStampedEventsCount > 0) throw Boom.conflict();
+
   await EventHelper.deleteList(customerId, customerPayload.stoppedAt, null, credentials);
 };
 
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   const { company } = credentials;
 
-  if (customerPayload.stoppedAt) handleCustomerStop(customerId, customerPayload, credentials);
+  if (customerPayload.stoppedAt) await handleCustomerStop(customerId, customerPayload, credentials);
 
   if (has(customerPayload, 'referent')) {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
