@@ -26,26 +26,13 @@ exports.fileToBase64 = filePath => new Promise((resolve, reject) => {
 });
 
 exports.downloadImages = async (imageList) => {
-  try {
     if (!fs.existsSync('src/data/tmp')) {
       fs.mkdirSync('src/data/tmp');
-    }
 
-    for (let i = 0; i < imageList.length; i++) {
-      const { url, name } = imageList[i];
-      await axios.get(url, { responseType: 'stream' })
-        .then(
-          response =>
-            new Promise((resolve, reject) => {
-              response.data
-                .pipe(fs.createWriteStream(`src/data/tmp/${name}`))
-                .on('finish', () => resolve())
-                .on('error', e => reject(e));
-            })
-        );
-    }
-  } catch (e) {
-    console.error(e);
+  for (let i = 0; i < imageList.length; i++) {
+    const { url, name } = imageList[i];
+    const response = await axios.get(url, { responseType: 'stream' });
+    await this.createAndReadFile(response.data, `src/data/tmp/${name}`);
   }
 };
 
