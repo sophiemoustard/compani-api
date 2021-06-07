@@ -17,6 +17,7 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
 const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
+const DatesHelper = require('../../../src/helpers/dates');
 
 describe('getWorkingEventsForExport', () => {
   const auxiliaryId = new ObjectID();
@@ -171,8 +172,14 @@ describe('exportWorkingEventsHistory', () => {
     'Type',
     'Heure interne',
     'Service',
-    'Début',
-    'Fin',
+    'Début planifié',
+    'Début horodaté',
+    'Type d\'horodatage',
+    'Motif',
+    'Fin planifiée',
+    'Fin horodatée',
+    'Type d\'horodatage',
+    'Motif',
     'Durée',
     'Répétition',
     'Équipe',
@@ -216,8 +223,17 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: auxiliaryId,
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
+      histories: [
+        {
+          update: { startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' } },
+          event: { type: 'intervention', auxiliary: auxiliaryId },
+          auxiliaries: [auxiliaryId],
+          action: 'manual_time_stamping',
+          manualTimeStampingReason: 'qrcode_missing',
+        },
+      ],
     },
     {
       isCancelled: false,
@@ -232,8 +248,24 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
+      histories: [
+        {
+          update: { startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' } },
+          event: { type: 'intervention', auxiliary: auxiliaryId },
+          auxiliaries: [auxiliaryId],
+          action: 'manual_time_stamping',
+          manualTimeStampingReason: 'qrcode_missing',
+        },
+        {
+          update: { endHour: { from: '2019-05-20T10:00:00', to: '2019-05-20T10:03:24' } },
+          event: { type: 'intervention', auxiliary: auxiliaryId },
+          auxiliaries: [auxiliaryId],
+          action: 'manual_time_stamping',
+          manualTimeStampingReason: 'camera_error',
+        },
+      ],
     },
     {
       isCancelled: true,
@@ -247,23 +279,27 @@ describe('exportWorkingEventsHistory', () => {
         _id: new ObjectID(),
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
-      startDate: moment('2019-05-20T08:00:00').toDate(),
-      endDate: moment('2019-05-20T10:00:00').toDate(),
+      startDate: '2019-05-20T08:00:00',
+      endDate: '2019-05-20T10:00:00',
       misc: 'brbr',
+      histories: [],
     },
   ];
   let getWorkingEventsForExport;
   let getLastVersion;
   let getAuxiliariesWithSectorHistory;
+  let formatDateAndTime;
   beforeEach(() => {
     getWorkingEventsForExport = sinon.stub(ExportHelper, 'getWorkingEventsForExport');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
     getAuxiliariesWithSectorHistory = sinon.stub(UserRepository, 'getAuxiliariesWithSectorHistory');
+    formatDateAndTime = sinon.stub(DatesHelper, 'formatDateAndTime');
   });
   afterEach(() => {
     getWorkingEventsForExport.restore();
     getLastVersion.restore();
     getAuxiliariesWithSectorHistory.restore();
+    formatDateAndTime.restore();
   });
 
   it('should return an array containing just the header', async () => {
@@ -274,25 +310,37 @@ describe('exportWorkingEventsHistory', () => {
     expect(exportArray).toEqual([header]);
   });
 
-  it('should return an array with the header and 2 rows', async () => {
+  it('should return an array with the header and 3 rows', async () => {
     getWorkingEventsForExport.returns(events);
     getAuxiliariesWithSectorHistory.returns(auxiliaries);
+
+    formatDateAndTime.onCall(0).returns('20/05/2019 10:00:00');
+    formatDateAndTime.onCall(1).returns('20/05/2019 10:01:18');
+    formatDateAndTime.onCall(2).returns('20/05/2019 12:00:00');
+    formatDateAndTime.onCall(3).returns('20/05/2019 10:00:00');
+    formatDateAndTime.onCall(4).returns('20/05/2019 10:01:18');
+    formatDateAndTime.onCall(5).returns('20/05/2019 12:00:00');
+    formatDateAndTime.onCall(6).returns('20/05/2019 12:03:24');
+    formatDateAndTime.onCall(7).returns('20/05/2019 10:00:00');
+    formatDateAndTime.onCall(8).returns('20/05/2019 12:00:00');
+
     getLastVersion.callsFake(ver => ver[0]);
 
     const exportArray = await ExportHelper.exportWorkingEventsHistory(null, null);
 
     expect(exportArray).toEqual([
       header,
-      ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
-        'Girafes - 75', expect.any(ObjectID), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme',
-        'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
-      ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
-        'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
+      ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
+        '20/05/2019 12:00:00', '', '', '', '2,00', 'Une fois par semaine', 'Girafes - 75', expect.any(ObjectID), '',
+        'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
         'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75',
-        '', '', '', '', 'Oui', expect.any(ObjectID), 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui',
-        'Facturée & non payée',
-        'Initiative de l\'intervenant'],
+      ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
+        '20/05/2019 12:00:00', '20/05/2019 12:03:24', 'Manuel', 'Problème de caméra', '2,00',
+        'Une fois par semaine', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
+        'Oui', 'Non', '', ''],
+      ['Heure interne', 'Formation', '', '20/05/2019 10:00:00', '', '', '', '20/05/2019 12:00:00', '', '', '',
+        '2,00', '', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'M.', 'HORSEMAN', 'Bojack', 'brbr',
+        'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant'],
     ]);
   });
 });

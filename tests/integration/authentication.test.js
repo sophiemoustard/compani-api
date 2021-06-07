@@ -5,9 +5,8 @@ const sinon = require('sinon');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const { usersSeedList, populateDB, auxiliaryFromOtherCompany } = require('./seed/usersSeed');
-const { getToken, getUser, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getUser, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { userList, noRoleNoCompany } = require('../seed/userSeed');
-const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
 const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
@@ -131,10 +130,10 @@ describe('POST /users/:id/passwordtoken', () => {
   let authToken;
   const payload = { email: 'aux@alenvi.io' };
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin', true, usersSeedList);
+      authToken = await getToken('coach', true, usersSeedList);
     });
 
     it('should create password token', async () => {
@@ -301,64 +300,6 @@ describe('POST /users/refreshToken', () => {
     });
 
     expect(res.statusCode).toBe(401);
-  });
-});
-
-describe('POST /users/:id/drivefolder', () => {
-  let authToken;
-  let createFolderStub;
-  beforeEach(() => {
-    createFolderStub = sinon.stub(GDriveStorageHelper, 'createFolder');
-  });
-  afterEach(() => {
-    createFolderStub.restore();
-  });
-
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('client_admin', true, usersSeedList);
-    });
-
-    it('should create a drive folder for a user', async () => {
-      createFolderStub.returns({ id: '1234567890', webViewLink: 'http://test.com' });
-
-      const response = await app.inject({
-        method: 'POST',
-        url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const updatedUser = await User.findOne({ _id: usersSeedList[0]._id }, { 'administrative.driveFolder': 1 }).lean();
-      expect(updatedUser.administrative.driveFolder).toEqual({ driveId: '1234567890', link: 'http://test.com' });
-      sinon.assert.calledWithExactly(createFolderStub, usersSeedList[0].identity, authCompany.auxiliariesFolderId);
-    });
-  });
-
-  describe('Other roles', () => {
-    beforeEach(populateDB);
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        createFolderStub.returns({ id: '1234567890', webViewLink: 'http://test.com' });
-
-        const response = await app.inject({
-          method: 'POST',
-          url: `/users/${usersSeedList[1]._id.toHexString()}/drivefolder`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
   });
 });
 

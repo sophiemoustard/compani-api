@@ -9,6 +9,7 @@ const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const UserCompany = require('../models/UserCompany');
 const Company = require('../models/Company');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
@@ -40,6 +41,7 @@ exports.getUsersList = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -56,6 +58,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
@@ -97,6 +100,7 @@ exports.getUser = async (userId, credentials) => {
 
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -128,12 +132,10 @@ exports.userExists = async (email, credentials) => {
   if (!credentials) return { exists: true, user: {} };
 
   const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-  const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
-  const targetUserHasCompany = !!targetUser.company;
-  const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
-  const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
+  const sameCompany = !!targetUser.company &&
+    UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), targetUser.company);
 
-  return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
+  return loggedUserhasVendorRole || sameCompany || !targetUser.company
     ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
     : { exists: !!targetUser, user: {} };
 };
@@ -165,8 +167,17 @@ exports.createAndSaveFile = async (params, payload) => {
   return uploadedFile;
 };
 
+const createUserCompany = async (payload, company) => {
+  const user = await User.create({ ...payload, company });
+  await UserCompany.create({ user: user._id, company });
+
+  return user;
+};
+
 /**
- * 1st case : User creates his account => no credentials => handle payload as given
+ * 1st case : No role / no company => handle payload as given
+ *  - User creates his account
+ *  - Vendor admin creates program tester
  * 2nd case : Client role creates user for his organization => set company with the one in credentials
  * + role (if needed)
  *  - if sector is given => add sector history (for auxiliary and planning referent)
@@ -179,13 +190,14 @@ exports.createUser = async (userPayload, credentials) => {
   if (!credentials) return User.create(payload);
 
   const companyId = payload.company || get(credentials, 'company._id');
-  if (!userPayload.role) return User.create({ ...payload, company: companyId });
+  if (!userPayload.role) return createUserCompany(payload, companyId);
 
   const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
 
   if (role.name === TRAINER) return User.create({ ...payload, role: { [role.interface]: role._id } });
-  const user = await User.create({ ...payload, role: { [role.interface]: role._id }, company: companyId });
+
+  const user = await createUserCompany({ ...payload, role: { [role.interface]: role._id } }, companyId);
 
   if (userPayload.customer) await HelpersHelper.create(user._id, userPayload.customer, companyId);
 
@@ -195,6 +207,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true, autopopulate: true });
 };
 
@@ -220,6 +233,7 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
   const payload = await formatUpdatePayload(userPayload);
 
   if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
+  if (userPayload.company) await UserCompany.create({ user: userId, company: userPayload.company });
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);

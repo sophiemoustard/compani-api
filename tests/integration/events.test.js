@@ -33,7 +33,11 @@ const {
   PAID_LEAVE,
   MATERNITY_LEAVE,
   PARENTAL_LEAVE,
+  NEVER,
+  INVOICED_AND_PAID,
+  AUXILIARY_INITIATIVE,
 } = require('../../src/helpers/constants');
+const UtilsHelper = require('../../src/helpers/utils');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
@@ -46,10 +50,10 @@ describe('NODE ENV', () => {
 
 describe('GET /events', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('auxiliary');
     });
 
     it('should return a list of events', async () => {
@@ -66,9 +70,7 @@ describe('GET /events', () => {
       response.result.data.events.forEach((event) => {
         expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
         expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
-        if (event.type === 'intervention') {
-          expect(event.subscription._id).toBeDefined();
-        }
+        if (event.type === 'intervention') expect(event.subscription._id).toBeDefined();
       });
     });
 
@@ -81,11 +83,9 @@ describe('GET /events', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events[0]._id).toBeDefined();
-      expect(response.result.data.events[0].events).toBeDefined();
-      response.result.data.events[0].events.forEach((event) => {
-        expect(event.customer._id).toEqual(response.result.data.events[0]._id);
-      });
+      const { events } = response.result.data;
+      const customerId = Object.keys(events)[0];
+      events[customerId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.customer._id, customerId)).toBeTruthy());
     });
 
     it('should return a list of events groupedBy auxiliaries', async () => {
@@ -97,12 +97,9 @@ describe('GET /events', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events[0]._id).toBeDefined();
-      expect(response.result.data.events[0].events).toBeDefined();
-      const index = response.result.data.events.findIndex(event => event.events[0].auxiliary);
-      response.result.data.events[index].events.forEach((event) => {
-        expect(event.auxiliary._id).toEqual(response.result.data.events[index]._id);
-      });
+      const { events } = response.result.data;
+      const auxId = Object.keys(events)[0];
+      events[auxId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.auxiliary._id, auxId)).toBeTruthy());
     });
 
     it('should return a 200 if same id send twice - sectors', async () => {
@@ -164,6 +161,26 @@ describe('GET /events', () => {
 
       expect(response.statusCode).toEqual(403);
     });
+
+    it('should return 400 if groupBy is an unauthorized string', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/events?groupBy=oiuy&type=intervention',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return 400 if type is an unauthorized string', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/events?groupBy=customer&type=oiuy',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
   });
 
   describe('Other roles', () => {
@@ -177,10 +194,9 @@ describe('GET /events', () => {
         url: `/events?customer=${customerAuxiliary._id.toHexString()}`,
         customCredentials: { ...helpersCustomer.local },
       },
-      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'planning_referent', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -200,10 +216,10 @@ describe('GET /events', () => {
 
 describe('GET /events/credit-notes', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('auxiliary');
     });
 
     it('should return a list of billed events for specified customer', async () => {
@@ -304,10 +320,9 @@ describe('GET /events/credit-notes', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'planning_referent', expectedCode: 200 },
     ];
     const query = {
       startDate: moment('2019-01-01').toDate(),
@@ -336,10 +351,10 @@ describe('GET /events/working-stats', () => {
   let authToken = null;
   const startDate = moment('2019-01-17').toDate();
   const endDate = moment('2019-01-20').toDate();
-  describe('CLIENT_ADMIN', () => {
+  describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('auxiliary');
     });
 
     it('should return working stats for auxiliaries', async () => {
@@ -382,10 +397,9 @@ describe('GET /events/working-stats', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'planning_referent', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -405,10 +419,10 @@ describe('GET /events/working-stats', () => {
 
 describe('GET /events/paid-transport', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('auxiliary');
     });
 
     it('should return paid transport stats for many sectors', async () => {
@@ -474,10 +488,9 @@ describe('GET /events/paid-transport', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'planning_referent', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -497,10 +510,10 @@ describe('GET /events/paid-transport', () => {
 
 describe('GET /events/unassigned-hours', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('auxiliary');
     });
 
     it('should return an empty array if sector does not have unassigned event', async () => {
@@ -577,9 +590,9 @@ describe('GET /events/unassigned-hours', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'planning_referent', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -599,10 +612,10 @@ describe('GET /events/unassigned-hours', () => {
 
 describe('POST /events', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('planning_referent');
     });
 
     it('should create an internal hour', async () => {
@@ -1162,7 +1175,6 @@ describe('POST /events', () => {
       { name: 'helper', expectedCode: 403, erp: true },
       { name: 'auxiliary', expectedCode: 403, erp: true },
       { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-      { name: 'planning_referent', expectedCode: 200, erp: true },
       {
         name: 'auxiliary event',
         expectedCode: 200,
@@ -1176,8 +1188,9 @@ describe('POST /events', () => {
         customCredentials: auxiliaries[0].local,
         customPayload: { ...omit(payload, 'auxiliary'), sector: sectors[0]._id },
       },
-      { name: 'coach', expectedCode: 200, erp: true },
       { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -1200,10 +1213,10 @@ describe('POST /events', () => {
 
 describe('PUT /events/{_id}', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('planning_referent');
     });
 
     it('should update corresponding event with sector', async () => {
@@ -1519,6 +1532,102 @@ describe('PUT /events/{_id}', () => {
 
       expect(response.statusCode).toEqual(403);
     });
+
+    it('should return a 422 event is startDate timeStamped and user tries to update date', async () => {
+      const payload = {
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-01-23T12:00:00.000Z',
+        sector: sectors[0]._id.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[23]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
+
+    it('should return a 422 event is startDate timeStamped and user tries to update auxiliary', async () => {
+      const payload = { auxiliary: auxiliaries[1]._id };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[23]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
+
+    it('should return a 422 event is startDate timeStamped and user tries to update isCancelled', async () => {
+      const payload = {
+        auxiliary: auxiliaries[2]._id,
+        isCancelled: true,
+        cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
+        misc: 'blablabla',
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[23]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
+
+    it('should return a 422 event is endDate timeStamped and user tries to update date', async () => {
+      const payload = {
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-01-23T12:00:00.000Z',
+        sector: sectors[0]._id.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[24]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
+
+    it('should return a 422 event is endDate timeStamped and user tries to update auxiliary', async () => {
+      const payload = { auxiliary: auxiliaries[1]._id };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[24]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
+
+    it('should return a 422 event is endDate timeStamped and user tries to update isCancelled', async () => {
+      const payload = {
+        auxiliary: auxiliaries[3]._id,
+        isCancelled: true,
+        cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
+        misc: 'blablabla',
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[24]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(422);
+    });
   });
 
   describe('Other roles', () => {
@@ -1534,8 +1643,8 @@ describe('PUT /events/{_id}', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -1557,10 +1666,10 @@ describe('PUT /events/{_id}', () => {
 
 describe('DELETE /events/{_id}', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('planning_referent');
     });
 
     it('should delete corresponding event', async () => {
@@ -1606,8 +1715,8 @@ describe('DELETE /events/{_id}', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
 
@@ -1629,10 +1738,10 @@ describe('DELETE /events/{_id}', () => {
 
 describe('DELETE /events', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('planning_referent');
     });
 
     it('should delete all events from startDate including repetitions', async () => {
@@ -1689,11 +1798,11 @@ describe('DELETE /events', () => {
     beforeEach(populateDB);
 
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -1717,10 +1826,10 @@ describe('DELETE /events', () => {
 
 describe('DELETE /{_id}/repetition', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('planning_referent');
     });
 
     it('should delete repetition', async () => {
@@ -1744,12 +1853,12 @@ describe('DELETE /{_id}/repetition', () => {
     beforeEach(populateDB);
 
     const roles = [
+      { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200, customCredentials: auxiliaries[0].local },
-      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -1773,7 +1882,7 @@ describe('PUT /{_id}/timestamping', () => {
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
 
-    it('should timestamp an event', async () => {
+    it('should timestamp startDate of an event', async () => {
       authToken = await getTokenByCredentials(auxiliaries[0].local);
       const startDate = new Date();
 
@@ -1790,9 +1899,26 @@ describe('PUT /{_id}/timestamping', () => {
         'event.startDate': startDate,
         action: 'manual_time_stamping',
         manualTimeStampingReason: 'camera_error',
-
       });
       expect(timestamp).toBe(1);
+    });
+
+    it('should timestamp event endDate and remove event from repetition', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const endDate = new Date();
+      const eventId = eventsList[21]._id;
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventId}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { endDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedEvent = await Event.countDocuments({ _id: eventId, 'repetition.frequency': NEVER });
+      expect(updatedEvent).toEqual(1);
     });
 
     it('should return a 404 if event does not exist', async () => {
@@ -1848,7 +1974,7 @@ describe('PUT /{_id}/timestamping', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 409 if event is already timestamped', async () => {
+    it('should return a 409 if event is already startDate timestamped', async () => {
       authToken = await getTokenByCredentials(auxiliaries[2].local);
       const startDate = new Date();
 
@@ -1857,6 +1983,20 @@ describe('PUT /{_id}/timestamping', () => {
         url: `/events/${eventsList[23]._id}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return a 409 if event is already endDate timestamped', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[3].local);
+      const endDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[24]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { endDate, action: 'manual_time_stamping', reason: 'camera_error' },
       });
 
       expect(response.statusCode).toBe(409);
@@ -1890,8 +2030,36 @@ describe('PUT /{_id}/timestamping', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if no endDate and no startDate', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if endDate and startDate', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+      const endDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, endDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const payload = { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' };
-    const missingFields = ['startDate', 'action', 'reason'];
+    const missingFields = ['action', 'reason'];
 
     missingFields.forEach((field) => {
       it(`should return a 400 if missing field ${field}`, async () => {

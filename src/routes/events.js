@@ -25,6 +25,9 @@ const {
   OTHER,
   WORK_ACCIDENT,
   MANUAL_TIME_STAMPING_REASONS,
+  CUSTOMER,
+  AUXILIARY,
+  TIMESTAMPING_ACTION_TYPE_LIST,
 } = require('../helpers/constants');
 const {
   EVENT_TYPES,
@@ -34,7 +37,6 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
-const { TIMESTAMPING_ACTIONS } = require('../models/EventHistory');
 const {
   getEvent,
   authorizeEventCreation,
@@ -99,8 +101,8 @@ exports.plugin = {
             auxiliary: objectIdOrArray,
             sector: objectIdOrArray,
             customer: objectIdOrArray,
-            type: Joi.string(),
-            groupBy: Joi.string(),
+            type: Joi.string().valid(...EVENT_TYPES),
+            groupBy: Joi.string().valid(CUSTOMER, AUXILIARY),
           }),
         },
         pre: [{ method: authorizeEventGet }],
@@ -294,10 +296,11 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            action: Joi.string().required().valid(...TIMESTAMPING_ACTIONS),
-            startDate: Joi.date().required(),
-            reason: Joi.string().required().valid(...MANUAL_TIME_STAMPING_REASONS),
-          }),
+            action: Joi.string().required().valid(...Object.keys(TIMESTAMPING_ACTION_TYPE_LIST)),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
+            reason: Joi.string().required().valid(...Object.keys(MANUAL_TIME_STAMPING_REASONS)),
+          }).xor('startDate', 'endDate'),
         },
         pre: [{ method: getEvent, assign: 'event' }, { method: authorizeTimeStamping }],
       },

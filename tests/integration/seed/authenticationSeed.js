@@ -8,6 +8,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Customer = require('../../../src/models/Customer');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Service = require('../../../src/models/Service');
+const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList } = require('../../seed/roleSeed');
 const { userList } = require('../../seed/userSeed');
 const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
@@ -59,15 +60,16 @@ const identityVerifications = [
 ];
 
 const populateDBForAuthentication = async () => {
-  await Role.deleteMany({});
-  await User.deleteMany({});
-  await Company.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Customer.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Service.deleteMany({});
-  await IdentityVerification.deleteMany({});
+  await Role.deleteMany();
+  await User.deleteMany();
+  await Company.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Customer.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Service.deleteMany();
+  await IdentityVerification.deleteMany();
+  await UserCompany.deleteMany();
 
   await new Company(authCompany).save();
   await new Company(otherCompany).save();
