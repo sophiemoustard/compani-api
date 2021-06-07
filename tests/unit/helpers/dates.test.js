@@ -81,7 +81,7 @@ describe('isSameOrAfter', () => {
   });
 });
 
-describe('addDays #tag', () => {
+describe('addDays', () => {
   it('should add days to date', () => {
     const newDate = DatesHelper.addDays('2020-12-25', 9);
     const resultDate = new Date('2021-01-03');
