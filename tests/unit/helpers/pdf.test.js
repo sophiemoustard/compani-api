@@ -5,9 +5,9 @@ const puppeteer = require('puppeteer');
 const handlebars = require('handlebars');
 const PdfPrinter = require('pdfmake');
 const PDFDocument = require('pdfkit');
-const fs = require('fs');
 const getStream = require('get-stream');
 const PdfHelper = require('../../../src/helpers/pdf');
+const FileHelper = require('../../../src/helpers/file');
 
 describe('formatSurchargeHourForPdf', () => {
   it('should return just the hours', () => {
@@ -128,18 +128,18 @@ describe('generatePdf', () => {
 describe('generatePDF', () => {
   let createPdfKitDocument;
   let buffer;
-  let rmdirSync;
+  let deleteImages;
 
   beforeEach(() => {
     createPdfKitDocument = sinon.stub(PdfPrinter.prototype, 'createPdfKitDocument');
     buffer = sinon.stub(getStream, 'buffer');
-    rmdirSync = sinon.stub(fs, 'rmdirSync');
+    deleteImages = sinon.stub(FileHelper, 'deleteImages');
   });
 
   afterEach(() => {
     createPdfKitDocument.restore();
     buffer.restore();
-    rmdirSync.restore();
+    deleteImages.restore();
   });
 
   it('should generate pdf', async () => {
@@ -155,6 +155,6 @@ describe('generatePDF', () => {
     expect(result).toBe(pdf);
     sinon.assert.calledOnceWithExactly(createPdfKitDocument, template);
     sinon.assert.calledOnceWithExactly(buffer, doc);
-    sinon.assert.calledOnceWithExactly(rmdirSync, 'src/data/tmp', { recursive: true });
+    sinon.assert.calledOnceWithExactly(deleteImages);
   });
 });

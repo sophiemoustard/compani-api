@@ -15,6 +15,12 @@ describe('getPdfContent', () => {
   });
 
   it('it should format and return pdf content', async () => {
+    const paths = [
+      'src/data/tmp/conscience.png',
+      'src/data/tmp/compani.png',
+      'src/data/tmp/decision.png',
+      'src/data/tmp/signature.png',
+    ];
     const course = {
       name: 'Formation Test',
       slots: [
@@ -71,9 +77,9 @@ describe('getPdfContent', () => {
       content: [
         {
           columns: [
-            { image: 'src/data/tmp/conscience.png', width: 64 },
+            { image: paths[0], width: 64 },
             [
-              { image: 'src/data/tmp/compani.png', width: 132, height: 28, alignment: 'right' },
+              { image: paths[1], width: 132, height: 28, alignment: 'right' },
               { text: 'Émargements - Alain TÉRIEUR', style: 'title' },
             ],
           ],
@@ -92,7 +98,7 @@ describe('getPdfContent', () => {
               { text: 'Structure : Alenvi Home SAS' },
               { text: 'Formateur : Anne ONYME' },
             ],
-            { image: 'src/data/tmp/decision.png', width: 64 },
+            { image: paths[2], width: 64 },
           ],
           margin: [16, 0, 24, 16],
         },
@@ -102,7 +108,7 @@ describe('getPdfContent', () => {
         },
         { text: 'Signature et tampon de l\'organisme de formation :' },
         {
-          image: 'src/data/tmp/signature.png',
+          image: paths[3],
           width: 80,
           pageBreak: 'after',
           marginTop: 8,
@@ -110,9 +116,9 @@ describe('getPdfContent', () => {
         },
         {
           columns: [
-            { image: 'src/data/tmp/conscience.png', width: 64 },
+            { image: paths[0], width: 64 },
             [
-              { image: 'src/data/tmp/compani.png', width: 132, height: 28, alignment: 'right' },
+              { image: paths[1], width: 132, height: 28, alignment: 'right' },
               { text: 'Émargements - Alex TÉRIEUR', style: 'title' },
             ],
           ],
@@ -131,7 +137,7 @@ describe('getPdfContent', () => {
               { text: 'Structure : APEF Rouen' },
               { text: 'Formateur : Anne ONYME' },
             ],
-            { image: 'src/data/tmp/decision.png', width: 64 },
+            { image: paths[2], width: 64 },
           ],
           margin: [16, 0, 24, 16],
         },
@@ -141,7 +147,7 @@ describe('getPdfContent', () => {
         },
         { text: 'Signature et tampon de l\'organisme de formation :' },
         {
-          image: 'src/data/tmp/signature.png',
+          image: paths[3],
           width: 80,
           pageBreak: 'none',
           marginTop: 8,
@@ -171,6 +177,8 @@ describe('getPdfContent', () => {
       { url: 'https://storage.googleapis.com/compani-main/aux-prisededecision.png', name: 'decision.png' },
       { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
     ];
+
+    downloadImages.returns(paths);
 
     const result = await InterAttendanceSheet.getPdfContent(data);
     expect(result).toMatchObject(pdf);

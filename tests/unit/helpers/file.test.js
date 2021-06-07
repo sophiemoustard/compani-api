@@ -118,12 +118,34 @@ describe('downloadImages', () => {
 
     get.returns(response);
 
-    await FileHelper.downloadImages(imageList);
+    const result = await FileHelper.downloadImages(imageList);
 
+    expect(result).toEqual([
+      'src/data/tmp/conscience.png',
+      'src/data/tmp/compani.png',
+    ]);
     sinon.assert.calledWithExactly(get.getCall(0), imageList[0].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(get.getCall(1), imageList[1].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(createAndReadFile.getCall(0), response.data, `src/data/tmp/${imageList[0].name}`);
     sinon.assert.calledWithExactly(createAndReadFile.getCall(1), response.data, `src/data/tmp/${imageList[1].name}`);
+  });
+});
+
+describe('deleteImages', () => {
+  let rmdirSync;
+
+  beforeEach(() => {
+    rmdirSync = sinon.stub(fs, 'rmdirSync');
+  });
+
+  afterEach(() => {
+    rmdirSync.restore();
+  });
+
+  it('should remove images from local', async () => {
+    await FileHelper.deleteImages();
+
+    sinon.assert.calledOnceWithExactly(rmdirSync, 'src/data/tmp/', { recursive: true });
   });
 });
 

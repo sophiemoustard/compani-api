@@ -17,12 +17,12 @@ exports.getPdfContent = async (data) => {
     { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
   ];
 
-  await FileHelper.downloadImages(imageList);
+  const paths = await FileHelper.downloadImages(imageList);
 
-  const conscience = 'src/data/tmp/conscience.png';
-  const compani = 'src/data/tmp/compani.png';
-  const decision = 'src/data/tmp/decision.png';
-  const signature = 'src/data/tmp/signature.png';
+  const conscience = paths[0];
+  const compani = paths[1];
+  const decision = paths[2];
+  const signature = paths[3];
 
   const content = [];
   const lastPage = trainees.length - 1;

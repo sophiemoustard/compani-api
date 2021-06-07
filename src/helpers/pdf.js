@@ -6,6 +6,7 @@ const handlebars = require('handlebars');
 const puppeteer = require('puppeteer');
 const PdfPrinter = require('pdfmake');
 const getStream = require('get-stream');
+const FileHelper = require('./file');
 
 exports.readFile = util.promisify(fs.readFile);
 
@@ -69,7 +70,7 @@ exports.generatePDF = async (template) => {
   const doc = printer.createPdfKitDocument(template);
   doc.end();
   const pdf = await getStream.buffer(doc);
-  fs.rmdirSync('src/data/tmp', { recursive: true });
+  FileHelper.deleteImages();
 
   return pdf;
 };
