@@ -160,74 +160,77 @@ const formatPayload = async (customerId, customerPayload, company) => {
   return { $set: flat(customerPayload, { safe: true }) };
 };
 
-const handleCustomerStop = async (customerId, customerPayload, credentials) => {
+const createEventsOnCustomerStop = async (repetition, stoppedAt, company) => {
+  const eventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
+    ? repetition.startDate
+    : Date.now();
+  const lastEventCreatedByRepetition = DatesHelper.addDays(eventCreationStartDate, 90);
+
+  const shouldCreateEvents = DatesHelper.isSameOrAfter(stoppedAt, lastEventCreatedByRepetition);
+  if (!shouldCreateEvents) return;
+
+  let sectorId = repetition.sector;
+  if (!repetition.sector) {
+    const auxiliary = await User.findOne({ _id: repetition.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: company._id } })
+      .lean({ autopopulate: true, virtuals: true });
+    sectorId = auxiliary.sector;
+  }
+
+  switch (repetition.frequency) {
+    case EVERY_DAY:
+      await EventsRepetitionHelper.createRepetitionsEveryDay(
+        repetition,
+        sectorId,
+        DatesHelper.addDays(lastEventCreatedByRepetition, 1),
+        stoppedAt
+      );
+      break;
+    case EVERY_WEEK_DAY:
+      await EventsRepetitionHelper.createRepetitionsEveryWeekDay(
+        repetition,
+        sectorId,
+        DatesHelper.addDays(lastEventCreatedByRepetition, 1),
+        stoppedAt
+      );
+      break;
+    case EVERY_WEEK:
+      await EventsRepetitionHelper.createRepetitionsByWeek(
+        repetition,
+        sectorId,
+        1,
+        DatesHelper.addDays(lastEventCreatedByRepetition, 1),
+        stoppedAt
+      );
+      break;
+    case EVERY_TWO_WEEKS:
+      await EventsRepetitionHelper.createRepetitionsByWeek(
+        repetition,
+        sectorId,
+        2,
+        DatesHelper.addDays(lastEventCreatedByRepetition, 1),
+        stoppedAt
+      );
+      break;
+    default:
+      break;
+  }
+};
+
+const handleCustomerStop = async (customerId, stoppedAt, credentials) => {
   const { company } = credentials;
   const timeStampedEventsCount = await EventHistory.countDocuments({
     'event.customer': customerId,
-    startDate: { $gte: customerPayload.stoppedAt },
+    startDate: { $gte: stoppedAt },
     action: { $in: EventHistory.TIMESTAMPING_ACTIONS },
   });
   if (timeStampedEventsCount > 0) throw Boom.conflict();
 
-  await EventHelper.deleteList(customerId, customerPayload.stoppedAt, null, credentials);
+  await EventHelper.deleteList(customerId, stoppedAt, null, credentials);
 
   const customerRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
   for (const repetition of customerRepetitions) {
-    const eventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
-      ? repetition.startDate
-      : Date.now();
-    const lastEventCreatedByRepetition = DatesHelper.addDays(eventCreationStartDate, 90);
-    const shouldCreateEvents = DatesHelper.isSameOrAfter(customerPayload.stoppedAt, lastEventCreatedByRepetition);
-    if (shouldCreateEvents) {
-      let sectorId = repetition.sector;
-      if (!repetition.sector) {
-        const auxiliary = await User.findOne({ _id: repetition.auxiliary })
-          .populate({ path: 'sector', select: '_id sector', match: { company: company._id } })
-          .lean({ autopopulate: true, virtuals: true });
-        sectorId = auxiliary.sector;
-      }
-
-      switch (repetition.frequency) {
-        case EVERY_DAY:
-          await EventsRepetitionHelper.createRepetitionsEveryDay(
-            repetition,
-            sectorId,
-            DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-            customerPayload.stoppedAt
-          );
-          break;
-        case EVERY_WEEK_DAY:
-          await EventsRepetitionHelper.createRepetitionsEveryWeekDay(
-            repetition,
-            sectorId,
-            DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-            customerPayload.stoppedAt
-          );
-          break;
-        case EVERY_WEEK:
-          console.log('ici', repetition, sectorId,
-            DatesHelper.addDays(lastEventCreatedByRepetition, 1), customerPayload.stoppedAt);
-          await EventsRepetitionHelper.createRepetitionsByWeek(
-            repetition,
-            sectorId,
-            1,
-            DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-            customerPayload.stoppedAt
-          );
-          break;
-        case EVERY_TWO_WEEKS:
-          await EventsRepetitionHelper.createRepetitionsByWeek(
-            repetition,
-            sectorId,
-            2,
-            DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-            customerPayload.stoppedAt
-          );
-          break;
-        default:
-          break;
-      }
-    }
+    await createEventsOnCustomerStop(repetition, stoppedAt, company);
 
     await Repetition.deleteOne({ _id: repetition._id });
   }
@@ -236,7 +239,7 @@ const handleCustomerStop = async (customerId, customerPayload, credentials) => {
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   const { company } = credentials;
 
-  if (customerPayload.stoppedAt) await handleCustomerStop(customerId, customerPayload, credentials);
+  if (customerPayload.stoppedAt) await handleCustomerStop(customerId, customerPayload.stoppedAt, credentials);
 
   if (has(customerPayload, 'referent')) {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
