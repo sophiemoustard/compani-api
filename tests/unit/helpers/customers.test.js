@@ -540,6 +540,7 @@ describe('updateCustomer', () => {
   let findOneUser;
   let createRepetitionsEveryDay;
   let nowStub;
+  let deleteOneRepetition;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneCustomer = sinon.stub(Customer, 'findOne');
@@ -553,6 +554,7 @@ describe('updateCustomer', () => {
     findOneUser = sinon.stub(User, 'findOne');
     createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
     nowStub = sinon.stub(Date, 'now');
+    deleteOneRepetition = sinon.stub(Repetition, 'deleteOne');
   });
   afterEach(() => {
     findOneCustomer.restore();
@@ -566,6 +568,7 @@ describe('updateCustomer', () => {
     findOneUser.restore();
     createRepetitionsEveryDay.restore();
     nowStub.restore();
+    deleteOneRepetition.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -799,6 +802,7 @@ describe('updateCustomer', () => {
     expect(result).toBe(customerResult);
     sinon.assert.calledOnceWithExactly(deleteListEvent, customerId, '2019-06-25T16:34:04.144Z', null, credentials);
     sinon.assert.notCalled(findOneUser);
+    sinon.assert.calledOnceWithExactly(deleteOneRepetition, { _id: repetitions[0]._id });
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -815,7 +819,7 @@ describe('updateCustomer', () => {
   });
 
   it('should deleted customer\'s events + repetition and create events when customer is stopped'
-    + 'and last event created by repetition is before stopping date #tag', async () => {
+    + 'and last event created by repetition is before stopping date', async () => {
     const auxiliaryId = new ObjectID();
     const customerId = new ObjectID();
     const repetitions = [
@@ -861,6 +865,7 @@ describe('updateCustomer', () => {
       new Date('2021-09-24T16:34:04.144Z'),
       '2022-06-25T16:34:04.144Z'
     );
+    sinon.assert.calledOnceWithExactly(deleteOneRepetition, { _id: repetitions[0]._id });
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
