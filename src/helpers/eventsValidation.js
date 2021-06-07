@@ -78,11 +78,14 @@ exports.isCreationAllowed = async (event, credentials) => {
 
 exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
   const updateStartDate = payload.startDate && DatesHelper.diff(eventFromDB.startDate, payload.startDate) !== 0;
+  const updateEndDate = payload.endDate && DatesHelper.diff(eventFromDB.endDate, payload.endDate) !== 0;
   const updateAuxiliary = payload.auxiliary &&
     !UtilsHelper.areObjectIdsEquals(eventFromDB.auxiliary, payload.auxiliary);
   const cancelEvent = payload.isCancelled;
-  const forbiddenUpdateOnTimeStampedEvent = updateStartDate || updateAuxiliary || cancelEvent;
-  if (eventFromDB.startDateTimeStampedCount && forbiddenUpdateOnTimeStampedEvent) return false;
+  const forbiddenUpdateOnTimeStampedEvent = updateAuxiliary || cancelEvent;
+  const { startDateTimeStampedCount, endDateTimeStampedCount } = eventFromDB;
+  if (startDateTimeStampedCount && (updateStartDate || forbiddenUpdateOnTimeStampedEvent)) return false;
+  if (endDateTimeStampedCount && (updateEndDate || forbiddenUpdateOnTimeStampedEvent)) return false;
 
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;

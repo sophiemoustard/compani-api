@@ -30,6 +30,7 @@ exports.getEvent = async (req) => {
   try {
     const event = await Event.findById(req.params._id)
       .populate('startDateTimeStampedCount')
+      .populate('endDateTimeStampedCount')
       .lean();
 
     if (!event) throw Boom.notFound(translate[language].eventNotFound);

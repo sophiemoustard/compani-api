@@ -741,17 +741,18 @@ describe('isUpdateAllowed', () => {
     }
   });
 
-  it('should return false if event is timeStamped and user wants to update startDate', async () => {
+  it('should return false if event is startDate timeStamped and user wants to update start date', async () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      startDate: '2019-04-13T09:00:00',
+      startDate: '2019-04-13T09:05:00',
       endDate: '2019-04-13T11:00:00',
     };
     const eventFromDB = {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
-      startDate: '2020-05-14T19:00:00',
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
       startDateTimeStampedCount: 1,
     };
 
@@ -762,7 +763,7 @@ describe('isUpdateAllowed', () => {
     sinon.assert.notCalled(isEditionAllowed);
   });
 
-  it('should return false if event is timeStamped and user wants to update auxiliary', async () => {
+  it('should return false if event is startDate timeStamped and user wants to update auxiliary', async () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
@@ -773,6 +774,7 @@ describe('isUpdateAllowed', () => {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
       startDateTimeStampedCount: 1,
     };
 
@@ -783,7 +785,7 @@ describe('isUpdateAllowed', () => {
     sinon.assert.notCalled(isEditionAllowed);
   });
 
-  it('should return false if event is timeStamped and user wants to cancel event', async () => {
+  it('should return false if event is startDate timeStamped and user wants to cancel event', async () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId,
@@ -795,7 +797,75 @@ describe('isUpdateAllowed', () => {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
       startDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false if event is endDate timeStamped and user wants to update end date', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:05:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      endDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false if event is endDate timeStamped and user wants to update auxiliary', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: new ObjectID(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      endDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false if event is endDate timeStamped and user wants to cancel event', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      isCancelled: true,
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      endDateTimeStampedCount: 1,
     };
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
