@@ -196,32 +196,34 @@ const handleCustomerStop = async (customerId, customerPayload, credentials) => {
             customerPayload.stoppedAt
           );
           break;
-        // case EVERY_WEEK_DAY:
-        //   await EventsRepetitionHelper.createRepetitionsEveryWeekDay(
-        //     repetition,
-        //     sectorId,
-        //     DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-        //     customerPayload.stoppedAt
-        //   );
-        //   break;
-        // case EVERY_WEEK:
-        //   await EventsRepetitionHelper.createRepetitionsByWeek(
-        //     repetition,
-        //     sectorId,
-        //     1,
-        //     DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-        //     customerPayload.stoppedAt
-        //   );
-        //   break;
-        // case EVERY_TWO_WEEKS:
-        //   await EventsRepetitionHelper.createRepetitionsByWeek(
-        //     repetition,
-        //     sectorId,
-        //     2,
-        //     DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-        //     customerPayload.stoppedAt
-        //   );
-        //   break;
+        case EVERY_WEEK_DAY:
+          await EventsRepetitionHelper.createRepetitionsEveryWeekDay(
+            repetition,
+            sectorId,
+            DatesHelper.addDays(lastEventCreatedByRepetition, 1),
+            customerPayload.stoppedAt
+          );
+          break;
+        case EVERY_WEEK:
+          console.log('ici', repetition, sectorId,
+            DatesHelper.addDays(lastEventCreatedByRepetition, 1), customerPayload.stoppedAt);
+          await EventsRepetitionHelper.createRepetitionsByWeek(
+            repetition,
+            sectorId,
+            1,
+            DatesHelper.addDays(lastEventCreatedByRepetition, 1),
+            customerPayload.stoppedAt
+          );
+          break;
+        case EVERY_TWO_WEEKS:
+          await EventsRepetitionHelper.createRepetitionsByWeek(
+            repetition,
+            sectorId,
+            2,
+            DatesHelper.addDays(lastEventCreatedByRepetition, 1),
+            customerPayload.stoppedAt
+          );
+          break;
         default:
           break;
       }

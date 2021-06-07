@@ -541,6 +541,7 @@ describe('updateCustomer', () => {
   let createRepetitionsEveryDay;
   let nowStub;
   let deleteOneRepetition;
+  let createRepetitionsByWeek;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneCustomer = sinon.stub(Customer, 'findOne');
@@ -555,6 +556,7 @@ describe('updateCustomer', () => {
     createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
     nowStub = sinon.stub(Date, 'now');
     deleteOneRepetition = sinon.stub(Repetition, 'deleteOne');
+    createRepetitionsByWeek = sinon.stub(EventsRepetitionHelper, 'createRepetitionsByWeek');
   });
   afterEach(() => {
     findOneCustomer.restore();
@@ -569,6 +571,7 @@ describe('updateCustomer', () => {
     createRepetitionsEveryDay.restore();
     nowStub.restore();
     deleteOneRepetition.restore();
+    createRepetitionsByWeek.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -824,6 +827,7 @@ describe('updateCustomer', () => {
     const customerId = new ObjectID();
     const repetitions = [
       {
+        _id: new ObjectID(),
         type: 'intervention',
         customer: customerId,
         frequency: 'every_day',
@@ -831,6 +835,16 @@ describe('updateCustomer', () => {
         startDate: '2019-12-01T09:00:00',
         endDate: '2019-12-01T10:00:00',
         auxiliary: auxiliaryId,
+      },
+      {
+        _id: new ObjectID(),
+        type: 'intervention',
+        customer: customerId,
+        frequency: 'every_week',
+        parentId: new ObjectID(),
+        startDate: '2021-12-25T09:00:00',
+        endDate: '2021-12-25T10:00:00',
+        sector: new ObjectID(),
       },
     ];
     const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
@@ -865,7 +879,16 @@ describe('updateCustomer', () => {
       new Date('2021-09-24T16:34:04.144Z'),
       '2022-06-25T16:34:04.144Z'
     );
-    sinon.assert.calledOnceWithExactly(deleteOneRepetition, { _id: repetitions[0]._id });
+    sinon.assert.calledOnceWithExactly(
+      createRepetitionsByWeek,
+      repetitions[1],
+      repetitions[1].sector,
+      1,
+      new Date('2022-03-26T08:00:00.000Z'),
+      '2022-06-25T16:34:04.144Z'
+    );
+    sinon.assert.calledWithExactly(deleteOneRepetition.getCall(0), { _id: repetitions[0]._id });
+    sinon.assert.calledWithExactly(deleteOneRepetition.getCall(1), { _id: repetitions[1]._id });
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
