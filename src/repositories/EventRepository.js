@@ -53,7 +53,6 @@ exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
       select: 'identity contact subscriptions',
     })
     .populate({ path: 'internalHour', match: { company: companyId } })
-    .populate({ path: 'sector', match: { company: companyId } })
     .populate({ path: 'extension', match: { company: companyId } })
     .populate({
       path: 'histories',
