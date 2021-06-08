@@ -15,8 +15,8 @@ const translate = require('../../../src/helpers/translate');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
 const HelpersHelper = require('../../../src/helpers/helpers');
+const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const User = require('../../../src/models/User');
-const UserCompany = require('../../../src/models/UserCompany');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
 const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP } = require('../../../src/helpers/constants');
@@ -717,7 +717,7 @@ describe('createUser', () => {
     userFindOne = sinon.stub(User, 'findOne');
     roleFindById = sinon.stub(Role, 'findById');
     userCreate = sinon.stub(User, 'create');
-    userCompanyCreate = sinon.stub(UserCompany, 'create');
+    userCompanyCreate = sinon.stub(UserCompaniesHelper, 'create');
     userFindOneAndUpdate = sinon.stub(User, 'findOneAndUpdate');
     objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
     createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
@@ -783,7 +783,7 @@ describe('createUser', () => {
 
     expect(result).toEqual(newUser);
     sinon.assert.calledOnceWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
-    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: companyId });
+    sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, companyId);
     SinonMongoose.calledWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
@@ -832,7 +832,7 @@ describe('createUser', () => {
 
     expect(result).toEqual(newUser);
     sinon.assert.notCalled(createHistoryStub);
-    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: companyId });
+    sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, companyId);
     SinonMongoose.calledWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
@@ -874,7 +874,7 @@ describe('createUser', () => {
     const result = await UsersHelper.createUser(payload, { company: { _id: credentialsCompanyId } });
 
     expect(result).toEqual(newUser);
-    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: userCompanyId });
+    sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, userCompanyId);
     SinonMongoose.calledWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
@@ -944,7 +944,7 @@ describe('createUser', () => {
     sinon.assert.notCalled(createHistoryStub);
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(userFindOne);
-    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: userCompanyId });
+    sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, userCompanyId);
     sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
   });
 
@@ -1022,7 +1022,7 @@ describe('updateUser', () => {
     roleFindById = sinon.stub(Role, 'findById');
     updateHistoryOnSectorUpdateStub = sinon.stub(SectorHistoriesHelper, 'updateHistoryOnSectorUpdate');
     createHelper = sinon.stub(HelpersHelper, 'create');
-    userCompanyCreate = sinon.stub(UserCompany, 'create');
+    userCompanyCreate = sinon.stub(UserCompaniesHelper, 'create');
   });
   afterEach(() => {
     userUpdateOne.restore();
@@ -1138,7 +1138,7 @@ describe('updateUser', () => {
       { _id: userId, company: credentials.company._id },
       { $set: flat(payload) }
     );
-    sinon.assert.calledOnceWithExactly(userCompanyCreate, { user: userId, company: payload.company });
+    sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, payload.company);
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
