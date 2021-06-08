@@ -33,7 +33,7 @@ const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
-const { TIMESTAMPING_ACTIONS } = require('./EventHistory');
+const { TIME_STAMPING_ACTIONS } = require('./EventHistory');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
 const ABSENCE_NATURES = [HOURLY, DAILY];
@@ -124,7 +124,7 @@ EventSchema.virtual(
     foreignField: 'event.eventId',
     options: {
       match: doc => ({
-        action: { $in: TIMESTAMPING_ACTIONS },
+        action: { $in: TIME_STAMPING_ACTIONS },
         'update.startHour': { $exists: true },
         company: doc.company,
       }),

@@ -207,7 +207,8 @@ exports.authorizeTimeStamping = async (req) => {
   });
   if (!eventCount) throw Boom.notFound();
 
-  const timeStampPayload = { 'event.eventId': req.params._id, action: EventHistory.TIME_STAMPING_ACTIONS };
+  const timeStampPayload = { 'event.eventId': req.params._id, action: { $in: EventHistory.TIME_STAMPING_ACTIONS } };
+
   if (req.payload.startDate) timeStampPayload['update.startHour'] = { $exists: true };
   else timeStampPayload['update.endHour'] = { $exists: true };
 
