@@ -20,7 +20,6 @@ const {
   TRANSPORT_ACCIDENT,
   ILLNESS,
   INTERVENTION,
-  MANUAL_TIME_STAMPING,
 } = require('../../helpers/constants');
 const DatesHelper = require('../../helpers/dates');
 
@@ -208,7 +207,7 @@ exports.authorizeTimeStamping = async (req) => {
   });
   if (!eventCount) throw Boom.notFound();
 
-  const timeStampPayload = { 'event.eventId': req.params._id, action: MANUAL_TIME_STAMPING };
+  const timeStampPayload = { 'event.eventId': req.params._id, action: EventHistory.TIME_STAMPING_ACTIONS };
   if (req.payload.startDate) timeStampPayload['update.startHour'] = { $exists: true };
   else timeStampPayload['update.endHour'] = { $exists: true };
 
