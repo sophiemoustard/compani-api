@@ -73,7 +73,7 @@ exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
 };
 
 exports.getEventsGroupedByAuxiliaries = async (rules, companyId) =>
-  exports.getEventsGroupedBy(rules, ev => (ev.auxiliary ? ev.auxiliary._id : ev.sector._id), companyId);
+  exports.getEventsGroupedBy(rules, ev => (ev.auxiliary ? ev.auxiliary._id : ev.sector), companyId);
 
 exports.getEventsGroupedByCustomers = async (rules, companyId) =>
   exports.getEventsGroupedBy(rules, 'customer._id', companyId);
