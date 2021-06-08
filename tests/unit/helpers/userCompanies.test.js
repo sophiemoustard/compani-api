@@ -6,7 +6,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const SinonMongoose = require('../sinonMongoose');
 
-describe('create #tag', () => {
+describe('create', () => {
   let findOne;
   let create;
 
@@ -31,7 +31,7 @@ describe('create #tag', () => {
     sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId });
     SinonMongoose.calledWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ user: userId, company: companyId }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
     );
   });
 
@@ -46,7 +46,7 @@ describe('create #tag', () => {
     sinon.assert.notCalled(create);
     SinonMongoose.calledWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ user: userId, company: companyId }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
     );
   });
 
@@ -65,7 +65,7 @@ describe('create #tag', () => {
       sinon.assert.notCalled(create);
       SinonMongoose.calledWithExactly(
         findOne,
-        [{ query: 'findOne', args: [{ user: userId, company: companyId }] }, { query: 'lean' }]
+        [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
       );
     }
   });
