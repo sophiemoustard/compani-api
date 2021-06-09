@@ -541,7 +541,6 @@ describe('updateCustomer', () => {
   let createRepetitionsEveryDay;
   let nowStub;
   let deleteOneRepetition;
-  let createRepetitionsByWeek;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneCustomer = sinon.stub(Customer, 'findOne');
@@ -556,7 +555,6 @@ describe('updateCustomer', () => {
     createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
     nowStub = sinon.stub(Date, 'now');
     deleteOneRepetition = sinon.stub(Repetition, 'deleteOne');
-    createRepetitionsByWeek = sinon.stub(EventsRepetitionHelper, 'createRepetitionsByWeek');
   });
   afterEach(() => {
     findOneCustomer.restore();
@@ -571,7 +569,6 @@ describe('updateCustomer', () => {
     createRepetitionsEveryDay.restore();
     nowStub.restore();
     deleteOneRepetition.restore();
-    createRepetitionsByWeek.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -840,7 +837,7 @@ describe('updateCustomer', () => {
         _id: new ObjectID(),
         type: 'intervention',
         customer: customerId,
-        frequency: 'every_week',
+        frequency: 'every_day',
         parentId: new ObjectID(),
         startDate: '2021-12-25T09:00:00',
         endDate: '2021-12-25T10:00:00',
@@ -872,18 +869,17 @@ describe('updateCustomer', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    sinon.assert.calledOnceWithExactly(
-      createRepetitionsEveryDay,
+    sinon.assert.calledWithExactly(
+      createRepetitionsEveryDay.getCall(0),
       repetitions[0],
       auxiliary.sector,
       new Date('2021-09-24T16:34:04.144Z'),
       '2022-06-25T16:34:04.144Z'
     );
-    sinon.assert.calledOnceWithExactly(
-      createRepetitionsByWeek,
+    sinon.assert.calledWithExactly(
+      createRepetitionsEveryDay.getCall(1),
       repetitions[1],
       repetitions[1].sector,
-      1,
       new Date('2022-03-26T08:00:00.000Z'),
       '2022-06-25T16:34:04.144Z'
     );

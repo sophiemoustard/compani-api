@@ -161,24 +161,27 @@ const formatPayload = async (customerId, customerPayload, company) => {
 };
 
 const createEventsOnCustomerStop = async (repetition, stoppedAt, company) => {
-  const eventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
-    ? repetition.startDate
-    : Date.now();
-  const lastEventCreatedByRepetition = DatesHelper.addDays(eventCreationStartDate, 90);
-
-  const shouldCreateEvents = DatesHelper.isSameOrAfter(stoppedAt, lastEventCreatedByRepetition);
-  if (!shouldCreateEvents) return;
-
   let sectorId = repetition.sector;
-  if (!repetition.sector) {
-    const auxiliary = await User.findOne({ _id: repetition.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: company._id } })
-      .lean({ autopopulate: true, virtuals: true });
-    sectorId = auxiliary.sector;
-  }
-
+  let eventCreationStartDate;
+  let lastEventCreatedByRepetition;
+  let shouldCreateEvents;
   switch (repetition.frequency) {
     case EVERY_DAY:
+      eventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
+        ? repetition.startDate
+        : Date.now();
+      lastEventCreatedByRepetition = DatesHelper.addDays(eventCreationStartDate, 90);
+
+      shouldCreateEvents = DatesHelper.isSameOrAfter(stoppedAt, lastEventCreatedByRepetition);
+      if (!shouldCreateEvents) break;
+
+      if (!repetition.sector) {
+        const auxiliary = await User.findOne({ _id: repetition.auxiliary })
+          .populate({ path: 'sector', select: '_id sector', match: { company: company._id } })
+          .lean({ autopopulate: true, virtuals: true });
+        sectorId = auxiliary.sector;
+      }
+
       await EventsRepetitionHelper.createRepetitionsEveryDay(
         repetition,
         sectorId,
