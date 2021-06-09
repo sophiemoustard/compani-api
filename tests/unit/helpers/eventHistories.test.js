@@ -961,7 +961,7 @@ describe('createTimeStampHistory', () => {
 
   afterEach(() => { create.restore(); });
 
-  it('should create and event history of type timestamp', async () => {
+  it('should create and event history of type timestamp for startDate', async () => {
     const event = {
       _id: new ObjectID(),
       startDate: '2021-05-01T10:00:00',
@@ -972,8 +972,9 @@ describe('createTimeStampHistory', () => {
       repetition: { frequency: 'every_day', parentID: new ObjectID() },
     };
     const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode', action: 'manual_time_stamping' };
+    const credentials = { _id: new ObjectID() };
 
-    await EventHistoryHelper.createTimeStampHistory(event, payload);
+    await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       create,
@@ -984,6 +985,36 @@ describe('createTimeStampHistory', () => {
         manualTimeStampingReason: 'qrcode',
         auxiliaries: [event.auxiliary],
         update: { startHour: { from: '2021-05-01T10:00:00', to: '2021-05-01T10:02:00' } },
+        createdBy: credentials._id,
+      }
+    );
+  });
+
+  it('should create and event history of type timestamp for endDate', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2021-05-01T10:00:00',
+      endDate: '2021-05-01T12:00:00',
+      customer: new ObjectID(),
+      misc: 'test',
+      company: new ObjectID(),
+      repetition: { frequency: 'every_day', parentID: new ObjectID() },
+    };
+    const payload = { endDate: '2021-05-01T12:05:00', reason: 'qrcode', action: 'manual_time_stamping' };
+    const credentials = { _id: new ObjectID() };
+
+    await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        event: { ...omit(event, ['_id']), eventId: event._id, endDate: '2021-05-01T12:05:00' },
+        company: event.company,
+        action: 'manual_time_stamping',
+        manualTimeStampingReason: 'qrcode',
+        auxiliaries: [event.auxiliary],
+        update: { endHour: { from: '2021-05-01T12:00:00', to: '2021-05-01T12:05:00' } },
+        createdBy: credentials._id,
       }
     );
   });

@@ -17,7 +17,11 @@ const {
   PAYMENT_TYPES_LIST,
   INTERNAL_HOUR,
   INTERVENTION,
+  MANUAL_TIME_STAMPING,
+  TIMESTAMPING_ACTION_TYPE_LIST,
+  MANUAL_TIME_STAMPING_REASONS,
 } = require('./constants');
+const DatesHelper = require('./dates');
 const UtilsHelper = require('./utils');
 const DraftPayHelper = require('./draftPay');
 const Event = require('../models/Event');
@@ -29,13 +33,20 @@ const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
+const { TIMESTAMPING_ACTIONS } = require('../models/EventHistory');
 
 const workingEventExportHeader = [
   'Type',
   'Heure interne',
   'Service',
-  'Début',
-  'Fin',
+  'Début planifié',
+  'Début horodaté',
+  'Type d\'horodatage',
+  'Motif',
+  'Fin planifiée',
+  'Fin horodatée',
+  'Type d\'horodatage',
+  'Motif',
   'Durée',
   'Répétition',
   'Équipe',
@@ -65,6 +76,12 @@ const getServiceName = (service) => {
 const getMatchingSector = (histories, event) => histories.filter(sh => moment(sh.startDate).isBefore(event.startDate))
   .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
 
+const displayDate = (timestamp = null, path, scheduledDate = null) => {
+  if (timestamp) return DatesHelper.formatDateAndTime(get(timestamp, path), 'DDMMMMYYYYhhmmss');
+  if (scheduledDate) return DatesHelper.formatDateAndTime(scheduledDate, 'DDMMMMYYYYhhmmss');
+  return '';
+};
+
 exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
   const payload = {
     company: companyId,
@@ -78,12 +95,10 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
 
   const events = await Event.find(payload)
     .sort({ startDate: -1 })
-    .populate({
-      path: 'customer',
-      populate: { path: 'subscriptions', populate: 'service' },
-    })
+    .populate({ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } })
     .populate('internalHour')
     .populate('sector')
+    .populate({ path: 'histories', match: { action: { $in: TIMESTAMPING_ACTIONS }, company: companyId } })
     .lean();
 
   const eventsWithPopulatedSubscription = events.map((event) => {
@@ -104,6 +119,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
   const auxiliaries = await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId);
 
   const rows = [workingEventExportHeader];
+
   for (const event of events) {
     let repetition = get(event.repetition, 'frequency');
     repetition = NEVER === repetition ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
@@ -113,12 +129,23 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       : null;
     const auxiliarySector = auxiliary ? getMatchingSector(auxiliary.sectorHistory, event) : null;
 
+    const startHourTimeStamping = event.histories.find(history => get(history, 'update.startHour'));
+    const endHourTimeStamping = event.histories.find(history => get(history, 'update.endHour'));
+
     const cells = [
       EVENT_TYPE_LIST[event.type],
       get(event, 'internalHour.name', ''),
       event.subscription ? getServiceName(event.subscription.service) : '',
-      moment(event.startDate).format('DD/MM/YYYY HH:mm'),
-      moment(event.endDate).format('DD/MM/YYYY HH:mm'),
+      displayDate(startHourTimeStamping, 'update.startHour.from', event.startDate),
+      displayDate(startHourTimeStamping, 'update.startHour.to'),
+      TIMESTAMPING_ACTION_TYPE_LIST[get(startHourTimeStamping, 'action')] || '',
+      get(startHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
+        ? MANUAL_TIME_STAMPING_REASONS[get(startHourTimeStamping, 'manualTimeStampingReason')] : '',
+      displayDate(endHourTimeStamping, 'update.endHour.from', event.endDate),
+      displayDate(endHourTimeStamping, 'update.endHour.to'),
+      TIMESTAMPING_ACTION_TYPE_LIST[get(endHourTimeStamping, 'action')] || '',
+      get(endHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
+        ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
       get(event, 'sector.name') || get(auxiliarySector, 'sector.name') || '',

@@ -154,7 +154,7 @@ const getUnassignedHoursBySector = async (req) => {
 
 const timeStampEvent = async (req) => {
   try {
-    await EventTimeStampingHelper.addTimeStamp(req.pre.event, req.payload);
+    await EventTimeStampingHelper.addTimeStamp(req.pre.event, req.payload, req.auth.credentials);
 
     return { message: translate[language].eventTimeStamped };
   } catch (e) {

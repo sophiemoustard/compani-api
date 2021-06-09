@@ -1272,28 +1272,23 @@ describe('addCourseTrainee', () => {
     sendBlendedCourseRegistrationNotification.restore();
     sendWelcome.restore();
   });
-  const addedBy = { _id: new ObjectID() };
 
   it('should add a course trainee using existing user', async () => {
     const user = { _id: new ObjectID(), company: new ObjectID() };
     const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
+    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
 
-    await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
+    await CourseHelper.addCourseTrainee(course._id, payload, user, credentials);
 
     sinon.assert.notCalled(createUserStub);
     sinon.assert.notCalled(updateUserStub);
     sinon.assert.notCalled(sendWelcome);
-    sinon.assert.calledOnceWithExactly(
-      courseUpdateOne,
-      { _id: course._id },
-      { $addToSet: { trainees: user._id } },
-      { new: true }
-    );
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainees: user._id } });
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
       { course: course._id, traineeId: user._id },
-      addedBy._id
+      credentials._id
     );
     sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, user, course._id);
   });
@@ -1302,24 +1297,20 @@ describe('addCourseTrainee', () => {
     const user = { _id: new ObjectID() };
     const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' } };
+    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
 
     createUserStub.returns(user);
 
-    await CourseHelper.addCourseTrainee(course._id, payload, null, addedBy);
+    await CourseHelper.addCourseTrainee(course._id, payload, null, credentials);
 
     sinon.assert.notCalled(updateUserStub);
-    sinon.assert.calledOnceWithExactly(
-      courseUpdateOne,
-      { _id: course._id },
-      { $addToSet: { trainees: user._id } },
-      { new: true }
-    );
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainees: user._id } });
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
       { course: course._id, traineeId: user._id },
-      addedBy._id
+      credentials._id
     );
-    sinon.assert.calledWithExactly(createUserStub, { ...payload, origin: WEBAPP });
+    sinon.assert.calledWithExactly(createUserStub, { ...payload, origin: WEBAPP }, credentials);
     sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, null, course._id);
     sinon.assert.calledOnceWithExactly(sendWelcome, TRAINEE, payload.local.email);
   });
@@ -1328,18 +1319,14 @@ describe('addCourseTrainee', () => {
     const user = { _id: new ObjectID() };
     const course = { _id: new ObjectID(), misc: 'Test' };
     const payload = { local: { email: 'toto@toto.com' }, company: new ObjectID() };
+    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
 
-    await CourseHelper.addCourseTrainee(course._id, payload, user, addedBy);
+    await CourseHelper.addCourseTrainee(course._id, payload, user, credentials);
 
     sinon.assert.notCalled(createUserStub);
     sinon.assert.notCalled(sendWelcome);
     sinon.assert.calledWithExactly(updateUserStub, user._id, { company: payload.company }, null);
-    sinon.assert.calledOnceWithExactly(
-      courseUpdateOne,
-      { _id: course._id },
-      { $addToSet: { trainees: user._id } },
-      { new: true }
-    );
+    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainees: user._id } });
     sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, user, course._id);
   });
 });

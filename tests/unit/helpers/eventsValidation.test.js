@@ -9,12 +9,12 @@ const { INTERVENTION, ABSENCE, INTERNAL_HOUR } = require('../../../src/helpers/c
 const SinonMongoose = require('../sinonMongoose');
 
 describe('isCustomerSubscriptionValid', () => {
-  let findOne;
+  let countDocuments;
   beforeEach(() => {
-    findOne = sinon.stub(Customer, 'findOne');
+    countDocuments = sinon.stub(Customer, 'countDocuments');
   });
   afterEach(() => {
-    findOne.restore();
+    countDocuments.restore();
   });
 
   it('should return true if event subscription is in customer subscriptions', async () => {
@@ -27,19 +27,19 @@ describe('isCustomerSubscriptionValid', () => {
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
     };
-    const customer = { _id: event.customer, subscriptions: [{ _id: subscriptionId }] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    countDocuments.returns(1);
 
     const result = await EventsValidationHelper.isCustomerSubscriptionValid(event);
 
     expect(result).toBe(true);
-    SinonMongoose.calledWithExactly(
-      findOne,
-      [
-        { query: 'findOne', args: [{ _id: event.customer }, { subscriptions: 1 }] },
-        { query: 'lean' },
-      ]
+    sinon.assert.calledOnceWithExactly(
+      countDocuments,
+      {
+        _id: event.customer,
+        'subscriptions._id': event.subscription,
+        $or: [{ stoppedAt: { $exists: false } }, { stoppedAt: { $gte: event.startDate } }],
+      }
     );
   });
 
@@ -52,19 +52,19 @@ describe('isCustomerSubscriptionValid', () => {
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
     };
-    const customer = { _id: event.customer, subscriptions: [{ _id: new ObjectID() }] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    countDocuments.returns(0);
 
     const result = await EventsValidationHelper.isCustomerSubscriptionValid(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
-      findOne,
-      [
-        { query: 'findOne', args: [{ _id: event.customer }, { subscriptions: 1 }] },
-        { query: 'lean' },
-      ]
+    sinon.assert.calledOnceWithExactly(
+      countDocuments,
+      {
+        _id: event.customer,
+        'subscriptions._id': event.subscription,
+        $or: [{ stoppedAt: { $exists: false } }, { stoppedAt: { $gte: event.startDate } }],
+      }
     );
   });
 });
@@ -739,6 +739,140 @@ describe('isUpdateAllowed', () => {
       sinon.assert.notCalled(isEditionAllowed);
       sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
     }
+  });
+
+  it('should return false if event is startDate timeStamped and user wants to update start date', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId.toHexString(),
+      startDate: '2019-04-13T09:05:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      startDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false if event is startDate timeStamped and user wants to update auxiliary', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: new ObjectID(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      startDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false if event is startDate timeStamped and user wants to cancel event', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      isCancelled: true,
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      startDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false if event is endDate timeStamped and user wants to update end date', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:05:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      endDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false if event is endDate timeStamped and user wants to update auxiliary', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: new ObjectID(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      endDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
+  });
+
+  it('should return false if event is endDate timeStamped and user wants to cancel event', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      isCancelled: true,
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      endDateTimeStampedCount: 1,
+    };
+
+    const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
+
+    expect(result).toBe(false);
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(isEditionAllowed);
   });
 
   it('should return true', async () => {

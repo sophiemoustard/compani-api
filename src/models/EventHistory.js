@@ -52,7 +52,7 @@ const EventHistorySchema = mongoose.Schema({
   },
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
-  manualTimeStampingReason: { type: String, enum: MANUAL_TIME_STAMPING_REASONS },
+  manualTimeStampingReason: { type: String, enum: Object.keys(MANUAL_TIME_STAMPING_REASONS) },
 }, { timestamps: true });
 
 EventHistorySchema.pre('find', validateQuery);

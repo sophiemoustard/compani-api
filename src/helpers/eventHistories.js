@@ -226,11 +226,28 @@ exports.formatHistoryForCancelUpdate = async (mainInfo, payload, companyId) => {
   return datesUpdateHistory;
 };
 
-exports.createTimeStampHistory = async (event, payload) => EventHistory.create({
-  event: { ...omit(event, ['_id', 'startDate']), eventId: event._id, startDate: payload.startDate },
-  company: event.company,
-  action: payload.action,
-  manualTimeStampingReason: payload.reason,
-  auxiliaries: [event.auxiliary],
-  update: { startHour: { from: event.startDate, to: payload.startDate } },
-});
+exports.createTimeStampHistory = async (event, payload, credentials) => {
+  const { startDate, endDate } = payload;
+  const eventPayload = { ...omit(event, ['_id']), eventId: event._id };
+  const updatePayload = {};
+
+  if (startDate) {
+    eventPayload.startDate = startDate;
+    updatePayload.startHour = { from: event.startDate, to: startDate };
+  }
+
+  if (endDate) {
+    eventPayload.endDate = endDate;
+    updatePayload.endHour = { from: event.endDate, to: endDate };
+  }
+
+  await EventHistory.create({
+    event: eventPayload,
+    company: event.company,
+    action: payload.action,
+    manualTimeStampingReason: payload.reason,
+    auxiliaries: [event.auxiliary],
+    update: updatePayload,
+    createdBy: credentials._id,
+  });
+};
