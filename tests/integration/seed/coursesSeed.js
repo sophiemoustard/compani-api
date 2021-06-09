@@ -51,7 +51,7 @@ const traineeFromOtherCompany = {
 
 const traineeFromAuthCompanyWithFormationExpoToken = {
   _id: new ObjectID(),
-  identity: { firstname: 'Fred', lastname: 'Astaire' },
+  identity: { firstname: 'Trainee', lastname: 'WithExpoToken' },
   local: { email: 'traineeWithExpoToken@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
