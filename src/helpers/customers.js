@@ -18,7 +18,7 @@ const Rum = require('../models/Rum');
 const User = require('../models/User');
 const EventRepository = require('../repositories/EventRepository');
 const CustomerRepository = require('../repositories/CustomerRepository');
-const { INTERVENTION, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK, EVERY_TWO_WEEKS } = require('./constants');
+const { INTERVENTION, EVERY_DAY } = require('./constants');
 const GDriveStorageHelper = require('./gDriveStorage');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
@@ -185,32 +185,6 @@ const createEventsOnCustomerStop = async (repetition, stoppedAt, company) => {
       await EventsRepetitionHelper.createRepetitionsEveryDay(
         repetition,
         sectorId,
-        DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-        stoppedAt
-      );
-      break;
-    case EVERY_WEEK_DAY:
-      await EventsRepetitionHelper.createRepetitionsEveryWeekDay(
-        repetition,
-        sectorId,
-        DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-        stoppedAt
-      );
-      break;
-    case EVERY_WEEK:
-      await EventsRepetitionHelper.createRepetitionsByWeek(
-        repetition,
-        sectorId,
-        1,
-        DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-        stoppedAt
-      );
-      break;
-    case EVERY_TWO_WEEKS:
-      await EventsRepetitionHelper.createRepetitionsByWeek(
-        repetition,
-        sectorId,
-        2,
         DatesHelper.addDays(lastEventCreatedByRepetition, 1),
         stoppedAt
       );
