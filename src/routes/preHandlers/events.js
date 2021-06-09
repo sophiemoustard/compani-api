@@ -88,8 +88,9 @@ exports.authorizeEventForCreditNoteGet = async (req) => {
 };
 
 const checkAuxiliaryPermission = (credentials, event) => {
-  const isOwnEvent = event.auxiliary && event.auxiliary === credentials._id;
-  const eventIsUnassignedAndFromSameSector = !event.auxiliary && event.sector && event.sector === credentials.sector;
+  const { auxiliary, sector } = event;
+  const isOwnEvent = auxiliary && UtilsHelper.areObjectIdsEquals(auxiliary, credentials._id);
+  const eventIsUnassignedAndFromSameSector = sector && UtilsHelper.areObjectIdsEquals(sector, credentials.sector);
 
   if (!isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
   return null;
@@ -141,7 +142,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
   const event = req.pre.event || req.payload;
   const companyId = get(credentials, 'company._id', null);
 
-  if (req.pre.event && event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (req.pre.event && !UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
 
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
