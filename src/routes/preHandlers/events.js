@@ -9,6 +9,8 @@ const Sector = require('../../models/Sector');
 const User = require('../../models/User');
 const EventHistory = require('../../models/EventHistory');
 const InternalHour = require('../../models/InternalHour');
+const UserCompany = require('../../models/UserCompany');
+const { TIME_STAMPING_ACTIONS } = require('../../models/EventHistory');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const {
@@ -22,7 +24,6 @@ const {
   INTERVENTION,
 } = require('../../helpers/constants');
 const DatesHelper = require('../../helpers/dates');
-const { TIME_STAMPING_ACTIONS } = require('../../models/EventHistory');
 
 const { language } = translate;
 
@@ -53,7 +54,7 @@ exports.authorizeEventGet = async (req) => {
 
   if (req.query.auxiliary) {
     const auxiliariesIds = [...new Set(UtilsHelper.formatIdsArray(req.query.auxiliary))];
-    const auxiliariesCount = await User.countDocuments({ _id: { $in: auxiliariesIds }, company: companyId });
+    const auxiliariesCount = await UserCompany.countDocuments({ user: { $in: auxiliariesIds }, company: companyId });
     if (auxiliariesCount !== auxiliariesIds.length) throw Boom.forbidden();
   }
 

@@ -26,6 +26,7 @@ const {
   WEBAPP,
   PARENTAL_LEAVE,
 } = require('../../../src/helpers/constants');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const auxiliariesIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
 
@@ -115,6 +116,13 @@ const auxiliaries = [
     company: authCompany._id,
     origin: WEBAPP,
   },
+];
+
+const userCompanies = [
+  { user: auxiliariesIds[0], company: authCompany._id },
+  { user: auxiliariesIds[1], company: authCompany._id },
+  { user: auxiliariesIds[2], company: authCompany._id },
+  { user: auxiliariesIds[3], company: authCompany._id },
 ];
 
 const sectorHistories = [
@@ -830,6 +838,7 @@ const populateDB = async () => {
   await InternalHour.deleteMany({});
   await DistanceMatrix.deleteMany({});
   await Helper.deleteMany({});
+  await UserCompany.deleteMany({});
 
   await populateDBForAuthentication();
   await Event.insertMany(eventsList);
@@ -855,6 +864,7 @@ const populateDB = async () => {
   await (new InternalHour(internalHourFromOtherCompany)).save();
   await Helper.insertMany(helpersList);
   await EventHistory.insertMany(eventHistoriesList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 const getUserToken = async (userCredentials) => {
