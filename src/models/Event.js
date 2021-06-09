@@ -141,7 +141,7 @@ EventSchema.virtual(
     foreignField: 'event.eventId',
     options: {
       match: doc => ({
-        action: { $in: TIMESTAMPING_ACTIONS },
+        action: { $in: TIME_STAMPING_ACTIONS },
         'update.endHour': { $exists: true },
         company: doc.company,
       }),
