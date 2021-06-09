@@ -4,7 +4,7 @@ const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const { INTERVENTION } = require('../../helpers/constants');
 const Customer = require('../../models/Customer');
-const User = require('../../models/User');
+const UserCompany = require('../../models/UserCompany');
 const Event = require('../../models/Event');
 const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
@@ -38,7 +38,7 @@ exports.authorizeCustomerUpdate = async (req) => {
 
   if (req.payload) {
     if (req.payload.referent) {
-      const referent = await User.countDocuments({ _id: req.payload.referent, company: companyId });
+      const referent = await UserCompany.countDocuments({ user: req.payload.referent, company: companyId });
       if (!referent) return Boom.forbidden();
     }
 
