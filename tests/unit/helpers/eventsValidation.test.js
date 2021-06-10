@@ -922,4 +922,28 @@ describe('isDeletionAllowed', () => {
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(true);
   });
+
+  it('should return false', async () => {
+    const event = { type: INTERVENTION, startDateTimeStampedCount: 1 };
+    const result = EventsValidationHelper.isDeletionAllowed(event);
+    expect(result).toBe(false);
+  });
+
+  it('should return true', async () => {
+    const event = { type: INTERVENTION, startDateTimeStampedCount: 0 };
+    const result = EventsValidationHelper.isDeletionAllowed(event);
+    expect(result).toBe(true);
+  });
+
+  it('should return false', async () => {
+    const event = { type: INTERVENTION, endDateTimeStampedCount: 1 };
+    const result = EventsValidationHelper.isDeletionAllowed(event);
+    expect(result).toBe(false);
+  });
+
+  it('should return true', async () => {
+    const event = { type: INTERVENTION, endDateTimeStampedCount: 0 };
+    const result = EventsValidationHelper.isDeletionAllowed(event);
+    expect(result).toBe(true);
+  });
 });
