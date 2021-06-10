@@ -202,13 +202,15 @@ exports.authorizeEventDeletionList = async (req) => {
 };
 
 exports.authorizeTimeStamping = async (req) => {
-  const eventCount = await Event.countDocuments({
+  const event = await Event.findOne({
     _id: req.params._id,
     type: INTERVENTION,
     auxiliary: get(req, 'auth.credentials._id'),
     startDate: { $gte: DatesHelper.getStartOfDay(new Date()), $lte: DatesHelper.getEndOfDay(new Date()) },
-  });
-  if (!eventCount) throw Boom.notFound();
+  }).lean();
+  if (!event) throw Boom.notFound();
+
+  if (event.isCancelled) { throw Boom.conflict(translate[language].timeStampCancelledEvent); }
 
   const timeStampPayload = { 'event.eventId': req.params._id, action: { $in: TIME_STAMPING_ACTIONS } };
 

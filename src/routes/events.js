@@ -103,6 +103,7 @@ exports.plugin = {
             customer: objectIdOrArray,
             type: Joi.string().valid(...EVENT_TYPES),
             groupBy: Joi.string().valid(CUSTOMER, AUXILIARY),
+            isCancelled: Joi.boolean(),
           }),
         },
         pre: [{ method: authorizeEventGet }],
