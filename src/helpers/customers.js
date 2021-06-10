@@ -5,7 +5,6 @@ const moment = require('moment');
 const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
-const translate = require('./translate');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
@@ -18,14 +17,13 @@ const Rum = require('../models/Rum');
 const User = require('../models/User');
 const EventRepository = require('../repositories/EventRepository');
 const CustomerRepository = require('../repositories/CustomerRepository');
-const { INTERVENTION, EVERY_DAY } = require('./constants');
+const translate = require('./translate');
+const { INTERVENTION } = require('./constants');
 const GDriveStorageHelper = require('./gDriveStorage');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
-const EventHelper = require('./events');
-const DatesHelper = require('./dates');
-const EventsRepetitionHelper = require('./eventsRepetition');
+const EventsHelper = require('./events');
 
 const { language } = translate;
 
@@ -160,40 +158,6 @@ const formatPayload = async (customerId, customerPayload, company) => {
   return { $set: flat(customerPayload, { safe: true }) };
 };
 
-const createEventsOnCustomerStop = async (repetition, stoppedAt, company) => {
-  let sectorId = repetition.sector;
-  let eventCreationStartDate;
-  let lastEventCreatedByRepetition;
-  let shouldCreateEvents;
-  switch (repetition.frequency) {
-    case EVERY_DAY:
-      eventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
-        ? repetition.startDate
-        : Date.now();
-      lastEventCreatedByRepetition = DatesHelper.addDays(eventCreationStartDate, 90);
-
-      shouldCreateEvents = DatesHelper.isSameOrAfter(stoppedAt, lastEventCreatedByRepetition);
-      if (!shouldCreateEvents) break;
-
-      if (!repetition.sector) {
-        const auxiliary = await User.findOne({ _id: repetition.auxiliary })
-          .populate({ path: 'sector', select: '_id sector', match: { company: company._id } })
-          .lean({ autopopulate: true, virtuals: true });
-        sectorId = auxiliary.sector;
-      }
-
-      await EventsRepetitionHelper.createRepetitionsEveryDay(
-        repetition,
-        sectorId,
-        DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-        stoppedAt
-      );
-      break;
-    default:
-      break;
-  }
-};
-
 const handleCustomerStop = async (customerId, stoppedAt, credentials) => {
   const { company } = credentials;
   const timeStampedEventsCount = await EventHistory.countDocuments({
@@ -203,11 +167,11 @@ const handleCustomerStop = async (customerId, stoppedAt, credentials) => {
   });
   if (timeStampedEventsCount > 0) throw Boom.conflict();
 
-  await EventHelper.deleteList(customerId, stoppedAt, null, credentials);
+  await EventsHelper.deleteList(customerId, stoppedAt, null, credentials);
 
   const customerRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
   for (const repetition of customerRepetitions) {
-    await createEventsOnCustomerStop(repetition, stoppedAt, company);
+    await EventsHelper.createEventsOnCustomerStop(repetition, stoppedAt, company);
 
     await Repetition.deleteOne({ _id: repetition._id });
   }

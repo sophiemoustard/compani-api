@@ -81,12 +81,12 @@ describe('isSameOrAfter', () => {
   });
 });
 
-describe('dayDiff', () => {
+describe('dayDiffRegardlessOfHour', () => {
   it('should return number of days between two dates regardless of hours', () => {
     const date1 = '2021-01-05T10:04:34';
     const date2 = '2021-01-01T09:15:24';
 
-    const result = DatesHelper.dayDiff(date1, date2);
+    const result = DatesHelper.dayDiffRegardlessOfHour(date1, date2);
 
     expect(result).toBe(4);
   });
@@ -95,9 +95,65 @@ describe('dayDiff', () => {
     const date1 = '2021-01-05T10:04:34';
     const date2 = '2021-01-04T11:04:54';
 
-    const result = DatesHelper.dayDiff(date1, date2);
+    const result = DatesHelper.dayDiffRegardlessOfHour(date1, date2);
 
     expect(result).toBe(1);
+  });
+
+  it('should return number of days between two dates regardless of hours', () => {
+    const date1 = '2021-01-05T10:04:34';
+    const date2 = '2021-01-05T11:04:54';
+
+    const result = DatesHelper.dayDiffRegardlessOfHour(date1, date2);
+
+    expect(result).toBe(0);
+  });
+
+  it('should return number of days between two dates regardless of hours', () => {
+    const date1 = '2021-01-04T10:04:34';
+    const date2 = '2021-01-05T11:04:54';
+
+    const result = DatesHelper.dayDiffRegardlessOfHour(date1, date2);
+
+    expect(result).toBe(-1);
+  });
+});
+
+describe('dayDiff', () => {
+  it('should return number of days between two dates', () => {
+    const date1 = '2021-01-05T10:04:34';
+    const date2 = '2021-01-01T09:15:24';
+
+    const result = DatesHelper.dayDiff(date1, date2);
+
+    expect(result).toBe(4);
+  });
+
+  it('should return number of days between two dates', () => {
+    const date1 = '2021-01-05T10:04:34';
+    const date2 = '2021-01-04T11:04:54';
+
+    const result = DatesHelper.dayDiff(date1, date2);
+
+    expect(result).toBe(0);
+  });
+
+  it('should return number of days between two dates', () => {
+    const date1 = '2021-01-05T10:04:34';
+    const date2 = '2021-01-05T11:04:54';
+
+    const result = DatesHelper.dayDiff(date1, date2);
+
+    expect(result).toBe(0);
+  });
+
+  it('should return number of days between two dates', () => {
+    const date1 = '2021-01-04T10:04:34';
+    const date2 = '2021-01-05T11:04:54';
+
+    const result = DatesHelper.dayDiff(date1, date2);
+
+    expect(result).toBe(-1);
   });
 });
 
