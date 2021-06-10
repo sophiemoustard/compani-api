@@ -7,6 +7,7 @@ const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Repetition = require('../../../src/models/Repetition');
+const EventHistory = require('../../../src/models/EventHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const EventHelper = require('../../../src/helpers/events');
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
@@ -1472,7 +1473,8 @@ describe('deleteEvent', () => {
 
 describe('deleteEventsAndRepetition', () => {
   let find;
-  let isDeletionAllowed;
+  let eventCountDocuments;
+  let eventHistoryCountDocuments;
   let createEventHistoryOnDeleteList;
   let createEventHistoryOnDelete;
   let repetitionDeleteOne;
@@ -1480,7 +1482,8 @@ describe('deleteEventsAndRepetition', () => {
   const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
   beforeEach(() => {
     find = sinon.stub(Event, 'find');
-    isDeletionAllowed = sinon.stub(EventsValidationHelper, 'isDeletionAllowed');
+    eventCountDocuments = sinon.stub(Event, 'countDocuments');
+    eventHistoryCountDocuments = sinon.stub(EventHistory, 'countDocuments');
     createEventHistoryOnDeleteList = sinon.stub(EventHelper, 'createEventHistoryOnDeleteList');
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
     repetitionDeleteOne = sinon.stub(Repetition, 'deleteOne');
@@ -1488,7 +1491,8 @@ describe('deleteEventsAndRepetition', () => {
   });
   afterEach(() => {
     find.restore();
-    isDeletionAllowed.restore();
+    eventCountDocuments.restore();
+    eventHistoryCountDocuments.restore();
     createEventHistoryOnDeleteList.restore();
     createEventHistoryOnDelete.restore();
     repetitionDeleteOne.restore();
@@ -1503,26 +1507,26 @@ describe('deleteEventsAndRepetition', () => {
     };
     const events = [{ _id: '1234567890' }, { _id: 'qwertyuiop' }, { _id: 'asdfghjkl' }];
 
-    find.returns(SinonMongoose.stubChainedQueries([events]));
-    isDeletionAllowed.onCall(0).returns(true);
-    isDeletionAllowed.onCall(1).returns(true);
-    isDeletionAllowed.onCall(2).returns(true);
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    eventCountDocuments.returns(0);
+    eventHistoryCountDocuments.returns(0);
 
     await EventHelper.deleteEventsAndRepetition(query, false, credentials);
 
-    sinon.assert.callCount(isDeletionAllowed, events.length);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnDeleteList, events, credentials);
     sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
     sinon.assert.notCalled(createEventHistoryOnDelete);
     sinon.assert.notCalled(repetitionDeleteOne);
-    SinonMongoose.calledWithExactly(
-      find,
-      [
-        { query: 'find', args: [query] },
-        { query: 'populate', args: ['startDateTimeStampedCount'] },
-        { query: 'populate', args: ['endDateTimeStampedCount'] },
-      ]
+    sinon.assert.calledOnceWithExactly(eventCountDocuments, { ...query, isBilled: true });
+    sinon.assert.calledOnceWithExactly(
+      eventHistoryCountDocuments,
+      {
+        'event.customer': query.customer,
+        'event.startDate': query.startDate,
+        action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+      }
     );
+    SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
   });
 
   it('should delete events with repetitions', async () => {
@@ -1576,27 +1580,26 @@ describe('deleteEventsAndRepetition', () => {
       [parentId]: [events[1], events[2]],
     };
 
-    find.returns(SinonMongoose.stubChainedQueries([events]));
-    isDeletionAllowed.onCall(0).returns(true);
-    isDeletionAllowed.onCall(1).returns(true);
-    isDeletionAllowed.onCall(2).returns(true);
-    isDeletionAllowed.onCall(3).returns(true);
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    eventCountDocuments.returns(0);
+    eventHistoryCountDocuments.returns(0);
 
     await EventHelper.deleteEventsAndRepetition(query, true, credentials);
 
-    sinon.assert.callCount(isDeletionAllowed, events.length);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnDeleteList, eventsGroupedByParentId[''], credentials);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, eventsGroupedByParentId[parentId][0], credentials);
     sinon.assert.calledOnceWithExactly(repetitionDeleteOne, { parentId });
     sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: events.map(ev => ev._id) } });
-    SinonMongoose.calledWithExactly(
-      find,
-      [
-        { query: 'find', args: [query] },
-        { query: 'populate', args: ['startDateTimeStampedCount'] },
-        { query: 'populate', args: ['endDateTimeStampedCount'] },
-      ]
+    sinon.assert.calledOnceWithExactly(eventCountDocuments, { ...query, isBilled: true });
+    sinon.assert.calledOnceWithExactly(
+      eventHistoryCountDocuments,
+      {
+        'event.customer': query.customer,
+        'event.startDate': query.startDate,
+        action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+      }
     );
+    SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
   });
 
   it('should not delete event if at least one is billed', async () => {
@@ -1611,27 +1614,19 @@ describe('deleteEventsAndRepetition', () => {
       { _id: 'asdfghjkl', type: INTERVENTION, isBilled: true },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([events]));
-    isDeletionAllowed.onCall(0).returns(!events[0].isBilled);
-    isDeletionAllowed.onCall(1).returns(!events[1].isBilled);
-    isDeletionAllowed.onCall(2).returns(!events[2].isBilled);
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    eventCountDocuments.returns(1);
 
     try {
       await EventHelper.deleteEventsAndRepetition(query, false, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.conflict('Un ou plusieurs événements sont facturés ou horodatés.'));
     } finally {
-      sinon.assert.callCount(isDeletionAllowed, events.length);
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
-      SinonMongoose.calledWithExactly(
-        find,
-        [
-          { query: 'find', args: [query] },
-          { query: 'populate', args: ['startDateTimeStampedCount'] },
-          { query: 'populate', args: ['endDateTimeStampedCount'] },
-        ]
-      );
+      sinon.assert.notCalled(eventHistoryCountDocuments);
+      sinon.assert.notCalled(find);
+      sinon.assert.calledOnceWithExactly(eventCountDocuments, { ...query, isBilled: true });
     }
   });
 
@@ -1647,26 +1642,26 @@ describe('deleteEventsAndRepetition', () => {
       { _id: 'asdfghjkl', type: INTERVENTION, startDateTimeStampedCount: 1 },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([events]));
-    isDeletionAllowed.onCall(0).returns(!events[0].startDateTimeStampedCount);
-    isDeletionAllowed.onCall(1).returns(!events[1].startDateTimeStampedCount);
-    isDeletionAllowed.onCall(2).returns(!events[2].startDateTimeStampedCount);
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    eventHistoryCountDocuments.returns(0);
+    eventHistoryCountDocuments.returns(1);
 
     try {
       await EventHelper.deleteEventsAndRepetition(query, false, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.conflict('Un ou plusieurs événements sont facturés ou horodatés.'));
     } finally {
-      sinon.assert.callCount(isDeletionAllowed, events.length);
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
-      SinonMongoose.calledWithExactly(
-        find,
-        [
-          { query: 'find', args: [query] },
-          { query: 'populate', args: ['startDateTimeStampedCount'] },
-          { query: 'populate', args: ['endDateTimeStampedCount'] },
-        ]
+      sinon.assert.notCalled(find);
+      sinon.assert.calledOnceWithExactly(eventCountDocuments, { ...query, isBilled: true });
+      sinon.assert.calledOnceWithExactly(
+        eventHistoryCountDocuments,
+        {
+          'event.customer': query.customer,
+          'event.startDate': query.startDate,
+          action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+        }
       );
     }
   });

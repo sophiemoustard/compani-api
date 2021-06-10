@@ -30,6 +30,7 @@ const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
 const Event = require('../models/Event');
+const EventHistory = require('../models/EventHistory');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
@@ -404,15 +405,16 @@ exports.createEventHistoryOnDeleteList = async (events, credentials) => {
 };
 
 exports.deleteEventsAndRepetition = async (query, shouldDeleteRepetitions, credentials) => {
-  const events = await Event.find(query)
-    .populate('startDateTimeStampedCount')
-    .populate('endDateTimeStampedCount')
-    .lean();
+  const billedEventsCount = await Event.countDocuments({ ...query, isBilled: true });
+  if (billedEventsCount > 0) throw Boom.conflict(translate[language].isBilledOrTimeStamped);
+  const timestampedEventsCount = await EventHistory.countDocuments({
+    'event.customer': query.customer,
+    'event.startDate': query.startDate,
+    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+  });
+  if (timestampedEventsCount > 0) throw Boom.conflict(translate[language].isBilledOrTimeStamped);
 
-  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) {
-    throw Boom.conflict(translate[language].isBilledOrTimeStamped);
-  }
-
+  const events = await Event.find(query).lean();
   if (!shouldDeleteRepetitions) {
     await this.createEventHistoryOnDeleteList(events, credentials);
   } else {
