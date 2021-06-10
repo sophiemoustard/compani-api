@@ -7,7 +7,7 @@ const {
   populateDB,
   eventsList,
   auxiliaries,
-  customerAuxiliary,
+  customerAuxiliaries,
   sectors,
   thirdPartyPayer,
   helpersCustomer,
@@ -129,7 +129,7 @@ describe('GET /events', () => {
     it('should return a 200 if same id send twice - customers', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/events?customer=${customerAuxiliary._id}&customer=${customerAuxiliary._id}`,
+        url: `/events?customer=${customerAuxiliaries[0]._id}&customer=${customerAuxiliaries[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -195,7 +195,7 @@ describe('GET /events', () => {
       {
         name: 'helper\'s customer',
         expectedCode: 200,
-        url: `/events?customer=${customerAuxiliary._id.toHexString()}`,
+        url: `/events?customer=${customerAuxiliaries[0]._id.toHexString()}`,
         customCredentials: { ...helpersCustomer.local },
       },
       { name: 'vendor_admin', expectedCode: 403 },
@@ -230,7 +230,7 @@ describe('GET /events/credit-notes', () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
-        customer: customerAuxiliary._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
         creditNoteId: creditNotesList._id,
       };
 
@@ -250,7 +250,7 @@ describe('GET /events/credit-notes', () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
-        customer: customerAuxiliary._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayer._id.toHexString(),
         creditNoteId: creditNotesList._id,
       };
@@ -270,7 +270,7 @@ describe('GET /events/credit-notes', () => {
         const query = {
           startDate: moment('2019-01-01').toDate(),
           endDate: moment('2019-01-20').toDate(),
-          customer: customerAuxiliary._id.toHexString(),
+          customer: customerAuxiliaries[0]._id.toHexString(),
         };
         const wrongQuery = omit(query, param);
 
@@ -306,7 +306,7 @@ describe('GET /events/credit-notes', () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
-        customer: customerAuxiliary._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
         creditNoteId: creditNotesList._id,
       };
@@ -331,7 +331,7 @@ describe('GET /events/credit-notes', () => {
     const query = {
       startDate: moment('2019-01-01').toDate(),
       endDate: moment('2019-01-20').toDate(),
-      customer: customerAuxiliary._id.toHexString(),
+      customer: customerAuxiliaries[0]._id.toHexString(),
       creditNoteId: creditNotesList._id,
     };
 
@@ -655,8 +655,8 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -683,8 +683,8 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         sector: sectors[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -753,8 +753,8 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -788,8 +788,8 @@ describe('POST /events', () => {
       startDate: '2019-01-23T10:00:00',
       endDate: '2019-01-23T12:30:00',
       auxiliary: auxiliaries[0]._id.toHexString(),
-      customer: customerAuxiliary._id.toHexString(),
-      subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+      customer: customerAuxiliaries[0]._id.toHexString(),
+      subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
       address: {
         fullAddress: '4 rue du test 92160 Antony',
         street: '4 rue du test',
@@ -915,7 +915,7 @@ describe('POST /events', () => {
         endDate: '2019-01-23T12:30:00',
         auxiliary: new ObjectID(),
         customer: new ObjectID(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         sector: sectors[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
@@ -968,7 +968,7 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
         subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
@@ -995,8 +995,8 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -1023,7 +1023,7 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -1049,8 +1049,8 @@ describe('POST /events', () => {
         startDate: '2020-09-23T10:00:00',
         endDate: '2020-09-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[2]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -1164,8 +1164,8 @@ describe('POST /events', () => {
       startDate: '2019-01-23T10:00:00',
       endDate: '2019-01-23T12:30:00',
       auxiliary: auxiliaries[0]._id.toHexString(),
-      customer: customerAuxiliary._id.toHexString(),
-      subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+      customer: customerAuxiliaries[0]._id.toHexString(),
+      subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
       address: {
         fullAddress: '4 rue du test 92160 Antony',
         street: '4 rue du test',
@@ -1291,7 +1291,7 @@ describe('PUT /events/{_id}', () => {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
         auxiliary: event.auxiliary.toHexString(),
-        subscription: customerAuxiliary.subscriptions[1]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[1]._id.toHexString(),
       };
 
       const response = await app.inject({
@@ -1310,7 +1310,7 @@ describe('PUT /events/{_id}', () => {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
         auxiliary: event.auxiliary.toHexString(),
-        subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[2]._id.toHexString(),
       };
 
       const response = await app.inject({
@@ -1525,7 +1525,7 @@ describe('PUT /events/{_id}', () => {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
         auxiliary: event.auxiliary.toHexString(),
-        subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[2]._id.toHexString(),
       };
       const response = await app.inject({
         method: 'PUT',
@@ -1749,7 +1749,7 @@ describe('DELETE /events', () => {
     });
 
     it('should delete all events from startDate including repetitions', async () => {
-      const customer = customerAuxiliary._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const response = await app.inject({
         method: 'DELETE',
@@ -1762,7 +1762,7 @@ describe('DELETE /events', () => {
     });
 
     it('should delete all events from startDate to endDate', async () => {
-      const customer = customerAuxiliary._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
 
@@ -1775,7 +1775,7 @@ describe('DELETE /events', () => {
     });
 
     it('should not delete events if one event is billed', async () => {
-      const customer = customerAuxiliary._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-01-01';
       const endDate = '2019-10-16';
 
@@ -1784,6 +1784,18 @@ describe('DELETE /events', () => {
         url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should not delete events if one event is timestamped', async () => {
+      const customer = customerAuxiliaries[1]._id;
+      const startDate = '2019-10-14';
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
       expect(response.statusCode).toBe(409);
     });
 
@@ -1810,7 +1822,7 @@ describe('DELETE /events', () => {
     ];
 
     roles.forEach((role) => {
-      const customer = customerAuxiliary._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
 

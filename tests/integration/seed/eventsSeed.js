@@ -208,26 +208,48 @@ const serviceFromOtherCompany = {
   }],
 };
 
-const customerAuxiliary = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  identity: { firstname: 'Romain', lastname: 'Bardet' },
-  subscriptions: [
-    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
-    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
-    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
-  ],
-  contact: {
-    primaryAddress: {
-      street: '37 rue de Ponthieu',
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+const customerAuxiliaries = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { firstname: 'Romain', lastname: 'Bardet' },
+    subscriptions: [
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
+    ],
+    contact: {
+      primaryAddress: {
+        street: '37 rue de Ponthieu',
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
     },
-    phone: '0612345678',
   },
-};
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { firstname: 'Pierre', lastname: 'Rolland' },
+    subscriptions: [
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
+    ],
+    contact: {
+      primaryAddress: {
+        street: '37 rue de Ponthieu',
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345671',
+    },
+  },
+];
 
 const customerFromOtherCompany = {
   _id: new ObjectID(),
@@ -253,7 +275,7 @@ const helpersCustomer = {
   identity: { firstname: 'Nicolas', lastname: 'Flammel' },
   local: { email: 'tt@tt.com', password: '123456!eR' },
   refreshToken: uuidv4(),
-  customers: [customerAuxiliary._id],
+  customers: [customerAuxiliaries[0]._id],
   role: { client: rolesList[4]._id },
   company: authCompany._id,
   origin: WEBAPP,
@@ -279,7 +301,7 @@ const eventsList = [
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     internalHour: new ObjectID(),
     address: {
@@ -310,9 +332,9 @@ const eventsList = [
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     createdAt: '2019-01-15T11:33:14.343Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     address: {
       fullAddress: '4 rue du test 92160 Antony',
       street: '4 rue du test',
@@ -329,9 +351,9 @@ const eventsList = [
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     address: {
       fullAddress: '4 rue du test 92160 Antony',
       street: '4 rue du test',
@@ -347,9 +369,9 @@ const eventsList = [
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     createdAt: '2019-01-15T11:33:14.343Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: true,
     repetition: { frequency: NEVER },
     address: {
@@ -378,9 +400,9 @@ const eventsList = [
     startDate: '2019-01-17T16:30:19.543Z',
     endDate: '2019-01-17T18:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: true,
     address: {
       fullAddress: '4 rue du test 92160 Antony',
@@ -411,9 +433,9 @@ const eventsList = [
     endDate: '2019-10-17T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
     repetition: { frequency: NEVER },
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -432,9 +454,9 @@ const eventsList = [
     endDate: '2019-10-15T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
     repetition: { frequency: NEVER },
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: {
       inclTaxesCustomer: 20,
@@ -455,10 +477,10 @@ const eventsList = [
     startDate: '2019-10-16T14:30:19.543Z',
     endDate: '2019-10-16T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -476,10 +498,10 @@ const eventsList = [
     type: INTERVENTION,
     startDate: '2020-01-16T14:30:19.543Z',
     endDate: '2020-01-16T16:30:19.543Z',
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     repetition: { frequency: NEVER },
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -514,10 +536,10 @@ const eventsList = [
     type: INTERVENTION,
     startDate: '2020-01-18T15:30:19.543Z',
     endDate: '2020-01-18T16:30:19.543Z',
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     repetition: { frequency: NEVER },
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -552,10 +574,10 @@ const eventsList = [
     type: INTERVENTION,
     startDate: '2020-01-12T15:30:19.543Z',
     endDate: '2020-01-12T16:30:19.543Z',
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     repetition: { frequency: NEVER },
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -573,10 +595,10 @@ const eventsList = [
     type: INTERVENTION,
     startDate: '2020-01-20T09:30:19.543Z',
     endDate: '2020-01-20T13:30:19.543Z',
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     repetition: { frequency: NEVER },
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -594,10 +616,10 @@ const eventsList = [
     type: INTERVENTION,
     startDate: '2020-01-02T10:00:19.543Z',
     endDate: '2020-01-02T11:30:19.543Z',
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     repetition: { frequency: NEVER },
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -615,10 +637,10 @@ const eventsList = [
     type: INTERVENTION,
     startDate: '2019-12-30T10:00:19.543Z',
     endDate: '2019-12-30T11:30:19.543Z',
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     repetition: { frequency: NEVER },
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -637,10 +659,10 @@ const eventsList = [
     startDate: '2019-10-23T14:30:19.543Z',
     endDate: '2019-10-23T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[0]._id,
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
     address: {
@@ -659,9 +681,9 @@ const eventsList = [
     startDate: '2020-10-23T14:30:19.543Z',
     endDate: '2020-10-23T16:30:19.543Z',
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
+    customer: customerAuxiliaries[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customerAuxiliary.subscriptions[2]._id,
+    subscription: customerAuxiliaries[0].subscriptions[2]._id,
     isBilled: false,
     address: {
       fullAddress: '4 rue du test 92160 Antony',
@@ -692,8 +714,8 @@ const eventsList = [
     startDate: (new Date()),
     endDate: (new Date()).setHours((new Date()).getHours() + 2),
     auxiliary: auxiliaries[0]._id,
-    customer: customerAuxiliary._id,
-    subscription: customerAuxiliary.subscriptions[2]._id,
+    customer: customerAuxiliaries[1]._id,
+    subscription: customerAuxiliaries[1].subscriptions[2]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     address: {
       fullAddress: '4 rue du test 92160 Antony',
@@ -723,8 +745,8 @@ const eventsList = [
     startDate: (new Date()),
     endDate: (new Date()).setHours((new Date()).getHours() + 2),
     auxiliary: auxiliaries[2]._id,
-    customer: customerAuxiliary._id,
-    subscription: customerAuxiliary.subscriptions[2]._id,
+    customer: customerAuxiliaries[1]._id,
+    subscription: customerAuxiliaries[1].subscriptions[2]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     isCancelled: false,
     address: {
@@ -743,8 +765,8 @@ const eventsList = [
     startDate: (new Date()).setHours((new Date()).getHours() - 2),
     endDate: (new Date()),
     auxiliary: auxiliaries[3]._id,
-    customer: customerAuxiliary._id,
-    subscription: customerAuxiliary.subscriptions[2]._id,
+    customer: customerAuxiliaries[1]._id,
+    subscription: customerAuxiliaries[1].subscriptions[2]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     isCancelled: false,
     address: {
@@ -801,7 +823,7 @@ const distanceMatrixList = [
 ];
 
 const helpersList = [
-  { customer: customerAuxiliary._id, user: helpersCustomer._id, company: authCompany._id, referent: true },
+  { customer: customerAuxiliaries[0]._id, user: helpersCustomer._id, company: authCompany._id, referent: true },
 ];
 
 const timeStampingDate = new Date();
@@ -854,7 +876,8 @@ const populateDB = async () => {
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();
   await Contract.insertMany(contracts);
-  await (new Customer(customerAuxiliary)).save();
+  await (new Customer(customerAuxiliaries[0])).save();
+  await (new Customer(customerAuxiliaries[1])).save();
   await (new Customer(customerFromOtherCompany)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();
   await (new ThirdPartyPayer(thirdPartyPayerFromOtherCompany)).save();
@@ -881,7 +904,7 @@ module.exports = {
   eventsList,
   populateDB,
   auxiliaries,
-  customerAuxiliary,
+  customerAuxiliaries,
   sectors,
   thirdPartyPayer,
   helpersCustomer,

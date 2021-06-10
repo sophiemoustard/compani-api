@@ -1414,7 +1414,7 @@ describe('unassignConflictInterventions', () => {
 
     await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
 
-    sinon.assert.calledWithExactly(formatEventsInConflictQuery, dates, auxiliaryId, [INTERVENTION], companyId);
+    sinon.assert.calledOnceWithExactly(formatEventsInConflictQuery, dates, auxiliaryId, [INTERVENTION], companyId);
     sinon.assert.callCount(updateEvent, events.length);
     SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
   });
@@ -1572,7 +1572,7 @@ describe('deleteEventsAndRepetition', () => {
       },
     ];
     const eventsGroupedByParentId = {
-      [undefined]: [events[0], events[3]],
+      '': [events[0], events[3]],
       [parentId]: [events[1], events[2]],
     };
 
@@ -1585,7 +1585,7 @@ describe('deleteEventsAndRepetition', () => {
     await EventHelper.deleteEventsAndRepetition(query, true, credentials);
 
     sinon.assert.callCount(isDeletionAllowed, events.length);
-    sinon.assert.calledOnceWithExactly(createEventHistoryOnDeleteList, eventsGroupedByParentId[undefined], credentials);
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnDeleteList, eventsGroupedByParentId[''], credentials);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, eventsGroupedByParentId[parentId][0], credentials);
     sinon.assert.calledOnceWithExactly(repetitionDeleteOne, { parentId });
     sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: events.map(ev => ev._id) } });

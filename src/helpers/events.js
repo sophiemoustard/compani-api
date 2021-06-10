@@ -416,9 +416,9 @@ exports.deleteEventsAndRepetition = async (query, shouldDeleteRepetitions, crede
   if (!shouldDeleteRepetitions) {
     await this.createEventHistoryOnDeleteList(events, credentials);
   } else {
-    const eventsGroupedByParentId = groupBy(events, 'repetition.parentId');
+    const eventsGroupedByParentId = groupBy(events, el => get(el, 'repetition.parentId') || '');
     for (const groupId of Object.keys(eventsGroupedByParentId)) {
-      if (groupId === 'undefined') {
+      if (!groupId) {
         await this.createEventHistoryOnDeleteList(eventsGroupedByParentId[groupId], credentials);
       } else {
         await EventHistoriesHelper.createEventHistoryOnDelete(eventsGroupedByParentId[groupId][0], credentials);
