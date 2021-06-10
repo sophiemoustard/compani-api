@@ -169,8 +169,8 @@ const handleCustomerStop = async (customerId, stoppedAt, credentials) => {
 
   await EventsHelper.deleteList(customerId, stoppedAt, null, credentials);
 
-  const customerRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
-  for (const repetition of customerRepetitions) {
+  const remainingRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
+  for (const repetition of remainingRepetitions) {
     await EventsHelper.createEventsOnCustomerStop(repetition, stoppedAt, company);
 
     await Repetition.deleteOne({ _id: repetition._id });

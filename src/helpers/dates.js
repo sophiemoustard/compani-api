@@ -19,7 +19,7 @@ exports.dayDiff = (date1, date2) => {
     ? Math.floor(milliSecondsDiff / 1000 / 60 / 60 / 24)
     : Math.ceil(milliSecondsDiff / 1000 / 60 / 60 / 24);
 
-  return Object.is(diff, -0) ? -diff : diff;
+  return diff || 0;
 };
 
 exports.dayDiffRegardlessOfHour = (date1, date2) => {
