@@ -29,7 +29,7 @@ exports.validateCustomerCompany = async (params, payload, companyId) => {
   const customer = await Customer.findOne(query).lean();
   if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
-  if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(customer.company, companyId)) throw Boom.forbidden();
 };
 
 exports.authorizeCustomerUpdate = async (req) => {
