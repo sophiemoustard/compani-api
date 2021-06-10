@@ -1338,14 +1338,14 @@ describe('createEvent', () => {
 });
 
 describe('deleteConflictInternalHoursAndUnavailabilities', () => {
-  let formatEventInConflictQuery;
+  let formatEventsInConflictQuery;
   let deleteEventsAndRepetition;
   beforeEach(() => {
-    formatEventInConflictQuery = sinon.stub(EventRepository, 'formatEventInConflictQuery');
+    formatEventsInConflictQuery = sinon.stub(EventRepository, 'formatEventsInConflictQuery');
     deleteEventsAndRepetition = sinon.stub(EventHelper, 'deleteEventsAndRepetition');
   });
   afterEach(() => {
-    formatEventInConflictQuery.restore();
+    formatEventsInConflictQuery.restore();
     deleteEventsAndRepetition.restore();
   });
 
@@ -1364,12 +1364,12 @@ describe('deleteConflictInternalHoursAndUnavailabilities', () => {
       _id: { $ne: event._id },
     };
 
-    formatEventInConflictQuery.returns(query);
+    formatEventsInConflictQuery.returns(query);
 
     await EventHelper.deleteConflictInternalHoursAndUnavailabilities(event, auxiliary, credentials);
 
     sinon.assert.calledOnceWithExactly(
-      formatEventInConflictQuery,
+      formatEventsInConflictQuery,
       dates,
       auxiliary._id,
       [INTERNAL_HOUR, UNAVAILABILITY],
@@ -1381,16 +1381,16 @@ describe('deleteConflictInternalHoursAndUnavailabilities', () => {
 });
 
 describe('unassignConflictInterventions', () => {
-  let formatEventInConflictQuery;
+  let formatEventsInConflictQuery;
   let updateEvent;
   let findEvent;
   beforeEach(() => {
-    formatEventInConflictQuery = sinon.stub(EventRepository, 'formatEventInConflictQuery');
+    formatEventsInConflictQuery = sinon.stub(EventRepository, 'formatEventsInConflictQuery');
     updateEvent = sinon.stub(EventHelper, 'updateEvent');
     findEvent = sinon.stub(Event, 'find');
   });
   afterEach(() => {
-    formatEventInConflictQuery.restore();
+    formatEventsInConflictQuery.restore();
     updateEvent.restore();
     findEvent.restore();
   });
@@ -1409,12 +1409,12 @@ describe('unassignConflictInterventions', () => {
     };
     const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
 
-    formatEventInConflictQuery.returns(query);
+    formatEventsInConflictQuery.returns(query);
     findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
     await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
 
-    sinon.assert.calledWithExactly(formatEventInConflictQuery, dates, auxiliaryId, [INTERVENTION], companyId);
+    sinon.assert.calledWithExactly(formatEventsInConflictQuery, dates, auxiliaryId, [INTERVENTION], companyId);
     sinon.assert.callCount(updateEvent, events.length);
     SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
   });
@@ -1634,6 +1634,7 @@ describe('deleteEventsAndRepetition', () => {
       );
     }
   });
+
   it('should not delete event if at least one is timestamped', async () => {
     const query = {
       customer: new ObjectID(),

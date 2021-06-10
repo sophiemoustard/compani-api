@@ -106,14 +106,14 @@ exports.deleteConflictInternalHoursAndUnavailabilities = async (event, auxiliary
   const types = [INTERNAL_HOUR, UNAVAILABILITY];
   const dates = { startDate: event.startDate, endDate: event.endDate };
   const companyId = get(credentials, 'company._id', null);
-  const query = await EventRepository.formatEventInConflictQuery(dates, auxiliary._id, types, companyId, event._id);
+  const query = await EventRepository.formatEventsInConflictQuery(dates, auxiliary._id, types, companyId, event._id);
 
   await exports.deleteEventsAndRepetition(query, false, credentials);
 };
 
 exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const query = await EventRepository.formatEventInConflictQuery(dates, auxiliary._id, [INTERVENTION], companyId);
+  const query = await EventRepository.formatEventsInConflictQuery(dates, auxiliary._id, [INTERVENTION], companyId);
   const interventions = await Event.find(query).lean();
 
   for (let i = 0, l = interventions.length; i < l; i++) {

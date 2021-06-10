@@ -899,49 +899,49 @@ describe('isUpdateAllowed', () => {
 });
 
 describe('isDeletionAllowed', () => {
-  it('should return false', async () => {
+  it('should return false if event is a billed intervention', async () => {
     const event = { type: INTERVENTION, isBilled: true };
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(false);
   });
 
-  it('should return true', async () => {
+  it('should return true if event is not billed', async () => {
     const event = { type: INTERVENTION, isBilled: false };
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(true);
   });
 
-  it('should return true', async () => {
+  it('should return true if event is not billed', async () => {
     const event = { type: INTERVENTION };
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(true);
   });
 
-  it('should return true', async () => {
+  it('should return true if event is not an intervention', async () => {
     const event = { type: INTERNAL_HOUR, isBilled: true };
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(true);
   });
 
-  it('should return false', async () => {
+  it('should return false  if event is a start date timestamped intervention', async () => {
     const event = { type: INTERVENTION, startDateTimeStampedCount: 1 };
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(false);
   });
 
-  it('should return true', async () => {
+  it('should return true event is not timestamped', async () => {
     const event = { type: INTERVENTION, startDateTimeStampedCount: 0 };
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(true);
   });
 
-  it('should return false', async () => {
+  it('should return false is a end date timestamped intervention', async () => {
     const event = { type: INTERVENTION, endDateTimeStampedCount: 1 };
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(false);
   });
 
-  it('should return true', async () => {
+  it('should return true  is not timestamped', async () => {
     const event = { type: INTERVENTION, endDateTimeStampedCount: 0 };
     const result = EventsValidationHelper.isDeletionAllowed(event);
     expect(result).toBe(true);

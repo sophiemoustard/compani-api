@@ -170,7 +170,7 @@ exports.getEventList = (rules, companyId) => Event.find(rules)
   .populate({ path: 'histories', select: '-__v -updatedAt', match: { company: companyId } })
   .lean({ autopopulate: true, viruals: true });
 
-exports.formatEventInConflictQuery = (dates, auxiliary, types, companyId, eventId = null) => {
+exports.formatEventsInConflictQuery = (dates, auxiliary, types, companyId, eventId = null) => {
   const query = {
     startDate: { $lt: dates.endDate },
     endDate: { $gt: dates.startDate },
