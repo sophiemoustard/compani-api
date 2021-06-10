@@ -786,8 +786,8 @@ describe('updateCustomer', () => {
       customer: customerId,
       frequency: 'every_day',
       parentId: new ObjectID(),
-      startDate: '2021-07-01T09:00:00',
-      endDate: '2021-07-01T10:00:00',
+      startDate: '2021-07-01T09:00:00Z',
+      endDate: '2021-07-01T10:00:00Z',
     }];
     const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
     const payload = { stoppedAt: '2019-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
@@ -829,8 +829,8 @@ describe('updateCustomer', () => {
         customer: customerId,
         frequency: 'every_day',
         parentId: new ObjectID(),
-        startDate: '2019-12-01T09:00:00',
-        endDate: '2019-12-01T10:00:00',
+        startDate: '2019-12-01T09:00:00Z',
+        endDate: '2019-12-01T10:00:00Z',
         auxiliary: auxiliaryId,
       },
       {
@@ -839,8 +839,8 @@ describe('updateCustomer', () => {
         customer: customerId,
         frequency: 'every_day',
         parentId: new ObjectID(),
-        startDate: '2021-12-25T09:00:00',
-        endDate: '2021-12-25T10:00:00',
+        startDate: '2021-12-25T09:00:00Z',
+        endDate: '2021-12-25T10:00:00Z',
         sector: new ObjectID(),
       },
     ];
@@ -880,7 +880,7 @@ describe('updateCustomer', () => {
       createRepetitionsEveryDay.getCall(1),
       repetitions[1],
       repetitions[1].sector,
-      new Date('2022-03-26T08:00:00.000Z'),
+      new Date('2022-03-26T09:00:00.000Z'),
       '2022-06-25T16:34:04.144Z'
     );
     sinon.assert.calledWithExactly(deleteOneRepetition.getCall(0), { _id: repetitions[0]._id });
