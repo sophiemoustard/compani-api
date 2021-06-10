@@ -9,6 +9,8 @@ const Sector = require('../../models/Sector');
 const User = require('../../models/User');
 const EventHistory = require('../../models/EventHistory');
 const InternalHour = require('../../models/InternalHour');
+const UserCompany = require('../../models/UserCompany');
+const { TIME_STAMPING_ACTIONS } = require('../../models/EventHistory');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const {
@@ -22,7 +24,6 @@ const {
   INTERVENTION,
 } = require('../../helpers/constants');
 const DatesHelper = require('../../helpers/dates');
-const { TIME_STAMPING_ACTIONS } = require('../../models/EventHistory');
 
 const { language } = translate;
 
@@ -53,7 +54,7 @@ exports.authorizeEventGet = async (req) => {
 
   if (req.query.auxiliary) {
     const auxiliariesIds = [...new Set(UtilsHelper.formatIdsArray(req.query.auxiliary))];
-    const auxiliariesCount = await User.countDocuments({ _id: { $in: auxiliariesIds }, company: companyId });
+    const auxiliariesCount = await UserCompany.countDocuments({ user: { $in: auxiliariesIds }, company: companyId });
     if (auxiliariesCount !== auxiliariesIds.length) throw Boom.forbidden();
   }
 
@@ -87,8 +88,9 @@ exports.authorizeEventForCreditNoteGet = async (req) => {
 };
 
 const checkAuxiliaryPermission = (credentials, event) => {
-  const isOwnEvent = event.auxiliary && event.auxiliary === credentials._id;
-  const eventIsUnassignedAndFromSameSector = !event.auxiliary && event.sector && event.sector === credentials.sector;
+  const { auxiliary, sector } = event;
+  const isOwnEvent = auxiliary && UtilsHelper.areObjectIdsEquals(auxiliary, credentials._id);
+  const eventIsUnassignedAndFromSameSector = sector && UtilsHelper.areObjectIdsEquals(sector, credentials.sector);
 
   if (!isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
   return null;
@@ -140,7 +142,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
   const event = req.pre.event || req.payload;
   const companyId = get(credentials, 'company._id', null);
 
-  if (req.pre.event && event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (req.pre.event && !UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
 
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
