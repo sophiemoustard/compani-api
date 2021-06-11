@@ -1,4 +1,5 @@
 const expect = require('expect');
+const axios = require('axios');
 const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
@@ -91,6 +92,57 @@ describe('fileToBase64', () => {
 
     await expect(resultPromise).resolves.toEqual(expect.any(String));
     sinon.assert.calledWithExactly(createReadStreamStub, filePath);
+  });
+});
+
+describe('downloadImages', () => {
+  let get;
+  let createAndReadFile;
+
+  beforeEach(() => {
+    get = sinon.stub(axios, 'get');
+    createAndReadFile = sinon.stub(FileHelper, 'createAndReadFile');
+  });
+
+  afterEach(() => {
+    get.restore();
+    createAndReadFile.restore();
+  });
+
+  it('should download images from GCS', async () => {
+    const imageList = [
+      { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
+      { url: 'https://storage.googleapis.com/compani-main/compani_text_orange.png', name: 'compani.png' },
+    ];
+    const response = { data: {} };
+
+    get.returns(response);
+
+    const result = await FileHelper.downloadImages(imageList);
+
+    expect(result).toEqual(['src/data/tmp/conscience.png', 'src/data/tmp/compani.png']);
+    sinon.assert.calledWithExactly(get.getCall(0), imageList[0].url, { responseType: 'stream' });
+    sinon.assert.calledWithExactly(get.getCall(1), imageList[1].url, { responseType: 'stream' });
+    sinon.assert.calledWithExactly(createAndReadFile.getCall(0), response.data, `src/data/tmp/${imageList[0].name}`);
+    sinon.assert.calledWithExactly(createAndReadFile.getCall(1), response.data, `src/data/tmp/${imageList[1].name}`);
+  });
+});
+
+describe('deleteImages', () => {
+  let rmdirSync;
+
+  beforeEach(() => {
+    rmdirSync = sinon.stub(fs, 'rmdirSync');
+  });
+
+  afterEach(() => {
+    rmdirSync.restore();
+  });
+
+  it('should remove images from local', async () => {
+    await FileHelper.deleteImages();
+
+    sinon.assert.calledOnceWithExactly(rmdirSync, 'src/data/tmp/', { recursive: true });
   });
 });
 

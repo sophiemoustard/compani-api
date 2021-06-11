@@ -4,6 +4,9 @@ const fs = require('fs');
 const util = require('util');
 const handlebars = require('handlebars');
 const puppeteer = require('puppeteer');
+const PdfPrinter = require('pdfmake');
+const getStream = require('get-stream');
+const FileHelper = require('./file');
 
 exports.readFile = util.promisify(fs.readFile);
 
@@ -58,4 +61,16 @@ exports.generatePdf = async (data, templateUrl, options = { format: 'A4', printB
     if (browser) await browser.close();
     throw e;
   }
+};
+
+const fonts = { SourceSans: { normal: 'src/data/SourceSansPro-Regular.ttf', bold: 'src/data/SourceSansPro-Bold.ttf' } };
+
+exports.generatePDF = async (template) => {
+  const printer = new PdfPrinter(fonts);
+  const doc = printer.createPdfKitDocument(template);
+  doc.end();
+  const pdf = await getStream.buffer(doc);
+  FileHelper.deleteImages();
+
+  return pdf;
 };

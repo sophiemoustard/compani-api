@@ -24,6 +24,7 @@ const { COURSE_SMS, BLENDED, DRAFT, TRAINEE, E_LEARNING, ON_SITE, WEBAPP } = req
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
+const InterAttendanceSheet = require('../../../src/data/interAttendanceSheet');
 
 describe('createCourse', () => {
   let save;
@@ -1643,17 +1644,23 @@ describe('generateAttendanceSheets', () => {
   let formatInterCourseForPdf;
   let formatIntraCourseForPdf;
   let generatePdf;
+  let generatePDF;
+  let getPdfContent;
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     formatInterCourseForPdf = sinon.stub(CourseHelper, 'formatInterCourseForPdf');
     formatIntraCourseForPdf = sinon.stub(CourseHelper, 'formatIntraCourseForPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
+    getPdfContent = sinon.stub(InterAttendanceSheet, 'getPdfContent');
   });
   afterEach(() => {
     courseFindOne.restore();
     formatInterCourseForPdf.restore();
     formatIntraCourseForPdf.restore();
     generatePdf.restore();
+    generatePDF.restore();
+    getPdfContent.restore();
   });
 
   it('should download attendance sheet for inter b2b course', async () => {
@@ -1663,7 +1670,8 @@ describe('generateAttendanceSheets', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
 
     formatInterCourseForPdf.returns({ name: 'la formation - des infos en plus' });
-    generatePdf.returns('pdf');
+    generatePDF.returns('pdf');
+    getPdfContent.returns({ content: [{ text: 'la formation - des infos en plus' }] });
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
@@ -1681,11 +1689,8 @@ describe('generateAttendanceSheets', () => {
     ]);
     sinon.assert.calledOnceWithExactly(formatInterCourseForPdf, course);
     sinon.assert.notCalled(formatIntraCourseForPdf);
-    sinon.assert.calledOnceWithExactly(
-      generatePdf,
-      { name: 'la formation - des infos en plus' },
-      './src/data/interAttendanceSheet.html'
-    );
+    sinon.assert.calledOnceWithExactly(generatePDF, { content: [{ text: 'la formation - des infos en plus' }] });
+    sinon.assert.calledOnceWithExactly(getPdfContent, { name: 'la formation - des infos en plus' });
   });
 
   it('should download attendance sheet for intra course', async () => {
