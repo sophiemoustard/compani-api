@@ -2034,7 +2034,6 @@ describe('PUT /{_id}/timestamping', () => {
       expect(response.statusCode).toBe(409);
     });
 
-
     it('should return 400 if incorrect action', async () => {
       authToken = await getTokenByCredentials(auxiliaries[0].local);
       const startDate = new Date();

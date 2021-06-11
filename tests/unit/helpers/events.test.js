@@ -89,13 +89,13 @@ describe('list', () => {
     sinon.assert.notCalled(populateEventsStub);
   });
 
-  it('should list events', async () => {
+  it('should list events #tag', async () => {
     const query = {};
-    const eventsQuery = {};
+    const eventsQuery = { customer: new ObjectID(), type: 'intervention', isCancelled: false };
     getListQueryStub.returns(eventsQuery);
     const events = [{ type: 'intervention' }];
     getEventListStub.returns(events);
-    const populatedEvents = [{ type: 'intervention', customer: new ObjectID() }];
+    const populatedEvents = [eventsQuery];
     populateEventsStub.returns(populatedEvents);
 
     const result = await EventHelper.list(query, credentials);
