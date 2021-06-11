@@ -14,7 +14,7 @@ exports.authorizeGetStats = async (req) => {
     const customer = await Customer.findById(req.query.customer).lean();
 
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
-    if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+    if (UtilsHelper.areObjectIdsEquals(customer.company, companyId)) throw Boom.forbidden();
   }
 
   if (req.query.sector) {
