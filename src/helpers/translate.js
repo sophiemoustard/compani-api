@@ -145,9 +145,8 @@ module.exports = {
     timeStampOtherConflict: 'Timestamp error. Contact technical support.',
     timeStampTooLate: 'Can\'t timestamp startDate after event ends.',
     timeStampTooEarly: 'Can\'t timestamp endDate before event starts.',
-    isBilledOrTimeStamped: 'At least one event is billed or timestamped.',
-    isBilled: 'At least one event is billed.',
-    isTimeStamped: 'At least one event is timestamped.',
+    isBilled: 'You can not delete a billed event.',
+    isTimeStamped: 'You can not delete a timestamped event.',
     timeStampCancelledEvent: 'Can\'t timestamp a cancelled event.',
     /* Sectors */
     sectorCreated: 'Sector created.',
@@ -472,9 +471,8 @@ module.exports = {
     timeStampOtherConflict: 'Problème lors de l\'horodatage. Contactez le support technique.',
     timeStampTooLate: 'Vous ne pouvez pas horodater le début d\'un évènement terminé.',
     timeStampTooEarly: 'Vous ne pouvez pas horodater la fin d\'un évènement avant son commencement.',
-    isBilledOrTimeStamped: 'Un ou plusieurs évènements sont facturés ou horodatés.',
-    isBilled: 'Un ou plusieurs évènements sont facturés.',
-    isTimeStamped: 'Un ou plusieurs évènements sont horodatés.',
+    isBilled: 'Vous ne pouvez pas supprimer un évènement facturé.',
+    isTimeStamped: 'Vous ne pouvez pas supprimer un évènement horodaté.',
     timeStampCancelledEvent: 'Vous ne pouvez pas horodater un évènement annulé.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',

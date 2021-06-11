@@ -5,6 +5,7 @@ const momentRange = require('moment-range');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, NEVER } = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
+const EventHistory = require('../models/EventHistory');
 const ContractsHelper = require('./contracts');
 const EventRepository = require('../repositories/EventRepository');
 const UtilsHelper = require('./utils');
@@ -103,5 +104,15 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
   return exports.isEditionAllowed(event, credentials);
 };
 
-exports.isDeletionAllowed = event => event.type !== INTERVENTION ||
-  (!event.isBilled && !event.startDateTimeStampedCount && !event.endDateTimeStampedCount);
+exports.checkDeletionIsAllowed = async (events) => {
+  if (events.some(event => event.type === INTERVENTION && event.isBilled)) {
+    throw Boom.conflict(translate[language].isBilled);
+  }
+
+  const timestampedEventsCount = await EventHistory.countDocuments({
+    'event.eventId': { $in: events.map(event => event._id) },
+    'event.type': INTERVENTION,
+    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+  });
+  if (timestampedEventsCount > 0) throw Boom.conflict(translate[language].isTimeStamped);
+};

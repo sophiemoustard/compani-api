@@ -28,19 +28,14 @@ const DatesHelper = require('../../helpers/dates');
 const { language } = translate;
 
 exports.getEvent = async (req) => {
-  try {
-    const event = await Event.findById(req.params._id)
-      .populate('startDateTimeStampedCount')
-      .populate('endDateTimeStampedCount')
-      .lean();
+  const event = await Event.findById(req.params._id)
+    .populate('startDateTimeStampedCount')
+    .populate('endDateTimeStampedCount')
+    .lean();
 
-    if (!event) throw Boom.notFound(translate[language].eventNotFound);
+  if (!event) throw Boom.notFound(translate[language].eventNotFound);
 
-    return event;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
+  return event;
 };
 
 exports.authorizeEventGet = async (req) => {
@@ -98,7 +93,7 @@ const checkAuxiliaryPermission = (credentials, event) => {
 
 exports.authorizeEventDeletion = async (req) => {
   const { credentials } = req.auth;
-  const { event } = req.pre;
+  const event = await exports.getEvent(req);
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
   if (isAuxiliary) {
