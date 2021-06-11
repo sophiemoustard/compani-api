@@ -11,6 +11,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
+const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const {
   HOURLY,
@@ -93,6 +94,12 @@ const userList = [
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
+];
+
+const userCompanyList = [
+  { user: userList[0], company: authCompany._id },
+  { user: userList[1], company: authCompany._id },
+  { user: userList[2], company: authCompany._id },
 ];
 
 const sectorHistoryList = [{
@@ -647,6 +654,7 @@ const populateDB = async () => {
   await Contract.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await ReferentHistory.deleteMany({});
+  await UserCompany.deleteMany({});
 
   await populateDBForAuthentication();
   for (const user of userList) {
@@ -659,6 +667,7 @@ const populateDB = async () => {
   await Contract.insertMany(contractList);
   await ThirdPartyPayer.insertMany(tppList);
   await ReferentHistory.insertMany(referentList);
+  await UserCompany.insertMany(userCompanyList);
 };
 
 module.exports = {
