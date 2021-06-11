@@ -163,6 +163,20 @@ const timeStampEvent = async (req) => {
   }
 };
 
+const getEventHistories = async (req) => {
+  try {
+    const histories = await EventsHelper.getEventHistories(req.params._id, req.auth.credentials);
+
+    return {
+      message: translate[language].eventHistoriesFound,
+      data: { histories },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boolean.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -175,4 +189,5 @@ module.exports = {
   getPaidTransportStatsBySector,
   getUnassignedHoursBySector,
   timeStampEvent,
+  getEventHistories,
 };

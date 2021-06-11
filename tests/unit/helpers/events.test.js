@@ -2240,3 +2240,60 @@ describe('getUnassignedHoursBySector', () => {
     sinon.assert.calledOnceWithExactly(getUnassignedHoursBySector, query.sector, query.month, credentials.company._id);
   });
 });
+
+describe('getEventHistories', () => {
+  let find;
+
+  beforeEach(() => {
+    find = sinon.stub(EventHistory, 'find');
+  });
+
+  afterEach(() => {
+    find.restore();
+  });
+
+  it('should return the history for an event', async () => {
+    const eventId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
+    find.returns(SinonMongoose.stubChainedQueries([{ action: 'manual_time_stamping' }]));
+
+    const result = await EventHelper.getEventHistories(eventId, credentials);
+
+    expect(result).toEqual({ action: 'manual_time_stamping' });
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ 'event.eventId': eventId, company: companyId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'event.customer', match: { company: companyId }, select: '-__v -createdAt -updatedAt' }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'event.auxiliary', match: { company: companyId }, select: '-__v -createdAt -updatedAt' }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'event.internalHour', match: { company: companyId }, select: '-__v -createdAt -updatedAt' }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'update.auxiliary.to', match: { company: companyId }, select: '-__v -createdAt -updatedAt' }],
+        },
+        {
+          query: 'populate',
+          args: [
+            { path: 'update.auxiliary.from', match: { company: companyId }, select: '-__v -createdAt -updatedAt' },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'createdBy', match: { company: companyId }, select: '-__v -createdAt -updatedAt' }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+});

@@ -2118,3 +2118,50 @@ describe('PUT /{_id}/timestamping', () => {
     });
   });
 });
+
+describe('GET /{_id}/eventhistories', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should return all history for event', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/events/${eventsList[23]._id}/eventhistories`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const eventHistoryCount = await EventHistory.countDocuments({ 'event.eventId': eventsList[23]._id });
+      expect(response.result.data.histories.length).toBe(eventHistoryCount);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/${eventsList[23]._id}/eventhistories`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
