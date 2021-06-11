@@ -11,6 +11,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
+const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const {
   HOURLY,
@@ -93,6 +94,12 @@ const userList = [
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
+];
+
+const userCompanyList = [
+  { user: userList[0], company: authCompany._id },
+  { user: userList[1], company: authCompany._id },
+  { user: userList[2], company: otherCompany._id },
 ];
 
 const sectorHistoryList = [{
@@ -629,24 +636,25 @@ const eventListForFundingsMonitoring = [
 ];
 
 const populateDBWithEventsForFollowup = async () => {
-  await Event.deleteMany({});
+  await Event.deleteMany();
   await Event.insertMany(eventListForFollowUp);
 };
 
 const populateDBWithEventsForFundingsMonitoring = async () => {
-  await Event.deleteMany({});
+  await Event.deleteMany();
   await Event.insertMany(eventListForFundingsMonitoring);
 };
 
 const populateDB = async () => {
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await Service.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Contract.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await ReferentHistory.deleteMany({});
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await Service.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Contract.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await ReferentHistory.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   for (const user of userList) {
@@ -659,6 +667,7 @@ const populateDB = async () => {
   await Contract.insertMany(contractList);
   await ThirdPartyPayer.insertMany(tppList);
   await ReferentHistory.insertMany(referentList);
+  await UserCompany.insertMany(userCompanyList);
 };
 
 module.exports = {
