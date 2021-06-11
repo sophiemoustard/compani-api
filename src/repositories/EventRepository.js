@@ -170,8 +170,8 @@ exports.getEventList = (rules, companyId) => Event.find(rules)
   .populate({ path: 'histories', select: '-__v -updatedAt', match: { company: companyId } })
   .lean({ autopopulate: true, viruals: true });
 
-exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {
-  const rules = {
+exports.formatEventsInConflictQuery = (dates, auxiliary, types, companyId, eventId = null) => {
+  const query = {
     startDate: { $lt: dates.endDate },
     endDate: { $gt: dates.startDate },
     auxiliary,
@@ -179,9 +179,9 @@ exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventI
     company: companyId,
   };
 
-  if (eventId) rules._id = { $ne: eventId };
+  if (eventId) query._id = { $ne: eventId };
 
-  return Event.find(rules).lean();
+  return query;
 };
 
 exports.countAuxiliaryEventsBetweenDates = (filters) => {

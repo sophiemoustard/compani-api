@@ -97,7 +97,7 @@ const deleteList = async (req) => {
   try {
     const { query, auth } = req;
 
-    await EventsHelper.deleteList(query.customer, query.startDate, query.endDate, auth.credentials);
+    await EventsHelper.deleteCustomerEvents(query.customer, query.startDate, query.endDate, auth.credentials);
 
     return { message: translate[language].eventsDeleted };
   } catch (e) {

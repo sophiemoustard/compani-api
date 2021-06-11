@@ -103,4 +103,5 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
   return exports.isEditionAllowed(event, credentials);
 };
 
-exports.isDeletionAllowed = event => event.type !== INTERVENTION || !event.isBilled;
+exports.isDeletionAllowed = event => event.type !== INTERVENTION ||
+  (!event.isBilled && !event.startDateTimeStampedCount && !event.endDateTimeStampedCount);

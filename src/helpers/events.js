@@ -5,6 +5,7 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
 const isEqual = require('lodash/isEqual');
+const groupBy = require('lodash/groupBy');
 const cloneDeep = require('lodash/cloneDeep');
 const momentRange = require('moment-range');
 const { ObjectID } = require('mongodb');
@@ -15,7 +16,6 @@ const {
   ABSENCE,
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
-  EVERY_WEEK,
   AUXILIARY,
   CUSTOMER,
   EVERY_DAY,
@@ -30,6 +30,7 @@ const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
 const Event = require('../models/Event');
+const EventHistory = require('../models/EventHistory');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
@@ -44,13 +45,9 @@ exports.isRepetition = event => has(event, 'repetition.frequency') && get(event,
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const eventsQuery = exports.getListQuery(query, credentials);
-  const { groupBy } = query;
 
-  if (groupBy === CUSTOMER) {
-    return EventRepository.getEventsGroupedByCustomers(eventsQuery, get(credentials, 'company._id', null));
-  } if (groupBy === AUXILIARY) {
-    return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, get(credentials, 'company._id', null));
-  }
+  if (query.groupBy === CUSTOMER) return EventRepository.getEventsGroupedByCustomers(eventsQuery, companyId);
+  if (query.groupBy === AUXILIARY) return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, companyId);
 
   return exports.populateEvents(await EventRepository.getEventList(eventsQuery, companyId));
 };
@@ -110,14 +107,15 @@ exports.deleteConflictInternalHoursAndUnavailabilities = async (event, auxiliary
   const types = [INTERNAL_HOUR, UNAVAILABILITY];
   const dates = { startDate: event.startDate, endDate: event.endDate };
   const companyId = get(credentials, 'company._id', null);
-  const events = await EventRepository.getEventsInConflicts(dates, auxiliary._id, types, companyId, event._id);
+  const query = await EventRepository.formatEventsInConflictQuery(dates, auxiliary._id, types, companyId, event._id);
 
-  await exports.deleteEvents(events, credentials);
+  await exports.deleteEventsAndRepetition(query, false, credentials);
 };
 
 exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary._id, [INTERVENTION], companyId);
+  const query = await EventRepository.formatEventsInConflictQuery(dates, auxiliary._id, [INTERVENTION], companyId);
+  const interventions = await Event.find(query).lean();
 
   for (let i = 0, l = interventions.length; i < l; i++) {
     const payload = {
@@ -359,25 +357,16 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
   return Promise.all(promises);
 };
 
-exports.deleteList = async (customer, startDate, endDate, credentials) => {
+exports.deleteCustomerEvents = async (customer, startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const query = {
     customer: new ObjectID(customer),
     startDate: { $gte: moment(startDate).toDate() },
+    company: companyId,
   };
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
 
-  const billedEventsCount = await Event.countDocuments({ ...query, company: new ObjectID(companyId), isBilled: true });
-  if (billedEventsCount > 0) throw Boom.conflict();
-
-  const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query, companyId);
-  for (const group of eventsGroupedByParentId) {
-    if (!group._id || endDate) await exports.deleteEvents(group.events, credentials);
-    else {
-      const event = { ...group.events[0], repetition: { frequency: EVERY_WEEK, parentId: group._id } };
-      await EventsRepetitionHelper.deleteRepetition(event, credentials);
-    }
-  }
+  await exports.deleteEventsAndRepetition(query, !endDate, credentials);
 };
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
@@ -398,7 +387,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
 };
 
 exports.deleteEvent = async (event, credentials) => {
-  if (!EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict('The event is already billed');
+  if (!EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict(translate[language].isBilledOrTimeStamped);
   const deletionInfo = omit(event, 'repetition');
   await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
   await Event.deleteOne({ _id: event._id });
@@ -406,18 +395,41 @@ exports.deleteEvent = async (event, credentials) => {
   return event;
 };
 
-exports.deleteEvents = async (events, credentials) => {
+exports.createEventHistoryOnDeleteList = async (events, credentials) => {
   const promises = [];
-  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) {
-    throw Boom.conflict();
-  }
-
   for (const event of events) {
     const deletionInfo = omit(event, 'repetition');
     promises.push(EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials));
   }
-
   await Promise.all(promises);
+};
+
+exports.deleteEventsAndRepetition = async (query, shouldDeleteRepetitions, credentials) => {
+  const events = await Event.find(query).lean();
+  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) {
+    throw Boom.conflict(translate[language].isBilled);
+  }
+  const timestampedEventsCount = await EventHistory.countDocuments({
+    'event.eventId': { $in: events.map(event => event._id) },
+    'event.type': INTERVENTION,
+    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+  });
+  if (timestampedEventsCount > 0) throw Boom.conflict(translate[language].isTimeStamped);
+
+  if (!shouldDeleteRepetitions) {
+    await this.createEventHistoryOnDeleteList(events, credentials);
+  } else {
+    const eventsGroupedByParentId = groupBy(events, el => get(el, 'repetition.parentId') || '');
+    for (const groupId of Object.keys(eventsGroupedByParentId)) {
+      if (!groupId) {
+        await this.createEventHistoryOnDeleteList(eventsGroupedByParentId[groupId], credentials);
+      } else {
+        await EventHistoriesHelper.createEventHistoryOnDelete(eventsGroupedByParentId[groupId][0], credentials);
+        await Repetition.deleteOne({ parentId: groupId });
+      }
+    }
+  }
+
   await Event.deleteMany({ _id: { $in: events.map(ev => ev._id) } });
 };
 

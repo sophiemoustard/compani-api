@@ -167,7 +167,7 @@ const handleCustomerStop = async (customerId, stoppedAt, credentials) => {
   });
   if (timeStampedEventsCount > 0) throw Boom.conflict();
 
-  await EventsHelper.deleteList(customerId, stoppedAt, null, credentials);
+  await EventsHelper.deleteCustomerEvents(customerId, stoppedAt, null, credentials);
 
   const remainingRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
   for (const repetition of remainingRepetitions) {
