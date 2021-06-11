@@ -12,6 +12,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['events:edit'] },
         validate: {
           query: Joi.object({
             auxiliaries: [Joi.array().items(Joi.string()), Joi.string()],
