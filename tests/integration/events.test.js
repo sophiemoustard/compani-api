@@ -58,9 +58,10 @@ describe('GET /events', () => {
     it('should return a list of events', async () => {
       const startDate = moment('2019-01-18');
       const endDate = moment('2019-01-20');
+      const isCancelled = false;
       const response = await app.inject({
         method: 'GET',
-        url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+        url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}&isCancelled=${isCancelled}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -69,6 +70,7 @@ describe('GET /events', () => {
       response.result.data.events.forEach((event) => {
         expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
         expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
+        expect(event.isCancelled).toEqual(false);
         if (event.type === 'intervention') expect(event.subscription._id).toBeDefined();
       });
     });
@@ -2017,6 +2019,21 @@ describe('PUT /{_id}/timestamping', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return a 409 if user tries to timeStamp a cancelled event', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[2].local);
+      const startDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[25]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
 
     it('should return 400 if incorrect action', async () => {
       authToken = await getTokenByCredentials(auxiliaries[0].local);
