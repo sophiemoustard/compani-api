@@ -902,30 +902,35 @@ describe('isDeletionAllowed', () => {
   it('should return true if event is not an intervention', async () => {
     const event = { type: INTERNAL_HOUR, isBilled: true };
     const result = EventsValidationHelper.isDeletionAllowed(event);
+
     expect(result).toBe(true);
   });
 
   it('should return true if event is not billed and not timestamped', async () => {
     const event = { type: INTERVENTION, isBilled: false, startDateTimeStampedCount: 0, endDateTimeStampedCount: 0 };
     const result = EventsValidationHelper.isDeletionAllowed(event);
+
     expect(result).toBe(true);
   });
 
   it('should return false if event is a billed intervention', async () => {
     const event = { type: INTERVENTION, isBilled: true };
     const result = EventsValidationHelper.isDeletionAllowed(event);
+
     expect(result).toBe(false);
   });
 
   it('should return false if event is a start date timestamped intervention', async () => {
     const event = { type: INTERVENTION, startDateTimeStampedCount: 1 };
     const result = EventsValidationHelper.isDeletionAllowed(event);
+
     expect(result).toBe(false);
   });
 
   it('should return false if event is an end date timestamped intervention', async () => {
     const event = { type: INTERVENTION, endDateTimeStampedCount: 1 };
     const result = EventsValidationHelper.isDeletionAllowed(event);
+
     expect(result).toBe(false);
   });
 });
