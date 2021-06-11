@@ -34,6 +34,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       unitTTCRate: 75,
       billingMode: 'direct',
       isApa: true,
+      teletransmissionId: '012345678912345',
     };
 
     it('should create a new third party payer', async () => {
@@ -49,7 +50,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.statusCode).toBe(200);
       expect(pick(
         response.result.data.thirdPartyPayer,
-        ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company', 'isApa']
+        ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company', 'isApa', 'teletransmissionId']
       )).toEqual({ ...payload, company: authCompany._id });
       const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
       expect(thirdPartyPayers.length).toBe(thirdPartyPayerCount + 1);
@@ -144,6 +145,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       unitTTCRate: 89,
       billingMode: 'indirect',
       isApa: false,
+      teletransmissionId: '012345678912345',
     };
     it('should update a third party payer', async () => {
       const response = await app.inject({
