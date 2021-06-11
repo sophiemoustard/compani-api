@@ -12,6 +12,28 @@ exports.getStartOfDay = date => (new Date(date)).setHours(0, 0, 0, 0);
 
 exports.getEndOfDay = date => (new Date(date)).setHours(23, 59, 59, 999);
 
+exports.dayDiff = (date1, date2) => {
+  const milliSecondsDiff = new Date(date1) - new Date(date2);
+
+  const diff = milliSecondsDiff > 0
+    ? Math.floor(milliSecondsDiff / 1000 / 60 / 60 / 24)
+    : Math.ceil(milliSecondsDiff / 1000 / 60 / 60 / 24);
+
+  return diff || 0;
+};
+
+exports.dayDiffRegardlessOfHour = (date1, date2) => {
+  const milliSecondsDiff = this.getStartOfDay(date1) - this.getStartOfDay(date2);
+
+  return milliSecondsDiff / 1000 / 60 / 60 / 24;
+};
+
+exports.addDays = (date, days) => {
+  const newDate = new Date(date);
+
+  return new Date(newDate.setDate(newDate.getDate() + days));
+};
+
 const DATE_FORMATS = {
   D: { day: 'numeric' },
   DD: { day: '2-digit' },

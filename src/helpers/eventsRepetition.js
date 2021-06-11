@@ -22,11 +22,12 @@ const EventHistoriesHelper = require('./eventHistories');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
+const DatesHelper = require('./dates');
 
 momentRange.extendMoment(moment);
 
 exports.formatRepeatedPayload = async (event, sector, momentDay) => {
-  const step = momentDay.diff(event.startDate, 'd');
+  const step = DatesHelper.dayDiffRegardlessOfHour(momentDay, event.startDate);
   let payload = {
     ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
     startDate: moment(event.startDate).add(step, 'd'),
@@ -41,9 +42,9 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
   return new Event(payload);
 };
 
-exports.createRepetitionsEveryDay = async (payload, sector) => {
-  const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(90, 'd');
+exports.createRepetitionsEveryDay = async (payload, sector, startDate = null, endDate = null) => {
+  const start = startDate || moment(payload.startDate).add(1, 'd');
+  const end = endDate || moment(payload.startDate).add(90, 'd');
   const range = Array.from(moment().range(start, end).by('days'));
   const repeatedEvents = [];
 

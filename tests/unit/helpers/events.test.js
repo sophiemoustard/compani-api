@@ -1574,7 +1574,7 @@ describe('deleteEvents', () => {
       await EventHelper.deleteEvents(events, credentials);
       sinon.assert.notCalled(deleteMany);
     } catch (e) {
-      expect(e).toEqual(Boom.forbidden('Some events are already billed'));
+      expect(e).toEqual(Boom.conflict());
     }
   });
 });

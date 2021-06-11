@@ -16,21 +16,24 @@ const {
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
   EVERY_WEEK,
+  AUXILIARY,
+  CUSTOMER,
+  EVERY_DAY,
 } = require('./constants');
 const translate = require('./translate');
+const UtilsHelper = require('./utils');
+const DatesHelper = require('./dates');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
-const UtilsHelper = require('./utils');
 const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const EventRepository = require('../repositories/EventRepository');
-const { AUXILIARY, CUSTOMER } = require('./constants');
 
 momentRange.extendMoment(moment);
 
@@ -363,8 +366,9 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
     startDate: { $gte: moment(startDate).toDate() },
   };
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
+
   const billedEventsCount = await Event.countDocuments({ ...query, company: new ObjectID(companyId), isBilled: true });
-  if (billedEventsCount > 0) throw Boom.conflict('Some events are already billed');
+  if (billedEventsCount > 0) throw Boom.conflict();
 
   const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query, companyId);
   for (const group of eventsGroupedByParentId) {
@@ -405,7 +409,7 @@ exports.deleteEvent = async (event, credentials) => {
 exports.deleteEvents = async (events, credentials) => {
   const promises = [];
   if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) {
-    throw Boom.conflict('Some events are already billed');
+    throw Boom.conflict();
   }
 
   for (const event of events) {
@@ -498,4 +502,39 @@ exports.getUnassignedHoursBySector = async (query, credentials) => {
   const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
   return EventRepository.getUnassignedHoursBySector(sectors, query.month, companyId);
+};
+
+const createEventsEveryDayOnCustomerStop = async (repetition, stoppedAt, company) => {
+  let sectorId = repetition.sector;
+  const eventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
+    ? repetition.startDate
+    : Date.now();
+  const lastEventCreatedByRepetition = DatesHelper.addDays(eventCreationStartDate, 90);
+
+  const shouldCreateEvents = DatesHelper.isSameOrAfter(stoppedAt, lastEventCreatedByRepetition);
+  if (!shouldCreateEvents) return;
+
+  if (!sectorId) {
+    const auxiliary = await User.findOne({ _id: repetition.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: company._id } })
+      .lean({ autopopulate: true, virtuals: true });
+    sectorId = auxiliary.sector;
+  }
+
+  await EventsRepetitionHelper.createRepetitionsEveryDay(
+    repetition,
+    sectorId,
+    DatesHelper.addDays(lastEventCreatedByRepetition, 1),
+    stoppedAt
+  );
+};
+
+exports.createEventsOnCustomerStop = async (repetition, stoppedAt, company) => {
+  switch (repetition.frequency) {
+    case EVERY_DAY:
+      createEventsEveryDayOnCustomerStop(repetition, stoppedAt, company);
+      break;
+    default:
+      break;
+  }
 };

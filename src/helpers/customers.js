@@ -5,7 +5,6 @@ const moment = require('moment');
 const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
-const GDriveStorageHelper = require('./gDriveStorage');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
@@ -17,12 +16,14 @@ const CustomerPartner = require('../models/CustomerPartner');
 const Rum = require('../models/Rum');
 const User = require('../models/User');
 const EventRepository = require('../repositories/EventRepository');
+const CustomerRepository = require('../repositories/CustomerRepository');
 const translate = require('./translate');
 const { INTERVENTION } = require('./constants');
+const GDriveStorageHelper = require('./gDriveStorage');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
-const CustomerRepository = require('../repositories/CustomerRepository');
+const EventsHelper = require('./events');
 
 const { language } = translate;
 
@@ -152,15 +153,35 @@ exports.updateCustomerEvents = async (customerId, payload) => {
 };
 
 const formatPayload = async (customerId, customerPayload, company) => {
-  if (has(customerPayload, 'payment.iban')) {
-    return exports.formatPaymentPayload(customerId, customerPayload, company);
-  }
+  if (has(customerPayload, 'payment.iban')) return exports.formatPaymentPayload(customerId, customerPayload, company);
 
   return { $set: flat(customerPayload, { safe: true }) };
 };
 
+const handleCustomerStop = async (customerId, stoppedAt, credentials) => {
+  const { company } = credentials;
+  const timeStampedEventsCount = await EventHistory.countDocuments({
+    'event.customer': customerId,
+    startDate: { $gte: stoppedAt },
+    action: { $in: EventHistory.TIMESTAMPING_ACTIONS },
+  });
+  if (timeStampedEventsCount > 0) throw Boom.conflict();
+
+  await EventsHelper.deleteList(customerId, stoppedAt, null, credentials);
+
+  const remainingRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
+  for (const repetition of remainingRepetitions) {
+    await EventsHelper.createEventsOnCustomerStop(repetition, stoppedAt, company);
+
+    await Repetition.deleteOne({ _id: repetition._id });
+  }
+};
+
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   const { company } = credentials;
+
+  if (customerPayload.stoppedAt) await handleCustomerStop(customerId, customerPayload.stoppedAt, credentials);
+
   if (has(customerPayload, 'referent')) {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
 

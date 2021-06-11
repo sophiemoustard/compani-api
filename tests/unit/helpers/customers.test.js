@@ -19,6 +19,8 @@ const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories'
 const FundingsHelper = require('../../../src/helpers/fundings');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
+const EventsHelper = require('../../../src/helpers/events');
+const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -532,6 +534,13 @@ describe('updateCustomer', () => {
   let formatPaymentPayload;
   let updateCustomerEvents;
   let updateCustomerReferent;
+  let deleteListEvent;
+  let countDocumentsEventHistory;
+  let findRepetition;
+  let findOneUser;
+  let createRepetitionsEveryDay;
+  let nowStub;
+  let deleteOneRepetition;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneCustomer = sinon.stub(Customer, 'findOne');
@@ -539,6 +548,13 @@ describe('updateCustomer', () => {
     formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
     updateCustomerEvents = sinon.stub(CustomerHelper, 'updateCustomerEvents');
     updateCustomerReferent = sinon.stub(ReferentHistoriesHelper, 'updateCustomerReferent');
+    deleteListEvent = sinon.stub(EventsHelper, 'deleteList');
+    countDocumentsEventHistory = sinon.stub(EventHistory, 'countDocuments');
+    findRepetition = sinon.stub(Repetition, 'find');
+    findOneUser = sinon.stub(User, 'findOne');
+    createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
+    nowStub = sinon.stub(Date, 'now');
+    deleteOneRepetition = sinon.stub(Repetition, 'deleteOne');
   });
   afterEach(() => {
     findOneCustomer.restore();
@@ -546,6 +562,13 @@ describe('updateCustomer', () => {
     formatPaymentPayload.restore();
     updateCustomerEvents.restore();
     updateCustomerReferent.restore();
+    deleteListEvent.restore();
+    countDocumentsEventHistory.restore();
+    findRepetition.restore();
+    findOneUser.restore();
+    createRepetitionsEveryDay.restore();
+    nowStub.restore();
+    deleteOneRepetition.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -562,6 +585,8 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(findOneAndUpdateCustomer);
+    sinon.assert.notCalled(deleteListEvent);
+    sinon.assert.notCalled(findOneUser);
     sinon.assert.calledOnceWithExactly(updateCustomerReferent, customer._id, payload.referent, credentials.company);
     SinonMongoose.calledWithExactly(
       findOneCustomer,
@@ -591,6 +616,8 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(findOneCustomer);
+    sinon.assert.notCalled(deleteListEvent);
+    sinon.assert.notCalled(findOneUser);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
@@ -613,7 +640,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
     const customerResult = {
       payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] },
@@ -629,6 +656,8 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(findOneCustomer);
+    sinon.assert.notCalled(deleteListEvent);
+    sinon.assert.notCalled(findOneUser);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
@@ -637,7 +666,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if primaryAddress is changed', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -649,6 +678,8 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteListEvent);
+    sinon.assert.notCalled(findOneUser);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -662,7 +693,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if secondaryAddress is changed', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -674,6 +705,8 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteListEvent);
+    sinon.assert.notCalled(findOneUser);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -687,7 +720,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -699,6 +732,8 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteListEvent);
+    sinon.assert.notCalled(findOneUser);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -712,7 +747,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '' } } };
     const customerResult = {
       contact: {
@@ -729,6 +764,8 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteListEvent);
+    sinon.assert.notCalled(findOneUser);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -741,8 +778,152 @@ describe('updateCustomer', () => {
     );
   });
 
+  it('should deleted customer\'s events + repetition but not create events when customer is stopped'
+    + 'but last event created by repetition is after stopping date', async () => {
+    const customerId = new ObjectID();
+    const repetitions = [{
+      type: 'intervention',
+      customer: customerId,
+      frequency: 'every_day',
+      parentId: new ObjectID(),
+      startDate: '2021-07-01T09:00:00Z',
+      endDate: '2021-07-01T10:00:00Z',
+    }];
+    const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
+    const payload = { stoppedAt: '2019-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
+
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    countDocumentsEventHistory.returns(0);
+    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions], ['lean']));
+    nowStub.returns('2021-06-25T16:34:04.144Z');
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
+
+    expect(result).toBe(customerResult);
+    sinon.assert.calledOnceWithExactly(deleteListEvent, customerId, '2019-06-25T16:34:04.144Z', null, credentials);
+    sinon.assert.notCalled(findOneUser);
+    sinon.assert.calledOnceWithExactly(deleteOneRepetition, { _id: repetitions[0]._id });
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.notCalled(updateCustomerReferent);
+  });
+
+  it('should deleted customer\'s events + repetition and create events when customer is stopped'
+    + 'and last event created by repetition is before stopping date', async () => {
+    const auxiliaryId = new ObjectID();
+    const customerId = new ObjectID();
+    const repetitions = [
+      {
+        _id: new ObjectID(),
+        type: 'intervention',
+        customer: customerId,
+        frequency: 'every_day',
+        parentId: new ObjectID(),
+        startDate: '2019-12-01T09:00:00Z',
+        endDate: '2019-12-01T10:00:00Z',
+        auxiliary: auxiliaryId,
+      },
+      {
+        _id: new ObjectID(),
+        type: 'intervention',
+        customer: customerId,
+        frequency: 'every_day',
+        parentId: new ObjectID(),
+        startDate: '2021-12-25T09:00:00Z',
+        endDate: '2021-12-25T10:00:00Z',
+        sector: new ObjectID(),
+      },
+    ];
+    const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
+    const payload = { stoppedAt: '2022-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
+    const auxiliary = { sector: new ObjectID() };
+
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['populate', 'lean']));
+    countDocumentsEventHistory.returns(0);
+    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions], ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries([auxiliary], ['populate', 'lean']));
+    nowStub.returns('2021-06-25T16:34:04.144Z');
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
+
+    expect(result).toBe(customerResult);
+    sinon.assert.calledOnceWithExactly(deleteListEvent, customerId, '2022-06-25T16:34:04.144Z', null, credentials);
+    SinonMongoose.calledWithExactly(
+      findOneUser,
+      [
+        { query: 'findOneUser', args: [{ _id: auxiliaryId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+    sinon.assert.calledWithExactly(
+      createRepetitionsEveryDay.getCall(0),
+      repetitions[0],
+      auxiliary.sector,
+      new Date('2021-09-24T16:34:04.144Z'),
+      '2022-06-25T16:34:04.144Z'
+    );
+    sinon.assert.calledWithExactly(
+      createRepetitionsEveryDay.getCall(1),
+      repetitions[1],
+      repetitions[1].sector,
+      new Date('2022-03-26T09:00:00.000Z'),
+      '2022-06-25T16:34:04.144Z'
+    );
+    sinon.assert.calledWithExactly(deleteOneRepetition.getCall(0), { _id: repetitions[0]._id });
+    sinon.assert.calledWithExactly(deleteOneRepetition.getCall(1), { _id: repetitions[1]._id });
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.notCalled(updateCustomerReferent);
+  });
+
+  it('should not delete events on stop if some are timeStamped', async () => {
+    try {
+      const customerId = new ObjectID();
+      const payload = { stoppedAt: '2021-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
+      const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
+
+      countDocumentsEventHistory.returns(1);
+      findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+
+      await CustomerHelper.updateCustomer(customerId, payload, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+    } finally {
+      sinon.assert.notCalled(deleteListEvent);
+      sinon.assert.notCalled(findOneUser);
+      sinon.assert.notCalled(findOneAndUpdateCustomer);
+      sinon.assert.notCalled(formatPaymentPayload);
+      sinon.assert.notCalled(updateCustomerEvents);
+      sinon.assert.notCalled(updateCustomerReferent);
+    }
+  });
+
   it('should update a customer', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
     const customerResult = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
 
@@ -754,6 +935,8 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteListEvent);
+    sinon.assert.notCalled(findOneUser);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
