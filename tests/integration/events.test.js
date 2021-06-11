@@ -2022,13 +2022,12 @@ describe('PUT /{_id}/timestamping', () => {
 
     it('should return a 409 if user tries to timeStamp a cancelled event', async () => {
       authToken = await getTokenByCredentials(auxiliaries[2].local);
-      const startDate = new Date();
 
       const response = await app.inject({
         method: 'PUT',
         url: `/events/${eventsList[25]._id}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { startDate, action: 'manual_time_stamping', reason: 'camera_error' },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
       });
 
       expect(response.statusCode).toBe(409);

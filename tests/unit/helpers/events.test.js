@@ -89,7 +89,7 @@ describe('list', () => {
     sinon.assert.notCalled(populateEventsStub);
   });
 
-  it('should list events #tag', async () => {
+  it('should list events', async () => {
     const query = {};
     const eventsQuery = { customer: new ObjectID(), type: 'intervention', isCancelled: false };
     getListQueryStub.returns(eventsQuery);
