@@ -30,8 +30,8 @@ exports.downloadImages = async (imageList) => {
   if (!fs.existsSync(TMP_FILES_PATH)) fs.mkdirSync(TMP_FILES_PATH);
 
   const paths = [];
-  for (let i = 0; i < imageList.length; i++) {
-    const { url, name } = imageList[i];
+  for (const image of imageList) {
+    const { url, name } = image;
     const response = await axios.get(url, { responseType: 'stream' });
     await this.createAndReadFile(response.data, `${TMP_FILES_PATH}${name}`);
     paths.push(`${TMP_FILES_PATH}${name}`);

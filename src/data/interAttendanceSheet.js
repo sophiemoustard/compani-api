@@ -7,9 +7,7 @@ const getSlotTableContent = slot => [
   { text: '' },
 ];
 
-exports.getPdfContent = async (data) => {
-  const { trainees } = data;
-
+const getImages = async () => {
   const imageList = [
     { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
     { url: 'https://storage.googleapis.com/compani-main/compani_text_orange.png', name: 'compani.png' },
@@ -17,28 +15,16 @@ exports.getPdfContent = async (data) => {
     { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
   ];
 
-  const paths = await FileHelper.downloadImages(imageList);
+  return FileHelper.downloadImages(imageList);
+};
 
-  const conscience = paths[0];
-  const compani = paths[1];
-  const decision = paths[2];
-  const signature = paths[3];
+exports.getPdfContent = async (data) => {
+  const { trainees } = data;
+  const [conscience, compani, decision, signature] = await getImages();
 
   const content = [];
-  const lastPage = trainees.length - 1;
   trainees.forEach((trainee, i) => {
-    const body = [
-      [
-        { text: 'Créneaux', style: 'header' },
-        { text: 'Durée', style: 'header' },
-        { text: 'Signature stagiaire', style: 'header' },
-        { text: 'Signature formateur', style: 'header' },
-      ],
-    ];
-
-    trainee.course.slots.forEach((slot) => { body.push(getSlotTableContent(slot)); });
-
-    content.push(
+    const header = [
       {
         columns: [
           { image: conscience, width: 64 },
@@ -66,14 +52,36 @@ exports.getPdfContent = async (data) => {
         ],
         margin: [16, 0, 24, 16],
       },
-      { table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 8 },
+    ];
+
+    const body = [
+      [
+        { text: 'Créneaux', style: 'header' },
+        { text: 'Durée', style: 'header' },
+        { text: 'Signature stagiaire', style: 'header' },
+        { text: 'Signature formateur', style: 'header' },
+      ],
+    ];
+    trainee.course.slots.forEach((slot) => { body.push(getSlotTableContent(slot)); });
+
+    const table = [{ table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 8 }];
+
+    const footer = [
       { text: 'Signature et tampon de l\'organisme de formation :' },
-      { image: signature, width: 80, pageBreak: i === lastPage ? 'none' : 'after', marginTop: 8, alignment: 'right' }
-    );
+      {
+        image: signature,
+        width: 80,
+        pageBreak: i === trainees.length - 1 ? 'none' : 'after',
+        marginTop: 8,
+        alignment: 'right',
+      },
+    ];
+
+    content.push(header, table, footer);
   });
 
   return {
-    content,
+    content: content.flat(),
     defaultStyle: { font: 'SourceSans', fontSize: 10 },
     styles: {
       header: { bold: true, fillColor: '#7B0046', color: 'white', alignment: 'center' },

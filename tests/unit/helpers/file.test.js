@@ -120,10 +120,7 @@ describe('downloadImages', () => {
 
     const result = await FileHelper.downloadImages(imageList);
 
-    expect(result).toEqual([
-      'src/data/tmp/conscience.png',
-      'src/data/tmp/compani.png',
-    ]);
+    expect(result).toEqual(['src/data/tmp/conscience.png', 'src/data/tmp/compani.png']);
     sinon.assert.calledWithExactly(get.getCall(0), imageList[0].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(get.getCall(1), imageList[1].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(createAndReadFile.getCall(0), response.data, `src/data/tmp/${imageList[0].name}`);

@@ -102,10 +102,7 @@ describe('getPdfContent', () => {
           ],
           margin: [16, 0, 24, 16],
         },
-        {
-          table,
-          marginBottom: 8,
-        },
+        { table, marginBottom: 8 },
         { text: 'Signature et tampon de l\'organisme de formation :' },
         {
           image: paths[3],
@@ -141,10 +138,7 @@ describe('getPdfContent', () => {
           ],
           margin: [16, 0, 24, 16],
         },
-        {
-          table,
-          marginBottom: 8,
-        },
+        { table, marginBottom: 8 },
         { text: 'Signature et tampon de l\'organisme de formation :' },
         {
           image: paths[3],
@@ -181,6 +175,7 @@ describe('getPdfContent', () => {
     downloadImages.returns(paths);
 
     const result = await InterAttendanceSheet.getPdfContent(data);
+
     expect(result).toMatchObject(pdf);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
