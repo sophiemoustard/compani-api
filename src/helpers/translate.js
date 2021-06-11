@@ -146,6 +146,8 @@ module.exports = {
     timeStampTooLate: 'Can\'t timestamp startDate after event ends.',
     timeStampTooEarly: 'Can\'t timestamp endDate before event starts.',
     isBilledOrTimeStamped: 'At least one event is billed or timestamped.',
+    isBilled: 'At least one event is billed.',
+    isTimeStamped: 'At least one event is timestamped.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -470,6 +472,8 @@ module.exports = {
     timeStampTooLate: 'Vous ne pouvez pas horodater le début d\'un évènement terminé.',
     timeStampTooEarly: 'Vous ne pouvez pas horodater la fin d\'un évènement avant son commencement.',
     isBilledOrTimeStamped: 'Un ou plusieurs événements sont facturés ou horodatés.',
+    isBilled: 'Un ou plusieurs événements sont facturés.',
+    isTimeStamped: 'Un ou plusieurs événements sont horodatés.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',

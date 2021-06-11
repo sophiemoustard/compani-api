@@ -829,7 +829,7 @@ const helpersList = [
 const timeStampingDate = new Date();
 const eventHistoriesList = [
   {
-    event: { eventId: eventsList[23]._id, startDate: timeStampingDate },
+    event: { eventId: eventsList[23]._id, startDate: timeStampingDate, type: INTERVENTION },
     company: eventsList[23].company,
     action: 'manual_time_stamping',
     manualTimeStampingReason: 'qrcode_missing',
@@ -837,7 +837,7 @@ const eventHistoriesList = [
     update: { startHour: { from: eventsList[23].startDate, to: timeStampingDate } },
   },
   {
-    event: { eventId: eventsList[24]._id, endDate: timeStampingDate },
+    event: { eventId: eventsList[24]._id, endDate: timeStampingDate, type: INTERVENTION },
     company: eventsList[24].company,
     action: 'manual_time_stamping',
     manualTimeStampingReason: 'qrcode_missing',
@@ -916,4 +916,5 @@ module.exports = {
   serviceFromOtherCompany,
   thirdPartyPayerFromOtherCompany,
   eventFromOtherCompany,
+  eventHistoriesList,
 };

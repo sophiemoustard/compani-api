@@ -387,7 +387,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
 };
 
 exports.deleteEvent = async (event, credentials) => {
-  if (!EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict('The event is already billed');
+  if (!EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict(translate[language].isBilledOrTimeStamped);
   const deletionInfo = omit(event, 'repetition');
   await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
   await Event.deleteOne({ _id: event._id });
@@ -405,16 +405,17 @@ exports.createEventHistoryOnDeleteList = async (events, credentials) => {
 };
 
 exports.deleteEventsAndRepetition = async (query, shouldDeleteRepetitions, credentials) => {
-  const billedEventsCount = await Event.countDocuments({ ...query, isBilled: true });
-  if (billedEventsCount > 0) throw Boom.conflict(translate[language].isBilledOrTimeStamped);
+  const events = await Event.find(query).lean();
+  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) {
+    throw Boom.conflict(translate[language].isBilled);
+  }
   const timestampedEventsCount = await EventHistory.countDocuments({
-    'event.customer': query.customer,
-    'event.startDate': query.startDate,
+    'event.eventId': { $in: events.map(event => event._id) },
+    'event.type': INTERVENTION,
     action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
   });
-  if (timestampedEventsCount > 0) throw Boom.conflict(translate[language].isBilledOrTimeStamped);
+  if (timestampedEventsCount > 0) throw Boom.conflict(translate[language].isTimeStamped);
 
-  const events = await Event.find(query).lean();
   if (!shouldDeleteRepetitions) {
     await this.createEventHistoryOnDeleteList(events, credentials);
   } else {
