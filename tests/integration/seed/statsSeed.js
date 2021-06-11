@@ -99,7 +99,7 @@ const userList = [
 const userCompanyList = [
   { user: userList[0], company: authCompany._id },
   { user: userList[1], company: authCompany._id },
-  { user: userList[2], company: authCompany._id },
+  { user: userList[2], company: otherCompany._id },
 ];
 
 const sectorHistoryList = [{
@@ -636,25 +636,25 @@ const eventListForFundingsMonitoring = [
 ];
 
 const populateDBWithEventsForFollowup = async () => {
-  await Event.deleteMany({});
+  await Event.deleteMany();
   await Event.insertMany(eventListForFollowUp);
 };
 
 const populateDBWithEventsForFundingsMonitoring = async () => {
-  await Event.deleteMany({});
+  await Event.deleteMany();
   await Event.insertMany(eventListForFundingsMonitoring);
 };
 
 const populateDB = async () => {
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await Service.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Contract.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await ReferentHistory.deleteMany({});
-  await UserCompany.deleteMany({});
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await Service.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Contract.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await ReferentHistory.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   for (const user of userList) {
