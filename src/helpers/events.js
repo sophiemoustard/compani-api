@@ -157,7 +157,7 @@ exports.getListQuery = (query, credentials) => {
     rules.push({ startDate: { $lt: endDateQuery } });
   }
 
-  if (isCancelled) rules.push({ isCancelled });
+  if (Object.keys(query).includes('isCancelled')) rules.push({ isCancelled });
 
   return { $and: rules };
 };
