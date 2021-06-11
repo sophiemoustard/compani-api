@@ -95,7 +95,7 @@ describe('list', () => {
     getListQueryStub.returns(eventsQuery);
     const events = [{ type: 'intervention' }];
     getEventListStub.returns(events);
-    const populatedEvents = [eventsQuery];
+    const populatedEvents = [{ type: 'intervention', customer: new ObjectID() }];
     populateEventsStub.returns(populatedEvents);
 
     const result = await EventHelper.list(query, credentials);
@@ -1418,6 +1418,44 @@ describe('unassignConflictInterventions', () => {
     sinon.assert.calledOnceWithExactly(formatEventsInConflictQuery, dates, auxiliaryId, [INTERVENTION], companyId);
     sinon.assert.callCount(updateEvent, events.length);
     SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+  });
+});
+
+describe('getListQuery', () => {
+  it('should return only company in rules if query is empty', () => {
+    const query = {};
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const listQuery = EventHelper.getListQuery(query, credentials);
+
+    expect(listQuery).toEqual({ $and: [{ company: credentials.company._id }] });
+  });
+
+  it('should return all conditions in rules that are in query', () => {
+    const query = {
+      type: 'intervention',
+      auxiliary: new ObjectID(),
+      sector: [new ObjectID()],
+      customer: [new ObjectID()],
+      startDate: '2021-04-28T10:00:00.000Z',
+      endDate: '2021-04-28T12:00:00.000Z',
+      isCancelled: false,
+    };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const listQuery = EventHelper.getListQuery(query, credentials);
+
+    expect(listQuery).toEqual({
+      $and: [
+        { company: credentials.company._id },
+        { type: 'intervention' },
+        { $or: [{ auxiliary: { $in: [query.auxiliary] } }, { sector: { $in: query.sector } }] },
+        { customer: { $in: query.customer } },
+        { endDate: { $gt: new Date('2021-04-28T00:00:00.000Z') } },
+        { startDate: { $lt: new Date('2021-04-28T23:59:59.999Z') } },
+        { isCancelled: false },
+      ],
+    });
   });
 });
 
