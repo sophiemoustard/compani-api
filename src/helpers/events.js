@@ -385,7 +385,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
 exports.deleteEvent = async (eventId, credentials) => {
   const companyId = get(credentials, 'company._id', null);
 
-  await exports.deleteEventsAndRepetition({ _id: eventId, company: companyId }, true, credentials);
+  await exports.deleteEventsAndRepetition({ _id: eventId, company: companyId }, false, credentials);
 };
 
 exports.createEventHistoryOnDeleteList = async (events, credentials) => {

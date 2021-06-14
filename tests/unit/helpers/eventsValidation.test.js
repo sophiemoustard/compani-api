@@ -908,6 +908,7 @@ describe('checkDeletionIsAllowed', () => {
   afterEach(() => {
     eventHistoryCountDocuments.restore();
   });
+
   it('should return nothing if events are not interventions', async () => {
     const events = [{ _id: new ObjectID(), type: INTERNAL_HOUR, isBilled: true }];
 
@@ -947,8 +948,10 @@ describe('checkDeletionIsAllowed', () => {
     ];
     try {
       await EventsValidationHelper.checkDeletionIsAllowed(events);
+
+      expect(false).toBe(true);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict('Vous ne pouvez pas supprimer un événement facturé.'));
+      expect(e).toEqual(Boom.conflict('Vous ne pouvez pas supprimer un évènement facturé.'));
     } finally {
       sinon.assert.notCalled(eventHistoryCountDocuments);
     }
@@ -964,8 +967,10 @@ describe('checkDeletionIsAllowed', () => {
 
     try {
       await EventsValidationHelper.checkDeletionIsAllowed(events);
+
+      expect(false).toBe(true);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict('Vous ne pouvez pas supprimer un événement horodaté.'));
+      expect(e).toEqual(Boom.conflict('Vous ne pouvez pas supprimer un évènement horodaté.'));
     } finally {
       sinon.assert.calledOnceWithExactly(
         eventHistoryCountDocuments, {
