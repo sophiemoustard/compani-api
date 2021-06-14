@@ -1504,7 +1504,7 @@ describe('deleteEvent', () => {
       const result = await EventHelper.deleteEvent(event, credentials);
       expect(result).toBe(undefined);
     } catch (e) {
-      expect(e).toEqual(Boom.forbidden('Un ou plusieurs événements sont facturés ou horodatés.'));
+      expect(e).toEqual(Boom.forbidden('Un ou plusieurs évènements sont facturés ou horodatés.'));
     }
   });
 });
@@ -1665,7 +1665,7 @@ describe('deleteEventsAndRepetition', () => {
     try {
       await EventHelper.deleteEventsAndRepetition(query, false, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict('Un ou plusieurs événements sont facturés.'));
+      expect(e).toEqual(Boom.conflict('Un ou plusieurs évènements sont facturés.'));
     } finally {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
@@ -1696,7 +1696,7 @@ describe('deleteEventsAndRepetition', () => {
     try {
       await EventHelper.deleteEventsAndRepetition(query, false, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict('Un ou plusieurs événements sont horodatés.'));
+      expect(e).toEqual(Boom.conflict('Un ou plusieurs évènements sont horodatés.'));
     } finally {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
