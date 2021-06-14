@@ -40,6 +40,7 @@ const {
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
+const { isSameOrAfter, isSameOrBefore } = require('../../src/helpers/dates');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -56,20 +57,20 @@ describe('GET /events', () => {
     });
 
     it('should return a list of events', async () => {
-      const startDate = moment('2019-01-18');
-      const endDate = moment('2019-01-20');
+      const startDate = new Date('2019-01-17');
+      const endDate = new Date('2019-01-20');
       const isCancelled = false;
       const response = await app.inject({
         method: 'GET',
-        url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}&isCancelled=${isCancelled}`,
+        url: `/events?startDate=${startDate}&endDate=${endDate}&isCancelled=${isCancelled}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
       response.result.data.events.forEach((event) => {
-        expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
-        expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
+        expect(isSameOrAfter(event.endDate, startDate)).toBeTruthy();
+        expect(isSameOrBefore(event.startDate, endDate)).toBeTruthy();
         expect(event.isCancelled).toEqual(false);
         if (event.type === 'intervention') expect(event.subscription._id).toBeDefined();
       });
