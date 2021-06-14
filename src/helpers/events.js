@@ -550,16 +550,3 @@ exports.createEventsOnCustomerStop = async (repetition, stoppedAt, company) => {
       break;
   }
 };
-
-exports.getEventHistories = async (eventId, credentials) => {
-  const companyId = get(credentials, 'company._id');
-
-  return EventHistory.find({ 'event.eventId': eventId, company: companyId })
-    .populate({ path: 'event.customer', match: { company: companyId }, select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'event.auxiliary', match: { company: companyId }, select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'event.internalHour', match: { company: companyId }, select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'update.auxiliary.to', match: { company: companyId }, select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'update.auxiliary.from', match: { company: companyId }, select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'createdBy', match: { company: companyId }, select: '-__v -createdAt -updatedAt' })
-    .lean();
-};

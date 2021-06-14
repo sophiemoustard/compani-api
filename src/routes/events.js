@@ -14,7 +14,6 @@ const {
   getPaidTransportStatsBySector,
   getUnassignedHoursBySector,
   timeStampEvent,
-  getEventHistories,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -306,16 +305,6 @@ exports.plugin = {
         pre: [{ method: getEvent, assign: 'event' }, { method: authorizeTimeStamping }],
       },
       handler: timeStampEvent,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/eventhistories',
-      options: {
-        auth: { scope: ['events:read'] },
-        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
-      },
-      handler: getEventHistories,
     });
   },
 };

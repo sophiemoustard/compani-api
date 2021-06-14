@@ -831,20 +831,6 @@ const eventHistoriesList = [
   {
     event: { eventId: eventsList[23]._id, startDate: timeStampingDate, type: INTERVENTION },
     company: eventsList[23].company,
-    action: 'event_update',
-    auxiliaries: [eventsList[23].auxiliary],
-    update: { auxiliary: { from: auxiliaries[0]._id, to: eventsList[23].auxiliary } },
-  },
-  {
-    event: { eventId: eventsList[23]._id },
-    company: eventsList[23].company,
-    action: 'event_update',
-    auxiliaries: [eventsList[23].auxiliary],
-    update: { auxiliary: { from: auxiliaries[0]._id, to: eventsList[23].auxiliary } },
-  },
-  {
-    event: { eventId: eventsList[23]._id, startDate: timeStampingDate },
-    company: eventsList[23].company,
     action: 'manual_time_stamping',
     manualTimeStampingReason: 'qrcode_missing',
     auxiliaries: [eventsList[23].auxiliary],
