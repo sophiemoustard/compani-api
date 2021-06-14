@@ -55,9 +55,9 @@ exports.createRepetitionsEveryDay = async (payload, sector, startDate = null, en
   await Event.insertMany(repeatedEvents);
 };
 
-exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
-  const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(90, 'd');
+exports.createRepetitionsEveryWeekDay = async (payload, sector, startDate = null, endDate = null) => {
+  const start = startDate || moment(payload.startDate).add(1, 'd');
+  const end = endDate || moment(payload.startDate).add(90, 'd');
   const range = Array.from(moment().range(start, end).by('days'));
   const repeatedEvents = [];
 

@@ -19,6 +19,7 @@ const {
   AUXILIARY,
   CUSTOMER,
   EVERY_DAY,
+  EVERY_WEEK_DAY,
 } = require('./constants');
 const translate = require('./translate');
 const UtilsHelper = require('./utils');
@@ -502,16 +503,16 @@ exports.getUnassignedHoursBySector = async (query, credentials) => {
   return EventRepository.getUnassignedHoursBySector(sectors, query.month, companyId);
 };
 
-const createEventsEveryDayOnCustomerStop = async (repetition, stoppedAt, company) => {
-  let sectorId = repetition.sector;
-  const eventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
+const createEventsEveryDayOnCustomerStop = async (repetition, stoppedAt, company, onlyWeekDay = false) => {
+  const lastEventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
     ? repetition.startDate
     : Date.now();
-  const lastEventCreatedByRepetition = DatesHelper.addDays(eventCreationStartDate, 90);
+  const lastEventCreatedByRepetition = DatesHelper.addDays(lastEventCreationStartDate, 90);
 
   const shouldCreateEvents = DatesHelper.isSameOrAfter(stoppedAt, lastEventCreatedByRepetition);
   if (!shouldCreateEvents) return;
 
+  let sectorId = repetition.sector;
   if (!sectorId) {
     const auxiliary = await User.findOne({ _id: repetition.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: company._id } })
@@ -519,18 +520,26 @@ const createEventsEveryDayOnCustomerStop = async (repetition, stoppedAt, company
     sectorId = auxiliary.sector;
   }
 
-  await EventsRepetitionHelper.createRepetitionsEveryDay(
-    repetition,
-    sectorId,
-    DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-    stoppedAt
-  );
+  const eventsCreationStartDate = DatesHelper.addDays(lastEventCreatedByRepetition, 1);
+  if (onlyWeekDay) {
+    await EventsRepetitionHelper.createRepetitionsEveryWeekDay(
+      repetition,
+      sectorId,
+      eventsCreationStartDate,
+      stoppedAt
+    );
+  } else {
+    await EventsRepetitionHelper.createRepetitionsEveryDay(repetition, sectorId, eventsCreationStartDate, stoppedAt);
+  }
 };
 
 exports.createEventsOnCustomerStop = async (repetition, stoppedAt, company) => {
   switch (repetition.frequency) {
     case EVERY_DAY:
       createEventsEveryDayOnCustomerStop(repetition, stoppedAt, company);
+      break;
+    case EVERY_WEEK_DAY:
+      createEventsEveryDayOnCustomerStop(repetition, stoppedAt, company, true);
       break;
     default:
       break;
