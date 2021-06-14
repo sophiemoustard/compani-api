@@ -73,18 +73,9 @@ const auxiliaryFromOtherCompany = {
 };
 
 const userCompanyList = [
-  {
-    user: auxiliaryId1,
-    company: authCompany,
-  },
-  {
-    user: auxiliaryId2,
-    company: authCompany,
-  },
-  {
-    user: auxiliaryFromOtherCompany._id,
-    company: otherCompany,
-  },
+  { user: auxiliaryId1, company: authCompany },
+  { user: auxiliaryId2, company: authCompany },
+  { user: auxiliaryFromOtherCompany._id, company: otherCompany },
 ];
 
 const contracts = [{
@@ -329,15 +320,15 @@ const payList = [
 ];
 
 const populateDB = async () => {
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await Service.deleteMany({});
-  await Contract.deleteMany({});
-  await Event.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Pay.deleteMany({});
-  await UserCompany.deleteMany({});
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await Service.deleteMany();
+  await Contract.deleteMany();
+  await Event.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Pay.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Sector.create([...sectors, sectorFromOtherCompany]);
