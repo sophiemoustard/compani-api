@@ -2,8 +2,10 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Contract = require('../../models/Contract');
 const User = require('../../models/User');
+const UserCompany = require('../../models/UserCompany');
 const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
@@ -34,7 +36,7 @@ exports.authorizeContractUpdate = async (req) => {
   const { credentials } = req.auth;
   const { contract } = req.pre;
 
-  if (credentials.company._id.toHexString() !== contract.company.toHexString()) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(credentials.company._id, contract.company)) throw Boom.forbidden();
   if (!req.path.match(/upload/) && !!contract.endDate) throw Boom.forbidden();
 
   return null;
@@ -44,7 +46,7 @@ exports.authorizeGetContract = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
 
   if (req.query.user) {
-    const user = await User.countDocuments({ _id: req.query.user, company: companyId });
+    const user = await UserCompany.countDocuments({ user: req.query.user, company: companyId });
     if (!user) throw Boom.notFound();
   }
 
