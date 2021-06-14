@@ -148,14 +148,9 @@ exports.getListQuery = (query, credentials) => {
     rules.push({ customer: { $in: customerCondition } });
   }
 
-  if (startDate) {
-    const startDateQuery = new Date(DatesHelper.getStartOfDay(startDate));
-    rules.push({ endDate: { $gt: startDateQuery } });
-  }
-  if (endDate) {
-    const endDateQuery = new Date(DatesHelper.getEndOfDay(endDate));
-    rules.push({ startDate: { $lt: endDateQuery } });
-  }
+  if (startDate) rules.push({ endDate: { $gt: new Date(DatesHelper.getStartOfDay(startDate)) } });
+
+  if (endDate) rules.push({ startDate: { $lt: new Date(DatesHelper.getEndOfDay(endDate)) } });
 
   if (Object.keys(query).includes('isCancelled')) rules.push({ isCancelled });
 
