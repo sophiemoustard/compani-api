@@ -40,6 +40,7 @@ const {
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
+const { isSameOrAfter, isSameOrBefore } = require('../../src/helpers/dates');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -56,19 +57,21 @@ describe('GET /events', () => {
     });
 
     it('should return a list of events', async () => {
-      const startDate = moment('2019-01-18');
-      const endDate = moment('2019-01-20');
+      const startDate = new Date('2019-01-17');
+      const endDate = new Date('2019-01-20');
+      const isCancelled = false;
       const response = await app.inject({
         method: 'GET',
-        url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+        url: `/events?startDate=${startDate}&endDate=${endDate}&isCancelled=${isCancelled}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
       response.result.data.events.forEach((event) => {
-        expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
-        expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
+        expect(isSameOrAfter(event.endDate, startDate)).toBeTruthy();
+        expect(isSameOrBefore(event.startDate, endDate)).toBeTruthy();
+        expect(event.isCancelled).toEqual(false);
         if (event.type === 'intervention') expect(event.subscription._id).toBeDefined();
       });
     });
@@ -2013,6 +2016,19 @@ describe('PUT /{_id}/timestamping', () => {
         url: `/events/${eventsList[24]._id}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { endDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return a 409 if user tries to timeStamp a cancelled event', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[2].local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[25]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
       });
 
       expect(response.statusCode).toBe(409);

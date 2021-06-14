@@ -128,8 +128,8 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
 
 exports.getListQuery = (query, credentials) => {
   const rules = [{ company: new ObjectID(get(credentials, 'company._id', null)) }];
+  const { auxiliary, type, customer, sector, startDate, endDate, isCancelled } = query;
 
-  const { auxiliary, type, customer, sector, isBilled, startDate, endDate } = query;
   if (type) rules.push({ type });
 
   const sectorOrAuxiliary = [];
@@ -147,15 +147,12 @@ exports.getListQuery = (query, credentials) => {
     const customerCondition = UtilsHelper.formatObjectIdsArray(customer);
     rules.push({ customer: { $in: customerCondition } });
   }
-  if (isBilled) rules.push({ customer: isBilled });
-  if (startDate) {
-    const startDateQuery = moment(startDate).startOf('d').toDate();
-    rules.push({ endDate: { $gt: startDateQuery } });
-  }
-  if (endDate) {
-    const endDateQuery = moment(endDate).endOf('d').toDate();
-    rules.push({ startDate: { $lt: endDateQuery } });
-  }
+
+  if (startDate) rules.push({ endDate: { $gt: new Date(DatesHelper.getStartOfDay(startDate)) } });
+
+  if (endDate) rules.push({ startDate: { $lt: new Date(DatesHelper.getEndOfDay(endDate)) } });
+
+  if (Object.keys(query).includes('isCancelled')) rules.push({ isCancelled });
 
   return { $and: rules };
 };

@@ -25,6 +25,8 @@ const {
   INTERVENTION,
   WEBAPP,
   PARENTAL_LEAVE,
+  INVOICED_AND_NOT_PAID,
+  AUXILIARY_INITIATIVE,
 } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
 
@@ -718,8 +720,8 @@ const eventsList = [
     subscription: customerAuxiliaries[1].subscriptions[2]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     address: {
-      fullAddress: '4 rue du test 92160 Antony',
-      street: '4 rue du test',
+      fullAddress: '21 rue du test 92160 Antony',
+      street: '21 rue du test',
       zipCode: '92160',
       city: 'Antony',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
@@ -772,6 +774,28 @@ const eventsList = [
     address: {
       fullAddress: '24 rue du test 92160 Antony',
       street: '24 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    repetition: { frequency: NEVER },
+    startDate: (new Date()),
+    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    auxiliary: auxiliaries[2]._id,
+    customer: customerAuxiliaries[1]._id,
+    subscription: customerAuxiliaries[1].subscriptions[2]._id,
+    createdAt: '2019-01-05T15:24:18.653Z',
+    isCancelled: true,
+    cancel: { condition: INVOICED_AND_NOT_PAID, reason: AUXILIARY_INITIATIVE },
+    misc: 'blabla',
+    address: {
+      fullAddress: '25 rue du test 92160 Antony',
+      street: '25 rue du test',
       zipCode: '92160',
       city: 'Antony',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },

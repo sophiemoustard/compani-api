@@ -91,7 +91,7 @@ describe('list', () => {
 
   it('should list events', async () => {
     const query = {};
-    const eventsQuery = {};
+    const eventsQuery = { customer: new ObjectID(), type: 'intervention', isCancelled: false };
     getListQueryStub.returns(eventsQuery);
     const events = [{ type: 'intervention' }];
     getEventListStub.returns(events);
@@ -1421,6 +1421,44 @@ describe('unassignConflictInterventions', () => {
   });
 });
 
+describe('getListQuery', () => {
+  it('should return only company in rules if query is empty', () => {
+    const query = {};
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const listQuery = EventHelper.getListQuery(query, credentials);
+
+    expect(listQuery).toEqual({ $and: [{ company: credentials.company._id }] });
+  });
+
+  it('should return all conditions in rules that are in query', () => {
+    const query = {
+      type: 'intervention',
+      auxiliary: new ObjectID(),
+      sector: [new ObjectID()],
+      customer: [new ObjectID()],
+      startDate: '2021-04-28T10:00:00.000Z',
+      endDate: '2021-04-28T12:00:00.000Z',
+      isCancelled: false,
+    };
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const listQuery = EventHelper.getListQuery(query, credentials);
+
+    expect(listQuery).toEqual({
+      $and: [
+        { company: credentials.company._id },
+        { type: 'intervention' },
+        { $or: [{ auxiliary: { $in: [query.auxiliary] } }, { sector: { $in: query.sector } }] },
+        { customer: { $in: query.customer } },
+        { endDate: { $gt: new Date('2021-04-28T00:00:00.000Z') } },
+        { startDate: { $lt: new Date('2021-04-28T23:59:59.999Z') } },
+        { isCancelled: false },
+      ],
+    });
+  });
+});
+
 describe('deleteEvent', () => {
   let createEventHistoryOnDelete;
   let deleteOne;
@@ -1466,7 +1504,7 @@ describe('deleteEvent', () => {
       const result = await EventHelper.deleteEvent(event, credentials);
       expect(result).toBe(undefined);
     } catch (e) {
-      expect(e).toEqual(Boom.forbidden('Un ou plusieurs événements sont facturés ou horodatés.'));
+      expect(e).toEqual(Boom.forbidden('Un ou plusieurs évènements sont facturés ou horodatés.'));
     }
   });
 });
@@ -1627,7 +1665,7 @@ describe('deleteEventsAndRepetition', () => {
     try {
       await EventHelper.deleteEventsAndRepetition(query, false, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict('Un ou plusieurs événements sont facturés.'));
+      expect(e).toEqual(Boom.conflict('Un ou plusieurs évènements sont facturés.'));
     } finally {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
@@ -1658,7 +1696,7 @@ describe('deleteEventsAndRepetition', () => {
     try {
       await EventHelper.deleteEventsAndRepetition(query, false, credentials);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict('Un ou plusieurs événements sont horodatés.'));
+      expect(e).toEqual(Boom.conflict('Un ou plusieurs évènements sont horodatés.'));
     } finally {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
