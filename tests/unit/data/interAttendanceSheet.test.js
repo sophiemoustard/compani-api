@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
-const InterAttendanceSheet = require('../../../src/data/interAttendanceSheet');
+const InterAttendanceSheet = require('../../../src/data/pdf/interAttendanceSheet');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -16,10 +16,10 @@ describe('getPdfContent', () => {
 
   it('it should format and return pdf content', async () => {
     const paths = [
-      'src/data/tmp/conscience.png',
-      'src/data/tmp/compani.png',
-      'src/data/tmp/decision.png',
-      'src/data/tmp/signature.png',
+      'src/data/pdf/tmp/conscience.png',
+      'src/data/pdf/tmp/compani.png',
+      'src/data/pdf/tmp/decision.png',
+      'src/data/pdf/tmp/signature.png',
     ];
     const course = {
       name: 'Formation Test',
@@ -103,16 +103,18 @@ describe('getPdfContent', () => {
           margin: [16, 0, 24, 16],
         },
         { table, marginBottom: 8 },
-        { columns: [
-          { text: 'Signature et tampon de l\'organisme de formation :' },
-          {
-            image: paths[3],
-            width: 100,
-            pageBreak: 'after',
-            marginTop: 8,
-            alignment: 'right',
-          },
-        ] },
+        {
+          columns: [
+            { text: 'Signature et tampon de l\'organisme de formation :' },
+            {
+              image: paths[3],
+              width: 96,
+              pageBreak: 'after',
+              marginTop: 8,
+              alignment: 'right',
+            },
+          ],
+        },
         {
           columns: [
             { image: paths[0], width: 64 },
@@ -141,16 +143,18 @@ describe('getPdfContent', () => {
           margin: [16, 0, 24, 16],
         },
         { table, marginBottom: 8 },
-        { columns: [
-          { text: 'Signature et tampon de l\'organisme de formation :' },
-          {
-            image: paths[3],
-            width: 100,
-            pageBreak: 'none',
-            marginTop: 8,
-            alignment: 'right',
-          },
-        ] },
+        {
+          columns: [
+            { text: 'Signature et tampon de l\'organisme de formation :' },
+            {
+              image: paths[3],
+              width: 96,
+              pageBreak: 'none',
+              marginTop: 8,
+              alignment: 'right',
+            },
+          ],
+        },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {

@@ -1,4 +1,4 @@
-const FileHelper = require('../helpers/file');
+const UtilsHelper = require('./utils');
 
 const getSlotTableContent = slot => [
   { stack: [{ text: `${slot.date}` }, { text: `${slot.address}`, fontSize: 8 }] },
@@ -7,20 +7,9 @@ const getSlotTableContent = slot => [
   { text: '' },
 ];
 
-const getImages = async () => {
-  const imageList = [
-    { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
-    { url: 'https://storage.googleapis.com/compani-main/compani_text_orange.png', name: 'compani.png' },
-    { url: 'https://storage.googleapis.com/compani-main/aux-prisededecision.png', name: 'decision.png' },
-    { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
-  ];
-
-  return FileHelper.downloadImages(imageList);
-};
-
 exports.getPdfContent = async (data) => {
   const { trainees } = data;
-  const [conscience, compani, decision, signature] = await getImages();
+  const [conscience, compani, decision, signature] = await UtilsHelper.getAttendanceSheetImages();
 
   const content = [];
   trainees.forEach((trainee, i) => {
@@ -66,16 +55,20 @@ exports.getPdfContent = async (data) => {
 
     const table = [{ table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 8 }];
 
-    const footer = [{ columns: [
-      { text: 'Signature et tampon de l\'organisme de formation :' },
+    const footer = [
       {
-        image: signature,
-        width: 100,
-        pageBreak: i === trainees.length - 1 ? 'none' : 'after',
-        marginTop: 8,
-        alignment: 'right',
+        columns: [
+          { text: 'Signature et tampon de l\'organisme de formation :' },
+          {
+            image: signature,
+            width: 96,
+            pageBreak: i === trainees.length - 1 ? 'none' : 'after',
+            marginTop: 8,
+            alignment: 'right',
+          },
+        ],
       },
-    ] }];
+    ];
 
     content.push(header, table, footer);
   });

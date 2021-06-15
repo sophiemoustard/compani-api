@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
-const IntraAttendanceSheet = require('../../../src/data/intraAttendanceSheet');
+const IntraAttendanceSheet = require('../../../src/data/pdf/intraAttendanceSheet');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -16,10 +16,10 @@ describe('getPdfContent', () => {
 
   it('it should format and return pdf content', async () => {
     const paths = [
-      'src/data/tmp/conscience.png',
-      'src/data/tmp/compani.png',
-      'src/data/tmp/decision.png',
-      'src/data/tmp/signature.png',
+      'src/data/pdf/tmp/conscience.png',
+      'src/data/pdf/tmp/compani.png',
+      'src/data/pdf/tmp/decision.png',
+      'src/data/pdf/tmp/signature.png',
     ];
     const course = {
       name: 'La communication empathique - Groupe 3',

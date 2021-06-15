@@ -120,11 +120,19 @@ describe('downloadImages', () => {
 
     const result = await FileHelper.downloadImages(imageList);
 
-    expect(result).toEqual(['src/data/tmp/conscience.png', 'src/data/tmp/compani.png']);
+    expect(result).toEqual(['src/data/pdf/tmp/conscience.png', 'src/data/pdf/tmp/compani.png']);
     sinon.assert.calledWithExactly(get.getCall(0), imageList[0].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(get.getCall(1), imageList[1].url, { responseType: 'stream' });
-    sinon.assert.calledWithExactly(createAndReadFile.getCall(0), response.data, `src/data/tmp/${imageList[0].name}`);
-    sinon.assert.calledWithExactly(createAndReadFile.getCall(1), response.data, `src/data/tmp/${imageList[1].name}`);
+    sinon.assert.calledWithExactly(
+      createAndReadFile.getCall(0),
+      response.data,
+      `src/data/pdf/tmp/${imageList[0].name}`
+    );
+    sinon.assert.calledWithExactly(
+      createAndReadFile.getCall(1),
+      response.data,
+      `src/data/pdf/tmp/${imageList[1].name}`
+    );
   });
 });
 
@@ -142,7 +150,7 @@ describe('deleteImages', () => {
   it('should remove images from local', async () => {
     await FileHelper.deleteImages();
 
-    sinon.assert.calledOnceWithExactly(rmdirSync, 'src/data/tmp/', { recursive: true });
+    sinon.assert.calledOnceWithExactly(rmdirSync, 'src/data/pdf/tmp/', { recursive: true });
   });
 });
 

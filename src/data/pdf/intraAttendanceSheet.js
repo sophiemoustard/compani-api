@@ -1,19 +1,8 @@
-const FileHelper = require('../helpers/file');
-
-const getImages = async () => {
-  const imageList = [
-    { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
-    { url: 'https://storage.googleapis.com/compani-main/compani_text_orange.png', name: 'compani.png' },
-    { url: 'https://storage.googleapis.com/compani-main/aux-prisededecision.png', name: 'decision.png' },
-    { url: 'https://storage.googleapis.com/compani-main/tsb_signature.png', name: 'signature.png' },
-  ];
-
-  return FileHelper.downloadImages(imageList);
-};
+const UtilsHelper = require('./utils');
 
 exports.getPdfContent = async (data) => {
   const { dates } = data;
-  const [conscience, compani, decision, signature] = await getImages();
+  const [conscience, compani, decision, signature] = await UtilsHelper.getAttendanceSheetImages();
 
   const content = [];
   dates.forEach((date, i) => {
@@ -49,11 +38,12 @@ exports.getPdfContent = async (data) => {
 
     const body = [[{ text: 'Prénom NOM', style: 'header' }]];
     date.slots.forEach(slot => body[0].push({ text: `${slot.startHour} - ${slot.endHour}`, style: 'header' }));
-    for (let j = 1; j <= 13; j++) {
+    for (let row = 1; row <= 13; row++) {
       body.push([]);
-      for (let k = 0; k <= date.slots.length; k++) {
-        if (j === 13 && k === 0) body[j].push({ text: 'Signature du formateur', italics: true, margin: [0, 10, 0, 0] });
-        else body[j].push({ text: '' });
+      for (let column = 0; column <= date.slots.length; column++) {
+        if (row === 13 && column === 0) {
+          body[row].push({ text: 'Signature du formateur', italics: true, margin: [0, 10, 0, 0] });
+        } else body[row].push({ text: '' });
       }
     }
     const heights = Array(14).fill(30);
@@ -63,16 +53,20 @@ exports.getPdfContent = async (data) => {
       marginBottom: 8,
     }];
 
-    const footer = [{ columns: [
-      { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
+    const footer = [
       {
-        image: signature,
-        width: 80,
-        pageBreak: i === dates.length - 1 ? 'none' : 'after',
-        marginTop: 8,
-        alignment: 'right',
+        columns: [
+          { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
+          {
+            image: signature,
+            width: 80,
+            pageBreak: i === dates.length - 1 ? 'none' : 'after',
+            marginTop: 8,
+            alignment: 'right',
+          },
+        ],
       },
-    ] }];
+    ];
 
     content.push(header, table, footer);
   });
