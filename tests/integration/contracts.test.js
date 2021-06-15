@@ -22,9 +22,10 @@ const {
   otherContract,
   otherContractUser,
   userFromOtherCompany,
+  userCompanies,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
-const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 const EsignHelper = require('../../src/helpers/eSign');
 
 describe('NODE ENV', () => {
@@ -39,7 +40,8 @@ describe('GET /contracts', () => {
 
   it('should return list of contracts', async () => {
     authToken = await getToken('client_admin');
-    const userId = contractsList[0].user;
+    const userId = userCompanies[0].user;
+
     const response = await app.inject({
       method: 'GET',
       url: `/contracts?user=${userId}`,
@@ -53,18 +55,18 @@ describe('GET /contracts', () => {
   });
 
   it('should get my contracts if I am an auxiliary without company', async () => {
-    const user = getUser('auxiliary_without_company');
+    const userId = userCompanies[1].user;
     authToken = await getToken('auxiliary_without_company');
     const response = await app.inject({
       method: 'GET',
-      url: `/contracts?user=${user._id}`,
+      url: `/contracts?user=${userId}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
     expect(response.statusCode).toBe(200);
     expect(response.result.data.contracts).toBeDefined();
     expect(response.result.data.contracts.length)
-      .toBe(contractsList.filter(contract => contract.user === user._id).length);
+      .toBe(contractsList.filter(contract => contract.user === userId).length);
   });
 
   it('should not return the contracts if user is not from the company', async () => {
