@@ -9,24 +9,29 @@ const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 
 exports.getEventHistories = async (query, credentials) => {
-  const { createdAt } = query;
-  const listQuery = exports.getListQuery(query, credentials);
+  if (query.eventId) {
+    return EventHistoryRepository.paginate({
+      'event.eventId': query.eventId,
+      company: get(credentials, 'company._id'),
+    });
+  }
 
-  return EventHistoryRepository.paginate(listQuery, createdAt);
+  const listQuery = exports.getListQuery(query, credentials);
+  return EventHistoryRepository.paginate(listQuery, 20);
 };
 
 exports.getListQuery = (query, credentials) => {
   const { sectors, auxiliaries, createdAt } = query;
-  const queryCompany = { company: get(credentials, 'company._id', null) };
-  if (createdAt) queryCompany.createdAt = { $lte: createdAt };
+  const listQuery = { company: get(credentials, 'company._id', null) };
+  if (createdAt) listQuery.createdAt = { $lt: createdAt };
 
   const orRules = [];
   if (sectors) orRules.push(...UtilsHelper.formatArrayOrStringQueryParam(sectors, 'sectors'));
   if (auxiliaries) orRules.push(...UtilsHelper.formatArrayOrStringQueryParam(auxiliaries, 'auxiliaries'));
 
-  if (orRules.length === 0) return queryCompany;
-  if (orRules.length === 1) return { ...queryCompany, ...orRules[0] };
-  return { ...queryCompany, $or: orRules };
+  if (orRules.length === 0) return listQuery;
+  if (orRules.length === 1) return { ...listQuery, ...orRules[0] };
+  return { ...listQuery, $or: orRules };
 };
 
 exports.createEventHistory = async (payload, credentials, action) => {
