@@ -17,7 +17,7 @@ exports.getEventHistories = async (query, credentials) => {
   }
 
   const listQuery = exports.getListQuery(query, credentials);
-  return EventHistoryRepository.paginate(listQuery, 20, query.createdAt);
+  return EventHistoryRepository.paginate(listQuery, query.createdAt, 20);
 };
 
 exports.getListQuery = (query, credentials) => {

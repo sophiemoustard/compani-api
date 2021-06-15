@@ -3,6 +3,7 @@ const EventHistory = require('../models/EventHistory');
 exports.paginate = async (query, createdAt = null, limit = 0) => {
   const params = { ...query };
   if (createdAt) params.createdAt = { $lt: createdAt };
+
   return EventHistory
     .find(params)
     .populate({ path: 'auxiliaries', select: '_id identity' })

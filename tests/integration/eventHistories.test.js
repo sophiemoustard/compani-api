@@ -9,6 +9,7 @@ const {
   sectors,
 } = require('./seed/eventHistoriesSeed');
 const { getToken } = require('./seed/authenticationSeed');
+const UtilsHelper = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -63,6 +64,21 @@ describe('GET /eventhistories', () => {
     response.result.data.eventHistories.forEach((history) => {
       expect(history.sectors.every(sectorId => sectorIds.includes(sectorId.toHexString()))).toBeTruthy();
     });
+  });
+
+  it('should return a list of event histories for one event', async () => {
+    const eventId = eventHistoryList[0]._id;
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/eventhistories?eventId=${eventId}`,
+      headers: { Cookie: `alenvi_token=${authToken}` },
+    });
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.result.data.eventHistories).toBeDefined();
+    expect(response.result.data.eventHistories.every(history =>
+      UtilsHelper.areObjectIdsEquals(history.event.eventId, eventId))).toBeTruthy();
   });
 
   it('should return a 400 if invalid query', async () => {
