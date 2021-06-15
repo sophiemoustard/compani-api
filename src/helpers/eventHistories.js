@@ -9,10 +9,15 @@ const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 
 exports.getEventHistories = async (query, credentials) => {
-  const { createdAt } = query;
-  const listQuery = exports.getListQuery(query, credentials);
+  if (query.eventId) {
+    return EventHistoryRepository.paginate({
+      'event.eventId': query.eventId,
+      company: get(credentials, 'company._id'),
+    });
+  }
 
-  return EventHistoryRepository.paginate(listQuery, createdAt);
+  const listQuery = exports.getListQuery(query, credentials);
+  return EventHistoryRepository.paginate(listQuery, 20, query.createdAt);
 };
 
 exports.getListQuery = (query, credentials) => {

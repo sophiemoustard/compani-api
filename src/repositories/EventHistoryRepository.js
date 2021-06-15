@@ -1,6 +1,6 @@
 const EventHistory = require('../models/EventHistory');
 
-exports.paginate = async (query, createdAt = null) => {
+exports.paginate = async (query, createdAt = null, limit = 0) => {
   const params = { ...query };
   if (createdAt) params.createdAt = { $lt: createdAt };
   return EventHistory
@@ -13,5 +13,5 @@ exports.paginate = async (query, createdAt = null) => {
     .populate({ path: 'update.auxiliary.from', select: '_id identity' })
     .populate({ path: 'update.auxiliary.to', select: '_id identity' })
     .sort({ createdAt: -1 })
-    .limit(20);
+    .limit(limit);
 };

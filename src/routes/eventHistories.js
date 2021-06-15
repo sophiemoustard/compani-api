@@ -18,6 +18,7 @@ exports.plugin = {
             auxiliaries: [Joi.array().items(Joi.string()), Joi.string()],
             sectors: [Joi.array().items(Joi.string()), Joi.string()],
             createdAt: Joi.date(),
+            eventId: Joi.objectId(),
           }),
         },
         pre: [{ method: authorizeEventsHistoriesGet }],
