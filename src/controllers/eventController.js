@@ -68,9 +68,8 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const { auth, pre } = req;
-    const event = await EventsHelper.deleteEvent(pre.event, auth.credentials);
-    if (!event) return Boom.notFound(translate[language].eventNotFound);
+    const { auth, params } = req;
+    await EventsHelper.deleteEvent(params._id, auth.credentials);
 
     return { message: translate[language].eventDeleted };
   } catch (e) {

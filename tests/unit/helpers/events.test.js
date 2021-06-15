@@ -7,12 +7,12 @@ const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Repetition = require('../../../src/models/Repetition');
-const EventHistory = require('../../../src/models/EventHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const EventHelper = require('../../../src/helpers/events');
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
+const DatesHelper = require('../../../src/helpers/dates');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
@@ -1422,6 +1422,16 @@ describe('unassignConflictInterventions', () => {
 });
 
 describe('getListQuery', () => {
+  let getStartOfDay;
+  let getEndOfDay;
+  beforeEach(() => {
+    getStartOfDay = sinon.stub(DatesHelper, 'getStartOfDay');
+    getEndOfDay = sinon.stub(DatesHelper, 'getEndOfDay');
+  });
+  afterEach(() => {
+    getStartOfDay.restore();
+    getEndOfDay.restore();
+  });
   it('should return only company in rules if query is empty', () => {
     const query = {};
     const credentials = { company: { _id: new ObjectID() } };
@@ -1429,6 +1439,8 @@ describe('getListQuery', () => {
     const listQuery = EventHelper.getListQuery(query, credentials);
 
     expect(listQuery).toEqual({ $and: [{ company: credentials.company._id }] });
+    sinon.assert.notCalled(getStartOfDay);
+    sinon.assert.notCalled(getEndOfDay);
   });
 
   it('should return all conditions in rules that are in query', () => {
@@ -1443,6 +1455,9 @@ describe('getListQuery', () => {
     };
     const credentials = { company: { _id: new ObjectID() } };
 
+    getStartOfDay.returns('2021-04-27T22:00:00.000Z');
+    getEndOfDay.returns('2021-04-28T21:59:59.999Z');
+
     const listQuery = EventHelper.getListQuery(query, credentials);
 
     expect(listQuery).toEqual({
@@ -1451,68 +1466,43 @@ describe('getListQuery', () => {
         { type: 'intervention' },
         { $or: [{ auxiliary: { $in: [query.auxiliary] } }, { sector: { $in: query.sector } }] },
         { customer: { $in: query.customer } },
-        { endDate: { $gt: new Date('2021-04-28T00:00:00.000Z') } },
-        { startDate: { $lt: new Date('2021-04-28T23:59:59.999Z') } },
+        { endDate: { $gt: new Date('2021-04-27T22:00:00.000Z') } },
+        { startDate: { $lt: new Date('2021-04-28T21:59:59.999Z') } },
         { isCancelled: false },
       ],
     });
+    sinon.assert.calledOnceWithExactly(getStartOfDay, '2021-04-28T10:00:00.000Z');
+    sinon.assert.calledOnceWithExactly(getEndOfDay, '2021-04-28T12:00:00.000Z');
   });
 });
 
 describe('deleteEvent', () => {
-  let createEventHistoryOnDelete;
-  let deleteOne;
-  const credentials = { _id: (new ObjectID()).toHexString() };
+  let deleteEventsAndRepetition;
   beforeEach(() => {
-    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
-    deleteOne = sinon.stub(Event, 'deleteOne');
+    deleteEventsAndRepetition = sinon.stub(EventHelper, 'deleteEventsAndRepetition');
   });
   afterEach(() => {
-    createEventHistoryOnDelete.restore();
-    deleteOne.restore();
+    deleteEventsAndRepetition.restore();
   });
 
-  it('should delete repetition', async () => {
-    const parentId = new ObjectID();
-    const deletionInfo = {
-      _id: new ObjectID(),
-      type: INTERVENTION,
-      startDate: '2019-01-21T09:38:18',
-    };
-    const event = {
-      ...deletionInfo,
-      repetition: {
-        frequency: EVERY_WEEK,
-        parentId,
-      },
-    };
-    const result = await EventHelper.deleteEvent(event, credentials);
+  it('should delete event', async () => {
+    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const eventId = new ObjectID();
 
-    expect(result).toEqual(event);
-    sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, deletionInfo, credentials);
-    sinon.assert.calledOnceWithExactly(deleteOne, { _id: event._id });
-  });
+    await EventHelper.deleteEvent(eventId, credentials);
 
-  it('should not delete event if it is billed', async () => {
-    try {
-      const event = {
-        _id: new ObjectID(),
-        type: INTERVENTION,
-        isBilled: true,
-        startDate: '2019-01-21T09:38:18',
-      };
-      const result = await EventHelper.deleteEvent(event, credentials);
-      expect(result).toBe(undefined);
-    } catch (e) {
-      expect(e).toEqual(Boom.forbidden('Un ou plusieurs évènements sont facturés ou horodatés.'));
-    }
+    sinon.assert.calledOnceWithExactly(
+      deleteEventsAndRepetition,
+      { _id: eventId, company: credentials.company._id },
+      false,
+      credentials
+    );
   });
 });
 
 describe('deleteEventsAndRepetition', () => {
   let find;
-  let isDeletionAllowed;
-  let eventHistoryCountDocuments;
+  let checkDeletionIsAllowed;
   let createEventHistoryOnDeleteList;
   let createEventHistoryOnDelete;
   let repetitionDeleteOne;
@@ -1520,8 +1510,7 @@ describe('deleteEventsAndRepetition', () => {
   const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
   beforeEach(() => {
     find = sinon.stub(Event, 'find');
-    isDeletionAllowed = sinon.stub(EventsValidationHelper, 'isDeletionAllowed');
-    eventHistoryCountDocuments = sinon.stub(EventHistory, 'countDocuments');
+    checkDeletionIsAllowed = sinon.stub(EventsValidationHelper, 'checkDeletionIsAllowed');
     createEventHistoryOnDeleteList = sinon.stub(EventHelper, 'createEventHistoryOnDeleteList');
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
     repetitionDeleteOne = sinon.stub(Repetition, 'deleteOne');
@@ -1529,8 +1518,7 @@ describe('deleteEventsAndRepetition', () => {
   });
   afterEach(() => {
     find.restore();
-    isDeletionAllowed.restore();
-    eventHistoryCountDocuments.restore();
+    checkDeletionIsAllowed.restore();
     createEventHistoryOnDeleteList.restore();
     createEventHistoryOnDelete.restore();
     repetitionDeleteOne.restore();
@@ -1546,10 +1534,6 @@ describe('deleteEventsAndRepetition', () => {
     const events = [{ _id: '1234567890' }, { _id: 'qwertyuiop' }, { _id: 'asdfghjkl' }];
 
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
-    isDeletionAllowed.onCall(0).returns(true);
-    isDeletionAllowed.onCall(1).returns(true);
-    isDeletionAllowed.onCall(2).returns(true);
-    eventHistoryCountDocuments.returns(0);
 
     await EventHelper.deleteEventsAndRepetition(query, false, credentials);
 
@@ -1557,15 +1541,7 @@ describe('deleteEventsAndRepetition', () => {
     sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
     sinon.assert.notCalled(createEventHistoryOnDelete);
     sinon.assert.notCalled(repetitionDeleteOne);
-    sinon.assert.callCount(isDeletionAllowed, events.length);
-    sinon.assert.calledOnceWithExactly(
-      eventHistoryCountDocuments,
-      {
-        'event.eventId': { $in: events.map(event => event._id) },
-        'event.type': INTERVENTION,
-        action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
-      }
-    );
+    sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
     SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
   });
 
@@ -1621,11 +1597,6 @@ describe('deleteEventsAndRepetition', () => {
     };
 
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
-    isDeletionAllowed.onCall(0).returns(true);
-    isDeletionAllowed.onCall(1).returns(true);
-    isDeletionAllowed.onCall(2).returns(true);
-    isDeletionAllowed.onCall(3).returns(true);
-    eventHistoryCountDocuments.returns(0);
 
     await EventHelper.deleteEventsAndRepetition(query, true, credentials);
 
@@ -1633,15 +1604,7 @@ describe('deleteEventsAndRepetition', () => {
     sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, eventsGroupedByParentId[parentId][0], credentials);
     sinon.assert.calledOnceWithExactly(repetitionDeleteOne, { parentId });
     sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: events.map(ev => ev._id) } });
-    sinon.assert.callCount(isDeletionAllowed, events.length);
-    sinon.assert.calledOnceWithExactly(
-      eventHistoryCountDocuments,
-      {
-        'event.eventId': { $in: events.map(event => event._id) },
-        'event.type': INTERVENTION,
-        action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
-      }
-    );
+    sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
     SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
   });
 
@@ -1658,19 +1621,18 @@ describe('deleteEventsAndRepetition', () => {
     ];
 
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
-    isDeletionAllowed.onCall(0).returns(true);
-    isDeletionAllowed.onCall(1).returns(true);
-    isDeletionAllowed.onCall(2).returns(false);
+    checkDeletionIsAllowed.throws(Boom.conflict('Vous ne pouvez pas supprimer un évènement facturé.'));
 
     try {
       await EventHelper.deleteEventsAndRepetition(query, false, credentials);
+
+      expect(false).toBe(true);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict('Un ou plusieurs évènements sont facturés.'));
+      expect(e).toEqual(Boom.conflict('Vous ne pouvez pas supprimer un évènement facturé.'));
     } finally {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
-      sinon.assert.notCalled(eventHistoryCountDocuments);
-      sinon.assert.callCount(isDeletionAllowed, events.length);
+      sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
       SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
     }
   });
@@ -1688,27 +1650,18 @@ describe('deleteEventsAndRepetition', () => {
     ];
 
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
-    isDeletionAllowed.onCall(0).returns(true);
-    isDeletionAllowed.onCall(1).returns(true);
-    isDeletionAllowed.onCall(2).returns(true);
-    eventHistoryCountDocuments.returns(1);
+    checkDeletionIsAllowed.throws(Boom.conflict('Vous ne pouvez pas supprimer un évènement horodaté.'));
 
     try {
       await EventHelper.deleteEventsAndRepetition(query, false, credentials);
+
+      expect(false).toBe(true);
     } catch (e) {
-      expect(e).toEqual(Boom.conflict('Un ou plusieurs évènements sont horodatés.'));
+      expect(e).toEqual(Boom.conflict('Vous ne pouvez pas supprimer un évènement horodaté.'));
     } finally {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
-      sinon.assert.callCount(isDeletionAllowed, events.length);
-      sinon.assert.calledOnceWithExactly(
-        eventHistoryCountDocuments,
-        {
-          'event.eventId': { $in: events.map(event => event._id) },
-          'event.type': INTERVENTION,
-          action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
-        }
-      );
+      sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
       SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
     }
   });

@@ -30,7 +30,6 @@ const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
 const Event = require('../models/Event');
-const EventHistory = require('../models/EventHistory');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
@@ -383,13 +382,10 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
   return Promise.all(promises);
 };
 
-exports.deleteEvent = async (event, credentials) => {
-  if (!EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict(translate[language].isBilledOrTimeStamped);
-  const deletionInfo = omit(event, 'repetition');
-  await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
-  await Event.deleteOne({ _id: event._id });
+exports.deleteEvent = async (eventId, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
 
-  return event;
+  await exports.deleteEventsAndRepetition({ _id: eventId, company: companyId }, false, credentials);
 };
 
 exports.createEventHistoryOnDeleteList = async (events, credentials) => {
@@ -403,15 +399,8 @@ exports.createEventHistoryOnDeleteList = async (events, credentials) => {
 
 exports.deleteEventsAndRepetition = async (query, shouldDeleteRepetitions, credentials) => {
   const events = await Event.find(query).lean();
-  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) {
-    throw Boom.conflict(translate[language].isBilled);
-  }
-  const timestampedEventsCount = await EventHistory.countDocuments({
-    'event.eventId': { $in: events.map(event => event._id) },
-    'event.type': INTERVENTION,
-    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
-  });
-  if (timestampedEventsCount > 0) throw Boom.conflict(translate[language].isTimeStamped);
+
+  await EventsValidationHelper.checkDeletionIsAllowed(events);
 
   if (!shouldDeleteRepetitions) {
     await this.createEventHistoryOnDeleteList(events, credentials);
