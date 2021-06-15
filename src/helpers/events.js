@@ -43,8 +43,11 @@ exports.list = async (query, credentials) => {
   const eventsQuery = exports.getListQuery(query, credentials);
   const { groupBy } = query;
 
-  if (groupBy === CUSTOMER) return EventRepository.getEventsGroupedByCustomers(eventsQuery, companyId);
-  if (groupBy === AUXILIARY) return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, companyId);
+  if (groupBy === CUSTOMER) {
+    return EventRepository.getEventsGroupedByCustomers(eventsQuery, get(credentials, 'company._id', null));
+  } if (groupBy === AUXILIARY) {
+    return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, get(credentials, 'company._id', null));
+  }
 
   return exports.populateEvents(await EventRepository.getEventList(eventsQuery, companyId));
 };
@@ -275,7 +278,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
       populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
     })
     .populate({ path: 'customer', select: 'identity subscriptions contact' })
-    .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
+    .populate({ path: 'internalHour', match: { company: companyId } })
     .lean();
 
   if (updatedEvent.type === ABSENCE) {

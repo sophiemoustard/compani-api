@@ -3,22 +3,26 @@ const moment = require('moment');
 const omit = require('lodash/omit');
 const momentRange = require('moment-range');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, NEVER } = require('./constants');
-const { areObjectIdsEquals } = require('./utils');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ContractsHelper = require('./contracts');
 const EventRepository = require('../repositories/EventRepository');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
+const DatesHelper = require('./dates');
 
 const { language } = translate;
 
 momentRange.extendMoment(moment);
 
 exports.isCustomerSubscriptionValid = async (event) => {
-  const customer = await Customer.findOne({ _id: event.customer }, { subscriptions: 1 }).lean();
+  const customer = await Customer.countDocuments({
+    _id: event.customer,
+    'subscriptions._id': event.subscription,
+    $or: [{ stoppedAt: { $exists: false } }, { stoppedAt: { $gte: event.startDate } }],
+  });
 
-  return customer.subscriptions.some(sub => areObjectIdsEquals(sub._id, event.subscription));
+  return !!customer;
 };
 
 exports.isUserContractValidOnEventDates = async (event) => {
@@ -73,6 +77,16 @@ exports.isCreationAllowed = async (event, credentials) => {
 };
 
 exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
+  const updateStartDate = payload.startDate && DatesHelper.diff(eventFromDB.startDate, payload.startDate) !== 0;
+  const updateEndDate = payload.endDate && DatesHelper.diff(eventFromDB.endDate, payload.endDate) !== 0;
+  const updateAuxiliary = payload.auxiliary &&
+    !UtilsHelper.areObjectIdsEquals(eventFromDB.auxiliary, payload.auxiliary);
+  const cancelEvent = payload.isCancelled;
+  const forbiddenUpdateOnTimeStampedEvent = updateAuxiliary || cancelEvent;
+  const { startDateTimeStampedCount, endDateTimeStampedCount } = eventFromDB;
+  if (startDateTimeStampedCount && (updateStartDate || forbiddenUpdateOnTimeStampedEvent)) return false;
+  if (endDateTimeStampedCount && (updateEndDate || forbiddenUpdateOnTimeStampedEvent)) return false;
+
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 

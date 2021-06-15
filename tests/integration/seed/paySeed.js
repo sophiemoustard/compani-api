@@ -38,7 +38,7 @@ const user = {
 
 const auxiliaries = [{
   _id: auxiliaryId1,
-  identity: { firstname: 'Test7', lastname: 'Test7' },
+  identity: { firstname: 'Test7', lastname: 'auxiliary' },
   local: { email: 'test7@alenvi.io', password: '123456!eR' },
   employee_id: 12345678,
   refreshToken: uuidv4(),
@@ -60,7 +60,7 @@ const auxiliaries = [{
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'toto', lastname: 'test' },
+  identity: { firstname: 'otherCompany', lastname: 'Chloe' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   employee_id: 9876543,
   refreshToken: uuidv4(),

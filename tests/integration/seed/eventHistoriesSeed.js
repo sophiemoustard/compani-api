@@ -5,6 +5,7 @@ const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const EventHistory = require('../../../src/models/EventHistory');
 const Event = require('../../../src/models/Event');
+const UserCompany = require('../../../src/models/UserCompany');
 const {
   INTERNAL_HOUR,
   INTERVENTION,
@@ -17,23 +18,12 @@ const {
 } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
-const user = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Bob', lastname: 'Marley' },
-  local: { email: 'lala@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList[1]._id },
-  company: authCompany._id,
-  refreshToken: uuidv4(),
-  origin: WEBAPP,
-};
-
-const auxiliaries = [
+const users = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Mimi', lastname: 'Mita' },
     local: { email: 'lili@alenvi.io', password: '123456!eR' },
     role: { client: rolesList[2]._id },
-    company: authCompany._id,
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -42,10 +32,35 @@ const auxiliaries = [
     identity: { firstname: 'Joséphine', lastname: 'Mita' },
     local: { email: 'lili2@alenvi.io', password: '123456!eR' },
     role: { client: rolesList[2]._id },
-    company: authCompany._id,
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Bob', lastname: 'Marley' },
+    local: { email: 'lala@alenvi.io', password: '123456!eR' },
+    role: { client: rolesList[1]._id },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'test', lastname: 'Mita' },
+    local: { email: 'otherCompany@alenvi.io', password: '123456!eR' },
+    role: { client: rolesList[2]._id },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
+];
+
+const auxiliaries = [users[0], users[1]];
+const auxiliaryFromOtherCompany = users[3];
+
+const userCompanies = [
+  { user: users[0], company: authCompany._id },
+  { user: users[1], company: authCompany._id },
+  { user: users[2], company: authCompany._id },
+  { user: users[3], company: otherCompany._id },
 ];
 
 const sectors = [{ _id: new ObjectID(), company: authCompany._id }, { _id: new ObjectID(), company: authCompany._id }];
@@ -114,7 +129,7 @@ const eventHistoryList = [
     _id: ObjectID(),
     company: authCompany._id,
     action: EVENT_CREATION,
-    createdBy: user._id,
+    createdBy: users[2]._id,
     sectors: [sectors[0]._id],
     auxiliaries: [auxiliaries[0]._id],
     event: {
@@ -130,7 +145,7 @@ const eventHistoryList = [
     _id: ObjectID(),
     company: authCompany._id,
     action: EVENT_DELETION,
-    createdBy: user._id,
+    createdBy: users[2]._id,
     sectors: [sectors[0]._id],
     auxiliaries: [auxiliaries[0]._id],
     event: {
@@ -147,7 +162,7 @@ const eventHistoryList = [
     _id: ObjectID(),
     company: authCompany._id,
     action: EVENT_UPDATE,
-    createdBy: user._id,
+    createdBy: users[2]._id,
     sectors: [sectors[0]._id],
     auxiliaries: [auxiliaries[0]._id],
     event: {
@@ -162,29 +177,21 @@ const eventHistoryList = [
   },
 ];
 
-const auxiliaryFromOtherCompany = {
-  _id: new ObjectID(),
-  identity: { firstname: 'test', lastname: 'Mita' },
-  local: { email: 'otherCompany@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList[2]._id },
-  company: otherCompany._id,
-  refreshToken: uuidv4(),
-  origin: WEBAPP,
-};
-
 const populateDB = async () => {
-  await Customer.deleteMany({});
-  await User.deleteMany({});
-  await Sector.deleteMany({});
-  await EventHistory.deleteMany({});
-  await Event.deleteMany({});
+  await Customer.deleteMany();
+  await User.deleteMany();
+  await Sector.deleteMany();
+  await EventHistory.deleteMany();
+  await Event.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
   await EventHistory.insertMany(eventHistoryList);
-  await (new User(user)).save();
-  await User.create(auxiliaries);
-  await (new User(auxiliaryFromOtherCompany)).save();
+  await UserCompany.insertMany(userCompanies);
+  for (const u of users) {
+    await (new User(u)).save();
+  }
   await (new Customer(customer)).save();
   await Sector.create(sectors);
   await (new Sector(sectorFromOtherCompany)).save();

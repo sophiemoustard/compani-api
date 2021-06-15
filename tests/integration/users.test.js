@@ -57,11 +57,10 @@ describe('POST /users', () => {
   describe('NOT_CONNECTED', () => {
     beforeEach(populateDB);
 
-    it('should create user even if user not connected', async () => {
+    it('should create user if user not connected without phone is payload', async () => {
       const payload = {
         identity: { firstname: 'Test', lastname: 'Kirk' },
         local: { email: 'newuser@alenvi.io', password: 'testpassword' },
-        contact: { phone: '0606060606' },
         origin: MOBILE,
       };
 
@@ -74,7 +73,6 @@ describe('POST /users', () => {
       expect(user.identity.firstname).toBe('Test');
       expect(user.identity.lastname).toBe('Kirk');
       expect(user.local.email).toBe('newuser@alenvi.io');
-      expect(user.contact.phone).toBe('0606060606');
       expect(res.result.data.user.refreshToken).not.toBeDefined();
       expect(res.result.data.user.local.password).not.toBeDefined();
     });
@@ -90,26 +88,6 @@ describe('POST /users', () => {
       const res = await app.inject({ method: 'POST', url: '/users', payload });
 
       expect(res.statusCode).toBe(400);
-    });
-
-    it('should create user even if user not connected without phone is payload', async () => {
-      const payload = {
-        identity: { firstname: 'Test', lastname: 'Kirk' },
-        local: { email: 'newuser@alenvi.io', password: 'testpassword' },
-        origin: MOBILE,
-      };
-
-      const res = await app.inject({ method: 'POST', url: '/users', payload });
-
-      expect(res.statusCode).toBe(200);
-
-      const { user } = res.result.data;
-      expect(user._id).toEqual(expect.any(Object));
-      expect(user.identity.firstname).toBe('Test');
-      expect(user.identity.lastname).toBe('Kirk');
-      expect(user.local.email).toBe('newuser@alenvi.io');
-      expect(res.result.data.user.refreshToken).not.toBeDefined();
-      expect(res.result.data.user.local.password).not.toBeDefined();
     });
   });
 
@@ -312,7 +290,7 @@ describe('POST /users', () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
-        role: rolesList.find(role => role.name === AUXILIARY)._id,
+        role: rolesList.find(role => role.name === COACH)._id,
         sector: userSectors[0]._id,
         origin: WEBAPP,
         company: otherCompany._id,
@@ -352,7 +330,7 @@ describe('POST /users', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 200 },
@@ -406,7 +384,7 @@ describe('GET /users', () => {
     });
 
     it('should get all coachs users (company A)', async () => {
-      const coachUsers = userList.filter(u => u.role && isExistingRole(u.role.client, 'coach'));
+      const coachUsers = [...userList, ...usersSeedList].filter(u => u.role && isExistingRole(u.role.client, 'coach'));
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=coach`,
@@ -639,10 +617,10 @@ describe('GET /users/sector-histories', () => {
 
 describe('GET /users/learners', () => {
   let authToken;
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should return all learners', async () => {
@@ -706,26 +684,10 @@ describe('GET /users/learners', () => {
         .toBeTruthy();
     });
 
-    it('should return 200 if client admin requests learners from his company', async () => {
-      authToken = await getToken('client_admin');
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/learners?company=${authCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.every(u => UtilsHelper.areObjectIdsEquals(u.company._id, authCompany._id)))
-        .toBeTruthy();
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403, details: 'if not his company' },
       { name: 'client_admin', expectedCode: 403, details: 'if not his company' },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
@@ -741,20 +703,15 @@ describe('GET /users/learners', () => {
       });
     });
 
-    [{ name: 'coach', expectedCode: 403 }, { name: 'client_admin', expectedCode: 403 }].forEach((role) => {
-      it(
-        `should return ${role.expectedCode} as user is ${role.name} and does not request user from his company`,
-        async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'GET',
-            url: `/users/learners?company=${otherCompany._id}`,
-            headers: { Cookie: `alenvi_token=${authToken}` },
-          });
+    it('should return 403 as user is client_admin and does not request user from his company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/users/learners?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
 
-          expect(response.statusCode).toBe(role.expectedCode);
-        }
-      );
+      expect(response.statusCode).toBe(403);
     });
   });
 });
@@ -841,10 +798,10 @@ describe('GET /users/active', () => {
 
 describe('GET /users/:id', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin', true, usersSeedList);
+      authToken = await getToken('coach', true, usersSeedList);
     });
 
     it('should return user', async () => {
@@ -929,13 +886,7 @@ describe('GET /users/:id', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -959,10 +910,10 @@ describe('PUT /users/:id/', () => {
     local: { email: 'riri@alenvi.io' },
   };
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin', true, usersSeedList);
+      authToken = await getToken('coach', true, usersSeedList);
     });
 
     it('should update the user', async () => {
@@ -1023,7 +974,7 @@ describe('PUT /users/:id/', () => {
       expect(secondRespons.statusCode).toBe(200);
       const updatedUser = await User.findById(userId)
         .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
-        .lean({ autopopulate: true });
+        .lean();
 
       expect(updatedUser.sector).toEqual(userSectors[2]._id);
       const histories = await SectorHistory.find({ auxiliary: userId, company: authCompany }).lean();
@@ -1109,6 +1060,8 @@ describe('PUT /users/:id/', () => {
 
     it('should add helper role to user if no company', async () => {
       const role = await Role.findOne({ name: HELPER }).lean();
+      expect(await UserCompany.countDocuments({ user: userList[8]._id })).toBe(0);
+
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[8]._id}`,
@@ -1117,6 +1070,7 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(res.statusCode).toBe(200);
+      expect(await UserCompany.countDocuments({ user: userList[8]._id })).toBe(1);
     });
 
     it('should not add helper role to user if customer is not from the same company as user', async () => {
@@ -1375,10 +1329,8 @@ describe('PUT /users/:id/', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
     ];
 
@@ -1401,10 +1353,10 @@ describe('PUT /users/:id/', () => {
 
 describe('DELETE /users/:id', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin', true, usersSeedList);
+      authToken = await getToken('coach', true, usersSeedList);
     });
 
     usersSeedList.forEach((user) => {
@@ -1453,9 +1405,7 @@ describe('DELETE /users/:id', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
     ];
     roles.forEach((role) => {
@@ -1476,10 +1426,10 @@ describe('DELETE /users/:id', () => {
 describe('PUT /users/:id/certificates', () => {
   let authToken;
   const updatePayload = { certificates: { driveId: usersSeedList[0].administrative.certificates.driveId } };
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin', true, usersSeedList);
+      authToken = await getToken('coach', true, usersSeedList);
     });
 
     it('should update user certificates', async () => {
@@ -1530,12 +1480,7 @@ describe('PUT /users/:id/certificates', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -1569,10 +1514,10 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     addFileStub.restore();
   });
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should add an administrative document for a user', async () => {
@@ -1634,12 +1579,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -1731,10 +1671,8 @@ describe('POST /users/:id/upload', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
@@ -1821,10 +1759,8 @@ describe('DELETE /users/:id/upload', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
@@ -1854,10 +1790,10 @@ describe('POST /users/:id/drivefolder', () => {
     createFolderStub.restore();
   });
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin', true, usersSeedList);
+      authToken = await getToken('coach', true, usersSeedList);
     });
 
     it('should create a drive folder for a user', async () => {
@@ -1882,12 +1818,7 @@ describe('POST /users/:id/drivefolder', () => {
 
   describe('Other roles', () => {
     beforeEach(populateDB);
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -1964,7 +1895,7 @@ describe('POST /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
     ];
     roles.forEach((role) => {
@@ -2020,7 +1951,7 @@ describe('DELETE /users/:id/expo-token/:expoToken', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
     ];

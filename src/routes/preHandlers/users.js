@@ -38,7 +38,7 @@ exports.getUser = async (req) => {
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
   const userFromDB = req.pre.user;
-  const userCompany = userFromDB.company ? userFromDB.company.toHexString() : get(req, 'payload.company');
+  const userCompany = userFromDB.company || get(req, 'payload.company');
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
 
@@ -55,15 +55,15 @@ exports.authorizeUserUpdate = async (req) => {
 
 const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
   const loggedUserCompany = get(credentials, 'company._id') || '';
-  const userCompany = userFromDB.company ? userFromDB.company.toHexString() : payload.company;
+  const userCompany = userFromDB.company || payload.company;
 
   const sameCompany = userCompany && loggedUserCompany &&
-    UtilsHelper.areObjectIdsEquals(userCompany, loggedUserCompany.toHexString());
+    UtilsHelper.areObjectIdsEquals(userCompany, loggedUserCompany);
   const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
   const canLoggedUserUpdate = isLoggedUserVendor || sameCompany || updatingOwnInfos;
 
   const isCompanyUpdated = payload.company && userFromDB.company &&
-    payload.company !== userFromDB.company.toHexString();
+    !UtilsHelper.areObjectIdsEquals(payload.company, userFromDB.company);
 
   if (!canLoggedUserUpdate || isCompanyUpdated) throw Boom.forbidden();
 };
@@ -75,10 +75,13 @@ const checkEstablishment = async (companyId, payload) => {
 
 const checkRole = async (userFromDB, payload) => {
   const role = await Role.findOne({ _id: payload.role }, { name: 1, interface: 1 }).lean();
-  const clientRoleSwitch = role.interface === CLIENT && get(userFromDB, 'role.client') &&
-      userFromDB.role.client.toHexString() !== payload.role;
+  const previousClientRole = get(userFromDB, 'role.client');
+
+  const clientRoleSwitch = role.interface === CLIENT && previousClientRole &&
+    !UtilsHelper.areObjectIdsEquals(previousClientRole, payload.role);
+
   if (clientRoleSwitch) {
-    const formerClientRole = await Role.findById(userFromDB.role.client, { name: 1 }).lean();
+    const formerClientRole = await Role.findById(previousClientRole, { name: 1 }).lean();
     const allowedRoleChanges = [
       { from: AUXILIARY, to: PLANNING_REFERENT },
       { from: PLANNING_REFERENT, to: AUXILIARY },
@@ -97,7 +100,7 @@ const checkRole = async (userFromDB, payload) => {
 
 const checkCustomer = async (userCompany, payload) => {
   const role = await Role.findOne({ name: HELPER }).lean();
-  if (get(payload, 'role', null) !== role._id.toHexString()) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(payload.role, role._id)) throw Boom.forbidden();
   const customerCount = await Customer.countDocuments({ _id: payload.customer, company: userCompany });
 
   if (!customerCount) throw Boom.forbidden();
@@ -130,7 +133,7 @@ exports.authorizeUserGetById = async (req) => {
   }
 
   const isClientFromDifferentCompany = !isVendorUser && user.company &&
-    user.company.toHexString() !== companyId.toHexString();
+    !UtilsHelper.areObjectIdsEquals(user.company, companyId);
   if (isClientFromDifferentCompany) throw Boom.forbidden();
 
   return null;
@@ -147,7 +150,7 @@ exports.authorizeUserDeletion = async (req) => {
   const role = await Role.findById(clientRoleId).lean();
   if (role.name !== HELPER) throw Boom.forbidden();
 
-  if (user.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(user.company, companyId)) throw Boom.forbidden();
 
   return null;
 };
@@ -155,7 +158,7 @@ exports.authorizeUserDeletion = async (req) => {
 exports.authorizeUserUpdateWithoutCompany = (req) => {
   const { credentials } = req.auth;
   const addNewCompanyToTargetUser = !req.pre.user.company && req.payload.company;
-  const loggedUserHasVendorRole = get(credentials, 'role.vendor', null);
+  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
 
   return !!loggedUserHasVendorRole || !!addNewCompanyToTargetUser;
 };

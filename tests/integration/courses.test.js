@@ -1502,7 +1502,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const newUser = await User.findOne({ 'local.email': payload.local.email }).lean({ autopopulate: true });
+        const newUser = await User.findOne({ 'local.email': payload.local.email }).lean();
         expect(newUser).toBeDefined();
         expect(newUser.serialNumber).toBeDefined();
         expect(newUser.role).toBeUndefined();
@@ -1527,8 +1527,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/trainee', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const updatedUser = await User.findOne({ 'local.email': updatePayload.local.email })
-          .lean({ autopopulate: true });
+        const updatedUser = await User.findOne({ 'local.email': updatePayload.local.email }).lean();
         expect(updatedUser).toBeDefined();
         expect(updatedUser.company).toBeDefined();
       });

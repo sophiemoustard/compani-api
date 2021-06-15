@@ -9,7 +9,6 @@ const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
-const UserCompany = require('../models/UserCompany');
 const Company = require('../models/Company');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
@@ -19,6 +18,7 @@ const SectorHistoriesHelper = require('./sectorHistories');
 const GDriveStorageHelper = require('./gDriveStorage');
 const UtilsHelper = require('./utils');
 const HelpersHelper = require('./helpers');
+const UserCompaniesHelper = require('./userCompanies');
 
 const { language } = translate;
 
@@ -41,6 +41,7 @@ exports.getUsersList = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -57,6 +58,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
@@ -98,6 +100,7 @@ exports.getUser = async (userId, credentials) => {
 
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -129,12 +132,10 @@ exports.userExists = async (email, credentials) => {
   if (!credentials) return { exists: true, user: {} };
 
   const loggedUserhasVendorRole = has(credentials, 'role.vendor');
-  const loggedUserCompany = credentials.company ? credentials.company._id.toHexString() : null;
-  const targetUserHasCompany = !!targetUser.company;
-  const targetUserCompany = targetUserHasCompany ? targetUser.company.toHexString() : null;
-  const sameCompany = targetUserHasCompany && loggedUserCompany === targetUserCompany;
+  const sameCompany = !!targetUser.company &&
+    UtilsHelper.areObjectIdsEquals(get(credentials, 'company._id'), targetUser.company);
 
-  return loggedUserhasVendorRole || sameCompany || !targetUserHasCompany
+  return loggedUserhasVendorRole || sameCompany || !targetUser.company
     ? { exists: !!targetUser, user: pick(targetUser, ['role', '_id', 'company']) }
     : { exists: !!targetUser, user: {} };
 };
@@ -168,7 +169,7 @@ exports.createAndSaveFile = async (params, payload) => {
 
 const createUserCompany = async (payload, company) => {
   const user = await User.create({ ...payload, company });
-  await UserCompany.create({ user: user._id, company });
+  await UserCompaniesHelper.create(user._id, company);
 
   return user;
 };
@@ -206,6 +207,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true, autopopulate: true });
 };
 
@@ -231,6 +233,7 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
   const payload = await formatUpdatePayload(userPayload);
 
   if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
+  if (userPayload.company) await UserCompaniesHelper.create(userId, userPayload.company);
 
   if (userPayload.sector) {
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);

@@ -529,7 +529,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
         method: 'PUT',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
         payload: { text: '', correct: true },
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(400);
@@ -557,7 +557,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
         method: 'PUT',
         url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
         payload: { correct: null, text: 'Avery' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(400);

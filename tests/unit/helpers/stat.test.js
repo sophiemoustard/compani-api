@@ -138,38 +138,47 @@ describe('getCustomerFundingsMonitoring', () => {
     const eventsGroupedByFundings = [{
       thirdPartyPayer: { name: 'Tiers payeur' },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: moment().startOf('month'),
+      startDate: moment().startOf('month').toDate(),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
-          startDate: moment().startOf('month').hours(14),
-          endDate: moment().startOf('month').hours(16),
+          type: 'intervention',
+          startDate: moment()
+            .startOf('month')
+            .add(2, 'd')
+            .hours(14)
+            .toDate(),
+          endDate: moment()
+            .startOf('month')
+            .add(2, 'd')
+            .hours(16)
+            .toDate(),
         },
         {
-          startDate: moment().startOf('month').add(1, 'd').hours(11),
-          endDate: moment().startOf('month').add(1, 'd').hours(15),
+          type: 'intervention',
+          startDate: moment().startOf('month').hours(11).toDate(),
+          endDate: moment().startOf('month').hours(15).toDate(),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().startOf('month').subtract(1, 'month').hours(10),
-          endDate: moment().startOf('month').subtract(1, 'month').hours(12),
+          startDate: moment().subtract(1, 'M').hours(10).toDate(),
+          endDate: moment().subtract(1, 'M').hours(12).toDate(),
         },
         {
           type: 'intervention',
           startDate: moment()
+            .subtract(1, 'M')
             .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(9),
-          endDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
             .hours(10)
-            .minutes(30),
+            .toDate(),
+          endDate: moment()
+            .subtract(1, 'M')
+            .startOf('month')
+            .hours(12)
+            .toDate(),
         },
       ],
     }];

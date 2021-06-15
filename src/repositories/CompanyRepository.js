@@ -8,14 +8,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
   const aggregateHourlySubscriptions = [
     { $match: { _id: new ObjectID(customerId) } },
     { $unwind: { path: '$subscriptions' } },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'subscriptions.service',
-        foreignField: '_id',
-        as: 'service',
-      },
-    },
+    { $lookup: { from: 'services', localField: 'subscriptions.service', foreignField: '_id', as: 'service' } },
     { $unwind: { path: '$service' } },
     { $match: { 'service.nature': 'hourly' } },
     { $project: { subscriptionId: '$subscriptions._id' } },
@@ -99,23 +92,9 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
       },
     },
     { $unwind: { path: '$sector' } },
-    {
-      $lookup: {
-        from: 'roles',
-        localField: 'role.client',
-        foreignField: '_id',
-        as: 'role.client',
-      },
-    },
+    { $lookup: { from: 'roles', localField: 'role.client', foreignField: '_id', as: 'role.client' } },
     { $unwind: { path: '$role.client' } },
-    {
-      $lookup: {
-        from: 'contracts',
-        localField: 'contracts',
-        foreignField: '_id',
-        as: 'contracts',
-      },
-    },
+    { $lookup: { from: 'contracts', localField: 'contracts', foreignField: '_id', as: 'contracts' } },
   ];
 
   const pickFields = [{
