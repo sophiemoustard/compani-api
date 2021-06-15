@@ -242,6 +242,9 @@ const userFromOtherCompany = {
 
 const userCompanies = [
   { user: contractUsers[0]._id, company: authCompany._id },
+  { user: contractUsers[1]._id, company: authCompany._id },
+  { user: contractUsers[2]._id, company: authCompany._id },
+  { user: contractUsers[3]._id, company: authCompany._id },
   { user: getUser('auxiliary_without_company')._id, company: authCompany._id },
 ];
 

@@ -55,7 +55,7 @@ describe('GET /contracts', () => {
   });
 
   it('should get my contracts if I am an auxiliary without company', async () => {
-    const userId = userCompanies[1].user;
+    const userId = userCompanies[4].user;
     authToken = await getToken('auxiliary_without_company');
     const response = await app.inject({
       method: 'GET',
@@ -190,7 +190,7 @@ describe('POST /contracts', () => {
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
-    expect(response.statusCode).toBe(403);
+    expect(response.statusCode).toBe(404);
   });
 
   const missingParams = [
