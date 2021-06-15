@@ -8,7 +8,7 @@ exports.authorizePayCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const ids = req.payload.map(pay => pay.auxiliary);
   const usersCount = await UserCompany.countDocuments({ company: companyId, user: { $in: ids } });
-  if (usersCount !== ids.length) throw Boom.forbidden();
+  if (usersCount !== ids.length) throw Boom.notFound();
 
   return null;
 };
