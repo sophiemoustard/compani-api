@@ -9,6 +9,7 @@ const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const FinalPay = require('../../../src/models/FinalPay');
+const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
 
@@ -56,6 +57,11 @@ const auxiliaryFromOtherCompany = {
   company: otherCompany._id,
   origin: WEBAPP,
 };
+
+const userCompanyList = [
+  { user: auxiliaryId, company: authCompany._id },
+  { user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
+];
 
 const contract = {
   createdAt: '2018-12-04T16:34:04',
@@ -167,6 +173,7 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await SectorHistory.deleteMany({});
   await FinalPay.deleteMany({});
+  await UserCompany.deleteMany({});
 
   await populateDBForAuthentication();
   await (new Sector(sector)).save();
@@ -176,6 +183,7 @@ const populateDB = async () => {
   await (new Service(service)).save();
   await (new Event(event)).save();
   await (new Contract(contract)).save();
+  await UserCompany.insertMany(userCompanyList);
 };
 
 module.exports = { populateDB, auxiliary, auxiliaryFromOtherCompany };
