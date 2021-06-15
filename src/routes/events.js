@@ -245,10 +245,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getEvent, assign: 'event' },
-          { method: authorizeEventDeletion },
-        ],
+        pre: [{ method: authorizeEventDeletion, assign: 'event' }],
       },
       handler: removeRepetition,
     });

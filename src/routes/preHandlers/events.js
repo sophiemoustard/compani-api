@@ -105,7 +105,7 @@ exports.authorizeEventDeletion = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (!UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
 
-  return null;
+  return event;
 };
 
 exports.authorizeEventCreation = async (req) => {
