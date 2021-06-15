@@ -539,6 +539,7 @@ describe('updateCustomer', () => {
   let findRepetition;
   let findOneUser;
   let createRepetitionsEveryDay;
+  let createRepetitionsEveryWeekDay;
   let nowStub;
   let deleteOneRepetition;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
@@ -553,6 +554,7 @@ describe('updateCustomer', () => {
     findRepetition = sinon.stub(Repetition, 'find');
     findOneUser = sinon.stub(User, 'findOne');
     createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
+    createRepetitionsEveryWeekDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryWeekDay');
     nowStub = sinon.stub(Date, 'now');
     deleteOneRepetition = sinon.stub(Repetition, 'deleteOne');
   });
@@ -567,6 +569,7 @@ describe('updateCustomer', () => {
     findRepetition.restore();
     findOneUser.restore();
     createRepetitionsEveryDay.restore();
+    createRepetitionsEveryWeekDay.restore();
     nowStub.restore();
     deleteOneRepetition.restore();
   });
@@ -837,7 +840,7 @@ describe('updateCustomer', () => {
         _id: new ObjectID(),
         type: 'intervention',
         customer: customerId,
-        frequency: 'every_day',
+        frequency: 'every_week_day',
         parentId: new ObjectID(),
         startDate: '2021-12-25T09:00:00Z',
         endDate: '2021-12-25T10:00:00Z',
@@ -869,15 +872,15 @@ describe('updateCustomer', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    sinon.assert.calledWithExactly(
-      createRepetitionsEveryDay.getCall(0),
+    sinon.assert.calledOnceWithExactly(
+      createRepetitionsEveryDay,
       repetitions[0],
       auxiliary.sector,
       new Date('2021-09-24T16:34:04.144Z'),
       '2022-06-25T16:34:04.144Z'
     );
-    sinon.assert.calledWithExactly(
-      createRepetitionsEveryDay.getCall(1),
+    sinon.assert.calledOnceWithExactly(
+      createRepetitionsEveryWeekDay,
       repetitions[1],
       repetitions[1].sector,
       new Date('2022-03-26T09:00:00.000Z'),

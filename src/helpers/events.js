@@ -504,10 +504,9 @@ exports.getUnassignedHoursBySector = async (query, credentials) => {
 };
 
 const createEventsEveryDayOnCustomerStop = async (repetition, stoppedAt, company, onlyWeekDay = false) => {
-  const lastEventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
-    ? repetition.startDate
-    : Date.now();
-  const lastEventCreatedByRepetition = DatesHelper.addDays(lastEventCreationStartDate, 90);
+  const lastEventCreatedByRepetition = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
+    ? DatesHelper.addDays(repetition.startDate, 90)
+    : DatesHelper.addDays(Date.now(), 90);
 
   const shouldCreateEvents = DatesHelper.isSameOrAfter(stoppedAt, lastEventCreatedByRepetition);
   if (!shouldCreateEvents) return;
