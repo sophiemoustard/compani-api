@@ -1,7 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Contract = require('../../models/Contract');
-const User = require('../../models/User');
 const UserCompany = require('../../models/UserCompany');
 const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
@@ -26,7 +25,7 @@ exports.authorizeContractCreation = async (req) => {
   const { credentials } = req.auth;
   const companyId = credentials.company._id.toHexString();
 
-  const user = await User.countDocuments({ _id: payload.user, company: companyId });
+  const user = await UserCompany.countDocuments({ user: payload.user, company: companyId });
   if (!user) throw Boom.forbidden();
 
   return null;
