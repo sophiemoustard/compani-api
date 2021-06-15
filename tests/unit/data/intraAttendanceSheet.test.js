@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
-const InterAttendanceSheet = require('../../../src/data/interAttendanceSheet');
+const IntraAttendanceSheet = require('../../../src/data/intraAttendanceSheet');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -22,56 +22,46 @@ describe('getPdfContent', () => {
       'src/data/tmp/signature.png',
     ];
     const course = {
-      name: 'Formation Test',
-      slots: [
-        {
-          address: '24 Avenue Daumesnil 75012 Paris',
-          date: '16/09/2021',
-          startHour: '10:00',
-          endHour: '13:00',
-          duration: '3h',
-        },
-        {
-          address: '24 Avenue Daumesnil 75012 Paris',
-          date: '16/09/2021',
-          startHour: '14:00',
-          endHour: '18:00',
-          duration: '4h',
-        },
-      ],
-      trainer: 'Anne ONYME',
-      firstDate: '16/09/2021',
-      lastDate: '28/01/2022',
-      duration: '56h',
+      name: 'La communication empathique - Groupe 3',
+      duration: '5h',
+      company: 'Alenvi Home SAS',
+      trainer: 'Anne Onyme',
     };
     const data = {
-      trainees: [
-        { traineeName: 'Alain TÉRIEUR', company: 'Alenvi Home SAS', course },
-        { traineeName: 'Alex TÉRIEUR', company: 'APEF Rouen', course },
+      dates: [
+        {
+          course,
+          address: 'Rue Jean Jaurès 59620 Aulnoye-Aymeries',
+          slots: [{ startHour: '09h30', endHour: '12h' }],
+          date: '05/03/2020',
+        },
+        {
+          course,
+          address: '2 Place de la Concorde 59600 Maubeuge',
+          slots: [{ startHour: '09h30', endHour: '12h' }],
+          date: '08/09/2020',
+        },
       ],
     };
     const table = {
       body: [
-        [
-          { text: 'Créneaux', style: 'header' },
-          { text: 'Durée', style: 'header' },
-          { text: 'Signature stagiaire', style: 'header' },
-          { text: 'Signature formateur', style: 'header' },
-        ],
-        [
-          { stack: [{ text: '16/09/2021' }, { text: '24 Avenue Daumesnil 75012 Paris', fontSize: 8 }] },
-          { stack: [{ text: '3h' }, { text: '10:00 - 13:00', fontSize: 8 }] },
-          { text: '' },
-          { text: '' },
-        ],
-        [
-          { stack: [{ text: '16/09/2021' }, { text: '24 Avenue Daumesnil 75012 Paris', fontSize: 8 }] },
-          { stack: [{ text: '4h' }, { text: '14:00 - 18:00', fontSize: 8 }] },
-          { text: '' },
-          { text: '' },
-        ],
+        [{ text: 'Prénom NOM', style: 'header' }, { text: '09h30 - 12h', style: 'header' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: '' }, { text: '' }],
+        [{ text: 'Signature du formateur', italics: true, margin: [0, 10, 0, 0] }, { text: '' }],
       ],
-      widths: ['auto', 'auto', '*', '*'],
+      widths: ['*', '*'],
+      heights: ['auto', 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
     };
     const pdf = {
       content: [
@@ -80,7 +70,7 @@ describe('getPdfContent', () => {
             { image: paths[0], width: 64 },
             [
               { image: paths[1], width: 132, height: 28, alignment: 'right' },
-              { text: 'Émargements - Alain TÉRIEUR', style: 'title' },
+              { text: 'Feuille d\'émargement - 05/03/2020', style: 'title' },
             ],
           ],
           marginBottom: 20,
@@ -92,11 +82,11 @@ describe('getPdfContent', () => {
         {
           columns: [
             [
-              { text: 'Nom de la formation : Formation Test', bold: true },
-              { text: 'Dates : du 16/09/2021 au 28/01/2022' },
-              { text: 'Durée : 56h' },
+              { text: 'Nom de la formation : La communication empathique - Groupe 3', bold: true },
+              { text: 'Durée : 5h' },
+              { text: 'Lieu : Rue Jean Jaurès 59620 Aulnoye-Aymeries' },
               { text: 'Structure : Alenvi Home SAS' },
-              { text: 'Formateur : Anne ONYME' },
+              { text: 'Intervenant : Anne Onyme' },
             ],
             { image: paths[2], width: 64 },
           ],
@@ -104,10 +94,10 @@ describe('getPdfContent', () => {
         },
         { table, marginBottom: 8 },
         { columns: [
-          { text: 'Signature et tampon de l\'organisme de formation :' },
+          { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
           {
             image: paths[3],
-            width: 100,
+            width: 80,
             pageBreak: 'after',
             marginTop: 8,
             alignment: 'right',
@@ -118,7 +108,7 @@ describe('getPdfContent', () => {
             { image: paths[0], width: 64 },
             [
               { image: paths[1], width: 132, height: 28, alignment: 'right' },
-              { text: 'Émargements - Alex TÉRIEUR', style: 'title' },
+              { text: 'Feuille d\'émargement - 08/09/2020', style: 'title' },
             ],
           ],
           marginBottom: 20,
@@ -130,11 +120,11 @@ describe('getPdfContent', () => {
         {
           columns: [
             [
-              { text: 'Nom de la formation : Formation Test', bold: true },
-              { text: 'Dates : du 16/09/2021 au 28/01/2022' },
-              { text: 'Durée : 56h' },
-              { text: 'Structure : APEF Rouen' },
-              { text: 'Formateur : Anne ONYME' },
+              { text: 'Nom de la formation : La communication empathique - Groupe 3', bold: true },
+              { text: 'Durée : 5h' },
+              { text: 'Lieu : 2 Place de la Concorde 59600 Maubeuge' },
+              { text: 'Structure : Alenvi Home SAS' },
+              { text: 'Intervenant : Anne Onyme' },
             ],
             { image: paths[2], width: 64 },
           ],
@@ -142,10 +132,10 @@ describe('getPdfContent', () => {
         },
         { table, marginBottom: 8 },
         { columns: [
-          { text: 'Signature et tampon de l\'organisme de formation :' },
+          { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
           {
             image: paths[3],
-            width: 100,
+            width: 80,
             pageBreak: 'none',
             marginTop: 8,
             alignment: 'right',
@@ -178,7 +168,7 @@ describe('getPdfContent', () => {
 
     downloadImages.returns(paths);
 
-    const result = await InterAttendanceSheet.getPdfContent(data);
+    const result = await IntraAttendanceSheet.getPdfContent(data);
 
     expect(result).toMatchObject(pdf);
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);

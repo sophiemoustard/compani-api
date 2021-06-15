@@ -1,12 +1,5 @@
 const FileHelper = require('../helpers/file');
 
-const getSlotTableContent = slot => [
-  { stack: [{ text: `${slot.date}` }, { text: `${slot.address}`, fontSize: 8 }] },
-  { stack: [{ text: `${slot.duration}` }, { text: `${slot.startHour} - ${slot.endHour}`, fontSize: 8 }] },
-  { text: '' },
-  { text: '' },
-];
-
 const getImages = async () => {
   const imageList = [
     { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
@@ -19,18 +12,18 @@ const getImages = async () => {
 };
 
 exports.getPdfContent = async (data) => {
-  const { trainees } = data;
+  const { dates } = data;
   const [conscience, compani, decision, signature] = await getImages();
 
   const content = [];
-  trainees.forEach((trainee, i) => {
+  dates.forEach((date, i) => {
     const header = [
       {
         columns: [
           { image: conscience, width: 64 },
           [
             { image: compani, width: 132, height: 28, alignment: 'right' },
-            { text: `Émargements - ${trainee.traineeName}`, style: 'title' },
+            { text: `Feuille d'émargement - ${date.date}`, style: 'title' },
           ],
         ],
         marginBottom: 20,
@@ -42,11 +35,11 @@ exports.getPdfContent = async (data) => {
       {
         columns: [
           [
-            { text: `Nom de la formation : ${trainee.course.name}`, bold: true },
-            { text: `Dates : du ${trainee.course.firstDate} au ${trainee.course.lastDate}` },
-            { text: `Durée : ${trainee.course.duration}` },
-            { text: `Structure : ${trainee.company}` },
-            { text: `Formateur : ${trainee.course.trainer}` },
+            { text: `Nom de la formation : ${date.course.name}`, bold: true },
+            { text: `Durée : ${date.course.duration}` },
+            { text: `Lieu : ${date.address}` },
+            { text: `Structure : ${date.course.company}` },
+            { text: `Intervenant : ${date.course.trainer}` },
           ],
           { image: decision, width: 64 },
         ],
@@ -54,24 +47,28 @@ exports.getPdfContent = async (data) => {
       },
     ];
 
-    const body = [
-      [
-        { text: 'Créneaux', style: 'header' },
-        { text: 'Durée', style: 'header' },
-        { text: 'Signature stagiaire', style: 'header' },
-        { text: 'Signature formateur', style: 'header' },
-      ],
-    ];
-    trainee.course.slots.forEach((slot) => { body.push(getSlotTableContent(slot)); });
-
-    const table = [{ table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 8 }];
+    const body = [[{ text: 'Prénom NOM', style: 'header' }]];
+    date.slots.forEach(slot => body[0].push({ text: `${slot.startHour} - ${slot.endHour}`, style: 'header' }));
+    for (let j = 1; j <= 13; j++) {
+      body.push([]);
+      for (let k = 0; k <= date.slots.length; k++) {
+        if (j === 13 && k === 0) body[j].push({ text: 'Signature du formateur', italics: true, margin: [0, 10, 0, 0] });
+        else body[j].push({ text: '' });
+      }
+    }
+    const heights = Array(14).fill(30);
+    heights[0] = 'auto';
+    const table = [{
+      table: { body, widths: Array(body[0].length).fill('*'), heights },
+      marginBottom: 8,
+    }];
 
     const footer = [{ columns: [
-      { text: 'Signature et tampon de l\'organisme de formation :' },
+      { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
       {
         image: signature,
-        width: 100,
-        pageBreak: i === trainees.length - 1 ? 'none' : 'after',
+        width: 80,
+        pageBreak: i === dates.length - 1 ? 'none' : 'after',
         marginTop: 8,
         alignment: 'right',
       },
