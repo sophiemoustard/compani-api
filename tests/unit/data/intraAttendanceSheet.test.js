@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
-const IntraAttendanceSheet = require('../../../src/data/pdf/intraAttendanceSheet');
+const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -58,7 +58,7 @@ describe('getPdfContent', () => {
         [{ text: '' }, { text: '' }],
         [{ text: '' }, { text: '' }],
         [{ text: '' }, { text: '' }],
-        [{ text: 'Signature du formateur', italics: true, margin: [0, 10, 0, 0] }, { text: '' }],
+        [{ text: 'Signature du formateur', italics: true, margin: [0, 8, 0, 0] }, { text: '' }],
       ],
       widths: ['*', '*'],
       heights: ['auto', 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],

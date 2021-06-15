@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
-const InterAttendanceSheet = require('../../../src/data/pdf/interAttendanceSheet');
+const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/interAttendanceSheet');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -105,7 +105,7 @@ describe('getPdfContent', () => {
         { table, marginBottom: 8 },
         {
           columns: [
-            { text: 'Signature et tampon de l\'organisme de formation :' },
+            { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
             {
               image: paths[3],
               width: 96,
@@ -145,7 +145,7 @@ describe('getPdfContent', () => {
         { table, marginBottom: 8 },
         {
           columns: [
-            { text: 'Signature et tampon de l\'organisme de formation :' },
+            { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
             {
               image: paths[3],
               width: 96,

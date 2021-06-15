@@ -24,8 +24,8 @@ const { COURSE_SMS, BLENDED, DRAFT, TRAINEE, E_LEARNING, ON_SITE, WEBAPP } = req
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
-const InterAttendanceSheet = require('../../../src/data/pdf/interAttendanceSheet');
-const IntraAttendanceSheet = require('../../../src/data/pdf/intraAttendanceSheet');
+const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/interAttendanceSheet');
+const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');
 
 describe('createCourse', () => {
   let save;

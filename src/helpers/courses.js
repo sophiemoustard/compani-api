@@ -23,8 +23,8 @@ const drive = require('../models/Google/Drive');
 const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT, TRAINEE } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
-const InterAttendanceSheet = require('../data/pdf/interAttendanceSheet');
-const IntraAttendanceSheet = require('../data/pdf/intraAttendanceSheet');
+const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
+const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
