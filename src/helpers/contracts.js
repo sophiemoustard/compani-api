@@ -13,6 +13,7 @@ const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const ContractNumber = require('../models/ContractNumber');
+const EventHistory = require('../models/EventHistory');
 const EventHelper = require('./events');
 const ReferentHistoryHelper = require('./referentHistories');
 const UtilsHelper = require('./utils');
@@ -124,9 +125,8 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const lastVersion = contract.versions[contract.versions.length - 1];
-  if (moment(contractToEnd.endDate).isBefore(lastVersion.startDate, 'd')) {
-    throw Boom.conflict('End date is before last version start date');
-  }
+
+  await canEndContract(contract, lastVersion, contractToEnd);
 
   const set = {
     endDate: contractToEnd.endDate,
@@ -153,6 +153,26 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   await SectorHistoryHelper.updateEndDate(updatedContract.user._id, updatedContract.endDate);
 
   return updatedContract;
+};
+
+const canEndContract = async (contract, lastVersion, contractToEnd) => {
+  const eventHistories = await EventHistory.countDocuments({
+    'event.auxiliary': contract.user,
+    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+    $or: [
+      { 'update.startHour.to': { $gte: contractToEnd.endDate } },
+      { 'update.endHour.to': { $gte: contractToEnd.endDate } },
+    ],
+  });
+
+  if (eventHistories) {
+    throw Boom.forbidden(
+      'Vous ne pouvez pas arrêter un contrat si des évènements sont horodatés après la date d\'arrêt'
+    );
+  }
+  if (DatesHelper.isBefore(contractToEnd.endDate, lastVersion.startDate)) {
+    throw Boom.conflict('End date is before last version start date');
+  }
 };
 
 exports.canCreateVersion = async (contract, versionPayload, companyId) =>
