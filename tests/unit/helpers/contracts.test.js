@@ -16,6 +16,7 @@ const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
+const EventHistory = require('../../../src/models/EventHistory');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const SinonMongoose = require('../sinonMongoose');
@@ -444,8 +445,10 @@ describe('endContract', () => {
   let updateAbsencesOnContractEnd;
   let unassignReferentOnContractEnd;
   let updateEndDateStub;
+  let countDocumentHistories;
   beforeEach(() => {
     findOneContract = sinon.stub(Contract, 'findOne');
+    countDocumentHistories = sinon.stub(EventHistory, 'countDocuments');
     findOneAndUpdateContract = sinon.stub(Contract, 'findOneAndUpdate');
     updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
     removeRepetitionsOnContractEnd = sinon.stub(EventHelper, 'removeRepetitionsOnContractEnd');
@@ -465,6 +468,7 @@ describe('endContract', () => {
     removeRepetitionsOnContractEnd.restore();
     unassignInterventionsOnContractEnd.restore();
     removeEventsExceptInterventionsOnContractEnd.restore();
+    countDocumentHistories.restore();
     updateAbsencesOnContractEnd.restore();
     unassignReferentOnContractEnd.restore();
     updateEndDateStub.restore();
@@ -536,6 +540,24 @@ describe('endContract', () => {
           }],
         },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      countDocumentHistories,
+      [
+        {
+          query: 'countDocuments',
+          args: [
+            {
+              'event.auxiliary': contract.user,
+              action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+              $or: [
+                { 'update.startHour.to': { $gte: payload.endDate } },
+                { 'update.endHour.to': { $gte: payload.endDate } },
+              ],
+            },
+          ],
+        },
       ]
     );
   });
