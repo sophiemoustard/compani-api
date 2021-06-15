@@ -26,7 +26,7 @@ exports.authorizeContractCreation = async (req) => {
   const companyId = credentials.company._id.toHexString();
 
   const user = await UserCompany.countDocuments({ user: payload.user, company: companyId });
-  if (!user) throw Boom.forbidden();
+  if (!user) throw Boom.notFound();
 
   return null;
 };
@@ -54,7 +54,7 @@ exports.authorizeGetContract = async (req) => {
 
 exports.authorizeUpload = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findOne({ _id: req.payload.customer, company: companyId }).lean();
+  const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
   if (req.payload.customer && !customer) throw Boom.forbidden();
   return null;
 };
