@@ -74,7 +74,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if trainee is not part of the company', async () => {
+    it('should return 404 if trainee is not part of the company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/attendances',
@@ -82,7 +82,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
         payload: { trainee: companyTraineesList[1]._id, courseSlot: slotsList[0]._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 409 if trainee and courseSlot are already added', async () => {

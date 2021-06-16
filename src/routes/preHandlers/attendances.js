@@ -4,7 +4,7 @@ const CourseSlot = require('../../models/CourseSlot');
 const Attendance = require('../../models/Attendance');
 const { TRAINER, INTRA, INTER_B2B } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
-const User = require('../../models/User');
+const UserCompany = require('../../models/UserCompany');
 
 const isTrainerAuthorized = (loggedUserId, trainer) => {
   if (!UtilsHelper.areObjectIdsEquals(loggedUserId, trainer)) throw Boom.forbidden();
@@ -69,8 +69,11 @@ exports.authorizeAttendanceCreation = async (req) => {
   if (course.type === INTRA) {
     if (!course.company) throw Boom.badData();
 
-    const doesTraineeBelongToCompany = await User.countDocuments({ _id: req.payload.trainee, company: course.company });
-    if (!doesTraineeBelongToCompany) throw Boom.forbidden();
+    const doesTraineeBelongToCompany = await UserCompany.countDocuments({
+      user: req.payload.trainee,
+      company: course.company,
+    });
+    if (!doesTraineeBelongToCompany) throw Boom.notFound();
   }
 
   return null;
