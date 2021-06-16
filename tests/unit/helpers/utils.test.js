@@ -12,12 +12,8 @@ describe('getLastVersion', () => {
     const versions = [
       { startDate: moment().toISOString(), createdAt: moment().toISOString(), _id: 1 },
       {
-        startDate: moment()
-          .add(1, 'd')
-          .toISOString(),
-        createdAt: moment()
-          .subtract(1, 'd')
-          .toISOString(),
+        startDate: moment().add(1, 'd').toISOString(),
+        createdAt: moment().subtract(1, 'd').toISOString(),
         _id: 2,
       },
     ];
@@ -85,12 +81,7 @@ describe('getMatchingVersion', () => {
     const obj = {
       versions: [
         { startDate: moment().toISOString(), _id: 1 },
-        {
-          startDate: moment()
-            .add(2, 'd')
-            .toISOString(),
-          _id: 2,
-        },
+        { startDate: moment().add(2, 'd').toISOString(), _id: 2 },
       ],
     };
 
@@ -116,23 +107,43 @@ describe('getMatchingVersion', () => {
   it('should return null if no matching version', () => {
     const obj = {
       versions: [
-        {
-          startDate: moment().toISOString(),
-          endDate: moment()
-            .add(5, 'h')
-            .toISOString(),
-          _id: 1,
-        },
-        {
-          startDate: moment()
-            .add(3, 'd')
-            .toISOString(),
-          _id: 2,
-        },
+        { startDate: moment().toISOString(), endDate: moment().add(5, 'h').toISOString(), _id: 1 },
+        { startDate: moment().add(3, 'd').toISOString(), _id: 2 },
       ],
     };
 
     expect(UtilsHelper.getMatchingVersion(moment().add(2, 'd').toISOString(), obj, 'startDate')).toBeNull();
+  });
+});
+
+describe('getMatchingObject', () => {
+  it('should throw an error if list is not an array', () => {
+    expect(() => UtilsHelper.getMatchingObject(new Date(), { versions: 'lala' }, 'startDate'))
+      .toThrow(new Error('List must be an array !'));
+  });
+
+  it('should return null if versions is empty', () => {
+    expect(UtilsHelper.getMatchingObject(new Date(), [], 'startDate')).toBeNull();
+  });
+
+  it('should return the matching object', () => {
+    const obj = [
+      { startDate: '2021-09-12T00:00:00', _id: 1 },
+      { startDate: '2021-10-12T00:00:00', _id: 2 },
+    ];
+
+    const result = UtilsHelper.getMatchingObject('2021-09-21T00:00:00', obj, 'startDate');
+    expect(result).toBeDefined();
+    expect(result._id).toEqual(1);
+  });
+
+  it('should return null if no matching version', () => {
+    const obj = [
+      { startDate: '2021-09-12T00:00:00', endDate: '2021-09-13T00:00:00', _id: 1 },
+      { startDate: '2021-10-12T00:00:00', _id: 2 },
+    ];
+
+    expect(UtilsHelper.getMatchingObject('2021-09-21T00:00:00', obj, 'startDate')).toBeNull();
   });
 });
 

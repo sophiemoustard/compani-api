@@ -26,7 +26,7 @@ describe('formatEvents', () => {
     });
   });
 
-  it('should format event histories', () => {
+  it('should format event subscription', () => {
     const subId = new ObjectID();
     const otherSubId = new ObjectID();
     const event = {

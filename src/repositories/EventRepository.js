@@ -6,7 +6,6 @@ const groupBy = require('lodash/groupBy');
 const { cloneDeep } = require('lodash');
 const Event = require('../models/Event');
 const UtilsHelper = require('../helpers/utils');
-const DatesHelper = require('../helpers/dates');
 const SectorHistory = require('../models/SectorHistory');
 const {
   INTERNAL_HOUR,
@@ -25,7 +24,7 @@ exports.formatEvent = (event) => {
   if (auxiliary) {
     formattedEvent.auxiliary = {
       ...omit(auxiliary, 'sectorHistories'),
-      sector: auxiliary.sectorHistories.filter(h => DatesHelper.isBefore(h.startDate, event.startDate))[0],
+      sector: UtilsHelper.getMatchingObject(event.startDate, auxiliary.sectorHistories, 'startDate'),
     };
   }
 
@@ -37,13 +36,12 @@ exports.formatEvent = (event) => {
 };
 
 exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
-  const events = await Event
-    .find(rules, {})
+  const events = await Event.find(rules)
     .populate({
       path: 'auxiliary',
       match: { company: companyId },
       populate: { path: 'sectorHistories', match: { company: companyId } },
-      select: 'identity administrative.driveFolder: administrative.transportInvoice company picture sectorHistories',
+      select: 'identity administrative.driveFolder company picture sectorHistories',
     })
     .populate({
       path: 'customer',

@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
 const { CIVILITY_LIST } = require('./constants');
+const DatesHelper = require('./dates');
 
 exports.getLastVersion = (versions, dateKey) => {
   if (!Array.isArray(versions)) throw new Error('versions must be an array !');
@@ -36,6 +37,18 @@ exports.getMatchingVersion = (date, obj, dateKey) => {
     ...omit(matchingVersion, ['_id', 'createdAt']),
     versionId: matchingVersion._id,
   };
+};
+
+exports.getMatchingObject = (date, list, dateKey) => {
+  if (!Array.isArray(list)) throw new Error('List must be an array !');
+  if (list.length === 0) return null;
+
+  const filteredAndSortedList = list
+    .filter(h => DatesHelper.isBefore(h.startDate, date) && (!h.endDate || DatesHelper.isSameOrAfter(h.endDate, date)))
+    .sort(DatesHelper.descendingSort(dateKey));
+  if (!filteredAndSortedList.length) return null;
+
+  return filteredAndSortedList[0];
 };
 
 exports.getDateQuery = (dates) => {
