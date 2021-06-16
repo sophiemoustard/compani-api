@@ -170,8 +170,8 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const finalPayList = await FinalPay.find({ company: authCompany._id }).lean();
-      expect(finalPayList.length).toEqual(1);
+      const finalPayList = await FinalPay.countDocuments({ company: authCompany._id });
+      expect(finalPayList).toEqual(1);
     });
 
     it('should not create a new final pay if user is not from the same company', async () => {
@@ -182,7 +182,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
         payload: [{ ...payload[0], auxiliary: auxiliaryFromOtherCompany._id }],
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     Object.keys(payload[0]).forEach((key) => {
