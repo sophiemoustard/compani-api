@@ -27,9 +27,9 @@ exports.getMatchingVersion = (date, obj, dateKey) => {
   if (obj.versions.length === 0) return null;
 
   const matchingVersion = [...obj.versions]
-    .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') &&
-      (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))
-    .sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
+    .filter(ver => DatesHelper.isSameOrBefore(ver.startDate, date, 'd') &&
+      (!ver.endDate || DatesHelper.isSameOrAfter(ver.endDate, date, 'd')))
+    .sort(DatesHelper.descendingSort(dateKey))[0];
   if (!matchingVersion) return null;
 
   return {
@@ -44,7 +44,8 @@ exports.getMatchingObject = (date, list, dateKey) => {
   if (list.length === 0) return null;
 
   const filteredAndSortedList = list
-    .filter(h => DatesHelper.isBefore(h.startDate, date) && (!h.endDate || DatesHelper.isSameOrAfter(h.endDate, date)))
+    .filter(h => DatesHelper.isBefore(h.startDate, date, 'd') &&
+      (!h.endDate || DatesHelper.isSameOrAfter(h.endDate, date, 'd')))
     .sort(DatesHelper.descendingSort(dateKey));
   if (!filteredAndSortedList.length) return null;
 

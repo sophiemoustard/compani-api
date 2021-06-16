@@ -10,12 +10,8 @@ const UtilsHelper = require('../../../src/helpers/utils');
 describe('getLastVersion', () => {
   it('should return the last version based on the date key', () => {
     const versions = [
-      { startDate: moment().toISOString(), createdAt: moment().toISOString(), _id: 1 },
-      {
-        startDate: moment().add(1, 'd').toISOString(),
-        createdAt: moment().subtract(1, 'd').toISOString(),
-        _id: 2,
-      },
+      { startDate: '2021-09-21T00:00:00', createdAt: '2021-09-21T00:00:00', _id: 1 },
+      { startDate: '2021-09-24T00:00:00', createdAt: '2021-09-18T00:00:00', _id: 2 },
     ];
 
     expect(UtilsHelper.getLastVersion(versions, 'startDate')).toBeDefined();
@@ -38,54 +34,63 @@ describe('getLastVersion', () => {
   });
 
   it('should return the single element is versions only contains one element', () => {
-    const versions = [{ startDate: moment().toISOString(), createdAt: moment().toISOString(), _id: 1 }];
+    const versions = [{ startDate: '2021-09-21T00:00:00', createdAt: '2021-09-21T00:00:00', _id: 1 }];
 
     const result = UtilsHelper.getLastVersion(versions, 'startDate');
+
     expect(result).toBeDefined();
     expect(result._id).toEqual(1);
   });
 });
 
 describe('mergeLastVersionWithBaseObject', () => {
-  it('should merge last version of given object with that same object', () => {
-    const baseObj = { tpp: '123456', frequency: 'once', versions: [{ createdAt: moment().toISOString() }] };
-    const getLastVersionStub = sinon.stub(UtilsHelper, 'getLastVersion');
+  let getLastVersion;
+  beforeEach(() => {
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
+  });
+  afterEach(() => {
+    getLastVersion.restore();
+  });
 
-    getLastVersionStub.returns(baseObj.versions[0]);
+  it('should merge last version of given object with that same object', () => {
+    const baseObj = { tpp: '123456', frequency: 'once', versions: [{ createdAt: '2021-09-21T00:00:00' }] };
+
+    getLastVersion.returns(baseObj.versions[0]);
+
     const result = UtilsHelper.mergeLastVersionWithBaseObject(baseObj, 'createdAt');
+
     expect(result).toEqual(expect.objectContaining({ ...baseObj.versions[0], ...omit(baseObj, ['versions']) }));
-    sinon.assert.called(getLastVersionStub);
-    getLastVersionStub.restore();
+    sinon.assert.calledWithExactly(getLastVersion, baseObj.versions, 'createdAt');
   });
 
   it('should throw an error if last version cannot be found', () => {
-    const baseObj = { tpp: '123456', frequency: 'once', versions: [{ createdAt: moment().toISOString() }] };
-    const getLastVersionStub = sinon.stub(UtilsHelper, 'getLastVersion').returns(null);
+    const baseObj = { tpp: '123456', frequency: 'once', versions: [{ createdAt: '2021-09-21T00:00:00' }] };
+    getLastVersion.returns(null);
+
     expect(() => UtilsHelper.mergeLastVersionWithBaseObject(baseObj, 'createdAt'))
       .toThrowError('Unable to find last version from base object !');
-    getLastVersionStub.restore();
   });
 });
 
 describe('getMatchingVersion', () => {
   it('should throw an error if version is not an array', () => {
-    expect(() => UtilsHelper.getMatchingVersion(moment().toISOString(), { versions: 'lala' }, 'startDate'))
+    expect(() => UtilsHelper.getMatchingVersion('2021-09-21T00:00:00', { versions: 'lala' }, 'startDate'))
       .toThrow(new Error('versions must be an array !'));
   });
 
   it('should return null if versions is empty', () => {
-    expect(UtilsHelper.getMatchingVersion(moment().toISOString(), { versions: [] }, 'startDate')).toBeNull();
+    expect(UtilsHelper.getMatchingVersion('2021-09-21T00:00:00', { versions: [] }, 'startDate')).toBeNull();
   });
 
   it('should return the matching version', () => {
     const obj = {
       versions: [
-        { startDate: moment().toISOString(), _id: 1 },
-        { startDate: moment().add(2, 'd').toISOString(), _id: 2 },
+        { startDate: '2021-09-12T00:00:00', _id: 1 },
+        { startDate: '2021-10-21T00:00:00', _id: 2 },
       ],
     };
 
-    const result = UtilsHelper.getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate');
+    const result = UtilsHelper.getMatchingVersion('2021-09-21T00:00:00', obj, 'startDate');
     expect(result).toBeDefined();
     expect(result.versionId).toEqual(1);
   });
@@ -93,13 +98,13 @@ describe('getMatchingVersion', () => {
   it('should return the last matching version', () => {
     const obj = {
       versions: [
-        { startDate: moment().subtract(1, 'd').toISOString(), _id: 1 },
-        { startDate: moment().toISOString(), _id: 3 },
-        { startDate: moment().add(2, 'd').toISOString(), _id: 2 },
+        { startDate: '2021-09-01T00:00:00', _id: 1 },
+        { startDate: '2021-09-12T00:00:00', _id: 3 },
+        { startDate: '2021-10-21T00:00:00', _id: 2 },
       ],
     };
 
-    const result = UtilsHelper.getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate');
+    const result = UtilsHelper.getMatchingVersion('2021-09-21T00:00:00', obj, 'startDate');
     expect(result).toBeDefined();
     expect(result.versionId).toEqual(3);
   });
@@ -107,23 +112,23 @@ describe('getMatchingVersion', () => {
   it('should return null if no matching version', () => {
     const obj = {
       versions: [
-        { startDate: moment().toISOString(), endDate: moment().add(5, 'h').toISOString(), _id: 1 },
-        { startDate: moment().add(3, 'd').toISOString(), _id: 2 },
+        { startDate: '2021-09-12T00:00:00', endDate: '2021-09-13T00:00:00', _id: 1 },
+        { startDate: '2021-10-21T00:00:00', _id: 2 },
       ],
     };
 
-    expect(UtilsHelper.getMatchingVersion(moment().add(2, 'd').toISOString(), obj, 'startDate')).toBeNull();
+    expect(UtilsHelper.getMatchingVersion('2021-09-21T00:00:00', obj, 'startDate')).toBeNull();
   });
 });
 
 describe('getMatchingObject', () => {
   it('should throw an error if list is not an array', () => {
-    expect(() => UtilsHelper.getMatchingObject(new Date(), { versions: 'lala' }, 'startDate'))
+    expect(() => UtilsHelper.getMatchingObject('2021-09-21T00:00:00', { versions: 'lala' }, 'startDate'))
       .toThrow(new Error('List must be an array !'));
   });
 
   it('should return null if versions is empty', () => {
-    expect(UtilsHelper.getMatchingObject(new Date(), [], 'startDate')).toBeNull();
+    expect(UtilsHelper.getMatchingObject('2021-09-21T00:00:00', [], 'startDate')).toBeNull();
   });
 
   it('should return the matching object', () => {
