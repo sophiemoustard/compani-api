@@ -21,7 +21,6 @@ const {
 } = require('./constants');
 const translate = require('./translate');
 const UtilsHelper = require('./utils');
-const DatesHelper = require('./dates');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
@@ -146,9 +145,9 @@ exports.getListQuery = (query, credentials) => {
     rules.push({ customer: { $in: customerCondition } });
   }
 
-  if (startDate) rules.push({ endDate: { $gt: new Date(DatesHelper.getStartOfDay(startDate)) } });
+  if (startDate) rules.push({ endDate: { $gt: moment(startDate).startOf('d').toDate() } });
 
-  if (endDate) rules.push({ startDate: { $lt: new Date(DatesHelper.getEndOfDay(endDate)) } });
+  if (endDate) rules.push({ startDate: { $lt: moment(endDate).endOf('d').toDate() } });
 
   if (Object.keys(query).includes('isCancelled')) rules.push({ isCancelled });
 
