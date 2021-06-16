@@ -158,29 +158,12 @@ const formatPayload = async (customerId, customerPayload, company) => {
   return { $set: flat(customerPayload, { safe: true }) };
 };
 
-const handleCustomerStop = async (customerId, stoppedAt, credentials) => {
-  const { company } = credentials;
-  const timeStampedEventsCount = await EventHistory.countDocuments({
-    'event.customer': customerId,
-    startDate: { $gte: stoppedAt },
-    action: { $in: EventHistory.TIMESTAMPING_ACTIONS },
-  });
-  if (timeStampedEventsCount > 0) throw Boom.conflict();
-
-  await EventsHelper.deleteCustomerEvents(customerId, stoppedAt, null, credentials);
-
-  const remainingRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
-  for (const repetition of remainingRepetitions) {
-    await EventsHelper.createEventsOnCustomerStop(repetition, stoppedAt, company);
-
-    await Repetition.deleteOne({ _id: repetition._id });
-  }
-};
-
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   const { company } = credentials;
 
-  if (customerPayload.stoppedAt) await handleCustomerStop(customerId, customerPayload.stoppedAt, credentials);
+  if (customerPayload.stoppedAt) {
+    await EventsHelper.deleteCustomerEvents(customerId, customerPayload.stoppedAt, null, credentials);
+  }
 
   if (has(customerPayload, 'referent')) {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
