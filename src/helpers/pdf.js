@@ -63,7 +63,13 @@ exports.generatePdf = async (data, templateUrl, options = { format: 'A4', printB
   }
 };
 
-const fonts = { SourceSans: { normal: 'src/data/SourceSansPro-Regular.ttf', bold: 'src/data/SourceSansPro-Bold.ttf' } };
+const fonts = {
+  SourceSans: {
+    normal: 'src/data/pdf/fonts/SourceSansPro-Regular.ttf',
+    bold: 'src/data/pdf/fonts/SourceSansPro-Bold.ttf',
+    italics: 'src/data/pdf/fonts/SourceSansPro-Italic.ttf',
+  },
+};
 
 exports.generatePDF = async (template) => {
   const printer = new PdfPrinter(fonts);
