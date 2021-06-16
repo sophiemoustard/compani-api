@@ -15,6 +15,7 @@ const {
 } = require('../helpers/constants');
 const EventsRepetitionHelper = require('../helpers/eventsRepetition');
 const EmailHelper = require('../helpers/email');
+const DatesHelper = require('../helpers/dates');
 
 const createEventBasedOnRepetition = async (repetition, date) => {
   const { startDate, frequency } = repetition;
@@ -59,6 +60,7 @@ const eventRepetitions = {
       const companyEvents = [];
       const repetitions = await Repetition
         .find({ company: company._id, startDate: { $lt: moment(date).startOf('d').toDate() } })
+        .populate({ path: 'customer', select: 'stoppedAt' })
         .lean();
       if (!repetitions.length) {
         server.log(['cron', 'jobs'], `Event repetitions: No repetitions found for company ${company._id}.`);
@@ -74,9 +76,16 @@ const eventRepetitions = {
         ];
 
       for (const repetition of orderedRepetitions) {
+        const stoppedAt = get(repetition, 'customer.stoppedAt');
+        const newEventStartDate = DatesHelper.addDays(date, 90);
+        const isCustomerStopped = repetition.type === INTERVENTION && DatesHelper.isAfter(newEventStartDate, stoppedAt);
         try {
-          const futureEvent = await createEventBasedOnRepetition(repetition, date);
-          if (futureEvent) companyEvents.push(futureEvent);
+          if (isCustomerStopped) {
+            await Repetition.deleteOne({ _id: repetition._id });
+          } else {
+            const futureEvent = await createEventBasedOnRepetition(repetition, date);
+            if (futureEvent) companyEvents.push(futureEvent);
+          }
         } catch (e) {
           server.log(['error', 'cron', 'jobs'], e);
           errors.push(repetition._id);
