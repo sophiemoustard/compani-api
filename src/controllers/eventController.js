@@ -81,12 +81,9 @@ const remove = async (req) => {
 const removeRepetition = async (req) => {
   try {
     const { auth, pre } = req;
-    const event = await deleteRepetition(pre.event, auth.credentials);
+    await deleteRepetition(pre.event, auth.credentials);
 
-    return {
-      message: translate[language].eventDeleted,
-      data: { event },
-    };
+    return { message: translate[language].eventDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
