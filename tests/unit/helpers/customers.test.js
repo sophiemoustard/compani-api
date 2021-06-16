@@ -528,7 +528,6 @@ describe('updateCustomerEvents', () => {
 });
 
 describe('updateCustomer', () => {
-  let findOneCustomer;
   let findOneAndUpdateCustomer;
   let formatPaymentPayload;
   let updateCustomerEvents;
@@ -538,7 +537,6 @@ describe('updateCustomer', () => {
   let nowStub;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
-    findOneCustomer = sinon.stub(Customer, 'findOne');
     findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
     formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
     updateCustomerEvents = sinon.stub(CustomerHelper, 'updateCustomerEvents');
@@ -548,7 +546,6 @@ describe('updateCustomer', () => {
     nowStub = sinon.stub(Date, 'now');
   });
   afterEach(() => {
-    findOneCustomer.restore();
     findOneAndUpdateCustomer.restore();
     formatPaymentPayload.restore();
     updateCustomerEvents.restore();
@@ -564,20 +561,22 @@ describe('updateCustomer', () => {
 
     const customerResult = { _id: customer._id };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customer._id, payload, credentials);
 
     expect(result).toEqual(customerResult);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
-    sinon.assert.notCalled(findOneAndUpdateCustomer);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.notCalled(findOneUser);
     sinon.assert.calledOnceWithExactly(updateCustomerReferent, customer._id, payload.referent, credentials.company);
     SinonMongoose.calledWithExactly(
-      findOneCustomer,
-      [{ query: 'findOne', args: [{ _id: customer._id }] }, { query: 'lean' }]
+      findOneAndUpdateCustomer,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: customer._id }, { $set: flat({}, { safe: true }) }, { new: true }] },
+        { query: 'lean' },
+      ]
     );
   });
 
@@ -602,7 +601,6 @@ describe('updateCustomer', () => {
     expect(result).toEqual(customerResult);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
-    sinon.assert.notCalled(findOneCustomer);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.notCalled(findOneUser);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
@@ -642,7 +640,6 @@ describe('updateCustomer', () => {
     expect(result).toBe(customerResult);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
-    sinon.assert.notCalled(findOneCustomer);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.notCalled(findOneUser);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
