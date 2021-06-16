@@ -121,6 +121,27 @@ exports.createContract = async (contractPayload, credentials) => {
   return contract;
 };
 
+const canEndContract = async (contract, lastVersion, contractToEnd) => {
+  const eventHistories = await EventHistory.countDocuments({
+    'event.auxiliary': contract.user,
+    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+    $or: [
+      { 'update.startHour.to': { $gte: contractToEnd.endDate } },
+      { 'update.endHour.to': { $gte: contractToEnd.endDate } },
+    ],
+  });
+
+  if (eventHistories) {
+    throw Boom.forbidden(
+      'Vous ne pouvez pas arrêter un contrat si des évènements sont horodatés après la date d\'arrêt'
+    );
+  }
+
+  if (DatesHelper.isBefore(contractToEnd.endDate, lastVersion.startDate)) {
+    throw Boom.conflict('End date is before last version start date');
+  }
+};
+
 exports.endContract = async (contractId, contractToEnd, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const contract = await Contract.findOne({ _id: contractId }).lean();
@@ -153,26 +174,6 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   await SectorHistoryHelper.updateEndDate(updatedContract.user._id, updatedContract.endDate);
 
   return updatedContract;
-};
-
-const canEndContract = async (contract, lastVersion, contractToEnd) => {
-  const eventHistories = await EventHistory.countDocuments({
-    'event.auxiliary': contract.user,
-    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
-    $or: [
-      { 'update.startHour.to': { $gte: contractToEnd.endDate } },
-      { 'update.endHour.to': { $gte: contractToEnd.endDate } },
-    ],
-  });
-
-  if (eventHistories) {
-    throw Boom.forbidden(
-      'Vous ne pouvez pas arrêter un contrat si des évènements sont horodatés après la date d\'arrêt'
-    );
-  }
-  if (DatesHelper.isBefore(contractToEnd.endDate, lastVersion.startDate)) {
-    throw Boom.conflict('End date is before last version start date');
-  }
 };
 
 exports.canCreateVersion = async (contract, versionPayload, companyId) =>

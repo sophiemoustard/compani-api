@@ -562,6 +562,79 @@ describe('endContract', () => {
     );
   });
 
+  it('should throw a 403 error if there is eventHistory after contract end date', async () => {
+    const auxiliaryId = new ObjectID();
+    const companyId = new ObjectID();
+    const credential = { _id: new ObjectID(), company: { _id: companyId } };
+
+    const contract = {
+      _id: new ObjectID(),
+      endDate: null,
+      user: auxiliaryId,
+      startDate: '2018-12-03T23:00:00',
+      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+    };
+
+    const contractToEnd = {
+      endDate: '2018-12-06T23:00:00',
+      endNotificationDate: '2018-12-02T23:00:00',
+      endReason: RESIGNATION,
+      otherMisc: 'test',
+    };
+
+    const updatedContract = {
+      ...contract,
+      ...contractToEnd,
+      user: { _id: auxiliaryId, sector: new ObjectID() },
+      versions: [{ ...contract.versions[0], endDate: contractToEnd.endDate }],
+    };
+
+    try {
+      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+      countDocumentHistories.returns(1);
+
+      await ContractHelper.endContract(contract._id.toHexString(), contractToEnd, credential);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(403);
+    } finally {
+      sinon.assert.notCalled(updateUserInactivityDate);
+      sinon.assert.notCalled(removeRepetitionsOnContractEnd);
+      sinon.assert.notCalled(unassignInterventionsOnContractEnd);
+      sinon.assert.notCalled(unassignReferentOnContractEnd);
+      sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
+      sinon.assert.notCalled(updateAbsencesOnContractEnd);
+      sinon.assert.notCalled(updateEndDateStub);
+      sinon.assert.notCalled(findOneAndUpdateContract);
+      SinonMongoose.calledWithExactly(
+        findOneContract,
+        [
+          { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledWithExactly(
+        countDocumentHistories,
+        [
+          {
+            query: 'countDocuments',
+            args: [
+              {
+                'event.auxiliary': contract.user,
+                action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+                $or: [
+                  { 'update.startHour.to': { $gte: contractToEnd.endDate } },
+                  { 'update.endHour.to': { $gte: contractToEnd.endDate } },
+                ],
+              },
+            ],
+          },
+        ]
+      );
+    }
+  });
+
   it('should throw an error if contract end date is before last version start date', async () => {
     const contractId = new ObjectID();
     const payload = {
@@ -582,6 +655,7 @@ describe('endContract', () => {
       findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
 
       await ContractHelper.endContract(contractId.toHexString(), payload, credentials);
+      expect(true).toBe(false);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
