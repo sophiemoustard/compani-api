@@ -87,6 +87,7 @@ module.exports = {
     contractAdded: 'Contract added.',
     contractRemoved: 'Contract removed.',
     staffRegisteredFound: 'Staff Registered Found.',
+    contractHasTimeStampedEventAfterEndDate: 'There are time stamped events after the end date of the contract.',
     /* Contracts amendments */
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',
@@ -413,6 +414,7 @@ module.exports = {
     contractAdded: 'Contrat ajouté.',
     contractRemoved: 'Contrat supprimé.',
     staffRegisteredFound: 'Registre Unique du personnel récuperé.',
+    contractHasTimeStampedEventAfterEndDate: 'Il y a des évènements horodatés après la date de fin du contrat.',
     /* Contracts amendments */
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',

@@ -562,7 +562,7 @@ describe('endContract', () => {
     );
   });
 
-  it('should throw a 403 error if there is eventHistory after contract end date', async () => {
+  it('should throw a 403 error if there are time stamped events after contract end date', async () => {
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
     const credential = { _id: new ObjectID(), company: { _id: companyId } };

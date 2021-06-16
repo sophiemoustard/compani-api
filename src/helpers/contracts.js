@@ -26,6 +26,7 @@ const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 const SectorHistoryHelper = require('./sectorHistories');
+const translate = require('./translate');
 
 exports.getQuery = (query, companyId) => {
   const rules = [{ company: companyId }];
@@ -122,7 +123,7 @@ exports.createContract = async (contractPayload, credentials) => {
 };
 
 const canEndContract = async (contract, lastVersion, contractToEnd) => {
-  const eventHistories = await EventHistory.countDocuments({
+  const hasTimeStampedEvents = await EventHistory.countDocuments({
     'event.auxiliary': contract.user,
     action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
     $or: [
@@ -131,10 +132,8 @@ const canEndContract = async (contract, lastVersion, contractToEnd) => {
     ],
   });
 
-  if (eventHistories) {
-    throw Boom.forbidden(
-      'Vous ne pouvez pas arrêter un contrat si des évènements sont horodatés après la date d\'arrêt'
-    );
+  if (hasTimeStampedEvents) {
+    throw Boom.forbidden(translate['en-EN'].contractHasTimeStampedEventAfterEndDate);
   }
 
   if (DatesHelper.isBefore(contractToEnd.endDate, lastVersion.startDate)) {
