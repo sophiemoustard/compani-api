@@ -1,4 +1,13 @@
-exports.isBefore = (date1, date2) => new Date(date1) < new Date(date2);
+exports.isBefore = (date1, date2, ref = '') => {
+  let formattedDate1 = date1;
+  let formattedDate2 = date2;
+  if (ref === 'd') {
+    formattedDate1 = exports.getStartOfDay(date1);
+    formattedDate2 = exports.getStartOfDay(date2);
+  }
+
+  return new Date(formattedDate1) < new Date(formattedDate2);
+};
 
 exports.isSameOrBefore = (date1, date2, ref = '') => {
   let formattedDate1 = date1;

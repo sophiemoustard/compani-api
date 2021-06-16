@@ -20,15 +20,6 @@ describe('getLastVersion', () => {
     expect(UtilsHelper.getLastVersion(versions, 'createdAt')._id).toEqual(1);
   });
 
-  it('should throw an error if version is not an array', () => {
-    expect(() => UtilsHelper.getLastVersion({ toto: 'lala' }, 'createdAt'))
-      .toThrow(new Error('versions must be an array !'));
-  });
-
-  it('should throw an error if the key is not a string', () => {
-    expect(() => UtilsHelper.getLastVersion([{ toto: 'lala' }], 3)).toThrow(new Error('sortKey must be a string !'));
-  });
-
   it('should return null if versions is empty', () => {
     expect(UtilsHelper.getLastVersion([], 'toto')).toBeNull();
   });
@@ -73,11 +64,6 @@ describe('mergeLastVersionWithBaseObject', () => {
 });
 
 describe('getMatchingVersion', () => {
-  it('should throw an error if version is not an array', () => {
-    expect(() => UtilsHelper.getMatchingVersion('2021-09-21T00:00:00', { versions: 'lala' }, 'startDate'))
-      .toThrow(new Error('versions must be an array !'));
-  });
-
   it('should return null if versions is empty', () => {
     expect(UtilsHelper.getMatchingVersion('2021-09-21T00:00:00', { versions: [] }, 'startDate')).toBeNull();
   });
@@ -122,11 +108,6 @@ describe('getMatchingVersion', () => {
 });
 
 describe('getMatchingObject', () => {
-  it('should throw an error if list is not an array', () => {
-    expect(() => UtilsHelper.getMatchingObject('2021-09-21T00:00:00', { versions: 'lala' }, 'startDate'))
-      .toThrow(new Error('List must be an array !'));
-  });
-
   it('should return null if versions is empty', () => {
     expect(UtilsHelper.getMatchingObject('2021-09-21T00:00:00', [], 'startDate')).toBeNull();
   });
@@ -157,11 +138,6 @@ describe('getFixedNumber', () => {
     const result = UtilsHelper.getFixedNumber(10, 2);
     expect(result).toBe('10.00');
   });
-  it('should return an error if number parameter is not a number', () => {
-    expect(() => {
-      UtilsHelper.getFixedNumber('test', 3);
-    }).toThrow(new Error('You must provide a number !'));
-  });
 });
 
 describe('removeSpaces', () => {
@@ -169,11 +145,7 @@ describe('removeSpaces', () => {
     const result = UtilsHelper.removeSpaces('he llo  world  ');
     expect(result).toBe('helloworld');
   });
-  it('should return an error if parameter is not a string', () => {
-    expect(() => {
-      UtilsHelper.removeSpaces(3);
-    }).toThrow(new Error('Parameter must be a string !'));
-  });
+
   it('should return an empty string if parameter is missing', () => {
     const result = UtilsHelper.removeSpaces();
     expect(result).toBe('');

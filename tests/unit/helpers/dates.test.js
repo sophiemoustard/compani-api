@@ -3,19 +3,25 @@ const DatesHelper = require('../../../src/helpers/dates');
 
 describe('isBefore', () => {
   it('should return true if date1 is before date2', () => {
-    const isBefore = DatesHelper.isBefore('2020-01-01', new Date());
+    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00', '2020-01-01T11:00:00');
 
     expect(isBefore).toBe(true);
   });
 
   it('should return false if date1 is after date2', () => {
-    const isBefore = DatesHelper.isBefore('2020-01-01', '2019-02-03');
+    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00', '2020-01-01T07:00:00');
 
     expect(isBefore).toBe(false);
   });
 
   it('should return false if date1 is equal to date2', () => {
-    const isBefore = DatesHelper.isBefore('2020-01-01', '2020-01-01');
+    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00', '2020-01-01T09:00:00');
+
+    expect(isBefore).toBe(false);
+  });
+
+  it('should return false if date1 and date2 are on same day, comparing days', () => {
+    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00', '2020-01-01T07:00:00', 'd');
 
     expect(isBefore).toBe(false);
   });
@@ -23,19 +29,25 @@ describe('isBefore', () => {
 
 describe('isSameOrBefore', () => {
   it('should return true if date1 is before date2', () => {
-    const isBefore = DatesHelper.isSameOrBefore('2020-01-01', new Date());
+    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00', '2021-01-11T09:00:00');
 
     expect(isBefore).toBe(true);
   });
 
   it('should return false if date1 is after date2', () => {
-    const isBefore = DatesHelper.isSameOrBefore('2020-01-01', '2019-02-03');
+    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00', '2019-02-03');
 
     expect(isBefore).toBe(false);
   });
 
+  it('should return true if date1 is after date2 but on same day, comparing days', () => {
+    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T11:00:00', '2020-01-01T09:00:00', 'd');
+
+    expect(isBefore).toBe(true);
+  });
+
   it('should return true if date1 is equal to date2', () => {
-    const isBefore = DatesHelper.isSameOrBefore('2020-01-01', '2020-01-01');
+    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00', '2020-01-01T09:00:00');
 
     expect(isBefore).toBe(true);
   });

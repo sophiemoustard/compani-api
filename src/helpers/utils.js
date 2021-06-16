@@ -7,8 +7,6 @@ const { CIVILITY_LIST } = require('./constants');
 const DatesHelper = require('./dates');
 
 exports.getLastVersion = (versions, dateKey) => {
-  if (!Array.isArray(versions)) throw new Error('versions must be an array !');
-  if (typeof dateKey !== 'string') throw new Error('sortKey must be a string !');
   if (versions.length === 0) return null;
   if (versions.length === 1) return versions[0];
   return [...versions].sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
@@ -23,7 +21,6 @@ exports.mergeLastVersionWithBaseObject = (baseObj, dateKey) => {
 
 // `obj` should by sort in descending order
 exports.getMatchingVersion = (date, obj, dateKey) => {
-  if (!Array.isArray(obj.versions)) throw new Error('versions must be an array !');
   if (obj.versions.length === 0) return null;
 
   const matchingVersion = [...obj.versions]
@@ -40,7 +37,6 @@ exports.getMatchingVersion = (date, obj, dateKey) => {
 };
 
 exports.getMatchingObject = (date, list, dateKey) => {
-  if (!Array.isArray(list)) throw new Error('List must be an array !');
   if (list.length === 0) return null;
 
   const filteredAndSortedList = list
@@ -65,16 +61,9 @@ exports.getDateQuery = (dates) => {
   return { $lt: dates.endDate };
 };
 
-exports.getFixedNumber = (number, toFixedNb) => {
-  if (Number.isNaN(Number(number))) throw new Error('You must provide a number !');
-  return number.toFixed(toFixedNb);
-};
+exports.getFixedNumber = (number, toFixedNb) => number.toFixed(toFixedNb);
 
-exports.removeSpaces = (str) => {
-  if (!str) return '';
-  if (typeof str !== 'string') throw new Error('Parameter must be a string !');
-  return str.split(' ').join('');
-};
+exports.removeSpaces = str => (str ? str.split(' ').join('') : '');
 
 const roundFrenchPrice = (number) => {
   const nf = new Intl.NumberFormat(
