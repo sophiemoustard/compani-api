@@ -22,10 +22,9 @@ exports.formatEvent = (event) => {
 
   const { auxiliary, subscription, customer } = event;
   if (auxiliary) {
-    formattedEvent.auxiliary = {
-      ...omit(auxiliary, 'sectorHistories'),
-      sector: UtilsHelper.getMatchingObject(event.startDate, auxiliary.sectorHistories, 'startDate'),
-    };
+    const matchingSectorHistory =
+      UtilsHelper.getMatchingObject(event.startDate, auxiliary.sectorHistories, 'startDate');
+    formattedEvent.auxiliary = { ...omit(auxiliary, 'sectorHistories'), sector: matchingSectorHistory.sector };
   }
 
   if (subscription) {
@@ -40,17 +39,17 @@ exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
     .populate({
       path: 'auxiliary',
       match: { company: companyId },
-      populate: { path: 'sectorHistories', match: { company: companyId } },
+      populate: { path: 'sectorHistories', match: { company: companyId }, populate: { path: 'sector' } },
       select: 'identity administrative.driveFolder company picture sectorHistories',
     })
     .populate({
       path: 'customer',
       match: { company: companyId },
-      populate: { path: 'subscriptions.service', match: { company: companyId } },
+      populate: { path: 'subscriptions.service' },
       select: 'identity contact subscriptions',
     })
-    .populate({ path: 'internalHour', match: { company: companyId } })
-    .populate({ path: 'extension', match: { company: companyId } })
+    .populate({ path: 'internalHour' })
+    .populate({ path: 'extension' })
     .lean();
 
   return groupBy(events.map(exports.formatEvent), groupByFunc);

@@ -28,7 +28,7 @@ describe('formatEvents', () => {
       startDate: '2021-03-12T09:00:00',
     };
 
-    getMatchingObject.returns({ startDate: '2021-02-12T09:00:00' });
+    getMatchingObject.returns({ sector: { startDate: '2021-02-12T09:00:00' } });
 
     const formattedEvent = EventRepository.formatEvent(event);
 

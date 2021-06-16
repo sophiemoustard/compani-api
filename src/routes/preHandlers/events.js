@@ -88,6 +88,7 @@ const checkAuxiliaryPermission = (credentials, event) => {
   const eventIsUnassignedAndFromSameSector = sector && UtilsHelper.areObjectIdsEquals(sector, credentials.sector);
 
   if (!isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
+
   return null;
 };
 
