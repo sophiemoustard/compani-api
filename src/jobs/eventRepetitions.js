@@ -55,6 +55,7 @@ const eventRepetitions = {
     const errors = [];
     const companies = await Company.find({ 'subscriptions.erp': true }).lean();
     const newSavedEvents = [];
+    const deletedRepetitions = [];
 
     for (const company of companies) {
       const companyEvents = [];
@@ -82,6 +83,7 @@ const eventRepetitions = {
         try {
           if (isCustomerStopped) {
             await Repetition.deleteOne({ _id: repetition._id });
+            deletedRepetitions.push(repetition);
           } else {
             const futureEvent = await createEventBasedOnRepetition(repetition, date);
             if (futureEvent) companyEvents.push(futureEvent);
@@ -98,16 +100,16 @@ const eventRepetitions = {
       newSavedEvents.push(...companyEvents);
     }
 
-    return { results: newSavedEvents, errors };
+    return { results: newSavedEvents, errors, deletedRepetitions };
   },
-  async onComplete(server, { results, errors }) {
+  async onComplete(server, { results, errors, deletedRepetitions }) {
     try {
       server.log(['cron'], 'Event repetitions OK');
       if (errors && errors.length) {
         server.log(['error', 'cron', 'oncomplete'], errors);
       }
       server.log(['cron', 'oncomplete'], `Event repetitions: ${results.length} évènements créés.`);
-      EmailHelper.completeEventRepScriptEmail(results.length, errors);
+      EmailHelper.completeEventRepScriptEmail(results.length, deletedRepetitions, errors);
     } catch (e) {
       server.log(['error', 'cron', 'oncomplete'], e);
     }
