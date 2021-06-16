@@ -42,11 +42,13 @@ exports.authorizeCustomerUpdate = async (req) => {
       if (!referent) return Boom.forbidden();
     }
 
-    if (req.payload.thirdPartypayer) {
-      const thirdPartypayer = await ThirdPartyPayer
-        .findOne({ _id: req.payload.thirdPartypayer, company: companyId })
+    if (req.payload.thirdPartyPayer) {
+      const thirdPartyPayer = await ThirdPartyPayer
+        .findOne({ _id: req.payload.thirdPartyPayer, company: companyId })
+        .select('teletransmissionId')
         .lean();
-      if (!thirdPartypayer) return Boom.forbidden();
+      if (!thirdPartyPayer) return Boom.forbidden();
+      if (thirdPartyPayer.teletransmissionId && !req.payload.teletransmissionId) return Boom.badRequest();
     }
 
     if (req.payload.stoppedAt) {

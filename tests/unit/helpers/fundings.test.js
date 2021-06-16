@@ -2,6 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Boom = require('@hapi/boom');
 const sinon = require('sinon');
+const omit = require('lodash/omit');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const Customer = require('../../../src/models/Customer');
 const SinonMongoose = require('../sinonMongoose');
@@ -320,7 +321,10 @@ describe('updateFunding', () => {
           query: 'findOneAndUpdate',
           args: [
             { _id: customerId, 'fundings._id': fundingId },
-            { $push: { 'fundings.$.versions': payload } },
+            {
+              $set: { 'fundings.$.teletransmissionId': payload.teletransmissionId },
+              $push: { 'fundings.$.versions': omit(payload, 'teletransmissionId') },
+            },
             { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false },
           ],
         },

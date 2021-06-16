@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const has = require('lodash/has');
+const omit = require('lodash/omit');
 const Customer = require('../models/Customer');
 const { populateService } = require('./subscriptions');
 const UtilsHelper = require('./utils');
@@ -19,8 +20,8 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   *     - or the 2 fundings are on the same period but not the same days
   */
   return customer.fundings
-    .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() &&
-      checkedFunding._id !== fund._id.toHexString())
+    .filter(fund => UtilsHelper.areObjectIdsEquals(checkedFunding.subscription, fund.subscription) &&
+    !UtilsHelper.areObjectIdsEquals(checkedFunding._id, fund._id))
     .every((fund) => {
       const lastVersion = UtilsHelper.getLastVersion(fund.versions, 'createdAt');
 
@@ -46,7 +47,7 @@ exports.populateFundingsList = (customer) => {
 exports.populateFunding = (funding, subscriptions) => {
   if (!funding) return false;
 
-  const sub = subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
+  const sub = subscriptions.find(sb => UtilsHelper.areObjectIdsEquals(sb._id, funding.subscription));
   if (has(sub, 'service.versions')) {
     return { ...funding, subscription: { ...sub, service: populateService(sub.service) } };
   }
@@ -77,7 +78,10 @@ exports.updateFunding = async (customerId, fundingId, payload) => {
 
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, 'fundings._id': fundingId },
-    { $push: { 'fundings.$.versions': payload } },
+    {
+      $set: { 'fundings.$.teletransmissionId': payload.teletransmissionId },
+      $push: { 'fundings.$.versions': omit(payload, 'teletransmission') },
+    },
     { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
   )
     .populate({ path: 'subscriptions.service' })

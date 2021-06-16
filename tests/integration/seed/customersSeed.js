@@ -97,6 +97,7 @@ const customerThirdPartyPayer = {
   isApa: true,
   billingMode: 'direct',
   name: 'Toto',
+  teletransmissionId: '12345',
 };
 
 const customersList = [
