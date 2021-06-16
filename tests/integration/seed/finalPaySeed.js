@@ -165,15 +165,15 @@ const sectorHistory = {
 };
 
 const populateDB = async () => {
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await Service.deleteMany({});
-  await Contract.deleteMany({});
-  await Event.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await FinalPay.deleteMany({});
-  await UserCompany.deleteMany({});
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await Service.deleteMany();
+  await Contract.deleteMany();
+  await Event.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await FinalPay.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await (new Sector(sector)).save();
