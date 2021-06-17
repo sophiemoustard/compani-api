@@ -40,12 +40,6 @@ exports.dayDiff = (date1, date2) => {
   return diff || 0;
 };
 
-exports.dayDiffRegardlessOfHour = (date1, date2) => {
-  const milliSecondsDiff = this.getStartOfDay(date1) - this.getStartOfDay(date2);
-
-  return milliSecondsDiff / 1000 / 60 / 60 / 24;
-};
-
 exports.addDays = (date, days) => {
   const newDate = new Date(date);
 

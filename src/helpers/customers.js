@@ -5,6 +5,7 @@ const moment = require('moment');
 const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
+const omit = require('lodash/omit');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
@@ -155,46 +156,25 @@ exports.updateCustomerEvents = async (customerId, payload) => {
 const formatPayload = async (customerId, customerPayload, company) => {
   if (has(customerPayload, 'payment.iban')) return exports.formatPaymentPayload(customerId, customerPayload, company);
 
-  return { $set: flat(customerPayload, { safe: true }) };
+  return { $set: flat(omit(customerPayload, 'referent'), { safe: true }) };
 };
 
-const handleCustomerStop = async (customerId, stoppedAt, credentials) => {
-  const { company } = credentials;
-  const timeStampedEventsCount = await EventHistory.countDocuments({
-    'event.customer': customerId,
-    startDate: { $gte: stoppedAt },
-    action: { $in: EventHistory.TIMESTAMPING_ACTIONS },
-  });
-  if (timeStampedEventsCount > 0) throw Boom.conflict();
-
-  await EventsHelper.deleteCustomerEvents(customerId, stoppedAt, null, credentials);
-
-  const remainingRepetitions = await Repetition.find({ customer: customerId, company: company._id }).lean();
-  for (const repetition of remainingRepetitions) {
-    await EventsHelper.createEventsOnCustomerStop(repetition, stoppedAt, company);
-
-    await Repetition.deleteOne({ _id: repetition._id });
-  }
-};
-
-exports.updateCustomer = async (customerId, customerPayload, credentials) => {
+exports.updateCustomer = async (customerId, payload, credentials) => {
   const { company } = credentials;
 
-  if (customerPayload.stoppedAt) await handleCustomerStop(customerId, customerPayload.stoppedAt, credentials);
+  if (payload.stoppedAt) await EventsHelper.deleteCustomerEvents(customerId, payload.stoppedAt, null, credentials);
 
-  if (has(customerPayload, 'referent')) {
-    await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
-
-    return Customer.findOne({ _id: customerId }).lean();
+  if (has(payload, 'referent')) {
+    await ReferentHistoriesHelper.updateCustomerReferent(customerId, payload.referent, company);
   }
 
-  if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
-    await exports.updateCustomerEvents(customerId, customerPayload);
+  if (has(payload, 'contact.primaryAddress') || has(payload, 'contact.secondaryAddress')) {
+    await exports.updateCustomerEvents(customerId, payload);
   }
 
-  const payload = await formatPayload(customerId, customerPayload, company);
+  const formattedPayload = await formatPayload(customerId, payload, company);
 
-  return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
+  return Customer.findOneAndUpdate({ _id: customerId }, formattedPayload, { new: true }).lean();
 };
 
 exports.createCustomer = async (payload, credentials) => {
