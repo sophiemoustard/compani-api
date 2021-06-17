@@ -60,7 +60,7 @@ exports.plugin = {
             unitTTCRate: Joi.number().default(0),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT).required(),
             isApa: Joi.boolean().required(),
-            teletransmissionId: Joi.string(),
+            teletransmissionId: Joi.string().default(''),
           }),
         },
         pre: [{ method: authorizeThirdPartyPayersUpdate }],
