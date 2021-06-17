@@ -18,7 +18,6 @@ const {
   PLANNING_VIEW_END_HOUR,
   AUXILIARY,
   CUSTOMER,
-  EVERY_DAY,
 } = require('./constants');
 const translate = require('./translate');
 const UtilsHelper = require('./utils');
@@ -500,39 +499,4 @@ exports.getUnassignedHoursBySector = async (query, credentials) => {
   const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
   return EventRepository.getUnassignedHoursBySector(sectors, query.month, companyId);
-};
-
-const createEventsEveryDayOnCustomerStop = async (repetition, stoppedAt, company) => {
-  let sectorId = repetition.sector;
-  const eventCreationStartDate = DatesHelper.isSameOrAfter(repetition.startDate, Date.now())
-    ? repetition.startDate
-    : Date.now();
-  const lastEventCreatedByRepetition = DatesHelper.addDays(eventCreationStartDate, 90);
-
-  const shouldCreateEvents = DatesHelper.isSameOrAfter(stoppedAt, lastEventCreatedByRepetition);
-  if (!shouldCreateEvents) return;
-
-  if (!sectorId) {
-    const auxiliary = await User.findOne({ _id: repetition.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: company._id } })
-      .lean({ autopopulate: true, virtuals: true });
-    sectorId = auxiliary.sector;
-  }
-
-  await EventsRepetitionHelper.createRepetitionsEveryDay(
-    repetition,
-    sectorId,
-    DatesHelper.addDays(lastEventCreatedByRepetition, 1),
-    stoppedAt
-  );
-};
-
-exports.createEventsOnCustomerStop = async (repetition, stoppedAt, company) => {
-  switch (repetition.frequency) {
-    case EVERY_DAY:
-      createEventsEveryDayOnCustomerStop(repetition, stoppedAt, company);
-      break;
-    default:
-      break;
-  }
 };
