@@ -4,10 +4,9 @@ const { ObjectID } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
 const { CIVILITY_LIST } = require('./constants');
+const DatesHelper = require('./dates');
 
 exports.getLastVersion = (versions, dateKey) => {
-  if (!Array.isArray(versions)) throw new Error('versions must be an array !');
-  if (typeof dateKey !== 'string') throw new Error('sortKey must be a string !');
   if (versions.length === 0) return null;
   if (versions.length === 1) return versions[0];
   return [...versions].sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
@@ -22,13 +21,12 @@ exports.mergeLastVersionWithBaseObject = (baseObj, dateKey) => {
 
 // `obj` should by sort in descending order
 exports.getMatchingVersion = (date, obj, dateKey) => {
-  if (!Array.isArray(obj.versions)) throw new Error('versions must be an array !');
   if (obj.versions.length === 0) return null;
 
   const matchingVersion = [...obj.versions]
-    .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') &&
-      (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))
-    .sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
+    .filter(ver => DatesHelper.isSameOrBefore(ver.startDate, date, 'd') &&
+      (!ver.endDate || DatesHelper.isSameOrAfter(ver.endDate, date, 'd')))
+    .sort(DatesHelper.descendingSort(dateKey))[0];
   if (!matchingVersion) return null;
 
   return {
@@ -36,6 +34,18 @@ exports.getMatchingVersion = (date, obj, dateKey) => {
     ...omit(matchingVersion, ['_id', 'createdAt']),
     versionId: matchingVersion._id,
   };
+};
+
+exports.getMatchingObject = (date, list, dateKey) => {
+  if (list.length === 0) return null;
+
+  const filteredAndSortedList = list
+    .filter(h => DatesHelper.isBefore(h.startDate, date, 'd') &&
+      (!h.endDate || DatesHelper.isSameOrAfter(h.endDate, date, 'd')))
+    .sort(DatesHelper.descendingSort(dateKey));
+  if (!filteredAndSortedList.length) return null;
+
+  return filteredAndSortedList[0];
 };
 
 exports.getDateQuery = (dates) => {
@@ -51,16 +61,9 @@ exports.getDateQuery = (dates) => {
   return { $lt: dates.endDate };
 };
 
-exports.getFixedNumber = (number, toFixedNb) => {
-  if (Number.isNaN(Number(number))) throw new Error('You must provide a number !');
-  return number.toFixed(toFixedNb);
-};
+exports.getFixedNumber = (number, toFixedNb) => number.toFixed(toFixedNb);
 
-exports.removeSpaces = (str) => {
-  if (!str) return '';
-  if (typeof str !== 'string') throw new Error('Parameter must be a string !');
-  return str.split(' ').join('');
-};
+exports.removeSpaces = str => (str ? str.split(' ').join('') : '');
 
 const roundFrenchPrice = (number) => {
   const nf = new Intl.NumberFormat(
