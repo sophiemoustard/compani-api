@@ -157,7 +157,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
   if (req.payload.auxiliary) {
     const auxiliary = await UserCompany.countDocuments(({ user: req.payload.auxiliary, company: companyId }));
-    if (!auxiliary) throw Boom.forbidden();
+    if (!auxiliary) throw Boom.notFound();
   }
 
   if (req.payload.sector) {
