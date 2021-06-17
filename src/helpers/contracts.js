@@ -28,6 +28,8 @@ const ContractRepository = require('../repositories/ContractRepository');
 const SectorHistoryHelper = require('./sectorHistories');
 const translate = require('./translate');
 
+const { language } = translate;
+
 exports.getQuery = (query, companyId) => {
   const rules = [{ company: companyId }];
   if (query.startDate && query.endDate) {
@@ -133,11 +135,11 @@ const canEndContract = async (contract, lastVersion, contractToEnd) => {
   });
 
   if (hasTimeStampedEvents) {
-    throw Boom.forbidden(translate['en-EN'].contractHasTimeStampedEventAfterEndDate);
+    throw Boom.forbidden(translate[language].contractHasTimeStampedEventAfterEndDate);
   }
 
   if (DatesHelper.isBefore(contractToEnd.endDate, lastVersion.startDate)) {
-    throw Boom.conflict('End date is before last version start date');
+    throw Boom.conflict(translate[language].contractEndDateBeforeStartDate);
   }
 };
 
