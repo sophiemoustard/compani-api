@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const cloneDeep = require('lodash/cloneDeep');
+const moment = require('moment');
 const Event = require('../../models/Event');
 const CreditNote = require('../../models/CreditNote');
 const Customer = require('../../models/Customer');
@@ -22,7 +23,6 @@ const {
   ILLNESS,
   INTERVENTION,
 } = require('../../helpers/constants');
-const DatesHelper = require('../../helpers/dates');
 
 const { language } = translate;
 
@@ -201,7 +201,7 @@ exports.authorizeTimeStamping = async (req) => {
     _id: req.params._id,
     type: INTERVENTION,
     auxiliary: get(req, 'auth.credentials._id'),
-    startDate: { $gte: DatesHelper.getStartOfDay(new Date()), $lte: DatesHelper.getEndOfDay(new Date()) },
+    startDate: { $gte: moment().startOf('d').toDate(), $lte: moment().endOf('d').toDate() },
   }).lean();
   if (!event) throw Boom.notFound();
 

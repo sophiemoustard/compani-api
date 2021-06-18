@@ -12,7 +12,6 @@ const EventHelper = require('../../../src/helpers/events');
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
-const DatesHelper = require('../../../src/helpers/dates');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
@@ -1422,16 +1421,6 @@ describe('unassignConflictInterventions', () => {
 });
 
 describe('getListQuery', () => {
-  let getStartOfDay;
-  let getEndOfDay;
-  beforeEach(() => {
-    getStartOfDay = sinon.stub(DatesHelper, 'getStartOfDay');
-    getEndOfDay = sinon.stub(DatesHelper, 'getEndOfDay');
-  });
-  afterEach(() => {
-    getStartOfDay.restore();
-    getEndOfDay.restore();
-  });
   it('should return only company in rules if query is empty', () => {
     const query = {};
     const credentials = { company: { _id: new ObjectID() } };
@@ -1439,8 +1428,6 @@ describe('getListQuery', () => {
     const listQuery = EventHelper.getListQuery(query, credentials);
 
     expect(listQuery).toEqual({ $and: [{ company: credentials.company._id }] });
-    sinon.assert.notCalled(getStartOfDay);
-    sinon.assert.notCalled(getEndOfDay);
   });
 
   it('should return all conditions in rules that are in query', () => {
@@ -1455,9 +1442,6 @@ describe('getListQuery', () => {
     };
     const credentials = { company: { _id: new ObjectID() } };
 
-    getStartOfDay.returns('2021-04-27T22:00:00.000Z');
-    getEndOfDay.returns('2021-04-28T21:59:59.999Z');
-
     const listQuery = EventHelper.getListQuery(query, credentials);
 
     expect(listQuery).toEqual({
@@ -1471,8 +1455,6 @@ describe('getListQuery', () => {
         { isCancelled: false },
       ],
     });
-    sinon.assert.calledOnceWithExactly(getStartOfDay, '2021-04-28T10:00:00.000Z');
-    sinon.assert.calledOnceWithExactly(getEndOfDay, '2021-04-28T12:00:00.000Z');
   });
 });
 

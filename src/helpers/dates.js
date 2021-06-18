@@ -1,9 +1,11 @@
+const moment = require('moment');
+
 exports.isBefore = (date1, date2, ref = '') => {
   let formattedDate1 = date1;
   let formattedDate2 = date2;
   if (ref === 'd') {
-    formattedDate1 = exports.getStartOfDay(date1);
-    formattedDate2 = exports.getStartOfDay(date2);
+    formattedDate1 = moment(date1).startOf('d').toDate();
+    formattedDate2 = moment(date2).startOf('d').toDate();
   }
 
   return new Date(formattedDate1) < new Date(formattedDate2);
@@ -13,8 +15,8 @@ exports.isSameOrBefore = (date1, date2, ref = '') => {
   let formattedDate1 = date1;
   let formattedDate2 = date2;
   if (ref === 'd') {
-    formattedDate1 = exports.getStartOfDay(date1);
-    formattedDate2 = exports.getStartOfDay(date2);
+    formattedDate1 = moment(date1).startOf('d').toDate();
+    formattedDate2 = moment(date2).startOf('d').toDate();
   }
 
   return new Date(formattedDate1) <= new Date(formattedDate2);
@@ -25,10 +27,6 @@ exports.isAfter = (date1, date2) => new Date(date1) > new Date(date2);
 exports.isSameOrAfter = (date1, date2) => new Date(date1) >= new Date(date2);
 
 exports.diff = (date1, date2) => new Date(date1) - new Date(date2);
-
-exports.getStartOfDay = date => (new Date(date)).setHours(0, 0, 0, 0);
-
-exports.getEndOfDay = date => (new Date(date)).setHours(23, 59, 59, 999);
 
 exports.dayDiff = (date1, date2) => {
   const milliSecondsDiff = new Date(date1) - new Date(date2);
