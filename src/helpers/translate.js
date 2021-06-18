@@ -418,7 +418,7 @@ module.exports = {
     contractHasTimeStampedEventAfterEndDate:
       'Impossible: il y a des évènements horodatés après la date de fin du contrat.',
     contractEndDateBeforeStartDate:
-      'Impossible de mettre fin à un contrat pour lequel la date de fin est avant la date de début.',
+      'Impossible de mettre fin à un contrat avant sa date de début.',
     /* Contracts amendments */
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',
