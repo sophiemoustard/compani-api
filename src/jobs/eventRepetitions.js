@@ -17,10 +17,8 @@ const EventsRepetitionHelper = require('../helpers/eventsRepetition');
 const EmailHelper = require('../helpers/email');
 const DatesHelper = require('../helpers/dates');
 
-const createEventBasedOnRepetition = async (repetition, date) => {
+const createEventBasedOnRepetition = async (repetition, date, newEventStartDate) => {
   const { startDate, frequency } = repetition;
-  const newEventStartDate = moment(date).add(90, 'd')
-    .set(pick(moment(startDate).toObject(), ['hours', 'minutes', 'seconds', 'milliseconds']));
   let futureEvent;
   switch (frequency) {
     case EVERY_TWO_WEEKS:
@@ -78,14 +76,15 @@ const eventRepetitions = {
 
       for (const repetition of orderedRepetitions) {
         const stoppedAt = get(repetition, 'customer.stoppedAt');
-        const newEventStartDate = DatesHelper.addDays(date, 90);
+        const newEventStartDate = moment(date).add(90, 'd')
+          .set(pick(moment(repetition.startDate).toObject(), ['hours', 'minutes', 'seconds', 'milliseconds']));
         const isCustomerStopped = repetition.type === INTERVENTION && DatesHelper.isAfter(newEventStartDate, stoppedAt);
         try {
           if (isCustomerStopped) {
             await Repetition.deleteOne({ _id: repetition._id });
             deletedRepetitions.push(repetition);
           } else {
-            const futureEvent = await createEventBasedOnRepetition(repetition, date);
+            const futureEvent = await createEventBasedOnRepetition(repetition, date, newEventStartDate);
             if (futureEvent) companyEvents.push(futureEvent);
           }
         } catch (e) {

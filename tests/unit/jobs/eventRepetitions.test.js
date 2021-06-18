@@ -61,7 +61,7 @@ describe('method', () => {
     it(`should create a J+90 event for ${freq.type} repetition object`, async () => {
       const companyId = new ObjectID();
 
-      findRepetition.returns(SinonMongoose.stubChainedQueries([repetition], ['populate', 'lean']));
+      findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));
       findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
 
       const futureEvent = new Event({
@@ -118,7 +118,7 @@ describe('method', () => {
     }];
 
     findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions], ['populate', 'lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions]));
 
     const result = await eventRepetitions.method(server);
 
@@ -165,7 +165,7 @@ describe('method', () => {
     ];
     const companyId = new ObjectID();
 
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions], ['populate', 'lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions]));
     findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
 
     const futureEvent = new Event({
@@ -219,7 +219,7 @@ describe('method', () => {
 
     const companyId = new ObjectID();
 
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetition], ['populate', 'lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));
     findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
 
     formatEventBasedOnRepetitionStub.returns(Promise.reject(error));
