@@ -55,11 +55,13 @@ exports.authorizeCustomerUpdate = async (req) => {
     if (req.payload.fundingPlanId && req.params.fundingId) {
       const { _id, fundingId } = req.params;
       const customer = await Customer.findOne({ _id, 'fundings._id': fundingId })
+        .populate('fundings.thirdPartyPayer')
         .select('fundings')
         .lean();
-      const hasFundinPlanId = customer.fundings
-        .find(funding => UtilsHelper.areObjectIdsEquals(funding._id, fundingId) && funding.fundingPlanId);
-      if (!hasFundinPlanId) return Boom.forbidden();
+      const hasFundingPlanId = customer.fundings.find(
+        funding => UtilsHelper.areObjectIdsEquals(funding._id, fundingId) && funding.thirdPartyPayer.teletransmissionId
+      );
+      if (!hasFundingPlanId) return Boom.forbidden();
     }
 
     if (req.payload.stoppedAt) {

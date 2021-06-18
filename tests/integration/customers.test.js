@@ -2181,7 +2181,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(403);
     });
 
-    it('should return 403 if payload has fundingPlanId but not customer', async () => {
+    it('should return 403 if payload has fundingPlanId but thirdpartypayer has no teletransmissionId', async () => {
       const customer = customersList[1];
       const payload = {
         subscription: customer.subscriptions[0]._id,
