@@ -92,13 +92,7 @@ const customerServiceList = [
 ];
 
 const customerThirdPartyPayers = [
-  {
-    _id: new ObjectID(),
-    company: authCompany._id,
-    isApa: true,
-    billingMode: 'direct',
-    name: 'Toto',
-  },
+  { _id: new ObjectID(), company: authCompany._id, isApa: true, billingMode: 'direct', name: 'Toto' },
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -824,9 +818,7 @@ const populateDB = async () => {
   await Helper.deleteMany();
 
   await populateDBForAuthentication();
-  for (const customerThirdPartyPayer of customerThirdPartyPayers) {
-    await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
-  }
+  await ThirdPartyPayer.insertMany(customerThirdPartyPayers);
   await Service.insertMany(customerServiceList);
   await Customer.insertMany([...customersList, otherCompanyCustomer]);
   await Event.insertMany(eventList);

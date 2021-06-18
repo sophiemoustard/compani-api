@@ -248,8 +248,8 @@ describe('createFunding', () => {
 
     await FundingsHelper.createFunding(customerId, payload);
 
-    sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, payload);
-    sinon.assert.calledWithExactly(populateFundingsList, customer);
+    sinon.assert.calledOnceWithExactly(checkSubscriptionFunding, customerId, payload);
+    sinon.assert.calledOnceWithExactly(populateFundingsList, customer);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
