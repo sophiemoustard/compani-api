@@ -2096,7 +2096,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 400 if fundingPlanId is empty', async () => {
+    it('should return a 400 if fundingPlanId is empty and tpp has teletransmissionId', async () => {
       const customer = customersList[0];
       const payload = {
         subscription: customer.subscriptions[0]._id,
