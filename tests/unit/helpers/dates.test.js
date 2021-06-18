@@ -71,6 +71,24 @@ describe('isAfter', () => {
 
     expect(isAfter).toBe(false);
   });
+
+  it('should return true if date1 is after date2 comparing days', () => {
+    const isAfter = DatesHelper.isAfter(new Date('2020-12-25T12:00:00.000Z'), '2020-12-23T16:00:00.000Z', 'd');
+
+    expect(isAfter).toBe(true);
+  });
+
+  it('should return false if date1 is before date2 comparing days', () => {
+    const isAfter = DatesHelper.isAfter('2020-12-25T12:00:00.000Z', '2020-12-27T16:00:00.000Z', 'd');
+
+    expect(isAfter).toBe(false);
+  });
+
+  it('should return false if date1 is equal to date2 comparing days', () => {
+    const isAfter = DatesHelper.isAfter('2020-12-25T12:00:00.000Z', '2020-12-25T09:00:00.000Z', 'd');
+
+    expect(isAfter).toBe(false);
+  });
 });
 
 describe('isSameOrAfter', () => {
@@ -88,6 +106,24 @@ describe('isSameOrAfter', () => {
 
   it('should return true if date1 is equal to date2', () => {
     const isAfter = DatesHelper.isSameOrAfter('2020-01-01', '2020-01-01');
+
+    expect(isAfter).toBe(true);
+  });
+
+  it('should return true if date1 is after date2 comparing days', () => {
+    const isAfter = DatesHelper.isSameOrAfter(new Date('2020-12-25T12:00:00.000Z'), '2020-12-23T16:00:00.000Z', 'd');
+
+    expect(isAfter).toBe(true);
+  });
+
+  it('should return false if date1 is before date2 comparing days', () => {
+    const isAfter = DatesHelper.isSameOrAfter('2020-12-25T12:00:00.000Z', '2020-12-27T16:00:00.000Z', 'd');
+
+    expect(isAfter).toBe(false);
+  });
+
+  it('should return true if date1 is equal to date2 comparing days', () => {
+    const isAfter = DatesHelper.isSameOrAfter('2020-12-25T12:00:00.000Z', '2020-12-25T09:00:00.000Z', 'd');
 
     expect(isAfter).toBe(true);
   });

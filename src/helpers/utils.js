@@ -40,7 +40,7 @@ exports.getMatchingObject = (date, list, dateKey) => {
   if (list.length === 0) return null;
 
   const filteredAndSortedList = list
-    .filter(h => DatesHelper.isBefore(h.startDate, date, 'd') &&
+    .filter(h => DatesHelper.isSameOrBefore(h.startDate, date, 'd') &&
       (!h.endDate || DatesHelper.isSameOrAfter(h.endDate, date, 'd')))
     .sort(DatesHelper.descendingSort(dateKey));
   if (!filteredAndSortedList.length) return null;
