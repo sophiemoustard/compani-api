@@ -988,7 +988,7 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return a 403 if auxiliary is not from the same company', async () => {
+    it('should return a 404 if auxiliary is not from the same company', async () => {
       const payload = {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00',
@@ -1012,7 +1012,7 @@ describe('POST /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 403 if internalHour is not from the same company', async () => {
@@ -1383,7 +1383,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 403 if auxiliary is not from the same company', async () => {
+    it('should return a 404 if auxiliary is not from the same company', async () => {
       const event = eventsList[0];
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
@@ -1398,7 +1398,7 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 404 error as event is not found', async () => {

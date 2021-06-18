@@ -6,7 +6,6 @@ const CreditNote = require('../../models/CreditNote');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
-const User = require('../../models/User');
 const EventHistory = require('../../models/EventHistory');
 const InternalHour = require('../../models/InternalHour');
 const UserCompany = require('../../models/UserCompany');
@@ -157,8 +156,8 @@ exports.checkEventCreationOrUpdate = async (req) => {
   }
 
   if (req.payload.auxiliary) {
-    const auxiliary = await User.countDocuments(({ _id: req.payload.auxiliary, company: companyId }));
-    if (!auxiliary) throw Boom.forbidden();
+    const auxiliary = await UserCompany.countDocuments(({ user: req.payload.auxiliary, company: companyId }));
+    if (!auxiliary) throw Boom.notFound();
   }
 
   if (req.payload.sector) {
