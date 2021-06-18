@@ -13,6 +13,7 @@ const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const ContractNumber = require('../models/ContractNumber');
+const EventHistory = require('../models/EventHistory');
 const EventHelper = require('./events');
 const ReferentHistoryHelper = require('./referentHistories');
 const UtilsHelper = require('./utils');
@@ -25,6 +26,9 @@ const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 const SectorHistoryHelper = require('./sectorHistories');
+const translate = require('./translate');
+
+const { language } = translate;
 
 exports.getQuery = (query, companyId) => {
   const rules = [{ company: companyId }];
@@ -120,13 +124,31 @@ exports.createContract = async (contractPayload, credentials) => {
   return contract;
 };
 
+const canEndContract = async (contract, lastVersion, contractToEnd) => {
+  const hasTimeStampedEvents = await EventHistory.countDocuments({
+    'event.auxiliary': contract.user,
+    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+    $or: [
+      { 'update.startHour.to': { $gte: contractToEnd.endDate } },
+      { 'update.endHour.to': { $gte: contractToEnd.endDate } },
+    ],
+  });
+
+  if (hasTimeStampedEvents) {
+    throw Boom.forbidden(translate[language].contractHasTimeStampedEventAfterEndDate);
+  }
+
+  if (DatesHelper.isBefore(contractToEnd.endDate, lastVersion.startDate)) {
+    throw Boom.conflict(translate[language].contractEndDateBeforeStartDate);
+  }
+};
+
 exports.endContract = async (contractId, contractToEnd, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const lastVersion = contract.versions[contract.versions.length - 1];
-  if (moment(contractToEnd.endDate).isBefore(lastVersion.startDate, 'd')) {
-    throw Boom.conflict('End date is before last version start date');
-  }
+
+  await canEndContract(contract, lastVersion, contractToEnd);
 
   const set = {
     endDate: contractToEnd.endDate,
