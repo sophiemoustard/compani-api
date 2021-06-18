@@ -147,6 +147,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       isApa: false,
       teletransmissionId: '012345678912345',
     };
+
     it('should update a third party payer', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -158,6 +159,19 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.thirdPartyPayer).toMatchObject(payload);
     });
+
+    it('should return 400 if missing name', async () => {
+      const payloadWithoutName = omit(payload, 'name');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: payloadWithoutName,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 404 error if third party payer does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
