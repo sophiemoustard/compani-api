@@ -2181,6 +2181,28 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(403);
     });
 
+    it('should return 403 if payload has fundingPlanId but not customer', async () => {
+      const customer = customersList[1];
+      const payload = {
+        subscription: customer.subscriptions[0]._id,
+        amountTTC: 90,
+        customerParticipationRate: 20,
+        startDate: '2021-01-01T00:00:00',
+        endDate: '2021-03-01T23:59:59',
+        careDays: [1, 3],
+        fundingPlanId: '12345',
+      };
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
       const customer = customersList[0];
       const payload = {

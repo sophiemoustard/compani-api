@@ -184,8 +184,9 @@ const customersList = [
     fundings: [{
       _id: new ObjectID(),
       nature: FIXED,
-      thirdPartyPayer: customerThirdPartyPayers[0]._id,
+      thirdPartyPayer: customerThirdPartyPayers[1]._id,
       subscription: subId,
+      fundingPlanId: '12345',
       versions: [{
         folderNumber: 'D123456',
         startDate: moment.utc().toDate(),
@@ -223,6 +224,22 @@ const customersList = [
       _id: new ObjectID(),
       service: customerServiceList[2]._id,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+    }],
+    fundings: [{
+      _id: new ObjectID(),
+      nature: FIXED,
+      thirdPartyPayer: customerThirdPartyPayers[0]._id,
+      subscription: subId,
+      versions: [{
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        frequency: ONCE,
+        endDate: moment.utc().add(6, 'months').toDate(),
+        effectiveDate: moment.utc().toDate(),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [0, 1, 2, 3, 4, 5, 6],
+      }],
     }],
   },
   {
