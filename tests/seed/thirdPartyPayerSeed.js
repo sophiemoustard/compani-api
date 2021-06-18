@@ -6,6 +6,7 @@ const thirdPartyPayerList = [{
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
+  billingMode: 'direct',
 }];
 
 module.exports = { thirdPartyPayerList };

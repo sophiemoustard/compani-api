@@ -150,6 +150,7 @@ const tppList = [{
   name: 'tiers payeur',
   company: authCompany._id,
   isApa: true,
+  billingMode: 'direct',
 }];
 
 const subscriptionWithEndedFundingId = new ObjectID();

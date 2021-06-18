@@ -152,9 +152,21 @@ const sectorHistoryFromOtherCompany = {
   startDate: '2018-12-10',
 };
 
-const thirdPartyPayer = { _id: new ObjectID(), company: authCompany._id, isApa: true };
+const thirdPartyPayer = {
+  _id: new ObjectID(),
+  name: 'Tyty',
+  company: authCompany._id,
+  isApa: true,
+  billingMode: 'direct',
+};
 
-const thirdPartyPayerFromOtherCompany = { _id: new ObjectID(), company: otherCompany._id, isApa: true };
+const thirdPartyPayerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  isApa: true,
+  billingMode: 'direct',
+  name: 'Tyty',
+};
 
 const services = [
   {
@@ -871,20 +883,20 @@ const eventHistoriesList = [
 ];
 
 const populateDB = async () => {
-  await Event.deleteMany({});
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Contract.deleteMany({});
-  await Service.deleteMany({});
-  await EventHistory.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Repetition.deleteMany({});
-  await InternalHour.deleteMany({});
-  await DistanceMatrix.deleteMany({});
-  await Helper.deleteMany({});
-  await UserCompany.deleteMany({});
+  await Event.deleteMany();
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Contract.deleteMany();
+  await Service.deleteMany();
+  await EventHistory.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Repetition.deleteMany();
+  await InternalHour.deleteMany();
+  await DistanceMatrix.deleteMany();
+  await Helper.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Event.insertMany(eventsList);
