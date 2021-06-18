@@ -15,11 +15,10 @@ const {
 } = require('../helpers/constants');
 const EventsRepetitionHelper = require('../helpers/eventsRepetition');
 const EmailHelper = require('../helpers/email');
+const DatesHelper = require('../helpers/dates');
 
-const createEventBasedOnRepetition = async (repetition, date) => {
+const createEventBasedOnRepetition = async (repetition, date, newEventStartDate) => {
   const { startDate, frequency } = repetition;
-  const newEventStartDate = moment(date).add(90, 'd')
-    .set(pick(moment(startDate).toObject(), ['hours', 'minutes', 'seconds', 'milliseconds']));
   let futureEvent;
   switch (frequency) {
     case EVERY_TWO_WEEKS:
@@ -54,11 +53,13 @@ const eventRepetitions = {
     const errors = [];
     const companies = await Company.find({ 'subscriptions.erp': true }).lean();
     const newSavedEvents = [];
+    const deletedRepetitions = [];
 
     for (const company of companies) {
       const companyEvents = [];
       const repetitions = await Repetition
         .find({ company: company._id, startDate: { $lt: moment(date).startOf('d').toDate() } })
+        .populate({ path: 'customer', select: 'stoppedAt' })
         .lean();
       if (!repetitions.length) {
         server.log(['cron', 'jobs'], `Event repetitions: No repetitions found for company ${company._id}.`);
@@ -74,9 +75,18 @@ const eventRepetitions = {
         ];
 
       for (const repetition of orderedRepetitions) {
+        const stoppedAt = get(repetition, 'customer.stoppedAt');
+        const newEventStartDate = moment(date).add(90, 'd')
+          .set(pick(moment(repetition.startDate).toObject(), ['hours', 'minutes', 'seconds', 'milliseconds']));
+        const isCustomerStopped = repetition.type === INTERVENTION && DatesHelper.isAfter(newEventStartDate, stoppedAt);
         try {
-          const futureEvent = await createEventBasedOnRepetition(repetition, date);
-          if (futureEvent) companyEvents.push(futureEvent);
+          if (isCustomerStopped) {
+            await Repetition.deleteOne({ _id: repetition._id });
+            deletedRepetitions.push(repetition);
+          } else {
+            const futureEvent = await createEventBasedOnRepetition(repetition, date, newEventStartDate);
+            if (futureEvent) companyEvents.push(futureEvent);
+          }
         } catch (e) {
           server.log(['error', 'cron', 'jobs'], e);
           errors.push(repetition._id);
@@ -89,16 +99,16 @@ const eventRepetitions = {
       newSavedEvents.push(...companyEvents);
     }
 
-    return { results: newSavedEvents, errors };
+    return { results: newSavedEvents, errors, deletedRepetitions };
   },
-  async onComplete(server, { results, errors }) {
+  async onComplete(server, { results, errors, deletedRepetitions }) {
     try {
       server.log(['cron'], 'Event repetitions OK');
       if (errors && errors.length) {
         server.log(['error', 'cron', 'oncomplete'], errors);
       }
       server.log(['cron', 'oncomplete'], `Event repetitions: ${results.length} évènements créés.`);
-      EmailHelper.completeEventRepScriptEmail(results.length, errors);
+      EmailHelper.completeEventRepScriptEmail(results.length, deletedRepetitions, errors);
     } catch (e) {
       server.log(['error', 'cron', 'oncomplete'], e);
     }
