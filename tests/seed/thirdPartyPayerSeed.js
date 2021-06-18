@@ -1,5 +1,4 @@
 const { ObjectID } = require('mongodb');
-const { BILLING_DIRECT } = require('../../src/helpers/constants');
 const { authCompany } = require('./companySeed');
 
 const thirdPartyPayerList = [{
@@ -7,7 +6,7 @@ const thirdPartyPayerList = [{
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
-  billingMode: BILLING_DIRECT,
+  billingMode: 'direct',
 }];
 
 module.exports = { thirdPartyPayerList };

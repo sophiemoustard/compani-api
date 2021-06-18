@@ -17,6 +17,7 @@ const creditNoteThirdPartyPayer = {
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
+  billingMode: 'direct',
 };
 
 const creditNoteService = {
@@ -223,6 +224,7 @@ const otherCompanyThirdPartyPayer = {
   name: 'Titi',
   company: otherCompany._id,
   isApa: false,
+  billingMode: 'direct',
 };
 
 const otherCompanyService = {
@@ -361,14 +363,14 @@ const helpersList = [{
 }];
 
 const populateDB = async () => {
-  await CreditNote.deleteMany({});
-  await Event.deleteMany({});
-  await Customer.deleteMany({});
-  await Service.deleteMany({});
-  await CreditNoteNumber.deleteMany({});
-  await User.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Helper.deleteMany({});
+  await CreditNote.deleteMany();
+  await Event.deleteMany();
+  await Customer.deleteMany();
+  await Service.deleteMany();
+  await CreditNoteNumber.deleteMany();
+  await User.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Helper.deleteMany();
 
   await populateDBForAuthentication();
   await Event.create([creditNoteEvent, otherCompanyEvent]);

@@ -23,9 +23,20 @@ const FundingHistory = require('../../../src/models/FundingHistory');
 const Helper = require('../../../src/models/Helper');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
-const billThirdPartyPayer = { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true };
+const billThirdPartyPayer = {
+  _id: new ObjectID(),
+  name: 'Toto',
+  company: authCompany._id,
+  isApa: true,
+  billingMode: 'direct',
+};
 
-const otherCompanyBillThirdPartyPayer = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
+const otherCompanyBillThirdPartyPayer = {
+  _id: new ObjectID(),
+  name: 'Titi',
+  company: otherCompany._id,
+  billingMode: 'direct',
+};
 
 const billServices = [{
   _id: new ObjectID(),
@@ -529,17 +540,17 @@ const helpersList = [{
 }];
 
 const populateDB = async () => {
-  await Service.deleteMany({});
-  await Customer.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Bill.deleteMany({});
-  await Event.deleteMany({});
-  await BillNumber.deleteMany({});
-  await User.deleteMany({});
-  await FundingHistory.deleteMany({});
-  await CreditNote.deleteMany({});
-  await Contract.deleteMany({});
-  await Helper.deleteMany({});
+  await Service.deleteMany();
+  await Customer.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Bill.deleteMany();
+  await Event.deleteMany();
+  await BillNumber.deleteMany();
+  await User.deleteMany();
+  await FundingHistory.deleteMany();
+  await CreditNote.deleteMany();
+  await Contract.deleteMany();
+  await Helper.deleteMany();
 
   await populateDBForAuthentication();
   await (new ThirdPartyPayer(billThirdPartyPayer)).save();
