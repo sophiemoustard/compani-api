@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const { populateDBForAuthentication, rolesList, authCompany, getUser } = require('./authenticationSeed');
 const { PAYSLIP, CERTIFICATE, OTHER, WEBAPP } = require('../../../src/helpers/constants');
 
@@ -13,6 +14,18 @@ const payDocumentUser = {
   refreshToken: uuidv4(),
   company: authCompany._id,
   origin: WEBAPP,
+};
+
+const payDocumentUserCompany = {
+  user: payDocumentUser._id,
+  company: authCompany._id,
+};
+
+const user = getUser('auxiliary_without_company');
+
+const userCompanyWithoutCompany = {
+  user: user._id,
+  company: authCompany._id,
 };
 
 const otherCompanyId = new ObjectID();
@@ -77,12 +90,14 @@ const payDocumentsList = [{
 }];
 
 const populateDB = async () => {
-  await User.deleteMany({});
-  await PayDocument.deleteMany({});
+  await User.deleteMany();
+  await UserCompany.deleteMany();
+  await PayDocument.deleteMany();
 
   await populateDBForAuthentication();
 
   await User.create([payDocumentUser, userFromOtherCompany]);
+  await UserCompany.create([payDocumentUserCompany, userCompanyWithoutCompany]);
   await PayDocument.insertMany(payDocumentsList);
 };
 
@@ -90,5 +105,7 @@ module.exports = {
   populateDB,
   payDocumentsList,
   payDocumentUser,
+  payDocumentUserCompany,
   userFromOtherCompany,
+  userCompanyWithoutCompany,
 };
