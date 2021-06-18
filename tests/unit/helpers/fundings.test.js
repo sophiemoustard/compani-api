@@ -300,7 +300,42 @@ describe('updateFunding', () => {
     populateFundingsList.restore();
   });
 
-  it('should update funding if no conflict', async () => {
+  it('should update funding if no conflict and has fundinPlanId', async () => {
+    const customerId = 'qwertyuiop';
+    const fundingId = 'mnbvcxz';
+    const payload = { subscription: '1234567890', fundingPlanId: '12345' };
+    const customer = { _id: customerId };
+    const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{ subscription: '1234567890' }] };
+
+    checkSubscriptionFunding.returns(true);
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+
+    await FundingsHelper.updateFunding(customerId, fundingId, payload);
+
+    sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, checkPayload);
+    sinon.assert.calledWithExactly(populateFundingsList, customer);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [
+            { _id: customerId, 'fundings._id': fundingId },
+            {
+              $set: { 'fundings.$.fundingPlanId': payload.fundingPlanId },
+              $push: { 'fundings.$.versions': omit(payload, 'fundingPlanId') },
+            },
+            { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should update funding if no conflict and has no fundinPlanId', async () => {
     const customerId = 'qwertyuiop';
     const fundingId = 'mnbvcxz';
     const payload = { subscription: '1234567890' };
@@ -321,10 +356,7 @@ describe('updateFunding', () => {
           query: 'findOneAndUpdate',
           args: [
             { _id: customerId, 'fundings._id': fundingId },
-            {
-              $set: { 'fundings.$.teletransmissionId': payload.teletransmissionId },
-              $push: { 'fundings.$.versions': omit(payload, 'teletransmissionId') },
-            },
+            { $push: { 'fundings.$.versions': payload } },
             { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false },
           ],
         },

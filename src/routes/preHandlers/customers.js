@@ -48,7 +48,8 @@ exports.authorizeCustomerUpdate = async (req) => {
         .select('teletransmissionId')
         .lean();
       if (!thirdPartyPayer) return Boom.forbidden();
-      if (thirdPartyPayer.teletransmissionId && !req.payload.teletransmissionId) return Boom.badRequest();
+      if (thirdPartyPayer.teletransmissionId && !req.payload.fundingPlanId) return Boom.badRequest();
+      if (!thirdPartyPayer.teletransmissionId && req.payload.fundingPlanId) return Boom.forbidden();
     }
 
     if (req.payload.stoppedAt) {

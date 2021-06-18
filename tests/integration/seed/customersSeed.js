@@ -91,14 +91,23 @@ const customerServiceList = [
   },
 ];
 
-const customerThirdPartyPayer = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  isApa: true,
-  billingMode: 'direct',
-  name: 'Toto',
-  teletransmissionId: '12345',
-};
+const customerThirdPartyPayers = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    isApa: true,
+    billingMode: 'direct',
+    name: 'Toto',
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    isApa: true,
+    billingMode: 'direct',
+    name: 'Toto',
+    teletransmissionId: '12345',
+  },
+];
 
 const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
@@ -175,7 +184,7 @@ const customersList = [
     fundings: [{
       _id: new ObjectID(),
       nature: FIXED,
-      thirdPartyPayer: customerThirdPartyPayer._id,
+      thirdPartyPayer: customerThirdPartyPayers[0]._id,
       subscription: subId,
       versions: [{
         folderNumber: 'D123456',
@@ -374,7 +383,7 @@ const customersList = [
       {
         _id: new ObjectID(),
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         subscription: subId2,
         frequency: ONCE,
         versions: [{
@@ -602,7 +611,7 @@ const otherCompanyCustomer = {
     {
       _id: new ObjectID(),
       nature: FIXED,
-      thirdPartyPayer: customerThirdPartyPayer._id,
+      thirdPartyPayer: customerThirdPartyPayers[0]._id,
       subscription: subId,
       versions: [{
         folderNumber: 'D123456',
@@ -721,7 +730,7 @@ const eventList = [
     subscription: subId,
     isBilled: true,
     bills: {
-      thirdPartyPayer: customerThirdPartyPayer._id,
+      thirdPartyPayer: customerThirdPartyPayers[0]._id,
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
       inclTaxesTpp: 10,
@@ -798,7 +807,9 @@ const populateDB = async () => {
   await Helper.deleteMany();
 
   await populateDBForAuthentication();
-  await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
+  for (const customerThirdPartyPayer of customerThirdPartyPayers) {
+    await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
+  }
   await Service.insertMany(customerServiceList);
   await Customer.insertMany([...customersList, otherCompanyCustomer]);
   await Event.insertMany(eventList);
@@ -821,6 +832,6 @@ module.exports = {
   userList,
   populateDB,
   customerServiceList,
-  customerThirdPartyPayer,
+  customerThirdPartyPayers,
   otherCompanyCustomer,
 };

@@ -18,7 +18,7 @@ const {
   customersList,
   userList,
   customerServiceList,
-  customerThirdPartyPayer,
+  customerThirdPartyPayers,
 } = require('./seed/customersSeed');
 const Customer = require('../../src/models/Customer');
 const ESign = require('../../src/models/ESign');
@@ -1752,7 +1752,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         subscription: customer.subscriptions[1]._id,
         frequency: MONTHLY,
         versions: [{
@@ -1763,7 +1763,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           customerParticipationRate: 10,
           careDays: [2, 5],
         }],
-        teletransmissionId: '12345',
       };
 
       const res = await app.inject({
@@ -1781,7 +1780,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         subscription: customer.subscriptions[0]._id,
         frequency: MONTHLY,
         versions: [{
@@ -1791,7 +1790,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           customerParticipationRate: 10,
           careDays: [2, 5],
         }],
-        teletransmissionId: '12345',
       };
 
       const res = await app.inject({
@@ -1807,7 +1805,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 400 error if \'subscriptions\' is missing from payload', async () => {
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
@@ -1817,7 +1815,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           customerParticipationRate: 10,
           careDays: [2, 5],
         }],
-        teletransmissionId: '12345',
       };
 
       const res = await app.inject({
@@ -1834,7 +1831,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         nature: FIXED,
         subscription: customersList[0].subscriptions[0]._id,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
@@ -1844,7 +1841,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           customerParticipationRate: 10,
           careDays: [2, 5],
         }],
-        teletransmissionId: '12345',
       };
 
       const res = await app.inject({
@@ -1887,7 +1883,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
@@ -1897,7 +1893,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           customerParticipationRate: 10,
           careDays: [2, 5],
         }],
-        teletransmissionId: '12345',
       };
 
       const res = await app.inject({
@@ -1914,7 +1909,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
@@ -1924,7 +1919,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           customerParticipationRate: 10,
           careDays: [2, 5],
         }],
-        teletransmissionId: '12345',
       };
 
       const res = await app.inject({
@@ -1937,11 +1931,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(403);
     });
 
-    it('should return a 400 error if teletransmissionId is missing', async () => {
+    it('should return a 400 error if fundingPlanId is missing and thirdPartyPayer has teletransmissionId', async () => {
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[1]._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
@@ -1963,11 +1957,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 400 if teletransmissionId is not a string', async () => {
+    it('should return a 400 if fundingPlanId is not a string', async () => {
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[1]._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
@@ -1977,7 +1971,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           customerParticipationRate: 10,
           careDays: [2, 5],
         }],
-        teletransmissionId: 12345,
+        fundingPlanId: 12345,
       };
 
       const res = await app.inject({
@@ -1988,13 +1982,40 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       });
 
       expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 403 if fundingPlanId in payload but thirdPartyPayer has no teletransmissionId', async () => {
+      const payload = {
+        subscription: customersList[0].subscriptions[0]._id,
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
+        frequency: MONTHLY,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: '2021-01-01T00:00:00',
+          endDate: '2021-03-01T23:59:59',
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+        }],
+        fundingPlanId: '12345',
+      };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
       const customer = customersList[0];
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         subscription: customer.subscriptions[1]._id,
         frequency: MONTHLY,
         versions: [{
@@ -2037,7 +2058,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         startDate: '2021-01-01T00:00:00',
         endDate: '2021-03-01T23:59:59',
         careDays: [1, 3],
-        teletransmissionId: '12345',
+        fundingPlanId: '12345',
       };
 
       const res = await app.inject({
@@ -2075,7 +2096,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 400 if teletransmissionId is not a string', async () => {
+    it('should return a 400 if fundingPlanId is empty', async () => {
       const customer = customersList[0];
       const payload = {
         subscription: customer.subscriptions[0]._id,
@@ -2084,7 +2105,29 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         startDate: '2021-01-01T00:00:00',
         endDate: '2021-03-01T23:59:59',
         careDays: [1, 3],
-        teletransmissionId: 12345,
+        fundingPlanId: '',
+      };
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if fundingPlanId is not a string', async () => {
+      const customer = customersList[0];
+      const payload = {
+        subscription: customer.subscriptions[0]._id,
+        amountTTC: 90,
+        customerParticipationRate: 20,
+        startDate: '2021-01-01T00:00:00',
+        endDate: '2021-03-01T23:59:59',
+        careDays: [1, 3],
+        fundingPlanId: 12345,
       };
 
       const res = await app.inject({

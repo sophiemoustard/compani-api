@@ -21,7 +21,7 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   */
   return customer.fundings
     .filter(fund => UtilsHelper.areObjectIdsEquals(checkedFunding.subscription, fund.subscription) &&
-    !UtilsHelper.areObjectIdsEquals(checkedFunding._id, fund._id))
+      !UtilsHelper.areObjectIdsEquals(checkedFunding._id, fund._id))
     .every((fund) => {
       const lastVersion = UtilsHelper.getLastVersion(fund.versions, 'createdAt');
 
@@ -72,16 +72,23 @@ exports.createFunding = async (customerId, payload) => {
 };
 
 exports.updateFunding = async (customerId, fundingId, payload) => {
-  const checkFundingPayload = { _id: fundingId, subscription: payload.subscription, versions: [payload] };
+  const checkFundingPayload = {
+    _id: fundingId,
+    subscription: payload.subscription,
+    versions: [omit(payload, 'fundingPlanId')],
+  };
   const check = await exports.checkSubscriptionFunding(customerId, checkFundingPayload);
   if (!check) return Boom.conflict(translate[language].customerFundingConflict);
 
+  const query = payload.fundingPlanId
+    ? {
+      $set: { 'fundings.$.fundingPlanId': payload.fundingPlanId },
+      $push: { 'fundings.$.versions': omit(payload, 'fundingPlanId') },
+    }
+    : { $push: { 'fundings.$.versions': payload } };
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, 'fundings._id': fundingId },
-    {
-      $set: { 'fundings.$.teletransmissionId': payload.teletransmissionId },
-      $push: { 'fundings.$.versions': omit(payload, 'teletransmission') },
-    },
+    query,
     { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
   )
     .populate({ path: 'subscriptions.service' })
