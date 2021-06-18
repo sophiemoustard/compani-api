@@ -22,9 +22,27 @@ exports.isSameOrBefore = (date1, date2, ref = '') => {
   return new Date(formattedDate1) <= new Date(formattedDate2);
 };
 
-exports.isAfter = (date1, date2) => new Date(date1) > new Date(date2);
+exports.isAfter = (date1, date2, ref = '') => {
+  let formattedDate1 = date1;
+  let formattedDate2 = date2;
+  if (ref === 'd') {
+    formattedDate1 = moment(date1).startOf('d').toDate();
+    formattedDate2 = moment(date2).startOf('d').toDate();
+  }
 
-exports.isSameOrAfter = (date1, date2) => new Date(date1) >= new Date(date2);
+  return new Date(formattedDate1) > new Date(formattedDate2);
+};
+
+exports.isSameOrAfter = (date1, date2, ref = '') => {
+  let formattedDate1 = date1;
+  let formattedDate2 = date2;
+  if (ref === 'd') {
+    formattedDate1 = moment(date1).startOf('d').toDate();
+    formattedDate2 = moment(date2).startOf('d').toDate();
+  }
+
+  return new Date(formattedDate1) >= new Date(formattedDate2);
+};
 
 exports.diff = (date1, date2) => new Date(date1) - new Date(date2);
 
