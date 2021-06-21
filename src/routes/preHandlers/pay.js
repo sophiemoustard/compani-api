@@ -1,14 +1,14 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const User = require('../../models/User');
 const Sector = require('../../models/Sector');
+const UserCompany = require('../../models/UserCompany');
 const UtilsHelper = require('../../helpers/utils');
 
 exports.authorizePayCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const ids = req.payload.map(pay => pay.auxiliary);
-  const usersCount = await User.countDocuments({ company: companyId, _id: { $in: ids } });
-  if (usersCount !== ids.length) throw Boom.forbidden();
+  const usersCount = await UserCompany.countDocuments({ company: companyId, user: { $in: ids } });
+  if (usersCount !== ids.length) throw Boom.notFound();
 
   return null;
 };
@@ -16,8 +16,8 @@ exports.authorizePayCreation = async (req) => {
 exports.authorizeGetDetails = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (req.query.auxiliary) {
-    const auxiliary = await User.countDocuments({ _id: req.query.auxiliary, company: companyId });
-    if (!auxiliary) throw Boom.forbidden();
+    const auxiliaryCompany = await UserCompany.countDocuments({ user: req.query.auxiliary, company: companyId });
+    if (!auxiliaryCompany) throw Boom.forbidden();
   }
 
   if (req.query.sector) {

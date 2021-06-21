@@ -87,6 +87,8 @@ module.exports = {
     contractAdded: 'Contract added.',
     contractRemoved: 'Contract removed.',
     staffRegisteredFound: 'Staff Registered Found.',
+    contractHasTimeStampedEventAfterEndDate: 'There are timestamped events after the end date of the contract.',
+    contractEndDateBeforeStartDate: 'End date is before last version start date.',
     /* Contracts amendments */
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',
@@ -145,6 +147,9 @@ module.exports = {
     timeStampOtherConflict: 'Timestamp error. Contact technical support.',
     timeStampTooLate: 'Can\'t timestamp startDate after event ends.',
     timeStampTooEarly: 'Can\'t timestamp endDate before event starts.',
+    isBilled: 'You can not delete a billed event.',
+    isTimeStamped: 'You can not delete a timestamped event.',
+    timeStampCancelledEvent: 'Can\'t timestamp a cancelled event.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -410,6 +415,10 @@ module.exports = {
     contractAdded: 'Contrat ajouté.',
     contractRemoved: 'Contrat supprimé.',
     staffRegisteredFound: 'Registre Unique du personnel récuperé.',
+    contractHasTimeStampedEventAfterEndDate:
+      'Impossible: il y a des évènements horodatés après la date de fin du contrat.',
+    contractEndDateBeforeStartDate:
+      'Impossible de mettre fin à un contrat avant sa date de début.',
     /* Contracts amendments */
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',
@@ -468,6 +477,9 @@ module.exports = {
     timeStampOtherConflict: 'Problème lors de l\'horodatage. Contactez le support technique.',
     timeStampTooLate: 'Vous ne pouvez pas horodater le début d\'un évènement terminé.',
     timeStampTooEarly: 'Vous ne pouvez pas horodater la fin d\'un évènement avant son commencement.',
+    isBilled: 'Vous ne pouvez pas supprimer un évènement facturé.',
+    isTimeStamped: 'Vous ne pouvez pas supprimer un évènement horodaté.',
+    timeStampCancelledEvent: 'Vous ne pouvez pas horodater un évènement annulé.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',

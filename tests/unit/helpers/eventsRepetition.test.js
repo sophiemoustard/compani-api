@@ -11,7 +11,6 @@ const EventsHelper = require('../../../src/helpers/events');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const RepetitionHelper = require('../../../src/helpers/repetitions');
-const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const {
   INTERVENTION,
   ABSENCE,
@@ -695,59 +694,47 @@ describe('updateRepetition', () => {
 });
 
 describe('deleteRepetition', () => {
-  let createEventHistoryOnDelete;
-  let deleteMany;
-  let deleteOne;
-  const credentials = { _id: (new ObjectID()).toHexString(), company: { _id: new ObjectID() } };
+  let deleteEventsAndRepetition;
   beforeEach(() => {
-    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
-    deleteMany = sinon.stub(Event, 'deleteMany');
-    deleteOne = sinon.stub(Repetition, 'deleteOne');
+    deleteEventsAndRepetition = sinon.stub(EventsHelper, 'deleteEventsAndRepetition');
   });
   afterEach(() => {
-    createEventHistoryOnDelete.restore();
-    deleteMany.restore();
-    deleteOne.restore();
+    deleteEventsAndRepetition.restore();
   });
 
   it('should delete repetition', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const parentId = new ObjectID();
     const event = {
       type: INTERVENTION,
       repetition: { frequency: EVERY_WEEK, parentId },
       startDate: '2019-01-21T09:38:18.653Z',
     };
-    const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    const query = {
+      'repetition.parentId': event.repetition.parentId,
+      startDate: { $gte: new Date(event.startDate) },
+      company: credentials.company._id,
+    };
 
-    expect(result).toEqual(event);
-    sinon.assert.calledWithExactly(createEventHistoryOnDelete, event, credentials);
-    sinon.assert.calledWithExactly(
-      deleteMany,
-      {
-        'repetition.parentId': parentId,
-        startDate: { $gte: new Date(event.startDate) },
-        $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
-        company: credentials.company._id,
-      }
-    );
-    sinon.assert.calledWithExactly(deleteOne, { parentId });
+    await EventsRepetitionHelper.deleteRepetition(event, credentials);
+
+    sinon.assert.calledWithExactly(deleteEventsAndRepetition, query, true, credentials);
   });
 
   it('should not delete repetition as event is absence', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const event = {
       type: ABSENCE,
       repetition: { frequency: EVERY_WEEK },
       startDate: '2019-01-21T09:38:18.653Z',
     };
-    const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    await EventsRepetitionHelper.deleteRepetition(event, credentials);
 
-    expect(result).toEqual(event);
-    sinon.assert.notCalled(createEventHistoryOnDelete);
-    sinon.assert.notCalled(deleteMany);
-    sinon.assert.notCalled(deleteOne);
+    sinon.assert.notCalled(deleteEventsAndRepetition);
   });
 
   it('should not delete repetition as event is not a repetition', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const parentId = new ObjectID();
     const event = {
       type: INTERVENTION,
@@ -757,12 +744,9 @@ describe('deleteRepetition', () => {
       },
       startDate: '2019-01-21T09:38:18.653Z',
     };
-    const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    await EventsRepetitionHelper.deleteRepetition(event, credentials);
 
-    expect(result).toEqual(event);
-    sinon.assert.notCalled(createEventHistoryOnDelete);
-    sinon.assert.notCalled(deleteMany);
-    sinon.assert.notCalled(deleteOne);
+    sinon.assert.notCalled(deleteEventsAndRepetition);
   });
 });
 

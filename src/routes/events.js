@@ -103,6 +103,7 @@ exports.plugin = {
             customer: objectIdOrArray,
             type: Joi.string().valid(...EVENT_TYPES),
             groupBy: Joi.string().valid(CUSTOMER, AUXILIARY),
+            isCancelled: Joi.boolean(),
           }),
         },
         pre: [{ method: authorizeEventGet }],
@@ -231,10 +232,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getEvent, assign: 'event' },
-          { method: authorizeEventDeletion },
-        ],
+        pre: [{ method: authorizeEventDeletion }],
       },
       handler: remove,
     });
@@ -247,10 +245,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getEvent, assign: 'event' },
-          { method: authorizeEventDeletion },
-        ],
+        pre: [{ method: authorizeEventDeletion, assign: 'event' }],
       },
       handler: removeRepetition,
     });

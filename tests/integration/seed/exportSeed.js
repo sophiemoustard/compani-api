@@ -214,7 +214,13 @@ const internalHour = { _id: new ObjectID(), name: 'planning', company: authCompa
 
 const subscriptionId = new ObjectID();
 
-const thirdPartyPayer = { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true };
+const thirdPartyPayer = {
+  _id: new ObjectID(),
+  name: 'Toto',
+  company: authCompany._id,
+  isApa: true,
+  billingMode: 'direct',
+};
 
 const customersList = [
   {

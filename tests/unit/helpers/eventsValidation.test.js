@@ -1,8 +1,10 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const Boom = require('@hapi/boom');
 const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
+const EventHistory = require('../../../src/models/EventHistory');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const { INTERVENTION, ABSENCE, INTERNAL_HOUR } = require('../../../src/helpers/constants');
@@ -898,28 +900,85 @@ describe('isUpdateAllowed', () => {
   });
 });
 
-describe('isDeletionAllowed', () => {
-  it('should return false', async () => {
-    const event = { type: INTERVENTION, isBilled: true };
-    const result = EventsValidationHelper.isDeletionAllowed(event);
-    expect(result).toBe(false);
+describe('checkDeletionIsAllowed', () => {
+  let eventHistoryCountDocuments;
+  beforeEach(() => {
+    eventHistoryCountDocuments = sinon.stub(EventHistory, 'countDocuments');
+  });
+  afterEach(() => {
+    eventHistoryCountDocuments.restore();
   });
 
-  it('should return true', async () => {
-    const event = { type: INTERVENTION, isBilled: false };
-    const result = EventsValidationHelper.isDeletionAllowed(event);
-    expect(result).toBe(true);
+  it('should return nothing if events are not interventions', async () => {
+    const events = [{ _id: new ObjectID(), type: INTERNAL_HOUR, isBilled: true }];
+
+    eventHistoryCountDocuments.returns(0);
+
+    await EventsValidationHelper.checkDeletionIsAllowed(events);
+
+    sinon.assert.calledOnceWithExactly(
+      eventHistoryCountDocuments, {
+        'event.eventId': { $in: events.map(event => event._id) },
+        'event.type': INTERVENTION,
+        action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+      }
+    );
   });
 
-  it('should return true', async () => {
-    const event = { type: INTERVENTION };
-    const result = EventsValidationHelper.isDeletionAllowed(event);
-    expect(result).toBe(true);
+  it('should return nothing if events are not billed and not timestamped', async () => {
+    const events = [{ _id: new ObjectID(), type: INTERVENTION, isBilled: false }];
+
+    eventHistoryCountDocuments.returns(0);
+
+    await EventsValidationHelper.checkDeletionIsAllowed(events);
+
+    sinon.assert.calledOnceWithExactly(
+      eventHistoryCountDocuments, {
+        'event.eventId': { $in: events.map(event => event._id) },
+        'event.type': INTERVENTION,
+        action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+      }
+    );
   });
 
-  it('should return true', async () => {
-    const event = { type: INTERNAL_HOUR, isBilled: true };
-    const result = EventsValidationHelper.isDeletionAllowed(event);
-    expect(result).toBe(true);
+  it('should return conflict if at least one event is a billed intervention', async () => {
+    const events = [
+      { _id: new ObjectID(), type: INTERVENTION, isBilled: true },
+      { _id: new ObjectID(), type: INTERVENTION, isBilled: false },
+    ];
+    try {
+      await EventsValidationHelper.checkDeletionIsAllowed(events);
+
+      expect(false).toBe(true);
+    } catch (e) {
+      expect(e).toEqual(Boom.conflict('Vous ne pouvez pas supprimer un évènement facturé.'));
+    } finally {
+      sinon.assert.notCalled(eventHistoryCountDocuments);
+    }
+  });
+
+  it('should return conflict if at least one event is a timestamped intervention', async () => {
+    const events = [
+      { _id: new ObjectID(), type: INTERVENTION, isBilled: false },
+      { _id: new ObjectID(), type: INTERVENTION, isBilled: false },
+    ];
+
+    eventHistoryCountDocuments.returns(1);
+
+    try {
+      await EventsValidationHelper.checkDeletionIsAllowed(events);
+
+      expect(false).toBe(true);
+    } catch (e) {
+      expect(e).toEqual(Boom.conflict('Vous ne pouvez pas supprimer un évènement horodaté.'));
+    } finally {
+      sinon.assert.calledOnceWithExactly(
+        eventHistoryCountDocuments, {
+          'event.eventId': { $in: events.map(event => event._id) },
+          'event.type': INTERVENTION,
+          action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+        }
+      );
+    }
   });
 });

@@ -9,6 +9,7 @@ const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
+const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const { WEBAPP, UNPAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
 
@@ -70,6 +71,12 @@ const auxiliaryFromOtherCompany = {
   company: otherCompany._id,
   origin: WEBAPP,
 };
+
+const userCompanyList = [
+  { user: auxiliaryId1, company: authCompany },
+  { user: auxiliaryId2, company: authCompany },
+  { user: auxiliaryFromOtherCompany._id, company: otherCompany },
+];
 
 const contracts = [{
   createdAt: '2021-12-04T16:34:04',
@@ -313,14 +320,15 @@ const payList = [
 ];
 
 const populateDB = async () => {
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await Service.deleteMany({});
-  await Contract.deleteMany({});
-  await Event.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Pay.deleteMany({});
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await Service.deleteMany();
+  await Contract.deleteMany();
+  await Event.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Pay.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Sector.create([...sectors, sectorFromOtherCompany]);
@@ -331,6 +339,7 @@ const populateDB = async () => {
   await Event.create([event, absence]);
   await Contract.insertMany(contracts);
   await Pay.insertMany(payList);
+  await UserCompany.insertMany(userCompanyList);
 };
 
 module.exports = {

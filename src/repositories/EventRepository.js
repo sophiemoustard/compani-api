@@ -6,7 +6,6 @@ const groupBy = require('lodash/groupBy');
 const { cloneDeep } = require('lodash');
 const Event = require('../models/Event');
 const UtilsHelper = require('../helpers/utils');
-const DatesHelper = require('../helpers/dates');
 const SectorHistory = require('../models/SectorHistory');
 const {
   INTERNAL_HOUR,
@@ -23,12 +22,9 @@ exports.formatEvent = (event) => {
 
   const { auxiliary, subscription, customer } = event;
   if (auxiliary) {
-    formattedEvent.auxiliary = {
-      ...omit(auxiliary, 'sectorHistories'),
-      sector: auxiliary.sectorHistories
-        .filter(h => DatesHelper.isBefore(h.startDate, event.startDate))
-        .sort(DatesHelper.descendingSort('startDate'))[0],
-    };
+    const matchingSectorHistory =
+      UtilsHelper.getMatchingObject(event.startDate, auxiliary.sectorHistories, 'startDate');
+    formattedEvent.auxiliary = { ...omit(auxiliary, 'sectorHistories'), sector: matchingSectorHistory.sector };
   }
 
   if (subscription) {
@@ -43,30 +39,17 @@ exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
     .populate({
       path: 'auxiliary',
       match: { company: companyId },
-      populate: { path: 'sectorHistories', match: { company: companyId } },
-      select: 'identity administrative.driveFolder: administrative.transportInvoice company picture sectorHistories',
+      populate: { path: 'sectorHistories', match: { company: companyId }, populate: { path: 'sector' } },
+      select: 'identity administrative.driveFolder company picture sectorHistories',
     })
     .populate({
       path: 'customer',
       match: { company: companyId },
-      populate: { path: 'subscriptions.service', match: { company: companyId } },
+      populate: { path: 'subscriptions.service' },
       select: 'identity contact subscriptions',
     })
-    .populate({ path: 'internalHour', match: { company: companyId } })
-    .populate({ path: 'extension', match: { company: companyId } })
-    .populate({
-      path: 'histories',
-      match: { company: companyId },
-      populate: [
-        { path: 'event.customer' },
-        { path: 'event.auxiliary' },
-        { path: 'update.auxiliary.to' },
-        { path: 'update.auxiliary.from' },
-        { path: 'createdBy' },
-      ],
-    })
-    .populate('startDateTimeStampedCount')
-    .populate('endDateTimeStampedCount')
+    .populate({ path: 'internalHour' })
+    .populate({ path: 'extension' })
     .lean();
 
   return groupBy(events.map(exports.formatEvent), groupByFunc);
@@ -94,8 +77,8 @@ exports.getEventList = (rules, companyId) => Event.find(rules)
   .populate({ path: 'histories', select: '-__v -updatedAt', match: { company: companyId } })
   .lean({ autopopulate: true, viruals: true });
 
-exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {
-  const rules = {
+exports.formatEventsInConflictQuery = (dates, auxiliary, types, companyId, eventId = null) => {
+  const query = {
     startDate: { $lt: dates.endDate },
     endDate: { $gt: dates.startDate },
     auxiliary,
@@ -103,9 +86,9 @@ exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventI
     company: companyId,
   };
 
-  if (eventId) rules._id = { $ne: eventId };
+  if (eventId) query._id = { $ne: eventId };
 
-  return Event.find(rules).lean();
+  return query;
 };
 
 exports.countAuxiliaryEventsBetweenDates = (filters) => {
