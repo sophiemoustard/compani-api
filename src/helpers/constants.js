@@ -1,4 +1,6 @@
 module.exports = {
+  COPPER_500: '#1D7C8F',
+  PEACH_100: '#FFEDDA',
   SENDER_MAIL: 'nepasrepondre@compani.fr',
   IDENTIFICATION: 'identification',
   CONTRACT_END: 'contract_end',

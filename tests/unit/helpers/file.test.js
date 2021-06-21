@@ -112,7 +112,7 @@ describe('downloadImages', () => {
   it('should download images from GCS', async () => {
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
-      { url: 'https://storage.googleapis.com/compani-main/compani_text_orange.png', name: 'compani.png' },
+      { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
     ];
     const response = { data: {} };
 
