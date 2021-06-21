@@ -8,5 +8,5 @@ exports.fundingValidation = {
   unitTTCRate: Joi.number().min(0),
   careHours: Joi.number().min(0),
   careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
-  customerParticipationRate: Joi.number().default(0).min(0).max(100),
+  customerParticipationRate: Joi.number().min(0).max(100),
 };
