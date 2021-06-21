@@ -9,6 +9,7 @@ const {
   sectors,
 } = require('./seed/eventHistoriesSeed');
 const { getToken } = require('./seed/authenticationSeed');
+const UtilsHelper = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -65,6 +66,21 @@ describe('GET /eventhistories', () => {
     });
   });
 
+  it('should return a list of event histories for one event', async () => {
+    const eventId = eventHistoryList[0]._id;
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/eventhistories?eventId=${eventId}`,
+      headers: { Cookie: `alenvi_token=${authToken}` },
+    });
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.result.data.eventHistories).toBeDefined();
+    expect(response.result.data.eventHistories.every(history =>
+      UtilsHelper.areObjectIdsEquals(history.event.eventId, eventId))).toBeTruthy();
+  });
+
   it('should return a 400 if invalid query', async () => {
     const response = await app.inject({
       method: 'GET',
@@ -93,5 +109,28 @@ describe('GET /eventhistories', () => {
     });
 
     expect(response.statusCode).toEqual(403);
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: '/eventhistories',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
   });
 });

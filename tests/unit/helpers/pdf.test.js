@@ -3,7 +3,11 @@ const path = require('path');
 const expect = require('expect');
 const puppeteer = require('puppeteer');
 const handlebars = require('handlebars');
+const PdfPrinter = require('pdfmake');
+const PDFDocument = require('pdfkit');
+const getStream = require('get-stream');
 const PdfHelper = require('../../../src/helpers/pdf');
+const FileHelper = require('../../../src/helpers/file');
 
 describe('formatSurchargeHourForPdf', () => {
   it('should return just the hours', () => {
@@ -118,5 +122,39 @@ describe('generatePdf', () => {
     } catch (e) {
       sinon.assert.calledOnce(puppeteerLaunch.getCall(0).returnValue.close);
     }
+  });
+});
+
+describe('generatePDF', () => {
+  let createPdfKitDocument;
+  let buffer;
+  let deleteImages;
+
+  beforeEach(() => {
+    createPdfKitDocument = sinon.stub(PdfPrinter.prototype, 'createPdfKitDocument');
+    buffer = sinon.stub(getStream, 'buffer');
+    deleteImages = sinon.stub(FileHelper, 'deleteImages');
+  });
+
+  afterEach(() => {
+    createPdfKitDocument.restore();
+    buffer.restore();
+    deleteImages.restore();
+  });
+
+  it('should generate pdf', async () => {
+    const template = { content: [{ text: 'test' }] };
+    const doc = new PDFDocument();
+    const pdf = Buffer;
+
+    createPdfKitDocument.returns(doc);
+    buffer.returns(pdf);
+
+    const result = await PdfHelper.generatePDF(template);
+
+    expect(result).toBe(pdf);
+    sinon.assert.calledOnceWithExactly(createPdfKitDocument, template);
+    sinon.assert.calledOnceWithExactly(buffer, doc);
+    sinon.assert.calledOnceWithExactly(deleteImages);
   });
 });

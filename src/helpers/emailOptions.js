@@ -69,11 +69,16 @@ const completeBillScriptEmailBody = (sentNb, emails) => {
   return body;
 };
 
-const completeEventRepScriptEmailBody = (nb, repIds) => {
+const completeEventRepScriptEmailBody = (nb, deletedRepetitions, repIds) => {
   let body = `<p>Script correctement exécuté. ${nb} répétitions traitées.</p>`;
   if (repIds.length) {
     body = body.concat(`<p>Répétitions à traiter manuellement ${repIds.join()}</p>`);
   }
+
+  for (const repetition of deletedRepetitions) {
+    body = body.concat(`<p>Répétition supprimée : ${repetition._id}, pour le bénéficiaire : ${repetition.customer._id}</p>`);
+  }
+
   return body;
 };
 

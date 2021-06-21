@@ -2,7 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Customer = require('../../models/Customer');
 const Sector = require('../../models/Sector');
-const User = require('../../models/User');
+const UserCompany = require('../../models/UserCompany');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 
@@ -14,7 +14,7 @@ exports.authorizeGetStats = async (req) => {
     const customer = await Customer.findById(req.query.customer).lean();
 
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
-    if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+    if (!UtilsHelper.areObjectIdsEquals(customer.company, companyId)) throw Boom.forbidden();
   }
 
   if (req.query.sector) {
@@ -24,7 +24,7 @@ exports.authorizeGetStats = async (req) => {
   }
 
   if (req.query.auxiliary) {
-    const auxiliary = await User.countDocuments({ _id: req.query.auxiliary, company: companyId });
+    const auxiliary = await UserCompany.countDocuments({ user: req.query.auxiliary, company: companyId });
     if (!auxiliary) throw Boom.forbidden();
   }
 

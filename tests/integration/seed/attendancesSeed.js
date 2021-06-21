@@ -4,6 +4,7 @@ const Attendance = require('../../../src/models/Attendance');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList } = require('../../seed/roleSeed');
 const { otherCompany } = require('../../seed/companySeed');
 const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
@@ -171,11 +172,19 @@ const companyTraineesList = [
   },
 ];
 
+const userCompanyList = [
+  { user: companyTraineesList[0]._id, company: authCompany._id },
+  { user: companyTraineesList[2]._id, company: otherCompany._id },
+  { user: companyTraineesList[3]._id, company: authCompany._id },
+  { user: companyTraineesList[4]._id, company: otherCompany._id },
+];
+
 const populateDB = async () => {
-  await Attendance.deleteMany({});
-  await Course.deleteMany({});
-  await CourseSlot.deleteMany({});
-  await User.deleteMany({});
+  await Attendance.deleteMany();
+  await Course.deleteMany();
+  await CourseSlot.deleteMany();
+  await User.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -188,6 +197,7 @@ const populateDB = async () => {
   for (const user of companyTraineesList) {
     await (new User(user)).save();
   }
+  await UserCompany.insertMany(userCompanyList);
 };
 
 module.exports = {
@@ -197,4 +207,5 @@ module.exports = {
   slotsList,
   trainerList,
   companyTraineesList,
+  userCompanyList,
 };

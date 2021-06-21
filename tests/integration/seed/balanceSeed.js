@@ -15,6 +15,7 @@ const balanceThirdPartyPayer = {
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
+  billingMode: 'direct',
 };
 
 const customerServiceList = [
@@ -228,12 +229,12 @@ const customerFromOtherCompany = {
 };
 
 const populateDB = async () => {
-  await Service.deleteMany({});
-  await Customer.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Bill.deleteMany({});
-  await User.deleteMany({});
-  await Helper.deleteMany({});
+  await Service.deleteMany();
+  await Customer.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Bill.deleteMany();
+  await User.deleteMany();
+  await Helper.deleteMany();
 
   await populateDBForAuthentication();
 

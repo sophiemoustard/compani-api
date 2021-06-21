@@ -5,7 +5,7 @@ const moment = require('moment');
 const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
-const GDriveStorageHelper = require('./gDriveStorage');
+const omit = require('lodash/omit');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
@@ -17,12 +17,14 @@ const CustomerPartner = require('../models/CustomerPartner');
 const Rum = require('../models/Rum');
 const User = require('../models/User');
 const EventRepository = require('../repositories/EventRepository');
+const CustomerRepository = require('../repositories/CustomerRepository');
 const translate = require('./translate');
 const { INTERVENTION } = require('./constants');
+const GDriveStorageHelper = require('./gDriveStorage');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
-const CustomerRepository = require('../repositories/CustomerRepository');
+const EventsHelper = require('./events');
 
 const { language } = translate;
 
@@ -152,28 +154,27 @@ exports.updateCustomerEvents = async (customerId, payload) => {
 };
 
 const formatPayload = async (customerId, customerPayload, company) => {
-  if (has(customerPayload, 'payment.iban')) {
-    return exports.formatPaymentPayload(customerId, customerPayload, company);
-  }
+  if (has(customerPayload, 'payment.iban')) return exports.formatPaymentPayload(customerId, customerPayload, company);
 
-  return { $set: flat(customerPayload, { safe: true }) };
+  return { $set: flat(omit(customerPayload, 'referent'), { safe: true }) };
 };
 
-exports.updateCustomer = async (customerId, customerPayload, credentials) => {
+exports.updateCustomer = async (customerId, payload, credentials) => {
   const { company } = credentials;
-  if (has(customerPayload, 'referent')) {
-    await ReferentHistoriesHelper.updateCustomerReferent(customerId, customerPayload.referent, company);
 
-    return Customer.findOne({ _id: customerId }).lean();
+  if (payload.stoppedAt) await EventsHelper.deleteCustomerEvents(customerId, payload.stoppedAt, null, credentials);
+
+  if (has(payload, 'referent')) {
+    await ReferentHistoriesHelper.updateCustomerReferent(customerId, payload.referent, company);
   }
 
-  if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
-    await exports.updateCustomerEvents(customerId, customerPayload);
+  if (has(payload, 'contact.primaryAddress') || has(payload, 'contact.secondaryAddress')) {
+    await exports.updateCustomerEvents(customerId, payload);
   }
 
-  const payload = await formatPayload(customerId, customerPayload, company);
+  const formattedPayload = await formatPayload(customerId, payload, company);
 
-  return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
+  return Customer.findOneAndUpdate({ _id: customerId }, formattedPayload, { new: true }).lean();
 };
 
 exports.createCustomer = async (payload, credentials) => {

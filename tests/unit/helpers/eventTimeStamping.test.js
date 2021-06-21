@@ -6,6 +6,7 @@ const eventTimeStampingHelper = require('../../../src/helpers/eventTimeStamping'
 const eventHistoryHelper = require('../../../src/helpers/eventHistories');
 const eventValidationHelper = require('../../../src/helpers/eventsValidation');
 const Event = require('../../../src/models/Event');
+const { MANUAL_TIME_STAMPING } = require('../../../src/helpers/constants');
 
 describe('isStartDateTimeStampAllowed', () => {
   let hasConflictsStub;
@@ -124,7 +125,7 @@ describe('addTimeStamp', () => {
   it('should add startDate timestamp and updateEvent', async () => {
     const event = { _id: new ObjectID() };
     const startDate = new Date();
-    const payload = { action: 'manual_timestamping', reason: 'qrcode', startDate };
+    const payload = { action: MANUAL_TIME_STAMPING, reason: 'qrcode', startDate };
     const credentials = { _id: new ObjectID() };
 
     isStartDateTimeStampAllowedStub.returns(true);
@@ -140,7 +141,7 @@ describe('addTimeStamp', () => {
   it('should return a 409 if startDate timestamp is not allowed', async () => {
     const event = { _id: new ObjectID() };
     const startDate = new Date();
-    const payload = { action: 'manual_timestamping', reason: 'qrcode', startDate };
+    const payload = { action: MANUAL_TIME_STAMPING, reason: 'qrcode', startDate };
     const credentials = { _id: new ObjectID() };
 
     try {
@@ -160,7 +161,7 @@ describe('addTimeStamp', () => {
   it('should add endDate timestamp and updateEvent', async () => {
     const event = { _id: new ObjectID() };
     const endDate = new Date();
-    const payload = { action: 'manual_timestamping', reason: 'qrcode', endDate };
+    const payload = { action: MANUAL_TIME_STAMPING, reason: 'qrcode', endDate };
     const credentials = { _id: new ObjectID() };
 
     isEndDateTimeStampAllowedStub.returns(true);
@@ -176,7 +177,7 @@ describe('addTimeStamp', () => {
   it('should return a 409 if startDate timestamp is not allowed', async () => {
     const event = { _id: new ObjectID() };
     const endDate = new Date();
-    const payload = { action: 'manual_timestamping', reason: 'qrcode', endDate };
+    const payload = { action: MANUAL_TIME_STAMPING, reason: 'qrcode', endDate };
     const credentials = { _id: new ObjectID() };
 
     try {

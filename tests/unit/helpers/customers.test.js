@@ -19,6 +19,7 @@ const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories'
 const FundingsHelper = require('../../../src/helpers/fundings');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
+const EventsHelper = require('../../../src/helpers/events');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -527,25 +528,25 @@ describe('updateCustomerEvents', () => {
 });
 
 describe('updateCustomer', () => {
-  let findOneCustomer;
   let findOneAndUpdateCustomer;
   let formatPaymentPayload;
   let updateCustomerEvents;
   let updateCustomerReferent;
+  let deleteCustomerEvents;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
-    findOneCustomer = sinon.stub(Customer, 'findOne');
     findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
     formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
     updateCustomerEvents = sinon.stub(CustomerHelper, 'updateCustomerEvents');
     updateCustomerReferent = sinon.stub(ReferentHistoriesHelper, 'updateCustomerReferent');
+    deleteCustomerEvents = sinon.stub(EventsHelper, 'deleteCustomerEvents');
   });
   afterEach(() => {
-    findOneCustomer.restore();
     findOneAndUpdateCustomer.restore();
     formatPaymentPayload.restore();
     updateCustomerEvents.restore();
     updateCustomerReferent.restore();
+    deleteCustomerEvents.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -554,18 +555,21 @@ describe('updateCustomer', () => {
 
     const customerResult = { _id: customer._id };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customer._id, payload, credentials);
 
     expect(result).toEqual(customerResult);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
-    sinon.assert.notCalled(findOneAndUpdateCustomer);
+    sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(updateCustomerReferent, customer._id, payload.referent, credentials.company);
     SinonMongoose.calledWithExactly(
-      findOneCustomer,
-      [{ query: 'findOne', args: [{ _id: customer._id }] }, { query: 'lean' }]
+      findOneAndUpdateCustomer,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: customer._id }, { $set: flat({}, { safe: true }) }, { new: true }] },
+        { query: 'lean' },
+      ]
     );
   });
 
@@ -590,7 +594,7 @@ describe('updateCustomer', () => {
     expect(result).toEqual(customerResult);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
-    sinon.assert.notCalled(findOneCustomer);
+    sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
@@ -613,7 +617,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
     const customerResult = {
       payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] },
@@ -628,7 +632,7 @@ describe('updateCustomer', () => {
     expect(result).toBe(customerResult);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
-    sinon.assert.notCalled(findOneCustomer);
+    sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
@@ -637,7 +641,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if primaryAddress is changed', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -649,6 +653,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteCustomerEvents);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -662,7 +667,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if secondaryAddress is changed', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -674,6 +679,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteCustomerEvents);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -687,7 +693,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -699,6 +705,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteCustomerEvents);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -712,7 +719,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { contact: { secondaryAddress: { fullAddress: '' } } };
     const customerResult = {
       contact: {
@@ -729,6 +736,7 @@ describe('updateCustomer', () => {
     sinon.assert.calledWithExactly(updateCustomerEvents, customerId, payload);
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteCustomerEvents);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -741,8 +749,34 @@ describe('updateCustomer', () => {
     );
   });
 
+  it('should deleted customer\'s events when customer is stopped', async () => {
+    const customerId = new ObjectID();
+    const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
+    const payload = { stoppedAt: '2019-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
+
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
+
+    expect(result).toBe(customerResult);
+    sinon.assert.calledOnceWithExactly(deleteCustomerEvents, customerId, '2019-06-25T16:34:04.144Z', null, credentials);
+    SinonMongoose.calledWithExactly(
+      findOneAndUpdateCustomer,
+      [
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(formatPaymentPayload);
+    sinon.assert.notCalled(updateCustomerEvents);
+    sinon.assert.notCalled(updateCustomerReferent);
+  });
+
   it('should update a customer', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
     const customerResult = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
 
@@ -754,6 +788,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
+    sinon.assert.notCalled(deleteCustomerEvents);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
