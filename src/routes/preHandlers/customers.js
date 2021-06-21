@@ -35,23 +35,39 @@ exports.validateCustomerCompany = async (params, payload, companyId) => {
 exports.authorizeCustomerUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   await exports.validateCustomerCompany(req.params, req.payload, companyId);
+  const { payload } = req;
 
-  if (req.payload) {
-    if (req.payload.referent) {
-      const referent = await UserCompany.countDocuments({ user: req.payload.referent, company: companyId });
+  if (payload) {
+    if (payload.referent) {
+      const referent = await UserCompany.countDocuments({ user: payload.referent, company: companyId });
       if (!referent) return Boom.forbidden();
     }
 
-    if (req.payload.thirdPartypayer) {
-      const thirdPartypayer = await ThirdPartyPayer
-        .findOne({ _id: req.payload.thirdPartypayer, company: companyId })
+    if (payload.thirdPartyPayer) {
+      const thirdPartyPayer = await ThirdPartyPayer
+        .findOne({ _id: payload.thirdPartyPayer, company: companyId })
+        .select('teletransmissionId')
         .lean();
-      if (!thirdPartypayer) return Boom.forbidden();
+      if (!thirdPartyPayer) return Boom.forbidden();
+      if (thirdPartyPayer.teletransmissionId && !payload.fundingPlanId) return Boom.badRequest();
+      if (!thirdPartyPayer.teletransmissionId && payload.fundingPlanId) return Boom.forbidden();
     }
 
-    if (req.payload.stoppedAt) {
+    if (req.params.fundingId) {
+      const { _id, fundingId } = req.params;
+      const customer = await Customer.findOne({ _id, 'fundings._id': fundingId })
+        .populate('fundings.thirdPartyPayer')
+        .select('fundings')
+        .lean();
+      const hasTeletransmissionId = customer.fundings.find(funding =>
+        UtilsHelper.areObjectIdsEquals(funding._id, fundingId) && funding.thirdPartyPayer.teletransmissionId);
+      if (payload.fundingPlanId && !hasTeletransmissionId) return Boom.forbidden();
+      if (!payload.fundingPlanId && hasTeletransmissionId) return Boom.badRequest();
+    }
+
+    if (payload.stoppedAt) {
       const customer = await Customer.countDocuments(
-        { _id: req.params._id, $or: [{ stoppedAt: { $exists: true } }, { createdAt: { $gt: req.payload.stoppedAt } }] }
+        { _id: req.params._id, $or: [{ stoppedAt: { $exists: true } }, { createdAt: { $gt: payload.stoppedAt } }] }
       );
       if (customer) return Boom.forbidden();
     }

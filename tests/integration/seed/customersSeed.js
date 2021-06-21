@@ -91,13 +91,17 @@ const customerServiceList = [
   },
 ];
 
-const customerThirdPartyPayer = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  isApa: true,
-  billingMode: 'direct',
-  name: 'Toto',
-};
+const customerThirdPartyPayers = [
+  { _id: new ObjectID(), company: authCompany._id, isApa: true, billingMode: 'direct', name: 'Toto' },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    isApa: true,
+    billingMode: 'direct',
+    name: 'Toto',
+    teletransmissionId: '12345',
+  },
+];
 
 const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
@@ -174,8 +178,9 @@ const customersList = [
     fundings: [{
       _id: new ObjectID(),
       nature: FIXED,
-      thirdPartyPayer: customerThirdPartyPayer._id,
+      thirdPartyPayer: customerThirdPartyPayers[1]._id,
       subscription: subId,
+      fundingPlanId: '12345',
       versions: [{
         folderNumber: 'D123456',
         startDate: moment.utc().toDate(),
@@ -213,6 +218,22 @@ const customersList = [
       _id: new ObjectID(),
       service: customerServiceList[2]._id,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+    }],
+    fundings: [{
+      _id: new ObjectID(),
+      nature: FIXED,
+      thirdPartyPayer: customerThirdPartyPayers[0]._id,
+      subscription: subId,
+      versions: [{
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        frequency: ONCE,
+        endDate: moment.utc().add(6, 'months').toDate(),
+        effectiveDate: moment.utc().toDate(),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [0, 1, 2, 3, 4, 5, 6],
+      }],
     }],
   },
   {
@@ -373,7 +394,7 @@ const customersList = [
       {
         _id: new ObjectID(),
         nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
         subscription: subId2,
         frequency: ONCE,
         versions: [{
@@ -601,7 +622,7 @@ const otherCompanyCustomer = {
     {
       _id: new ObjectID(),
       nature: FIXED,
-      thirdPartyPayer: customerThirdPartyPayer._id,
+      thirdPartyPayer: customerThirdPartyPayers[0]._id,
       subscription: subId,
       versions: [{
         folderNumber: 'D123456',
@@ -720,7 +741,7 @@ const eventList = [
     subscription: subId,
     isBilled: true,
     bills: {
-      thirdPartyPayer: customerThirdPartyPayer._id,
+      thirdPartyPayer: customerThirdPartyPayers[0]._id,
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
       inclTaxesTpp: 10,
@@ -797,7 +818,7 @@ const populateDB = async () => {
   await Helper.deleteMany();
 
   await populateDBForAuthentication();
-  await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
+  await ThirdPartyPayer.insertMany(customerThirdPartyPayers);
   await Service.insertMany(customerServiceList);
   await Customer.insertMany([...customersList, otherCompanyCustomer]);
   await Event.insertMany(eventList);
@@ -820,6 +841,6 @@ module.exports = {
   userList,
   populateDB,
   customerServiceList,
-  customerThirdPartyPayer,
+  customerThirdPartyPayers,
   otherCompanyCustomer,
 };
