@@ -23,10 +23,7 @@ const payDocumentUserCompany = {
 
 const user = getUser('auxiliary_without_company');
 
-const userCompanyWithoutCompany = {
-  user: user._id,
-  company: authCompany._id,
-};
+const userCompanyWithoutCompany = { user: user._id, company: authCompany._id };
 
 const otherCompanyId = new ObjectID();
 
@@ -97,7 +94,7 @@ const populateDB = async () => {
   await populateDBForAuthentication();
 
   await User.create([payDocumentUser, userFromOtherCompany]);
-  await UserCompany.create([payDocumentUserCompany, userCompanyWithoutCompany]);
+  await UserCompany.insertMany([payDocumentUserCompany, userCompanyWithoutCompany]);
   await PayDocument.insertMany(payDocumentsList);
 };
 
