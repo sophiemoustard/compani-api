@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Customer = require('../../../src/models/Customer');
+const CustomerNote = require('../../../src/models/CustomerNote');
 const { authCompany, otherCompany, populateDBForAuthentication } = require('./authenticationSeed');
 
 const customersList = [
@@ -33,14 +34,34 @@ const customersList = [
   },
 ];
 
+const customerNotesList = [
+  {
+    _id: new ObjectID(),
+    title: 'Titre',
+    description: 'Description',
+    customer: customersList[0],
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    title: 'Titre 1',
+    description: 'Description 2',
+    customer: customersList[1],
+    company: otherCompany._id,
+  },
+];
+
 const populateDB = async () => {
   await Customer.deleteMany({});
+  await CustomerNote.deleteMany({});
 
   await populateDBForAuthentication();
   await Customer.insertMany(customersList);
+  await CustomerNote.insertMany(customerNotesList);
 };
 
 module.exports = {
   populateDB,
   customersList,
+  customerNotesList,
 };

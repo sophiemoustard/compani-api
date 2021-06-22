@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { getToken } = require('./seed/authenticationSeed');
 const { customersList, populateDB } = require('./seed/customerNotesSeed');
@@ -122,6 +123,78 @@ describe('CUSTOMER NOTES ROUTES - POST /customernotes', () => {
           url: '/customernotes',
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { title: 'Titre', description: 'Description', customer: customersList[0]._id },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CUSTOMER NOTES ROUTES - GET /customernotes', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('AUXILIARY', () => {
+    beforeEach(async () => {
+      authToken = await getToken('auxiliary');
+    });
+
+    it('should get all customer notes', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customernotes?customer=${customersList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 if query customer has invalid type', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/customernotes?customer=test',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 404 if customer does not exists', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customernotes?customer=${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if customer and user have different companies', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/customernotes?customer=${customersList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/customernotes?customer=${customersList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
