@@ -8,6 +8,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Event = require('../../../src/models/Event');
 const Establishment = require('../../../src/models/Establishment');
+const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList, getUser } = require('./authenticationSeed');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -239,6 +240,14 @@ const userFromOtherCompany = {
   origin: WEBAPP,
 };
 
+const userCompanies = [
+  { user: contractUsers[0]._id, company: authCompany._id },
+  { user: contractUsers[1]._id, company: authCompany._id },
+  { user: contractUsers[2]._id, company: authCompany._id },
+  { user: contractUsers[3]._id, company: authCompany._id },
+  { user: getUser('auxiliary_without_company')._id, company: authCompany._id },
+];
+
 const contractsList = [
   {
     serialNumber: 'mnbvcxzaserfghjiu',
@@ -404,13 +413,14 @@ const contractEvents = [
 ];
 
 const populateDB = async () => {
-  await Contract.deleteMany({});
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await Event.deleteMany({});
-  await Sector.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Establishment.deleteMany({});
+  await Contract.deleteMany();
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await Event.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Establishment.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherContractUser, userFromOtherCompany]);
@@ -420,6 +430,7 @@ const populateDB = async () => {
   await Contract.insertMany([...contractsList, otherContract]);
   await Event.insertMany(contractEvents);
   await SectorHistory.insertMany(sectorHistories);
+  await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {
@@ -431,4 +442,5 @@ module.exports = {
   otherContract,
   otherContractUser,
   userFromOtherCompany,
+  userCompanies,
 };

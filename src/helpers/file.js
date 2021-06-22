@@ -1,6 +1,8 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const axios = require('axios');
+const { TMP_FILES_PATH } = require('./constants');
 
 const fsPromises = fs.promises;
 
@@ -23,6 +25,22 @@ exports.fileToBase64 = filePath => new Promise((resolve, reject) => {
   });
   fileStream.once('error', err => reject(err));
 });
+
+exports.downloadImages = async (imageList) => {
+  if (!fs.existsSync(TMP_FILES_PATH)) fs.mkdirSync(TMP_FILES_PATH);
+
+  const paths = [];
+  for (const image of imageList) {
+    const { url, name } = image;
+    const response = await axios.get(url, { responseType: 'stream' });
+    await this.createAndReadFile(response.data, `${TMP_FILES_PATH}${name}`);
+    paths.push(`${TMP_FILES_PATH}${name}`);
+  }
+
+  return paths;
+};
+
+exports.deleteImages = () => fs.rmdirSync(TMP_FILES_PATH, { recursive: true });
 
 exports.exportToCsv = async (data) => {
   let csvContent = '\ufeff'; // UTF16LE BOM for Microsoft Excel

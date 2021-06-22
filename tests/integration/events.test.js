@@ -7,7 +7,7 @@ const {
   populateDB,
   eventsList,
   auxiliaries,
-  customerAuxiliary,
+  customerAuxiliaries,
   sectors,
   thirdPartyPayer,
   helpersCustomer,
@@ -37,6 +37,8 @@ const {
   INVOICED_AND_PAID,
   AUXILIARY_INITIATIVE,
 } = require('../../src/helpers/constants');
+const UtilsHelper = require('../../src/helpers/utils');
+const DatesHelper = require('../../src/helpers/dates');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
@@ -56,19 +58,21 @@ describe('GET /events', () => {
     });
 
     it('should return a list of events', async () => {
-      const startDate = moment('2019-01-18');
-      const endDate = moment('2019-01-20');
+      const startDate = new Date('2019-01-17');
+      const endDate = new Date('2019-01-20');
+      const isCancelled = false;
       const response = await app.inject({
         method: 'GET',
-        url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+        url: `/events?startDate=${startDate}&endDate=${endDate}&isCancelled=${isCancelled}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
       response.result.data.events.forEach((event) => {
-        expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
-        expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
+        expect(DatesHelper.isSameOrAfter(event.startDate, startDate)).toBeTruthy();
+        expect(DatesHelper.isSameOrBefore(event.startDate, endDate)).toBeTruthy();
+        expect(event.isCancelled).toEqual(false);
         if (event.type === 'intervention') expect(event.subscription._id).toBeDefined();
       });
     });
@@ -82,11 +86,9 @@ describe('GET /events', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events[0]._id).toBeDefined();
-      expect(response.result.data.events[0].events).toBeDefined();
-      response.result.data.events[0].events.forEach((event) => {
-        expect(event.customer._id).toEqual(response.result.data.events[0]._id);
-      });
+      const { events } = response.result.data;
+      const customerId = Object.keys(events)[0];
+      events[customerId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.customer._id, customerId)).toBeTruthy());
     });
 
     it('should return a list of events groupedBy auxiliaries', async () => {
@@ -98,12 +100,9 @@ describe('GET /events', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events[0]._id).toBeDefined();
-      expect(response.result.data.events[0].events).toBeDefined();
-      const index = response.result.data.events.findIndex(event => event.events[0].auxiliary);
-      response.result.data.events[index].events.forEach((event) => {
-        expect(event.auxiliary._id).toEqual(response.result.data.events[index]._id);
-      });
+      const { events } = response.result.data;
+      const auxId = Object.keys(events)[0];
+      events[auxId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.auxiliary._id, auxId)).toBeTruthy());
     });
 
     it('should return a 200 if same id send twice - sectors', async () => {
@@ -129,7 +128,7 @@ describe('GET /events', () => {
     it('should return a 200 if same id send twice - customers', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/events?customer=${customerAuxiliary._id}&customer=${customerAuxiliary._id}`,
+        url: `/events?customer=${customerAuxiliaries[0]._id}&customer=${customerAuxiliaries[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -195,7 +194,7 @@ describe('GET /events', () => {
       {
         name: 'helper\'s customer',
         expectedCode: 200,
-        url: `/events?customer=${customerAuxiliary._id.toHexString()}`,
+        url: `/events?customer=${customerAuxiliaries[0]._id.toHexString()}`,
         customCredentials: { ...helpersCustomer.local },
       },
       { name: 'vendor_admin', expectedCode: 403 },
@@ -230,7 +229,7 @@ describe('GET /events/credit-notes', () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
-        customer: customerAuxiliary._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
         creditNoteId: creditNotesList._id,
       };
 
@@ -250,7 +249,7 @@ describe('GET /events/credit-notes', () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
-        customer: customerAuxiliary._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayer._id.toHexString(),
         creditNoteId: creditNotesList._id,
       };
@@ -270,7 +269,7 @@ describe('GET /events/credit-notes', () => {
         const query = {
           startDate: moment('2019-01-01').toDate(),
           endDate: moment('2019-01-20').toDate(),
-          customer: customerAuxiliary._id.toHexString(),
+          customer: customerAuxiliaries[0]._id.toHexString(),
         };
         const wrongQuery = omit(query, param);
 
@@ -306,7 +305,7 @@ describe('GET /events/credit-notes', () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
-        customer: customerAuxiliary._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
         creditNoteId: creditNotesList._id,
       };
@@ -331,7 +330,7 @@ describe('GET /events/credit-notes', () => {
     const query = {
       startDate: moment('2019-01-01').toDate(),
       endDate: moment('2019-01-20').toDate(),
-      customer: customerAuxiliary._id.toHexString(),
+      customer: customerAuxiliaries[0]._id.toHexString(),
       creditNoteId: creditNotesList._id,
     };
 
@@ -655,8 +654,8 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -683,8 +682,8 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         sector: sectors[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -753,8 +752,8 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -788,8 +787,8 @@ describe('POST /events', () => {
       startDate: '2019-01-23T10:00:00',
       endDate: '2019-01-23T12:30:00',
       auxiliary: auxiliaries[0]._id.toHexString(),
-      customer: customerAuxiliary._id.toHexString(),
-      subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+      customer: customerAuxiliaries[0]._id.toHexString(),
+      subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
       address: {
         fullAddress: '4 rue du test 92160 Antony',
         street: '4 rue du test',
@@ -915,7 +914,7 @@ describe('POST /events', () => {
         endDate: '2019-01-23T12:30:00',
         auxiliary: new ObjectID(),
         customer: new ObjectID(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         sector: sectors[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
@@ -968,7 +967,7 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
         subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
@@ -989,14 +988,14 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return a 403 if auxiliary is not from the same company', async () => {
+    it('should return a 404 if auxiliary is not from the same company', async () => {
       const payload = {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -1013,7 +1012,7 @@ describe('POST /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 403 if internalHour is not from the same company', async () => {
@@ -1023,7 +1022,7 @@ describe('POST /events', () => {
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -1049,8 +1048,8 @@ describe('POST /events', () => {
         startDate: '2020-09-23T10:00:00',
         endDate: '2020-09-23T12:30:00',
         auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliary._id.toHexString(),
-        subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[2]._id.toHexString(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -1164,8 +1163,8 @@ describe('POST /events', () => {
       startDate: '2019-01-23T10:00:00',
       endDate: '2019-01-23T12:30:00',
       auxiliary: auxiliaries[0]._id.toHexString(),
-      customer: customerAuxiliary._id.toHexString(),
-      subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+      customer: customerAuxiliaries[0]._id.toHexString(),
+      subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
       address: {
         fullAddress: '4 rue du test 92160 Antony',
         street: '4 rue du test',
@@ -1291,7 +1290,7 @@ describe('PUT /events/{_id}', () => {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
         auxiliary: event.auxiliary.toHexString(),
-        subscription: customerAuxiliary.subscriptions[1]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[1]._id.toHexString(),
       };
 
       const response = await app.inject({
@@ -1310,7 +1309,7 @@ describe('PUT /events/{_id}', () => {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
         auxiliary: event.auxiliary.toHexString(),
-        subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[2]._id.toHexString(),
       };
 
       const response = await app.inject({
@@ -1384,7 +1383,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 403 if auxiliary is not from the same company', async () => {
+    it('should return a 404 if auxiliary is not from the same company', async () => {
       const event = eventsList[0];
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
@@ -1399,7 +1398,7 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 404 error as event is not found', async () => {
@@ -1525,7 +1524,7 @@ describe('PUT /events/{_id}', () => {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
         auxiliary: event.auxiliary.toHexString(),
-        subscription: customerAuxiliary.subscriptions[2]._id.toHexString(),
+        subscription: customerAuxiliaries[0].subscriptions[2]._id.toHexString(),
       };
       const response = await app.inject({
         method: 'PUT',
@@ -1749,7 +1748,7 @@ describe('DELETE /events', () => {
     });
 
     it('should delete all events from startDate including repetitions', async () => {
-      const customer = customerAuxiliary._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const response = await app.inject({
         method: 'DELETE',
@@ -1762,7 +1761,7 @@ describe('DELETE /events', () => {
     });
 
     it('should delete all events from startDate to endDate', async () => {
-      const customer = customerAuxiliary._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
 
@@ -1775,7 +1774,7 @@ describe('DELETE /events', () => {
     });
 
     it('should not delete events if one event is billed', async () => {
-      const customer = customerAuxiliary._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-01-01';
       const endDate = '2019-10-16';
 
@@ -1784,6 +1783,18 @@ describe('DELETE /events', () => {
         url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should not delete events if one event is timestamped', async () => {
+      const customer = customerAuxiliaries[1]._id;
+      const startDate = '2019-10-14';
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
       expect(response.statusCode).toBe(409);
     });
 
@@ -1810,7 +1821,7 @@ describe('DELETE /events', () => {
     ];
 
     roles.forEach((role) => {
-      const customer = customerAuxiliary._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
 
@@ -2001,6 +2012,19 @@ describe('PUT /{_id}/timestamping', () => {
         url: `/events/${eventsList[24]._id}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { endDate, action: 'manual_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return a 409 if user tries to timeStamp a cancelled event', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[2].local);
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[25]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
       });
 
       expect(response.statusCode).toBe(409);

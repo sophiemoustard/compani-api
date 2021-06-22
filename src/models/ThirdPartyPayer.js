@@ -6,16 +6,14 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const Customer = require('./Customer');
 
 const ThirdPartyPayerSchema = mongoose.Schema({
-  name: String,
+  name: { type: String, required: true },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
-  email: String,
-  unitTTCRate: Number,
-  billingMode: {
-    type: String,
-    enum: [BILLING_DIRECT, BILLING_INDIRECT],
-  },
+  email: { type: String },
+  unitTTCRate: { type: Number },
+  billingMode: { type: String, enum: [BILLING_DIRECT, BILLING_INDIRECT], required: true },
   company: { type: mongoose.Schema.Types.ObjectId, required: true },
   isApa: { type: Boolean, required: true },
+  teletransmissionId: { type: String },
 }, { timestamps: true });
 
 const countFundings = async (docs) => {

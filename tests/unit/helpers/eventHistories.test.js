@@ -7,7 +7,7 @@ const EventHistoryHelper = require('../../../src/helpers/eventHistories');
 const EventHistoryRepository = require('../../../src/repositories/EventHistoryRepository');
 const EventHistory = require('../../../src/models/EventHistory');
 const User = require('../../../src/models/User');
-const { INTERNAL_HOUR } = require('../../../src/helpers/constants');
+const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('getEventHistories', () => {
@@ -32,11 +32,28 @@ describe('getEventHistories', () => {
       ],
     };
     getListQueryStub.returns(listQuery);
-    paginateStub.returns([]);
+    paginateStub.returns([{ type: INTERNAL_HOUR }]);
+
     const result = await EventHistoryHelper.getEventHistories(query, credentials);
-    expect(result).toEqual([]);
-    getListQueryStub.calledWithExactly(query, credentials);
-    paginateStub.calledWithExactly(query, listQuery, query.createdAt, credentials);
+
+    expect(result).toEqual([{ type: INTERNAL_HOUR }]);
+    sinon.assert.calledOnceWithExactly(getListQueryStub, query, credentials);
+    sinon.assert.calledOnceWithExactly(paginateStub, listQuery, 20);
+  });
+
+  it('should get event histories for one event', async () => {
+    const eventId = new ObjectID();
+    const companyId = new ObjectID();
+
+    const query = { eventId };
+    const credentials = { company: { _id: companyId } };
+    paginateStub.returns([{ type: INTERVENTION }]);
+
+    const result = await EventHistoryHelper.getEventHistories(query, credentials);
+
+    expect(result).toEqual([{ type: INTERVENTION }]);
+    sinon.assert.notCalled(getListQueryStub);
+    sinon.assert.calledOnceWithExactly(paginateStub, { 'event.eventId': eventId, company: companyId });
   });
 });
 
@@ -62,10 +79,7 @@ describe('getListQuery', () => {
     formatArrayOrStringQueryParam.returns([{ sectors: 'toto' }, { sectors: 'tata' }]);
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({
-      company: credentials.company._id,
-      $or: [{ sectors: 'toto' }, { sectors: 'tata' }],
-    });
+    expect(result).toEqual({ company: credentials.company._id, $or: [{ sectors: 'toto' }, { sectors: 'tata' }] });
   });
 
   it('should format query with auxiliaries', () => {
@@ -85,10 +99,7 @@ describe('getListQuery', () => {
     const query = { createdAt: '2019-10-11' };
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({
-      company: credentials.company._id,
-      createdAt: { $lte: '2019-10-11' },
-    });
+    expect(result).toEqual({ company: credentials.company._id, createdAt: { $lt: '2019-10-11' } });
   });
 
   it('should format query with sectors and auxiliaries and createdAt', () => {
@@ -100,13 +111,8 @@ describe('getListQuery', () => {
 
     expect(result).toEqual({
       company: credentials.company._id,
-      createdAt: { $lte: '2019-10-11' },
-      $or: [
-        { sectors: 'toto' },
-        { sectors: 'tata' },
-        { auxiliaries: 'toto' },
-        { auxiliaries: 'tata' },
-      ],
+      createdAt: { $lt: '2019-10-11' },
+      $or: [{ sectors: 'toto' }, { sectors: 'tata' }, { auxiliaries: 'toto' }, { auxiliaries: 'tata' }],
     });
   });
 });

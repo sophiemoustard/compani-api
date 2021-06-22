@@ -1,14 +1,16 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const cloneDeep = require('lodash/cloneDeep');
+const moment = require('moment');
 const Event = require('../../models/Event');
 const CreditNote = require('../../models/CreditNote');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
-const User = require('../../models/User');
 const EventHistory = require('../../models/EventHistory');
 const InternalHour = require('../../models/InternalHour');
+const UserCompany = require('../../models/UserCompany');
+const { TIME_STAMPING_ACTIONS } = require('../../models/EventHistory');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const {
@@ -20,26 +22,19 @@ const {
   TRANSPORT_ACCIDENT,
   ILLNESS,
   INTERVENTION,
-  MANUAL_TIME_STAMPING,
 } = require('../../helpers/constants');
-const DatesHelper = require('../../helpers/dates');
 
 const { language } = translate;
 
 exports.getEvent = async (req) => {
-  try {
-    const event = await Event.findById(req.params._id)
-      .populate('startDateTimeStampedCount')
-      .populate('endDateTimeStampedCount')
-      .lean();
+  const event = await Event.findById(req.params._id)
+    .populate('startDateTimeStampedCount')
+    .populate('endDateTimeStampedCount')
+    .lean();
 
-    if (!event) throw Boom.notFound(translate[language].eventNotFound);
+  if (!event) throw Boom.notFound(translate[language].eventNotFound);
 
-    return event;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
+  return event;
 };
 
 exports.authorizeEventGet = async (req) => {
@@ -53,7 +48,7 @@ exports.authorizeEventGet = async (req) => {
 
   if (req.query.auxiliary) {
     const auxiliariesIds = [...new Set(UtilsHelper.formatIdsArray(req.query.auxiliary))];
-    const auxiliariesCount = await User.countDocuments({ _id: { $in: auxiliariesIds }, company: companyId });
+    const auxiliariesCount = await UserCompany.countDocuments({ user: { $in: auxiliariesIds }, company: companyId });
     if (auxiliariesCount !== auxiliariesIds.length) throw Boom.forbidden();
   }
 
@@ -87,16 +82,18 @@ exports.authorizeEventForCreditNoteGet = async (req) => {
 };
 
 const checkAuxiliaryPermission = (credentials, event) => {
-  const isOwnEvent = event.auxiliary && event.auxiliary === credentials._id;
-  const eventIsUnassignedAndFromSameSector = !event.auxiliary && event.sector && event.sector === credentials.sector;
+  const { auxiliary, sector } = event;
+  const isOwnEvent = auxiliary && UtilsHelper.areObjectIdsEquals(auxiliary, credentials._id);
+  const eventIsUnassignedAndFromSameSector = sector && UtilsHelper.areObjectIdsEquals(sector, credentials.sector);
 
   if (!isOwnEvent && !eventIsUnassignedAndFromSameSector) throw Boom.forbidden();
+
   return null;
 };
 
 exports.authorizeEventDeletion = async (req) => {
   const { credentials } = req.auth;
-  const { event } = req.pre;
+  const event = await exports.getEvent(req);
 
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
   if (isAuxiliary) {
@@ -108,7 +105,7 @@ exports.authorizeEventDeletion = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (!UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
 
-  return null;
+  return event;
 };
 
 exports.authorizeEventCreation = async (req) => {
@@ -140,7 +137,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
   const event = req.pre.event || req.payload;
   const companyId = get(credentials, 'company._id', null);
 
-  if (req.pre.event && event.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+  if (req.pre.event && !UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
 
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
@@ -159,8 +156,8 @@ exports.checkEventCreationOrUpdate = async (req) => {
   }
 
   if (req.payload.auxiliary) {
-    const auxiliary = await User.countDocuments(({ _id: req.payload.auxiliary, company: companyId }));
-    if (!auxiliary) throw Boom.forbidden();
+    const auxiliary = await UserCompany.countDocuments(({ user: req.payload.auxiliary, company: companyId }));
+    if (!auxiliary) throw Boom.notFound();
   }
 
   if (req.payload.sector) {
@@ -200,15 +197,18 @@ exports.authorizeEventDeletionList = async (req) => {
 };
 
 exports.authorizeTimeStamping = async (req) => {
-  const eventCount = await Event.countDocuments({
+  const event = await Event.findOne({
     _id: req.params._id,
     type: INTERVENTION,
     auxiliary: get(req, 'auth.credentials._id'),
-    startDate: { $gte: DatesHelper.getStartOfDay(new Date()), $lte: DatesHelper.getEndOfDay(new Date()) },
-  });
-  if (!eventCount) throw Boom.notFound();
+    startDate: { $gte: moment().startOf('d').toDate(), $lte: moment().endOf('d').toDate() },
+  }).lean();
+  if (!event) throw Boom.notFound();
 
-  const timeStampPayload = { 'event.eventId': req.params._id, action: MANUAL_TIME_STAMPING };
+  if (event.isCancelled) { throw Boom.conflict(translate[language].timeStampCancelledEvent); }
+
+  const timeStampPayload = { 'event.eventId': req.params._id, action: { $in: TIME_STAMPING_ACTIONS } };
+
   if (req.payload.startDate) timeStampPayload['update.startHour'] = { $exists: true };
   else timeStampPayload['update.endHour'] = { $exists: true };
 

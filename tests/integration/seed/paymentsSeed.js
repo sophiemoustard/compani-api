@@ -10,8 +10,8 @@ const { PAYMENT, REFUND, WEBAPP } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const paymentTppList = [
-  { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true },
-  { _id: new ObjectID(), name: 'Tata', company: authCompany._id, isApa: true },
+  { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true, billingMode: 'direct' },
+  { _id: new ObjectID(), name: 'Tata', company: authCompany._id, isApa: true, billingMode: 'direct' },
 ];
 
 const paymentCustomerList = [
@@ -163,14 +163,15 @@ const tppFromOtherCompany = {
   company: otherCompany._id,
   name: 'test',
   isApa: false,
+  billingMode: 'direct',
 };
 
 const populateDB = async () => {
-  await PaymentNumber.deleteMany({});
-  await Payment.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Customer.deleteMany({});
-  await User.deleteMany({});
+  await PaymentNumber.deleteMany();
+  await Payment.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Customer.deleteMany();
+  await User.deleteMany();
 
   await populateDBForAuthentication();
 

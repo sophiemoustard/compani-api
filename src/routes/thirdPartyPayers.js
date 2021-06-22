@@ -30,6 +30,7 @@ exports.plugin = {
             unitTTCRate: Joi.number(),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT).required(),
             isApa: Joi.boolean().required(),
+            teletransmissionId: Joi.string(),
           }),
         },
       },
@@ -53,12 +54,13 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            name: Joi.string(),
+            name: Joi.string().required(),
             address: addressValidation.default({}),
-            email: Joi.string().email().allow(null, ''),
+            email: Joi.string().email().default(''),
             unitTTCRate: Joi.number().default(0),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT).required(),
             isApa: Joi.boolean().required(),
+            teletransmissionId: Joi.string().default(''),
           }),
         },
         pre: [{ method: authorizeThirdPartyPayersUpdate }],

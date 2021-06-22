@@ -18,7 +18,6 @@ const {
 const Event = require('../models/Event');
 const User = require('../models/User');
 const Repetition = require('../models/Repetition');
-const EventHistoriesHelper = require('./eventHistories');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
@@ -171,20 +170,15 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
 
 exports.deleteRepetition = async (event, credentials) => {
   const { type, repetition } = event;
-  if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
-    await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
+  if (type === ABSENCE || !repetition || repetition.frequency === NEVER) return;
 
-    await Event.deleteMany({
-      'repetition.parentId': event.repetition.parentId,
-      startDate: { $gte: new Date(event.startDate) },
-      company: get(credentials, 'company._id'),
-      $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
-    });
+  const query = {
+    'repetition.parentId': event.repetition.parentId,
+    startDate: { $gte: new Date(event.startDate) },
+    company: get(credentials, 'company._id'),
+  };
 
-    await Repetition.deleteOne({ parentId: event.repetition.parentId });
-  }
-
-  return event;
+  await EventsHelper.deleteEventsAndRepetition(query, true, credentials);
 };
 
 exports.formatEventBasedOnRepetition = async (repetition, date) => {

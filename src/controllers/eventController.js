@@ -9,6 +9,7 @@ const { language } = translate;
 const list = async (req) => {
   try {
     const events = await EventsHelper.list(req.query, req.auth.credentials);
+
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
       data: { events },
@@ -67,9 +68,8 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const { auth, pre } = req;
-    const event = await EventsHelper.deleteEvent(pre.event, auth.credentials);
-    if (!event) return Boom.notFound(translate[language].eventNotFound);
+    const { auth, params } = req;
+    await EventsHelper.deleteEvent(params._id, auth.credentials);
 
     return { message: translate[language].eventDeleted };
   } catch (e) {
@@ -81,12 +81,9 @@ const remove = async (req) => {
 const removeRepetition = async (req) => {
   try {
     const { auth, pre } = req;
-    const event = await deleteRepetition(pre.event, auth.credentials);
+    await deleteRepetition(pre.event, auth.credentials);
 
-    return {
-      message: translate[language].eventDeleted,
-      data: { event },
-    };
+    return { message: translate[language].eventDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -97,7 +94,7 @@ const deleteList = async (req) => {
   try {
     const { query, auth } = req;
 
-    await EventsHelper.deleteList(query.customer, query.startDate, query.endDate, auth.credentials);
+    await EventsHelper.deleteCustomerEvents(query.customer, query.startDate, query.endDate, auth.credentials);
 
     return { message: translate[language].eventsDeleted };
   } catch (e) {

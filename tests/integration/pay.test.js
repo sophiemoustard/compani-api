@@ -133,7 +133,7 @@ describe('PAY ROUTES - POST /pay', () => {
         payload: [{ ...payload[0], auxiliary: new ObjectID(auxiliaryFromOtherCompany._id) }],
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     Object.keys(payload[0]).forEach((key) => {

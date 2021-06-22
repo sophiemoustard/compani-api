@@ -6,8 +6,8 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const tppList = [
-  { _id: new ObjectID(), name: 'third party payer', company: authCompany._id, isApa: true },
-  { _id: new ObjectID(), name: 'tpp', company: authCompany._id, isApa: false },
+  { _id: new ObjectID(), name: 'third party payer', company: authCompany._id, isApa: true, billingMode: 'direct' },
+  { _id: new ObjectID(), name: 'tpp', company: authCompany._id, isApa: false, billingMode: 'direct' },
 ];
 
 const billSlipList = [
@@ -114,10 +114,10 @@ const billSlipFromAnotherCompany = {
 };
 
 const populateDB = async () => {
-  await Bill.deleteMany({});
-  await BillSlip.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await CreditNote.deleteMany({});
+  await Bill.deleteMany();
+  await BillSlip.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await CreditNote.deleteMany();
 
   await populateDBForAuthentication();
 

@@ -117,6 +117,7 @@ const CustomerSchema = mongoose.Schema({
       endDate: Date,
       createdAt: { type: Date, default: Date.now },
     }],
+    fundingPlanId: { type: String },
   }],
   stoppedAt: { type: Date },
   archivedAt: { type: Date },
