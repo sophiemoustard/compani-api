@@ -34,3 +34,14 @@ exports.authorizeCustomerNoteEdit = async (req) => {
 
   return null;
 };
+
+exports.checkCustomerNoteGet = async (req) => {
+  const { query } = req;
+  const { credentials } = req.auth;
+  const loggedUserCompany = get(credentials, 'company._id');
+
+  const user = await Customer.countDocuments({ _id: query.customer, company: loggedUserCompany });
+  if (!user) throw Boom.notFound();
+
+  return null;
+};
