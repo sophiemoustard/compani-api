@@ -29,6 +29,7 @@ const {
   trainerAndCoach,
   vendorAdmin,
   traineeFromAuthCompanyWithFormationExpoToken,
+  userCompanies,
 } = require('./seed/coursesSeed');
 const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
@@ -803,7 +804,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         authToken = await getToken('vendor_admin');
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -816,7 +817,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -827,7 +828,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
           .toBe(true);
       });
 
-      it('should throw 403 if invalid traineeId', async () => {
+      it('should throw 404 if invalid traineeId', async () => {
         authToken = await getToken('vendor_admin');
         const traineeId = new ObjectID();
         const response = await app.inject({
@@ -836,7 +837,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(404);
       });
     });
 
@@ -845,7 +846,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         authToken = await getToken('client_admin');
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/user?traineeId=${auxiliary._id.toHexString()}`,
+          url: `/courses/user?traineeId=${userCompanies[1].user.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -856,33 +857,33 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         authToken = await getToken('coach');
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/user?traineeId=${auxiliary._id.toHexString()}`,
+          url: `/courses/user?traineeId=${userCompanies[1].user.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(200);
       });
 
-      it('should return 403 if client admin and different company', async () => {
+      it('should return 404 if client admin and different company', async () => {
         authToken = await getToken('client_admin');
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          url: `/courses/user?traineeId=${userCompanies[2].user.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(404);
       });
 
-      it('should return 403 if coach and different company', async () => {
+      it('should return 404 if coach and different company', async () => {
         authToken = await getToken('coach');
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+          url: `/courses/user?traineeId=${userCompanies[2].user.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(404);
       });
 
       const roles = [
@@ -897,7 +898,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/courses/user?traineeId=${traineeWithoutCompany._id.toHexString()}`,
+            url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
