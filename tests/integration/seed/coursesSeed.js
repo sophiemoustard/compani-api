@@ -228,9 +228,9 @@ const coursesList = [
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     trainer: coachFromAuthCompany._id,
-    misc: 'inter_b2b with accessRules',
+    misc: 'inter_b2b',
     type: 'inter_b2b',
-    trainee: [traineeFromOtherCompany._id],
+    trainees: [traineeFromOtherCompany._id],
     contact: {
       name: 'Romain Delendarroze',
       email: 'romainlebg77@gmail.com',
@@ -241,7 +241,7 @@ const coursesList = [
   { // course without authCompany in access rules (11ème position)
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    misc: 'inter_b2b with accessRules',
+    misc: 'inter_b2b',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
     trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],

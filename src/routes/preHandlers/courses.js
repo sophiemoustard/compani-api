@@ -198,7 +198,7 @@ exports.authorizeGetCourse = async (req) => {
       .populate({ path: 'trainees', select: 'company' })
       .lean();
     const someTraineesAreInCompany = courseWithTrainees.trainees
-      .some(trainee => !UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));
+      .some(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));
     if (!someTraineesAreInCompany) throw Boom.forbidden();
 
     return null;
