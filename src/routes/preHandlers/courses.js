@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
+const UserCompany = require('../../models/UserCompany');
 const {
   TRAINER,
   INTRA,
@@ -26,9 +27,11 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
-  const isTrainerAndAuthorized = userVendorRole === TRAINER && userId === courseTrainerId;
+  const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
   const isClientAndAuthorized = (userClientRole === CLIENT_ADMIN || userClientRole === COACH) &&
-    userCompanyId && (userCompanyId === courseCompanyId || userCompanyId === traineeCompanyId);
+    userCompanyId &&
+     (UtilsHelper.areObjectIdsEquals(userCompanyId, courseCompanyId) ||
+     UtilsHelper.areObjectIdsEquals(userCompanyId, traineeCompanyId));
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
@@ -221,8 +224,8 @@ exports.authorizeAndGetTrainee = async (req) => {
 
   if (!traineeId) return { _id: get(credentials, '_id'), company: get(credentials, 'company._id') };
 
-  const user = await User.findOne({ _id: traineeId }, { company: 1 }).lean();
-  if (!user) return Boom.forbidden();
+  const user = await UserCompany.findOne({ user: traineeId }, { company: 1 }).lean();
+  if (!user) return Boom.notFound();
 
   const trainee = { _id: traineeId, company: user.company };
 
@@ -231,7 +234,11 @@ exports.authorizeAndGetTrainee = async (req) => {
 
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const isSameCompany = UtilsHelper.areObjectIdsEquals(user.company, get(credentials, 'company._id'));
-  if ([COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && isSameCompany) return trainee;
+
+  if ([COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) {
+    if (!isSameCompany) return Boom.notFound();
+    return trainee;
+  }
 
   return Boom.forbidden();
 };
