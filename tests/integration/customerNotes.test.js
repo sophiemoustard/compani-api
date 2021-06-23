@@ -1,5 +1,4 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { getToken } = require('./seed/authenticationSeed');
 const { customersList, populateDB } = require('./seed/customerNotesSeed');
@@ -113,6 +112,7 @@ describe('CUSTOMER NOTES ROUTES - POST /customernotes', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -160,16 +160,6 @@ describe('CUSTOMER NOTES ROUTES - GET /customernotes', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if customer does not exists', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/customernotes?customer=${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
     it('should return 404 if customer and user have different companies', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -186,6 +176,7 @@ describe('CUSTOMER NOTES ROUTES - GET /customernotes', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
