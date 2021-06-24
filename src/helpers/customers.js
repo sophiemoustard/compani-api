@@ -26,6 +26,9 @@ const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
 const EventsHelper = require('./events');
+const PdfHelper = require('./pdf');
+const UtilsHelper = require('./utils');
+const CustomerQRCode = require('../data/pdf/customerQRCode/customerQRCode');
 
 const { language } = translate;
 
@@ -291,9 +294,11 @@ exports.deleteCertificates = (customerId, driveId) => Promise.all([
 ]);
 
 exports.generateQRCode = async (customerId) => {
-  const qrCodeUrl = await QRCode.toDataURL(`${customerId}`);
-  console.log('ici', customerId);
-  console.log('qrCodeUrl', qrCodeUrl);
+  const qrCodeUrl = await QRCode.toDataURL(`${customerId}`, { margin: 0 });
 
-  return qrCodeUrl;
+  const customer = await Customer.findOne({ _id: customerId }, { identity: 1 }).lean();
+  const customerName = UtilsHelper.formatIdentity(customer.identity, 'FL');
+
+  const pdf = await PdfHelper.generatePDF(await CustomerQRCode.getPdfContent(qrCodeUrl, customerName));
+  return { fileName: 'qrcode.pdf', pdf };
 };

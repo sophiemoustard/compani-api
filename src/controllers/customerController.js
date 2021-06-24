@@ -356,11 +356,13 @@ const deleteFunding = async (req) => {
   }
 };
 
-const getQRCode = async (req) => {
+const getQRCode = async (req, h) => {
   try {
-    const qrCode = await CustomerHelper.generateQRCode(req.params._id);
+    const { pdf, fileName } = await CustomerHelper.generateQRCode(req.params._id);
 
-    return { message: translate[language].qrCodeCreated, data: { qrCode } };
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${fileName}.pdf`)
+      .type('application/pdf');
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
