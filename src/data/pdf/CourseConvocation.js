@@ -60,14 +60,23 @@ exports.getTable = (slots, slotsToPlan) => {
   return table;
 };
 
+exports.getProgramInfo = (image, program) => ({
+  columns: [
+    { image, width: 64, style: 'img' },
+    [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: program.description, style: 'infoContent' }],
+  ],
+  marginTop: 24,
+});
+
 exports.getPdfContent = async (data) => {
   const [thumb, explanation, quizz, confused] = await exports.getImages();
   console.log(data);
   const header = exports.getHeader(thumb, data.misc, data.subProgram);
   const table = exports.getTable(data.slots, data.slotsToPlan);
+  const programInfo = exports.getProgramInfo(explanation, data.subProgram.program);
 
   return {
-    content: [header, table].flat(),
+    content: [header, table, programInfo].flat(),
     defaultStyle: { font: 'SourceSans', fontSize: 10 },
     styles: {
       title: { fontSize: 20, bold: true, alignment: 'left', color: COPPER_500, marginLeft: 24 },
@@ -75,6 +84,8 @@ exports.getPdfContent = async (data) => {
       tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
       tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
       notes: { italics: true, alignment: 'left', marginTop: 4 },
+      infoTitle: { fontSize: 14, bold: true, marginLeft: 12 },
+      infoContent: { fontSize: 10, italics: true, marginLeft: 12 },
     },
   };
 };
