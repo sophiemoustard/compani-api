@@ -17,6 +17,7 @@ const Role = require('../../../src/models/Role');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const EventHistory = require('../../../src/models/EventHistory');
+const Event = require('../../../src/models/Event');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const SinonMongoose = require('../sinonMongoose');
@@ -446,9 +447,11 @@ describe('endContract', () => {
   let unassignReferentOnContractEnd;
   let updateEndDateStub;
   let countDocumentHistories;
+  let eventCountDocuments;
   beforeEach(() => {
     findOneContract = sinon.stub(Contract, 'findOne');
     countDocumentHistories = sinon.stub(EventHistory, 'countDocuments');
+    eventCountDocuments = sinon.stub(Event, 'countDocuments');
     findOneAndUpdateContract = sinon.stub(Contract, 'findOneAndUpdate');
     updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
     removeRepetitionsOnContractEnd = sinon.stub(EventHelper, 'removeRepetitionsOnContractEnd');
@@ -469,6 +472,7 @@ describe('endContract', () => {
     unassignInterventionsOnContractEnd.restore();
     removeEventsExceptInterventionsOnContractEnd.restore();
     countDocumentHistories.restore();
+    eventCountDocuments.restore();
     updateAbsencesOnContractEnd.restore();
     unassignReferentOnContractEnd.restore();
     updateEndDateStub.restore();
@@ -560,6 +564,15 @@ describe('endContract', () => {
         },
       ]
     );
+    SinonMongoose.calledWithExactly(
+      eventCountDocuments,
+      [
+        {
+          query: 'countDocuments',
+          args: [{ auxiliary: contract.user, startDate: { $gte: payload.endDate }, isBilled: true }],
+        },
+      ]
+    );
   });
 
   it('should throw a 403 error if there are timestamped events after contract end date', async () => {
@@ -629,6 +642,81 @@ describe('endContract', () => {
                 ],
               },
             ],
+          },
+        ]
+      );
+      SinonMongoose.calledWithExactly(
+        eventCountDocuments,
+        [
+          {
+            query: 'countDocuments',
+            args: [{ auxiliary: contract.user, startDate: { $gte: contractToEnd.endDate }, isBilled: true }],
+          },
+        ]
+      );
+    }
+  });
+
+  it('should throw a 403 error if there are billed events after contract end date #tag', async () => {
+    const auxiliaryId = new ObjectID();
+    const companyId = new ObjectID();
+    const credential = { _id: new ObjectID(), company: { _id: companyId } };
+
+    const contract = {
+      _id: new ObjectID(),
+      endDate: null,
+      user: auxiliaryId,
+      startDate: '2018-12-03T23:00:00',
+      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+    };
+
+    const contractToEnd = {
+      endDate: '2018-12-06T23:00:00',
+      endNotificationDate: '2018-12-02T23:00:00',
+      endReason: RESIGNATION,
+      otherMisc: 'test',
+    };
+
+    const updatedContract = {
+      ...contract,
+      ...contractToEnd,
+      user: { _id: auxiliaryId, sector: new ObjectID() },
+      versions: [{ ...contract.versions[0], endDate: contractToEnd.endDate }],
+    };
+
+    try {
+      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+      eventCountDocuments.returns(1);
+
+      await ContractHelper.endContract(contract._id.toHexString(), contractToEnd, credential);
+      expect(true).toBe(false);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(403);
+    } finally {
+      sinon.assert.notCalled(updateUserInactivityDate);
+      sinon.assert.notCalled(removeRepetitionsOnContractEnd);
+      sinon.assert.notCalled(unassignInterventionsOnContractEnd);
+      sinon.assert.notCalled(unassignReferentOnContractEnd);
+      sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
+      sinon.assert.notCalled(updateAbsencesOnContractEnd);
+      sinon.assert.notCalled(updateEndDateStub);
+      sinon.assert.notCalled(findOneAndUpdateContract);
+      sinon.assert.notCalled(countDocumentHistories);
+
+      SinonMongoose.calledWithExactly(
+        findOneContract,
+        [
+          { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
+          { query: 'lean' },
+        ]
+      );
+      SinonMongoose.calledWithExactly(
+        eventCountDocuments,
+        [
+          {
+            query: 'countDocuments',
+            args: [{ auxiliary: contract.user, startDate: { $gte: contractToEnd.endDate }, isBilled: true }],
           },
         ]
       );
