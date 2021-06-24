@@ -124,6 +124,7 @@ module.exports = {
     customerFundingUpdated: 'Customer funding updated.',
     customerFundingsFound: 'Customer fundings found.',
     customerFundingRemoved: 'Customer funding removed.',
+    qrCodeCreated: 'QR code created.',
     /* Customer notes */
     customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
@@ -460,6 +461,7 @@ module.exports = {
     customerFundingUpdated: 'Financement du bénéficiaire modifié.',
     customerFundingsFound: 'Financements du bénéficiaire trouvés.',
     customerFundingRemoved: 'Financement du bénéficiaire supprimé.',
+    qrCodeCreated: 'QR code créé.',
     /* Customer notes */
     customerNoteCreated: 'Note de suivi créée.',
     customerNotesFound: 'Notes de suivi trouvées.',

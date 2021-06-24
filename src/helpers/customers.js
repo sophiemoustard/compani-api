@@ -6,6 +6,7 @@ const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
 const omit = require('lodash/omit');
+const QRCode = require('qrcode');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
@@ -288,3 +289,11 @@ exports.deleteCertificates = (customerId, driveId) => Promise.all([
   Drive.deleteFile({ fileId: driveId }),
   Customer.updateOne({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
 ]);
+
+exports.generateQRCode = async (customerId) => {
+  const qrCodeUrl = await QRCode.toDataURL(`${customerId}`);
+  console.log('ici', customerId);
+  console.log('qrCodeUrl', qrCodeUrl);
+
+  return qrCodeUrl;
+};

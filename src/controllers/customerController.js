@@ -356,6 +356,17 @@ const deleteFunding = async (req) => {
   }
 };
 
+const getQRCode = async (req) => {
+  try {
+    const qrCode = await CustomerHelper.generateQRCode(req.params._id);
+
+    return { message: translate[language].qrCodeCreated, data: { qrCode } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listWithFirstIntervention,
@@ -382,4 +393,5 @@ module.exports = {
   createFunding,
   updateFunding,
   deleteFunding,
+  getQRCode,
 };
