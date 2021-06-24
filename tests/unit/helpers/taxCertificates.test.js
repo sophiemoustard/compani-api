@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Boom = require('@hapi/boom');
 const TaxCertificateHelper = require('../../../src/helpers/taxCertificates');
+const TaxCertificatePdf = require('../../../src/data/pdf/taxCertificates/taxCertificates');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
@@ -188,22 +189,25 @@ describe('formatPdf', () => {
 });
 
 describe('generateTaxCertificatePdf', () => {
-  let generatePdf;
+  let generatePDF;
   let findOne;
   let formatPdf;
+  let getPdfContent;
   let getTaxCertificateInterventions;
   let getTaxCertificatesPayments;
   beforeEach(() => {
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
     findOne = sinon.stub(TaxCertificate, 'findOne');
     formatPdf = sinon.stub(TaxCertificateHelper, 'formatPdf');
+    getPdfContent = sinon.stub(TaxCertificatePdf, 'getPdfContent');
     getTaxCertificateInterventions = sinon.stub(EventRepository, 'getTaxCertificateInterventions');
     getTaxCertificatesPayments = sinon.stub(PaymentRepository, 'getTaxCertificatesPayments');
   });
   afterEach(() => {
-    generatePdf.restore();
+    generatePDF.restore();
     findOne.restore();
     formatPdf.restore();
+    getPdfContent.restore();
     getTaxCertificateInterventions.restore();
     getTaxCertificatesPayments.restore();
   });
@@ -214,24 +218,16 @@ describe('generateTaxCertificatePdf', () => {
     const credentials = { company: { _id: companyId } };
     const taxCertificate = { _id: taxCertificateId, year: '2019' };
 
-    generatePdf.returns('pdf');
     findOne.returns(SinonMongoose.stubChainedQueries([taxCertificate]));
-    formatPdf.returns('data');
     getTaxCertificateInterventions.returns(['interventions']);
     getTaxCertificatesPayments.returns({ paid: 1200, cesu: 500 });
+    formatPdf.returns('data');
+    getPdfContent.returns('templatePdfMake');
+    generatePDF.returns('pdf');
 
     const result = await TaxCertificateHelper.generateTaxCertificatePdf(taxCertificateId, credentials);
 
     expect(result).toEqual('pdf');
-    sinon.assert.calledWithExactly(
-      formatPdf,
-      taxCertificate,
-      credentials.company,
-      ['interventions'],
-      { paid: 1200, cesu: 500 }
-    );
-    sinon.assert.calledWithExactly(generatePdf, 'data', './src/data/taxCertificates.html');
-    sinon.assert.calledWithExactly(getTaxCertificateInterventions, taxCertificate, companyId);
     SinonMongoose.calledWithExactly(
       findOne,
       [
@@ -247,6 +243,17 @@ describe('generateTaxCertificatePdf', () => {
         { query: 'lean' },
       ]
     );
+    sinon.assert.calledWithExactly(getTaxCertificateInterventions, taxCertificate, companyId);
+    sinon.assert.calledWithExactly(getTaxCertificatesPayments, taxCertificate, companyId);
+    sinon.assert.calledWithExactly(
+      formatPdf,
+      taxCertificate,
+      credentials.company,
+      ['interventions'],
+      { paid: 1200, cesu: 500 }
+    );
+    sinon.assert.calledWithExactly(getPdfContent, 'data');
+    sinon.assert.calledWithExactly(generatePDF, 'templatePdfMake');
   });
 });
 

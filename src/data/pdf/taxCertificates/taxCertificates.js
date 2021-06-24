@@ -1,14 +1,6 @@
 const FileHelper = require('../../../helpers/file');
 const UtilsHelper = require('../../../helpers/utils');
 
-const getImages = async () => {
-  const imageList = [
-    { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'alenvi.png' },
-  ];
-
-  return FileHelper.downloadImages(imageList);
-};
-
 const getTableContent = (taxCertificate, columns) => {
   const { interventions } = taxCertificate;
   const content = [];
@@ -49,7 +41,9 @@ const getTableContent = (taxCertificate, columns) => {
 exports.getPdfContent = async (data) => {
   const { taxCertificate } = data;
 
-  const [alenvi] = await getImages();
+  const [alenvi] = await FileHelper.downloadImages([
+    { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'alenvi.png' },
+  ]);
 
   const header = [
     { image: alenvi, width: 132, marginBottom: 24 },
