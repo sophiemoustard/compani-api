@@ -89,6 +89,7 @@ module.exports = {
     staffRegisteredFound: 'Staff Registered Found.',
     contractHasTimeStampedEventAfterEndDate: 'There are timestamped events after the end date of the contract.',
     contractEndDateBeforeStartDate: 'End date is before last version start date.',
+    contractHasBilledEventAfterEndDate: 'Events are billed after the end date of the contract.',
     /* Contracts amendments */
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',
@@ -423,6 +424,7 @@ module.exports = {
       'Impossible: il y a des évènements horodatés après la date de fin du contrat.',
     contractEndDateBeforeStartDate:
       'Impossible de mettre fin à un contrat avant sa date de début.',
+    contractHasBilledEventAfterEndDate: 'Impossible: il y a des évènements facturés après la date de fin de contrat.',
     /* Contracts amendments */
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',
