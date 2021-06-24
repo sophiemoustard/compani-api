@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { checkCustomerNoteCreation, checkCustomerNoteGet } = require('./preHandlers/customerNotes');
+const { authorizeCustomerNoteCreation, authorizeCustomerNoteGet } = require('./preHandlers/customerNotes');
 const { create, list } = require('../controllers/customerNoteController');
 
 exports.plugin = {
@@ -17,7 +17,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['customers:edit'] },
-        pre: [{ method: checkCustomerNoteCreation }],
+        pre: [{ method: authorizeCustomerNoteCreation }],
       },
       handler: create,
     });
@@ -29,7 +29,7 @@ exports.plugin = {
           query: Joi.object({ customer: Joi.objectId().required() }),
         },
         auth: { scope: ['customers:edit'] },
-        pre: [{ method: checkCustomerNoteGet }],
+        pre: [{ method: authorizeCustomerNoteGet }],
       },
       handler: list,
     });

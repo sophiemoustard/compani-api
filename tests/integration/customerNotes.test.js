@@ -95,7 +95,7 @@ describe('CUSTOMER NOTES ROUTES - POST /customernotes', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if customer has wrong company', async () => {
+    it('should return 404 if customer and logged user have different companies', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/customernotes',
@@ -160,7 +160,7 @@ describe('CUSTOMER NOTES ROUTES - GET /customernotes', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if customer and user have different companies', async () => {
+    it('should return 404 if customer and logged user have different companies', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/customernotes?customer=${customersList[1]._id}`,

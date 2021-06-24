@@ -49,10 +49,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ customer, company: credentials.company._id }] },
-        {
-          query: 'sort',
-          args: [{ updatedAt: -1 }],
-        },
+        { query: 'sort', args: [{ updatedAt: -1 }] },
         { query: 'lean' },
       ]
     );
