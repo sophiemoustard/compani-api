@@ -26,6 +26,7 @@ const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
 const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/interAttendanceSheet');
 const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');
+const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 
 describe('createCourse', () => {
   let save;
@@ -2020,17 +2021,20 @@ describe('formatCourseForConvocationPdf', () => {
 
 describe('generateConvocationPdf', () => {
   let formatCourseForConvocationPdf;
-  let generatePdf;
+  let generatePDF;
   let courseFindOne;
+  let getPdfContent;
   beforeEach(() => {
     formatCourseForConvocationPdf = sinon.stub(CourseHelper, 'formatCourseForConvocationPdf');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
     courseFindOne = sinon.stub(Course, 'findOne');
+    getPdfContent = sinon.stub(CourseConvocation, 'getPdfContent');
   });
   afterEach(() => {
     formatCourseForConvocationPdf.restore();
-    generatePdf.restore();
+    generatePDF.restore();
     courseFindOne.restore();
+    getPdfContent.restore();
   });
 
   it('should return pdf', async () => {
@@ -2066,7 +2070,8 @@ describe('generateConvocationPdf', () => {
       }],
     });
 
-    generatePdf.returns('pdf');
+    generatePDF.returns('pdf');
+    getPdfContent.returns({ content: 'test' });
 
     const result = await CourseHelper.generateConvocationPdf(courseId);
 
@@ -2100,8 +2105,9 @@ describe('generateConvocationPdf', () => {
         }],
       }
     );
+    sinon.assert.calledOnceWithExactly(generatePDF, { content: 'test' });
     sinon.assert.calledOnceWithExactly(
-      generatePdf,
+      getPdfContent,
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
@@ -2116,8 +2122,7 @@ describe('generateConvocationPdf', () => {
           length: 1,
           position: 1,
         }],
-      },
-      './src/data/courseConvocation.html'
+      }
     );
   });
 });

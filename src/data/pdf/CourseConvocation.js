@@ -3,7 +3,7 @@ const UtilsHelper = require('../../helpers/utils');
 const FileHelper = require('../../helpers/file');
 const { COPPER_500 } = require('../../helpers/constants');
 
-exports.getImages = async () => {
+const getImages = async () => {
   const imageList = [
     { url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'aux-pouce.png' },
     { url: 'https://storage.googleapis.com/compani-main/doct-explication.png', name: 'doct-explication.png' },
@@ -14,8 +14,9 @@ exports.getImages = async () => {
   return FileHelper.downloadImages(imageList);
 };
 
-exports.getHeader = (image, misc, subProgram) => {
-  const title = `${get(subProgram, 'program.name') || ''}${misc && ' - '}${misc || ''}`;
+const getHeader = (image, misc, subProgram) => {
+  const title = `${get(subProgram, 'program.name') || ''}${misc ? ' - ' : ''}${misc || ''}`;
+
   return [
     {
       columns: [
@@ -36,7 +37,7 @@ const getSlotTableContent = slot => [
   { text: slot.address, style: 'tableContent' },
 ];
 
-exports.getTable = (slots, slotsToPlan) => {
+const getTable = (slots, slotsToPlan) => {
   const body = [
     [
       { text: 'Dates', style: 'tableHeader' },
@@ -54,22 +55,25 @@ exports.getTable = (slots, slotsToPlan) => {
     },
   ];
 
-  if (slotsToPlan.length) {
+  if (slotsToPlan && slotsToPlan.length) {
     table.push({ text: `Il reste ${slotsToPlan.length} créneau(x) à planifier.`, style: 'notes' });
   }
 
   return table;
 };
 
-exports.getProgramInfo = (image, program) => ({
+const getProgramInfo = (image, program) => ({
   columns: [
     { image, width: 64, style: 'img' },
-    [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: program.description, style: 'infoContent' }],
+    [
+      { text: 'Programme de la formation', style: 'infoTitle' },
+      { text: program.description || '', style: 'infoContent' },
+    ],
   ],
   marginTop: 24,
 });
 
-exports.getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => ({
+const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => ({
   columns: [
     {
       columns: [
@@ -96,12 +100,12 @@ exports.getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) =>
 });
 
 exports.getPdfContent = async (data) => {
-  const [thumb, explanation, quizz, confused] = await exports.getImages();
+  const [thumb, explanation, quizz, confused] = await getImages();
 
-  const header = exports.getHeader(thumb, data.misc, data.subProgram);
-  const table = exports.getTable(data.slots, data.slotsToPlan);
-  const programInfo = exports.getProgramInfo(explanation, data.subProgram.program);
-  const trainerAndContactInfo = exports.getTrainerAndContactInfo(quizz, data.trainer, confused, data.contact);
+  const header = getHeader(thumb, data.misc, data.subProgram);
+  const table = getTable(data.slots, data.slotsToPlan);
+  const programInfo = getProgramInfo(explanation, data.subProgram.program);
+  const trainerAndContactInfo = getTrainerAndContactInfo(quizz, data.trainer, confused, data.contact);
 
   return {
     content: [header, table, programInfo, trainerAndContactInfo].flat(),

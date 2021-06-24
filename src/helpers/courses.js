@@ -25,7 +25,7 @@ const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
 const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
-const CourseConvocation = require('../data/pdf/CourseConvocation');
+const CourseConvocation = require('../data/pdf/courseConvocation');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
