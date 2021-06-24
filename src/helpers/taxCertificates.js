@@ -9,6 +9,7 @@ const GDriveStorageHelper = require('./gDriveStorage');
 const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
+const TaxCertificatePdf = require('../data/pdf/taxCertificates/taxCertificates');
 
 exports.list = async (customer, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -70,8 +71,10 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
   const interventions = await EventRepository.getTaxCertificateInterventions(taxCertificate, companyId);
   const payments = await PaymentRepository.getTaxCertificatesPayments(taxCertificate, companyId);
 
-  const data = exports.formatPdf(taxCertificate, credentials.company, interventions, payments);
-  const pdf = await PdfHelper.generatePdf(data, './src/data/taxCertificates.html');
+  const template = await TaxCertificatePdf.getPdfContent(
+    exports.formatPdf(taxCertificate, credentials.company, interventions, payments)
+  );
+  const pdf = await PdfHelper.generatePDF(template);
 
   return pdf;
 };
