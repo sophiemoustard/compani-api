@@ -13,6 +13,7 @@ const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const ContractNumber = require('../models/ContractNumber');
+const Event = require('../models/Event');
 const EventHistory = require('../models/EventHistory');
 const EventHelper = require('./events');
 const ReferentHistoryHelper = require('./referentHistories');
@@ -125,6 +126,17 @@ exports.createContract = async (contractPayload, credentials) => {
 };
 
 const canEndContract = async (contract, lastVersion, contractToEnd) => {
+  const hasBilledEvents = await Event.countDocuments({
+    auxiliary: contract.user,
+    isBilled: true,
+    startDate: { $gte: contractToEnd.endDate },
+  });
+  console.log('Evenements factures: ', hasBilledEvents);
+
+  if (hasBilledEvents) {
+    throw Boom.forbidden(translate[language].contractHasBilledEventAfterEndDate);
+  }
+
   const hasTimeStampedEvents = await EventHistory.countDocuments({
     'event.auxiliary': contract.user,
     action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
