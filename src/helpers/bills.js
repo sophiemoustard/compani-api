@@ -10,6 +10,7 @@ const FundingHistory = require('../models/FundingHistory');
 const BillSlipHelper = require('./billSlips');
 const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
+const BillPdf = require('../data/pdf/billing/bill');
 const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI } = require('./constants');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
@@ -303,7 +304,8 @@ exports.generateBillPdf = async (params, credentials) => {
 
   const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
   const data = exports.formatPDF(bill, company);
-  const pdf = await PdfHelper.generatePdf(data, './src/data/bill.html');
+  const template = await BillPdf.getPdfContent(data);
+  const pdf = await PdfHelper.generatePDF(template);
 
   return { pdf, billNumber: bill.number };
 };
