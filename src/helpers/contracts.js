@@ -131,7 +131,6 @@ const canEndContract = async (contract, lastVersion, contractToEnd) => {
     isBilled: true,
     startDate: { $gte: contractToEnd.endDate },
   });
-  console.log('Evenements factures: ', hasBilledEvents);
 
   if (hasBilledEvents) {
     throw Boom.forbidden(translate[language].contractHasBilledEventAfterEndDate);
