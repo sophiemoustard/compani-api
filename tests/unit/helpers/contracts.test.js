@@ -657,7 +657,7 @@ describe('endContract', () => {
     }
   });
 
-  it('should throw a 403 error if there are billed events after contract end date #tag', async () => {
+  it('should throw a 403 error if there are billed events after contract end date', async () => {
     const auxiliaryId = new ObjectID();
     const companyId = new ObjectID();
     const credential = { _id: new ObjectID(), company: { _id: companyId } };

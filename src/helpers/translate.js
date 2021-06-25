@@ -89,7 +89,7 @@ module.exports = {
     staffRegisteredFound: 'Staff Registered Found.',
     contractHasTimeStampedEventAfterEndDate: 'There are timestamped events after the end date of the contract.',
     contractEndDateBeforeStartDate: 'End date is before last version start date.',
-    contractHasBilledEventAfterEndDate: 'Events are billed after the end date of the contract.',
+    contractHasBilledEventAfterEndDate: 'There are billed events after contract end date.',
     /* Contracts amendments */
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',

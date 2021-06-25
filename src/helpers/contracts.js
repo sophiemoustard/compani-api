@@ -132,9 +132,7 @@ const canEndContract = async (contract, lastVersion, contractToEnd) => {
     startDate: { $gte: contractToEnd.endDate },
   });
 
-  if (hasBilledEvents) {
-    throw Boom.forbidden(translate[language].contractHasBilledEventAfterEndDate);
-  }
+  if (hasBilledEvents) throw Boom.forbidden(translate[language].contractHasBilledEventAfterEndDate);
 
   const hasTimeStampedEvents = await EventHistory.countDocuments({
     'event.auxiliary': contract.user,
@@ -145,9 +143,7 @@ const canEndContract = async (contract, lastVersion, contractToEnd) => {
     ],
   });
 
-  if (hasTimeStampedEvents) {
-    throw Boom.forbidden(translate[language].contractHasTimeStampedEventAfterEndDate);
-  }
+  if (hasTimeStampedEvents) throw Boom.forbidden(translate[language].contractHasTimeStampedEventAfterEndDate);
 
   if (DatesHelper.isBefore(contractToEnd.endDate, lastVersion.startDate)) {
     throw Boom.conflict(translate[language].contractEndDateBeforeStartDate);
