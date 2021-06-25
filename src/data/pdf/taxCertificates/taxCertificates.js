@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const FileHelper = require('../../../helpers/file');
 const UtilsHelper = require('../../../helpers/utils');
 
@@ -41,10 +42,14 @@ const getTableContent = (taxCertificate, columns) => {
 exports.getPdfContent = async (data) => {
   const { taxCertificate } = data;
 
-  const [logo] = await FileHelper.downloadImages([{ url: taxCertificate.company.logo, name: 'logo.png' }]);
+  const header = [];
 
-  const header = [
-    { image: logo, width: 132, marginBottom: 24 },
+  const [logo] = get(taxCertificate, 'company.logo')
+    ? await FileHelper.downloadImages([{ url: taxCertificate.company.logo, name: 'logo.png' }])
+    : [''];
+  if (logo) header.push({ image: logo, width: 132, marginBottom: 24 });
+
+  header.push(
     { text: `${taxCertificate.company.name}`, bold: true, marginBottom: 8, fontSize: 12 },
     {
       columns: [
@@ -63,8 +68,8 @@ exports.getPdfContent = async (data) => {
         ],
       ],
       marginBottom: 40,
-    },
-  ];
+    }
+  );
 
   const body = [
     {
