@@ -10,11 +10,7 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
     .lean();
 
   const contracts = await Contract
-    .find({
-      user: auxiliaryId,
-      company: companyId,
-      $or: [{ endDate: { $exists: false } }, { endDate: null }],
-    })
+    .find({ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
     .sort({ startDate: -1 })
     .lean();
 

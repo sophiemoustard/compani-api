@@ -8,9 +8,8 @@ const { language } = translate;
 
 exports.getTaxCertificate = async (req) => {
   try {
-    const { credentials } = req.auth;
     const taxCertificate = await TaxCertificate
-      .findOne({ _id: req.params._id, company: credentials.company._id })
+      .findOne({ _id: req.params._id, company: get(req, 'auth.credentials.company._id') })
       .lean();
     if (!taxCertificate) throw Boom.notFound(translate[language].taxCertificateNotFound);
 
@@ -23,7 +22,7 @@ exports.getTaxCertificate = async (req) => {
 
 exports.authorizeTaxCertificatesRead = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
+  const customer = await Customer.countDocuments({ _id: req.query.customer, company: companyId });
   if (!customer) throw Boom.forbidden();
 
   return null;
@@ -35,17 +34,17 @@ exports.authorizeGetTaxCertificatePdf = async (req) => {
 
   const isHelpersCustomer = credentials.scope.includes(`customer-${taxCertificate.customer.toHexString()}`);
   const canRead = credentials.scope.includes('taxcertificates:read');
-
-  const customer = await Customer.findOne({ _id: taxCertificate.customer, company: credentials.company._id }).lean();
-  if (!customer) throw Boom.forbidden();
   if (!canRead && !isHelpersCustomer) throw Boom.forbidden();
+
+  const customer = await Customer.countDocuments({ _id: taxCertificate.customer, company: credentials.company._id });
+  if (!customer) throw Boom.forbidden();
 
   return null;
 };
 
 exports.authorizeTaxCertificateCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findOne({ _id: req.payload.customer, company: companyId }).lean();
+  const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
   if (!customer) throw Boom.forbidden();
 
   return null;

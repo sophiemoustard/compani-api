@@ -41,10 +41,10 @@ exports.getCreditNotes = async (query, credentials) => {
 
 exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credentials) => {
   const promises = [];
-  const events = await Event.find({
-    _id: { $in: eventsToUpdate.map(ev => ev.eventId) },
-    company: get(credentials, 'company._id', null),
-  });
+  const events = await Event
+    .find({ _id: { $in: eventsToUpdate.map(ev => ev.eventId) }, company: get(credentials, 'company._id') })
+    .lean();
+
   for (const event of events) {
     if (event.bills.thirdPartyPayer && event.bills.fundingId) {
       if (event.bills.nature !== HOURLY) {
@@ -66,8 +66,7 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
       }
     }
 
-    event.isBilled = isBilled;
-    promises.push(event.save());
+    promises.push(Event.updateOne({ _id: event._id }, { isBilled }));
   }
   await Promise.all(promises);
 };

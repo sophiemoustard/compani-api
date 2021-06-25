@@ -691,10 +691,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     {
       number: 'FACT-0549236',
       date: '2019-05-20T06:00:00.000+00:00',
-      customer: {
-        _id: customerIdList[0],
-        identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
-      },
+      customer: { _id: customerIdList[0], identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' } },
       thirdPartyPayer: { _id: tppIdList[0], name: 'TF1' },
       netInclTaxes: 389276.023,
       subscriptions: [
@@ -710,29 +707,12 @@ describe('exportBillsAndCreditNotesHistory', () => {
     {
       number: 'FACT-0419457',
       date: '2019-05-22T06:00:00.000+00:00',
-      customer: {
-        _id: customerIdList[1],
-        identity: {
-          title: 'mr',
-          firstname: 'Bojack',
-          lastname: 'Horseman',
-        },
-      },
+      customer: { _id: customerIdList[1], identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' } },
       thirdPartyPayer: { _id: tppIdList[1], name: 'The Sherif' },
       netInclTaxes: 1057.1319439,
       subscriptions: [
-        {
-          service: { name: 'Forfait nuit' },
-          hours: 15,
-          exclTaxes: 700.0208,
-          inclTaxes: 738.521944,
-        },
-        {
-          service: { name: 'Forfait nuit' },
-          hours: 7,
-          inclTaxes: 302,
-          exclTaxes: 318.6099999,
-        },
+        { service: { name: 'Forfait nuit' }, hours: 15, exclTaxes: 700.0208, inclTaxes: 738.521944 },
+        { service: { name: 'Forfait nuit' }, hours: 7, inclTaxes: 302, exclTaxes: 318.6099999 },
       ],
       createdAt: '2019-10-12',
     },
@@ -742,10 +722,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       number: 'F1501231',
       thirdPartyPayer: { _id: tppIdList[2], name: 'SW' },
       date: '2019-05-21T01:00:00.000+00:00',
-      customer: {
-        _id: customerIdList[2],
-        identity: { firstname: 'Jar jar', lastname: 'Binks' },
-      },
+      customer: { _id: customerIdList[2], identity: { firstname: 'Jar jar', lastname: 'Binks' } },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
       inclTaxesCustomer: 5.5,
@@ -756,10 +733,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     {
       number: 'F6473250',
       date: '2019-05-25T02:00:00.000+00:00',
-      customer: {
-        _id: customerIdList[3],
-        identity: { lastname: 'R2D2' },
-      },
+      customer: { _id: customerIdList[3], identity: { lastname: 'R2D2' } },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
       inclTaxesCustomer: 5.5,
@@ -767,10 +741,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     },
   ];
   const credentials = { company: { _id: new ObjectID() } };
-  const findQuery = {
-    date: { $lte: null, $gte: null },
-    company: credentials.company._id,
-  };
+  const findQuery = { date: { $lte: null, $gte: null }, company: credentials.company._id };
   const sortQuery = { date: 'desc' };
   const populateCustomerQuery = { path: 'customer', select: 'identity' };
   let findBill;
@@ -807,7 +778,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'find', args: [findQuery] },
         { query: 'sort', args: [sortQuery] },
         { query: 'populate', args: [populateCustomerQuery] },
-        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
         { query: 'lean' },
       ]
     );
@@ -817,7 +788,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'find', args: [findQuery] },
         { query: 'sort', args: [sortQuery] },
         { query: 'populate', args: [populateCustomerQuery] },
-        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
         { query: 'lean' },
       ]
     );
@@ -844,7 +815,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'find', args: [findQuery] },
         { query: 'sort', args: [sortQuery] },
         { query: 'populate', args: [populateCustomerQuery] },
-        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
         { query: 'lean' },
       ]
     );
@@ -854,7 +825,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'find', args: [findQuery] },
         { query: 'sort', args: [sortQuery] },
         { query: 'populate', args: [populateCustomerQuery] },
-        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
         { query: 'lean' },
       ]
     );
@@ -949,7 +920,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'find', args: [findQuery] },
         { query: 'sort', args: [sortQuery] },
         { query: 'populate', args: [populateCustomerQuery] },
-        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
         { query: 'lean' },
       ]
     );
@@ -959,7 +930,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'find', args: [findQuery] },
         { query: 'sort', args: [sortQuery] },
         { query: 'populate', args: [populateCustomerQuery] },
-        { query: 'populate', args: ['thirdPartyPayer'] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
         { query: 'lean' },
       ]
     );

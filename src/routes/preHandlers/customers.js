@@ -79,9 +79,12 @@ exports.authorizeCustomerUpdate = async (req) => {
 exports.authorizeSubscriptionCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
 
-  const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
+  const service = await Service.countDocuments({
+    _id: req.payload.service,
+    company: companyId,
+    $or: [{ isArchived: { $exists: false } }, { isArchived: false }],
+  });
   if (!service) throw Boom.forbidden();
-  if (service.isArchived) throw Boom.forbidden();
 
   return exports.authorizeCustomerUpdate(req);
 };

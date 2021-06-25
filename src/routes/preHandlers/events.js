@@ -63,18 +63,18 @@ exports.authorizeEventGet = async (req) => {
 
 exports.authorizeEventForCreditNoteGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
+  const customer = await Customer.countDocuments({ _id: req.query.customer, company: companyId });
   if (!customer) throw Boom.forbidden();
 
   const { creditNoteId, startDate, endDate } = req.query;
   let creditNote = null;
   if (creditNoteId) {
-    creditNote = await CreditNote.findOne({ _id: req.query.creditNoteId });
+    creditNote = await CreditNote.findOne({ _id: req.query.creditNoteId }).lean();
     if (creditNote.events.some(e => e.startDate < startDate && e.endDate > endDate)) throw Boom.badData();
   }
 
   if (req.query.thirdPartyPayer) {
-    const tpp = await ThirdPartyPayer.findOne({ _id: req.query.thirdPartyPayer, company: companyId }).lean();
+    const tpp = await ThirdPartyPayer.countDocuments({ _id: req.query.thirdPartyPayer, company: companyId });
     if (!tpp) throw Boom.forbidden();
   }
 
@@ -141,7 +141,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
-    const customer = await Customer.findOne(({ _id: customerId, company: companyId }))
+    const customer = await Customer.findOne({ _id: customerId, company: companyId }, { subscriptions: 1 })
       .populate('subscriptions.service')
       .lean();
     if (!customer) throw Boom.forbidden();
@@ -188,11 +188,9 @@ exports.authorizeEventDeletionList = async (req) => {
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
   if (isAuxiliary) throw Boom.forbidden();
 
-  const customer = await Customer.findOne({
-    _id: req.query.customer,
-    company: get(credentials, 'company._id', null),
-  }).lean();
+  const customer = await Customer.countDocuments({ _id: req.query.customer, company: get(credentials, 'company._id') });
   if (!customer) throw Boom.forbidden();
+
   return null;
 };
 

@@ -119,5 +119,5 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
     ...aggregateAuxiliariesFromEvents,
     ...lookup,
     ...pickFields,
-  ]).option({ company: get(credentials, 'company._id', null) });
+  ]).option({ company: get(credentials, 'company._id') });
 };

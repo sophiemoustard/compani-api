@@ -118,7 +118,7 @@ exports.getEvent = async (eventId, credentials) => Event.findOne({ _id: eventId 
     select: 'identity administrative.driveFolder administrative.transportInvoice company',
   })
   .populate({ path: 'customer', select: 'identity subscriptions contact' })
-  .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
+  .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id') } })
   .lean();
 
 exports.getAbsencesForExport = async (start, end, credentials) => {
@@ -176,7 +176,7 @@ exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({
   startDate: { $lte: maxEndDate },
   endDate: { $gt: maxEndDate },
   company: companyId,
-});
+}).lean();
 
 exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
   const rules = [
@@ -264,10 +264,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
     },
   ];
 
-  return Event.aggregate([
-    ...match,
-    ...group,
-  ]).option({ company: companyId });
+  return Event.aggregate([...match, ...group]).option({ company: companyId });
 };
 
 exports.getEventsToBill = async (dates, customerId, companyId) => {
