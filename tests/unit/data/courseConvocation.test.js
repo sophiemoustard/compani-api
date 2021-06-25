@@ -32,8 +32,8 @@ describe('getPdfContent', () => {
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
       ],
       slotsToPlan: [{ _id: new ObjectID() }],
-      trainer: { identity: { firstname: 'test', lastname: 'ok' }, biography: 'Voici ma bio' },
-      contact: { phone: '0987654321', email: 'test@test.fr' },
+      trainer: { formattedIdentity: 'test OK', biography: 'Voici ma bio' },
+      contact: { formattedPhone: '09 87 65 43 21', email: 'test@test.fr' },
     };
 
     const result = await CourseConvocation.getPdfContent(data);
@@ -149,7 +149,7 @@ describe('getPdfContent', () => {
         { date: '23/12/2020', hours: '12h - 14h', address: '' },
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
       ],
-      contact: { phone: '0987654321' },
+      contact: { formattedPhone: '09 87 65 43 21' },
     };
 
     const result = await CourseConvocation.getPdfContent(data);

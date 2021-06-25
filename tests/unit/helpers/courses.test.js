@@ -2000,10 +2000,8 @@ describe('formatCourseForConvocationPdf', () => {
     expect(result).toEqual({
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
-      trainerIdentity: 'Ash Ketchum',
-      contact: { phone: '0123456789' },
-      contactPhoneNumber: '01 23 45 67 89',
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash Ketchum' },
+      contact: { phone: '0123456789', formattedPhone: '01 23 45 67 89' },
       slots: [{ date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' }],
     });
 
