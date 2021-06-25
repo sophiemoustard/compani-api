@@ -1,8 +1,9 @@
+const get = require('lodash/get');
 const UtilsHelper = require('./utils');
 
 exports.getPdfContent = async (data) => {
   const { bill } = data;
-  const [logo] = await UtilsHelper.getImages(bill.company.logo);
+  const [logo] = get(bill, 'company.logo') ? await UtilsHelper.getImages(bill.company.logo) : [null];
   const header = UtilsHelper.getHeader(logo, bill);
   const serviceTableBody = [
     [
