@@ -20,8 +20,10 @@ exports.getHeader = (companyLogo, item) => {
       [
         logo,
         { text: item.company.name },
+        { text: item.company.address.street },
         { text: `${item.company.address.zipCode} ${item.company.address.city}` },
-        { text: get(item, 'company.rcs') ? `RCS : ${item.company.rcs}` : `RNA : ${item.company.rna}` },
+        { text: item.company.rcs ? `RCS : ${item.company.rcs}` : '' },
+        { text: item.company.rna ? `RNA : ${item.company.rna}` : '' },
       ],
       [
         { text: 'Facture', alignment: 'right' },
@@ -38,16 +40,8 @@ exports.getHeader = (companyLogo, item) => {
 };
 
 exports.getPriceTableBody = item => [
-  [
-    { text: 'Total HT', bold: true },
-    { text: 'TVA', bold: true },
-    { text: 'Total TTC', bold: true },
-  ],
-  [
-    { text: item.totalExclTaxes },
-    { text: item.totalVAT },
-    { text: item.netInclTaxes },
-  ],
+  [{ text: 'Total HT', bold: true }, { text: 'TVA', bold: true }, { text: 'Total TTC', bold: true }],
+  [{ text: item.totalExclTaxes }, { text: item.totalVAT }, { text: item.netInclTaxes }],
 ];
 
 exports.getPriceTable = item => ({
@@ -70,14 +64,18 @@ exports.getEventTableContent = (event, hasSurcharge) => {
     { text: event.endTime },
     { text: event.service },
   ];
+
   if (hasSurcharge) {
     if (get(event, 'surcharges.length')) {
       event.surcharges.forEach((surcharge) => {
         const { percentage, name, startHour, endHour } = surcharge;
         row.push({ stack: [{ text: `+ ${percentage}% (${name}${startHour ? ` ${startHour} - ${endHour}` : ''})` }] });
       });
-    } else row.push({ text: '' });
+    } else {
+      row.push({ text: '' });
+    }
   }
+
   return row;
 };
 
@@ -91,6 +89,7 @@ exports.getEventTableBody = (item, hasSurcharge) => {
       { text: 'Service', bold: true },
     ],
   ];
+
   if (hasSurcharge) eventTableBody[0].push({ text: 'Majoration', bold: true });
   item.formattedEvents.forEach((event) => {
     eventTableBody.push(this.getEventTableContent(event, hasSurcharge));

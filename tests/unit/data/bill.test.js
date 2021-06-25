@@ -15,9 +15,7 @@ describe('getPdfContent', () => {
   });
 
   it('it should format and return pdf content', async () => {
-    const paths = [
-      'src/data/pdf/tmp/logo.png',
-    ];
+    const paths = ['src/data/pdf/tmp/logo.png'];
 
     const formattedEvents = [
       {
@@ -98,8 +96,10 @@ describe('getPdfContent', () => {
             [
               { image: paths[0], fit: [160, 40], margin: [0, 8, 0, 32] },
               { text: 'Alenvi Home SAS' },
+              { text: '24 Avenue Daumesnil' },
               { text: '75012 Paris' },
               { text: 'RCS : 814 998 779' },
+              { text: '' },
             ],
             [
               { text: 'Facture', alignment: 'right' },
@@ -123,7 +123,7 @@ describe('getPdfContent', () => {
                 { text: 'Total TTC*', bold: true },
               ],
               [
-                { text: 'Temps de qualité - autonomie' },
+                { text: 'Temps de qualité - autonomie (TVA 5,5 %)' },
                 { text: '19,67 €' },
                 { text: '55,50 h' },
                 { text: '1 160,53 €' },
@@ -139,18 +139,12 @@ describe('getPdfContent', () => {
           columns: [
             { width: '*', text: '' },
             {
-              table: { body: [
-                [
-                  { text: 'Total HT', bold: true },
-                  { text: 'TVA', bold: true },
-                  { text: 'Total TTC', bold: true },
+              table: {
+                body: [
+                  [{ text: 'Total HT', bold: true }, { text: 'TVA', bold: true }, { text: 'Total TTC', bold: true }],
+                  [{ text: '322,52 €' }, { text: '17,74 €' }, { text: '340,26 €' }],
                 ],
-                [
-                  { text: '322,52 €' },
-                  { text: '17,74 €' },
-                  { text: '340,26 €' },
-                ],
-              ] },
+              },
               width: 'auto',
               margin: [0, 8, 0, 40],
               layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
