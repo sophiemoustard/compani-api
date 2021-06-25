@@ -41,12 +41,10 @@ const getTableContent = (taxCertificate, columns) => {
 exports.getPdfContent = async (data) => {
   const { taxCertificate } = data;
 
-  const [alenvi] = await FileHelper.downloadImages([
-    { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'alenvi.png' },
-  ]);
+  const [logo] = await FileHelper.downloadImages([{ url: taxCertificate.company.logo, name: 'logo.png' }]);
 
   const header = [
-    { image: alenvi, width: 132, marginBottom: 24 },
+    { image: logo, width: 132, marginBottom: 24 },
     { text: `${taxCertificate.company.name}`, bold: true, marginBottom: 8, fontSize: 12 },
     {
       columns: [
