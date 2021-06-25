@@ -890,7 +890,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'trainer', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 200 },
         { name: 'training_organisation_manager', expectedCode: 200 },
       ];
       roles.forEach((role) => {
