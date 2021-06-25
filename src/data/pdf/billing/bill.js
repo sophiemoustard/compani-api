@@ -3,7 +3,6 @@ const UtilsHelper = require('./utils');
 exports.getPdfContent = async (data) => {
   const { bill } = data;
   const [logo] = await UtilsHelper.getImages(bill.company.logo);
-  const content = [];
   const header = UtilsHelper.getHeader(logo, bill);
   const serviceTableBody = [
     [
@@ -29,7 +28,7 @@ exports.getPdfContent = async (data) => {
   ];
   const priceTable = UtilsHelper.getPriceTable(bill);
   const eventTable = UtilsHelper.getEventTable(bill, !bill.forTpp, true);
-  content.push(header, serviceTable, priceTable, eventTable);
+  const content = [header, serviceTable, priceTable, eventTable];
 
   return {
     content: content.flat(),

@@ -62,10 +62,10 @@ exports.getEventTableContent = (event, hasSurcharge) => {
     { text: event.service },
   ];
   if (hasSurcharge) {
-    if (event.surcharges.length) {
+    if (get(event, 'surcharges.length')) {
       event.surcharges.forEach((surcharge) => {
         const { percentage, name, startHour, endHour } = surcharge;
-        row.push({ stack: [{ text: `+ ${percentage}% (${name} ${startHour ? `${startHour} - ${endHour}` : ''})` }] });
+        row.push({ stack: [{ text: `+ ${percentage}% (${name}${startHour ? ` ${startHour} - ${endHour}` : ''})` }] });
       });
     } else row.push({ text: '' });
   }

@@ -20,6 +20,7 @@ const {
   customerId: customerIdData,
   companyId: companyIdData,
 } = require('../data/bills');
+const BillPdf = require('../../../src/data/pdf/billing/bill');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('formatBillNumber', () => {
@@ -1952,18 +1953,21 @@ describe('generateBillPdf', async () => {
   let formatPDF;
   let findOneBill;
   let findOneCompany;
-  let generatePdf;
+  let generatePDF;
+  let billGetPdfContent;
   beforeEach(() => {
     formatPDF = sinon.stub(BillHelper, 'formatPDF');
     findOneBill = sinon.stub(Bill, 'findOne');
     findOneCompany = sinon.stub(Company, 'findOne');
-    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
+    billGetPdfContent = sinon.stub(BillPdf, 'getPdfContent');
   });
   afterEach(() => {
     formatPDF.restore();
     findOneBill.restore();
     findOneCompany.restore();
-    generatePdf.restore();
+    generatePDF.restore();
+    billGetPdfContent.restore();
   });
 
   it('should generate pdf', async () => {
@@ -1973,13 +1977,15 @@ describe('generateBillPdf', async () => {
     findOneBill.returns(SinonMongoose.stubChainedQueries([bill]));
     findOneCompany.returns(SinonMongoose.stubChainedQueries([credentials.company], ['lean']));
     formatPDF.returns({ data: 'data' });
-    generatePdf.returns({ pdf: 'pdf' });
+    generatePDF.returns({ pdf: 'pdf' });
+    billGetPdfContent.returns({ content: [{ text: 'data' }] });
 
     const result = await BillHelper.generateBillPdf({ _id: bill._id }, credentials);
 
     expect(result).toEqual({ billNumber: bill.number, pdf: { pdf: 'pdf' } });
     sinon.assert.calledWithExactly(formatPDF, bill, credentials.company);
-    sinon.assert.calledWithExactly(generatePdf, { data: 'data' }, './src/data/bill.html');
+    sinon.assert.calledWithExactly(generatePDF, { content: [{ text: 'data' }] });
+    sinon.assert.calledOnceWithExactly(billGetPdfContent, { data: 'data' });
     SinonMongoose.calledWithExactly(findOneBill, [
       { query: 'findOne', args: [{ _id: bill._id, origin: 'compani' }] },
       { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name address' }] },
