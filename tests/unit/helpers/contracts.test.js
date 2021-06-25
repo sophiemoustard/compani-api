@@ -502,6 +502,8 @@ describe('endContract', () => {
 
     findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
     findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+    countDocumentHistories.returns(0);
+    eventCountDocuments.returns(0);
 
     const result = await ContractHelper.endContract(contract._id.toHexString(), payload, credentials);
 
@@ -606,6 +608,7 @@ describe('endContract', () => {
       findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
       findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
       countDocumentHistories.returns(1);
+      eventCountDocuments.returns(0);
 
       await ContractHelper.endContract(contract._id.toHexString(), contractToEnd, credential);
       expect(true).toBe(false);
@@ -688,6 +691,7 @@ describe('endContract', () => {
       findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
       findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
       eventCountDocuments.returns(1);
+      countDocumentHistories.returns(0);
 
       await ContractHelper.endContract(contract._id.toHexString(), contractToEnd, credential);
       expect(true).toBe(false);
