@@ -523,7 +523,12 @@ exports.formatCourseForConvocationPdf = (course) => {
     date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
   }));
 
-  return { ...course, trainerIdentity, contactPhoneNumber, slots };
+  return {
+    ...course,
+    trainer: { ...course.trainer, formattedIdentity: trainerIdentity },
+    contact: { ...course.contact, formattedPhone: contactPhoneNumber },
+    slots,
+  };
 };
 
 exports.generateConvocationPdf = async (courseId) => {

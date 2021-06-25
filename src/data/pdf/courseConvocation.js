@@ -1,7 +1,6 @@
 const get = require('lodash/get');
-const UtilsHelper = require('../../helpers/utils');
 const FileHelper = require('../../helpers/file');
-const { COPPER_500 } = require('../../helpers/constants');
+const { COPPER_500, COPPER_GREY_200 } = require('../../helpers/constants');
 
 const getImages = async () => {
   const imageList = [
@@ -24,7 +23,7 @@ const getHeader = (image, misc, subProgram) => {
         [
           { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
           { text: title, style: 'title' },
-          { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 400, y2: 10, lineWidth: 1, lineColor: '#E2ECF0' }] },
+          { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 400, y2: 10, lineWidth: 1, lineColor: COPPER_GREY_200 }] },
         ],
       ],
     },
@@ -50,7 +49,7 @@ const getTable = (slots, slotsToPlan) => {
   const table = [
     {
       table: { body, height: 24, widths: ['auto', '*', '*'] },
-      layout: { vLineWidth: () => 0, hLineWidth: () => 1, hLineColor: () => '#E2ECF0' },
+      layout: { vLineWidth: () => 0, hLineWidth: () => 1, hLineColor: () => COPPER_GREY_200 },
       marginTop: 24,
     },
   ];
@@ -80,7 +79,7 @@ const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => (
         { image: trainerImg, width: 64, style: 'img' },
         [
           { text: 'Intervenant(e)', style: 'infoTitle' },
-          { text: UtilsHelper.formatIdentity(get(trainer, 'identity'), 'FL'), style: 'infoSubTitle' },
+          { text: get(trainer, 'formattedIdentity') || '', style: 'infoSubTitle' },
           { text: get(trainer, 'biography') || '', style: 'infoContent' },
         ],
       ],
@@ -90,7 +89,7 @@ const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => (
         { image: contactImg, width: 64, style: 'img' },
         [
           { text: 'Votre contact pour la formation', style: 'infoTitle' },
-          { text: UtilsHelper.formatPhoneNumber(get(contact, 'phone')), style: 'infoSubTitle' },
+          { text: get(contact, 'formattedPhone') || '', style: 'infoSubTitle' },
           { text: get(contact, 'email') || '', style: 'infoSubTitle' },
         ],
       ],
