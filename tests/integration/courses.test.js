@@ -853,8 +853,8 @@ describe('COURSES ROUTES - GET /courses/user', () => {
         expect(response.statusCode).toBe(200);
       });
 
-      it('should return 200 if coach and same company', async () => {
-        authToken = await getToken('coach');
+      it('should return 200 if coach and trainer and same company', async () => {
+        authToken = await getTokenByCredentials(trainerAndCoach.local);
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${userCompanies[1].user.toHexString()}`,
@@ -887,10 +887,10 @@ describe('COURSES ROUTES - GET /courses/user', () => {
       });
 
       const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'trainer', expectedCode: 200 },
+        { name: 'helper', expectedCode: 404 },
+        { name: 'auxiliary', expectedCode: 404 },
+        { name: 'auxiliary_without_company', expectedCode: 404 },
+        { name: 'trainer', expectedCode: 404 },
         { name: 'training_organisation_manager', expectedCode: 200 },
       ];
       roles.forEach((role) => {

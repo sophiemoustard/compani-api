@@ -234,14 +234,19 @@ exports.authorizeAndGetTrainee = async (req) => {
     return { _id: traineeId };
   }
 
+  const trainee = { _id: traineeId, company: userCompany.company };
+  if ([VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(loggedUserVendorRole)) return trainee;
+
   if (loggedUserClientRole) {
-    if (![COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) return Boom.forbidden();
+    if (![COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) return Boom.notFound();
 
     const isSameCompany = UtilsHelper.areObjectIdsEquals(userCompany.company, get(credentials, 'company._id'));
     if (!isSameCompany) return Boom.notFound();
+
+    return trainee;
   }
 
-  return { _id: traineeId, company: userCompany.company };
+  return Boom.notFound();
 };
 
 exports.authorizeAccessRuleAddition = async (req) => {
