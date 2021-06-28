@@ -283,7 +283,7 @@ describe('createRepetitionsEveryWeekDay', () => {
     insertMany.restore();
   });
 
-  it('should create repetition every day', async () => {
+  it('should create repetition every week day', async () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
 
@@ -356,9 +356,7 @@ describe('createRepetitionsByWeek', () => {
       startDate.setDate(startDate.getDate() + i + 1);
       formatRepeatedPayload.onCall(i).returns(new Event({ company: new ObjectID(), startDate }));
     }
-    customerFindOne.returns(
-      SinonMongoose.stubChainedQueries([null], ['lean'])
-    );
+    customerFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
     await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 1);
 

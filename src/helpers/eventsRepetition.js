@@ -41,34 +41,12 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
   return new Event(payload);
 };
 
-exports.createRepetitionsEveryDay = async (payload, sector) => {
-  const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(90, 'd');
-  const range = Array.from(moment().range(start, end).by('days'));
+exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetition) => {
   const repeatedEvents = [];
-
   const customer = await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
     .lean();
   for (let i = 0, l = range.length; i < l; i++) {
-    const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
-    if (get(repeatedEvent, 'startDate') > get(customer, 'stoppedAt')) break;
-    if (repeatedEvent) repeatedEvents.push(repeatedEvent);
-  }
-
-  await Event.insertMany(repeatedEvents);
-};
-
-exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
-  const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(90, 'd');
-  const range = Array.from(moment().range(start, end).by('days'));
-  const repeatedEvents = [];
-
-  const customer = await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
-    .lean();
-  for (let i = 0, l = range.length; i < l; i++) {
-    const day = moment(range[i]).day();
-    if (day !== 0 && day !== 6) {
+    if (!isWeekDayRepetition || ![0, 6].includes(moment(range[i]).day())) {
       const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
       if (get(repeatedEvent, 'startDate') > get(customer, 'stoppedAt')) break;
       if (repeatedEvent) repeatedEvents.push(repeatedEvent);
@@ -78,21 +56,28 @@ exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
   await Event.insertMany(repeatedEvents);
 };
 
+exports.createRepetitionsEveryDay = async (payload, sector) => {
+  const start = moment(payload.startDate).add(1, 'd');
+  const end = moment(payload.startDate).add(90, 'd');
+  const range = Array.from(moment().range(start, end).by('days'));
+
+  await exports.createRepeatedEvents(payload, range, sector, false);
+};
+
+exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
+  const start = moment(payload.startDate).add(1, 'd');
+  const end = moment(payload.startDate).add(90, 'd');
+  const range = Array.from(moment().range(start, end).by('days'));
+
+  await exports.createRepeatedEvents(payload, range, sector, true);
+};
+
 exports.createRepetitionsByWeek = async (payload, sector, step) => {
   const start = moment(payload.startDate).add(step, 'w');
   const end = moment(payload.startDate).add(90, 'd');
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
-  const repeatedEvents = [];
 
-  const customer = await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
-    .lean();
-  for (let i = 0, l = range.length; i < l; i++) {
-    const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
-    if (get(repeatedEvent, 'startDate') > get(customer, 'stoppedAt')) break;
-    if (repeatedEvent) repeatedEvents.push(repeatedEvent);
-  }
-
-  await Event.insertMany(repeatedEvents);
+  await exports.createRepeatedEvents(payload, range, sector, false);
 };
 
 exports.createRepetitions = async (eventFromDb, payload, credentials) => {
