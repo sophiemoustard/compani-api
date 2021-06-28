@@ -57,7 +57,7 @@ exports.hoursBalanceDetail = async (query, credentials) => {
   const startDate = moment(query.month, 'MM-YYYY').startOf('M').toDate();
   const endDate = moment(query.month, 'MM-YYYY').endOf('M').toDate();
 
-  if (query.sector) return this.hoursBalanceDetailBySector(query.sector, startDate, endDate, credentials);
+  if (query.sector) return exports.hoursBalanceDetailBySector(query.sector, startDate, endDate, credentials);
 
   return this.hoursBalanceDetailByAuxiliary(query.auxiliary, startDate, endDate, credentials);
 };
@@ -96,7 +96,10 @@ exports.hoursBalanceDetailBySector = async (sector, startDate, endDate, credenti
   const auxiliariesIds =
     await SectorHistoryRepository.getUsersFromSectorHistories(startDate, endDate, sectors, companyId);
   const result = [];
-  const auxiliaries = await User.find({ company: companyId, _id: { $in: auxiliariesIds.map(aux => aux.auxiliaryId) } })
+  const auxiliaries = await User.find(
+    { _id: { $in: auxiliariesIds.map(aux => aux.auxiliaryId) } },
+    { identity: 1, picture: 1 }
+  )
     .populate('contracts')
     .lean();
   for (const auxiliary of auxiliaries) {
