@@ -88,14 +88,14 @@ describe('formatInterventions', () => {
       {
         auxiliary: 'toto',
         subscription: 'Temps de qualité',
-        month: 'septembre',
+        month: 'Septembre',
         hours: '12,00h',
         serialNumber: 'LAF1907120908',
       },
       {
         auxiliary: 'toto',
         subscription: 'Temps de partage',
-        month: 'mai',
+        month: 'Mai',
         hours: '13,00h',
         serialNumber: 'FIF1905131008',
       },

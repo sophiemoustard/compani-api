@@ -25,14 +25,14 @@ describe('getPdfContent', () => {
           auxiliary: 'Nino Ferreira',
           serialNumber: 'NF010101010101',
           subscription: 'Temps de qualité - autonomie',
-          month: 'janvier',
+          month: 'Janvier',
           hours: '37,00h',
         },
         {
           auxiliary: 'Chloé Mölkky',
           serialNumber: 'CM010101010101',
           subscription: 'Temps de qualité - autonomie',
-          month: 'décembre',
+          month: 'Décembre',
           hours: '2,00h',
         },
       ],
@@ -90,6 +90,7 @@ describe('getPdfContent', () => {
           columns: [
             [
               { text: 'RCS : 111 222 333', fontSize: 12 },
+              { text: '', fontSize: 12 },
               { text: '24 Avenue du Test 75012 Paris', fontSize: 12 },
             ],
             [
@@ -130,7 +131,7 @@ describe('getPdfContent', () => {
             widths: ['auto', '*', 'auto', 'auto', 'auto'],
             body: tableBody,
           },
-          layout: { hLineWidth() { return 0.5; }, vLineWidth() { return 0.5; } },
+          layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
           marginBottom: 24,
         },
         {

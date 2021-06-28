@@ -24,7 +24,7 @@ exports.formatInterventions = interventions => interventions.map((int) => {
     auxiliary: UtilsHelper.formatIdentity(int.auxiliary.identity, 'FL'),
     serialNumber: int.auxiliary.serialNumber,
     subscription: service.name,
-    month: moment(int.month, 'M').format('MMMM'),
+    month: UtilsHelper.capitalize(moment(int.month, 'M').format('MMMM')),
     hours: UtilsHelper.formatHour(int.duration),
   };
 });
