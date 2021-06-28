@@ -6,7 +6,7 @@ exports.getPdfContent = async (qrCode, customerName) => {
     { url: 'https://storage.googleapis.com/compani-main/background-yellow.png', name: 'fond.png' },
   ]);
 
-  const header = [
+  const content = [
     { canvas: [{ type: 'rect', x: 300, y: 0, w: 515, h: 500, r: 0, color: 'white' }] },
     {
       columns:
@@ -21,8 +21,6 @@ exports.getPdfContent = async (qrCode, customerName) => {
       absolutePosition: { x: 0, y: 16 },
     },
   ];
-
-  const content = [header];
 
   return {
     content: content.flat(),

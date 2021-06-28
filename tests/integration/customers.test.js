@@ -862,7 +862,7 @@ describe('CUSTOMERS ROUTES', () => {
     });
   });
 
-  describe('GET /customers/{id}/qrcode #tag', () => {
+  describe('GET /customers/{id}/qrcode', () => {
     it('should return customer\'s qrcode', async () => {
       const result = await app.inject({
         method: 'GET',
