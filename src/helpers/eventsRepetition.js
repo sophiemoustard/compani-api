@@ -18,6 +18,7 @@ const {
 const Event = require('../models/Event');
 const User = require('../models/User');
 const Repetition = require('../models/Repetition');
+const Customer = require('../models/Customer');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
@@ -46,8 +47,11 @@ exports.createRepetitionsEveryDay = async (payload, sector) => {
   const range = Array.from(moment().range(start, end).by('days'));
   const repeatedEvents = [];
 
+  const customer = await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
+    .lean();
   for (let i = 0, l = range.length; i < l; i++) {
     const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
+    if (get(repeatedEvent, 'startDate') > get(customer, 'stoppedAt')) break;
     if (repeatedEvent) repeatedEvents.push(repeatedEvent);
   }
 
@@ -60,10 +64,13 @@ exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
   const range = Array.from(moment().range(start, end).by('days'));
   const repeatedEvents = [];
 
+  const customer = await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
+    .lean();
   for (let i = 0, l = range.length; i < l; i++) {
     const day = moment(range[i]).day();
     if (day !== 0 && day !== 6) {
       const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
+      if (get(repeatedEvent, 'startDate') > get(customer, 'stoppedAt')) break;
       if (repeatedEvent) repeatedEvents.push(repeatedEvent);
     }
   }
@@ -77,8 +84,11 @@ exports.createRepetitionsByWeek = async (payload, sector, step) => {
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
   const repeatedEvents = [];
 
+  const customer = await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
+    .lean();
   for (let i = 0, l = range.length; i < l; i++) {
     const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
+    if (get(repeatedEvent, 'startDate') > get(customer, 'stoppedAt')) break;
     if (repeatedEvent) repeatedEvents.push(repeatedEvent);
   }
 

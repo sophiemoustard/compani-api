@@ -7,6 +7,7 @@ const { ObjectID } = require('mongodb');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Repetition = require('../../../src/models/Repetition');
+const Customer = require('../../../src/models/Customer');
 const EventsHelper = require('../../../src/helpers/events');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
@@ -203,70 +204,198 @@ describe('formatRepeatedPayload', () => {
 
 describe('createRepetitionsEveryDay', () => {
   let formatRepeatedPayload;
+  let customerFindOne;
   let insertMany;
   beforeEach(() => {
     formatRepeatedPayload = sinon.stub(EventsRepetitionHelper, 'formatRepeatedPayload');
+    customerFindOne = sinon.stub(Customer, 'findOne');
     insertMany = sinon.stub(Event, 'insertMany');
   });
   afterEach(() => {
     formatRepeatedPayload.restore();
+    customerFindOne.restore();
     insertMany.restore();
   });
 
   it('should create repetition every day', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
+    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00', customer: new ObjectID() };
+
+    for (let i = 0; i < 90; i++) {
+      const startDate = new Date(event.startDate);
+      startDate.setDate(startDate.getDate() + i + 1);
+      formatRepeatedPayload.onCall(i).returns(new Event({ company: new ObjectID(), startDate }));
+    }
+    customerFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+
     await EventsRepetitionHelper.createRepetitionsEveryDay(event, sector);
 
     sinon.assert.callCount(formatRepeatedPayload, 90);
     sinon.assert.callCount(insertMany, 1);
+    SinonMongoose.calledWithExactly(
+      customerFindOne,
+      [
+        { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should not create repetition after stopping date', async () => {
+    const sector = new ObjectID();
+    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00', customer: new ObjectID() };
+
+    for (let i = 0; i < 3; i++) {
+      const startDate = new Date(event.startDate);
+      startDate.setDate(startDate.getDate() + i + 1);
+      formatRepeatedPayload.onCall(i).returns(new Event({ company: new ObjectID(), startDate }));
+    }
+    customerFindOne.returns(
+      SinonMongoose.stubChainedQueries([{ _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00') }], ['lean'])
+    );
+
+    await EventsRepetitionHelper.createRepetitionsEveryDay(event, sector);
+
+    sinon.assert.callCount(formatRepeatedPayload, 3);
+    sinon.assert.callCount(insertMany, 1);
+    SinonMongoose.calledWithExactly(
+      customerFindOne,
+      [
+        { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('createRepetitionsEveryWeekDay', () => {
   let formatRepeatedPayload;
+  let customerFindOne;
   let insertMany;
   beforeEach(() => {
     formatRepeatedPayload = sinon.stub(EventsRepetitionHelper, 'formatRepeatedPayload');
+    customerFindOne = sinon.stub(Customer, 'findOne');
     insertMany = sinon.stub(Event, 'insertMany');
   });
   afterEach(() => {
     formatRepeatedPayload.restore();
+    customerFindOne.restore();
     insertMany.restore();
   });
 
   it('should create repetition every day', async () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
+
+    for (let i = 0; i < 64; i++) {
+      const startDate = new Date(event.startDate);
+      startDate.setDate(startDate.getDate() + i + 1);
+      formatRepeatedPayload.onCall(i).returns(new Event({ company: new ObjectID(), startDate }));
+    }
+    customerFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+
     await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event, sector);
 
     sinon.assert.callCount(formatRepeatedPayload, 64);
     sinon.assert.callCount(insertMany, 1);
+    SinonMongoose.calledWithExactly(
+      customerFindOne,
+      [
+        { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should not create repetition after stopping date', async () => {
+    const sector = new ObjectID();
+    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
+    for (let i = 0; i < 3; i++) {
+      const startDate = new Date(event.startDate);
+      startDate.setDate(startDate.getDate() + i + 1);
+      formatRepeatedPayload.onCall(i).returns(new Event({ company: new ObjectID(), startDate }));
+    }
+    customerFindOne.returns(
+      SinonMongoose.stubChainedQueries([{ _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00') }], ['lean'])
+    );
+
+    await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event, sector);
+
+    sinon.assert.callCount(formatRepeatedPayload, 3);
+    sinon.assert.callCount(insertMany, 1);
+    SinonMongoose.calledWithExactly(
+      customerFindOne,
+      [
+        { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('createRepetitionsByWeek', () => {
   let formatRepeatedPayload;
+  let customerFindOne;
   let insertMany;
   beforeEach(() => {
     formatRepeatedPayload = sinon.stub(EventsRepetitionHelper, 'formatRepeatedPayload');
+    customerFindOne = sinon.stub(Customer, 'findOne');
     insertMany = sinon.stub(Event, 'insertMany');
   });
   afterEach(() => {
     formatRepeatedPayload.restore();
+    customerFindOne.restore();
     insertMany.restore();
   });
 
   it('should create repetition every week', async () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
+    for (let i = 0; i < 12; i++) {
+      const startDate = new Date(event.startDate);
+      startDate.setDate(startDate.getDate() + i + 1);
+      formatRepeatedPayload.onCall(i).returns(new Event({ company: new ObjectID(), startDate }));
+    }
+    customerFindOne.returns(
+      SinonMongoose.stubChainedQueries([null], ['lean'])
+    );
+
     await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 1);
 
     sinon.assert.callCount(formatRepeatedPayload, 12);
     sinon.assert.callCount(insertMany, 1);
+    SinonMongoose.calledWithExactly(
+      customerFindOne,
+      [
+        { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should not create repetition after stopping date', async () => {
+    const sector = new ObjectID();
+    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
+    const startDate = new Date(event.startDate);
+    startDate.setDate(startDate.getDate() + 7);
+    formatRepeatedPayload
+      .onCall(0)
+      .returns(new Event({ company: new ObjectID(), startDate }));
+    customerFindOne.returns(
+      SinonMongoose.stubChainedQueries([{ _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00') }], ['lean'])
+    );
+
+    await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 1);
+
+    sinon.assert.callCount(formatRepeatedPayload, 1);
+    sinon.assert.callCount(insertMany, 1);
+    SinonMongoose.calledWithExactly(
+      customerFindOne,
+      [
+        { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
