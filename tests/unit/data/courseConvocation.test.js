@@ -45,7 +45,7 @@ describe('getPdfContent', () => {
           [
             { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
             { text: 'test - groupe 3', style: 'title' },
-            { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 400, y2: 10, lineWidth: 1, lineColor: '#E2ECF0' }] },
+            { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 450, y2: 10, lineWidth: 1.5, lineColor: '#E2ECF0' }] },
           ],
         ],
       },
@@ -114,17 +114,18 @@ describe('getPdfContent', () => {
       content: [header, table, programInfo, trainerAndContactInfo].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
-        title: { fontSize: 20, bold: true, alignment: 'left', color: '#1D7C8F', marginLeft: 24 },
-        surtitle: { fontSize: 12, bold: true, alignment: 'left', marginTop: 24, marginLeft: 24 },
+        title: { fontSize: 20, bold: true, color: '#1D7C8F', marginLeft: 24 },
+        surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
         tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
         tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
-        notes: { italics: true, alignment: 'left', marginTop: 4 },
+        notes: { italics: true, marginTop: 4 },
         infoTitle: { fontSize: 14, bold: true, marginLeft: 12 },
         infoSubTitle: { fontSize: 12, marginLeft: 12 },
-        infoContent: { fontSize: 10, italics: true, marginLeft: 12 },
+        infoContent: { italics: true, marginLeft: 12 },
       },
     };
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'aux-pouce.png' },
       { url: 'https://storage.googleapis.com/compani-main/doct-explication.png', name: 'doct-explication.png' },
@@ -161,7 +162,7 @@ describe('getPdfContent', () => {
           [
             { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
             { text: 'test', style: 'title' },
-            { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 400, y2: 10, lineWidth: 1, lineColor: '#E2ECF0' }] },
+            { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 450, y2: 10, lineWidth: 1.5, lineColor: '#E2ECF0' }] },
           ],
         ],
       },
@@ -229,17 +230,18 @@ describe('getPdfContent', () => {
       content: [header, table, programInfo, trainerAndContactInfo].flat(),
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {
-        title: { fontSize: 20, bold: true, alignment: 'left', color: '#1D7C8F', marginLeft: 24 },
-        surtitle: { fontSize: 12, bold: true, alignment: 'left', marginTop: 24, marginLeft: 24 },
+        title: { fontSize: 20, bold: true, color: '#1D7C8F', marginLeft: 24 },
+        surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
         tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
         tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
-        notes: { italics: true, alignment: 'left', marginTop: 4 },
+        notes: { italics: true, marginTop: 4 },
         infoTitle: { fontSize: 14, bold: true, marginLeft: 12 },
         infoSubTitle: { fontSize: 12, marginLeft: 12 },
-        infoContent: { fontSize: 10, italics: true, marginLeft: 12 },
+        infoContent: { italics: true, marginLeft: 12 },
       },
     };
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/aux-pouce.png', name: 'aux-pouce.png' },
       { url: 'https://storage.googleapis.com/compani-main/doct-explication.png', name: 'doct-explication.png' },
