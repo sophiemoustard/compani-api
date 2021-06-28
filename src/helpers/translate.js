@@ -128,6 +128,7 @@ module.exports = {
     customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
     customerNotesNotFound: 'Customer notes not found.',
+    customerNoteUpdated: 'Customer note updated.',
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
     documentNotFound: 'Eversign document not found.',
@@ -461,8 +462,9 @@ module.exports = {
     customerFundingRemoved: 'Financement du bénéficiaire supprimé.',
     /* Customer notes */
     customerNoteCreated: 'Note de suivi créée.',
-    customerNotesFound: 'Notes de suivie trouvées.',
-    customerNotesNotFound: 'Notes de suivie non trouvées.',
+    customerNotesFound: 'Notes de suivi trouvées.',
+    customerNotesNotFound: 'Notes de suivi non trouvées.',
+    customerNoteUpdated: 'Note de suivi mise à jour.',
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
     documentNotFound: 'Document eversign non trouvé.',
