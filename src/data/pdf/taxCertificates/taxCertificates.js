@@ -7,7 +7,7 @@ const getHeader = async (taxCertificate) => {
   const [logo] = get(taxCertificate, 'company.logo')
     ? await FileHelper.downloadImages([{ url: taxCertificate.company.logo, name: 'logo.png' }])
     : [''];
-  if (logo) header.push({ image: logo, width: 132, marginBottom: 24 });
+  if (logo) header.push({ image: logo, width: 132, style: 'marginBottom' });
 
   header.push(
     { text: `${taxCertificate.company.name}`, bold: true, marginBottom: 8, fontSize: 12 },
@@ -79,7 +79,7 @@ const getBody = taxCertificate => [
         bold: true,
       }]],
     },
-    marginBottom: 24,
+    style: 'marginBottom',
   },
   {
     text: `Je soussigné(e) ${taxCertificate.company.legalRepresentative.name},`
@@ -96,7 +96,7 @@ const getBody = taxCertificate => [
     text: taxCertificate.cesu
       ? `Dont montant total réglé avec des CESU préfinancés * : ${taxCertificate.cesu}`
       : '',
-    marginBottom: 24,
+    style: 'marginBottom',
   },
   {
     table: {
@@ -106,7 +106,7 @@ const getBody = taxCertificate => [
       body: getTableContent(taxCertificate),
     },
     layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
-    marginBottom: 24,
+    style: 'marginBottom',
   },
   {
     text: 'Les sommes que vous auriez perçues sur votre compte pour financer l\'aide à domicile sont à déduire de'
@@ -141,5 +141,9 @@ exports.getPdfContent = async (data) => {
 
   const content = [header, body, footer];
 
-  return { content: content.flat(), defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' } };
+  return {
+    content: content.flat(),
+    defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
+    styles: { marginBottom: { marginBottom: 24 } },
+  };
 };

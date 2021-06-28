@@ -18,7 +18,7 @@ describe('getPdfContent', () => {
     const taxCertificate = {
       totalHours: '60,25h',
       totalPaid: '8 888,88 €',
-      cesu: 0,
+      cesu: 25,
       subscriptions: 'Temps de qualité - autonomie',
       interventions: [
         {
@@ -84,7 +84,7 @@ describe('getPdfContent', () => {
 
     const pdf = {
       content: [
-        { image: 'src/data/pdf/tmp/skusku.png', width: 132, marginBottom: 24 },
+        { image: 'src/data/pdf/tmp/skusku.png', width: 132, style: 'marginBottom' },
         { text: 'Compakenni SAS', bold: true, marginBottom: 8, fontSize: 12 },
         {
           columns: [
@@ -111,7 +111,7 @@ describe('getPdfContent', () => {
               bold: true,
             }]],
           },
-          marginBottom: 24,
+          style: 'marginBottom',
         },
         {
           text: 'Je soussigné(e) Clément SACRÉ TOM, Directeur général de Compakenni SAS,'
@@ -123,7 +123,7 @@ describe('getPdfContent', () => {
           text: 'Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit'
           + ' d\'impôt : 8 888,88 €',
         },
-        { text: '', marginBottom: 24 },
+        { text: 'Dont montant total réglé avec des CESU préfinancés * : 25', style: 'marginBottom' },
         {
           table: {
             headerRows: 1,
@@ -132,7 +132,7 @@ describe('getPdfContent', () => {
             body: tableBody,
           },
           layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
-          marginBottom: 24,
+          style: 'marginBottom',
         },
         {
           text: 'Les sommes que vous auriez perçues sur votre compte pour financer l\'aide à domicile sont à'
@@ -155,6 +155,7 @@ describe('getPdfContent', () => {
         { text: 'Directeur général', alignment: 'right' },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
+      styles: { marginBottom: { marginBottom: 24 } },
     };
 
     downloadImages.returns(['src/data/pdf/tmp/skusku.png']);
