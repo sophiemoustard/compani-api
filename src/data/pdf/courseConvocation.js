@@ -14,7 +14,7 @@ const getImages = async () => {
 };
 
 const getHeader = (image, misc, subProgram) => {
-  const title = `${get(subProgram, 'program.name') || ''}${misc ? ' - ' : ''}${misc || ''}`;
+  const title = `${get(subProgram, 'program.name') || ''}${misc ? ` - ${misc}` : ''}`;
 
   return [
     {
@@ -23,7 +23,7 @@ const getHeader = (image, misc, subProgram) => {
         [
           { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
           { text: title, style: 'title' },
-          { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 400, y2: 10, lineWidth: 1, lineColor: COPPER_GREY_200 }] },
+          { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 450, y2: 10, lineWidth: 1.5, lineColor: COPPER_GREY_200 }] },
         ],
       ],
     },
@@ -110,14 +110,14 @@ exports.getPdfContent = async (data) => {
     content: [header, table, programInfo, trainerAndContactInfo].flat(),
     defaultStyle: { font: 'SourceSans', fontSize: 10 },
     styles: {
-      title: { fontSize: 20, bold: true, alignment: 'left', color: COPPER_500, marginLeft: 24 },
-      surtitle: { fontSize: 12, bold: true, alignment: 'left', marginTop: 24, marginLeft: 24 },
+      title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
+      surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
       tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
       tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
-      notes: { italics: true, alignment: 'left', marginTop: 4 },
+      notes: { italics: true, marginTop: 4 },
       infoTitle: { fontSize: 14, bold: true, marginLeft: 12 },
       infoSubTitle: { fontSize: 12, marginLeft: 12 },
-      infoContent: { fontSize: 10, italics: true, marginLeft: 12 },
+      infoContent: { italics: true, marginLeft: 12 },
     },
   };
 };
