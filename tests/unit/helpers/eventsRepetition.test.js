@@ -344,42 +344,33 @@ describe('createRepetitionsEveryWeekDay', () => {
 
   it('should not create repetition after stopping date', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
-    const range = Array.from(moment()
-      .range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(90, 'd')).by('days'));
-    const repeatedEvents = [];
-
-    let callCount = 0;
-    for (let i = 0; i < 4; i++) {
-      const startDate = new Date(event.startDate);
-      startDate.setDate(startDate.getDate() + i + 1);
-      const repeatedEvent = new Event({ company: new ObjectID(), startDate });
-      if (![0, 6].includes(moment(range[i]).day())) {
-        formatRepeatedPayload.onCall(callCount).returns(repeatedEvent);
-        if (repeatedEvent.startDate < new Date('2019-01-12T11:00:00Z')) repeatedEvents.push(repeatedEvent);
-        callCount += 1;
-      }
-    }
-    customerFindOne.returns(
-      SinonMongoose.stubChainedQueries([{ _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00Z') }], ['lean'])
+    const thursdayEvent = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
+    const customer = { _id: thursdayEvent.customer, stoppedAt: new Date('2019-01-12T11:00:00Z') };
+    const range = Array.from(
+      moment()
+        .range(moment(thursdayEvent.startDate).add(1, 'd'), moment(thursdayEvent.startDate).add(90, 'd'))
+        .by('days')
     );
 
-    await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event, sector);
+    const fridayEvent = new Event({ company: new ObjectID(), startDate: new Date(range[0]) });
+    const mondayEvent = new Event({ company: new ObjectID(), startDate: new Date(range[3]) });
+    formatRepeatedPayload.onCall(0).returns(fridayEvent);
+    formatRepeatedPayload.onCall(1).returns(mondayEvent);
+
+    customerFindOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+
+    await EventsRepetitionHelper.createRepetitionsEveryWeekDay(thursdayEvent, sector);
+
+    sinon.assert.callCount(insertMany, 1);
+    sinon.assert.calledOnceWithExactly(insertMany, [fridayEvent]);
 
     sinon.assert.callCount(formatRepeatedPayload, 2);
-    sinon.assert.callCount(insertMany, 1);
-    callCount = 0;
-    for (let i = 0; i < 4; i++) {
-      if (![0, 6].includes(moment(range[i]).day())) {
-        sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(callCount), event, sector, range[i]);
-        callCount += 1;
-      }
-    }
-    sinon.assert.calledOnceWithExactly(insertMany, repeatedEvents);
+    sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(0), thursdayEvent, sector, range[0]);
+    sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(1), thursdayEvent, sector, range[3]);
     SinonMongoose.calledWithExactly(
       customerFindOne,
       [
-        { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
+        { query: 'findOne', args: [{ _id: thursdayEvent.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
         { query: 'lean' },
       ]
     );
