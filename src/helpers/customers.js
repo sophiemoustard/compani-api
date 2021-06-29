@@ -300,5 +300,6 @@ exports.generateQRCode = async (customerId) => {
   const customerName = UtilsHelper.formatIdentity(customer.identity, 'FL');
 
   const pdf = await PdfHelper.generatePDF(await CustomerQRCode.getPdfContent(qrCodeUrl, customerName));
+
   return { fileName: 'qrcode.pdf', pdf };
 };
