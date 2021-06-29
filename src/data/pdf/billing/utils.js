@@ -58,7 +58,7 @@ exports.getPriceTable = item => ({
   columns: [
     { width: '*', text: '' },
     {
-      table: { body: this.getPriceTableBody(item) },
+      table: { body: exports.getPriceTableBody(item) },
       width: 'auto',
       margin: [0, 8, 0, 40],
       layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
@@ -100,7 +100,7 @@ exports.getEventsTableBody = (item, displaySurcharge) => {
 
   if (displaySurcharge) eventTableBody[0].push({ text: 'Majoration', bold: true });
   item.formattedEvents.forEach((event) => {
-    eventTableBody.push(this.getEventTableContent(event, displaySurcharge));
+    eventTableBody.push(exports.getEventTableContent(event, displaySurcharge));
   });
 
   return eventTableBody;
@@ -111,7 +111,7 @@ exports.getEventsTable = (item, displaySurcharge) => {
   const { fullAddress } = item.customer.contact.primaryAddress;
   const widths = Array(5).fill('auto', 0, 4).fill('*', 4);
   if (displaySurcharge) widths.push('*');
-  const eventTableBody = this.getEventsTableBody(item, displaySurcharge);
+  const eventTableBody = exports.getEventsTableBody(item, displaySurcharge);
 
   return [
     { text: `Prestations réalisées chez ${customerIdentity}, ${fullAddress}.` },
