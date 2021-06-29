@@ -33,7 +33,7 @@ exports.authorizeGetHoursToWork = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const sectors = UtilsHelper.formatIdsArray(req.query.sector);
   const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
-  if (sectorsCount !== sectors.length) throw Boom.forbidden();
+  if (sectorsCount !== sectors.length) throw Boom.notFound();
 
   return null;
 };
