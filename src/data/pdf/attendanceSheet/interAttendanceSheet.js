@@ -1,4 +1,5 @@
 const UtilsHelper = require('./utils');
+const { COPPER_500 } = require('../../../helpers/constants');
 
 const getSlotTableContent = slot => [
   { stack: [{ text: `${slot.date}` }, { text: `${slot.address}`, fontSize: 8 }] },
@@ -47,8 +48,8 @@ exports.getPdfContent = async (data) => {
     content: content.flat(),
     defaultStyle: { font: 'SourceSans', fontSize: 10 },
     styles: {
-      header: { bold: true, fillColor: '#7B0046', color: 'white', alignment: 'center' },
-      title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: '#7B0046' },
+      header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
+      title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },
     },
   };
 };
