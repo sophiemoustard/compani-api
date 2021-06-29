@@ -142,7 +142,11 @@ describe('getPdfContent', () => {
               table: {
                 body: [
                   [{ text: 'Total HT', bold: true }, { text: 'TVA', bold: true }, { text: 'Total TTC', bold: true }],
-                  [{ text: '322,52 €' }, { text: '17,74 €' }, { text: '340,26 €' }],
+                  [
+                    { text: '322,52 €', style: 'marginRightLarge' },
+                    { text: '17,74 €', style: 'marginRightLarge' },
+                    { text: '340,26 €', style: 'marginRightLarge' },
+                  ],
                 ],
               },
               width: 'auto',
@@ -187,6 +191,7 @@ describe('getPdfContent', () => {
         },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      styles: { marginRightLarge: { marginRight: 40 } },
     };
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },

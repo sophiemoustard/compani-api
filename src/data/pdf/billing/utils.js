@@ -41,7 +41,11 @@ exports.getHeader = (companyLogo, item) => {
 
 exports.getPriceTableBody = item => [
   [{ text: 'Total HT', bold: true }, { text: 'TVA', bold: true }, { text: 'Total TTC', bold: true }],
-  [{ text: item.totalExclTaxes }, { text: item.totalVAT }, { text: item.netInclTaxes }],
+  [
+    { text: item.totalExclTaxes, style: 'marginRightLarge' },
+    { text: item.totalVAT, style: 'marginRightLarge' },
+    { text: item.netInclTaxes, style: 'marginRightLarge' },
+  ],
 ];
 
 exports.getPriceTable = item => ({
@@ -51,7 +55,7 @@ exports.getPriceTable = item => ({
       table: { body: this.getPriceTableBody(item) },
       width: 'auto',
       margin: [0, 8, 0, 40],
-      layout: { hLineWidth() { return 0.5; }, vLineWidth() { return 0.5; } },
+      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
     },
   ],
 });
@@ -98,7 +102,7 @@ exports.getEventTableBody = (item, hasSurcharge) => {
   return eventTableBody;
 };
 
-exports.getEventTable = (item, hasSurcharge, isBill) => {
+exports.getEventTable = (item, hasSurcharge) => {
   const { title, firstname, lastname } = item.customer.identity;
   const { fullAddress } = item.customer.contact.primaryAddress;
   const widths = Array(5).fill('auto');
@@ -106,11 +110,11 @@ exports.getEventTable = (item, hasSurcharge, isBill) => {
   const eventTableBody = this.getEventTableBody(item, hasSurcharge);
 
   return [
-    { text: `Prestations ${isBill ? 'réalisées' : 'annulée'} chez ${title} ${firstname} ${lastname}, ${fullAddress}.` },
+    { text: `Prestations réalisées chez ${title} ${firstname} ${lastname}, ${fullAddress}.` },
     {
       table: { body: eventTableBody, widths },
       marginTop: 8,
-      layout: { hLineWidth() { return 0.5; }, vLineWidth() { return 0.5; } },
+      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
     },
   ];
 };

@@ -26,15 +26,19 @@ exports.getPdfContent = async (data) => {
     {
       table: { body: serviceTableBody, widths: ['*', 'auto', 'auto', 'auto'] },
       margin: [0, 40, 0, 8],
-      layout: { vLineWidth: () => 0, hLineWidth: () => 1 },
+      layout: { vLineWidth: () => 0.5, hLineWidth: () => 0.5 },
     },
     { text: '*ce total intègre les financements, majorations et éventuelles remises.' },
   ];
 
   const priceTable = UtilsHelper.getPriceTable(bill);
-  const eventTable = UtilsHelper.getEventTable(bill, !bill.forTpp, true);
+  const eventTable = UtilsHelper.getEventTable(bill, !bill.forTpp);
 
   const content = [header, serviceTable, priceTable, eventTable];
 
-  return { content: content.flat(), defaultStyle: { font: 'SourceSans', fontSize: 12 } };
+  return {
+    content: content.flat(),
+    defaultStyle: { font: 'SourceSans', fontSize: 12 },
+    styles: { marginRightLarge: { marginRight: 40 } },
+  };
 };
