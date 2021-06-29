@@ -60,18 +60,18 @@ describe('getPdfContent', () => {
         { text: 'Prestation', bold: true },
       ],
       [
-        'NF010101010101',
-        'Nino Ferreira',
-        'Janvier',
-        { text: '37,00h', alignment: 'right' },
-        'Temps de qualité - autonomie',
+        { text: 'NF010101010101', margin: [0, 2, 0, 2] },
+        { text: 'Nino Ferreira', margin: [0, 2, 0, 2] },
+        { text: 'Janvier', margin: [0, 2, 0, 2] },
+        { text: '37,00h', alignment: 'right', margin: [0, 2, 0, 2] },
+        { text: 'Temps de qualité - autonomie', margin: [0, 2, 0, 2] },
       ],
       [
-        'CM010101010101',
-        'Chloé Mölkky',
-        'Décembre',
-        { text: '2,00h', alignment: 'right' },
-        'Temps de qualité - autonomie',
+        { text: 'CM010101010101', margin: [0, 2, 0, 2] },
+        { text: 'Chloé Mölkky', margin: [0, 2, 0, 2] },
+        { text: 'Décembre', margin: [0, 2, 0, 2] },
+        { text: '2,00h', alignment: 'right', margin: [0, 2, 0, 2] },
+        { text: 'Temps de qualité - autonomie', margin: [0, 2, 0, 2] },
       ],
       [
         '',
@@ -84,7 +84,7 @@ describe('getPdfContent', () => {
 
     const pdf = {
       content: [
-        { image: 'src/data/pdf/tmp/skusku.png', width: 132, style: 'marginBottom' },
+        { image: 'src/data/pdf/tmp/skusku.png', width: 132, style: 'marginBottomMedium' },
         { text: 'Compakenni SAS', bold: true, marginBottom: 8, fontSize: 12 },
         {
           columns: [
@@ -111,7 +111,7 @@ describe('getPdfContent', () => {
               bold: true,
             }]],
           },
-          style: 'marginBottom',
+          style: 'marginBottomMedium',
         },
         {
           text: 'Je soussigné(e) Clément SACRÉ TOM, Directeur général de Compakenni SAS,'
@@ -123,7 +123,7 @@ describe('getPdfContent', () => {
           text: 'Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit'
           + ' d\'impôt : 8 888,88 €',
         },
-        { text: 'Dont montant total réglé avec des CESU préfinancés * : 25', style: 'marginBottom' },
+        { text: 'Dont montant total réglé avec des CESU préfinancés * : 25', style: 'marginBottomMedium' },
         {
           table: {
             headerRows: 1,
@@ -132,7 +132,7 @@ describe('getPdfContent', () => {
             body: tableBody,
           },
           layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
-          style: 'marginBottom',
+          style: 'marginBottomMedium',
         },
         {
           text: 'Les sommes que vous auriez perçues sur votre compte pour financer l\'aide à domicile sont à'
@@ -155,7 +155,7 @@ describe('getPdfContent', () => {
         { text: 'Directeur général', alignment: 'right' },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
-      styles: { marginBottom: { marginBottom: 24 } },
+      styles: { marginBottomMedium: { marginBottom: 24 } },
     };
 
     downloadImages.returns(['src/data/pdf/tmp/skusku.png']);

@@ -7,7 +7,7 @@ const getHeader = async (taxCertificate) => {
   const [logo] = get(taxCertificate, 'company.logo')
     ? await FileHelper.downloadImages([{ url: taxCertificate.company.logo, name: 'logo.png' }])
     : [''];
-  if (logo) header.push({ image: logo, width: 132, style: 'marginBottom' });
+  if (logo) header.push({ image: logo, width: 132, style: 'marginBottomMedium' });
 
   header.push(
     { text: `${taxCertificate.company.name}`, bold: true, marginBottom: 8, fontSize: 12 },
@@ -48,8 +48,8 @@ const getTableContent = (taxCertificate) => {
     const bodyRow = [];
 
     columns.forEach((column) => {
-      if (column === 'hours') bodyRow.push({ text: row[column].toString(), alignment: 'right' });
-      else bodyRow.push(row[column].toString());
+      if (column === 'hours') bodyRow.push({ text: row[column].toString(), alignment: 'right', margin: [0, 2, 0, 2] });
+      else bodyRow.push({ text: row[column].toString(), margin: [0, 2, 0, 2] });
     });
 
     content.push(bodyRow);
@@ -79,7 +79,7 @@ const getBody = taxCertificate => [
         bold: true,
       }]],
     },
-    style: 'marginBottom',
+    style: 'marginBottomMedium',
   },
   {
     text: `Je soussigné(e) ${taxCertificate.company.legalRepresentative.name},`
@@ -96,7 +96,7 @@ const getBody = taxCertificate => [
     text: taxCertificate.cesu
       ? `Dont montant total réglé avec des CESU préfinancés * : ${taxCertificate.cesu}`
       : '',
-    style: 'marginBottom',
+    style: 'marginBottomMedium',
   },
   {
     table: {
@@ -106,7 +106,7 @@ const getBody = taxCertificate => [
       body: getTableContent(taxCertificate),
     },
     layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
-    style: 'marginBottom',
+    style: 'marginBottomMedium',
   },
   {
     text: 'Les sommes que vous auriez perçues sur votre compte pour financer l\'aide à domicile sont à déduire de'
@@ -144,6 +144,6 @@ exports.getPdfContent = async (data) => {
   return {
     content: content.flat(),
     defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
-    styles: { marginBottom: { marginBottom: 24 } },
+    styles: { marginBottomMedium: { marginBottom: 24 } },
   };
 };
