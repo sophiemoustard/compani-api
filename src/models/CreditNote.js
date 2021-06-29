@@ -10,7 +10,7 @@ const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
 
 const CreditNoteSchema = mongoose.Schema(
   {
-    number: String,
+    number: { type: String },
     date: { type: Date, required: true },
     startDate: Date,
     endDate: Date,

@@ -15,6 +15,7 @@ const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 const { COMPANI } = require('./constants');
+const CreditNotePdf = require('../data/pdf/billing/creditNote');
 
 const { language } = translate;
 
@@ -174,7 +175,6 @@ exports.formatPDF = (creditNote, company) => {
     totalVAT: 0,
     date: moment(creditNote.date).format('DD/MM/YYYY'),
     number: creditNote.number,
-    forTpp: !!creditNote.thirdPartyPayer,
     recipient: {
       address: creditNote.thirdPartyPayer
         ? get(creditNote, 'thirdPartyPayer.address', {})
@@ -183,6 +183,7 @@ exports.formatPDF = (creditNote, company) => {
         ? creditNote.thirdPartyPayer.name
         : UtilsHelper.formatIdentity(creditNote.customer.identity, 'TFL'),
     },
+    forTpp: !!creditNote.thirdPartyPayer,
   };
 
   if (creditNote.events && creditNote.events.length > 0) {
@@ -208,10 +209,10 @@ exports.formatPDF = (creditNote, company) => {
         identity: { ...creditNote.customer.identity, title: CIVILITY_LIST[get(creditNote, 'customer.identity.title')] },
         contact: creditNote.customer.contact,
       },
-      exclTaxes: creditNote.exclTaxesTpp
+      totalExclTaxes: creditNote.exclTaxesTpp
         ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp)
         : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
-      inclTaxes: creditNote.inclTaxesTpp
+      netInclTaxes: creditNote.inclTaxesTpp
         ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp)
         : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,
@@ -242,7 +243,8 @@ exports.generateCreditNotePdf = async (params, credentials) => {
 
   const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
   const data = exports.formatPDF(creditNote, company);
-  const pdf = await PdfHelper.generatePdf(data, './src/data/creditNote.html');
+  const template = await CreditNotePdf.getPDFContent(data);
+  const pdf = await PdfHelper.generatePDF(template);
 
   return { pdf, creditNoteNumber: creditNote.number };
 };

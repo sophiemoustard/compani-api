@@ -1,10 +1,11 @@
 const get = require('lodash/get');
+const { BILL } = require('../../../helpers/constants');
 const UtilsHelper = require('./utils');
 
 exports.getPdfContent = async (data) => {
   const { bill } = data;
   const [logo] = get(bill, 'company.logo') ? await UtilsHelper.getImages(bill.company.logo) : [null];
-  const header = UtilsHelper.getHeader(logo, bill);
+  const header = UtilsHelper.getHeader(logo, bill, BILL);
 
   const serviceTableBody = [
     [
@@ -32,9 +33,9 @@ exports.getPdfContent = async (data) => {
   ];
 
   const priceTable = UtilsHelper.getPriceTable(bill);
-  const eventTable = UtilsHelper.getEventTable(bill, !bill.forTpp);
+  const eventsTable = UtilsHelper.getEventsTable(bill, !bill.forTpp);
 
-  const content = [header, serviceTable, priceTable, eventTable];
+  const content = [header, serviceTable, priceTable, eventsTable];
 
   return {
     content: content.flat(),

@@ -1,5 +1,7 @@
 const get = require('lodash/get');
 const FileHelper = require('../../../helpers/file');
+const UtilsHelper = require('../../../helpers/utils');
+const { BILL, BILLING_DOCUMENTS } = require('../../../helpers/constants');
 
 exports.getImages = async (url) => {
   const imageList = [{ url, name: 'logo.png' }];
@@ -7,9 +9,9 @@ exports.getImages = async (url) => {
   return FileHelper.downloadImages(imageList);
 };
 
-exports.getHeader = (companyLogo, item) => {
+exports.getHeader = (companyLogo, item, type) => {
   const logo = companyLogo
-    ? { image: companyLogo, fit: [160, 40], margin: [0, 8, 0, 32] }
+    ? { image: companyLogo, fit: [160, 40], margin: [0, 0, 0, 32] }
     : {
       canvas: [{ type: 'rect', x: 0, y: 0, w: 160, h: 40, r: 0, color: 'white' }],
       margin: [0, 8, 0, 32],
@@ -26,10 +28,14 @@ exports.getHeader = (companyLogo, item) => {
         { text: item.company.rna ? `RNA : ${item.company.rna}` : '' },
       ],
       [
-        { text: 'Facture', alignment: 'right' },
+        { text: BILLING_DOCUMENTS[type], alignment: 'right' },
         { text: item.number, alignment: 'right' },
         { text: item.date, alignment: 'right' },
-        { text: 'Paiement à réception', alignment: 'right', marginBottom: 20 },
+        {
+          text: type === BILL ? 'Paiement à réception' : '',
+          alignment: 'right',
+          marginBottom: type === BILL ? 20 : 32,
+        },
         { text: item.recipient.name, alignment: 'right' },
         { text: item.recipient.address.street, alignment: 'right' },
         { text: `${item.recipient.address.zipCode} ${item.recipient.address.city}`, alignment: 'right' },
@@ -60,7 +66,7 @@ exports.getPriceTable = item => ({
   ],
 });
 
-exports.getEventTableContent = (event, hasSurcharge) => {
+exports.getEventTableContent = (event, displaySurcharge) => {
   const row = [
     { text: event.date },
     { text: event.identity },
@@ -69,21 +75,19 @@ exports.getEventTableContent = (event, hasSurcharge) => {
     { text: event.service },
   ];
 
-  if (hasSurcharge) {
+  if (displaySurcharge) {
     if (get(event, 'surcharges.length')) {
       event.surcharges.forEach((surcharge) => {
         const { percentage, name, startHour, endHour } = surcharge;
         row.push({ stack: [{ text: `+ ${percentage}% (${name}${startHour ? ` ${startHour} - ${endHour}` : ''})` }] });
       });
-    } else {
-      row.push({ text: '' });
-    }
+    } else row.push({ text: '' });
   }
 
   return row;
 };
 
-exports.getEventTableBody = (item, hasSurcharge) => {
+exports.getEventsTableBody = (item, displaySurcharge) => {
   const eventTableBody = [
     [
       { text: 'Date', bold: true },
@@ -94,23 +98,23 @@ exports.getEventTableBody = (item, hasSurcharge) => {
     ],
   ];
 
-  if (hasSurcharge) eventTableBody[0].push({ text: 'Majoration', bold: true });
+  if (displaySurcharge) eventTableBody[0].push({ text: 'Majoration', bold: true });
   item.formattedEvents.forEach((event) => {
-    eventTableBody.push(this.getEventTableContent(event, hasSurcharge));
+    eventTableBody.push(this.getEventTableContent(event, displaySurcharge));
   });
 
   return eventTableBody;
 };
 
-exports.getEventTable = (item, hasSurcharge) => {
-  const { title, firstname, lastname } = item.customer.identity;
+exports.getEventsTable = (item, displaySurcharge) => {
+  const customerIdentity = UtilsHelper.formatIdentity(item.customer.identity, 'TFL');
   const { fullAddress } = item.customer.contact.primaryAddress;
-  const widths = Array(5).fill('auto');
-  if (hasSurcharge) widths.push('*');
-  const eventTableBody = this.getEventTableBody(item, hasSurcharge);
+  const widths = Array(5).fill('auto', 0, 4).fill('*', 4);
+  if (displaySurcharge) widths.push('*');
+  const eventTableBody = this.getEventsTableBody(item, displaySurcharge);
 
   return [
-    { text: `Prestations réalisées chez ${title} ${firstname} ${lastname}, ${fullAddress}.` },
+    { text: `Prestations réalisées chez ${customerIdentity}, ${fullAddress}.` },
     {
       table: { body: eventTableBody, widths },
       marginTop: 8,

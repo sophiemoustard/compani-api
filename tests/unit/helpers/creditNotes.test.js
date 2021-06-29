@@ -14,6 +14,7 @@ const translate = require('../../../src/helpers/translate');
 const PdfHelper = require('../../../src/helpers/pdf');
 const BillSlipHelper = require('../../../src/helpers/billSlips');
 const SubscriptionHelper = require('../../../src/helpers/subscriptions');
+const CreditNotePdf = require('../../../src/data/pdf/billing/creditNote');
 const { COMPANI, OGUST } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -708,8 +709,8 @@ describe('formatPDF', () => {
         },
         forTpp: false,
         date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
-        exclTaxes: '221,00 €',
-        inclTaxes: '234,00 €',
+        totalExclTaxes: '221,00 €',
+        netInclTaxes: '234,00 €',
         totalVAT: '13,00 €',
         formattedEvents: [
           {
@@ -784,8 +785,8 @@ describe('formatPDF', () => {
         },
         forTpp: true,
         date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
-        exclTaxes: '21,00 €',
-        inclTaxes: '34,00 €',
+        totalExclTaxes: '21,00 €',
+        netInclTaxes: '34,00 €',
         totalVAT: '13,00 €',
         formattedEvents: [
           {
@@ -906,30 +907,34 @@ describe('removeCreditNote', () => {
 describe('generateCreditNotePdf', () => {
   let creditNoteFindOne;
   let companyNoteFindOne;
-  let formatPDFStub;
-  let generatePdfStub;
+  let formatPDF;
+  let getPDFContent;
+  let generatePDF;
 
   const params = { _id: new ObjectID() };
   const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     creditNoteFindOne = sinon.stub(CreditNote, 'findOne');
     companyNoteFindOne = sinon.stub(Company, 'findOne');
-    formatPDFStub = sinon.stub(CreditNoteHelper, 'formatPDF');
-    generatePdfStub = sinon.stub(PdfHelper, 'generatePdf');
+    formatPDF = sinon.stub(CreditNoteHelper, 'formatPDF');
+    getPDFContent = sinon.stub(CreditNotePdf, 'getPDFContent');
+    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
   });
 
   afterEach(() => {
     creditNoteFindOne.restore();
     companyNoteFindOne.restore();
-    formatPDFStub.restore();
-    generatePdfStub.restore();
+    formatPDF.restore();
+    getPDFContent.restore();
+    generatePDF.restore();
   });
 
   it('should generate a pdf', async () => {
     creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: COMPANI, number: '12345' }]));
     companyNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: credentials.company._id }], ['lean']));
-    formatPDFStub.returns({ name: 'creditNotePdf' });
-    generatePdfStub.returns({ title: 'creditNote' });
+    formatPDF.returns({ name: 'creditNotePdf' });
+    getPDFContent.returns({ content: ['creditNotePdf'] });
+    generatePDF.returns({ title: 'creditNote' });
 
     const result = await CreditNoteHelper.generateCreditNotePdf(params, credentials);
 
@@ -956,11 +961,12 @@ describe('generateCreditNotePdf', () => {
       [{ query: 'find', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
-      formatPDFStub,
+      formatPDF,
       { origin: COMPANI, number: '12345' },
       { _id: credentials.company._id }
     );
-    sinon.assert.calledOnceWithExactly(generatePdfStub, { name: 'creditNotePdf' }, './src/data/creditNote.html');
+    sinon.assert.calledOnceWithExactly(getPDFContent, { name: 'creditNotePdf' });
+    sinon.assert.calledOnceWithExactly(generatePDF, { content: ['creditNotePdf'] });
   });
 
   it('should return a 404 if creditnote is not found', async () => {
@@ -971,8 +977,9 @@ describe('generateCreditNotePdf', () => {
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].creditNoteNotFound));
     } finally {
-      sinon.assert.notCalled(formatPDFStub);
-      sinon.assert.notCalled(generatePdfStub);
+      sinon.assert.notCalled(formatPDF);
+      sinon.assert.notCalled(getPDFContent);
+      sinon.assert.notCalled(generatePDF);
       SinonMongoose.calledWithExactly(
         creditNoteFindOne,
         [
@@ -993,7 +1000,7 @@ describe('generateCreditNotePdf', () => {
     }
   });
 
-  it('should return a 500 if creditnote origin is not compani', async () => {
+  it('should return a 400 if creditnote origin is not compani', async () => {
     try {
       creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: OGUST }]));
 
@@ -1001,8 +1008,9 @@ describe('generateCreditNotePdf', () => {
     } catch (e) {
       expect(e).toEqual(Boom.badRequest(translate[language].creditNoteNotCompani));
     } finally {
-      sinon.assert.notCalled(formatPDFStub);
-      sinon.assert.notCalled(generatePdfStub);
+      sinon.assert.notCalled(formatPDF);
+      sinon.assert.notCalled(getPDFContent);
+      sinon.assert.notCalled(generatePDF);
       SinonMongoose.calledWithExactly(
         creditNoteFindOne,
         [
