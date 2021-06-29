@@ -1,0 +1,120 @@
+const get = require('lodash/get');
+const FileHelper = require('../../../helpers/file');
+
+exports.getImages = async (url) => {
+  const imageList = [{ url, name: 'logo.png' }];
+
+  return FileHelper.downloadImages(imageList);
+};
+
+exports.getHeader = (companyLogo, item) => {
+  const logo = companyLogo
+    ? { image: companyLogo, fit: [160, 40], margin: [0, 8, 0, 32] }
+    : {
+      canvas: [{ type: 'rect', x: 0, y: 0, w: 160, h: 40, r: 0, color: 'white' }],
+      margin: [0, 8, 0, 32],
+    };
+
+  return {
+    columns: [
+      [
+        logo,
+        { text: item.company.name },
+        { text: item.company.address.street },
+        { text: `${item.company.address.zipCode} ${item.company.address.city}` },
+        { text: item.company.rcs ? `RCS : ${item.company.rcs}` : '' },
+        { text: item.company.rna ? `RNA : ${item.company.rna}` : '' },
+      ],
+      [
+        { text: 'Facture', alignment: 'right' },
+        { text: item.number, alignment: 'right' },
+        { text: item.date, alignment: 'right' },
+        { text: 'Paiement à réception', alignment: 'right', marginBottom: 20 },
+        { text: item.recipient.name, alignment: 'right' },
+        { text: item.recipient.address.street, alignment: 'right' },
+        { text: `${item.recipient.address.zipCode} ${item.recipient.address.city}`, alignment: 'right' },
+      ],
+    ],
+    marginBottom: 20,
+  };
+};
+
+exports.getPriceTableBody = item => [
+  [{ text: 'Total HT', bold: true }, { text: 'TVA', bold: true }, { text: 'Total TTC', bold: true }],
+  [
+    { text: item.totalExclTaxes, style: 'marginRightLarge' },
+    { text: item.totalVAT, style: 'marginRightLarge' },
+    { text: item.netInclTaxes, style: 'marginRightLarge' },
+  ],
+];
+
+exports.getPriceTable = item => ({
+  columns: [
+    { width: '*', text: '' },
+    {
+      table: { body: this.getPriceTableBody(item) },
+      width: 'auto',
+      margin: [0, 8, 0, 40],
+      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
+    },
+  ],
+});
+
+exports.getEventTableContent = (event, hasSurcharge) => {
+  const row = [
+    { text: event.date },
+    { text: event.identity },
+    { text: event.startTime },
+    { text: event.endTime },
+    { text: event.service },
+  ];
+
+  if (hasSurcharge) {
+    if (get(event, 'surcharges.length')) {
+      event.surcharges.forEach((surcharge) => {
+        const { percentage, name, startHour, endHour } = surcharge;
+        row.push({ stack: [{ text: `+ ${percentage}% (${name}${startHour ? ` ${startHour} - ${endHour}` : ''})` }] });
+      });
+    } else {
+      row.push({ text: '' });
+    }
+  }
+
+  return row;
+};
+
+exports.getEventTableBody = (item, hasSurcharge) => {
+  const eventTableBody = [
+    [
+      { text: 'Date', bold: true },
+      { text: 'Intervenant', bold: true },
+      { text: 'Début', bold: true },
+      { text: 'Fin', bold: true },
+      { text: 'Service', bold: true },
+    ],
+  ];
+
+  if (hasSurcharge) eventTableBody[0].push({ text: 'Majoration', bold: true });
+  item.formattedEvents.forEach((event) => {
+    eventTableBody.push(this.getEventTableContent(event, hasSurcharge));
+  });
+
+  return eventTableBody;
+};
+
+exports.getEventTable = (item, hasSurcharge) => {
+  const { title, firstname, lastname } = item.customer.identity;
+  const { fullAddress } = item.customer.contact.primaryAddress;
+  const widths = Array(5).fill('auto');
+  if (hasSurcharge) widths.push('*');
+  const eventTableBody = this.getEventTableBody(item, hasSurcharge);
+
+  return [
+    { text: `Prestations réalisées chez ${title} ${firstname} ${lastname}, ${fullAddress}.` },
+    {
+      table: { body: eventTableBody, widths },
+      marginTop: 8,
+      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
+    },
+  ];
+};
