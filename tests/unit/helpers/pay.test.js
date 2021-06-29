@@ -480,7 +480,7 @@ describe('hoursBalanceDetailBySector', () => {
     SinonMongoose.calledWithExactly(
       userFind,
       [
-        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: [] } }] },
+        { query: 'find', args: [{ _id: { $in: [] } }, { identity: 1, picture: 1 }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean', args: [] },
       ]
@@ -515,7 +515,7 @@ describe('hoursBalanceDetailBySector', () => {
     SinonMongoose.calledWithExactly(
       userFind,
       [
-        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: [auxiliaryId] } }] },
+        { query: 'find', args: [{ _id: { $in: [auxiliaryId] } }, { identity: 1, picture: 1 }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean', args: [] },
       ]
@@ -570,7 +570,7 @@ describe('hoursBalanceDetailBySector', () => {
     SinonMongoose.calledWithExactly(
       userFind,
       [
-        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: auxiliaryIds } }] },
+        { query: 'find', args: [{ _id: { $in: auxiliaryIds } }, { identity: 1, picture: 1 }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean', args: [] },
       ]
@@ -599,7 +599,7 @@ describe('hoursBalanceDetailBySector', () => {
     SinonMongoose.calledWithExactly(
       userFind,
       [
-        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: [auxiliaryId] } }] },
+        { query: 'find', args: [{ _id: { $in: [auxiliaryId] } }, { identity: 1, picture: 1 }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean', args: [] },
       ]
@@ -631,7 +631,7 @@ describe('hoursBalanceDetailBySector', () => {
     SinonMongoose.calledWithExactly(
       userFind,
       [
-        { query: 'find', args: [{ company: credentials.company._id, _id: { $in: [auxiliaryId] } }] },
+        { query: 'find', args: [{ _id: { $in: [auxiliaryId] } }, { identity: 1, picture: 1 }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean', args: [] },
       ]
