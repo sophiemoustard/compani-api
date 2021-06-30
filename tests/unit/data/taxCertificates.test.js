@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
-const TaxCertificatePdf = require('../../../src/data/pdf/taxCertificates/taxCertificates');
+const TaxCertificatePdf = require('../../../src/data/pdf/taxCertificates');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -60,18 +60,18 @@ describe('getPdfContent', () => {
         { text: 'Prestation', bold: true },
       ],
       [
-        { text: 'NF010101010101', margin: [0, 2, 0, 2] },
-        { text: 'Nino Ferreira', margin: [0, 2, 0, 2] },
-        { text: 'Janvier', margin: [0, 2, 0, 2] },
+        { text: 'NF010101010101', margin: [0, 2, 0, 2], alignment: 'left' },
+        { text: 'Nino Ferreira', margin: [0, 2, 0, 2], alignment: 'left' },
+        { text: 'Janvier', margin: [0, 2, 0, 2], alignment: 'left' },
         { text: '37,00h', alignment: 'right', margin: [0, 2, 0, 2] },
-        { text: 'Temps de qualité - autonomie', margin: [0, 2, 0, 2] },
+        { text: 'Temps de qualité - autonomie', margin: [0, 2, 0, 2], alignment: 'left' },
       ],
       [
-        { text: 'CM010101010101', margin: [0, 2, 0, 2] },
-        { text: 'Chloé Mölkky', margin: [0, 2, 0, 2] },
-        { text: 'Décembre', margin: [0, 2, 0, 2] },
+        { text: 'CM010101010101', margin: [0, 2, 0, 2], alignment: 'left' },
+        { text: 'Chloé Mölkky', margin: [0, 2, 0, 2], alignment: 'left' },
+        { text: 'Décembre', margin: [0, 2, 0, 2], alignment: 'left' },
         { text: '2,00h', alignment: 'right', margin: [0, 2, 0, 2] },
-        { text: 'Temps de qualité - autonomie', margin: [0, 2, 0, 2] },
+        { text: 'Temps de qualité - autonomie', margin: [0, 2, 0, 2], alignment: 'left' },
       ],
       [
         '',
