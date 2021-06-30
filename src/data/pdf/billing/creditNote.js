@@ -26,17 +26,14 @@ exports.getSubscriptionTable = (creditNote) => {
 exports.getPDFContent = async (data) => {
   const { creditNote } = data;
   const [logo] = get(creditNote, 'company.logo') ? await UtilsPdfHelper.getImages(creditNote.company.logo) : [null];
-  const header = UtilsPdfHelper.getHeader(logo, creditNote, CREDIT_NOTE);
-
-  const content = [header];
+  const content = [UtilsPdfHelper.getHeader(logo, creditNote, CREDIT_NOTE)];
 
   if (creditNote.formattedEvents) {
-    const priceTable = UtilsPdfHelper.getPriceTable(creditNote);
-    const eventsTable = UtilsPdfHelper.getEventsTable(creditNote, !creditNote.forTpp);
-    content.push(priceTable, eventsTable);
-  } else {
-    content.push(exports.getSubscriptionTable(creditNote));
-  }
+    content.push(
+      UtilsPdfHelper.getPriceTable(creditNote),
+      UtilsPdfHelper.getEventsTable(creditNote, !creditNote.forTpp)
+    );
+  } else content.push(exports.getSubscriptionTable(creditNote));
 
   return {
     content: content.flat(),
