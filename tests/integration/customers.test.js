@@ -689,6 +689,17 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(403);
     });
 
+    it('should not update a customer if from other company', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${otherCompanyCustomer._id}`,
+        payload: updatePayload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
       it('should update a customer if I am its helper', async () => {
         const helper = userList[0];
@@ -728,17 +739,6 @@ describe('CUSTOMERS ROUTES', () => {
           expect(response.statusCode).toBe(role.expectedCode);
         });
       });
-    });
-
-    it('should not update a customer if from other company', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${otherCompanyCustomer._id}`,
-        payload: updatePayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
     });
   });
 
@@ -853,6 +853,61 @@ describe('CUSTOMERS ROUTES', () => {
           const response = await app.inject({
             method: 'DELETE',
             url: `/customers/${customersList[3]._id.toHexString()}`,
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /customers/{id}/qrcode', () => {
+    it('should return customer\'s qrcode', async () => {
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${customersList[0]._id}/qrcode`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(result.statusCode).toBe(200);
+    });
+
+    it('should return 403 if customer is not from loggedUser\'s company', async () => {
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${otherCompanyCustomer._id}/qrcode`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
+    it('should return 404 if customer does not exists', async () => {
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${new ObjectID()}/qrcode`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(result.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'vendor_admin', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/customers/${customersList[0]._id}/qrcode`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 

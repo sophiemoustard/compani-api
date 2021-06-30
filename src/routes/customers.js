@@ -29,6 +29,7 @@ const {
   createFunding,
   updateFunding,
   deleteFunding,
+  getQRCode,
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES, SITUATION_OPTIONS, STOP_REASONS } = require('../models/Customer');
 const {
@@ -198,6 +199,19 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerDelete }],
       },
       handler: remove,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/qrcode',
+      options: {
+        auth: { scope: ['customers:read'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeCustomerGet }],
+      },
+      handler: getQRCode,
     });
 
     server.route({
