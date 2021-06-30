@@ -436,15 +436,15 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 
 exports.workingStats = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const queryAuxiliaries = {};
-  let ids = [];
+  let queryAuxiliaries;
 
-  if (!query.auxiliary) {
-    const users = await UserCompany.find({ company: companyId }, { user: 1 });
-    for (const user of users) ids.push(user.user);
-  } else ids = UtilsHelper.formatObjectIdsArray(query.auxiliary);
+  if (query.auxiliary) {
+    queryAuxiliaries = { _id: { $in: UtilsHelper.formatObjectIdsArray(query.auxiliary) } };
+  } else {
+    const users = await UserCompany.find({ company: companyId }, { user: 1 }).lean();
+    queryAuxiliaries = { _id: { $in: users.map(u => u.user) } };
+  }
 
-  queryAuxiliaries._id = { $in: ids };
   const auxiliaries = await User.find(queryAuxiliaries).populate('contracts').lean();
   const { startDate, endDate } = query;
   const distanceMatrix = await DistanceMatrix.find({ company: companyId }).lean();
