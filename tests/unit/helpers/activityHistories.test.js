@@ -2,7 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
-const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const ActivityHistoryHelper = require('../../../src/helpers/activityHistories');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -32,15 +32,15 @@ describe('addActivityHistory', () => {
 });
 
 describe('list', () => {
-  let findUsers;
+  let findUserCompanies;
   let findHistories;
   beforeEach(() => {
     findHistories = sinon.stub(ActivityHistory, 'find');
-    findUsers = sinon.stub(User, 'find');
+    findUserCompanies = sinon.stub(UserCompany, 'find');
   });
   afterEach(() => {
     findHistories.restore();
-    findUsers.restore();
+    findUserCompanies.restore();
   });
 
   it('should return a list of histories', async () => {
@@ -99,15 +99,17 @@ describe('list', () => {
       },
     };
 
-    findUsers.returns(SinonMongoose.stubChainedQueries([[{ _id: firstUserId }, { _id: secondUserId }]], ['lean']));
+    findUserCompanies.returns(
+      SinonMongoose.stubChainedQueries([[{ user: firstUserId }, { user: secondUserId }]], ['lean'])
+    );
     findHistories.returns(SinonMongoose.stubChainedQueries([activityHistories]));
 
     const result = await ActivityHistoryHelper.list(query, { company: { _id: companyId } });
 
     expect(result).toEqual([filteredActivityHistories]);
     SinonMongoose.calledWithExactly(
-      findUsers,
-      [{ query: 'find', args: [{ company: companyId }, { _id: 1 }] }, { query: 'lean' }]
+      findUserCompanies,
+      [{ query: 'find', args: [{ company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
     SinonMongoose.calledWithExactly(
       findHistories,
