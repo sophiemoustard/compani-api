@@ -211,7 +211,15 @@ module.exports = {
   },
   // EXPORTS HISTORY
   WORKING_EVENT: 'working_event', // intervention or internal hours
+  // BILLING
   BILL: 'bill',
+  CREDIT_NOTE: 'credit_note',
+  get BILLING_DOCUMENTS() {
+    return {
+      [this.BILL]: 'Facture',
+      [this.CREDIT_NOTE]: 'Avoir',
+    };
+  },
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;

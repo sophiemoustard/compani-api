@@ -260,7 +260,7 @@ exports.formatEventsForPdf = (events, service) => {
   return formattedEvents;
 };
 
-exports.formatPDF = (bill, company) => {
+exports.formatPdf = (bill, company) => {
   const computedData = {
     netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
     date: moment(bill.date).format('DD/MM/YYYY'),
@@ -303,9 +303,9 @@ exports.generateBillPdf = async (params, credentials) => {
     .lean();
 
   const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
-  const data = exports.formatPDF(bill, company);
+  const data = exports.formatPdf(bill, company);
   const template = await BillPdf.getPdfContent(data);
-  const pdf = await PdfHelper.generatePDF(template);
+  const pdf = await PdfHelper.generatePdf(template);
 
   return { pdf, billNumber: bill.number };
 };

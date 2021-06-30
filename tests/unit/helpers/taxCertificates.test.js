@@ -4,7 +4,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Boom = require('@hapi/boom');
 const TaxCertificateHelper = require('../../../src/helpers/taxCertificates');
-const TaxCertificatePdf = require('../../../src/data/pdf/taxCertificates/taxCertificates');
+const TaxCertificatePdf = require('../../../src/data/pdf/taxCertificates');
 const PdfHelper = require('../../../src/helpers/pdf');
 const UtilsHelper = require('../../../src/helpers/utils');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
@@ -189,14 +189,14 @@ describe('formatPdf', () => {
 });
 
 describe('generateTaxCertificatePdf', () => {
-  let generatePDF;
+  let generatePdf;
   let findOne;
   let formatPdf;
   let getPdfContent;
   let getTaxCertificateInterventions;
   let getTaxCertificatesPayments;
   beforeEach(() => {
-    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     findOne = sinon.stub(TaxCertificate, 'findOne');
     formatPdf = sinon.stub(TaxCertificateHelper, 'formatPdf');
     getPdfContent = sinon.stub(TaxCertificatePdf, 'getPdfContent');
@@ -204,7 +204,7 @@ describe('generateTaxCertificatePdf', () => {
     getTaxCertificatesPayments = sinon.stub(PaymentRepository, 'getTaxCertificatesPayments');
   });
   afterEach(() => {
-    generatePDF.restore();
+    generatePdf.restore();
     findOne.restore();
     formatPdf.restore();
     getPdfContent.restore();
@@ -223,7 +223,7 @@ describe('generateTaxCertificatePdf', () => {
     getTaxCertificatesPayments.returns({ paid: 1200, cesu: 500 });
     formatPdf.returns('data');
     getPdfContent.returns('templatePdfMake');
-    generatePDF.returns('pdf');
+    generatePdf.returns('pdf');
 
     const result = await TaxCertificateHelper.generateTaxCertificatePdf(taxCertificateId, credentials);
 
@@ -253,7 +253,7 @@ describe('generateTaxCertificatePdf', () => {
       { paid: 1200, cesu: 500 }
     );
     sinon.assert.calledWithExactly(getPdfContent, 'data');
-    sinon.assert.calledWithExactly(generatePDF, 'templatePdfMake');
+    sinon.assert.calledWithExactly(generatePdf, 'templatePdfMake');
   });
 });
 

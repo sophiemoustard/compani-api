@@ -1,5 +1,7 @@
 const get = require('lodash/get');
 const FileHelper = require('../../../helpers/file');
+const UtilsHelper = require('../../../helpers/utils');
+const { BILL, BILLING_DOCUMENTS } = require('../../../helpers/constants');
 
 exports.getImages = async (url) => {
   const imageList = [{ url, name: 'logo.png' }];
@@ -7,13 +9,11 @@ exports.getImages = async (url) => {
   return FileHelper.downloadImages(imageList);
 };
 
-exports.getHeader = (companyLogo, item) => {
+exports.getHeader = async (company, item, type) => {
+  const [companyLogo] = company.logo ? await exports.getImages(company.logo) : [null];
   const logo = companyLogo
-    ? { image: companyLogo, fit: [160, 40], margin: [0, 8, 0, 32] }
-    : {
-      canvas: [{ type: 'rect', x: 0, y: 0, w: 160, h: 40, r: 0, color: 'white' }],
-      margin: [0, 8, 0, 32],
-    };
+    ? { image: companyLogo, fit: [160, 40], margin: [0, 0, 0, 40] }
+    : { canvas: [{ type: 'rect', x: 0, y: 0, w: 160, h: 40, r: 0, color: 'white' }], margin: [0, 0, 0, 40] };
 
   return {
     columns: [
@@ -26,10 +26,14 @@ exports.getHeader = (companyLogo, item) => {
         { text: item.company.rna ? `RNA : ${item.company.rna}` : '' },
       ],
       [
-        { text: 'Facture', alignment: 'right' },
+        { text: BILLING_DOCUMENTS[type], alignment: 'right' },
         { text: item.number, alignment: 'right' },
         { text: item.date, alignment: 'right' },
-        { text: 'Paiement à réception', alignment: 'right', marginBottom: 20 },
+        {
+          text: type === BILL ? 'Paiement à réception' : '',
+          alignment: 'right',
+          marginBottom: type === BILL ? 20 : 32,
+        },
         { text: item.recipient.name, alignment: 'right' },
         { text: item.recipient.address.street, alignment: 'right' },
         { text: `${item.recipient.address.zipCode} ${item.recipient.address.city}`, alignment: 'right' },
@@ -52,7 +56,7 @@ exports.getPriceTable = item => ({
   columns: [
     { width: '*', text: '' },
     {
-      table: { body: this.getPriceTableBody(item) },
+      table: { body: exports.getPriceTableBody(item) },
       width: 'auto',
       margin: [0, 8, 0, 40],
       layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
@@ -60,7 +64,7 @@ exports.getPriceTable = item => ({
   ],
 });
 
-exports.getEventTableContent = (event, hasSurcharge) => {
+exports.getEventTableContent = (event, displaySurcharge) => {
   const row = [
     { text: event.date },
     { text: event.identity },
@@ -69,7 +73,7 @@ exports.getEventTableContent = (event, hasSurcharge) => {
     { text: event.service },
   ];
 
-  if (hasSurcharge) {
+  if (displaySurcharge) {
     if (get(event, 'surcharges.length')) {
       event.surcharges.forEach((surcharge) => {
         const { percentage, name, startHour, endHour } = surcharge;
@@ -83,7 +87,7 @@ exports.getEventTableContent = (event, hasSurcharge) => {
   return row;
 };
 
-exports.getEventTableBody = (item, hasSurcharge) => {
+exports.getEventsTableBody = (item, displaySurcharge) => {
   const eventTableBody = [
     [
       { text: 'Date', bold: true },
@@ -94,23 +98,23 @@ exports.getEventTableBody = (item, hasSurcharge) => {
     ],
   ];
 
-  if (hasSurcharge) eventTableBody[0].push({ text: 'Majoration', bold: true });
+  if (displaySurcharge) eventTableBody[0].push({ text: 'Majoration', bold: true });
   item.formattedEvents.forEach((event) => {
-    eventTableBody.push(this.getEventTableContent(event, hasSurcharge));
+    eventTableBody.push(exports.getEventTableContent(event, displaySurcharge));
   });
 
   return eventTableBody;
 };
 
-exports.getEventTable = (item, hasSurcharge) => {
-  const { title, firstname, lastname } = item.customer.identity;
+exports.getEventsTable = (item, displaySurcharge) => {
+  const customerIdentity = UtilsHelper.formatIdentity(item.customer.identity, 'TFL');
   const { fullAddress } = item.customer.contact.primaryAddress;
-  const widths = Array(5).fill('auto');
-  if (hasSurcharge) widths.push('*');
-  const eventTableBody = this.getEventTableBody(item, hasSurcharge);
+  const widths = ['auto', 'auto', 'auto', 'auto', '*'];
+  if (displaySurcharge) widths.push('*');
+  const eventTableBody = exports.getEventsTableBody(item, displaySurcharge);
 
   return [
-    { text: `Prestations réalisées chez ${title} ${firstname} ${lastname}, ${fullAddress}.` },
+    { text: `Prestations réalisées chez ${customerIdentity}, ${fullAddress}.` },
     {
       table: { body: eventTableBody, widths },
       marginTop: 8,

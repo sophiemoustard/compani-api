@@ -343,9 +343,9 @@ exports.addFile = async (fileInfo) => {
 };
 
 exports.saveCompletedContract = async (everSignDoc) => {
-  const finalPDF = await ESign.downloadFinalDocument(everSignDoc.data.document_hash);
+  const finalPdf = await ESign.downloadFinalDocument(everSignDoc.data.document_hash);
   const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-  const file = await createAndReadFile(finalPDF.data, tmpPath);
+  const file = await createAndReadFile(finalPdf.data, tmpPath);
 
   const payload = await exports.addFile({
     auxiliaryDriveId: everSignDoc.data.meta.auxiliaryDriveId,

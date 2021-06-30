@@ -1,5 +1,5 @@
 const get = require('lodash/get');
-const FileHelper = require('../../../helpers/file');
+const FileHelper = require('../../helpers/file');
 
 const getHeader = async (taxCertificate) => {
   const header = [];
@@ -49,7 +49,7 @@ const getTableContent = (taxCertificate) => {
 
     columns.forEach((column) => {
       if (column === 'hours') bodyRow.push({ text: row[column].toString(), alignment: 'right', margin: [0, 2, 0, 2] });
-      else bodyRow.push({ text: row[column].toString(), margin: [0, 2, 0, 2] });
+      else bodyRow.push({ text: row[column].toString(), margin: [0, 2, 0, 2], alignment: 'left' });
     });
 
     content.push(bodyRow);
