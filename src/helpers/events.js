@@ -32,6 +32,7 @@ const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const EventRepository = require('../repositories/EventRepository');
+const UserCompany = require('../models/UserCompany');
 
 momentRange.extendMoment(moment);
 
@@ -435,11 +436,15 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 
 exports.workingStats = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const queryAuxiliaries = { company: companyId };
-  if (query.auxiliary) {
-    const ids = UtilsHelper.formatObjectIdsArray(query.auxiliary);
-    queryAuxiliaries._id = { $in: ids };
-  }
+  const queryAuxiliaries = {};
+  let ids = [];
+
+  if (!query.auxiliary) {
+    const users = await UserCompany.find({ company: companyId }, { user: 1 });
+    for (const user of users) ids.push(user.user);
+  } else ids = UtilsHelper.formatObjectIdsArray(query.auxiliary);
+
+  queryAuxiliaries._id = { $in: ids };
   const auxiliaries = await User.find(queryAuxiliaries).populate('contracts').lean();
   const { startDate, endDate } = query;
   const distanceMatrix = await DistanceMatrix.find({ company: companyId }).lean();
