@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Company = require('../models/Company');
+const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
 const UserCompany = require('../models/UserCompany');
 const translate = require('./translate');
@@ -24,17 +25,23 @@ const UserCompaniesHelper = require('./userCompanies');
 const { language } = translate;
 
 exports.formatQueryForUsersList = async (query) => {
-  const params = { ...pickBy(omit(query, ['role'])) };
+  const formattedQuery = { ...pickBy(omit(query, ['role'])) };
 
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
     const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1, interface: 1 }).lean();
     if (!roles.length) throw Boom.notFound(translate[language].roleNotFound);
 
-    params[`role.${roles[0].interface}`] = { $in: roles.map(role => role._id) };
+    formattedQuery[`role.${roles[0].interface}`] = { $in: roles.map(role => role._id) };
   }
 
-  return params;
+  if (query.company) {
+    const users = await UserCompany.find({ company: query.company }, { user: 1 });
+
+    formattedQuery._id = { $in: users.map(u => u.user) };
+  }
+
+  return formattedQuery;
 };
 
 exports.getUsersList = async (query, credentials) => {
