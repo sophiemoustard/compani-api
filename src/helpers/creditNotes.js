@@ -175,6 +175,7 @@ exports.formatPdf = (creditNote, company) => {
     totalVAT: 0,
     date: moment(creditNote.date).format('DD/MM/YYYY'),
     number: creditNote.number,
+    forTpp: !!creditNote.thirdPartyPayer,
     recipient: {
       address: creditNote.thirdPartyPayer
         ? get(creditNote, 'thirdPartyPayer.address', {})
@@ -183,7 +184,6 @@ exports.formatPdf = (creditNote, company) => {
         ? creditNote.thirdPartyPayer.name
         : UtilsHelper.formatIdentity(creditNote.customer.identity, 'TFL'),
     },
-    forTpp: !!creditNote.thirdPartyPayer,
   };
 
   if (creditNote.events && creditNote.events.length > 0) {

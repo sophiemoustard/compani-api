@@ -79,7 +79,9 @@ exports.getEventTableContent = (event, displaySurcharge) => {
         const { percentage, name, startHour, endHour } = surcharge;
         row.push({ stack: [{ text: `+ ${percentage}% (${name}${startHour ? ` ${startHour} - ${endHour}` : ''})` }] });
       });
-    } else row.push({ text: '' });
+    } else {
+      row.push({ text: '' });
+    }
   }
 
   return row;
@@ -107,7 +109,7 @@ exports.getEventsTableBody = (item, displaySurcharge) => {
 exports.getEventsTable = (item, displaySurcharge) => {
   const customerIdentity = UtilsHelper.formatIdentity(item.customer.identity, 'TFL');
   const { fullAddress } = item.customer.contact.primaryAddress;
-  const widths = Array(5).fill('auto', 0, 4).fill('*', 4);
+  const widths = ['auto', 'auto', 'auto', 'auto', '*'];
   if (displaySurcharge) widths.push('*');
   const eventTableBody = exports.getEventsTableBody(item, displaySurcharge);
 

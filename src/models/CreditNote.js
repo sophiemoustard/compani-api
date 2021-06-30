@@ -12,8 +12,8 @@ const CreditNoteSchema = mongoose.Schema(
   {
     number: { type: String },
     date: { type: Date, required: true },
-    startDate: Date,
-    endDate: Date,
+    startDate: { type: Date },
+    endDate: { type: Date },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     exclTaxesCustomer: {
@@ -42,14 +42,14 @@ const CreditNoteSchema = mongoose.Schema(
         bills: {
           type: mongoose.Schema(
             {
-              inclTaxesCustomer: Number,
-              exclTaxesCustomer: Number,
+              inclTaxesCustomer: { type: Number },
+              exclTaxesCustomer: { type: Number },
               thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
-              inclTaxesTpp: Number,
-              exclTaxesTpp: Number,
+              inclTaxesTpp: { type: Number },
+              exclTaxesTpp: { type: Number },
               fundingId: { type: mongoose.Schema.Types.ObjectId },
-              nature: String,
-              careHours: Number,
+              nature: { type: String },
+              careHours: { type: Number },
               surcharges: billEventSurchargesSchemaDefinition,
             },
             { id: false }
@@ -67,13 +67,10 @@ const CreditNoteSchema = mongoose.Schema(
           enum: SERVICE_NATURES,
           required() { return get(this.subscription, 'service.serviceId', false); },
         },
-        name: {
-          type: String,
-          required() { return get(this.subscription, 'service.serviceId', false); },
-        },
+        name: { type: String, required() { return get(this.subscription, 'service.serviceId', false); } },
       },
-      vat: Number,
-      unitInclTaxes: Number,
+      vat: { type: Number },
+      unitInclTaxes: { type: Number },
     },
     linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' },
     origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI },

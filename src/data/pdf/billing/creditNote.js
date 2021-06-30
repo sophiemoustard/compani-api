@@ -31,7 +31,9 @@ exports.getPdfContent = async (data) => {
       UtilsPdfHelper.getPriceTable(creditNote),
       UtilsPdfHelper.getEventsTable(creditNote, !creditNote.forTpp)
     );
-  } else content.push(exports.getSubscriptionTable(creditNote));
+  } else {
+    content.push(exports.getSubscriptionTable(creditNote));
+  }
 
   return {
     content: content.flat(),

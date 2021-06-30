@@ -14,7 +14,7 @@ describe('getPdfContent', () => {
     downloadImages.restore();
   });
 
-  it('it should format and return pdf content for cedit note with events', async () => {
+  it('it should format and return pdf content for credit note with events', async () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
     const formattedEvents = [
       {
@@ -172,7 +172,7 @@ describe('getPdfContent', () => {
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
-  it('it should format and return pdf content for cedit note with subscription', async () => {
+  it('it should format and return pdf content for credit note with subscription', async () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
     const data = {
       creditNote: {
