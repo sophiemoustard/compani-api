@@ -245,8 +245,6 @@ exports.authorizeAndGetTrainee = async (req) => {
 
     return trainee;
   }
-  if (loggedUserClientRole) {
-    if (![COACH, CLIENT_ADMIN].includes(loggedUserClientRole)) return Boom.forbidden();
 
   return Boom.notFound();
 };
