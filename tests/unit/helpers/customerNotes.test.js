@@ -55,3 +55,26 @@ describe('list', () => {
     );
   });
 });
+
+describe('udpate', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(CustomerNote, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update customer notes', async () => {
+    const customerNoteId = new ObjectID();
+    const payload = { title: 'titre', description: 'description' };
+
+    await CustomerNotesHelper.update(customerNoteId, payload);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: customerNoteId },
+      { $set: { title: 'titre', description: 'description' } }
+    );
+  });
+});
