@@ -45,6 +45,7 @@ exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetitio
   const repeatedEvents = [];
   const customer = await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
     .lean();
+
   for (let i = 0, l = range.length; i < l; i++) {
     if (!isWeekDayRepetition || ![0, 6].includes(moment(range[i]).day())) {
       const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
