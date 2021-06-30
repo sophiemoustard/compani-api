@@ -12,8 +12,8 @@ exports.getImages = async (url) => {
 exports.getHeader = async (company, item, type) => {
   const [companyLogo] = company.logo ? await exports.getImages(company.logo) : [null];
   const logo = companyLogo
-    ? { image: companyLogo, fit: [160, 40], margin: [0, 0, 0, 32] }
-    : { canvas: [{ type: 'rect', x: 0, y: 0, w: 160, h: 40, r: 0, color: 'white' }], margin: [0, 8, 0, 32] };
+    ? { image: companyLogo, fit: [160, 40], margin: [0, 0, 0, 40] }
+    : { canvas: [{ type: 'rect', x: 0, y: 0, w: 160, h: 40, r: 0, color: 'white' }], margin: [0, 0, 0, 40] };
 
   return {
     columns: [

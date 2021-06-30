@@ -83,7 +83,7 @@ describe('getPdfContent', () => {
         {
           columns: [
             [
-              { image: paths[0], fit: [160, 40], margin: [0, 0, 0, 32] },
+              { image: paths[0], fit: [160, 40], margin: [0, 0, 0, 40] },
               { text: 'Alenvi Home SAS' },
               { text: '24 Avenue Daumesnil' },
               { text: '75012 Paris' },
@@ -223,7 +223,7 @@ describe('getPdfContent', () => {
         {
           columns: [
             [
-              { image: paths[0], fit: [160, 40], margin: [0, 0, 0, 32] },
+              { image: paths[0], fit: [160, 40], margin: [0, 0, 0, 40] },
               { text: 'Alenvi Home SAS' },
               { text: '24 Avenue Daumesnil' },
               { text: '75012 Paris' },
