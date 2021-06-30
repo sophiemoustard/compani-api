@@ -299,7 +299,7 @@ exports.generateQRCode = async (customerId) => {
   const customer = await Customer.findOne({ _id: customerId }, { identity: 1 }).lean();
   const customerName = UtilsHelper.formatIdentity(customer.identity, 'FL');
 
-  const pdf = await PdfHelper.generatePDF(await CustomerQRCode.getPdfContent(qrCodeUrl, customerName));
+  const pdf = await PdfHelper.generatePdf(await CustomerQRCode.getPdfContent(qrCodeUrl, customerName));
 
   return { fileName: 'qrcode.pdf', pdf };
 };

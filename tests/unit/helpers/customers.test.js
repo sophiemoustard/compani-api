@@ -1022,18 +1022,18 @@ describe('deleteCertificates', () => {
 describe('generateQRCode', () => {
   let findOneCustomer;
   let toDataURL;
-  let generatePDF;
+  let generatePdf;
   let getPdfContent;
   beforeEach(() => {
     findOneCustomer = sinon.stub(Customer, 'findOne');
     toDataURL = sinon.stub(QRCode, 'toDataURL');
-    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     getPdfContent = sinon.stub(CustomerQRCode, 'getPdfContent');
   });
   afterEach(() => {
     findOneCustomer.restore();
     toDataURL.restore();
-    generatePDF.restore();
+    generatePdf.restore();
     getPdfContent.restore();
   });
 
@@ -1044,7 +1044,7 @@ describe('generateQRCode', () => {
     toDataURL.returns('my_pic_in_base_64');
     findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
     getPdfContent.returns('template');
-    generatePDF.returns('pdf');
+    generatePdf.returns('pdf');
 
     const result = await CustomerHelper.generateQRCode(customerId);
 
@@ -1055,6 +1055,6 @@ describe('generateQRCode', () => {
       [{ query: 'findOne', args: [{ _id: customerId }, { identity: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(getPdfContent, 'my_pic_in_base_64', 'N\'Golo COMPTÉ');
-    sinon.assert.calledOnceWithExactly(generatePDF, 'template');
+    sinon.assert.calledOnceWithExactly(generatePdf, 'template');
   });
 });
