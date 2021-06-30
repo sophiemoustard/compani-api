@@ -1,4 +1,3 @@
-const get = require('lodash/get');
 const { CREDIT_NOTE } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const UtilsHelper = require('../../../helpers/utils');
@@ -25,8 +24,7 @@ exports.getSubscriptionTable = (creditNote) => {
 
 exports.getPdfContent = async (data) => {
   const { creditNote } = data;
-  const [logo] = get(creditNote, 'company.logo') ? await UtilsPdfHelper.getImages(creditNote.company.logo) : [null];
-  const content = [UtilsPdfHelper.getHeader(logo, creditNote, CREDIT_NOTE)];
+  const content = [await UtilsPdfHelper.getHeader(creditNote.company, creditNote, CREDIT_NOTE)];
 
   if (creditNote.formattedEvents) {
     content.push(
