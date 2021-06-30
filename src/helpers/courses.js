@@ -455,7 +455,7 @@ exports.generateAttendanceSheets = async (courseId) => {
   const template = course.type === INTRA
     ? await IntraAttendanceSheet.getPdfContent(exports.formatIntraCourseForPdf(course))
     : await InterAttendanceSheet.getPdfContent(exports.formatInterCourseForPdf(course));
-  const pdf = await PdfHelper.generatePDF(template);
+  const pdf = await PdfHelper.generatePdf(template);
 
   return { fileName: 'emargement.pdf', pdf };
 };
@@ -548,7 +548,7 @@ exports.generateConvocationPdf = async (courseId) => {
   const template = await CourseConvocation.getPdfContent(exports.formatCourseForConvocationPdf(course));
 
   return {
-    pdf: await PdfHelper.generatePDF(template),
+    pdf: await PdfHelper.generatePdf(template),
     courseName,
   };
 };

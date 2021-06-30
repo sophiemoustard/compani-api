@@ -170,7 +170,7 @@ const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTp
   ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
   : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
-exports.formatPDF = (creditNote, company) => {
+exports.formatPdf = (creditNote, company) => {
   const computedData = {
     totalVAT: 0,
     date: moment(creditNote.date).format('DD/MM/YYYY'),
@@ -242,9 +242,9 @@ exports.generateCreditNotePdf = async (params, credentials) => {
   if (creditNote.origin !== COMPANI) throw Boom.badRequest(translate[language].creditNoteNotCompani);
 
   const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
-  const data = exports.formatPDF(creditNote, company);
-  const template = await CreditNotePdf.getPDFContent(data);
-  const pdf = await PdfHelper.generatePDF(template);
+  const data = exports.formatPdf(creditNote, company);
+  const template = await CreditNotePdf.getPdfContent(data);
+  const pdf = await PdfHelper.generatePdf(template);
 
   return { pdf, creditNoteNumber: creditNote.number };
 };

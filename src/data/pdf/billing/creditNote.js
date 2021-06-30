@@ -23,7 +23,7 @@ exports.getSubscriptionTable = (creditNote) => {
   ];
 };
 
-exports.getPDFContent = async (data) => {
+exports.getPdfContent = async (data) => {
   const { creditNote } = data;
   const [logo] = get(creditNote, 'company.logo') ? await UtilsPdfHelper.getImages(creditNote.company.logo) : [null];
   const content = [UtilsPdfHelper.getHeader(logo, creditNote, CREDIT_NOTE)];

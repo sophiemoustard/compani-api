@@ -3,7 +3,7 @@ const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const CreditNotePdf = require('../../../src/data/pdf/billing/creditNote');
 
-describe('getPDFContent', () => {
+describe('getPdfContent', () => {
   let downloadImages;
 
   beforeEach(() => {
@@ -166,7 +166,7 @@ describe('getPDFContent', () => {
 
     downloadImages.returns(paths);
 
-    const result = await CreditNotePdf.getPDFContent(data);
+    const result = await CreditNotePdf.getPdfContent(data);
 
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
@@ -269,7 +269,7 @@ describe('getPDFContent', () => {
 
     downloadImages.returns(paths);
 
-    const result = await CreditNotePdf.getPDFContent(data);
+    const result = await CreditNotePdf.getPdfContent(data);
 
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);

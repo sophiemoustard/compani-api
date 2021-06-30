@@ -74,7 +74,7 @@ exports.generateTaxCertificatePdf = async (taxCertificateId, credentials) => {
   const template = await TaxCertificatePdf.getPdfContent(
     exports.formatPdf(taxCertificate, credentials.company, interventions, payments)
   );
-  const pdf = await PdfHelper.generatePDF(template);
+  const pdf = await PdfHelper.generatePdf(template);
 
   return pdf;
 };

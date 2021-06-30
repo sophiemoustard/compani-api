@@ -648,7 +648,7 @@ describe('updateCreditNotes', () => {
   });
 });
 
-describe('formatPDF', () => {
+describe('formatPdf', () => {
   let getMatchingVersion;
   let formatPrice;
   let formatEventSurchargesForPdf;
@@ -666,7 +666,7 @@ describe('formatPDF', () => {
     formatIdentity.restore();
   });
 
-  it('should format correct credit note PDF with events for customer', () => {
+  it('should format correct credit note pdf with events for customer', () => {
     const company = {
       name: 'Alcatraz',
       logo: 'company_logo',
@@ -733,13 +733,13 @@ describe('formatPDF', () => {
     formatIdentity.returns('M. Toto BOBO');
     formatEventSurchargesForPdf.returns([{ percentage: 30, startHour: '19h' }]);
 
-    const result = CreditNoteHelper.formatPDF(creditNote, company);
+    const result = CreditNoteHelper.formatPdf(creditNote, company);
 
     expect(result).toEqual(expectedResult);
     sinon.assert.calledOnceWithExactly(formatEventSurchargesForPdf, [{ percentage: 30 }]);
   });
 
-  it('should format correct credit note PDF with events for tpp', () => {
+  it('should format correct credit note pdf with events for tpp', () => {
     const subId = new ObjectID();
     const creditNote = {
       number: 1,
@@ -806,14 +806,14 @@ describe('formatPDF', () => {
     formatPrice.onCall(1).returns('21,00 €');
     formatPrice.onCall(2).returns('34,00 €');
 
-    const result = CreditNoteHelper.formatPDF(creditNote, company);
+    const result = CreditNoteHelper.formatPdf(creditNote, company);
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
     sinon.assert.notCalled(formatEventSurchargesForPdf);
   });
 
-  it('should format correct credit note PDF with subscription', () => {
+  it('should format correct credit note pdf with subscription', () => {
     const creditNote = {
       number: 1,
       subscription: { service: { name: 'service' }, unitInclTaxes: 12 },
@@ -842,7 +842,7 @@ describe('formatPDF', () => {
     };
     formatPrice.onCall(0).returns('12,00 €');
 
-    const result = CreditNoteHelper.formatPDF(creditNote, company);
+    const result = CreditNoteHelper.formatPdf(creditNote, company);
 
     expect(result).toBeDefined();
     expect(result.creditNote.subscription).toBeDefined();
@@ -907,34 +907,34 @@ describe('removeCreditNote', () => {
 describe('generateCreditNotePdf', () => {
   let creditNoteFindOne;
   let companyNoteFindOne;
-  let formatPDF;
-  let getPDFContent;
-  let generatePDF;
+  let formatPdf;
+  let getPdfContent;
+  let generatePdf;
 
   const params = { _id: new ObjectID() };
   const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     creditNoteFindOne = sinon.stub(CreditNote, 'findOne');
     companyNoteFindOne = sinon.stub(Company, 'findOne');
-    formatPDF = sinon.stub(CreditNoteHelper, 'formatPDF');
-    getPDFContent = sinon.stub(CreditNotePdf, 'getPDFContent');
-    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
+    formatPdf = sinon.stub(CreditNoteHelper, 'formatPdf');
+    getPdfContent = sinon.stub(CreditNotePdf, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
   });
 
   afterEach(() => {
     creditNoteFindOne.restore();
     companyNoteFindOne.restore();
-    formatPDF.restore();
-    getPDFContent.restore();
-    generatePDF.restore();
+    formatPdf.restore();
+    getPdfContent.restore();
+    generatePdf.restore();
   });
 
   it('should generate a pdf', async () => {
     creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: COMPANI, number: '12345' }]));
     companyNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: credentials.company._id }], ['lean']));
-    formatPDF.returns({ name: 'creditNotePdf' });
-    getPDFContent.returns({ content: ['creditNotePdf'] });
-    generatePDF.returns({ title: 'creditNote' });
+    formatPdf.returns({ name: 'creditNotePdf' });
+    getPdfContent.returns({ content: ['creditNotePdf'] });
+    generatePdf.returns({ title: 'creditNote' });
 
     const result = await CreditNoteHelper.generateCreditNotePdf(params, credentials);
 
@@ -961,12 +961,12 @@ describe('generateCreditNotePdf', () => {
       [{ query: 'find', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
-      formatPDF,
+      formatPdf,
       { origin: COMPANI, number: '12345' },
       { _id: credentials.company._id }
     );
-    sinon.assert.calledOnceWithExactly(getPDFContent, { name: 'creditNotePdf' });
-    sinon.assert.calledOnceWithExactly(generatePDF, { content: ['creditNotePdf'] });
+    sinon.assert.calledOnceWithExactly(getPdfContent, { name: 'creditNotePdf' });
+    sinon.assert.calledOnceWithExactly(generatePdf, { content: ['creditNotePdf'] });
   });
 
   it('should return a 404 if creditnote is not found', async () => {
@@ -977,9 +977,9 @@ describe('generateCreditNotePdf', () => {
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].creditNoteNotFound));
     } finally {
-      sinon.assert.notCalled(formatPDF);
-      sinon.assert.notCalled(getPDFContent);
-      sinon.assert.notCalled(generatePDF);
+      sinon.assert.notCalled(formatPdf);
+      sinon.assert.notCalled(getPdfContent);
+      sinon.assert.notCalled(generatePdf);
       SinonMongoose.calledWithExactly(
         creditNoteFindOne,
         [
@@ -1008,9 +1008,9 @@ describe('generateCreditNotePdf', () => {
     } catch (e) {
       expect(e).toEqual(Boom.badRequest(translate[language].creditNoteNotCompani));
     } finally {
-      sinon.assert.notCalled(formatPDF);
-      sinon.assert.notCalled(getPDFContent);
-      sinon.assert.notCalled(generatePDF);
+      sinon.assert.notCalled(formatPdf);
+      sinon.assert.notCalled(getPdfContent);
+      sinon.assert.notCalled(generatePdf);
       SinonMongoose.calledWithExactly(
         creditNoteFindOne,
         [
