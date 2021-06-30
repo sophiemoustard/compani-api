@@ -219,15 +219,19 @@ describe('createRepetitionsEveryDay', () => {
 
   it('should create repetition every day', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00', customer: new ObjectID() };
+    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
     const range = Array.from(moment()
       .range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(90, 'd')).by('days'));
-    const repeatedEvents = [];
 
-    for (let i = 0; i < 90; i++) {
-      const startDate = new Date(event.startDate);
-      startDate.setDate(startDate.getDate() + i + 1);
-      const repeatedEvent = new Event({ company: new ObjectID(), startDate });
+    const firstRepeatedEvent = new Event({ company: new ObjectID(), startDate: '2019-01-11T09:00:00.000Z' });
+    const secondRepeatedEvent = new Event({ company: new ObjectID(), startDate: '2019-01-12T09:00:00.000Z' });
+    const repeatedEvents = [firstRepeatedEvent, secondRepeatedEvent];
+
+    formatRepeatedPayload.onCall(0).returns(firstRepeatedEvent);
+    formatRepeatedPayload.onCall(1).returns(secondRepeatedEvent);
+
+    for (let i = 2; i < 90; i++) {
+      const repeatedEvent = new Event({ company: new ObjectID(), startDate: range[i] });
       formatRepeatedPayload.onCall(i).returns(repeatedEvent);
       repeatedEvents.push(repeatedEvent);
     }
@@ -252,18 +256,19 @@ describe('createRepetitionsEveryDay', () => {
 
   it('should not create repetition after stopping date', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00', customer: new ObjectID() };
+    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
     const range = Array.from(moment()
-      .range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(90, 'd')).by('days'));
-    const repeatedEvents = [];
+      .range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(3, 'd')).by('days'));
 
-    for (let i = 0; i < 3; i++) {
-      const startDate = new Date(event.startDate);
-      startDate.setDate(startDate.getDate() + i + 1);
-      const repeatedEvent = new Event({ company: new ObjectID(), startDate });
-      formatRepeatedPayload.onCall(i).returns(repeatedEvent);
-      if (repeatedEvent.startDate < new Date('2019-01-12T11:00:00Z')) repeatedEvents.push(repeatedEvent);
-    }
+    const firstRepeatedEvent = new Event({ company: new ObjectID(), startDate: '2019-01-11T09:00:00.000Z' });
+    const secondRepeatedEvent = new Event({ company: new ObjectID(), startDate: '2019-01-12T09:00:00.000Z' });
+    const thirdRepeatedEvent = new Event({ company: new ObjectID(), startDate: '2019-01-13T09:00:00.000Z' });
+    const repeatedEvents = [firstRepeatedEvent, secondRepeatedEvent];
+
+    formatRepeatedPayload.onCall(0).returns(firstRepeatedEvent);
+    formatRepeatedPayload.onCall(1).returns(secondRepeatedEvent);
+    formatRepeatedPayload.onCall(2).returns(thirdRepeatedEvent);
+
     customerFindOne.returns(
       SinonMongoose.stubChainedQueries([{ _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00Z') }], ['lean'])
     );
@@ -303,16 +308,20 @@ describe('createRepetitionsEveryWeekDay', () => {
 
   it('should create repetition every week day', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
+    const event = { startDate: '2019-01-10T09:00:00Z', endDate: '2019-01-10T11:00:00Z' };
     const range = Array.from(moment()
       .range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(90, 'd')).by('days'));
-    const repeatedEvents = [];
 
-    let callCount = 0;
-    for (let i = 0; i < 90; i++) {
-      const startDate = new Date(event.startDate);
-      startDate.setDate(startDate.getDate() + i + 1);
-      const repeatedEvent = new Event({ company: new ObjectID(), startDate });
+    const fridayEvent = new Event({ company: new ObjectID(), startDate: '2019-01-11T09:00:00.000Z' });
+    const mondayEvent = new Event({ company: new ObjectID(), startDate: '2019-01-14T09:00:00.000Z' });
+    const repeatedEvents = [fridayEvent, mondayEvent];
+
+    formatRepeatedPayload.onCall(0).returns(fridayEvent);
+    formatRepeatedPayload.onCall(1).returns(mondayEvent);
+
+    let callCount = 2;
+    for (let i = 4; i < 90; i++) {
+      const repeatedEvent = new Event({ company: new ObjectID(), startDate: range[i] });
       if (![0, 6].includes(moment(range[i]).day())) {
         formatRepeatedPayload.onCall(callCount).returns(repeatedEvent);
         repeatedEvents.push(repeatedEvent);
@@ -344,7 +353,7 @@ describe('createRepetitionsEveryWeekDay', () => {
 
   it('should not create repetition after stopping date', async () => {
     const sector = new ObjectID();
-    const thursdayEvent = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
+    const thursdayEvent = { startDate: '2019-01-10T09:00:00Z', endDate: '2019-01-10T11:00:00Z' };
     const customer = { _id: thursdayEvent.customer, stoppedAt: new Date('2019-01-12T11:00:00Z') };
     const range = Array.from(
       moment()
@@ -394,15 +403,19 @@ describe('createRepetitionsByWeek', () => {
 
   it('should create repetition every week', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
+    const event = { startDate: '2019-01-10T09:00:00Z', endDate: '2019-01-10T11:00:00Z' };
     const range = Array.from(moment()
       .range(moment(event.startDate).add(1, 'w'), moment(event.startDate).add(90, 'd')).by('weeks', { step: 1 }));
-    const repeatedEvents = [];
 
-    for (let i = 0; i < 12; i++) {
-      const startDate = new Date(event.startDate);
-      startDate.setDate(startDate.getDate() + i + 1);
-      const repeatedEvent = new Event({ company: new ObjectID(), startDate });
+    const firstThursdayRepeatedEvent = new Event({ company: new ObjectID(), startDate: '2019-01-17T09:00:00.000Z' });
+    const secondThursdayRepeatedEvent = new Event({ company: new ObjectID(), startDate: '2019-01-24T09:00:00.000Z' });
+    const repeatedEvents = [firstThursdayRepeatedEvent, secondThursdayRepeatedEvent];
+
+    formatRepeatedPayload.onCall(0).returns(firstThursdayRepeatedEvent);
+    formatRepeatedPayload.onCall(1).returns(secondThursdayRepeatedEvent);
+
+    for (let i = 2; i < 12; i++) {
+      const repeatedEvent = new Event({ company: new ObjectID(), startDate: range[i] });
       formatRepeatedPayload.onCall(i).returns(repeatedEvent);
       repeatedEvents.push(repeatedEvent);
     }
@@ -427,16 +440,13 @@ describe('createRepetitionsByWeek', () => {
 
   it('should not create repetition after stopping date', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
+    const event = { startDate: '2019-01-10T09:00:00Z', endDate: '2019-01-10T11:00:00Z' };
     const range = Array.from(moment()
       .range(moment(event.startDate).add(1, 'w'), moment(event.startDate).add(90, 'd')).by('weeks', { step: 1 }));
     const repeatedEvents = [];
 
-    const startDate = new Date(event.startDate);
-    startDate.setDate(startDate.getDate() + 7);
-    const repeatedEvent = new Event({ company: new ObjectID(), startDate });
+    const repeatedEvent = new Event({ company: new ObjectID(), startDate: '2019-01-17T09:00:00.000Z' });
     formatRepeatedPayload.returns(repeatedEvent);
-    if (repeatedEvent.startDate < new Date('2019-01-12T11:00:00Z')) repeatedEvents.push(repeatedEvent);
 
     customerFindOne.returns(
       SinonMongoose.stubChainedQueries([{ _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00Z') }], ['lean'])
