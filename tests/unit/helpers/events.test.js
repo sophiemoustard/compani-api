@@ -6,6 +6,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const Repetition = require('../../../src/models/Repetition');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const EventHelper = require('../../../src/helpers/events');
@@ -1836,6 +1837,7 @@ describe('workingStats', () => {
   const companyId = new ObjectID();
   const credentials = { company: { _id: companyId } };
   let findUser;
+  let findUserCompany;
   let findDistanceMatrix;
   let getEventsToPayStub;
   let getContractStub;
@@ -1844,6 +1846,7 @@ describe('workingStats', () => {
   let getPayFromAbsencesStub;
   beforeEach(() => {
     findUser = sinon.stub(User, 'find');
+    findUserCompany = sinon.stub(UserCompany, 'find');
     findDistanceMatrix = sinon.stub(DistanceMatrix, 'find');
     getEventsToPayStub = sinon.stub(EventRepository, 'getEventsToPay');
     getContractStub = sinon.stub(EventHelper, 'getContract');
@@ -1853,6 +1856,7 @@ describe('workingStats', () => {
   });
   afterEach(() => {
     findUser.restore();
+    findUserCompany.restore();
     findDistanceMatrix.restore();
     getEventsToPayStub.restore();
     getContractStub.restore();
@@ -1887,6 +1891,7 @@ describe('workingStats', () => {
     };
 
     expect(result).toEqual(expectedResult);
+    sinon.assert.notCalled(findUserCompany);
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
     sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
     sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, query);
@@ -1895,7 +1900,7 @@ describe('workingStats', () => {
     SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'find', args: [{ _id: { $in: query.auxiliary } }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean' },
       ]
@@ -1915,6 +1920,7 @@ describe('workingStats', () => {
     const contractInfo = { contractHours: 10, holidaysHours: 7 };
     const hours = { workedHours: 12 };
     const absencesHours = 3;
+    const users = [{ _id: new ObjectID(), user: auxiliaries[0]._id }];
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
     getContractStub.returns(contract);
@@ -1922,6 +1928,7 @@ describe('workingStats', () => {
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
     findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
+    findUserCompany.returns(users);
     findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(queryWithoutAuxiliary, credentials);
@@ -1945,9 +1952,15 @@ describe('workingStats', () => {
     );
     sinon.assert.calledOnceWithExactly(getPayFromAbsencesStub, [], contract, queryWithoutAuxiliary);
     SinonMongoose.calledWithExactly(
+      findUserCompany,
+      [
+        { query: 'find', args: [{ company: companyId }, { user: 1 }] },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{ company: companyId }] },
+        { query: 'find', args: [{ _id: { $in: [users[0].user] } }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean' },
       ]
@@ -1966,11 +1979,12 @@ describe('workingStats', () => {
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});
 
+    sinon.assert.notCalled(findUserCompany);
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
     SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'find', args: [{ _id: { $in: query.auxiliary } }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean' },
       ]
@@ -1996,12 +2010,13 @@ describe('workingStats', () => {
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});
 
+    sinon.assert.notCalled(findUserCompany);
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
     sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
     SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{ company: companyId, _id: { $in: query.auxiliary } }] },
+        { query: 'find', args: [{ _id: { $in: query.auxiliary } }] },
         { query: 'populate', args: ['contracts'] },
         { query: 'lean' },
       ]
