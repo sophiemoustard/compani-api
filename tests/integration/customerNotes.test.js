@@ -298,11 +298,12 @@ describe('CUSTOMER NOTES ROUTES - PUT /customernotes', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
+        const customerNoteId = customerNotesList[0]._id;
         const response = await app.inject({
-          method: 'POST',
-          url: '/customernotes',
+          method: 'PUT',
+          url: `/customernotes/${customerNoteId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { title: 'Titre', description: 'Description', customer: customersList[0]._id },
+          payload: { title: 'Titre 2', description: 'Description 2' },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

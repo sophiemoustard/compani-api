@@ -67,10 +67,14 @@ describe('udpate', () => {
 
   it('should update customer notes', async () => {
     const customerNoteId = new ObjectID();
-    const payload = { title: 'titre', decription: 'description' };
+    const payload = { title: 'titre', description: 'description' };
 
     await CustomerNotesHelper.update(customerNoteId, payload);
 
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: customerNoteId }, { $set: payload });
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: customerNoteId },
+      { $set: { title: 'titre', description: 'description' } }
+    );
   });
 });
