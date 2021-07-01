@@ -84,6 +84,7 @@ describe('getPdfContent', () => {
         [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: 'on va apprendre', style: 'infoContent' }],
       ],
       marginTop: 24,
+      columnGap: 12,
     };
     const trainerAndContactInfo = {
       columns: [
@@ -96,6 +97,7 @@ describe('getPdfContent', () => {
               { text: 'Voici ma bio', style: 'infoContent' },
             ],
           ],
+          width: 'auto',
         },
         {
           columns: [
@@ -106,9 +108,11 @@ describe('getPdfContent', () => {
               { text: 'test@test.fr', style: 'infoSubTitle' },
             ],
           ],
+          width: 'auto',
         },
       ],
       marginTop: 24,
+      columnGap: 12,
     };
     const pdf = {
       content: [header, table, programInfo, trainerAndContactInfo].flat(),
@@ -119,9 +123,9 @@ describe('getPdfContent', () => {
         tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
         tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
         notes: { italics: true, marginTop: 4 },
-        infoTitle: { fontSize: 14, bold: true, marginLeft: 12 },
-        infoSubTitle: { fontSize: 12, marginLeft: 12 },
-        infoContent: { italics: true, marginLeft: 12 },
+        infoTitle: { fontSize: 14, bold: true },
+        infoSubTitle: { fontSize: 12 },
+        infoContent: { italics: true },
       },
     };
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
@@ -200,6 +204,7 @@ describe('getPdfContent', () => {
         [{ text: 'Programme de la formation', style: 'infoTitle' }, { text: '', style: 'infoContent' }],
       ],
       marginTop: 24,
+      columnGap: 12,
     };
     const trainerAndContactInfo = {
       columns: [
@@ -212,6 +217,7 @@ describe('getPdfContent', () => {
               { text: '', style: 'infoContent' },
             ],
           ],
+          width: 'auto',
         },
         {
           columns: [
@@ -222,9 +228,11 @@ describe('getPdfContent', () => {
               { text: '', style: 'infoSubTitle' },
             ],
           ],
+          width: 'auto',
         },
       ],
       marginTop: 24,
+      columnGap: 12,
     };
     const pdf = {
       content: [header, table, programInfo, trainerAndContactInfo].flat(),
@@ -235,9 +243,9 @@ describe('getPdfContent', () => {
         tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
         tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
         notes: { italics: true, marginTop: 4 },
-        infoTitle: { fontSize: 14, bold: true, marginLeft: 12 },
-        infoSubTitle: { fontSize: 12, marginLeft: 12 },
-        infoContent: { italics: true, marginLeft: 12 },
+        infoTitle: { fontSize: 14, bold: true },
+        infoSubTitle: { fontSize: 12 },
+        infoContent: { italics: true },
       },
     };
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));

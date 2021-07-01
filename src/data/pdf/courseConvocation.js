@@ -70,6 +70,7 @@ const getProgramInfo = (image, program) => ({
     ],
   ],
   marginTop: 24,
+  columnGap: 12,
 });
 
 const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => ({
@@ -83,6 +84,7 @@ const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => (
           { text: get(trainer, 'biography') || '', style: 'infoContent' },
         ],
       ],
+      width: 'auto',
     },
     {
       columns: [
@@ -93,9 +95,11 @@ const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => (
           { text: get(contact, 'email') || '', style: 'infoSubTitle' },
         ],
       ],
+      width: 'auto',
     },
   ],
   marginTop: 24,
+  columnGap: 12,
 });
 
 exports.getPdfContent = async (data) => {
@@ -115,9 +119,9 @@ exports.getPdfContent = async (data) => {
       tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
       tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
       notes: { italics: true, marginTop: 4 },
-      infoTitle: { fontSize: 14, bold: true, marginLeft: 12 },
-      infoSubTitle: { fontSize: 12, marginLeft: 12 },
-      infoContent: { italics: true, marginLeft: 12 },
+      infoTitle: { fontSize: 14, bold: true },
+      infoSubTitle: { fontSize: 12 },
+      infoContent: { italics: true },
     },
   };
 };
