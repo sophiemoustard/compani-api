@@ -205,7 +205,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/qrcode',
       options: {
-        auth: { scope: ['customers:read'] },
+        auth: { scope: ['customers:read', 'customer-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
