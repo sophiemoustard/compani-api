@@ -894,6 +894,18 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      it('should get QR code if I am its helper ', async () => {
+        const helper = userList[0];
+        authToken = await getTokenByCredentials(helper.local);
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers/${customersList[0]._id}/qrcode`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
