@@ -36,7 +36,7 @@ exports.formatQueryForUsersList = async (query) => {
   }
 
   if (query.company) {
-    const users = await UserCompany.find({ company: query.company }, { user: 1 });
+    const users = await UserCompany.find({ company: query.company }, { user: 1 }).lean();
 
     formattedQuery._id = { $in: users.map(u => u.user) };
   }

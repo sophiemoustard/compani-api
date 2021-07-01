@@ -27,38 +27,62 @@ const { language } = translate;
 
 describe('formatQueryForUsersList', () => {
   let find;
+  let findUserCompany;
   const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
   const companyId = credentials.company._id;
 
   beforeEach(() => {
     find = sinon.stub(Role, 'find');
+    findUserCompany = sinon.stub(UserCompany, 'find');
   });
 
   afterEach(() => {
     find.restore();
+    findUserCompany.restore();
   });
 
   it('should returns params without role if no role in query', async () => {
-    const query = { company: companyId };
+    const users = [{ _id: new ObjectID(), user: new ObjectID() }];
+    const query = { company: companyId, _id: { $in: users.map(u => u.user) } };
+
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([users], ['lean']));
 
     const result = await UsersHelper.formatQueryForUsersList(query);
 
     expect(result).toEqual(query);
     sinon.assert.notCalled(find);
+    SinonMongoose.calledWithExactly(
+      findUserCompany,
+      [{ query: 'find', args: [{ company: companyId }, { user: 1 }] }, { query: 'lean' }]
+    );
   });
 
   it('should return params with role', async () => {
-    const query = { company: companyId, role: [{ _id: new ObjectID() }, { _id: new ObjectID() }] };
+    const users = [{ _id: new ObjectID(), user: new ObjectID() }];
+    const query = {
+      company: companyId,
+      _id: { $in: users.map(u => u.user) },
+      role: [{ _id: new ObjectID() }, { _id: new ObjectID() }],
+    };
     const roles = [{ _id: query.role[0]._id, interface: 'vendor' }, { _id: query.role[1]._id, interface: 'vendor' }];
 
     find.returns(SinonMongoose.stubChainedQueries([roles], ['lean']));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([users], ['lean']));
 
     const result = await UsersHelper.formatQueryForUsersList(query);
-    expect(result).toEqual({ company: companyId, 'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] } });
+    expect(result).toEqual({
+      company: companyId,
+      _id: { $in: users.map(u => u.user) },
+      'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] },
+    });
 
     SinonMongoose.calledWithExactly(
       find,
       [{ query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findUserCompany,
+      [{ query: 'find', args: [{ company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
   });
 
