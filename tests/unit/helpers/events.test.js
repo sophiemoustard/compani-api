@@ -1928,7 +1928,7 @@ describe('workingStats', () => {
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
     findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
-    findUserCompany.returns(users);
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([users], ['lean']));
     findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
 
     const result = await EventHelper.workingStats(queryWithoutAuxiliary, credentials);
