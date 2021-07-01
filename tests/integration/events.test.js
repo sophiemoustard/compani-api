@@ -145,14 +145,14 @@ describe('GET /events', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return a 403 if auxiliary is not from the same company', async () => {
+    it('should return a 404 if auxiliary is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events?auxiliary=${auxiliaryFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 403 if sector is not from the same company', async () => {
@@ -383,7 +383,7 @@ describe('GET /events/working-stats', () => {
       expect(response.statusCode).toEqual(200);
     });
 
-    it('should return a 403 if auxiliary is not from the same company', async () => {
+    it('should return a 404 if auxiliary is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events/working-stats?auxiliary=${auxiliaryFromOtherCompany._id}&startDate=${startDate}
@@ -391,7 +391,7 @@ describe('GET /events/working-stats', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
   });
 
