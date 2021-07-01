@@ -25,7 +25,7 @@ const UserCompaniesHelper = require('./userCompanies');
 const { language } = translate;
 
 exports.formatQueryForUsersList = async (query) => {
-  const formattedQuery = { ...pickBy(omit(query, ['role'])) };
+  const formattedQuery = { ...pickBy(omit(query, ['role', 'company'])) };
 
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
