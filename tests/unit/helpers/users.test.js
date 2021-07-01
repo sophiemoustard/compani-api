@@ -49,7 +49,7 @@ describe('formatQueryForUsersList', () => {
 
     const result = await UsersHelper.formatQueryForUsersList(query);
 
-    expect(result).toEqual(query);
+    expect(result).toEqual(omit(query, 'company'));
     sinon.assert.notCalled(find);
     SinonMongoose.calledWithExactly(
       findUserCompany,
@@ -71,7 +71,6 @@ describe('formatQueryForUsersList', () => {
 
     const result = await UsersHelper.formatQueryForUsersList(query);
     expect(result).toEqual({
-      company: companyId,
       _id: { $in: users.map(u => u.user) },
       'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] },
     });
