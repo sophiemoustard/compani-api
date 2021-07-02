@@ -12,7 +12,6 @@ const User = require('../models/User');
 const Company = require('../models/Company');
 const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
-const UserCompany = require('../models/UserCompany');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
 const { TRAINER, AUXILIARY_ROLES, HELPER, AUXILIARY_WITHOUT_COMPANY } = require('./constants');
@@ -25,7 +24,7 @@ const UserCompaniesHelper = require('./userCompanies');
 const { language } = translate;
 
 exports.formatQueryForUsersList = async (query) => {
-  const formattedQuery = { ...pickBy(omit(query, ['role', 'company'])) };
+  const formattedQuery = pickBy(omit(query, ['role', 'company']));
 
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];

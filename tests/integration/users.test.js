@@ -384,10 +384,8 @@ describe('GET /users', () => {
     });
 
     it('should get all coachs users (company A)', async () => {
-      const coachUsers = [...userList, ...usersSeedList].filter(u =>
-        u.role &&
-        isExistingRole(u.role.client, 'coach') &&
-        u.company === authCompany._id);
+      const coachUsers = [...userList, ...usersSeedList]
+        .filter(u => u.role && isExistingRole(u.role.client, 'coach') && u.company === authCompany._id);
 
       const res = await app.inject({
         method: 'GET',

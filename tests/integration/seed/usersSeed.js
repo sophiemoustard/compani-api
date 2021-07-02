@@ -9,7 +9,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
-const { vendorAdmin, userList } = require('../../seed/userSeed');
+const { vendorAdmin, userCompaniesList } = require('../../seed/userSeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const Course = require('../../../src/models/Course');
 const { WEBAPP } = require('../../../src/helpers/constants');
@@ -229,18 +229,14 @@ const usersSeedList = [
 ];
 
 const userCompanies = [
+  ...userCompaniesList,
   { user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
-  { user: userList[0]._id, company: authCompany._id },
-  { user: userList[1]._id, company: authCompany._id },
-  { user: userList[2]._id, company: authCompany._id },
-  { user: userList[3]._id, company: authCompany._id },
-  { user: userList[4]._id, company: authCompany._id },
+  { user: helperFromOtherCompany._id, company: otherCompany._id },
   { user: usersSeedList[0]._id, company: authCompany._id },
   { user: usersSeedList[1]._id, company: authCompany._id },
   { user: usersSeedList[2]._id, company: authCompany._id },
   { user: usersSeedList[4]._id, company: authCompany._id },
   { user: usersSeedList[5]._id, company: authCompany._id },
-  { user: helperFromOtherCompany._id, company: authCompany._id },
 ];
 
 const userSectors = [
