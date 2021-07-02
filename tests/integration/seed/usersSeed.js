@@ -9,7 +9,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
 const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
-const { vendorAdmin } = require('../../seed/userSeed');
+const { vendorAdmin, userList } = require('../../seed/userSeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const Course = require('../../../src/models/Course');
 const { WEBAPP } = require('../../../src/helpers/constants');
@@ -228,6 +228,21 @@ const usersSeedList = [
   },
 ];
 
+const userCompanies = [
+  { user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
+  { user: userList[0]._id, company: authCompany._id },
+  { user: userList[1]._id, company: authCompany._id },
+  { user: userList[2]._id, company: authCompany._id },
+  { user: userList[3]._id, company: authCompany._id },
+  { user: userList[4]._id, company: authCompany._id },
+  { user: usersSeedList[0]._id, company: authCompany._id },
+  { user: usersSeedList[1]._id, company: authCompany._id },
+  { user: usersSeedList[2]._id, company: authCompany._id },
+  { user: usersSeedList[4]._id, company: authCompany._id },
+  { user: usersSeedList[5]._id, company: authCompany._id },
+  { user: helperFromOtherCompany._id, company: authCompany._id },
+];
+
 const userSectors = [
   { _id: new ObjectID(), name: 'Terre', company: authCompany._id },
   { _id: new ObjectID(), name: 'Lune', company: authCompany._id },
@@ -316,6 +331,7 @@ const populateDB = async () => {
   await Contract.insertMany(contracts);
   await Establishment.insertMany(establishmentList);
   await Course.insertMany(followingCourses);
+  await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {
@@ -332,4 +348,5 @@ module.exports = {
   auxiliaryFromOtherCompany,
   authCustomer,
   coachAndTrainer,
+  userCompanies,
 };
