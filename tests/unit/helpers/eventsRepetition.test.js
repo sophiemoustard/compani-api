@@ -1,9 +1,9 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const moment = require('moment');
 const momentRange = require('moment-range');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
+const moment = require('../../../src/extensions/moment');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Repetition = require('../../../src/models/Repetition');
@@ -329,14 +329,19 @@ describe('createRepetitionsEveryDay', () => {
   it('should create repetition every day', async () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
-    const range = [];
-    for (let i = 0; i < 90; i++) {
-      range.push(moment(event.startDate).add(i + 1, 'd'));
-    }
+    const range = Array.from(
+      moment().range(moment('2019-01-11T09:00:00.000Z'), moment('2019-04-10T09:00:00.000Z')).by('days')
+    );
 
-    await EventsRepetitionHelper.createRepetitionsEveryDay(event, sector);
+    await EventsRepetitionHelper.createRepetitionsEveryDay(event, sector, range);
 
-    sinon.assert.calledOnceWithExactly(createRepeatedEvents, event, range, sector, false);
+    sinon.assert.calledOnceWithExactly(
+      createRepeatedEvents,
+      event,
+      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
+      sector,
+      false
+    );
   });
 });
 
@@ -352,14 +357,19 @@ describe('createRepetitionsEveryWeekDay', () => {
   it('should create repetition every week day', async () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
+    const range = Array.from(
+      moment().range(moment('2019-01-11T09:00:00.000Z'), moment('2019-04-10T09:00:00.000Z')).by('days')
+    );
 
-    const range = [];
-    for (let i = 0; i < 90; i++) {
-      range.push(moment(event.startDate).add(i + 1, 'd'));
-    }
     await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event, sector);
 
-    sinon.assert.calledOnceWithExactly(createRepeatedEvents, event, range, sector, true);
+    sinon.assert.calledOnceWithExactly(
+      createRepeatedEvents,
+      event,
+      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
+      sector,
+      true
+    );
   });
 });
 
@@ -376,14 +386,38 @@ describe('createRepetitionsByWeek', () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
 
-    const range = [];
-    for (let i = 0; i < 12; i++) {
-      range.push(moment(event.startDate).add((i + 1) * 7, 'd'));
-    }
+    const range = Array.from(
+      moment().range(moment('2019-01-17T09:00:00.000Z'), moment('2019-04-10T10:00:00.000Z')).by('weeks', { step: 1 })
+    );
 
     await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 1);
 
-    sinon.assert.calledOnceWithExactly(createRepeatedEvents, event, range, sector, false);
+    sinon.assert.calledOnceWithExactly(
+      createRepeatedEvents,
+      event,
+      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
+      sector,
+      false
+    );
+  });
+
+  it('should create repetition every two weeks', async () => {
+    const sector = new ObjectID();
+    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
+
+    const range = Array.from(
+      moment().range(moment('2019-01-24T09:00:00.000Z'), moment('2019-04-10T10:00:00.000Z')).by('weeks', { step: 2 })
+    );
+
+    await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 2);
+
+    sinon.assert.calledOnceWithExactly(
+      createRepeatedEvents,
+      event,
+      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
+      sector,
+      false
+    );
   });
 });
 
