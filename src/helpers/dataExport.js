@@ -15,6 +15,7 @@ const UtilsHelper = require('./utils');
 const Customer = require('../models/Customer');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const UserCompany = require('../models/UserCompany');
 const SectorHistory = require('../models/SectorHistory');
 const ReferentHistory = require('../models/ReferentHistory');
 const Service = require('../models/Service');
@@ -209,11 +210,15 @@ const helperExportHeader = [
 ];
 
 exports.exportHelpers = async (credentials) => {
-  const role = await Role.findOne({ name: HELPER }).lean();
-  const companyId = get(credentials, 'company._id', null);
+  const rows = [helperExportHeader];
 
+  const companyId = get(credentials, 'company._id');
+  const userCompanies = await UserCompany.find({ company: companyId }, { user: 1 }).lean();
+  if (!userCompanies.length) return rows;
+
+  const role = await Role.findOne({ name: HELPER }).lean();
   const helpers = await User
-    .find({ 'role.client': role._id, company: companyId })
+    .find({ 'role.client': role._id, _id: { $in: userCompanies.map(u => u.user) } })
     .populate({
       path: 'customers',
       populate: { path: 'customer', select: 'identity contact' },
@@ -221,11 +226,10 @@ exports.exportHelpers = async (credentials) => {
     })
     .lean();
 
-  const data = [helperExportHeader];
   for (const hel of helpers) {
     const customer = hel.customers && hel.customers.customer;
 
-    data.push([
+    rows.push([
       get(hel, 'local.email') || '',
       get(hel, 'contact.phone', '') !== '' ? `+33${hel.contact.phone.substring(1)}` : '',
       get(hel, '_id') || '',
@@ -242,7 +246,7 @@ exports.exportHelpers = async (credentials) => {
     ]);
   }
 
-  return data;
+  return rows;
 };
 
 const sectorExportHeader = [
