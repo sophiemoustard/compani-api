@@ -226,7 +226,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should not get hours balance details if user is not from the same company as sector', async () => {
@@ -236,7 +236,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should not get hours balance details if there is both sector and auxiliary', async () => {
@@ -348,7 +348,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 400 if missing sector', async () => {

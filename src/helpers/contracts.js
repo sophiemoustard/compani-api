@@ -13,6 +13,7 @@ const Role = require('../models/Role');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const ContractNumber = require('../models/ContractNumber');
+const Event = require('../models/Event');
 const EventHistory = require('../models/EventHistory');
 const EventHelper = require('./events');
 const ReferentHistoryHelper = require('./referentHistories');
@@ -125,6 +126,14 @@ exports.createContract = async (contractPayload, credentials) => {
 };
 
 const canEndContract = async (contract, lastVersion, contractToEnd) => {
+  const hasBilledEvents = await Event.countDocuments({
+    auxiliary: contract.user,
+    isBilled: true,
+    startDate: { $gte: contractToEnd.endDate },
+  });
+
+  if (hasBilledEvents) throw Boom.forbidden(translate[language].contractHasBilledEventAfterEndDate);
+
   const hasTimeStampedEvents = await EventHistory.countDocuments({
     'event.auxiliary': contract.user,
     action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
@@ -134,9 +143,7 @@ const canEndContract = async (contract, lastVersion, contractToEnd) => {
     ],
   });
 
-  if (hasTimeStampedEvents) {
-    throw Boom.forbidden(translate[language].contractHasTimeStampedEventAfterEndDate);
-  }
+  if (hasTimeStampedEvents) throw Boom.forbidden(translate[language].contractHasTimeStampedEventAfterEndDate);
 
   if (DatesHelper.isBefore(contractToEnd.endDate, lastVersion.startDate)) {
     throw Boom.conflict(translate[language].contractEndDateBeforeStartDate);
@@ -336,9 +343,9 @@ exports.addFile = async (fileInfo) => {
 };
 
 exports.saveCompletedContract = async (everSignDoc) => {
-  const finalPDF = await ESign.downloadFinalDocument(everSignDoc.data.document_hash);
+  const finalPdf = await ESign.downloadFinalDocument(everSignDoc.data.document_hash);
   const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-  const file = await createAndReadFile(finalPDF.data, tmpPath);
+  const file = await createAndReadFile(finalPdf.data, tmpPath);
 
   const payload = await exports.addFile({
     auxiliaryDriveId: everSignDoc.data.meta.auxiliaryDriveId,

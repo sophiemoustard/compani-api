@@ -57,9 +57,9 @@ exports.saveSignedMandate = async (customerId, mandateId) => {
   if (everSignDoc.data.error) throw Boom.notFound(translate[language].documentNotFound);
   if (!everSignDoc.data.log.some(type => type.event === 'document_signed')) throw Boom.serverUnavailable();
 
-  const finalPDF = await ESign.downloadFinalDocument(mandate.everSignId);
+  const finalPdf = await ESign.downloadFinalDocument(mandate.everSignId);
   const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-  const file = await FileHelper.createAndReadFile(finalPDF.data, tmpPath);
+  const file = await FileHelper.createAndReadFile(finalPdf.data, tmpPath);
   const uploadedFile = await GDriveStorageHelper.addFile({
     driveFolderId: customer.driveFolder.driveId,
     name: mandate.rum,

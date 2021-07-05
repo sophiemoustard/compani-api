@@ -1,6 +1,6 @@
 const has = require('lodash/has');
 const ActivityHistory = require('../models/ActivityHistory');
-const User = require('../models/User');
+const UserCompany = require('../models/UserCompany');
 const { STRICTLY_E_LEARNING } = require('./constants');
 
 exports.addActivityHistory = async payload => ActivityHistory.create(payload);
@@ -32,12 +32,12 @@ const filterSteps = activityHistory => ({
 });
 
 exports.list = async (query, credentials) => {
-  const users = await User.find({ company: credentials.company._id }, { _id: 1 }).lean();
+  const userCompanies = await UserCompany.find({ company: credentials.company._id }, { user: 1 }).lean();
 
   const activityHistories = await ActivityHistory
     .find({
       date: { $lte: new Date(query.endDate), $gte: new Date(query.startDate) },
-      user: { $in: users.map(u => u._id) },
+      user: { $in: userCompanies.map(uc => uc.user) },
     })
     .populate({
       path: 'activity',

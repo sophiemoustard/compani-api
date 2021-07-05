@@ -356,6 +356,19 @@ const deleteFunding = async (req) => {
   }
 };
 
+const getQRCode = async (req, h) => {
+  try {
+    const { pdf, fileName } = await CustomerHelper.generateQRCode(req.params._id);
+
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${fileName}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   listWithFirstIntervention,
@@ -382,4 +395,5 @@ module.exports = {
   createFunding,
   updateFunding,
   deleteFunding,
+  getQRCode,
 };

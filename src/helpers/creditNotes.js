@@ -15,6 +15,7 @@ const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 const { COMPANI } = require('./constants');
+const CreditNotePdf = require('../data/pdf/billing/creditNote');
 
 const { language } = translate;
 
@@ -169,7 +170,7 @@ const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTp
   ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
   : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
-exports.formatPDF = (creditNote, company) => {
+exports.formatPdf = (creditNote, company) => {
   const computedData = {
     totalVAT: 0,
     date: moment(creditNote.date).format('DD/MM/YYYY'),
@@ -208,10 +209,10 @@ exports.formatPDF = (creditNote, company) => {
         identity: { ...creditNote.customer.identity, title: CIVILITY_LIST[get(creditNote, 'customer.identity.title')] },
         contact: creditNote.customer.contact,
       },
-      exclTaxes: creditNote.exclTaxesTpp
+      totalExclTaxes: creditNote.exclTaxesTpp
         ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp)
         : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
-      inclTaxes: creditNote.inclTaxesTpp
+      netInclTaxes: creditNote.inclTaxesTpp
         ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp)
         : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,
@@ -241,8 +242,9 @@ exports.generateCreditNotePdf = async (params, credentials) => {
   if (creditNote.origin !== COMPANI) throw Boom.badRequest(translate[language].creditNoteNotCompani);
 
   const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
-  const data = exports.formatPDF(creditNote, company);
-  const pdf = await PdfHelper.generatePdf(data, './src/data/creditNote.html');
+  const data = exports.formatPdf(creditNote, company);
+  const template = await CreditNotePdf.getPdfContent(data);
+  const pdf = await PdfHelper.generatePdf(template);
 
   return { pdf, creditNoteNumber: creditNote.number };
 };

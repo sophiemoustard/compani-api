@@ -72,6 +72,12 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
+const userCompanies = [
+  { user: traineeWithoutCompany._id, company: authCompany._id },
+  { user: auxiliary._id, company: authCompany._id },
+  { user: traineeFromOtherCompany._id, company: otherCompany._id },
+];
+
 const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
 
 const trainerAndCoach = {
@@ -325,6 +331,7 @@ const populateDB = async () => {
   await Activity.insertMany(activitiesList);
   await Card.create(card);
   await ActivityHistory.insertMany(activitiesHistory);
+  await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {
@@ -348,4 +355,5 @@ module.exports = {
   trainerAndCoach,
   vendorAdmin,
   traineeFromAuthCompanyWithFormationExpoToken,
+  userCompanies,
 };

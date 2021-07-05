@@ -26,6 +26,7 @@ const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
 const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/interAttendanceSheet');
 const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');
+const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 
 describe('createCourse', () => {
   let save;
@@ -1644,14 +1645,14 @@ describe('generateAttendanceSheets', () => {
   let courseFindOne;
   let formatInterCourseForPdf;
   let formatIntraCourseForPdf;
-  let generatePDF;
+  let generatePdf;
   let interAttendanceSheetGetPdfContent;
   let intraAttendanceSheetGetPdfContent;
   beforeEach(() => {
     courseFindOne = sinon.stub(Course, 'findOne');
     formatInterCourseForPdf = sinon.stub(CourseHelper, 'formatInterCourseForPdf');
     formatIntraCourseForPdf = sinon.stub(CourseHelper, 'formatIntraCourseForPdf');
-    generatePDF = sinon.stub(PdfHelper, 'generatePDF');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     interAttendanceSheetGetPdfContent = sinon.stub(InterAttendanceSheet, 'getPdfContent');
     intraAttendanceSheetGetPdfContent = sinon.stub(IntraAttendanceSheet, 'getPdfContent');
   });
@@ -1659,7 +1660,7 @@ describe('generateAttendanceSheets', () => {
     courseFindOne.restore();
     formatInterCourseForPdf.restore();
     formatIntraCourseForPdf.restore();
-    generatePDF.restore();
+    generatePdf.restore();
     interAttendanceSheetGetPdfContent.restore();
     intraAttendanceSheetGetPdfContent.restore();
   });
@@ -1671,7 +1672,7 @@ describe('generateAttendanceSheets', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
 
     formatInterCourseForPdf.returns({ name: 'la formation - des infos en plus' });
-    generatePDF.returns('pdf');
+    generatePdf.returns('pdf');
     interAttendanceSheetGetPdfContent.returns({ content: [{ text: 'la formation - des infos en plus' }] });
 
     await CourseHelper.generateAttendanceSheets(courseId);
@@ -1691,7 +1692,7 @@ describe('generateAttendanceSheets', () => {
     sinon.assert.calledOnceWithExactly(formatInterCourseForPdf, course);
     sinon.assert.notCalled(formatIntraCourseForPdf);
     sinon.assert.notCalled(intraAttendanceSheetGetPdfContent);
-    sinon.assert.calledOnceWithExactly(generatePDF, { content: [{ text: 'la formation - des infos en plus' }] });
+    sinon.assert.calledOnceWithExactly(generatePdf, { content: [{ text: 'la formation - des infos en plus' }] });
     sinon.assert.calledOnceWithExactly(interAttendanceSheetGetPdfContent, { name: 'la formation - des infos en plus' });
   });
 
@@ -1702,7 +1703,7 @@ describe('generateAttendanceSheets', () => {
     courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
 
     formatIntraCourseForPdf.returns({ name: 'la formation - des infos en plus' });
-    generatePDF.returns('pdf');
+    generatePdf.returns('pdf');
     intraAttendanceSheetGetPdfContent.returns({ content: [{ text: 'la formation - des infos en plus' }] });
 
     await CourseHelper.generateAttendanceSheets(courseId);
@@ -1722,7 +1723,7 @@ describe('generateAttendanceSheets', () => {
     sinon.assert.calledOnceWithExactly(formatIntraCourseForPdf, course);
     sinon.assert.notCalled(formatInterCourseForPdf);
     sinon.assert.notCalled(interAttendanceSheetGetPdfContent);
-    sinon.assert.calledOnceWithExactly(generatePDF, { content: [{ text: 'la formation - des infos en plus' }] });
+    sinon.assert.calledOnceWithExactly(generatePdf, { content: [{ text: 'la formation - des infos en plus' }] });
   });
 });
 
@@ -1999,10 +2000,8 @@ describe('formatCourseForConvocationPdf', () => {
     expect(result).toEqual({
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
-      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
-      trainerIdentity: 'Ash Ketchum',
-      contact: { phone: '0123456789' },
-      contactPhoneNumber: '01 23 45 67 89',
+      trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash Ketchum' },
+      contact: { phone: '0123456789', formattedPhone: '01 23 45 67 89' },
       slots: [{ date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' }],
     });
 
@@ -2022,15 +2021,18 @@ describe('generateConvocationPdf', () => {
   let formatCourseForConvocationPdf;
   let generatePdf;
   let courseFindOne;
+  let getPdfContent;
   beforeEach(() => {
     formatCourseForConvocationPdf = sinon.stub(CourseHelper, 'formatCourseForConvocationPdf');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     courseFindOne = sinon.stub(Course, 'findOne');
+    getPdfContent = sinon.stub(CourseConvocation, 'getPdfContent');
   });
   afterEach(() => {
     formatCourseForConvocationPdf.restore();
     generatePdf.restore();
     courseFindOne.restore();
+    getPdfContent.restore();
   });
 
   it('should return pdf', async () => {
@@ -2067,6 +2069,7 @@ describe('generateConvocationPdf', () => {
     });
 
     generatePdf.returns('pdf');
+    getPdfContent.returns({ content: 'test' });
 
     const result = await CourseHelper.generateConvocationPdf(courseId);
 
@@ -2100,8 +2103,9 @@ describe('generateConvocationPdf', () => {
         }],
       }
     );
+    sinon.assert.calledOnceWithExactly(generatePdf, { content: 'test' });
     sinon.assert.calledOnceWithExactly(
-      generatePdf,
+      getPdfContent,
       {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
@@ -2116,8 +2120,7 @@ describe('generateConvocationPdf', () => {
           length: 1,
           position: 1,
         }],
-      },
-      './src/data/courseConvocation.html'
+      }
     );
   });
 });

@@ -129,8 +129,16 @@ const userList = [
   },
 ];
 
+const userCompaniesList = [
+  { user: userList[0]._id, company: authCompany._id },
+  { user: userList[1]._id, company: authCompany._id },
+  { user: userList[2]._id, company: authCompany._id },
+  { user: userList[3]._id, company: authCompany._id },
+  { user: userList[4]._id, company: authCompany._id },
+];
+
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');
 const noRoleNoCompany = userList.find(u => u.local.email === 'norole.nocompany@alenvi.io');
 const vendorAdmin = userList.find(u => u.local.email === 'vendor-admin@alenvi.io');
 
-module.exports = { userList, trainer, noRoleNoCompany, vendorAdmin };
+module.exports = { userList, trainer, noRoleNoCompany, vendorAdmin, userCompaniesList };

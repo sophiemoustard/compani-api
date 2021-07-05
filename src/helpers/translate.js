@@ -89,6 +89,7 @@ module.exports = {
     staffRegisteredFound: 'Staff Registered Found.',
     contractHasTimeStampedEventAfterEndDate: 'There are timestamped events after the end date of the contract.',
     contractEndDateBeforeStartDate: 'End date is before last version start date.',
+    contractHasBilledEventAfterEndDate: 'There are billed events after contract end date.',
     /* Contracts amendments */
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',
@@ -123,6 +124,12 @@ module.exports = {
     customerFundingUpdated: 'Customer funding updated.',
     customerFundingsFound: 'Customer fundings found.',
     customerFundingRemoved: 'Customer funding removed.',
+    qrCodeCreated: 'QR code created.',
+    /* Customer notes */
+    customerNoteCreated: 'Customer note created.',
+    customerNotesFound: 'Customer notes found.',
+    customerNotesNotFound: 'Customer notes not found.',
+    customerNoteUpdated: 'Customer note updated.',
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
     documentNotFound: 'Eversign document not found.',
@@ -419,6 +426,7 @@ module.exports = {
       'Impossible: il y a des évènements horodatés après la date de fin du contrat.',
     contractEndDateBeforeStartDate:
       'Impossible de mettre fin à un contrat avant sa date de début.',
+    contractHasBilledEventAfterEndDate: 'Impossible: il y a des évènements facturés après la date de fin de contrat.',
     /* Contracts amendments */
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',
@@ -453,6 +461,12 @@ module.exports = {
     customerFundingUpdated: 'Financement du bénéficiaire modifié.',
     customerFundingsFound: 'Financements du bénéficiaire trouvés.',
     customerFundingRemoved: 'Financement du bénéficiaire supprimé.',
+    qrCodeCreated: 'QR code créé.',
+    /* Customer notes */
+    customerNoteCreated: 'Note de suivi créée.',
+    customerNotesFound: 'Notes de suivi trouvées.',
+    customerNotesNotFound: 'Notes de suivi non trouvées.',
+    customerNoteUpdated: 'Note de suivi mise à jour.',
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
     documentNotFound: 'Document eversign non trouvé.',

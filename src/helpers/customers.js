@@ -6,6 +6,7 @@ const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
 const omit = require('lodash/omit');
+const QRCode = require('qrcode');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
@@ -25,6 +26,9 @@ const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
 const FundingsHelper = require('./fundings');
 const EventsHelper = require('./events');
+const PdfHelper = require('./pdf');
+const UtilsHelper = require('./utils');
+const CustomerQRCode = require('../data/pdf/customerQRCode/customerQRCode');
 
 const { language } = translate;
 
@@ -288,3 +292,14 @@ exports.deleteCertificates = (customerId, driveId) => Promise.all([
   Drive.deleteFile({ fileId: driveId }),
   Customer.updateOne({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
 ]);
+
+exports.generateQRCode = async (customerId) => {
+  const qrCodeUrl = await QRCode.toDataURL(`${customerId}`, { margin: 0 });
+
+  const customer = await Customer.findOne({ _id: customerId }, { identity: 1 }).lean();
+  const customerName = UtilsHelper.formatIdentity(customer.identity, 'FL');
+
+  const pdf = await PdfHelper.generatePdf(await CustomerQRCode.getPdfContent(qrCodeUrl, customerName));
+
+  return { fileName: 'qrcode.pdf', pdf };
+};
