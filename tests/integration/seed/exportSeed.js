@@ -21,7 +21,8 @@ const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCustomer } = require('../../seed/customerSeed');
-const { rolesList, populateDBForAuthentication, authCompany, userList } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { helper } = require('../../seed/userSeed');
 const {
   PAYMENT,
   REFUND,
@@ -45,16 +46,9 @@ const {
   QRCODE_MISSING,
 } = require('../../../src/helpers/constants');
 
-const sector = {
-  _id: new ObjectID(),
-  name: 'Etoile',
-  company: authCompany._id,
-};
+const sector = { _id: new ObjectID(), name: 'Etoile', company: authCompany._id };
 
-const surcharge = {
-  _id: new ObjectID(),
-  name: 'test',
-};
+const surcharge = { _id: new ObjectID(), name: 'test' };
 
 const serviceList = [
   {
@@ -84,11 +78,7 @@ const serviceList = [
   },
 ];
 
-const authBillService = {
-  serviceId: new ObjectID(),
-  name: 'Temps de qualité - autonomie',
-  nature: 'fixed',
-};
+const authBillService = { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'fixed' };
 
 const contract1Id = new ObjectID();
 const contract2Id = new ObjectID();
@@ -103,10 +93,7 @@ const establishment = {
     fullAddress: '15, rue du test 75007 Paris',
     zipCode: '75007',
     city: 'Paris',
-    location: {
-      type: 'Point',
-      coordinates: [4.849302, 2.90887],
-    },
+    location: { type: 'Point', coordinates: [4.849302, 2.90887] },
   },
   phone: '0123456789',
   workHealthService: 'MT01',
@@ -204,12 +191,9 @@ const contractList = [{
   company: authCompany._id,
 }];
 
-const sectorHistory = {
-  auxiliary: auxiliaryList[0]._id,
-  sector: sector._id,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-};
+const sectorHistories = [
+  { auxiliary: auxiliaryList[0]._id, sector: sector._id, company: authCompany._id, startDate: '2018-12-10T00:00:00' },
+];
 
 const internalHour = { _id: new ObjectID(), name: 'planning', company: authCompany._id };
 
@@ -244,35 +228,25 @@ const customersList = [
         service: serviceList[0]._id,
         versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 30, evenings: 1, sundays: 2 }],
       },
-      {
-        _id: new ObjectID(),
-        service: serviceList[1]._id,
-        versions: [{ startDate: '2018-01-05T15:00:00.000+01:00' }],
-      },
+      { _id: new ObjectID(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000+01:00' }] },
     ],
-    fundings: [
-      {
-        _id: new ObjectID(),
-        nature: FIXED,
-        thirdPartyPayer: thirdPartyPayer._id,
-        subscription: subscriptionId,
-        frequency: MONTHLY,
-        versions: [{
-          startDate: '2018-02-03T22:00:00.000+01:00',
-          folderNumber: '12345',
-          unitTTCRate: 10,
-          amountTTC: 21,
-          customerParticipationRate: 12,
-          careHours: 9,
-          careDays: [0, 1, 2],
-        }],
-      },
-    ],
-    payment: {
-      bankAccountOwner: 'Test Toto',
-      iban: 'FR6930003000405885475816L80',
-      bic: 'ABNAFRPP',
-    },
+    fundings: [{
+      _id: new ObjectID(),
+      nature: FIXED,
+      thirdPartyPayer: thirdPartyPayer._id,
+      subscription: subscriptionId,
+      frequency: MONTHLY,
+      versions: [{
+        startDate: '2018-02-03T22:00:00.000+01:00',
+        folderNumber: '12345',
+        unitTTCRate: 10,
+        amountTTC: 21,
+        customerParticipationRate: 12,
+        careHours: 9,
+        careDays: [0, 1, 2],
+      }],
+    }],
+    payment: { bankAccountOwner: 'Test Toto', iban: 'FR6930003000405885475816L80', bic: 'ABNAFRPP' },
     followUp: { situation: 'home', misc: '123456789', environment: 'test', objectives: 'toto' },
   },
   {
@@ -852,8 +826,6 @@ const user = {
   origin: WEBAPP,
 };
 
-const helper = userList.find(u => u.local.email === 'helper@alenvi.io');
-
 const helpersList = [
   { customer: customer._id, user: helper._id, company: authCompany._id, referent: true },
   { customer: customersList[0]._id, user: user._id, company: authCompany._id, referent: true },
@@ -865,169 +837,60 @@ const userCompanies = [
   { _id: new ObjectID(), user: user._id, company: authCompany._id },
 ];
 
-const populateEvents = async () => {
-  await Event.deleteMany();
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await InternalHour.deleteMany();
-  await Service.deleteMany();
-  await Contract.deleteMany();
-  await EventHistory.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
-  await Event.insertMany(eventList);
-  await User.insertMany(auxiliaryList);
-  await new Sector(sector).save();
-  await new SectorHistory(sectorHistory).save();
-  await new Customer(customer).save();
-  await new InternalHour(internalHour).save();
-  await Service.insertMany(serviceList);
-  await Contract.insertMany(contractList);
-  await EventHistory.insertMany(eventHistoriesList);
-  await UserCompany.insertMany(userCompanies);
-};
-
-const populateSectorHistories = async () => {
-  await User.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
-  await User.insertMany(auxiliaryList);
-  await new Sector(sector).save();
-  await new SectorHistory(sectorHistory).save();
-  await UserCompany.insertMany(userCompanies);
-};
-
-const populateBillsAndCreditNotes = async () => {
+const populateDB = async () => {
   await Bill.deleteMany();
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await CreditNote.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
-  await Bill.insertMany(billsList);
-  await CreditNote.insertMany(creditNotesList);
-  await new Customer(customer).save();
-  await new ThirdPartyPayer(thirdPartyPayer).save();
-  await UserCompany.insertMany(userCompanies);
-};
-
-const populatePayment = async () => {
-  await Payment.deleteMany();
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
-  await Payment.insertMany(paymentsList);
-  await new Customer(customer).save();
-  await new ThirdPartyPayer(thirdPartyPayer).save();
-  await UserCompany.insertMany(userCompanies);
-};
-
-const populateService = async () => {
-  await Service.deleteMany();
-
-  await populateDBForAuthentication();
-  await Service.insertMany(serviceList);
-  await UserCompany.insertMany(userCompanies);
-};
-
-const populateCustomer = async () => {
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Service.deleteMany();
-  await Event.deleteMany();
-  await User.deleteMany();
-  await ReferentHistory.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
-
-  await (new ThirdPartyPayer(thirdPartyPayer)).save();
-  await Service.insertMany(serviceList);
-  await User.insertMany(auxiliaryList);
-  await Customer.insertMany([customer, ...customersList]);
-  await Event.insertMany(eventList);
-  await ReferentHistory.insertMany(referentList);
-  await UserCompany.insertMany(userCompanies);
-};
-
-const populateUser = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
   await Contract.deleteMany();
+  await CreditNote.deleteMany();
+  await Customer.deleteMany();
   await Establishment.deleteMany();
-  await Helper.deleteMany();
   await Event.deleteMany();
+  await EventHistory.deleteMany();
+  await FinalPay.deleteMany();
+  await Helper.deleteMany();
+  await InternalHour.deleteMany();
+  await Pay.deleteMany();
+  await Payment.deleteMany();
+  await ReferentHistory.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+  await Service.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await User.deleteMany();
   await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
+  await Bill.insertMany(billsList);
+  await Contract.insertMany(contractList);
+  await CreditNote.insertMany(creditNotesList);
+  await Customer.insertMany([customer, ...customersList]);
+  await Establishment.create(establishment);
+  await Event.insertMany(eventList);
+  await EventHistory.insertMany(eventHistoriesList);
+  await FinalPay.insertMany(finalPayList);
+  await Helper.insertMany(helpersList);
+  await InternalHour.create(internalHour);
+  await Payment.insertMany(paymentsList);
+  await Pay.insertMany(payList);
+  await ReferentHistory.insertMany(referentList);
+  await Sector.create(sector);
+  await SectorHistory.insertMany(sectorHistories);
+  await Service.insertMany(serviceList);
+  await ThirdPartyPayer.create(thirdPartyPayer);
   await (new User(user)).save();
   await User.insertMany(auxiliaryList);
-  await Contract.insertMany(contractList);
-  await Customer.insertMany([customer, ...customersList]);
-  await (new Establishment(establishment)).save();
-  await Helper.insertMany(helpersList);
-  await Event.insertMany(eventList);
-  await UserCompany.insertMany(userCompanies);
-};
-
-const populatePay = async () => {
-  await Pay.deleteMany();
-  await FinalPay.deleteMany();
-  await User.deleteMany();
-  await SectorHistory.deleteMany();
-  await Sector.deleteMany();
-  await Contract.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
-  await Pay.insertMany(payList);
-  await FinalPay.insertMany(finalPayList);
-  await User.insertMany(auxiliaryList);
-  await new SectorHistory(sectorHistory).save();
-  await new Sector(sector).save();
-  await Contract.insertMany(contractList);
-  await UserCompany.insertMany(userCompanies);
-};
-
-const populateContract = async () => {
-  await User.deleteMany();
-  await Contract.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
-  await User.insertMany(auxiliaryList);
-  await Contract.insertMany(contractList);
   await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {
-  populateEvents,
-  populateBillsAndCreditNotes,
-  populatePayment,
-  populatePay,
+  populateDB,
   paymentsList,
-  populateService,
-  populateCustomer,
   customersList,
   customer,
   user,
-  populateUser,
-  populateSectorHistories,
-  populateContract,
   billsList,
   creditNotesList,
   auxiliaryList,
   establishment,
   thirdPartyPayer,
-  helper,
 };

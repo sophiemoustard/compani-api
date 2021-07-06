@@ -188,26 +188,25 @@ describe('exportCustomers', () => {
 describe('exportAuxiliaries', () => {
   let findUser;
   let findRole;
+  let findUserCompany;
   let getLastVersion;
   beforeEach(() => {
     findUser = sinon.stub(User, 'find');
     findRole = sinon.stub(Role, 'find');
+    findUserCompany = sinon.stub(UserCompany, 'find');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
   });
 
   afterEach(() => {
     findUser.restore();
     findRole.restore();
+    findUserCompany.restore();
     getLastVersion.restore();
   });
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    const auxiliaries = [];
-
-    findRole.returns(SinonMongoose.stubChainedQueries([[{ _id: roleIds[0] }, { _id: roleIds[1] }]], ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
@@ -217,37 +216,22 @@ describe('exportAuxiliaries', () => {
       'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Établissement',
       'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
       'Date de création']);
+
     SinonMongoose.calledWithExactly(
-      findRole,
-      [
-        { query: 'find', args: [{ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } }] },
-        { query: 'lean' },
-      ]
+      findUserCompany,
+      [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
-      findUser,
-      [
-        { query: 'find', args: [{ 'role.client': { $in: roleIds }, company: credentials.company._id }] },
-        {
-          query: 'populate',
-          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
-        },
-        { query: 'populate', args: [{ path: 'contracts', select: '_id startDate endDate' }] },
-        {
-          query: 'populate',
-          args: [{ path: 'establishment', select: 'name', match: { company: credentials.company._id } }],
-        },
-        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
-      ]
-    );
+    sinon.assert.notCalled(findRole);
+    sinon.assert.notCalled(findUser);
   });
 
   it('should return auxiliary', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
+    const userCompanies = [{ user: new ObjectID() }, { user: new ObjectID() }];
     const auxiliaries = [
       {
-        _id: new ObjectID(),
+        _id: userCompanies[0].user,
         local: { email: 'aide@sos.io' },
         inactivityDate: '2019-02-01T09:38:18.653Z',
         createdAt: '2019-02-01T09:38:18.653Z',
@@ -268,7 +252,7 @@ describe('exportAuxiliaries', () => {
         establishment: { name: 'Test' },
       },
     ];
-
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([userCompanies], ['lean']));
     findRole.returns(SinonMongoose.stubChainedQueries([[{ _id: roleIds[0] }, { _id: roleIds[1] }]], ['lean']));
     findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
 
@@ -298,6 +282,11 @@ describe('exportAuxiliaries', () => {
       '01/02/2019',
       '01/02/2019',
     ]);
+
+    SinonMongoose.calledWithExactly(
+      findUserCompany,
+      [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
+    );
     SinonMongoose.calledWithExactly(
       findRole,
       [
@@ -308,17 +297,24 @@ describe('exportAuxiliaries', () => {
     SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{ 'role.client': { $in: roleIds }, company: credentials.company._id }] },
+        {
+          query: 'find',
+          args: [{ 'role.client': { $in: roleIds }, _id: { $in: [userCompanies[0].user, userCompanies[1].user] } }],
+        },
         {
           query: 'populate',
-          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+          args: [{
+            path: 'sector',
+            populate: { path: 'sector', select: 'name' },
+            match: { company: credentials.company._id },
+          }],
         },
         { query: 'populate', args: [{ path: 'contracts', select: '_id startDate endDate' }] },
         {
           query: 'populate',
           args: [{ path: 'establishment', select: 'name', match: { company: credentials.company._id } }],
         },
-        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+        { query: 'lean' },
       ]
     );
   });
@@ -326,13 +322,15 @@ describe('exportAuxiliaries', () => {
   it('should return auxiliary with 2 contracts', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
+    const userCompanies = [{ user: new ObjectID() }, { user: new ObjectID() }];
     const auxiliaries = [
       {
-        _id: new ObjectID(),
+        _id: userCompanies[0].user,
         contracts: [{ _id: 1, startDate: '2019-11-10', endDate: '2019-12-01' }, { _id: 1, startDate: '2019-12-02' }],
       },
     ];
 
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([userCompanies], ['lean']));
     findRole.returns(SinonMongoose.stubChainedQueries([[{ _id: roleIds[0] }, { _id: roleIds[1] }]], ['lean']));
     findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
 
@@ -347,6 +345,11 @@ describe('exportAuxiliaries', () => {
     expect(result[2]).toMatchObject([
       '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '02/12/2019', '', '', '',
     ]);
+
+    SinonMongoose.calledWithExactly(
+      findUserCompany,
+      [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
+    );
     SinonMongoose.calledWithExactly(
       findRole,
       [
@@ -357,17 +360,24 @@ describe('exportAuxiliaries', () => {
     SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{ 'role.client': { $in: roleIds }, company: credentials.company._id }] },
+        {
+          query: 'find',
+          args: [{ 'role.client': { $in: roleIds }, _id: { $in: [userCompanies[0].user, userCompanies[1].user] } }],
+        },
         {
           query: 'populate',
-          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+          args: [{
+            path: 'sector',
+            populate: { path: 'sector', select: 'name' },
+            match: { company: credentials.company._id },
+          }],
         },
         { query: 'populate', args: [{ path: 'contracts', select: '_id startDate endDate' }] },
         {
           query: 'populate',
           args: [{ path: 'establishment', select: 'name', match: { company: credentials.company._id } }],
         },
-        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+        { query: 'lean' },
       ]
     );
   });

@@ -167,29 +167,32 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
 };
 
 exports.exportAuxiliaries = async (credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+  const rows = [auxiliaryExportHeader];
+
+  const companyId = get(credentials, 'company._id');
+  const userCompanies = await UserCompany.find({ company: companyId }, { user: 1 }).lean();
+  if (!userCompanies.length) return rows;
+
   const roles = await Role.find({ name: { $in: AUXILIARY_ROLES } }).lean();
-  const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
-    .find({ 'role.client': { $in: roleIds }, company: companyId })
-    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .find({ 'role.client': { $in: roles.map(role => role._id) }, _id: { $in: userCompanies.map(u => u.user) } })
+    .populate({ path: 'sector', populate: { path: 'sector', select: 'name' }, match: { company: companyId } })
     .populate({ path: 'contracts', select: '_id startDate endDate' })
     .populate({ path: 'establishment', select: 'name', match: { company: companyId } })
-    .lean({ autopopulate: true, virtuals: true });
-  const data = [auxiliaryExportHeader];
+    .lean();
 
   for (const aux of auxiliaries) {
     const { contracts } = aux;
     if (contracts && contracts.length) {
       for (const contract of contracts) {
-        data.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
+        rows.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
       }
     } else {
-      data.push(getDataForAuxiliariesExport(aux, 0));
+      rows.push(getDataForAuxiliariesExport(aux, 0));
     }
   }
 
-  return data;
+  return rows;
 };
 
 const helperExportHeader = [

@@ -15,16 +15,8 @@ const {
 } = require('../../src/helpers/constants');
 const { getToken, userList } = require('./seed/authenticationSeed');
 const {
-  populateEvents,
-  populateBillsAndCreditNotes,
-  populatePayment,
-  populatePay,
   paymentsList,
-  populateService,
-  populateUser,
-  populateCustomer,
-  populateSectorHistories,
-  populateContract,
+  populateDB,
   customersList,
   customer,
   user,
@@ -33,8 +25,8 @@ const {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
-  helper,
 } = require('./seed/exportSeed');
+const { helper } = require('../seed/userSeed');
 const { formatPrice } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
@@ -46,7 +38,7 @@ describe('NODE ENV', () => {
 describe('GET /exports/working_event/history', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateEvents);
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -95,7 +87,7 @@ describe('GET /exports/working_event/history', () => {
 describe('GET /exports/absence/history', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateEvents);
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -143,7 +135,7 @@ describe('GET /exports/absence/history', () => {
 describe('GET /exports/bill/history', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateBillsAndCreditNotes);
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -192,7 +184,7 @@ describe('GET /exports/bill/history', () => {
 describe('GET /exports/payment/history', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populatePayment);
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -241,7 +233,7 @@ describe('GET /exports/payment/history', () => {
 describe('GET /exports/pay/history', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populatePay);
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -293,7 +285,6 @@ describe('GET /exports/pay/history', () => {
 const exportTypes = [
   {
     exportType: SERVICE,
-    populate: populateService,
     expectedRows: [
       '\ufeff"Nature";"Entreprise";"Nom";"Montant unitaire par défaut";"TVA (%)";"Plan de majoration";"Date de début";"Date de création";"Date de mise a jour"',
       `"Horaire";"Test SAS";"Service 1";"12,00";"12,00";;"16/01/2019";"${moment().format('DD/MM/YYYY')}";"${moment().format('DD/MM/YYYY')}"`,
@@ -303,20 +294,18 @@ const exportTypes = [
   },
   {
     exportType: AUXILIARY,
-    populate: populateUser,
     expectedRows: [
       '\ufeff"Email";"Équipe";"Id Auxiliaire";"Titre";"Nom";"Prénom";"Date de naissance";"Pays de naissance";"Departement de naissance";"Ville de naissance";"Nationalité";"N° de sécurité sociale";"Addresse";"Téléphone";"Nombre de contracts";"Établissement";"Date de début de contrat prestataire";"Date de fin de contrat prestataire";"Date d\'inactivité";"Date de création"',
       `"auxiliary@alenvi.io";"Test";${userList[2]._id};"M.";"TEST";"Auxiliary";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
       `"auxiliary-without-company@alenvi.io";;${userList[3]._id};;"TEST";"Auxiliary without company";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
       `"planning-referent@alenvi.io";"Test";${userList[4]._id};"Mme";"TEST";"PlanningReferent";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
-      `"export_auxiliary_1@alenvi.io";;${auxiliaryList[0]._id};"M.";"UIUI";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";2;"${establishment.name}";"01/01/2018";"01/01/2020";;"${moment().format('DD/MM/YYYY')}"`,
-      `"export_auxiliary_1@alenvi.io";;${auxiliaryList[0]._id};"M.";"UIUI";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";2;"${establishment.name}";"01/02/2020";;;"${moment().format('DD/MM/YYYY')}"`,
+      `"export_auxiliary_1@alenvi.io";"Etoile";${auxiliaryList[0]._id};"M.";"UIUI";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";2;"${establishment.name}";"01/01/2018";"01/01/2020";;"${moment().format('DD/MM/YYYY')}"`,
+      `"export_auxiliary_1@alenvi.io";"Etoile";${auxiliaryList[0]._id};"M.";"UIUI";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";2;"${establishment.name}";"01/02/2020";;;"${moment().format('DD/MM/YYYY')}"`,
       `"export_auxiliary_2@alenvi.io";;${auxiliaryList[1]._id};"M.";"LOLO";"Lili";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";1;"${establishment.name}";"01/02/2020";;;"${moment().format('DD/MM/YYYY')}"`,
     ],
   },
   {
     exportType: HELPER,
-    populate: populateUser,
     expectedRows: [
       '\ufeff"Email";"Téléphone";"Id Aidant";"Aidant - Nom";"Aidant - Prénom";"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Date de création"',
       `"helper@alenvi.io";;${helper._id.toHexString()};"TEST";"Helper";${customer._id.toHexString()};"M.";"BARDET";"Romain";"37 rue de Ponthieu";"75008";"Paris";"${moment().format('DD/MM/YYYY')}"`,
@@ -325,7 +314,6 @@ const exportTypes = [
   },
   {
     exportType: CUSTOMER,
-    populate: populateCustomer,
     expectedRows: [
       '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Id Auxiliaire référent";"Auxiliaire référent";"Situation";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création"',
       `${customer._id.toHexString()};"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";"11/01/2019";;;"Non renseigné";"ne va pas bien";"preparer le dejeuner + balade";"code porte: 1234";"David gaudu";;;"R012345678903456789";;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}"`,
@@ -337,7 +325,6 @@ const exportTypes = [
   },
   {
     exportType: FUNDING,
-    populate: populateCustomer,
     expectedRows: [
       '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Nature";"Service";"Date de début";"Date de fin";"Numéro de dossier";"Fréquence";"Montant TTC";"Montant unitaire TTC";"Nombre d\'heures";"Jours";"Participation du bénéficiaire"',
       `${customer._id.toHexString()};"M.";"BARDET";"Romain";${billsList[0].thirdPartyPayer.toHexString()};"Toto";"Forfaitaire";"Service 1";"02/02/2020";;"D123456";"Une seule fois";"1600,00";;;"Lundi Mardi Mercredi Jeudi Vendredi Samedi";"66,00"`,
@@ -346,7 +333,6 @@ const exportTypes = [
   },
   {
     exportType: SUBSCRIPTION,
-    populate: populateCustomer,
     expectedRows: [
       '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
       `${customer._id.toHexString()};"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";2;1`,
@@ -356,7 +342,6 @@ const exportTypes = [
   },
   {
     exportType: SECTOR,
-    populate: populateSectorHistories,
     expectedRows: [
       '\ufeff"Equipe";"Id Auxiliaire";"Nom";"Prénom";"Date d\'arrivée dans l\'équipe";"Date de départ de l\'équipe"',
       `"Test";${userList[2]._id};"Test";"Auxiliary";"10/12/2020";`,
@@ -366,7 +351,6 @@ const exportTypes = [
   },
   {
     exportType: RUP,
-    populate: populateContract,
     expectedRows: [
       '\ufeff"Id Auxiliaire";"Nom";"Prénom";"Civilité";"Date de naissance";"Nationalité";"Emploi";"Type de contrat";"Date de début";"Date de fin"',
       `${auxiliaryList[0]._id.toHexString()};"UIUI";"Lulu";"M.";"01/01/1992";"Française";"Auxiliaire de vie";"CDI";"01/01/2018";"01/01/2020"`,
@@ -376,7 +360,6 @@ const exportTypes = [
   },
   {
     exportType: REFERENT,
-    populate: populateCustomer,
     expectedRows: [
       '\ufeff"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Id Auxiliaire";"Auxiliaire - Titre";"Auxiliaire - Nom";"Auxiliaire - Prénom";"Date de début";"Date de fin"',
       `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";${auxiliaryList[0]._id.toHexString()};"M.";"UIUI";"Lulu";"31/01/2020";`,
@@ -386,14 +369,16 @@ const exportTypes = [
   },
 ];
 
-exportTypes.forEach(({ exportType, populate, expectedRows }) => {
+exportTypes.forEach(({ exportType, expectedRows }) => {
   describe(`GET /exports/${exportType}/data`, () => {
     let authToken;
-    describe('CLIENT_ADMIN', () => {
-      beforeEach(populate);
+    before(populateDB);
+
+    describe('COACH', () => {
       beforeEach(async () => {
-        authToken = await getToken('client_admin');
+        authToken = await getToken('coach');
       });
+
       it(`should get ${exportType}`, async () => {
         const response = await app.inject({
           method: 'GET',
@@ -413,13 +398,7 @@ exportTypes.forEach(({ exportType, populate, expectedRows }) => {
     });
 
     describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
+      const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
