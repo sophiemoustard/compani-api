@@ -22,6 +22,7 @@ const Contract = require('../../../src/models/Contract');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const Helper = require('../../../src/models/Helper');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const billThirdPartyPayer = {
   _id: new ObjectID(),
@@ -175,7 +176,6 @@ const billUserList = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
     customers: [billCustomerList[0]._id],
-    company: authCompany._id,
     origin: WEBAPP,
   },
   {
@@ -184,7 +184,6 @@ const billUserList = [
     local: { email: 'toto@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-    company: authCompany._id,
     contracts: [new ObjectID()],
     origin: WEBAPP,
   },
@@ -194,7 +193,6 @@ const billUserList = [
     local: { email: 'tutu@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-    company: otherCompany._id,
     contracts: [new ObjectID()],
     origin: WEBAPP,
   },
@@ -204,10 +202,16 @@ const billUserList = [
     local: { email: 'toto2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-    company: authCompany._id,
     contracts: [new ObjectID()],
     origin: WEBAPP,
   },
+];
+
+const userCompanies = [
+  { _id: new ObjectID(), user: billUserList[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: billUserList[1]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: billUserList[2]._id, company: otherCompany._id },
+  { _id: new ObjectID(), user: billUserList[3]._id, company: authCompany._id },
 ];
 
 const contracts = [
@@ -532,12 +536,9 @@ const fundingHistory = {
   company: authCompany._id,
 };
 
-const helpersList = [{
-  customer: billCustomerList[0]._id,
-  user: billUserList[0]._id,
-  company: authCompany._id,
-  referent: true,
-}];
+const helpersList = [
+  { customer: billCustomerList[0]._id, user: billUserList[0]._id, company: authCompany._id, referent: true },
+];
 
 const populateDB = async () => {
   await Service.deleteMany();
@@ -551,6 +552,7 @@ const populateDB = async () => {
   await CreditNote.deleteMany();
   await Contract.deleteMany();
   await Helper.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await (new ThirdPartyPayer(billThirdPartyPayer)).save();
@@ -564,6 +566,7 @@ const populateDB = async () => {
   await FundingHistory.create(fundingHistory);
   await BillNumber.create(billNumbers);
   await Contract.create(contracts);
+  await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {
