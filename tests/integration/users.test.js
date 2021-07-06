@@ -23,7 +23,6 @@ const {
 const {
   usersSeedList,
   populateDB,
-  isExistingRole,
   customerFromOtherCompany,
   helperFromOtherCompany,
   userSectors,
@@ -384,9 +383,6 @@ describe('GET /users', () => {
     });
 
     it('should get all coachs users (company A)', async () => {
-      const coachUsers = [...userList, ...usersSeedList]
-        .filter(u => u.role && isExistingRole(u.role.client, 'coach') && u.company === authCompany._id);
-
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=coach`,
@@ -394,7 +390,7 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(coachUsers.length);
+      expect(res.result.data.users.length).toBe(2);
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
@@ -919,14 +915,19 @@ describe('PUT /users/:id/', () => {
     });
 
     it('should update the user', async () => {
+      const userId = usersSeedList[0]._id.toHexString();
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        url: `/users/${userId}`,
         payload: updatePayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
+
+      // const updatedUser = await User.findById(userId)
+      //   .populate({ path: 'sector', select: '_id sector', match: { company: authCompany._id } })
+      //   .lean({ autopopulate: true, virtuals: true });
     });
 
     it('should update the user sector and sector history', async () => {
@@ -934,21 +935,17 @@ describe('PUT /users/:id/', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userId}`,
-        payload: { ...updatePayload, sector: userSectors[1]._id },
+        payload: { sector: userSectors[1]._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
 
       const updatedUser = await User.findById(userId)
-        .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
+        .populate({ path: 'sector', select: '_id sector', match: { company: authCompany._id } })
         .lean({ autopopulate: true, virtuals: true });
       expect(updatedUser).toBeDefined();
       expect(updatedUser.sector).toEqual(userSectors[1]._id);
-      expect(updatedUser).toMatchObject({
-        _id: usersSeedList[0]._id,
-        identity: expect.objectContaining({ firstname: updatePayload.identity.firstname }),
-        local: expect.objectContaining({ email: updatePayload.local.email }),
-      });
 
       const userSectorHistory = sectorHistories.filter(history => history.auxiliary.toHexString() === userId);
       const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company: authCompany });
@@ -974,8 +971,9 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(secondRespons.statusCode).toBe(200);
+
       const updatedUser = await User.findById(userId)
-        .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
+        .populate({ path: 'sector', select: '_id sector', match: { company: authCompany._id } })
         .lean();
 
       expect(updatedUser.sector).toEqual(userSectors[2]._id);

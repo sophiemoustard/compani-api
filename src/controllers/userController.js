@@ -187,7 +187,7 @@ const deletePicture = async (req) => {
 
 const createDriveFolder = async (req) => {
   try {
-    await UsersHelper.createDriveFolder(req.pre.user);
+    await UsersHelper.createDriveFolder(req.params._id);
 
     return { message: translate[language].userUpdated };
   } catch (e) {

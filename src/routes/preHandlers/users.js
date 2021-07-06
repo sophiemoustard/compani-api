@@ -25,7 +25,7 @@ const { language } = translate;
 exports.getUser = async (req) => {
   try {
     const userId = req.params._id;
-    const user = await User.findOne({ _id: userId }).lean();
+    const user = await User.findOne({ _id: userId }).populate({ path: 'company' }).lean();
     if (!user) throw Boom.notFound(translate[language].userNotFound);
 
     return user;

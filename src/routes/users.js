@@ -367,7 +367,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getUser, assign: 'user' }],
+        pre: [{ method: getUser }],
       },
       handler: createDriveFolder,
     });
