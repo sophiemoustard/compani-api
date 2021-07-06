@@ -186,27 +186,29 @@ function populateHelpers(doc, next) {
   return next();
 }
 
-CustomerSchema.virtual('firstIntervention', {
-  ref: 'Event',
-  localField: '_id',
-  foreignField: 'customer',
-  justOne: true,
-  options: { sort: { startDate: 1 } },
-});
+CustomerSchema.virtual(
+  'firstIntervention',
+  {
+    ref: 'Event',
+    localField: '_id',
+    foreignField: 'customer',
+    justOne: true,
+    options: { sort: { startDate: 1 } },
+  }
+);
 
-CustomerSchema.virtual('referent', {
-  ref: 'ReferentHistory',
-  localField: '_id',
-  foreignField: 'customer',
-  justOne: true,
-  options: { sort: { startDate: -1 } },
-});
+CustomerSchema.virtual(
+  'referent',
+  {
+    ref: 'ReferentHistory',
+    localField: '_id',
+    foreignField: 'customer',
+    justOne: true,
+    options: { sort: { startDate: -1 } },
+  }
+);
 
-CustomerSchema.virtual('helpers', {
-  ref: 'Helper',
-  localField: '_id',
-  foreignField: 'customer',
-});
+CustomerSchema.virtual('helpers', { ref: 'Helper', localField: '_id', foreignField: 'customer' });
 
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);

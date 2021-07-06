@@ -38,9 +38,6 @@ describe('NODE ENV', () => {
 describe('CUSTOMERS ROUTES', () => {
   let authToken;
   beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('client_admin');
-  });
 
   describe('POST /customers', () => {
     let addStub;
@@ -64,58 +61,64 @@ describe('CUSTOMERS ROUTES', () => {
       },
     };
 
-    it('should create a new customer', async () => {
-      const customersBefore = await Customer.countDocuments({ company: authCompany._id }).lean();
-      addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
-
-      const res = await app.inject({
-        method: 'POST',
-        url: '/customers',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(pick(res.result.data.customer.toObject(), ['company', 'identity', 'contact'])).toMatchObject({
-        company: authCompany._id,
-        identity: { lastname: payload.identity.lastname },
-        contact: {
-          primaryAddress: {
-            street: payload.contact.primaryAddress.street,
-            zipCode: payload.contact.primaryAddress.zipCode,
-            city: payload.contact.primaryAddress.city,
-            fullAddress: payload.contact.primaryAddress.fullAddress,
-            location: payload.contact.primaryAddress.location,
-          },
-        },
-      });
-      expect(res.result.data.customer.payment.mandates).toBeDefined();
-      expect(res.result.data.customer.payment.mandates.length).toEqual(1);
-      expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
-      expect(res.result.data.customer.driveFolder).toEqual({ driveId: '1234567890', link: 'http://qwertyuiop' });
-      const customers = await Customer.find({ company: authCompany._id }).lean();
-      expect(customers).toHaveLength(customersBefore + 1);
-    });
+      it('should create a new customer', async () => {
+        const customersBefore = await Customer.countDocuments({ company: authCompany._id }).lean();
+        addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
 
-    const missingParams = [
-      'identity.lastname',
-      'identity.title',
-      'contact.primaryAddress.street',
-      'contact.primaryAddress.zipCode',
-      'contact.primaryAddress.city',
-      'contact.primaryAddress.fullAddress',
-      'contact.primaryAddress.location.type',
-      'contact.primaryAddress.location.coordinates',
-    ];
-    missingParams.forEach((paramPath) => {
-      it(`should return a 400 error if missing '${paramPath}' parameter`, async () => {
         const res = await app.inject({
           method: 'POST',
           url: '/customers',
-          payload: omit(cloneDeep(payload), paramPath),
+          payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
-        expect(res.statusCode).toBe(400);
+
+        expect(res.statusCode).toBe(200);
+        expect(pick(res.result.data.customer.toObject(), ['company', 'identity', 'contact'])).toMatchObject({
+          company: authCompany._id,
+          identity: { lastname: payload.identity.lastname },
+          contact: {
+            primaryAddress: {
+              street: payload.contact.primaryAddress.street,
+              zipCode: payload.contact.primaryAddress.zipCode,
+              city: payload.contact.primaryAddress.city,
+              fullAddress: payload.contact.primaryAddress.fullAddress,
+              location: payload.contact.primaryAddress.location,
+            },
+          },
+        });
+        expect(res.result.data.customer.payment.mandates).toBeDefined();
+        expect(res.result.data.customer.payment.mandates.length).toEqual(1);
+        expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
+        expect(res.result.data.customer.driveFolder).toEqual({ driveId: '1234567890', link: 'http://qwertyuiop' });
+        const customers = await Customer.find({ company: authCompany._id }).lean();
+        expect(customers).toHaveLength(customersBefore + 1);
+      });
+
+      const missingParams = [
+        'identity.lastname',
+        'identity.title',
+        'contact.primaryAddress.street',
+        'contact.primaryAddress.zipCode',
+        'contact.primaryAddress.city',
+        'contact.primaryAddress.fullAddress',
+        'contact.primaryAddress.location.type',
+        'contact.primaryAddress.location.coordinates',
+      ];
+      missingParams.forEach((paramPath) => {
+        it(`should return a 400 error if missing '${paramPath}' parameter`, async () => {
+          const res = await app.inject({
+            method: 'POST',
+            url: '/customers',
+            payload: omit(cloneDeep(payload), paramPath),
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
+          expect(res.statusCode).toBe(400);
+        });
       });
     });
 
@@ -123,8 +126,6 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403, erp: true },
         { name: 'auxiliary', expectedCode: 403, erp: true },
-        { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-        { name: 'coach', expectedCode: 200, erp: true },
         { name: 'client_admin', expectedCode: 403, erp: false },
       ];
 
@@ -147,19 +148,25 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('GET /customers', () => {
-    it('should get all customers', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers',
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      const areAllCustomersFromCompany = res.result.data.customers
-        .every(customer => customer.company.toHexString() === authCompany._id.toHexString());
-      expect(areAllCustomersFromCompany).toBe(true);
-      const customers = await Customer.find({ company: authCompany._id }).lean();
-      expect(res.result.data.customers).toHaveLength(customers.length);
+      it('should get all customers', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/customers',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const areAllCustomersFromCompany = res.result.data.customers
+          .every(customer => customer.company.toHexString() === authCompany._id.toHexString());
+        expect(areAllCustomersFromCompany).toBe(true);
+        const customers = await Customer.find({ company: authCompany._id }).lean();
+        expect(res.result.data.customers).toHaveLength(customers.length);
+      });
     });
 
     describe('Other roles', () => {
@@ -167,7 +174,6 @@ describe('CUSTOMERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
