@@ -57,7 +57,6 @@ const otherContractUser = {
   refreshToken: uuidv4(),
   role: { client: rolesList[0]._id },
   contracts: [new ObjectID()],
-  company: otherCompany._id,
   prefixNumber: 103,
   origin: WEBAPP,
 };
@@ -73,10 +72,7 @@ const establishment = {
     fullAddress: '37, rue des acacias 69000 Lyon',
     zipCode: '69000',
     city: 'Lyon',
-    location: {
-      type: 'Point',
-      coordinates: [4.824302, 3.50807],
-    },
+    location: { type: 'Point', coordinates: [4.824302, 3.50807] },
   },
   phone: '0446899034',
   workHealthService: 'MT01',
@@ -102,7 +98,6 @@ const contractUsers = [{
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [new ObjectID()],
-  company: authCompany._id,
   sector: sector._id,
   contact: {
     address: {
@@ -133,7 +128,6 @@ const contractUsers = [{
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [new ObjectID()],
-  company: authCompany._id,
   sector: sector._id,
   contact: {
     address: {
@@ -164,7 +158,6 @@ const contractUsers = [{
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [],
-  company: authCompany._id,
   sector: sector._id,
   contact: {
     address: {
@@ -186,7 +179,6 @@ const contractUsers = [{
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [new ObjectID()],
-  company: authCompany._id,
   sector: sector._id,
   origin: WEBAPP,
 }];
@@ -240,12 +232,12 @@ const userFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const userCompanies = [
-  { user: contractUsers[0]._id, company: authCompany._id },
-  { user: contractUsers[1]._id, company: authCompany._id },
-  { user: contractUsers[2]._id, company: authCompany._id },
-  { user: contractUsers[3]._id, company: authCompany._id },
-  { user: getUser('auxiliary_without_company')._id, company: authCompany._id },
+const contractUserCompanies = [
+  { _id: new ObjectID(), user: contractUsers[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[1]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[2]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[3]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: otherContractUser._id, company: otherCompany._id },
 ];
 
 const contractsList = [
@@ -430,7 +422,7 @@ const populateDB = async () => {
   await Contract.insertMany([...contractsList, otherContract]);
   await Event.insertMany(contractEvents);
   await SectorHistory.insertMany(sectorHistories);
-  await UserCompany.insertMany(userCompanies);
+  await UserCompany.insertMany(contractUserCompanies);
 };
 
 module.exports = {
@@ -442,5 +434,5 @@ module.exports = {
   otherContract,
   otherContractUser,
   userFromOtherCompany,
-  userCompanies,
+  contractUserCompanies,
 };
