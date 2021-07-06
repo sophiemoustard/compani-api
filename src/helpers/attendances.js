@@ -6,7 +6,7 @@ exports.create = payload => (new Attendance(payload)).save();
 
 exports.list = async (query, companyId) => {
   const attendances = await Attendance.find({ courseSlot: { $in: query } })
-    .populate({ path: 'trainee', select: 'company' })
+    .populate({ path: 'trainee', populate: { path: 'company' } })
     .lean();
 
   return companyId

@@ -118,21 +118,9 @@ const slotsList = [
 ];
 
 const attendancesList = [
-  {
-    _id: new ObjectID(),
-    courseSlot: slotsList[0],
-    trainee: coursesList[0].trainees[0],
-  },
-  {
-    _id: new ObjectID(),
-    courseSlot: slotsList[3],
-    trainee: coursesList[3].trainees[0],
-  },
-  {
-    _id: new ObjectID(),
-    courseSlot: slotsList[3],
-    trainee: coursesList[3].trainees[1],
-  },
+  { _id: new ObjectID(), courseSlot: slotsList[0], trainee: coursesList[0].trainees[0] },
+  { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[0] },
+  { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[1] },
 ];
 
 const companyTraineesList = [
@@ -141,7 +129,6 @@ const companyTraineesList = [
     identity: { firstname: 'trainee', lastname: 'withCompany' },
     local: { email: 'traineeWithCompany@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
-    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -154,21 +141,18 @@ const companyTraineesList = [
     identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
     local: { email: 'traineeFromINTERB2B@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
-    company: otherCompany._id,
   },
   {
     _id: coursesList[3].trainees[1],
     identity: { firstname: 'traineeFromINTERB2B', lastname: 'withAuthCompany' },
     local: { email: 'authTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
-    company: authCompany._id,
   },
   {
     _id: coursesList[4].trainees[0],
     identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
     local: { email: 'otherTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
-    company: otherCompany._id,
   },
 ];
 
