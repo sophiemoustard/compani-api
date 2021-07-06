@@ -7,6 +7,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const Role = require('../../../src/models/Role');
 const Service = require('../../../src/models/Service');
+const UserCompany = require('../../../src/models/UserCompany');
 const ExportHelper = require('../../../src/helpers/dataExport');
 const UtilsHelper = require('../../../src/helpers/utils');
 const { FIXED, HOURLY } = require('../../../src/helpers/constants');
@@ -375,27 +376,26 @@ describe('exportAuxiliaries', () => {
 describe('exportHelpers', () => {
   let findUser;
   let findOneRole;
+  let findUserCompany;
   let getLastVersion;
 
   beforeEach(() => {
     findUser = sinon.stub(User, 'find');
+    findUserCompany = sinon.stub(UserCompany, 'find');
     findOneRole = sinon.stub(Role, 'findOne');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
   });
 
   afterEach(() => {
     findUser.restore();
+    findUserCompany.restore();
     findOneRole.restore();
     getLastVersion.restore();
   });
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    const roleId = new ObjectID();
-    const helpers = [];
-
-    findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -415,81 +415,24 @@ describe('exportHelpers', () => {
       'Bénéficiaire - Ville',
       'Date de création',
     ]);
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
     SinonMongoose.calledWithExactly(
-      findUser,
-      [
-        { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'customers',
-            populate: { path: 'customer', select: 'identity contact' },
-            match: { company: credentials.company._id },
-          }],
-        },
-        { query: 'lean' },
-      ]
+      findUserCompany,
+      [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
     );
+    sinon.assert.notCalled(findOneRole);
+    sinon.assert.notCalled(findUser);
   });
 
   it('should return helper info', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleId = new ObjectID();
+    const userCompanies = [{ user: new ObjectID() }, { user: new ObjectID() }];
     const helpers = [{
-      _id: new ObjectID(),
+      _id: userCompanies[0].user,
       local: { email: 'aide@sos.io' },
       contact: { phone: '0123456789' },
       identity: { lastname: 'Je', firstname: 'suis' },
       createdAt: '2019-02-01T09:38:18.653Z',
-    }];
-
-    findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
-
-    const result = await ExportHelper.exportHelpers(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(
-      [
-        'aide@sos.io',
-        '+33123456789',
-        expect.any(ObjectID),
-        'JE',
-        'suis',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '01/02/2019',
-      ]
-    );
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
-    SinonMongoose.calledWithExactly(
-      findUser,
-      [
-        { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'customers',
-            populate: { path: 'customer', select: 'identity contact' },
-            match: { company: credentials.company._id },
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should return customer helper info', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleId = new ObjectID();
-    const helpers = [{
       customers: {
         customer: {
           _id: new ObjectID(),
@@ -507,6 +450,7 @@ describe('exportHelpers', () => {
       },
     }];
 
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([userCompanies], ['lean']));
     findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
     findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
 
@@ -514,26 +458,35 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject([
-      '',
-      '',
-      '',
-      '',
-      '',
-      expect.any(ObjectID),
-      'M.',
-      'PATATE',
-      '',
-      '37 rue de Ponthieu',
-      '75008',
-      'Paris',
-      '',
-    ]);
+    expect(result[1]).toMatchObject(
+      [
+        'aide@sos.io',
+        '+33123456789',
+        expect.any(ObjectID),
+        'JE',
+        'suis',
+        expect.any(ObjectID),
+        'M.',
+        'PATATE',
+        '',
+        '37 rue de Ponthieu',
+        '75008',
+        'Paris',
+        '01/02/2019',
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findUserCompany,
+      [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
+    );
     SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
     SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{ 'role.client': roleId, company: credentials.company._id }] },
+        {
+          query: 'find',
+          args: [{ 'role.client': roleId, _id: { $in: [userCompanies[0].user, userCompanies[1].user] } }],
+        },
         {
           query: 'populate',
           args: [{

@@ -135,6 +135,11 @@ const userCompaniesList = [
   { user: userList[2]._id, company: authCompany._id },
   { user: userList[3]._id, company: authCompany._id },
   { user: userList[4]._id, company: authCompany._id },
+  { user: userList[5]._id, company: authCompany._id },
+  { user: userList[6]._id, company: authCompany._id },
+  { user: userList[7]._id, company: authCompany._id },
+  { user: userList[9]._id, company: companyWithoutSubscription._id },
+  { user: userList[10]._id, company: companyWithoutSubscription._id },
 ];
 
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');
