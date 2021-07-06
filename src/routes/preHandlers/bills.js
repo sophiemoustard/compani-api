@@ -27,7 +27,7 @@ exports.authorizeGetBill = async (req) => {
 
   const companyId = get(req, 'auth.credentials.company._id', null);
   const customer = await Customer.countDocuments({ _id: req.query.customer, company: companyId });
-  if (!customer) throw Boom.forbidden();
+  if (!customer) throw Boom.notFound();
 
   return null;
 };
@@ -40,7 +40,7 @@ exports.authorizeGetBillPdf = async (req) => {
   if (!canRead && !isHelpersCustomer) throw Boom.forbidden();
 
   const customer = await Customer.countDocuments({ _id: bill.customer, company: credentials.company._id });
-  if (!customer) throw Boom.forbidden();
+  if (!customer) throw Boom.notFound();
 
   return null;
 };

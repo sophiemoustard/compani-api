@@ -370,12 +370,7 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credential
     .populate({ path: 'thirdPartyPayer' })
     .lean();
 
-  const rows = [billAndCreditNoteExportHeader];
-
-  rows.push(...formatBillsForExport(bills));
-  rows.push(...formatCreditNotesForExport(creditNotes));
-
-  return rows;
+  return [billAndCreditNoteExportHeader, ...formatBillsForExport(bills), ...formatCreditNotesForExport(creditNotes)];
 };
 
 const contractExportHeader = [

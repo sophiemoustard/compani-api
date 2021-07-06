@@ -166,6 +166,7 @@ describe('updateEventAndFundingHistory', () => {
 
   it('should increment history for hourly and once funding', async () => {
     const fundingId = new ObjectID();
+    const credentials = { company: { _id: new ObjectID() } };
     const events = [{
       _id: new ObjectID(),
       company: new ObjectID(),
@@ -176,7 +177,6 @@ describe('updateEventAndFundingHistory', () => {
     find.returns(events);
     findOneAndUpdate.returns(null);
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
-    const credentials = { company: { _id: new ObjectID() } };
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
 
@@ -191,6 +191,7 @@ describe('updateEventAndFundingHistory', () => {
 
   it('should increment history for hourly and monthly funding', async () => {
     const fundingId = new ObjectID();
+    const credentials = { company: { _id: new ObjectID() } };
     const events = [{
       _id: new ObjectID(),
       company: new ObjectID(),
@@ -200,7 +201,6 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
     findOneAndUpdate.returns(new FundingHistory());
-    const credentials = { company: { _id: new ObjectID() } };
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
 
@@ -215,6 +215,7 @@ describe('updateEventAndFundingHistory', () => {
 
   it('should decrement history for hourly and monthly funding', async () => {
     const fundingId = new ObjectID();
+    const credentials = { company: { _id: new ObjectID() } };
     const events = [{
       _id: new ObjectID(),
       company: new ObjectID(),
@@ -224,7 +225,6 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
     findOneAndUpdate.returns(null);
-    const credentials = { company: { _id: new ObjectID() } };
 
     await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
 
@@ -240,6 +240,7 @@ describe('updateEventAndFundingHistory', () => {
   it('should increment history for fixed and once funding', async () => {
     const fundingId = new ObjectID();
     const eventId = new ObjectID();
+    const credentials = { company: { _id: new ObjectID() } };
     const eventsToUpdate = [{ eventId }];
     const events = [{
       _id: new ObjectID(),
@@ -249,7 +250,6 @@ describe('updateEventAndFundingHistory', () => {
     }];
 
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
-    const credentials = { company: { _id: new ObjectID() } };
 
     await CreditNoteHelper.updateEventAndFundingHistory(eventsToUpdate, false, credentials);
 
