@@ -10,7 +10,11 @@ exports.getPartnerOrganization = (partnerOrganizationId, credentials) => Partner
   .populate({
     path: 'partners',
     select: 'identity phone email job customerPartners',
-    populate: { path: 'customerPartner', match: { prescriber: true, company: credentials.company._id } },
+    populate: {
+      path: 'customerPartner',
+      match: { prescriber: false, company: credentials.company._id },
+      populate: { path: 'customer', select: 'identity subscriptions' },
+    },
   })
   .lean({ virtuals: true });
 
