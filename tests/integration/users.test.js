@@ -476,22 +476,24 @@ describe('GET /users', () => {
   });
 });
 
-describe('GET /users/exists', () => {
+describe('GET /users/exists #tag', () => {
   let authToken;
   beforeEach(populateDB);
-  it('should return 200 if user not connected', async () => {
-    const { email } = usersSeedList[0].local;
-    const res = await app.inject({
-      method: 'GET',
-      url: `/users/exists?email=${email}`,
-    });
+  describe('NOT LOGGED', () => {
+    it('should return 200 if user not connected', async () => {
+      const { email } = usersSeedList[0].local;
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/exists?email=${email}`,
+      });
 
-    expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(200);
+    });
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should return true and user if user exists', async () => {
@@ -503,7 +505,7 @@ describe('GET /users/exists', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.exists).toBe(true);
-      expect(res.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+      expect(res.result.data.user).toEqual({ ...pick(usersSeedList[0], ['role', '_id']), company: authCompany._id });
     });
 
     it('should return false if user does not exists', async () => {
@@ -525,8 +527,6 @@ describe('GET /users/exists', () => {
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 200 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
@@ -542,7 +542,10 @@ describe('GET /users/exists', () => {
 
         if (response.result.data) {
           expect(response.result.data.exists).toBe(true);
-          expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+          expect(response.result.data.user).toEqual({
+            ...pick(usersSeedList[0], ['role', '_id']),
+            company: authCompany._id,
+          });
         }
       });
     });
