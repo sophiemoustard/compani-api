@@ -10,7 +10,7 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Service = require('../../../src/models/Service');
 const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList } = require('../../seed/roleSeed');
-const { userList } = require('../../seed/userSeed');
+const { userList, userCompaniesList } = require('../../seed/userSeed');
 const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
 const { serviceList } = require('../../seed/serviceSeed');
@@ -79,6 +79,7 @@ const populateDBForAuthentication = async () => {
   await Role.insertMany(rolesList);
   await ThirdPartyPayer.insertMany(thirdPartyPayerList);
   await Service.insertMany(serviceList);
+  await UserCompany.insertMany(userCompaniesList);
   for (const user of userList) {
     await (new User(user)).save();
   }

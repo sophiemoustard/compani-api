@@ -19,6 +19,7 @@ const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
 const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
+const UserCompany = require('../../../src/models/UserCompany');
 const { authCustomer } = require('../../seed/customerSeed');
 const { rolesList, populateDBForAuthentication, authCompany, userList } = require('./authenticationSeed');
 const {
@@ -854,18 +855,14 @@ const user = {
 const helper = userList.find(u => u.local.email === 'helper@alenvi.io');
 
 const helpersList = [
-  {
-    customer: customer._id,
-    user: helper._id,
-    company: authCompany._id,
-    referent: true,
-  },
-  {
-    customer: customersList[0]._id,
-    user: user._id,
-    company: authCompany._id,
-    referent: true,
-  },
+  { customer: customer._id, user: helper._id, company: authCompany._id, referent: true },
+  { customer: customersList[0]._id, user: user._id, company: authCompany._id, referent: true },
+];
+
+const userCompanies = [
+  { _id: new ObjectID(), user: auxiliaryList[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: auxiliaryList[1]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: user._id, company: authCompany._id },
 ];
 
 const populateEvents = async () => {
@@ -878,6 +875,7 @@ const populateEvents = async () => {
   await Service.deleteMany();
   await Contract.deleteMany();
   await EventHistory.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Event.insertMany(eventList);
@@ -889,17 +887,20 @@ const populateEvents = async () => {
   await Service.insertMany(serviceList);
   await Contract.insertMany(contractList);
   await EventHistory.insertMany(eventHistoriesList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 const populateSectorHistories = async () => {
   await User.deleteMany();
   await Sector.deleteMany();
   await SectorHistory.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await User.insertMany(auxiliaryList);
   await new Sector(sector).save();
   await new SectorHistory(sectorHistory).save();
+  await UserCompany.insertMany(userCompanies);
 };
 
 const populateBillsAndCreditNotes = async () => {
@@ -907,23 +908,27 @@ const populateBillsAndCreditNotes = async () => {
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
   await CreditNote.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Bill.insertMany(billsList);
   await CreditNote.insertMany(creditNotesList);
   await new Customer(customer).save();
   await new ThirdPartyPayer(thirdPartyPayer).save();
+  await UserCompany.insertMany(userCompanies);
 };
 
 const populatePayment = async () => {
   await Payment.deleteMany();
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Payment.insertMany(paymentsList);
   await new Customer(customer).save();
   await new ThirdPartyPayer(thirdPartyPayer).save();
+  await UserCompany.insertMany(userCompanies);
 };
 
 const populateService = async () => {
@@ -931,6 +936,7 @@ const populateService = async () => {
 
   await populateDBForAuthentication();
   await Service.insertMany(serviceList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 const populateCustomer = async () => {
@@ -940,6 +946,7 @@ const populateCustomer = async () => {
   await Event.deleteMany();
   await User.deleteMany();
   await ReferentHistory.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -949,6 +956,7 @@ const populateCustomer = async () => {
   await Customer.insertMany([customer, ...customersList]);
   await Event.insertMany(eventList);
   await ReferentHistory.insertMany(referentList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 const populateUser = async () => {
@@ -958,6 +966,7 @@ const populateUser = async () => {
   await Establishment.deleteMany();
   await Helper.deleteMany();
   await Event.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -968,6 +977,7 @@ const populateUser = async () => {
   await (new Establishment(establishment)).save();
   await Helper.insertMany(helpersList);
   await Event.insertMany(eventList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 const populatePay = async () => {
@@ -977,6 +987,7 @@ const populatePay = async () => {
   await SectorHistory.deleteMany();
   await Sector.deleteMany();
   await Contract.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Pay.insertMany(payList);
@@ -985,15 +996,18 @@ const populatePay = async () => {
   await new SectorHistory(sectorHistory).save();
   await new Sector(sector).save();
   await Contract.insertMany(contractList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 const populateContract = async () => {
   await User.deleteMany();
   await Contract.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await User.insertMany(auxiliaryList);
   await Contract.insertMany(contractList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {
