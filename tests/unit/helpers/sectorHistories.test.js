@@ -41,13 +41,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     expect(result).toBeUndefined();
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        {
-          query: 'findOne',
-          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
-        { query: 'lean' },
-      ]
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
     sinon.assert.calledWithExactly(
       createHistoryStub,
@@ -67,13 +61,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     expect(result).toEqual(null);
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        {
-          query: 'findOne',
-          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
-        { query: 'lean' },
-      ]
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
     sinon.assert.notCalled(createHistoryStub);
   });
@@ -93,13 +81,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     } finally {
       SinonMongoose.calledWithExactly(
         findOne,
-        [
-          {
-            query: 'findOne',
-            args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-          },
-          { query: 'lean' },
-        ]
+        [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
       );
       sinon.assert.notCalled(createHistoryStub);
     }
@@ -117,27 +99,15 @@ describe('updateHistoryOnSectorUpdate', () => {
     expect(result).toEqual({ sector });
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        {
-          query: 'findOne',
-          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
-        { query: 'lean' },
-      ]
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
     SinonMongoose.calledWithExactly(
       find,
-      [
-        {
-          query: 'find',
-          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
-        { query: 'lean' },
-      ]
+      [{ query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { auxiliary: auxiliaryId, endDate: null },
       { $set: { sector: sector.toHexString() } }
     );
     sinon.assert.notCalled(createHistoryStub);
@@ -156,21 +126,12 @@ describe('updateHistoryOnSectorUpdate', () => {
     expect(result).toEqual({ sector });
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        {
-          query: 'findOne',
-          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
-        { query: 'lean' },
-      ]
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
     SinonMongoose.calledWithExactly(
       find,
       [
-        {
-          query: 'find',
-          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
+        { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
         { query: 'sort', args: [{ startDate: -1 }] },
         { query: 'lean' },
       ]
@@ -193,28 +154,19 @@ describe('updateHistoryOnSectorUpdate', () => {
     expect(result).toEqual({ sector });
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        {
-          query: 'findOne',
-          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
-        { query: 'lean' },
-      ]
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
     SinonMongoose.calledWithExactly(
       find,
       [
-        {
-          query: 'find',
-          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
+        { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
         { query: 'sort', args: [{ startDate: -1 }] },
         { query: 'lean' },
       ]
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { auxiliary: auxiliaryId, endDate: null },
       { $set: { sector: sector.toHexString() } }
     );
     sinon.assert.notCalled(createHistoryStub);
@@ -241,25 +193,19 @@ describe('updateHistoryOnSectorUpdate', () => {
       moment().startOf('day').toDate()
     );
     SinonMongoose.calledWithExactly(findOne, [
-      {
-        query: 'findOne',
-        args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-      },
+      { query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] },
       { query: 'lean' },
     ]);
     SinonMongoose.calledWithExactly(
       find, [
-        {
-          query: 'find',
-          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
+        { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
         { query: 'sort', args: [{ startDate: -1 }] },
         { query: 'lean' },
       ]
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { auxiliary: auxiliaryId, endDate: null },
       { $set: { endDate: moment().subtract(1, 'day').endOf('day').toDate() } }
     );
   });
@@ -426,7 +372,7 @@ describe('updateHistoryOnContractUpdate', () => {
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { auxiliary: auxiliaryId, endDate: null },
       { $set: { startDate: moment(newContract.startDate).startOf('day').toDate() } }
     );
   });
@@ -494,13 +440,7 @@ describe('updateHistoryOnContractDeletion', () => {
 
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        {
-          query: 'findOne',
-          args: [{ auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] }],
-        },
-        { query: 'lean' },
-      ]
+      [{ query: 'findOne', args: [{ auxiliary: contract.user, endDate: null }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       remove,
@@ -508,7 +448,7 @@ describe('updateHistoryOnContractDeletion', () => {
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { auxiliary: contract.user, endDate: null },
       { $unset: { startDate: '' } }
     );
   });
@@ -583,7 +523,7 @@ describe('updateEndDate', () => {
 
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { auxiliary, endDate: null },
       { $set: { endDate: moment(endDate).endOf('day').toDate() } }
     );
   });

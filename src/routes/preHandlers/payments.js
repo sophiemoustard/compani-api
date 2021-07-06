@@ -41,7 +41,7 @@ exports.authorizePaymentsListCreation = async (req) => {
     const customersIds = [...new Set(req.payload.map(payment => payment.customer))];
     const customersCount = await Customer.countDocuments({
       _id: { $in: customersIds },
-      company: get(credentials, 'company._id', null),
+      company: get(credentials, 'company._id'),
     });
     if (customersCount === customersIds.length) return null;
 
@@ -58,11 +58,11 @@ exports.authorizePaymentCreation = async (req) => {
     const payment = req.payload;
     const companyId = get(credentials, 'company._id', null).toHexString();
 
-    const customer = await Customer.findOne({ _id: payment.customer, company: companyId }).lean();
+    const customer = await Customer.countDocuments({ _id: payment.customer, company: companyId });
     if (!customer) throw Boom.forbidden();
 
     if (payment.thirdPartyPayer) {
-      const tpp = await ThirdPartyPayer.findOne({ _id: payment.thirdPartyPayer, company: companyId }).lean();
+      const tpp = await ThirdPartyPayer.countDocuments({ _id: payment.thirdPartyPayer, company: companyId });
       if (!tpp) throw Boom.forbidden();
     }
 

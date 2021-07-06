@@ -3,7 +3,7 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const maps = require('../models/Google/Maps');
 
 exports.getDistanceMatrices = async credentials =>
-  DistanceMatrix.find({ company: get(credentials, 'company._id') || null }).lean();
+  DistanceMatrix.find({ company: get(credentials, 'company._id') }).lean();
 
 exports.getOrCreateDistanceMatrix = async (params, companyId) => {
   const distanceMatrix = await DistanceMatrix.findOne(params);

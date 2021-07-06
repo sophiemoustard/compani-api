@@ -23,10 +23,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const payDocuments = await PayDocument.find({
-      ...req.query,
-      company: get(req, 'auth.credentials.company._id', null),
-    });
+    const payDocuments = await PayDocument.find({ ...req.query, company: get(req, 'auth.credentials.company._id') });
 
     return {
       message: !payDocuments.length ? translate[language].payDocumentsNotFound : translate[language].payDocumentsFound,

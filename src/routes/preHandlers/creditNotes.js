@@ -11,10 +11,9 @@ const { language } = translate;
 
 exports.getCreditNote = async (req) => {
   try {
-    const creditNote = await CreditNote.findOne({
-      _id: req.params._id,
-      company: get(req, 'auth.credentials.company._id', null),
-    }).lean();
+    const creditNote = await CreditNote
+      .findOne({ _id: req.params._id, company: get(req, 'auth.credentials.company._id') })
+      .lean();
     if (!creditNote) throw Boom.notFound(translate[language].creditNoteNotFound);
 
     return creditNote;
@@ -30,10 +29,10 @@ exports.authorizeGetCreditNotePdf = async (req) => {
 
   const canRead = credentials.scope.includes('bills:read');
   const isHelpersCustomer = credentials.scope.includes(`customer-${creditNote.customer.toHexString()}`);
-
-  const customer = await Customer.findOne({ _id: creditNote.customer, company: credentials.company._id }).lean();
-  if (!customer) throw Boom.forbidden();
   if (!canRead && !isHelpersCustomer) throw Boom.forbidden();
+
+  const customer = await Customer.countDocuments({ _id: creditNote.customer, company: credentials.company._id });
+  if (!customer) throw Boom.notFound();
 
   return null;
 };
@@ -57,16 +56,15 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
 
   if (payload.customer && payload.subscription) {
     const customer = await Customer
-      .findOne({ _id: payload.customer, 'subscriptions._id': payload.subscription._id, company: companyId })
-      .lean();
+      .countDocuments({ _id: payload.customer, 'subscriptions._id': payload.subscription._id, company: companyId });
     if (!customer) throw Boom.forbidden();
   } else if (payload.customer) {
-    const customer = await Customer.findOne(({ _id: payload.customer, company: companyId })).lean();
+    const customer = await Customer.countDocuments(({ _id: payload.customer, company: companyId }));
     if (!customer) throw Boom.forbidden();
   }
 
   if (payload.thirdPartyPayer) {
-    const tpp = await ThirdPartyPayer.findOne(({ _id: payload.thirdPartyPayer, company: companyId })).lean();
+    const tpp = await ThirdPartyPayer.countDocuments(({ _id: payload.thirdPartyPayer, company: companyId }));
     if (!tpp) throw Boom.forbidden();
   }
 

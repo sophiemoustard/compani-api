@@ -52,7 +52,7 @@ exports.getUsersList = async (query, credentials) => {
     .populate({
       path: 'sector',
       select: '_id sector',
-      match: { company: get(credentials, 'company._id', null) },
+      match: { company: get(credentials, 'company._id') },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
     .populate({ path: 'contracts', select: 'startDate endDate' })
@@ -69,7 +69,7 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
     .populate({
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
-      match: { company: get(credentials, 'company._id', null) },
+      match: { company: get(credentials, 'company._id') },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
     .populate({ path: 'contracts', select: 'startDate endDate' })

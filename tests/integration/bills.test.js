@@ -77,7 +77,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     ['endDate', 'billingStartDate', 'billingPeriod'].forEach((param) => {
@@ -676,14 +676,14 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 403 error if bill customer is not from same company', async () => {
+    it('should return a 404 error if bill customer is not from same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/bills/${billsList[0]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 

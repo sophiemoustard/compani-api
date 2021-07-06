@@ -48,16 +48,11 @@ exports.uploadFile = async (payload, params) => {
   return Company.findOneAndUpdate({ _id: params._id }, { $set: flat(companyPayload) }, { new: true }).lean();
 };
 
-exports.getFirstIntervention = async (credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const firstIntervention = await Event
-    .find({ company: companyId, type: INTERVENTION })
-    .sort({ startDate: 1 })
-    .limit(1)
-    .lean();
-
-  return firstIntervention;
-};
+exports.getFirstIntervention = async credentials => Event
+  .find({ company: get(credentials, 'company._id'), type: INTERVENTION })
+  .sort({ startDate: 1 })
+  .limit(1)
+  .lean();
 
 exports.updateCompany = async (companyId, payload) => {
   const transportSubs = get(payload, 'rhConfig.transportSubs');

@@ -619,8 +619,8 @@ describe('exportReferents', () => {
       findReferentHistory,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
-        { query: 'populate', args: ['auxiliary'] },
-        { query: 'populate', args: ['customer'] },
+        { query: 'populate', args: [{ path: 'auxiliary' }] },
+        { query: 'populate', args: [{ path: 'customer' }] },
         { query: 'lean' },
       ]
     );
@@ -676,8 +676,8 @@ describe('exportReferents', () => {
       findReferentHistory,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
-        { query: 'populate', args: ['auxiliary'] },
-        { query: 'populate', args: ['customer'] },
+        { query: 'populate', args: [{ path: 'auxiliary' }] },
+        { query: 'populate', args: [{ path: 'customer' }] },
         { query: 'lean' },
       ]
     );
@@ -818,7 +818,7 @@ describe('exportServices', () => {
       findService,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
-        { query: 'populate', args: ['company'] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: credentials.company._id } }] },
         { query: 'lean' },
       ]
@@ -871,7 +871,7 @@ describe('exportServices', () => {
       findService,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
-        { query: 'populate', args: ['company'] },
+        { query: 'populate', args: [{ path: 'company' }] },
         { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: credentials.company._id } }] },
         { query: 'lean' },
       ]

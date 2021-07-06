@@ -65,7 +65,6 @@ exports.exportCustomers = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const customers = await Customer.find({ company: companyId })
     .populate({ path: 'subscriptions.service' })
-  // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .populate({ path: 'referent', match: { company: companyId } })
     .lean({ autopopulate: true });
@@ -333,8 +332,8 @@ const referentsHeader = [
 
 exports.exportReferents = async (credentials) => {
   const referentsHistories = await ReferentHistory.find({ company: get(credentials, 'company._id', '') })
-    .populate('auxiliary')
-    .populate('customer')
+    .populate({ path: 'auxiliary' })
+    .populate({ path: 'customer' })
     .lean();
 
   const rows = [referentsHeader];
@@ -371,7 +370,7 @@ const serviceHeader = [
 exports.exportServices = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const services = await Service.find({ company: companyId })
-    .populate('company')
+    .populate({ path: 'company' })
     .populate({ path: 'versions.surcharge', match: { company: companyId } })
     .lean();
   const data = [serviceHeader];
@@ -407,7 +406,7 @@ const subscriptionExportHeader = [
 
 exports.exportSubscriptions = async (credentials) => {
   const customers = await Customer
-    .find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: get(credentials, 'company._id', null) })
+    .find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: get(credentials, 'company._id') })
     .populate({ path: 'subscriptions.service' })
     .lean();
   const data = [subscriptionExportHeader];
