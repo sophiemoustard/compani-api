@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { JOBS } = require('../helpers/constants');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
@@ -15,7 +16,13 @@ const PartnerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 
+PartnerSchema.virtual(
+  'customerPartner',
+  { ref: 'CustomerPartner', localField: '_id', foreignField: 'partner' }
+);
+
 PartnerSchema.pre('find', validateQuery);
 PartnerSchema.pre('aggregate', validateAggregation);
 
+PartnerSchema.plugin(mongooseLeanVirtuals);
 module.exports = mongoose.model('Partner', PartnerSchema);

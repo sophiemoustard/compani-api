@@ -3,11 +3,16 @@ const Partner = require('../models/Partner');
 
 exports.create = (payload, credentials) => PartnerOrganization.create({ ...payload, company: credentials.company._id });
 
-exports.list = credentials => PartnerOrganization.find({ company: credentials.company._id }).lean();
+exports.list = credentials => PartnerOrganization.find({ company: credentials.company._id });
 
-exports.getPartnerOrganization = partnerOrganizationId => PartnerOrganization.findOne({ _id: partnerOrganizationId })
-  .populate({ path: 'partners', select: 'identity phone email job' })
-  .lean();
+exports.getPartnerOrganization = (partnerOrganizationId, credentials) => PartnerOrganization
+  .findOne({ _id: partnerOrganizationId, company: credentials.company._id })
+  .populate({
+    path: 'partners',
+    select: 'identity phone email job customerPartners',
+    populate: { path: 'customerPartner', match: { prescriber: true, company: credentials.company._id } },
+  })
+  .lean({ virtuals: true });
 
 exports.update = async (partnerOrganizationId, payload) => PartnerOrganization
   .updateOne({ _id: partnerOrganizationId }, { $set: payload });
