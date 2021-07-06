@@ -1,4 +1,4 @@
-const UtilsHelper = require('./utils');
+const UtilsPdfHelper = require('./utils');
 const { COPPER_500 } = require('../../../helpers/constants');
 
 const getSlotTableContent = slot => [
@@ -10,7 +10,7 @@ const getSlotTableContent = slot => [
 
 exports.getPdfContent = async (data) => {
   const { trainees } = data;
-  const [conscience, compani, decision, signature] = await UtilsHelper.getImages();
+  const [conscience, compani, decision, signature] = await UtilsPdfHelper.getImages();
 
   const content = [];
   trainees.forEach((trainee, i) => {
@@ -25,7 +25,7 @@ exports.getPdfContent = async (data) => {
       ],
       { image: decision, width: 64 },
     ];
-    const header = UtilsHelper.getHeader(compani, conscience, title, columns);
+    const header = UtilsPdfHelper.getHeader(compani, conscience, title, columns);
 
     const body = [
       [
@@ -39,7 +39,7 @@ exports.getPdfContent = async (data) => {
 
     const table = [{ table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 8 }];
 
-    const footer = UtilsHelper.getFooter(i === trainees.length - 1, signature, 96);
+    const footer = UtilsPdfHelper.getFooter(i === trainees.length - 1, signature, 96);
 
     content.push(header, table, footer);
   });

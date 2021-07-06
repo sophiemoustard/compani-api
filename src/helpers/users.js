@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Company = require('../models/Company');
+const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GCloudStorageHelper = require('./gCloudStorage');
@@ -23,17 +24,23 @@ const UserCompaniesHelper = require('./userCompanies');
 const { language } = translate;
 
 exports.formatQueryForUsersList = async (query) => {
-  const params = { ...pickBy(omit(query, ['role'])) };
+  const formattedQuery = pickBy(omit(query, ['role', 'company']));
 
   if (query.role) {
     const roleNames = Array.isArray(query.role) ? query.role : [query.role];
     const roles = await Role.find({ name: { $in: roleNames } }, { _id: 1, interface: 1 }).lean();
     if (!roles.length) throw Boom.notFound(translate[language].roleNotFound);
 
-    params[`role.${roles[0].interface}`] = { $in: roles.map(role => role._id) };
+    formattedQuery[`role.${roles[0].interface}`] = { $in: roles.map(role => role._id) };
   }
 
-  return params;
+  if (query.company) {
+    const users = await UserCompany.find({ company: query.company }, { user: 1 }).lean();
+
+    formattedQuery._id = { $in: users.map(u => u.user) };
+  }
+
+  return formattedQuery;
 };
 
 exports.getUsersList = async (query, credentials) => {
@@ -71,13 +78,21 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
 };
 
 exports.getLearnerList = async (query, credentials) => {
-  let userQuery = { ...query };
+  let userQuery = omit(query, ['company', 'hasCompany']);
   if (query.company) {
-    const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } });
-    userQuery = { ...userQuery, 'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } } };
+    const rolesToExclude = await Role.find({ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }).lean();
+    const usersCompany = await UserCompany.find({ company: query.company }, { user: 1 }).lean();
+    userQuery = {
+      ...userQuery,
+      _id: { $in: usersCompany.map(uc => uc.user) },
+      'role.client': { $not: { $in: rolesToExclude.map(r => r._id) } },
+    };
   }
 
-  if (query.hasCompany) userQuery = { ...omit(userQuery, 'hasCompany'), company: { $exists: true } };
+  if (query.hasCompany) {
+    const usersCompany = await UserCompany.find({}, { user: 1 }).lean();
+    userQuery = { ...userQuery, _id: { $in: usersCompany.map(uc => uc.user) } };
+  }
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })

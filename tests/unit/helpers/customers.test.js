@@ -4,6 +4,8 @@ const expect = require('expect');
 const flat = require('flat');
 const crypto = require('crypto');
 const moment = require('moment');
+const QRCode = require('qrcode');
+const CustomerQRCode = require('../../../src/data/pdf/customerQRCode/customerQRCode');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const Rum = require('../../../src/models/Rum');
@@ -20,6 +22,7 @@ const FundingsHelper = require('../../../src/helpers/fundings');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventsHelper = require('../../../src/helpers/events');
+const PdfHelper = require('../../../src/helpers/pdf');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -1013,5 +1016,45 @@ describe('deleteCertificates', () => {
 
     sinon.assert.calledWithExactly(deleteFile, { fileId: driveId });
     sinon.assert.calledWithExactly(updateOne, { _id: customerId }, { $pull: { financialCertificates: { driveId } } });
+  });
+});
+
+describe('generateQRCode', () => {
+  let findOneCustomer;
+  let toDataURL;
+  let generatePdf;
+  let getPdfContent;
+  beforeEach(() => {
+    findOneCustomer = sinon.stub(Customer, 'findOne');
+    toDataURL = sinon.stub(QRCode, 'toDataURL');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    getPdfContent = sinon.stub(CustomerQRCode, 'getPdfContent');
+  });
+  afterEach(() => {
+    findOneCustomer.restore();
+    toDataURL.restore();
+    generatePdf.restore();
+    getPdfContent.restore();
+  });
+
+  it('should generate customer\'s qr code pdf', async () => {
+    const customerId = new ObjectID();
+    const customer = { _id: customerId, identity: { firstname: 'N\'Golo', lastname: 'Compté' } };
+
+    toDataURL.returns('my_pic_in_base_64');
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    getPdfContent.returns('template');
+    generatePdf.returns('pdf');
+
+    const result = await CustomerHelper.generateQRCode(customerId);
+
+    expect(result).toEqual({ fileName: 'qrcode.pdf', pdf: 'pdf' });
+    sinon.assert.calledOnceWithExactly(toDataURL, `${customerId}`, { margin: 0 });
+    SinonMongoose.calledWithExactly(
+      findOneCustomer,
+      [{ query: 'findOne', args: [{ _id: customerId }, { identity: 1 }] }, { query: 'lean' }]
+    );
+    sinon.assert.calledOnceWithExactly(getPdfContent, 'my_pic_in_base_64', 'N\'Golo COMPTÉ');
+    sinon.assert.calledOnceWithExactly(generatePdf, 'template');
   });
 });

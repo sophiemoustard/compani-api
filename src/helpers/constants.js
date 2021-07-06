@@ -1,5 +1,6 @@
 module.exports = {
   COPPER_500: '#1D7C8F',
+  COPPER_GREY_200: '#E2ECF0',
   PEACH_100: '#FFEDDA',
   SENDER_MAIL: 'nepasrepondre@compani.fr',
   IDENTIFICATION: 'identification',
@@ -210,7 +211,15 @@ module.exports = {
   },
   // EXPORTS HISTORY
   WORKING_EVENT: 'working_event', // intervention or internal hours
+  // BILLING
   BILL: 'bill',
+  CREDIT_NOTE: 'credit_note',
+  get BILLING_DOCUMENTS() {
+    return {
+      [this.BILL]: 'Facture',
+      [this.CREDIT_NOTE]: 'Avoir',
+    };
+  },
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;

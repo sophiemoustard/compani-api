@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const User = require('../../models/User');
+const UserCompany = require('../../models/UserCompany');
 const PayDocument = require('../../models/PayDocument');
 const translate = require('../../helpers/translate');
 
@@ -8,8 +8,8 @@ const { language } = translate;
 
 exports.authorizePayDocumentCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const user = await User.countDocuments({ _id: req.payload.user, company: companyId });
-  if (!user) throw Boom.forbidden();
+  const user = await UserCompany.countDocuments({ user: req.payload.user, company: companyId });
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   return null;
 };
@@ -24,8 +24,8 @@ exports.authorizePayDocumentDeletion = async (req) => {
 
 exports.authorizeGetPayDocuments = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const user = await User.countDocuments({ _id: req.query.user, company: companyId });
-  if (!user) throw Boom.forbidden();
+  const user = await UserCompany.countDocuments({ user: req.query.user, company: companyId });
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
 
   return null;
 };

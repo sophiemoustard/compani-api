@@ -49,7 +49,7 @@ exports.authorizeEventGet = async (req) => {
   if (req.query.auxiliary) {
     const auxiliariesIds = [...new Set(UtilsHelper.formatIdsArray(req.query.auxiliary))];
     const auxiliariesCount = await UserCompany.countDocuments({ user: { $in: auxiliariesIds }, company: companyId });
-    if (auxiliariesCount !== auxiliariesIds.length) throw Boom.forbidden();
+    if (auxiliariesCount !== auxiliariesIds.length) throw Boom.notFound();
   }
 
   if (req.query.sector) {

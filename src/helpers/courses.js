@@ -25,6 +25,7 @@ const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
 const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
+const CourseConvocation = require('../data/pdf/courseConvocation');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -454,7 +455,7 @@ exports.generateAttendanceSheets = async (courseId) => {
   const template = course.type === INTRA
     ? await IntraAttendanceSheet.getPdfContent(exports.formatIntraCourseForPdf(course))
     : await InterAttendanceSheet.getPdfContent(exports.formatInterCourseForPdf(course));
-  const pdf = await PdfHelper.generatePDF(template);
+  const pdf = await PdfHelper.generatePdf(template);
 
   return { fileName: 'emargement.pdf', pdf };
 };
@@ -522,7 +523,12 @@ exports.formatCourseForConvocationPdf = (course) => {
     date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
   }));
 
-  return { ...course, trainerIdentity, contactPhoneNumber, slots };
+  return {
+    ...course,
+    trainer: { ...course.trainer, formattedIdentity: trainerIdentity },
+    contact: { ...course.contact, formattedPhone: contactPhoneNumber },
+    slots,
+  };
 };
 
 exports.generateConvocationPdf = async (courseId) => {
@@ -539,11 +545,10 @@ exports.generateConvocationPdf = async (courseId) => {
 
   const courseName = get(course, 'subProgram.program.name', '').split(' ').join('-') || 'Formation';
 
+  const template = await CourseConvocation.getPdfContent(exports.formatCourseForConvocationPdf(course));
+
   return {
-    pdf: await PdfHelper.generatePdf(
-      exports.formatCourseForConvocationPdf(course),
-      './src/data/courseConvocation.html'
-    ),
+    pdf: await PdfHelper.generatePdf(template),
     courseName,
   };
 };

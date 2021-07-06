@@ -379,12 +379,14 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const usersCount = await User.countDocuments({ company: otherCompany._id });
+      const usersCount = await UserCompany.countDocuments({ company: otherCompany._id });
       expect(res.result.data.users.length).toBe(usersCount);
     });
 
     it('should get all coachs users (company A)', async () => {
-      const coachUsers = [...userList, ...usersSeedList].filter(u => u.role && isExistingRole(u.role.client, 'coach'));
+      const coachUsers = [...userList, ...usersSeedList]
+        .filter(u => u.role && isExistingRole(u.role.client, 'coach') && u.company === authCompany._id);
+
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=coach`,
