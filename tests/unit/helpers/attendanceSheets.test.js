@@ -34,7 +34,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'trainee', populate: { path: 'company' } }] },
         { query: 'lean' },
       ]
     );
@@ -66,7 +66,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
-        { query: 'populate', args: [{ path: 'trainee', select: 'company' }] },
+        { query: 'populate', args: [{ path: 'trainee', populate: { path: 'company' } }] },
         { query: 'lean' },
       ]
     );

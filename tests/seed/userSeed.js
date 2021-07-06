@@ -137,5 +137,15 @@ const noRoleNoCompany = userList.find(u => u.local.email === 'norole.nocompany@a
 const vendorAdmin = userList.find(u => u.local.email === 'vendor-admin@alenvi.io');
 const helper = userList.find(u => u.local.email === 'helper@alenvi.io');
 const auxiliary = userList.find(u => u.local.email === 'auxiliary@alenvi.io');
+const coach = userList.find(u => u.local.email === 'coach@alenvi.io');
 
-module.exports = { userList, trainer, noRoleNoCompany, vendorAdmin, helper, auxiliary, userCompaniesList };
+module.exports = {
+  userList,
+  userCompaniesList,
+  trainer,
+  noRoleNoCompany,
+  vendorAdmin,
+  helper,
+  auxiliary,
+  coach,
+};

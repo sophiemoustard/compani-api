@@ -24,7 +24,7 @@ exports.create = async (payload) => {
 
 exports.list = async (courseId, companyId) => {
   const attendanceSheets = await AttendanceSheet.find({ course: courseId })
-    .populate({ path: 'trainee', select: 'company' })
+    .populate({ path: 'trainee', populate: { path: 'company' } })
     .lean();
 
   return companyId
