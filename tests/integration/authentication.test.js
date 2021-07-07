@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const { usersSeedList, populateDB, auxiliaryFromOtherCompany } = require('./seed/usersSeed');
-const { getToken, getUser, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { userList, noRoleNoCompany } = require('../seed/userSeed');
 const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
@@ -309,18 +309,16 @@ describe('GET /users/passwordtoken/:token', () => {
   beforeEach(() => {
     fakeDate = sinon.stub(Date, 'now');
   });
-
   afterEach(() => {
     fakeDate.restore();
   });
 
   it('should return a new access token after checking reset password token', async () => {
-    const user = getUser('helper', true, usersSeedList);
     fakeDate.returns(new Date('2020-01-20'));
 
     const response = await app.inject({
       method: 'GET',
-      url: `/users/passwordtoken/${user.passwordToken.token}`,
+      url: `/users/passwordtoken/${usersSeedList[3].passwordToken.token}`,
     });
 
     expect(response.statusCode).toBe(200);
