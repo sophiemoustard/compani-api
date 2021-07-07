@@ -60,16 +60,24 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
   return [];
 };
 
-exports.getFollowUp = async (id, courseId) => {
-  let course = null;
-  if (courseId) {
-    course = await Course.findOne({ _id: courseId })
-      .select('subProgram company misc')
-      .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
-      .populate({ path: 'company', select: 'name' })
-      .lean();
-  }
+const formatQuestionnaireAnswersWithCourse = async (courseId, questionnaireAnswers) => {
+  const course = await Course.findOne({ _id: courseId })
+    .select('subProgram company misc')
+    .populate({ path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] })
+    .populate({ path: 'company', select: 'name' })
+    .lean();
 
+  return {
+    ...questionnaireAnswers,
+    course: {
+      programName: course.subProgram.program.name,
+      companyName: get(course, 'company.name') || '',
+      misc: course.misc,
+    },
+  };
+};
+
+exports.getFollowUp = async (id, courseId) => {
   const questionnaire = await Questionnaire.findOne({ _id: id })
     .select('type name')
     .populate({
@@ -90,19 +98,10 @@ exports.getFollowUp = async (id, courseId) => {
     }
   }
 
-  let questionnaireAnswers = {
+  const questionnaireAnswers = {
     questionnaire: { type: questionnaire.type, name: questionnaire.name },
     followUp: Object.values(followUp),
   };
 
-  if (course) {
-    questionnaireAnswers = { ...questionnaireAnswers,
-      course: {
-        programName: course.subProgram.program.name,
-        companyName: get(course, 'company.name') || '',
-        misc: course.misc,
-      } };
-  }
-
-  return questionnaireAnswers;
+  return courseId ? formatQuestionnaireAnswersWithCourse(courseId, questionnaireAnswers) : questionnaireAnswers;
 };
