@@ -180,11 +180,9 @@ exports.formatActivity = (activity) => {
 exports.formatStep = step => ({ ...step, activities: step.activities.map(a => exports.formatActivity(a)) });
 
 exports.getCourseFollowUp = async (course, company) => {
-  const courseWithTrainees = await Course.findOne({ _id: course._id }).select('trainees').lean();
-  const traineeCompanyMatch = company ? { company } : {};
+  const courseWithTrainees = await Course.findOne({ _id: course._id }, { trainees: 1 }).lean();
 
-  const courseFollowUp = await Course.findOne({ _id: course._id })
-    .select('subProgram')
+  const courseFollowUp = await Course.findOne({ _id: course._id }, { subProgram: 1 })
     .populate({
       path: 'subProgram',
       select: 'name steps program',
@@ -208,7 +206,7 @@ exports.getCourseFollowUp = async (course, company) => {
     .populate({
       path: 'trainees',
       select: 'identity.firstname identity.lastname firstMobileConnection',
-      match: traineeCompanyMatch,
+      populate: { path: 'company' },
     })
     .populate({ path: 'slots', populate: { path: 'step', select: '_id' } })
     .lean();
@@ -219,10 +217,12 @@ exports.getCourseFollowUp = async (course, company) => {
       ...courseFollowUp.subProgram,
       steps: courseFollowUp.subProgram.steps.map(s => exports.formatStep(s)),
     },
-    trainees: courseFollowUp.trainees.map(t => ({
-      ...t,
-      ...exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
-    })),
+    trainees: courseFollowUp.trainees
+      .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company))
+      .map(t => ({
+        ...t,
+        ...exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+      })),
   };
 };
 

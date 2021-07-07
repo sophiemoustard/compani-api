@@ -880,7 +880,6 @@ describe('createUser', () => {
         identity: { lastname: 'Test' },
         local: { email: 'toto@test.com' },
         origin: WEBAPP,
-        company: companyId,
         refreshToken: sinon.match.string,
         role: { client: roleId },
       }
@@ -926,10 +925,7 @@ describe('createUser', () => {
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
-    sinon.assert.calledOnceWithExactly(
-      userCreate,
-      { ...payload, company: companyId, refreshToken: sinon.match.string }
-    );
+    sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
     SinonMongoose.calledWithExactly(
       userFindOne,
       [

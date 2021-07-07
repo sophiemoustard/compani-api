@@ -636,12 +636,12 @@ describe('getCourseFollowUp', () => {
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1 }],
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1, company: new ObjectID() }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['select', 'populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['populate', 'lean']));
 
     formatStep.callsFake(s => s);
     getTraineeProgress.returns({ steps: { progress: 1 }, progress: 1 });
@@ -651,19 +651,13 @@ describe('getCourseFollowUp', () => {
 
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'select', args: ['trainees'] },
-        { query: 'lean' },
-      ],
+      [{ query: 'findOne', args: [{ _id: course._id }, { trainees: 1 }] }, { query: 'lean' }],
       0
     );
-
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'select', args: ['subProgram'] },
+        { query: 'findOne', args: [{ _id: course._id }, { subProgram: 1 }] },
         {
           query: 'populate',
           args: [{
@@ -691,7 +685,7 @@ describe('getCourseFollowUp', () => {
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
-            match: {},
+            populate: { path: 'company' },
           }] },
         { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
         { query: 'lean' },
@@ -701,38 +695,40 @@ describe('getCourseFollowUp', () => {
   });
 
   it('should return course follow up with trainees from company', async () => {
+    const companyId = new ObjectID();
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1 }],
+      trainees: [
+        { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
+        { _id: '123213342', steps: { progress: 1 }, progress: 1, company: new ObjectID() },
+      ],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
-    const companyId = new ObjectID();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['select', 'populate', 'lean']));
-
+    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['populate', 'lean']));
     formatStep.callsFake(s => s);
     getTraineeProgress.returns({ steps: { progress: 1 }, progress: 1 });
+
     const result = await CourseHelper.getCourseFollowUp(course, companyId);
 
-    expect(result).toEqual(course);
+    expect(result).toEqual({
+      _id: '1234567890',
+      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId }],
+      slots: [{ _id: '123456789' }],
+    });
 
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'select', args: ['trainees'] },
-        { query: 'lean' },
-      ],
+      [{ query: 'findOne', args: [{ _id: course._id }, { trainees: 1 }] }, { query: 'lean' }],
       0
     );
-
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'select', args: ['subProgram'] },
+        { query: 'findOne', args: [{ _id: course._id }, { subProgram: 1 }] },
         {
           query: 'populate',
           args: [{
@@ -761,7 +757,7 @@ describe('getCourseFollowUp', () => {
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
-            match: { company: companyId },
+            populate: { path: 'company' },
           }],
         },
         { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
