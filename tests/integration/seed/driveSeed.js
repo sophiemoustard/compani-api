@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const auxiliary = {
@@ -14,15 +15,19 @@ const auxiliary = {
   },
   refreshToken: uuidv4(),
   role: { client: rolesList[1]._id },
-  company: authCompany._id,
   origin: WEBAPP,
 };
 
+const userCompany = { _id: new ObjectID(), user: auxiliary._id, company: authCompany._id };
+
 const populateDB = async () => {
-  await User.deleteMany({});
+  await User.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
+
   await (new User(auxiliary)).save();
+  await UserCompany.create(userCompany);
 };
 
 module.exports = { populateDB, auxiliary };
