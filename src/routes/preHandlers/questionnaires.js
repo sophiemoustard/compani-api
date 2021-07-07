@@ -77,12 +77,16 @@ exports.authorizeCardDeletion = async (req) => {
 
 exports.authorizeGetFollowUp = async (req) => {
   const credentials = get(req, 'auth.credentials');
-  const countQuery = get(credentials, 'role.vendor.name') === TRAINER
-    ? { _id: req.query.course, format: BLENDED, trainer: credentials._id }
-    : { _id: req.query.course, format: BLENDED };
-  const course = await Course.countDocuments(countQuery);
+  if (req.query.course) {
+    const countQuery = get(credentials, 'role.vendor.name') === TRAINER
+      ? { _id: req.query.course, format: BLENDED, trainer: credentials._id }
+      : { _id: req.query.course, format: BLENDED };
+    const course = await Course.countDocuments(countQuery);
+    if (!course) throw Boom.notFound();
+  } else if (get(credentials, 'role.vendor.name') === TRAINER) throw Boom.forbidden();
+
   const questionnaire = await Questionnaire.countDocuments({ _id: req.params._id });
-  if (!course || !questionnaire) throw Boom.notFound();
+  if (!questionnaire) throw Boom.notFound();
 
   return null;
 };
