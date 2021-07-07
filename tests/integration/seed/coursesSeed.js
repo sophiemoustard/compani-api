@@ -12,30 +12,19 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList, userList } = require('./authenticationSeed');
-const { vendorAdmin, noRoleNoCompany } = require('../../seed/userSeed');
+const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
 const {
-  AUXILIARY,
-  HELPER,
-  AUXILIARY_WITHOUT_COMPANY,
-  CLIENT_ADMIN,
-  TRAINING_ORGANISATION_MANAGER,
-  COACH,
-  VIDEO,
-  WEBAPP,
-  TRAINER,
-} = require('../../../src/helpers/constants');
-
-const auxiliary = userList.find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY)._id);
-const helper = userList.find(user => user.role.client === rolesList.find(role => role.name === HELPER)._id);
-const auxiliaryWithoutCompany = userList
-  .find(user => user.role.client === rolesList.find(role => role.name === AUXILIARY_WITHOUT_COMPANY)._id);
-const clientAdmin = userList
-  .find(user => user.role.client === rolesList.find(role => role.name === CLIENT_ADMIN)._id);
-const trainerOrganisationManager = userList
-  .find(user => user.role.vendor === rolesList.find(role => role.name === TRAINING_ORGANISATION_MANAGER)._id);
-const coachFromAuthCompany = userList
-  .find(user => user.role.client === rolesList.find(role => role.name === COACH)._id);
+  vendorAdmin,
+  noRoleNoCompany,
+  auxiliary,
+  helper,
+  auxiliaryWithoutCompany,
+  clientAdmin,
+  trainerOrganisationManager,
+  coach,
+  trainer,
+} = require('../../seed/userSeed');
+const { COACH, VIDEO, WEBAPP, TRAINER } = require('../../../src/helpers/constants');
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
@@ -44,7 +33,6 @@ const traineeFromOtherCompany = {
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
-  company: otherCompany._id,
   inactivityDate: null,
   origin: WEBAPP,
 };
@@ -56,7 +44,6 @@ const traineeFromAuthCompanyWithFormationExpoToken = {
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
-  company: authCompany._id,
   inactivityDate: null,
   origin: WEBAPP,
   formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
@@ -72,14 +59,6 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
-const userCompanies = [
-  { user: traineeWithoutCompany._id, company: authCompany._id },
-  { user: auxiliary._id, company: authCompany._id },
-  { user: traineeFromOtherCompany._id, company: otherCompany._id },
-];
-
-const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
-
 const trainerAndCoach = {
   _id: new ObjectID(),
   identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
@@ -89,38 +68,32 @@ const trainerAndCoach = {
     client: rolesList.find(role => role.name === COACH)._id,
     vendor: rolesList.find(role => role.name === TRAINER)._id,
   },
-  company: authCompany._id,
   origin: WEBAPP,
 };
+
+const userCompanies = [
+  { _id: new ObjectID(), user: traineeFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectID(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
+  { _id: new ObjectID(), user: trainerAndCoach._id, company: authCompany._id },
+];
 
 const card = { _id: ObjectID(), template: 'title_text' };
 
 const activitiesList = [{ _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [card._id] }];
 const activitiesHistory = [
-  { _id: new ObjectID(), user: coachFromAuthCompany._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: coach._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: clientAdmin._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: helper._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: auxiliary._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: auxiliaryWithoutCompany._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: trainerOrganisationManager._id, activity: activitiesList[0]._id },
-  { _id: new ObjectID(), user: courseTrainer._id, activity: activitiesList[0]._id },
+  { _id: new ObjectID(), user: trainer._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: noRoleNoCompany._id, activity: activitiesList[0]._id },
 ];
 
-const step = {
-  _id: new ObjectID(),
-  name: 'etape',
-  type: 'on_site',
-  activities: [activitiesList[0]._id],
-};
+const step = { _id: new ObjectID(), name: 'etape', type: 'on_site', activities: [activitiesList[0]._id] };
 
-const subProgramsList = [
-  {
-    _id: new ObjectID(),
-    name: 'sous-programme',
-    steps: [step._id],
-  },
-];
+const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme', steps: [step._id] }];
 
 const programsList = [
   {
@@ -140,8 +113,8 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'first session',
-    trainer: courseTrainer._id,
-    trainees: [coachFromAuthCompany._id, helper._id, clientAdmin._id, courseTrainer._id],
+    trainer: trainer._id,
+    trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
     type: 'intra',
     salesRepresentative: vendorAdmin._id,
   },
@@ -151,7 +124,7 @@ const coursesList = [
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
-    trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
+    trainees: [traineeFromOtherCompany._id, coach._id],
     type: 'intra',
     salesRepresentative: vendorAdmin._id,
   },
@@ -160,9 +133,9 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'second session',
-    trainer: courseTrainer._id,
+    trainer: trainer._id,
     type: 'intra',
-    trainees: [coachFromAuthCompany._id, helper._id, trainerOrganisationManager._id, clientAdmin._id, auxiliary._id],
+    trainees: [coach._id, helper._id, trainerOrganisationManager._id, clientAdmin._id, auxiliary._id],
     salesRepresentative: vendorAdmin._id,
   },
   {
@@ -172,7 +145,7 @@ const coursesList = [
     misc: 'second team formation',
     trainer: new ObjectID(),
     type: 'intra',
-    trainees: [coachFromAuthCompany._id, clientAdmin._id],
+    trainees: [coach._id, clientAdmin._id],
     salesRepresentative: vendorAdmin._id,
   },
   { // course without slots
@@ -180,9 +153,9 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
-    trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
+    trainees: [traineeFromOtherCompany._id, coach._id],
     format: 'strictly_e_learning',
-    trainer: courseTrainer._id,
+    trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
   { // course with slots
@@ -216,7 +189,7 @@ const coursesList = [
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
-    trainees: [coachFromAuthCompany._id],
+    trainees: [coach._id],
     accessRules: [authCompany._id, new ObjectID()],
     salesRepresentative: vendorAdmin._id,
   },
@@ -226,22 +199,18 @@ const coursesList = [
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
-    trainees: [coachFromAuthCompany._id, traineeFromOtherCompany._id],
+    trainees: [coach._id, traineeFromOtherCompany._id],
     accessRules: [authCompany._id, new ObjectID()],
     salesRepresentative: vendorAdmin._id,
   },
   { // course with contact
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    trainer: coachFromAuthCompany._id,
+    trainer: coach._id,
     misc: 'inter_b2b',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
-    contact: {
-      name: 'Romain Delendarroze',
-      email: 'romainlebg77@gmail.com',
-      phone: '0123456789',
-    },
+    contact: { name: 'Romain Delendarroze', email: 'romainlebg77@gmail.com', phone: '0123456789' },
     salesRepresentative: vendorAdmin._id,
   },
   { // course without authCompany in access rules (11ème position)
@@ -250,7 +219,7 @@ const coursesList = [
     misc: 'inter_b2b',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
-    trainees: [traineeFromOtherCompany._id, coachFromAuthCompany._id],
+    trainees: [traineeFromOtherCompany._id, coach._id],
     accessRules: [otherCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
@@ -261,7 +230,7 @@ const courseSmsHistory = {
   type: 'convocation',
   message: 'Hola ! This is a test',
   course: coursesList[0]._id,
-  sender: courseTrainer._id,
+  sender: trainer._id,
 };
 
 const slots = [
@@ -341,19 +310,11 @@ module.exports = {
   coursesList,
   subProgramsList,
   programsList,
-  auxiliary,
-  coachFromAuthCompany,
   traineeFromOtherCompany,
   traineeWithoutCompany,
   courseSmsHistory,
-  courseTrainer,
-  helper,
-  auxiliaryWithoutCompany,
-  clientAdmin,
-  trainerOrganisationManager,
   slots,
-  trainerAndCoach,
-  vendorAdmin,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
+  trainerAndCoach,
 };

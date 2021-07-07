@@ -110,13 +110,7 @@ exports.listUserCourses = async (trainee) => {
 };
 
 exports.getCourse = async (course, loggedUser) => {
-  const userHasVendorRole = !!get(loggedUser, 'role.vendor');
-  const userCompanyId = get(loggedUser, 'company._id') || null;
-  // A coach/client_admin is not supposed to read infos on trainees from other companies
-  // espacially for INTER_B2B courses.
-  const traineesCompanyMatch = userHasVendorRole ? {} : { company: userCompanyId };
-
-  return Course.findOne({ _id: course._id })
+  const fetchedCourse = await Course.findOne({ _id: course._id })
     .populate({ path: 'company', select: 'name' })
     .populate({
       path: 'subProgram',
@@ -138,14 +132,23 @@ exports.getCourse = async (course, loggedUser) => {
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({
       path: 'trainees',
-      match: traineesCompanyMatch,
-      select: 'identity.firstname identity.lastname local.email company contact picture.link',
-      populate: { path: 'company', select: 'name' },
+      select: 'identity.firstname identity.lastname local.email contact picture.link',
+      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .populate({ path: 'accessRules', select: 'name' })
     .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
     .lean();
+
+  // A coach/client_admin is not supposed to read infos on trainees from other companies
+  // espacially for INTER_B2B courses.
+  if (get(loggedUser, 'role.vendor')) return fetchedCourse;
+
+  return {
+    ...fetchedCourse,
+    trainees: fetchedCourse.trainees
+      .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(loggedUser, 'company._id'))),
+  };
 };
 
 exports.selectUserHistory = (histories) => {
@@ -447,7 +450,7 @@ exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('company')
     .populate('slots')
-    .populate({ path: 'trainees', populate: { path: 'company', select: 'name' } })
+    .populate({ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } })
     .populate('trainer')
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();

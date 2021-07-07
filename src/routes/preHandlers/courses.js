@@ -106,7 +106,7 @@ exports.getCourseTrainee = async (req) => {
     const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1 }).lean();
     if (!course) throw Boom.notFound();
 
-    const trainee = await User.findOne({ 'local.email': payload.local.email }).lean();
+    const trainee = await User.findOne({ 'local.email': payload.local.email }).populate({ path: 'company' }).lean();
     if (trainee) {
       if (course.type === INTRA) {
         const conflictBetweenCompanies = !UtilsHelper.areObjectIdsEquals(course.company._id, trainee.company);
@@ -197,7 +197,7 @@ exports.authorizeGetCourse = async (req) => {
     }
 
     const courseWithTrainees = await Course.findById(req.params._id)
-      .populate({ path: 'trainees', select: 'company' })
+      .populate({ path: 'trainees', populate: { path: 'company' } })
       .lean();
     const someTraineesAreInCompany = courseWithTrainees.trainees
       .some(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));
@@ -251,12 +251,9 @@ exports.authorizeAndGetTrainee = async (req) => {
 
 exports.authorizeAccessRuleAddition = async (req) => {
   const course = await Course.findById(req.params._id, 'accessRules').lean();
-
   if (!course) throw Boom.notFound();
 
-  const accessRuleAlreadyExist = course.accessRules.map(c => c.toHexString())
-    .includes(req.payload.company);
-
+  const accessRuleAlreadyExist = UtilsHelper.doesArrayIncludeId(course.accessRules, req.payload.company);
   if (accessRuleAlreadyExist) throw Boom.conflict();
 
   return null;

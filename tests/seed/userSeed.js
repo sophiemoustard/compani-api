@@ -140,6 +140,8 @@ const helper = userList.find(u => u.local.email === 'helper@alenvi.io');
 const auxiliary = userList.find(u => u.local.email === 'auxiliary@alenvi.io');
 const coach = userList.find(u => u.local.email === 'coach@alenvi.io');
 const auxiliaryWithoutCompany = userList.find(u => u.local.email === 'auxiliary-without-company@alenvi.io');
+const clientAdmin = userList.find(u => u.local.email === 'client-admin@alenvi.io');
+const trainerOrganisationManager = userList.find(u => u.local.email === 'training-organisation-manager@alenvi.io');
 
 module.exports = {
   userList,
@@ -151,4 +153,6 @@ module.exports = {
   auxiliary,
   coach,
   auxiliaryWithoutCompany,
+  clientAdmin,
+  trainerOrganisationManager,
 };

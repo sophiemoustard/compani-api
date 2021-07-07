@@ -446,9 +446,8 @@ describe('getCourse', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            match: {},
-            select: 'identity.firstname identity.lastname local.email company contact picture.link',
-            populate: { path: 'company', select: 'name' },
+            select: 'identity.firstname identity.lastname local.email contact picture.link',
+            populate: { path: 'company', populate: { path: 'company', select: 'name' } },
           }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
@@ -461,26 +460,23 @@ describe('getCourse', () => {
 
   it('should return inter b2b course with trainees filtering', async () => {
     const authCompanyId = new ObjectID();
+    const otherCompanyId = new ObjectID();
+    const loggedUser = { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } };
     const course = {
       _id: new ObjectID(),
       type: 'inter_b2b',
-      trainees: [
-        { _id: new ObjectID(), company: authCompanyId },
-        { _id: new ObjectID(), company: new ObjectID() },
-      ],
+      trainees: [{ _id: new ObjectID(), company: authCompanyId }, { _id: new ObjectID(), company: otherCompanyId }],
     };
-    const courseWithFilteredTrainees = {
-      _id: new ObjectID(),
+    const courseWithAllTrainees = {
       type: 'inter_b2b',
-      trainees: [{ _id: new ObjectID(), company: authCompanyId }],
+      trainees: [{ company: authCompanyId }, { company: otherCompanyId }],
     };
-    findOne.returns(SinonMongoose.stubChainedQueries([courseWithFilteredTrainees]));
+    const courseWithFilteredTrainees = { type: 'inter_b2b', trainees: [{ company: authCompanyId }] };
+    findOne.returns(SinonMongoose.stubChainedQueries([courseWithAllTrainees]));
 
-    const result = await CourseHelper.getCourse(
-      { _id: course._id }, { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
-    );
+    const result = await CourseHelper.getCourse({ _id: course._id }, loggedUser);
+
     expect(result).toMatchObject(courseWithFilteredTrainees);
-
     SinonMongoose.calledWithExactly(
       findOne,
       [
@@ -509,9 +505,8 @@ describe('getCourse', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            match: { company: authCompanyId },
-            select: 'identity.firstname identity.lastname local.email company contact picture.link',
-            populate: { path: 'company', select: 'name' },
+            select: 'identity.firstname identity.lastname local.email contact picture.link',
+            populate: { path: 'company', populate: { path: 'company', select: 'name' } },
           }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
@@ -1681,7 +1676,10 @@ describe('generateAttendanceSheets', () => {
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['company'] },
       { query: 'populate', args: ['slots'] },
-      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company', select: 'name' } }] },
+      {
+        query: 'populate',
+        args: [{ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } }],
+      },
       { query: 'populate', args: ['trainer'] },
       {
         query: 'populate',
@@ -1712,7 +1710,10 @@ describe('generateAttendanceSheets', () => {
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['company'] },
       { query: 'populate', args: ['slots'] },
-      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company', select: 'name' } }] },
+      {
+        query: 'populate',
+        args: [{ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } }],
+      },
       { query: 'populate', args: ['trainer'] },
       {
         query: 'populate',
