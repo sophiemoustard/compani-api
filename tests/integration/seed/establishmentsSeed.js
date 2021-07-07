@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const Establishment = require('../../../src/models/Establishment');
 const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const {
   populateDBForAuthentication,
   authCompany,
@@ -20,10 +21,7 @@ const establishmentsList = [
       fullAddress: '15, rue du test 75007 Paris',
       zipCode: '75007',
       city: 'Paris',
-      location: {
-        type: 'Point',
-        coordinates: [4.849302, 2.90887],
-      },
+      location: { type: 'Point', coordinates: [4.849302, 2.90887] },
     },
     phone: '0123456789',
     workHealthService: 'MT01',
@@ -39,10 +37,7 @@ const establishmentsList = [
       fullAddress: '37, rue des acacias 69000 Lyon',
       zipCode: '69000',
       city: 'Lyon',
-      location: {
-        type: 'Point',
-        coordinates: [4.824302, 3.50807],
-      },
+      location: { type: 'Point', coordinates: [4.824302, 3.50807] },
     },
     phone: '0446899034',
     workHealthService: 'MT01',
@@ -60,10 +55,7 @@ const establishmentFromOtherCompany = {
     fullAddress: '37, rue des lilas 69000 Lyon',
     zipCode: '69000',
     city: 'Lyon',
-    location: {
-      type: 'Point',
-      coordinates: [4.824302, 3.50807],
-    },
+    location: { type: 'Point', coordinates: [4.824302, 3.50807] },
   },
   phone: '0443890034',
   workHealthService: 'MT01',
@@ -77,7 +69,6 @@ const userFromOtherCompany = {
   refreshToken: uuidv4(),
   local: { email: 'other_admin@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
-  company: otherCompany._id,
   origin: WEBAPP,
 };
 
@@ -87,19 +78,25 @@ const user = {
   local: { email: 'auxiliary_establishment@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  company: authCompany._id,
   establishment: establishmentsList[1]._id,
   origin: WEBAPP,
 };
 
+const userCompanies = [
+  { _id: new ObjectID(), user: user._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id },
+];
+
 const populateDB = async () => {
   await Establishment.deleteMany();
   await User.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
   await User.create([userFromOtherCompany, user]);
   await Establishment.insertMany([...establishmentsList, establishmentFromOtherCompany]);
+  await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {
