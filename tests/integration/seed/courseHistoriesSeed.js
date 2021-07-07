@@ -2,17 +2,14 @@ const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList, userList } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
-const { vendorAdmin } = require('../../seed/userSeed');
+const { vendorAdmin, trainer } = require('../../seed/userSeed');
 const { SLOT_CREATION, WEBAPP, TRAINER, COACH } = require('../../../src/helpers/constants');
 
-const subProgramsList = [
-  { _id: new ObjectID(), name: 'sous-programme A', steps: [] },
-];
-
-const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
+const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [] }];
 
 const trainerAndCoach = {
   _id: new ObjectID(),
@@ -27,13 +24,15 @@ const trainerAndCoach = {
   origin: WEBAPP,
 };
 
+const userCompanies = [{ _id: new ObjectID(), user: trainerAndCoach._id, company: authCompany._id }];
+
 const coursesList = [{
   _id: new ObjectID(),
   subProgram: subProgramsList[0]._id,
   company: authCompany._id,
   misc: 'first session',
   type: 'intra',
-  trainer: courseTrainer._id,
+  trainer: trainer._id,
   trainees: [],
   salesRepresentative: vendorAdmin._id,
 },
@@ -53,7 +52,7 @@ const coursesList = [{
   misc: 'inter b2b session',
   type: 'inter_b2b',
   format: 'blended',
-  trainer: courseTrainer._id,
+  trainer: trainer._id,
   trainees: [],
   salesRepresentative: vendorAdmin._id,
 }];
@@ -126,14 +125,16 @@ const courseHistoriesList = [{
 }];
 
 const populateDB = async () => {
-  await Course.deleteMany({});
-  await CourseHistory.deleteMany({});
-  await User.deleteMany({});
+  await Course.deleteMany();
+  await CourseHistory.deleteMany();
+  await UserCompany.deleteMany();
+  await User.deleteMany();
 
   await populateDBForAuthentication();
 
   await Course.insertMany(coursesList);
   await CourseHistory.insertMany(courseHistoriesList);
+  await UserCompany.insertMany(userCompanies);
   await new User(trainerAndCoach).save();
 };
 
@@ -141,6 +142,5 @@ module.exports = {
   populateDB,
   coursesList,
   courseHistoriesList,
-  courseTrainer,
   trainerAndCoach,
 };
