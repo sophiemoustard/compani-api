@@ -6,6 +6,7 @@ const Helper = require('../../../src/models/Helper');
 const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const customerFromOtherCompany = {
   _id: new ObjectID(),
@@ -30,22 +31,23 @@ const helperFromOtherCompany = {
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   refreshToken: uuidv4(),
-  company: otherCompany._id,
   inactivityDate: null,
   origin: WEBAPP,
 };
 
-const usersSeedList = [
-  {
-    _id: new ObjectID(),
-    identity: { firstname: 'Helper1', lastname: 'Carolyn' },
-    local: { email: 'carolyn@alenvi.io', password: '123456!eR' },
-    inactivityDate: null,
-    refreshToken: uuidv4(),
-    company: authCompany._id,
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
-    origin: WEBAPP,
-  },
+const usersSeedList = [{
+  _id: new ObjectID(),
+  identity: { firstname: 'Helper1', lastname: 'Carolyn' },
+  local: { email: 'carolyn@alenvi.io', password: '123456!eR' },
+  inactivityDate: null,
+  refreshToken: uuidv4(),
+  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  origin: WEBAPP,
+}];
+
+const userCompanies = [
+  { _id: new ObjectID(), user: helperFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectID(), user: usersSeedList[0]._id, company: authCompany._id },
 ];
 
 const helpersList = [
@@ -66,15 +68,17 @@ const helpersList = [
 ];
 
 const populateDB = async () => {
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await Helper.deleteMany({});
+  await User.deleteMany();
+  await Customer.deleteMany();
+  await Helper.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
   await User.create([...usersSeedList, helperFromOtherCompany]);
   await Customer.create([customerFromOtherCompany, authCustomer]);
   await Helper.create(helpersList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {
