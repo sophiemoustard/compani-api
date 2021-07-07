@@ -155,14 +155,6 @@ exports.authorizeUserDeletion = async (req) => {
   return null;
 };
 
-exports.authorizeUserUpdateWithoutCompany = (req) => {
-  const { credentials } = req.auth;
-  const addNewCompanyToTargetUser = !req.pre.user.company && req.payload.company;
-  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
-
-  return !!loggedUserHasVendorRole || !!addNewCompanyToTargetUser;
-};
-
 exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
   if (!credentials) checkUpdateRestrictions(req.payload);

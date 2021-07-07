@@ -1123,10 +1123,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(
-      userUpdateOne,
-      { _id: userId, company: credentials.company._id }, { $set: flat(payload) }
-    );
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
     sinon.assert.notCalled(roleFindById);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     sinon.assert.notCalled(userCompanyCreate);
@@ -1135,7 +1132,7 @@ describe('updateUser', () => {
   it('should update a user without company', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    await UsersHelper.updateUser(userId, payload, credentials, true);
+    await UsersHelper.updateUser(userId, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
     sinon.assert.notCalled(roleFindById);
@@ -1155,11 +1152,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(
-      userUpdateOne,
-      { _id: userId, company: credentials.company._id },
-      { $set: payloadWithRole }
-    );
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: payloadWithRole });
     sinon.assert.calledOnceWithExactly(createHelper, userId, payload.customer, credentials.company._id);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
     SinonMongoose.calledWithExactly(
@@ -1174,10 +1167,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(
-      userUpdateOne,
-      { _id: userId, company: credentials.company._id }, { $set: flat(payload) }
-    );
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
     sinon.assert.notCalled(createHelper);
     sinon.assert.calledOnceWithExactly(
       updateHistoryOnSectorUpdateStub,
@@ -1200,11 +1190,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(
-      userUpdateOne,
-      { _id: userId, company: credentials.company._id },
-      { $set: payloadWithRole }
-    );
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: payloadWithRole });
     sinon.assert.notCalled(createHelper);
     SinonMongoose.calledWithExactly(
       roleFindById,
@@ -1219,11 +1205,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(
-      userUpdateOne,
-      { _id: userId, company: credentials.company._id },
-      { $set: flat(payload) }
-    );
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
     sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, payload.company);
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);

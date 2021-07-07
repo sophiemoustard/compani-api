@@ -904,12 +904,9 @@ describe('GET /users/:id', () => {
   });
 });
 
-describe('PUT /users/:id/', () => {
+describe('PUT /users/:id', () => {
   let authToken;
-  const updatePayload = {
-    identity: { firstname: 'Riri' },
-    local: { email: 'riri@alenvi.io' },
-  };
+  const updatePayload = { identity: { firstname: 'Riri' }, local: { email: 'riri@alenvi.io' } };
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -928,9 +925,9 @@ describe('PUT /users/:id/', () => {
 
       expect(res.statusCode).toBe(200);
 
-      // const updatedUser = await User.findById(userId)
-      //   .populate({ path: 'sector', select: '_id sector', match: { company: authCompany._id } })
-      //   .lean({ autopopulate: true, virtuals: true });
+      const userCount = await User
+        .countDocuments({ _id: userId, 'identity.firstname': 'Riri', 'local.email': 'riri@alenvi.io' });
+      expect(userCount).toEqual(1);
     });
 
     it('should update the user sector and sector history', async () => {
@@ -1117,6 +1114,7 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
       const userCount = await User
         .countDocuments({ _id: userId, 'identity.lastname': 'Kirk', 'role.vendor': roleTrainer._id });
       expect(userCount).toEqual(1);

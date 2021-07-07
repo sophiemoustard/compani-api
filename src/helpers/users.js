@@ -241,14 +241,10 @@ const formatUpdatePayload = async (updatedUser) => {
   return payload;
 };
 
-exports.updateUser = async (userId, userPayload, credentials, canEditWithoutCompany = false) => {
+exports.updateUser = async (userId, userPayload, credentials) => {
   const companyId = get(credentials, 'company._id');
 
-  const filterQuery = { _id: userId };
-  if (!canEditWithoutCompany) filterQuery.company = companyId;
-
   const payload = await formatUpdatePayload(userPayload);
-
   if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
   if (userPayload.company) await UserCompaniesHelper.create(userId, userPayload.company);
 
@@ -256,7 +252,7 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
-  await User.updateOne(filterQuery, { $set: flat(payload) });
+  await User.updateOne({ _id: userId }, { $set: flat(payload) });
 };
 
 exports.updateUserCertificates = async (userId, userPayload, credentials) => {
