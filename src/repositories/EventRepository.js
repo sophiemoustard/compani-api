@@ -38,7 +38,6 @@ exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
   const events = await Event.find(rules)
     .populate({
       path: 'auxiliary',
-      match: { company: companyId },
       populate: { path: 'sectorHistories', match: { company: companyId }, populate: { path: 'sector' } },
       select: 'identity administrative.driveFolder company picture sectorHistories',
     })
