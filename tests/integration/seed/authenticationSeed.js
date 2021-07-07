@@ -29,34 +29,15 @@ const otherCompany = {
   subscriptions: { erp: true },
 };
 
-const sector = {
-  _id: new ObjectID(),
-  name: 'Test',
-  company: authCompany._id,
-};
+const sector = { _id: new ObjectID(), name: 'Test', company: authCompany._id };
 
 const sectorHistories = [
-  {
-    auxiliary: userList[2]._id,
-    sector: sector._id,
-    company: authCompany._id,
-    startDate: '2020-12-10',
-  },
-  {
-    auxiliary: userList[4]._id,
-    sector: sector._id,
-    company: authCompany._id,
-    startDate: '2018-12-10',
-  },
+  { auxiliary: userList[2]._id, sector: sector._id, company: authCompany._id, startDate: '2020-12-10' },
+  { auxiliary: userList[4]._id, sector: sector._id, company: authCompany._id, startDate: '2018-12-10' },
 ];
 
 const identityVerifications = [
-  {
-    _id: new ObjectID(),
-    email: 'carolyn@alenvi.io',
-    code: '3310',
-    createdAt: new Date('2021-01-25T10:05:32.582Z'),
-  },
+  { _id: new ObjectID(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
 ];
 
 const populateDBForAuthentication = async () => {
