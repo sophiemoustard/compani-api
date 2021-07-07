@@ -1501,7 +1501,7 @@ describe('PUT /users/:id/certificates', () => {
   });
 });
 
-describe('POST /users/:id/gdrive/:drive_id/upload #tag', () => {
+describe('POST /users/:id/gdrive/:drive_id/upload', () => {
   let authToken;
   let docPayload;
   let form;
@@ -1570,7 +1570,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload #tag', () => {
   });
 
   describe('Other roles', () => {
-    it('should add administrative document if it is me #tag', async () => {
+    it('should add administrative document if it is me', async () => {
       authToken = await getToken('auxiliary');
 
       const auxiliaryFolderId = auxiliary.administrative.driveFolder.driveId;
