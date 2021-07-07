@@ -6,12 +6,12 @@ exports.getAuxiliariesWithSectorHistory = async (userIds, companyId) => User.agg
     $lookup: {
       from: 'sectorhistories',
       as: 'sectorHistory',
-      let: { auxiliaryId: '$_id', companyId: '$company' },
+      let: { auxiliaryId: '$_id' },
       pipeline: [
         {
           $match: {
             $expr: {
-              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$company', '$$companyId'] }],
+              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$company', companyId] }],
             },
           },
         },
@@ -19,17 +19,10 @@ exports.getAuxiliariesWithSectorHistory = async (userIds, companyId) => User.agg
     },
   },
   { $unwind: { path: '$sectorHistory' } },
-  {
-    $lookup: {
-      from: 'sectors',
-      as: 'sectorHistory.sector',
-      foreignField: '_id',
-      localField: 'sectorHistory.sector',
-    },
-  },
+  { $lookup: { from: 'sectors', as: 'sectorHistory.sector', foreignField: '_id', localField: 'sectorHistory.sector' } },
   { $unwind: { path: '$sectorHistory.sector' } },
   { $group: { _id: '$_id', sectorHistory: { $push: '$sectorHistory' }, auxiliary: { $first: '$$ROOT' } } },
   { $addFields: { 'auxiliary.sectorHistory': '$sectorHistory' } },
   { $replaceRoot: { newRoot: '$auxiliary' } },
   { $project: { identity: 1, sectorHistory: 1 } },
-]).option({ company: companyId });
+]);

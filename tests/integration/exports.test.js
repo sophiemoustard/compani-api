@@ -37,10 +37,10 @@ describe('NODE ENV', () => {
 
 describe('GET /exports/working_event/history', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
     it('should get working events', async () => {
       const response = await app.inject({
@@ -62,13 +62,7 @@ describe('GET /exports/working_event/history', () => {
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
