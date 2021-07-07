@@ -1236,7 +1236,6 @@ describe('updateUser', () => {
 
 describe('updateUserCertificates', async () => {
   let updateOne;
-  const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     updateOne = sinon.stub(User, 'updateOne');
   });
@@ -1248,11 +1247,11 @@ describe('updateUserCertificates', async () => {
     const payload = { certificates: { driveId: '1234567890' } };
     const userId = new ObjectID();
 
-    await UsersHelper.updateUserCertificates(userId, payload, credentials);
+    await UsersHelper.updateUserCertificates(userId, payload);
 
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: userId, company: credentials.company._id },
+      { _id: userId },
       { $pull: { 'administrative.certificates': payload.certificates } }
     );
   });

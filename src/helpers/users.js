@@ -255,14 +255,8 @@ exports.updateUser = async (userId, userPayload, credentials) => {
   await User.updateOne({ _id: userId }, { $set: flat(payload) });
 };
 
-exports.updateUserCertificates = async (userId, userPayload, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-
-  await User.updateOne(
-    { _id: userId, company: companyId },
-    { $pull: { 'administrative.certificates': userPayload.certificates } }
-  );
-};
+exports.updateUserCertificates = async (userId, userPayload) =>
+  User.updateOne({ _id: userId }, { $pull: { 'administrative.certificates': userPayload.certificates } });
 
 exports.updateUserInactivityDate = async (user, contractEndDate, credentials) => {
   const notEndedContractCount = await Contract.countDocuments({
