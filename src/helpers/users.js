@@ -185,7 +185,7 @@ exports.createAndSaveFile = async (params, payload) => {
 };
 
 const createUserCompany = async (payload, company) => {
-  const user = await User.create({ ...payload, company });
+  const user = await User.create(payload);
   await UserCompaniesHelper.create(user._id, company);
 
   return user;
