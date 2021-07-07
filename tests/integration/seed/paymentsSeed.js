@@ -8,6 +8,7 @@ const PaymentNumber = require('../../../src/models/PaymentNumber');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND, WEBAPP } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const paymentTppList = [
   { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true, billingMode: 'direct' },
@@ -142,6 +143,11 @@ const userFromOtherCompany = {
   origin: WEBAPP,
 };
 
+const userCompanies = [
+  { _id: new ObjectID(), user: paymentUser._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id },
+];
+
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
@@ -172,6 +178,7 @@ const populateDB = async () => {
   await ThirdPartyPayer.deleteMany();
   await Customer.deleteMany();
   await User.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -179,6 +186,7 @@ const populateDB = async () => {
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
   await PaymentNumber.insertMany(paymentNumberList);
+  await UserCompany.insertMany(userCompanies);
   await (new User(paymentUser).save());
   await (new User(userFromOtherCompany).save());
   await (new Customer(customerFromOtherCompany).save());
