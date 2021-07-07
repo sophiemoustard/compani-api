@@ -39,7 +39,7 @@ const {
   authCompany,
   rolesList,
 } = require('./seed/authenticationSeed');
-const { trainer, userList, noRoleNoCompany } = require('../seed/userSeed');
+const { trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/userSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../src/helpers/utils');
@@ -476,7 +476,7 @@ describe('GET /users', () => {
   });
 });
 
-describe('GET /users/exists #tag', () => {
+describe('GET /users/exists', () => {
   let authToken;
   beforeEach(populateDB);
   describe('NOT LOGGED', () => {
@@ -802,7 +802,7 @@ describe('GET /users/:id', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should return user', async () => {
@@ -914,7 +914,7 @@ describe('PUT /users/:id/', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should update the user', async () => {
@@ -1288,7 +1288,7 @@ describe('PUT /users/:id/', () => {
     });
 
     it('should not update another field than allowed ones if aux-without-company', async () => {
-      authToken = await getToken('auxiliary_without_company', true, userList);
+      authToken = await getToken('auxiliary_without_company');
       const roleAuxiliary = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
       const userId = userList[3]._id;
       const auxiliaryPayload = {
@@ -1359,7 +1359,7 @@ describe('DELETE /users/:id', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     usersSeedList.forEach((user) => {
@@ -1432,7 +1432,7 @@ describe('PUT /users/:id/certificates', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should update user certificates', async () => {
@@ -1471,11 +1471,11 @@ describe('PUT /users/:id/certificates', () => {
 
   describe('Other roles', () => {
     it('should update user certificate if it is me', async () => {
-      authToken = await getToken('auxiliary', true, usersSeedList);
+      authToken = await getToken('auxiliary');
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}/certificates`,
+        url: `/users/${auxiliary._id.toHexString()}/certificates`,
         payload: updatePayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1501,9 +1501,8 @@ describe('PUT /users/:id/certificates', () => {
   });
 });
 
-describe('POST /users/:id/gdrive/:drive_id/upload', () => {
+describe('POST /users/:id/gdrive/:drive_id/upload #tag', () => {
   let authToken;
-  const userFolderId = usersSeedList[0].administrative.driveFolder.driveId;
   let docPayload;
   let form;
   let addFileStub;
@@ -1524,6 +1523,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     });
 
     it('should add an administrative document for a user', async () => {
+      const userFolderId = usersSeedList[0].administrative.driveFolder.driveId;
       const response = await app.inject({
         method: 'POST',
         url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
@@ -1555,6 +1555,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     const wrongParams = ['type', 'file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
+        const userFolderId = usersSeedList[0].administrative.driveFolder.driveId;
         form = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
@@ -1569,12 +1570,13 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
   });
 
   describe('Other roles', () => {
-    it('should add administrative document if it is me', async () => {
-      authToken = await getToken('auxiliary', true, usersSeedList);
+    it('should add administrative document if it is me #tag', async () => {
+      authToken = await getToken('auxiliary');
 
+      const auxiliaryFolderId = auxiliary.administrative.driveFolder.driveId;
       const response = await app.inject({
         method: 'POST',
-        url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
+        url: `/users/${auxiliary._id}/gdrive/${auxiliaryFolderId}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -1796,7 +1798,7 @@ describe('POST /users/:id/drivefolder', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should create a drive folder for a user', async () => {

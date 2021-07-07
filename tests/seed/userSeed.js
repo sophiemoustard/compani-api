@@ -42,6 +42,7 @@ const userList = [
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
     origin: WEBAPP,
     contracts: [new ObjectID()],
+    administrative: { driveFolder: { driveId: '0987654321' } },
   },
   {
     _id: new ObjectID(),

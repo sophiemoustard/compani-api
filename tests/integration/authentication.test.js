@@ -133,7 +133,7 @@ describe('POST /users/:id/passwordtoken', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should create password token', async () => {

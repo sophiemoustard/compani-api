@@ -69,18 +69,18 @@ const populateDBForAuthentication = async () => {
   await IdentityVerification.insertMany(identityVerifications);
 };
 
-const getUser = (roleName, erp = true, list = userList) => {
+const getUser = (roleName, erp = true) => {
   const role = rolesList.find(r => r.name === roleName);
 
   if (!VENDOR_ROLES.includes(roleName)) {
     const company = [authCompany, companyWithoutSubscription].find(c => c.subscriptions.erp === erp);
     const filteredUserCompanies = userCompaniesList.filter(u => UtilsHelper.areObjectIdsEquals(u.company, company._id));
 
-    return list.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id) &&
+    return userList.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id) &&
       filteredUserCompanies.some(uc => UtilsHelper.areObjectIdsEquals(uc.user, u._id)));
   }
 
-  return list.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id));
+  return userList.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id));
 };
 
 const getTokenByCredentials = memoize(
@@ -97,8 +97,8 @@ const getTokenByCredentials = memoize(
   credentials => JSON.stringify([credentials.email, credentials.password])
 );
 
-const getToken = (roleName, erp, list) => {
-  const user = getUser(roleName, erp, list);
+const getToken = (roleName, erp) => {
+  const user = getUser(roleName, erp);
   return getTokenByCredentials(user.local);
 };
 
