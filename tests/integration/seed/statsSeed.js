@@ -68,7 +68,6 @@ const userList = [
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-    inactivityDate: null,
     contracts: [contractList[0]._id],
     refreshToken: uuidv4(),
     origin: WEBAPP,

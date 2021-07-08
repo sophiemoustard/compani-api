@@ -201,8 +201,6 @@ const balanceUserList = [{
   local: { email: 'helper_for_customer_balance@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
-  customers: [balanceCustomerList[0]._id],
-  company: authCompany._id,
   origin: WEBAPP,
 }];
 

@@ -128,7 +128,6 @@ const auxiliaryList = [{
   role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
   local: { email: 'export_auxiliary_1@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  company: authCompany._id,
   contracts: [contract1Id, contract2Id],
   origin: WEBAPP,
 }, {
@@ -158,7 +157,6 @@ const auxiliaryList = [{
   role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
   local: { email: 'export_auxiliary_2@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  company: authCompany._id,
   contracts: [contract3Id],
   origin: WEBAPP,
 }];
@@ -821,8 +819,6 @@ const user = {
   local: { email: 'toto@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
-  company: authCompany._id,
-  customers: [customersList[0]._id],
   origin: WEBAPP,
 };
 

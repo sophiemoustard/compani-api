@@ -106,14 +106,14 @@ const attendance = {
 };
 
 const populateDB = async () => {
-  await Course.deleteMany({});
-  await SubProgram.deleteMany({});
-  await CourseSlot.deleteMany({});
-  await Program.deleteMany({});
-  await User.deleteMany({});
-  await Step.deleteMany({});
-  await Attendance.deleteMany({});
-  await UserCompany.deleteMany({});
+  await Course.deleteMany();
+  await SubProgram.deleteMany();
+  await CourseSlot.deleteMany();
+  await Program.deleteMany();
+  await User.deleteMany();
+  await Step.deleteMany();
+  await Attendance.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 

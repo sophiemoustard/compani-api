@@ -76,7 +76,6 @@ const creditNoteUserList = [
     local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [creditNoteCustomer._id],
     origin: WEBAPP,
   },
   {

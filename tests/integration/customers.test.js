@@ -494,11 +494,10 @@ describe('CUSTOMERS ROUTES', () => {
 
     describe('Other roles', () => {
       it('should return the customer if I am its helper', async () => {
-        const helper = userList[0];
-        authToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(userList[0].local);
         const res = await app.inject({
           method: 'GET',
-          url: `/customers/${helper.customers[0]}`,
+          url: `/customers/${customersList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(200);
@@ -729,11 +728,10 @@ describe('CUSTOMERS ROUTES', () => {
 
     describe('Other roles', () => {
       it('should update a customer if I am its helper', async () => {
-        const helper = userList[0];
-        authToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(userList[0].local);
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${helper.customers[0]}`,
+          url: `/customers/${customersList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { identity: { firstname: 'Volgarr', lastname: 'Theviking' } },
         });
@@ -1696,12 +1694,10 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 });
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
-  let helper;
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    [helper] = userList;
-    authToken = await getTokenByCredentials(helper.local);
+    authToken = await getTokenByCredentials(userList[0].local);
   });
 
   describe('POST customers/:id/subscriptionshistory', () => {
@@ -1716,7 +1712,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1724,7 +1720,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.customer.subscriptionsHistory[1]).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(helper.customers[0]);
+      expect(res.result.data.customer._id).toEqual(customersList[0]._id);
       expect(res.result.data.customer.subscriptionsHistory[1].subscriptions).toEqual(expect.arrayContaining([
         expect.objectContaining(payload.subscriptions[0]),
         expect.objectContaining(payload.subscriptions[1]),
@@ -1737,7 +1733,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       const payload = { helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' } };
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1754,7 +1750,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1764,20 +1760,11 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
     it('should return a 403 error if user is not from the same company', async () => {
       const payload = {
-        subscriptions: [{
-          service: 'TestTest',
-          unitTTCRate: 23,
-          estimatedWeeklyVolume: 3,
-        }, {
-          service: 'TestTest2',
-          unitTTCRate: 30,
-          estimatedWeeklyVolume: 10,
-        }],
-        helper: {
-          firstname: 'Emmanuel',
-          lastname: 'Magellan',
-          title: 'mrs',
-        },
+        subscriptions: [
+          { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        ],
+        helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' },
       };
 
       const res = await app.inject({
@@ -1792,26 +1779,15 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
     describe('Other roles', () => {
       const payload = {
-        subscriptions: [{
-          service: 'TestTest',
-          unitTTCRate: 23,
-          estimatedWeeklyVolume: 3,
-        }, {
-          service: 'TestTest2',
-          unitTTCRate: 30,
-          estimatedWeeklyVolume: 10,
-        }],
-        helper: {
-          firstname: 'Lana',
-          lastname: 'Wachowski',
-          title: 'mrs',
-        },
+        subscriptions: [
+          { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        ],
+        helper: { firstname: 'Lana', lastname: 'Wachowski', title: 'mrs' },
       };
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
       ];
 
@@ -2545,13 +2521,12 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         };
         addStub.returns({ id: 'fakeFileDriveId' });
         getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
-        const helper = userList[0];
-        authToken = await getTokenByCredentials(helper.local);
-        const customerId = helper.customers[0];
+        authToken = await getTokenByCredentials(userList[0].local);
         const form = generateFormData(payload);
+
         const res = await app.inject({
           method: 'POST',
-          url: `/customers/${customerId.toHexString()}/gdrive/${fakeDriveId}/upload`,
+          url: `/customers/${customersList[0]._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
@@ -2563,7 +2538,6 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403, callCount: 0 },
         { name: 'auxiliary', expectedCode: 403, callCount: 0 },
-        { name: 'auxiliary_without_company', expectedCode: 403, callCount: 0 },
         { name: 'coach', expectedCode: 200, callCount: 1 },
       ];
 

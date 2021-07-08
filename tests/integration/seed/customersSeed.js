@@ -644,7 +644,6 @@ const userList = [
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [customersList[0]._id],
     origin: WEBAPP,
   },
   {
@@ -653,7 +652,6 @@ const userList = [
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [customersList[1]._id],
     origin: WEBAPP,
   },
   {
@@ -662,7 +660,6 @@ const userList = [
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [customersList[3]._id],
     origin: WEBAPP,
   },
   {
@@ -671,7 +668,6 @@ const userList = [
     local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: otherCompanyCustomerId,
     origin: WEBAPP,
   },
   {
@@ -785,6 +781,8 @@ const eventList = [
 const helpersList = [
   { customer: customersList[0]._id, user: userList[0]._id, company: authCompany._id, referent: true },
   { customer: customersList[1]._id, user: userList[1]._id, company: authCompany._id, referent: true },
+  { customer: customersList[4]._id, user: userList[2]._id, company: authCompany._id, referent: true },
+  { customer: otherCompanyCustomerId, user: userList[3]._id, company: otherCompany._id, referent: true },
 ];
 
 const userCompanies = [

@@ -20,7 +20,6 @@ const trainerAndCoach = {
     client: rolesList.find(role => role.name === COACH)._id,
     vendor: rolesList.find(role => role.name === TRAINER)._id,
   },
-  company: authCompany._id,
   origin: WEBAPP,
 };
 

@@ -71,7 +71,6 @@ const auxiliaryFromOtherCompany = {
   local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   refreshToken: uuidv4(),
-  inactivityDate: null,
   origin: WEBAPP,
 };
 
@@ -85,6 +84,7 @@ const populateDB = async () => {
   await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
+
   await User.create(auxiliaryFromOtherCompany);
   await UserCompany.insertMany(userCompanies);
   await Customer.insertMany(customersList);

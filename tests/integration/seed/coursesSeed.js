@@ -33,7 +33,6 @@ const traineeFromOtherCompany = {
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
-  inactivityDate: null,
   origin: WEBAPP,
 };
 
@@ -44,7 +43,6 @@ const traineeFromAuthCompanyWithFormationExpoToken = {
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
-  inactivityDate: null,
   origin: WEBAPP,
   formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
 };
@@ -55,7 +53,6 @@ const traineeWithoutCompany = {
   local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
   refreshToken: uuidv4(),
-  inactivityDate: null,
   origin: WEBAPP,
 };
 

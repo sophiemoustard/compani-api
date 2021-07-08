@@ -39,7 +39,6 @@ const usersSeedList = [{
   _id: new ObjectID(),
   identity: { firstname: 'Helper1', lastname: 'Carolyn' },
   local: { email: 'carolyn@alenvi.io', password: '123456!eR' },
-  inactivityDate: null,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
   origin: WEBAPP,

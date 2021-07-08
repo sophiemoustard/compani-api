@@ -141,8 +141,7 @@ exports.getUser = async (userId, credentials) => {
 };
 
 exports.userExists = async (email, credentials) => {
-  const targetUser = await User
-    .findOne({ 'local.email': email }, { role: 1 })
+  const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
     .populate({ path: 'company', select: 'company' })
     .lean();
   if (!targetUser) return { exists: false, user: {} };

@@ -299,7 +299,8 @@ async function formatPayload(doc, next) {
 UserSchema.virtual('customers', { ref: 'Helper', localField: '_id', foreignField: 'user', justOne: true });
 
 UserSchema.virtual(
-  'sector', {
+  'sector',
+  {
     ref: 'SectorHistory',
     localField: '_id',
     foreignField: 'auxiliary',

@@ -42,7 +42,6 @@ const userFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test@othercompany.io', password: '123456!eR' },
-  inactivityDate: null,
   refreshToken: uuidv4(),
   role: { client: rolesList[1]._id },
   contracts: [new ObjectID()],
