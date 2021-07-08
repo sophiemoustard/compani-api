@@ -98,15 +98,15 @@ describe('getPartnerOrganization', () => {
           query: 'populate',
           args: [{
             path: 'partners',
-            select: 'identity phone email job customerPartners',
+            select: 'identity phone email job',
             populate: {
-              path: 'customerPartner',
+              path: 'customerPartners',
               match: { prescriber: true, company: credentials.company._id },
               populate: { path: 'customer', select: 'identity subscriptions' },
             },
           }],
         },
-        { query: 'lean', args: [{ virtuals: true }] },
+        { query: 'lean' },
       ]
     );
   });

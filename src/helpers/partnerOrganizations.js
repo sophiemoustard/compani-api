@@ -9,14 +9,14 @@ exports.getPartnerOrganization = (partnerOrganizationId, credentials) => Partner
   .findOne({ _id: partnerOrganizationId, company: credentials.company._id })
   .populate({
     path: 'partners',
-    select: 'identity phone email job customerPartners',
+    select: 'identity phone email job',
     populate: {
-      path: 'customerPartner',
+      path: 'customerPartners',
       match: { prescriber: true, company: credentials.company._id },
       populate: { path: 'customer', select: 'identity subscriptions' },
     },
   })
-  .lean({ virtuals: true });
+  .lean();
 
 exports.update = async (partnerOrganizationId, payload) => PartnerOrganization
   .updateOne({ _id: partnerOrganizationId }, { $set: payload });

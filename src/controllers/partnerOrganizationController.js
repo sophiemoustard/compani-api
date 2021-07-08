@@ -28,10 +28,8 @@ const list = async (req) => {
 
 const getById = async (req) => {
   try {
-    const partnerOrganization = await PartnerOrganizationsHelper.getPartnerOrganization(
-      req.params._id,
-      req.auth.credentials
-    );
+    const partnerOrganization = await PartnerOrganizationsHelper
+      .getPartnerOrganization(req.params._id, req.auth.credentials);
 
     return { message: translate[language].partnerOrganizationFound, data: { partnerOrganization } };
   } catch (e) {
