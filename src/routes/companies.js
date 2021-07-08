@@ -80,6 +80,10 @@ exports.plugin = {
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
                 }),
+                gcs: Joi.object().keys({
+                  driveId: Joi.string().allow(null),
+                  link: Joi.string().allow(null),
+                }),
               }),
             }),
           }),
@@ -107,7 +111,8 @@ exports.plugin = {
               'contract',
               'contractVersion',
               'debitMandate',
-              'quote'
+              'quote',
+              'gcs'
             ),
             file: Joi.any().required(),
           }),
