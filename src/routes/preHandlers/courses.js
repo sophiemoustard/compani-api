@@ -197,7 +197,7 @@ exports.authorizeGetCourse = async (req) => {
     }
 
     const courseWithTrainees = await Course.findById(req.params._id)
-      .populate({ path: 'trainees', populate: { path: 'company' } })
+      .populate({ path: 'trainees', select: 'company', populate: { path: 'company' } })
       .lean();
     const someTraineesAreInCompany = courseWithTrainees.trainees
       .some(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));

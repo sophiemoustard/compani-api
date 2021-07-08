@@ -47,7 +47,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
-        { query: 'populate', args: [{ path: 'trainee', populate: { path: 'company' } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company', populate: { path: 'company' } }] },
         { query: 'lean' },
       ]
     );
@@ -71,7 +71,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
-        { query: 'populate', args: [{ path: 'trainee', populate: { path: 'company' } }] },
+        { query: 'populate', args: [{ path: 'trainee', select: 'company', populate: { path: 'company' } }] },
         { query: 'lean' },
       ]
     );
