@@ -11,7 +11,7 @@ const {
   list,
   show,
 } = require('../controllers/companyController');
-const { TWO_WEEKS } = require('../helpers/constants');
+const { TWO_WEEKS, DOCUMENT_TYPE_LIST } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES, TRADE_NAME_REGEX, APE_CODE_REGEX } = require('../models/Company');
 const { authorizeCompanyUpdate, companyExists } = require('./preHandlers/companies');
 const { addressValidation, formDataPayload } = require('./validations/utils');
@@ -107,13 +107,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
           payload: Joi.object({
             fileName: Joi.string().required(),
-            type: Joi.string().required().valid(
-              'contract',
-              'contractVersion',
-              'debitMandate',
-              'quote',
-              'gcs'
-            ),
+            type: Joi.string().required().valid(...DOCUMENT_TYPE_LIST),
             file: Joi.any().required(),
           }),
         },
