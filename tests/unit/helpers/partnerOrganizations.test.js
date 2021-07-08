@@ -101,7 +101,7 @@ describe('getPartnerOrganization', () => {
             select: 'identity phone email job customerPartners',
             populate: {
               path: 'customerPartner',
-              match: { prescriber: false, company: credentials.company._id },
+              match: { prescriber: true, company: credentials.company._id },
               populate: { path: 'customer', select: 'identity subscriptions' },
             },
           }],
