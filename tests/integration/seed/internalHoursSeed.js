@@ -6,6 +6,7 @@ const Event = require('../../../src/models/Event');
 const { populateDBForAuthentication, authCompany, rolesList, otherCompany } = require('./authenticationSeed');
 const { userList } = require('../../seed/userSeed');
 const { INTERNAL_HOUR, WEBAPP } = require('../../../src/helpers/constants');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const internalHourUsers = [{
   _id: new ObjectID(),
@@ -13,7 +14,6 @@ const internalHourUsers = [{
   refreshToken: uuidv4(),
   local: { email: 'admin_internal_hour@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
-  company: otherCompany._id,
   origin: WEBAPP,
 }, {
   _id: new ObjectID(),
@@ -21,9 +21,13 @@ const internalHourUsers = [{
   local: { email: 'auxiliary_internal_hour@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  company: otherCompany._id,
   origin: WEBAPP,
 }];
+
+const internalHourUserCompanies = [
+  { _id: new ObjectID(), user: internalHourUsers[0]._id, company: otherCompany._id },
+  { _id: new ObjectID(), user: internalHourUsers[1]._id, company: otherCompany._id },
+];
 
 const authInternalHoursList = [
   { _id: new ObjectID(), name: 'Planning', company: authCompany._id },
@@ -65,14 +69,16 @@ const eventList = [
 ];
 
 const populateDB = async () => {
-  await InternalHour.deleteMany({});
-  await Event.deleteMany({});
+  await InternalHour.deleteMany();
+  await Event.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
   await Event.insertMany(eventList);
   await InternalHour.insertMany([...internalHoursList, ...authInternalHoursList]);
   await User.create(internalHourUsers);
+  await UserCompany.insertMany(internalHourUserCompanies);
 };
 
 module.exports = {

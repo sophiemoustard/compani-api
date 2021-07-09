@@ -110,12 +110,7 @@ const exists = async (req) => {
 
 const update = async (req) => {
   try {
-    await UsersHelper.updateUser(
-      req.params._id,
-      req.payload,
-      req.auth.credentials,
-      req.pre.canEditWithoutCompany
-    );
+    await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
 
     return { message: translate[language].userUpdated };
   } catch (e) {
@@ -187,7 +182,7 @@ const deletePicture = async (req) => {
 
 const createDriveFolder = async (req) => {
   try {
-    await UsersHelper.createDriveFolder(req.pre.user);
+    await UsersHelper.createDriveFolder(req.params._id);
 
     return { message: translate[language].userUpdated };
   } catch (e) {

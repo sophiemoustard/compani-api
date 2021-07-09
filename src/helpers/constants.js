@@ -183,6 +183,7 @@ module.exports = {
   AUXILIARY_WITHOUT_COMPANY: 'auxiliary_without_company',
   CLIENT_ADMIN: 'client_admin',
   get AUXILIARY_ROLES() { return [this.AUXILIARY, this.PLANNING_REFERENT, this.AUXILIARY_WITHOUT_COMPANY]; },
+  get VENDOR_ROLES() { return [this.VENDOR_ADMIN, this.TRAINING_ORGANISATION_MANAGER, this.TRAINER]; },
   // ROLE VENDOR
   VENDOR_ADMIN: 'vendor_admin',
   TRAINING_ORGANISATION_MANAGER: 'training_organisation_manager',

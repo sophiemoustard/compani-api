@@ -8,6 +8,8 @@ const PaymentNumber = require('../../../src/models/PaymentNumber');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND, WEBAPP } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const UserCompany = require('../../../src/models/UserCompany');
+const Helper = require('../../../src/models/Helper');
 
 const paymentTppList = [
   { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true, billingMode: 'direct' },
@@ -127,10 +129,16 @@ const paymentUser = {
   local: { email: 'helper_for_customer_payment@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
-  customers: [paymentCustomerList[0]._id],
   company: authCompany._id,
   origin: WEBAPP,
 };
+
+const helpersList = [{
+  customer: paymentCustomerList[0]._id,
+  user: paymentUser._id,
+  company: authCompany._id,
+  referent: true,
+}];
 
 const userFromOtherCompany = {
   _id: new ObjectID(),
@@ -141,6 +149,11 @@ const userFromOtherCompany = {
   local: { email: 'test_other_company@alenvi.io', password: '123456!eR' },
   origin: WEBAPP,
 };
+
+const userCompanies = [
+  { _id: new ObjectID(), user: paymentUser._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id },
+];
 
 const customerFromOtherCompany = {
   _id: new ObjectID(),
@@ -172,6 +185,8 @@ const populateDB = async () => {
   await ThirdPartyPayer.deleteMany();
   await Customer.deleteMany();
   await User.deleteMany();
+  await UserCompany.deleteMany();
+  await Helper.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -179,6 +194,8 @@ const populateDB = async () => {
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
   await PaymentNumber.insertMany(paymentNumberList);
+  await UserCompany.insertMany(userCompanies);
+  await Helper.insertMany(helpersList);
   await (new User(paymentUser).save());
   await (new User(userFromOtherCompany).save());
   await (new Customer(customerFromOtherCompany).save());

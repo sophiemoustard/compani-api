@@ -25,7 +25,7 @@ const { language } = translate;
 exports.getUser = async (req) => {
   try {
     const userId = req.params._id;
-    const user = await User.findOne({ _id: userId }).lean();
+    const user = await User.findOne({ _id: userId }).populate({ path: 'company' }).lean();
     if (!user) throw Boom.notFound(translate[language].userNotFound);
 
     return user;
@@ -153,14 +153,6 @@ exports.authorizeUserDeletion = async (req) => {
   if (!UtilsHelper.areObjectIdsEquals(user.company, companyId)) throw Boom.forbidden();
 
   return null;
-};
-
-exports.authorizeUserUpdateWithoutCompany = (req) => {
-  const { credentials } = req.auth;
-  const addNewCompanyToTargetUser = !req.pre.user.company && req.payload.company;
-  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
-
-  return !!loggedUserHasVendorRole || !!addNewCompanyToTargetUser;
 };
 
 exports.authorizeUserCreation = async (req) => {

@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const CourseSlot = require('../../../src/models/CourseSlot');
+const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -17,9 +18,10 @@ const trainer = {
   refreshToken: uuidv4(),
   local: { email: 'course_slot_trainer@alenvi.io', password: '123456!eR' },
   role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
-  company: authCompany._id,
   origin: WEBAPP,
 };
+
+const userCompanies = [{ _id: new ObjectID(), user: trainer._id, company: authCompany._id }];
 
 const stepsList = [
   { _id: new ObjectID(), type: 'on_site', name: 'c\'est une étape' },
@@ -104,13 +106,14 @@ const attendance = {
 };
 
 const populateDB = async () => {
-  await Course.deleteMany({});
-  await SubProgram.deleteMany({});
-  await CourseSlot.deleteMany({});
-  await Program.deleteMany({});
-  await User.deleteMany({});
-  await Step.deleteMany({});
-  await Attendance.deleteMany({});
+  await Course.deleteMany();
+  await SubProgram.deleteMany();
+  await CourseSlot.deleteMany();
+  await Program.deleteMany();
+  await User.deleteMany();
+  await Step.deleteMany();
+  await Attendance.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -121,6 +124,7 @@ const populateDB = async () => {
   await Step.insertMany(stepsList);
   await User.create(trainer);
   await Attendance.create(attendance);
+  await UserCompany.create(userCompanies);
 };
 
 module.exports = {

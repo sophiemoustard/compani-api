@@ -17,6 +17,7 @@ const Repetition = require('../models/Repetition');
 const CustomerPartner = require('../models/CustomerPartner');
 const Rum = require('../models/Rum');
 const User = require('../models/User');
+const UserCompany = require('../models/UserCompany');
 const EventRepository = require('../repositories/EventRepository');
 const CustomerRepository = require('../repositories/CustomerRepository');
 const translate = require('./translate');
@@ -214,7 +215,10 @@ exports.removeCustomer = async (customerId) => {
 
   for (const helper of helpers) {
     if (helper.user) {
-      promises.push(User.updateOne({ _id: helper.user }, { $unset: { 'role.client': '', company: '' } }));
+      promises.push(
+        User.updateOne({ _id: helper.user }, { $unset: { 'role.client': '' } }),
+        UserCompany.deleteOne({ user: helper.user })
+      );
     }
   }
 

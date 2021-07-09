@@ -19,7 +19,6 @@ const {
   MOBILE,
   WEBAPP,
 } = require('../helpers/constants');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
@@ -124,7 +123,6 @@ const UserSchema = mongoose.Schema({
     },
   },
   isConfirmed: { type: Boolean, default: false },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
   establishment: { type: mongoose.Schema.Types.ObjectId, ref: 'Establishment' },
   inactivityDate: { type: Date, default: null },
   biography: { type: String },
@@ -258,9 +256,22 @@ function populateSector(doc, next) {
 
 function populateSectors(docs, next) {
   for (const doc of docs) {
-    if (doc && doc.sector) {
-      doc.sector = doc.sector.sector;
-    }
+    if (doc && doc.sector) doc.sector = doc.sector.sector;
+  }
+
+  return next();
+}
+
+function populateCompany(doc, next) {
+  // eslint-disable-next-line no-param-reassign
+  if (get(doc, 'company.company')) doc.company = doc.company.company;
+
+  return next();
+}
+
+function populateCompanies(docs, next) {
+  for (const doc of docs) {
+    if (doc && doc.company) doc.company = doc.company.company;
   }
 
   return next();
@@ -285,49 +296,43 @@ async function formatPayload(doc, next) {
   return next();
 }
 
-UserSchema.virtual('customers', {
-  ref: 'Helper',
-  localField: '_id',
-  foreignField: 'user',
-  justOne: true,
-});
+UserSchema.virtual('customers', { ref: 'Helper', localField: '_id', foreignField: 'user', justOne: true });
 
-UserSchema.virtual('sector', {
-  ref: 'SectorHistory',
-  localField: '_id',
-  foreignField: 'auxiliary',
-  justOne: true,
-  options: { sort: { startDate: -1 } },
-});
+UserSchema.virtual(
+  'sector',
+  {
+    ref: 'SectorHistory',
+    localField: '_id',
+    foreignField: 'auxiliary',
+    justOne: true,
+    options: { sort: { startDate: -1 } },
+  }
+);
 
-UserSchema.virtual('sectorHistories', {
-  ref: 'SectorHistory',
-  localField: '_id',
-  foreignField: 'auxiliary',
-  options: { sort: { startDate: -1 } },
-});
+UserSchema.virtual(
+  'sectorHistories',
+  { ref: 'SectorHistory', localField: '_id', foreignField: 'auxiliary', options: { sort: { startDate: -1 } } }
+);
 
-UserSchema.virtual('blendedCoursesCount', {
-  ref: 'Course',
-  localField: '_id',
-  foreignField: 'trainees',
-  count: true,
-  options: { match: { format: BLENDED } },
-});
+UserSchema.virtual(
+  'blendedCoursesCount',
+  { ref: 'Course', localField: '_id', foreignField: 'trainees', count: true, options: { match: { format: BLENDED } } }
+);
 
-UserSchema.virtual('eLearningCoursesCount', {
-  ref: 'Course',
-  localField: '_id',
-  foreignField: 'trainees',
-  count: true,
-  options: { match: { format: STRICTLY_E_LEARNING } },
-});
+UserSchema.virtual(
+  'eLearningCoursesCount',
+  {
+    ref: 'Course',
+    localField: '_id',
+    foreignField: 'trainees',
+    count: true,
+    options: { match: { format: STRICTLY_E_LEARNING } },
+  }
+);
 
-UserSchema.virtual('activityHistories', {
-  ref: 'ActivityHistory',
-  localField: '_id',
-  foreignField: 'user',
-});
+UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_id', foreignField: 'user' });
+
+UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user', justOne: true });
 
 UserSchema.statics.isActive = isActive;
 
@@ -338,13 +343,14 @@ UserSchema.pre('validate', validate);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('updateOne', findOneAndUpdate);
-UserSchema.pre('find', validateQuery);
-UserSchema.pre('aggregate', validateAggregation);
 
-UserSchema.post('findOne', populateSector);
-UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('find', populateSectors);
+UserSchema.post('find', populateCompanies);
+UserSchema.post('findOne', populateSector);
 UserSchema.post('findOne', populateCustomers);
+UserSchema.post('findOne', populateCompany);
+UserSchema.post('findOneAndUpdate', populateCompany);
+UserSchema.post('findOneAndUpdate', populateSector);
 UserSchema.post('findOneAndUpdate', populateCustomers);
 UserSchema.post('save', formatPayload);
 

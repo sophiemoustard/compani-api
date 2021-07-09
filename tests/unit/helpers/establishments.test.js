@@ -94,7 +94,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
-        { query: 'populate', args: [{ path: 'usersCount', match: { company: credentials.company._id } }] },
+        { query: 'populate', args: [{ path: 'usersCount' }] },
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );

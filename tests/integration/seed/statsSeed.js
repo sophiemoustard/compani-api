@@ -68,9 +68,7 @@ const userList = [
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-    inactivityDate: null,
     contracts: [contractList[0]._id],
-    company: authCompany._id,
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -80,7 +78,6 @@ const userList = [
     local: { email: 'black@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     inactivityDate: '2019-01-01T23:59:59',
-    company: authCompany._id,
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -90,16 +87,15 @@ const userList = [
     local: { email: 'blue@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     inactivityDate: '2019-01-01T23:59:59',
-    company: otherCompany._id,
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
 ];
 
 const userCompanyList = [
-  { user: userList[0], company: authCompany._id },
-  { user: userList[1], company: authCompany._id },
-  { user: userList[2], company: otherCompany._id },
+  { _id: new ObjectID(), user: userList[0], company: authCompany._id },
+  { _id: new ObjectID(), user: userList[1], company: authCompany._id },
+  { _id: new ObjectID(), user: userList[2], company: otherCompany._id },
 ];
 
 const sectorHistoryList = [{
@@ -658,6 +654,7 @@ const populateDB = async () => {
   await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
+
   for (const user of userList) {
     await new User(user).save();
   }

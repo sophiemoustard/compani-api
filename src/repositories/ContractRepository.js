@@ -44,7 +44,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
     $lookup: {
       from: 'sectorhistories',
       as: 'auxiliary.sector',
-      let: { auxiliaryId: '$auxiliary._id', companyId: '$auxiliary.company' },
+      let: { auxiliaryId: '$auxiliary._id', companyId },
       pipeline: [
         {
           $match: {

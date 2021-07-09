@@ -26,25 +26,18 @@ const customer = {
     },
     phone: '0123456789',
   },
-  subscriptions: [
-    {
-      _id: new ObjectID(),
-      service: new ObjectID(),
-      versions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-        startDate: '2018-01-01T10:00:00.000+01:00',
-      }],
-    },
-  ],
-  payment: {
-    bankAccountOwner: 'David gaudu',
-    iban: '',
-    bic: '',
-    mandates: [{ rum: 'R012345678903456789' }],
-  },
+  subscriptions: [{
+    _id: new ObjectID(),
+    service: new ObjectID(),
+    versions: [{
+      unitTTCRate: 12,
+      estimatedWeeklyVolume: 12,
+      evenings: 2,
+      sundays: 1,
+      startDate: '2018-01-01T10:00:00.000+01:00',
+    }],
+  }],
+  payment: { bankAccountOwner: 'David gaudu', iban: '', bic: '', mandates: [{ rum: 'R012345678903456789' }] },
   driveFolder: { driveId: '1234567890' },
 };
 
@@ -52,12 +45,9 @@ const otherContractUser = {
   _id: new ObjectID(),
   identity: { firstname: 'OCCU', lastname: 'OCCU' },
   local: { email: 'other-company-contract-user@alenvi.io', password: '123456!eR' },
-  inactivityDate: null,
-  employee_id: 12345678,
   refreshToken: uuidv4(),
   role: { client: rolesList[0]._id },
   contracts: [new ObjectID()],
-  company: otherCompany._id,
   prefixNumber: 103,
   origin: WEBAPP,
 };
@@ -73,10 +63,7 @@ const establishment = {
     fullAddress: '37, rue des acacias 69000 Lyon',
     zipCode: '69000',
     city: 'Lyon',
-    location: {
-      type: 'Point',
-      coordinates: [4.824302, 3.50807],
-    },
+    location: { type: 'Point', coordinates: [4.824302, 3.50807] },
   },
   phone: '0446899034',
   workHealthService: 'MT01',
@@ -97,13 +84,9 @@ const contractUsers = [{
     birthState: 75,
   },
   local: { email: 'test7@alenvi.io', password: '123456!eR' },
-  inactivityDate: null,
-  employee_id: 12345678,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [new ObjectID()],
-  company: authCompany._id,
-  sector: sector._id,
   contact: {
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -128,13 +111,9 @@ const contractUsers = [{
   },
   establishment: new ObjectID(),
   local: { email: 'tototest@alenvi.io', password: '123456!eR' },
-  inactivityDate: null,
-  employee_id: 12345678,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [new ObjectID()],
-  company: authCompany._id,
-  sector: sector._id,
   contact: {
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -159,13 +138,8 @@ const contractUsers = [{
   },
   establishment: new ObjectID(),
   local: { email: 'ok@alenvi.io', password: '123456!eR' },
-  inactivityDate: null,
-  employee_id: 12345678,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: [],
-  company: authCompany._id,
-  sector: sector._id,
   contact: {
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -181,12 +155,9 @@ const contractUsers = [{
   _id: new ObjectID(),
   identity: { firstname: 'contract', lastname: 'Titi' },
   local: { email: 'contract@alenvi.io', password: '123456!eR' },
-  inactivityDate: null,
-  employee_id: 12345678,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [new ObjectID()],
-  company: authCompany._id,
   sector: sector._id,
   origin: WEBAPP,
 }];
@@ -231,21 +202,19 @@ const userFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test@othercompany.io', password: '123456!eR' },
-  inactivityDate: null,
-  employee_id: 123456789,
   refreshToken: uuidv4(),
   role: { client: rolesList[0]._id },
   contracts: [new ObjectID()],
-  company: otherCompany._id,
   origin: WEBAPP,
 };
 
-const userCompanies = [
-  { user: contractUsers[0]._id, company: authCompany._id },
-  { user: contractUsers[1]._id, company: authCompany._id },
-  { user: contractUsers[2]._id, company: authCompany._id },
-  { user: contractUsers[3]._id, company: authCompany._id },
-  { user: getUser('auxiliary_without_company')._id, company: authCompany._id },
+const contractUserCompanies = [
+  { _id: new ObjectID(), user: contractUsers[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[1]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[2]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[3]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: otherContractUser._id, company: otherCompany._id },
+  { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const contractsList = [
@@ -423,14 +392,15 @@ const populateDB = async () => {
   await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
+
   await User.insertMany([...contractUsers, otherContractUser, userFromOtherCompany]);
-  await new Sector(sector).save();
-  await new Establishment(establishment).save();
-  await new Customer(customer).save();
+  await Sector.create(sector);
+  await Establishment.create(establishment);
+  await Customer.create(customer);
   await Contract.insertMany([...contractsList, otherContract]);
   await Event.insertMany(contractEvents);
   await SectorHistory.insertMany(sectorHistories);
-  await UserCompany.insertMany(userCompanies);
+  await UserCompany.insertMany(contractUserCompanies);
 };
 
 module.exports = {
@@ -442,5 +412,5 @@ module.exports = {
   otherContract,
   otherContractUser,
   userFromOtherCompany,
-  userCompanies,
+  contractUserCompanies,
 };

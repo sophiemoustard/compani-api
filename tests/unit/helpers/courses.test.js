@@ -446,9 +446,8 @@ describe('getCourse', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            match: {},
-            select: 'identity.firstname identity.lastname local.email company contact picture.link',
-            populate: { path: 'company', select: 'name' },
+            select: 'identity.firstname identity.lastname local.email contact picture.link',
+            populate: { path: 'company', populate: { path: 'company', select: 'name' } },
           }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
@@ -461,26 +460,23 @@ describe('getCourse', () => {
 
   it('should return inter b2b course with trainees filtering', async () => {
     const authCompanyId = new ObjectID();
+    const otherCompanyId = new ObjectID();
+    const loggedUser = { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } };
     const course = {
       _id: new ObjectID(),
       type: 'inter_b2b',
-      trainees: [
-        { _id: new ObjectID(), company: authCompanyId },
-        { _id: new ObjectID(), company: new ObjectID() },
-      ],
+      trainees: [{ _id: new ObjectID(), company: authCompanyId }, { _id: new ObjectID(), company: otherCompanyId }],
     };
-    const courseWithFilteredTrainees = {
-      _id: new ObjectID(),
+    const courseWithAllTrainees = {
       type: 'inter_b2b',
-      trainees: [{ _id: new ObjectID(), company: authCompanyId }],
+      trainees: [{ company: authCompanyId }, { company: otherCompanyId }],
     };
-    findOne.returns(SinonMongoose.stubChainedQueries([courseWithFilteredTrainees]));
+    const courseWithFilteredTrainees = { type: 'inter_b2b', trainees: [{ company: authCompanyId }] };
+    findOne.returns(SinonMongoose.stubChainedQueries([courseWithAllTrainees]));
 
-    const result = await CourseHelper.getCourse(
-      { _id: course._id }, { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } }
-    );
+    const result = await CourseHelper.getCourse({ _id: course._id }, loggedUser);
+
     expect(result).toMatchObject(courseWithFilteredTrainees);
-
     SinonMongoose.calledWithExactly(
       findOne,
       [
@@ -509,9 +505,8 @@ describe('getCourse', () => {
           query: 'populate',
           args: [{
             path: 'trainees',
-            match: { company: authCompanyId },
-            select: 'identity.firstname identity.lastname local.email company contact picture.link',
-            populate: { path: 'company', select: 'name' },
+            select: 'identity.firstname identity.lastname local.email contact picture.link',
+            populate: { path: 'company', populate: { path: 'company', select: 'name' } },
           }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
@@ -641,12 +636,12 @@ describe('getCourseFollowUp', () => {
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1 }],
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1, company: new ObjectID() }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['select', 'populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['populate', 'lean']));
 
     formatStep.callsFake(s => s);
     getTraineeProgress.returns({ steps: { progress: 1 }, progress: 1 });
@@ -656,19 +651,13 @@ describe('getCourseFollowUp', () => {
 
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'select', args: ['trainees'] },
-        { query: 'lean' },
-      ],
+      [{ query: 'findOne', args: [{ _id: course._id }, { trainees: 1 }] }, { query: 'lean' }],
       0
     );
-
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'select', args: ['subProgram'] },
+        { query: 'findOne', args: [{ _id: course._id }, { subProgram: 1 }] },
         {
           query: 'populate',
           args: [{
@@ -696,7 +685,7 @@ describe('getCourseFollowUp', () => {
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
-            match: {},
+            populate: { path: 'company' },
           }] },
         { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
         { query: 'lean' },
@@ -706,38 +695,40 @@ describe('getCourseFollowUp', () => {
   });
 
   it('should return course follow up with trainees from company', async () => {
+    const companyId = new ObjectID();
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1 }],
+      trainees: [
+        { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
+        { _id: '123213342', steps: { progress: 1 }, progress: 1, company: new ObjectID() },
+      ],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
-    const companyId = new ObjectID();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['select', 'populate', 'lean']));
-
+    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['populate', 'lean']));
     formatStep.callsFake(s => s);
     getTraineeProgress.returns({ steps: { progress: 1 }, progress: 1 });
+
     const result = await CourseHelper.getCourseFollowUp(course, companyId);
 
-    expect(result).toEqual(course);
+    expect(result).toEqual({
+      _id: '1234567890',
+      subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId }],
+      slots: [{ _id: '123456789' }],
+    });
 
     SinonMongoose.calledWithExactly(
       findOne,
-      [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'select', args: ['trainees'] },
-        { query: 'lean' },
-      ],
+      [{ query: 'findOne', args: [{ _id: course._id }, { trainees: 1 }] }, { query: 'lean' }],
       0
     );
-
     SinonMongoose.calledWithExactly(
       findOne,
       [
-        { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'select', args: ['subProgram'] },
+        { query: 'findOne', args: [{ _id: course._id }, { subProgram: 1 }] },
         {
           query: 'populate',
           args: [{
@@ -766,7 +757,7 @@ describe('getCourseFollowUp', () => {
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
-            match: { company: companyId },
+            populate: { path: 'company' },
           }],
         },
         { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
@@ -1681,7 +1672,10 @@ describe('generateAttendanceSheets', () => {
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['company'] },
       { query: 'populate', args: ['slots'] },
-      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company', select: 'name' } }] },
+      {
+        query: 'populate',
+        args: [{ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } }],
+      },
       { query: 'populate', args: ['trainer'] },
       {
         query: 'populate',
@@ -1712,7 +1706,10 @@ describe('generateAttendanceSheets', () => {
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['company'] },
       { query: 'populate', args: ['slots'] },
-      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company', select: 'name' } }] },
+      {
+        query: 'populate',
+        args: [{ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } }],
+      },
       { query: 'populate', args: ['trainer'] },
       {
         query: 'populate',

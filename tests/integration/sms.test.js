@@ -55,7 +55,7 @@ describe('SMS ROUTES', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
       sinon.assert.notCalled(SmsHelperStub);
     });
 

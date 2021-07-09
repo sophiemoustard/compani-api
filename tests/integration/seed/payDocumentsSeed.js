@@ -12,28 +12,19 @@ const payDocumentUser = {
   local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
-  company: authCompany._id,
   origin: WEBAPP,
 };
 
-const payDocumentUserCompany = {
-  user: payDocumentUser._id,
-  company: authCompany._id,
-};
-
-const user = getUser('auxiliary_without_company');
-
-const userCompanyWithoutCompany = { user: user._id, company: authCompany._id };
+const payDocumentUserCompanies = [
+  { _id: new ObjectID(), user: payDocumentUser._id, company: authCompany._id },
+];
 
 const otherCompanyId = new ObjectID();
 
 const userFromOtherCompany = {
   company: otherCompanyId,
   _id: new ObjectID(),
-  identity: {
-    firstname: 'test',
-    lastname: 'toto',
-  },
+  identity: { firstname: 'test', lastname: 'toto' },
   local: { email: 'test@alenvi.io', password: '123456!eR' },
   role: { client: rolesList[1]._id },
   refreshToken: uuidv4(),
@@ -94,7 +85,7 @@ const populateDB = async () => {
   await populateDBForAuthentication();
 
   await User.create([payDocumentUser, userFromOtherCompany]);
-  await UserCompany.insertMany([payDocumentUserCompany, userCompanyWithoutCompany]);
+  await UserCompany.insertMany(payDocumentUserCompanies);
   await PayDocument.insertMany(payDocumentsList);
 };
 
@@ -102,7 +93,6 @@ module.exports = {
   populateDB,
   payDocumentsList,
   payDocumentUser,
-  payDocumentUserCompany,
+  payDocumentUserCompanies,
   userFromOtherCompany,
-  userCompanyWithoutCompany,
 };

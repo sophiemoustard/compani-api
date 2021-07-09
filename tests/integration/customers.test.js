@@ -38,9 +38,6 @@ describe('NODE ENV', () => {
 describe('CUSTOMERS ROUTES', () => {
   let authToken;
   beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('client_admin');
-  });
 
   describe('POST /customers', () => {
     let addStub;
@@ -64,58 +61,64 @@ describe('CUSTOMERS ROUTES', () => {
       },
     };
 
-    it('should create a new customer', async () => {
-      const customersBefore = await Customer.countDocuments({ company: authCompany._id }).lean();
-      addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
-
-      const res = await app.inject({
-        method: 'POST',
-        url: '/customers',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(pick(res.result.data.customer.toObject(), ['company', 'identity', 'contact'])).toMatchObject({
-        company: authCompany._id,
-        identity: { lastname: payload.identity.lastname },
-        contact: {
-          primaryAddress: {
-            street: payload.contact.primaryAddress.street,
-            zipCode: payload.contact.primaryAddress.zipCode,
-            city: payload.contact.primaryAddress.city,
-            fullAddress: payload.contact.primaryAddress.fullAddress,
-            location: payload.contact.primaryAddress.location,
-          },
-        },
-      });
-      expect(res.result.data.customer.payment.mandates).toBeDefined();
-      expect(res.result.data.customer.payment.mandates.length).toEqual(1);
-      expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
-      expect(res.result.data.customer.driveFolder).toEqual({ driveId: '1234567890', link: 'http://qwertyuiop' });
-      const customers = await Customer.find({ company: authCompany._id }).lean();
-      expect(customers).toHaveLength(customersBefore + 1);
-    });
+      it('should create a new customer', async () => {
+        const customersBefore = await Customer.countDocuments({ company: authCompany._id }).lean();
+        addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
 
-    const missingParams = [
-      'identity.lastname',
-      'identity.title',
-      'contact.primaryAddress.street',
-      'contact.primaryAddress.zipCode',
-      'contact.primaryAddress.city',
-      'contact.primaryAddress.fullAddress',
-      'contact.primaryAddress.location.type',
-      'contact.primaryAddress.location.coordinates',
-    ];
-    missingParams.forEach((paramPath) => {
-      it(`should return a 400 error if missing '${paramPath}' parameter`, async () => {
         const res = await app.inject({
           method: 'POST',
           url: '/customers',
-          payload: omit(cloneDeep(payload), paramPath),
+          payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
-        expect(res.statusCode).toBe(400);
+
+        expect(res.statusCode).toBe(200);
+        expect(pick(res.result.data.customer.toObject(), ['company', 'identity', 'contact'])).toMatchObject({
+          company: authCompany._id,
+          identity: { lastname: payload.identity.lastname },
+          contact: {
+            primaryAddress: {
+              street: payload.contact.primaryAddress.street,
+              zipCode: payload.contact.primaryAddress.zipCode,
+              city: payload.contact.primaryAddress.city,
+              fullAddress: payload.contact.primaryAddress.fullAddress,
+              location: payload.contact.primaryAddress.location,
+            },
+          },
+        });
+        expect(res.result.data.customer.payment.mandates).toBeDefined();
+        expect(res.result.data.customer.payment.mandates.length).toEqual(1);
+        expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
+        expect(res.result.data.customer.driveFolder).toEqual({ driveId: '1234567890', link: 'http://qwertyuiop' });
+        const customers = await Customer.find({ company: authCompany._id }).lean();
+        expect(customers).toHaveLength(customersBefore + 1);
+      });
+
+      const missingParams = [
+        'identity.lastname',
+        'identity.title',
+        'contact.primaryAddress.street',
+        'contact.primaryAddress.zipCode',
+        'contact.primaryAddress.city',
+        'contact.primaryAddress.fullAddress',
+        'contact.primaryAddress.location.type',
+        'contact.primaryAddress.location.coordinates',
+      ];
+      missingParams.forEach((paramPath) => {
+        it(`should return a 400 error if missing '${paramPath}' parameter`, async () => {
+          const res = await app.inject({
+            method: 'POST',
+            url: '/customers',
+            payload: omit(cloneDeep(payload), paramPath),
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
+          expect(res.statusCode).toBe(400);
+        });
       });
     });
 
@@ -123,8 +126,6 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403, erp: true },
         { name: 'auxiliary', expectedCode: 403, erp: true },
-        { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-        { name: 'coach', expectedCode: 200, erp: true },
         { name: 'client_admin', expectedCode: 403, erp: false },
       ];
 
@@ -147,19 +148,25 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('GET /customers', () => {
-    it('should get all customers', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers',
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      const areAllCustomersFromCompany = res.result.data.customers
-        .every(customer => customer.company.toHexString() === authCompany._id.toHexString());
-      expect(areAllCustomersFromCompany).toBe(true);
-      const customers = await Customer.find({ company: authCompany._id }).lean();
-      expect(res.result.data.customers).toHaveLength(customers.length);
+      it('should get all customers', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/customers',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const areAllCustomersFromCompany = res.result.data.customers
+          .every(customer => customer.company.toHexString() === authCompany._id.toHexString());
+        expect(areAllCustomersFromCompany).toBe(true);
+        const customers = await Customer.find({ company: authCompany._id }).lean();
+        expect(res.result.data.customers).toHaveLength(customers.length);
+      });
     });
 
     describe('Other roles', () => {
@@ -167,7 +174,6 @@ describe('CUSTOMERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -201,17 +207,23 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('GET /customers/first-intervention', () => {
-    it('should get all customers with first intervention info', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers/first-intervention',
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      const customers = await Customer.find({ company: authCompany._id }).lean();
-      expect(Object.values(res.result.data.customers)).toHaveLength(customers.length);
-      expect(Object.values(res.result.data.customers).every(cus => has(cus, 'firstIntervention'))).toBeTruthy();
+      it('should get all customers with first intervention info', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/customers/first-intervention',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const customers = await Customer.find({ company: authCompany._id }).lean();
+        expect(Object.values(res.result.data.customers)).toHaveLength(customers.length);
+        expect(Object.values(res.result.data.customers).every(cus => has(cus, 'firstIntervention'))).toBeTruthy();
+      });
     });
 
     describe('Other roles', () => {
@@ -219,7 +231,6 @@ describe('CUSTOMERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -251,29 +262,46 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('GET /customers/billed-events', () => {
-    it('should get all customers with billed events', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers/billed-events',
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers).toBeDefined();
-      expect(res.result.data.customers[0].subscriptions).toBeDefined();
-      expect(res.result.data.customers[0].subscriptions.length).toEqual(1);
-      expect(res.result.data.customers[0].thirdPartyPayers).toBeDefined();
-      expect(res.result.data.customers[0].thirdPartyPayers.length).toEqual(1);
+      it('should get all customers with billed events', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/customers/billed-events',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customers).toBeDefined();
+        expect(res.result.data.customers[0].subscriptions).toBeDefined();
+        expect(res.result.data.customers[0].subscriptions.length).toEqual(1);
+        expect(res.result.data.customers[0].thirdPartyPayers).toBeDefined();
+        expect(res.result.data.customers[0].thirdPartyPayers.length).toEqual(1);
+      });
+
+      it('should get only customers with billed events from the company', async () => {
+        authToken = await getTokenByCredentials(userList[4].local);
+        const res = await app.inject({
+          method: 'GET',
+          url: '/customers/billed-events',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customers).toBeDefined();
+        const areAllCustomersFromCompany = res.result.data.customers.every(async (customer) => {
+          const customerFromDB = await Customer.find({ _id: customer._id, company: otherCompany._id });
+          return customerFromDB;
+        });
+        expect(areAllCustomersFromCompany).toBe(true);
+      });
     });
 
     describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
+      const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
@@ -287,41 +315,48 @@ describe('CUSTOMERS ROUTES', () => {
         });
       });
     });
-
-    it('should get only customers with billed events from the company', async () => {
-      authToken = await getTokenByCredentials(userList[4].local);
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers/billed-events',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers).toBeDefined();
-      const areAllCustomersFromCompany = res.result.data.customers.every(async (customer) => {
-        const customerFromDB = await Customer.find({ _id: customer._id, company: otherCompany._id });
-        return customerFromDB;
-      });
-      expect(areAllCustomersFromCompany).toBe(true);
-    });
   });
 
   describe('GET /customers/subscriptions', () => {
-    it('should get all customers with subscriptions', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers/subscriptions',
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
-      expect(res.result.data.customers.length).toEqual(7);
-      expect(res.result.data.customers[0].contact).toBeDefined();
-      const customer = res.result.data.customers
-        .find(cus => cus._id.toHexString() === customersList[0]._id.toHexString());
-      expect(customer.subscriptions.length).toEqual(2);
-      expect(customer.referentHistories.length).toEqual(2);
+      it('should get all customers with subscriptions', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/customers/subscriptions',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
+        expect(res.result.data.customers.length).toEqual(7);
+        expect(res.result.data.customers[0].contact).toBeDefined();
+        const customer = res.result.data.customers
+          .find(cus => cus._id.toHexString() === customersList[0]._id.toHexString());
+        expect(customer.subscriptions.length).toEqual(2);
+        expect(customer.referentHistories.length).toEqual(2);
+      });
+
+      it('should get only customers with subscriptions from the company', async () => {
+        authToken = await getTokenByCredentials(userList[4].local);
+        const res = await app.inject({
+          method: 'GET',
+          url: '/customers/subscriptions',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customers).toBeDefined();
+        const areAllCustomersFromCompany = res.result.data.customers
+          .every(async (cus) => {
+            const customer = await Customer.findOne({ _id: cus._id }).lean();
+            return customer.company.toHexString() === otherCompany._id.toHexString();
+          });
+        expect(areAllCustomersFromCompany).toBe(true);
+      });
     });
 
     describe('Other roles', () => {
@@ -329,7 +364,6 @@ describe('CUSTOMERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -345,37 +379,25 @@ describe('CUSTOMERS ROUTES', () => {
         });
       });
     });
-
-    it('should get only customers with subscriptions from the company', async () => {
-      authToken = await getTokenByCredentials(userList[4].local);
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers/subscriptions',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers).toBeDefined();
-      const areAllCustomersFromCompany = res.result.data.customers
-        .every(async (cus) => {
-          const customer = await Customer.findOne({ _id: cus._id }).lean();
-          return customer.company.toHexString() === otherCompany._id.toHexString();
-        });
-      expect(areAllCustomersFromCompany).toBe(true);
-    });
   });
 
   describe('GET /customer/with-intervention', () => {
-    it('should get all customers with at least one intervention', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/customers/with-intervention',
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers).toBeDefined();
-      expect(res.result.data.customers).toHaveLength(1);
+      it('should get all customers with at least one intervention', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/customers/with-intervention',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customers).toBeDefined();
+        expect(res.result.data.customers).toHaveLength(1);
+      });
     });
 
     describe('Other roles', () => {
@@ -383,7 +405,6 @@ describe('CUSTOMERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -402,76 +423,81 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('GET /customers/{id}', () => {
-    it('should return customer', async () => {
-      const customerId = customersList[0]._id;
-      const res = await app.inject({
-        method: 'GET',
-        url: `/customers/${customerId.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customer).toMatchObject({
-        _id: customerId,
-        subscriptions: [
-          {
-            ...customersList[0].subscriptions[0],
-            service: {
-              defaultUnitAmount: 12,
-              name: 'Service 1',
-              startDate: new Date('2019-01-16 17:58:15'),
-              vat: 12,
-              nature: HOURLY,
+      it('should return customer', async () => {
+        const customerId = customersList[0]._id;
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers/${customerId.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customer).toMatchObject({
+          _id: customerId,
+          subscriptions: [
+            {
+              ...customersList[0].subscriptions[0],
+              service: {
+                defaultUnitAmount: 12,
+                name: 'Service 1',
+                startDate: new Date('2019-01-16 17:58:15'),
+                vat: 12,
+                nature: HOURLY,
+              },
             },
-          },
-          {
-            ...customersList[0].subscriptions[1],
-            service: {
-              defaultUnitAmount: 24,
-              name: 'Service 2',
-              startDate: new Date('2019-01-18 19:58:15'),
-              vat: 12,
-              nature: HOURLY,
+            {
+              ...customersList[0].subscriptions[1],
+              service: {
+                defaultUnitAmount: 24,
+                name: 'Service 2',
+                startDate: new Date('2019-01-18 19:58:15'),
+                vat: 12,
+                nature: HOURLY,
+              },
             },
+          ],
+          subscriptionsAccepted: true,
+          referent: {
+            identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
+            contact: { phone: '0987654321' },
+            picture: { publicId: '1234', link: 'test' },
           },
-        ],
-        subscriptionsAccepted: true,
-        referent: {
-          identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
-          contact: { phone: '0987654321' },
-          picture: { publicId: '1234', link: 'test' },
-        },
-      });
-    });
-
-    it('should return a 404 error if customer is not found', async () => {
-      const id = new ObjectID().toHexString();
-      const res = await app.inject({
-        method: 'GET',
-        url: `/customers/${id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        });
       });
 
-      expect(res.statusCode).toBe(404);
-    });
+      it('should return a 404 error if customer is not found', async () => {
+        const id = new ObjectID().toHexString();
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers/${id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return a 403 error if customer is not from the same company', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/customers/${otherCompanyCustomer._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(404);
       });
 
-      expect(res.statusCode).toBe(403);
+      it('should return a 403 error if customer is not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers/${otherCompanyCustomer._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {
       it('should return the customer if I am its helper', async () => {
-        const helper = userList[0];
-        authToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(userList[0].local);
         const res = await app.inject({
           method: 'GET',
-          url: `/customers/${helper.customers[0]}`,
+          url: `/customers/${customersList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
         expect(res.statusCode).toBe(200);
@@ -481,7 +507,6 @@ describe('CUSTOMERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -500,220 +525,215 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('PUT /customers/{id}', () => {
-    const updatePayload = {
-      identity: {
-        firstname: 'seloger',
-        lastname: 'pap',
-      },
-    };
-
-    it('should update a customer', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customersList[0]._id.toHexString()}`,
-        payload: updatePayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    const updatePayload = { identity: { firstname: 'seloger', lastname: 'pap' } };
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.customer).toEqual(expect.objectContaining({
-        identity: expect.objectContaining({
-          firstname: updatePayload.identity.firstname,
-          lastname: updatePayload.identity.lastname,
-        }),
-      }));
-      const updatedCustomer = await Customer.findById(customersList[0]._id);
-      expect(updatedCustomer).toEqual(expect.objectContaining({
-        identity: expect.objectContaining({
-          firstname: updatePayload.identity.firstname,
-          lastname: updatePayload.identity.lastname,
-        }),
-      }));
-    });
+      it('should update a customer', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customersList[0]._id.toHexString()}`,
+          payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should not create new rum if iban is set for the first time', async () => {
-      const customer = customersList[2];
-      const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
-      const result = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: ibanPayload,
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customer).toEqual(expect.objectContaining({
+          identity: expect.objectContaining({
+            firstname: updatePayload.identity.firstname,
+            lastname: updatePayload.identity.lastname,
+          }),
+        }));
+        const updatedCustomer = await Customer.findById(customersList[0]._id);
+        expect(updatedCustomer).toEqual(expect.objectContaining({
+          identity: expect.objectContaining({
+            firstname: updatePayload.identity.firstname,
+            lastname: updatePayload.identity.lastname,
+          }),
+        }));
       });
 
-      expect(result.statusCode).toBe(200);
-      expect(result.result.data.customer.payment.mandates).toBeDefined();
-      expect(result.result.data.customer.payment.mandates.length).toEqual(1);
-    });
+      it('should not create new rum if iban is set for the first time', async () => {
+        const customer = customersList[2];
+        const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
+        const result = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: ibanPayload,
+        });
 
-    it('should create new rum if iban updated', async () => {
-      const customer = customersList[1];
-      const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
-      const result = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: ibanPayload,
+        expect(result.statusCode).toBe(200);
+        expect(result.result.data.customer.payment.mandates).toBeDefined();
+        expect(result.result.data.customer.payment.mandates.length).toEqual(1);
       });
 
-      expect(result.statusCode).toBe(200);
-      expect(result.result.data.customer.payment.mandates).toBeDefined();
-      expect(result.result.data.customer.payment.mandates.length).toEqual(2);
-      expect(result.result.data.customer.payment.mandates[1].rum).toBeDefined();
-    });
+      it('should create new rum if iban updated', async () => {
+        const customer = customersList[1];
+        const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
+        const result = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: ibanPayload,
+        });
 
-    it('should update secondaryAddress', async () => {
-      const customer = customersList[0];
+        expect(result.statusCode).toBe(200);
+        expect(result.result.data.customer.payment.mandates).toBeDefined();
+        expect(result.result.data.customer.payment.mandates.length).toEqual(2);
+        expect(result.result.data.customer.payment.mandates[1].rum).toBeDefined();
+      });
 
-      const result = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
-          contact: {
-            secondaryAddress: {
-              fullAddress: '27 rue des renaudes 75017 Paris',
-              zipCode: '75017',
-              city: 'Paris',
-              street: '27 rue des renaudes',
-              location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      it('should update secondaryAddress', async () => {
+        const customer = customersList[0];
+
+        const result = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: {
+            contact: {
+              secondaryAddress: {
+                fullAddress: '27 rue des renaudes 75017 Paris',
+                zipCode: '75017',
+                city: 'Paris',
+                street: '27 rue des renaudes',
+                location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+              },
             },
           },
-        },
+        });
+
+        expect(result.statusCode).toBe(200);
+        expect(result.result.data.customer.contact.secondaryAddress.fullAddress)
+          .toBe('27 rue des renaudes 75017 Paris');
       });
 
-      expect(result.statusCode).toBe(200);
-      expect(result.result.data.customer.contact.secondaryAddress.fullAddress).toBe('27 rue des renaudes 75017 Paris');
-    });
+      it('should delete secondaryAddress', async () => {
+        const customer = customersList[0];
 
-    it('should delete secondaryAddress', async () => {
-      const customer = customersList[0];
+        const result = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { contact: { secondaryAddress: {} } },
+        });
 
-      const result = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { contact: { secondaryAddress: {} } },
+        expect(result.statusCode).toBe(200);
+        expect(result.result.data.customer.contact.secondaryAddress).not.toBeUndefined();
       });
 
-      expect(result.statusCode).toBe(200);
-      expect(result.result.data.customer.contact.secondaryAddress).not.toBeUndefined();
-    });
+      it('should update status', async () => {
+        const customer = customersList[0];
 
-    it('should update status', async () => {
-      const customer = customersList[0];
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date(), stopReason: DEATH },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        payload: { stoppedAt: new Date(), stopReason: DEATH },
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(200);
       });
 
-      expect(res.statusCode).toBe(200);
-    });
+      it('should return a 404 error if no customer found', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${new ObjectID().toHexString()}`,
+          payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return a 404 error if no customer found', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${new ObjectID().toHexString()}`,
-        payload: updatePayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(404);
       });
 
-      expect(res.statusCode).toBe(404);
-    });
+      it('should return a 400 error if phone number is invalid', async () => {
+        const customer = customersList[0];
 
-    it('should return a 400 error if phone number is invalid', async () => {
-      const customer = customersList[0];
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { contact: { phone: '123dcsnejnf' } },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        payload: { contact: { phone: '123dcsnejnf' } },
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(400);
       });
 
-      expect(res.statusCode).toBe(400);
-    });
+      it('should return a 400 error if missing stopReason or stoppedAt in status update', async () => {
+        const customer = customersList[0];
 
-    it('should return a 400 error if missing stopReason or stoppedAt in status update', async () => {
-      const customer = customersList[0];
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stopReason: DEATH },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        payload: { stopReason: DEATH },
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(400);
       });
 
-      expect(res.statusCode).toBe(400);
-    });
+      it('should return a 400 error if wrong stop reason', async () => {
+        const customer = customersList[0];
 
-    it('should return a 400 error if wrong stop reason', async () => {
-      const customer = customersList[0];
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date(), stopReason: 'test' },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        payload: { stoppedAt: new Date(), stopReason: 'test' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(400);
       });
 
-      expect(res.statusCode).toBe(400);
-    });
+      it('should return 403 if already stop', async () => {
+        const customer = customersList[9];
 
-    it('should return 403 if already stop', async () => {
-      const customer = customersList[9];
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date(), stopReason: DEATH },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        payload: { stoppedAt: new Date(), stopReason: DEATH },
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(403);
       });
 
-      expect(res.statusCode).toBe(403);
-    });
+      it('should return 403 if stoppedDate before createdAt', async () => {
+        const customer = customersList[10];
 
-    it('should return 403 if stoppedDate before createdAt', async () => {
-      const customer = customersList[10];
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date('2021-05-23'), stopReason: DEATH },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}`,
-        payload: { stoppedAt: new Date('2021-05-23'), stopReason: DEATH },
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(403);
       });
 
-      expect(res.statusCode).toBe(403);
-    });
+      it('should not update a customer if from other company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${otherCompanyCustomer._id}`,
+          payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should not update a customer if from other company', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${otherCompanyCustomer._id}`,
-        payload: updatePayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(403);
       });
-
-      expect(res.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
       it('should update a customer if I am its helper', async () => {
-        const helper = userList[0];
-        authToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(userList[0].local);
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${helper.customers[0]}`,
+          url: `/customers/${customersList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: {
-            identity: {
-              firstname: 'Volgarr',
-              lastname: 'Theviking',
-            },
-          },
+          payload: { identity: { firstname: 'Volgarr', lastname: 'Theviking' } },
         });
 
         expect(res.statusCode).toBe(200);
@@ -723,7 +743,6 @@ describe('CUSTOMERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -751,102 +770,102 @@ describe('CUSTOMERS ROUTES', () => {
       deleteFileStub.restore();
     });
 
-    it('should delete a customer without interventions', async () => {
-      const customersBefore = await Customer.countDocuments({ company: authCompany._id });
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${customersList[3]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(res.statusCode).toBe(200);
-      sinon.assert.calledWithExactly(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
+      it('should delete a customer without interventions', async () => {
+        const customersBefore = await Customer.countDocuments({ company: authCompany._id });
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/customers/${customersList[3]._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      const customers = await Customer.find({ company: authCompany._id }).lean();
-      expect(customers.length).toBe(customersBefore - 1);
+        expect(res.statusCode).toBe(200);
+        sinon.assert.calledWithExactly(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
 
-      const helper = await Helper.countDocuments({ _id: userList[2]._id });
-      expect(helper).toBe(0);
-    });
+        const customers = await Customer.find({ company: authCompany._id }).lean();
+        expect(customers.length).toBe(customersBefore - 1);
 
-    it('should return a 404 error if no customer found', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${new ObjectID().toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        const helper = await Helper.countDocuments({ _id: userList[2]._id });
+        expect(helper).toBe(0);
       });
 
-      expect(res.statusCode).toBe(404);
-    });
+      it('should return a 404 error if no customer found', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/customers/${new ObjectID().toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return a 404 error if customer is not from the same company', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${otherCompanyCustomer._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(404);
       });
 
-      expect(res.statusCode).toBe(404);
-    });
+      it('should return a 404 error if customer is not from the same company', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/customers/${otherCompanyCustomer._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return a 403 error if customer has interventions', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${customersList[0]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(404);
       });
 
-      expect(res.statusCode).toBe(403);
-    });
+      it('should return a 403 error if customer has interventions', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/customers/${customersList[0]._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return a 403 error if customer has bills', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${customersList[4]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(403);
       });
 
-      expect(res.statusCode).toBe(403);
-    });
+      it('should return a 403 error if customer has bills', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/customers/${customersList[4]._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return a 403 error if customer has payments', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${customersList[5]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(403);
       });
 
-      expect(res.statusCode).toBe(403);
-    });
+      it('should return a 403 error if customer has payments', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/customers/${customersList[5]._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return a 403 error if customer has creditnotes', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${customersList[6]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(403);
       });
 
-      expect(res.statusCode).toBe(403);
-    });
+      it('should return a 403 error if customer has creditnotes', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/customers/${customersList[6]._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return a 403 error if customer has taxcertificates', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${customersList[7]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(res.statusCode).toBe(403);
       });
 
-      expect(res.statusCode).toBe(403);
+      it('should return a 403 error if customer has taxcertificates', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/customers/${customersList[7]._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
+      const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
@@ -863,34 +882,39 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('GET /customers/{id}/qrcode', () => {
-    it('should return customer\'s qrcode', async () => {
-      const result = await app.inject({
-        method: 'GET',
-        url: `/customers/${customersList[0]._id}/qrcode`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
+      });
+      it('should return customer\'s qrcode', async () => {
+        const result = await app.inject({
+          method: 'GET',
+          url: `/customers/${customersList[0]._id}/qrcode`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(result.statusCode).toBe(200);
       });
 
-      expect(result.statusCode).toBe(200);
-    });
+      it('should return 403 if customer is not from loggedUser\'s company', async () => {
+        const result = await app.inject({
+          method: 'GET',
+          url: `/customers/${otherCompanyCustomer._id}/qrcode`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return 403 if customer is not from loggedUser\'s company', async () => {
-      const result = await app.inject({
-        method: 'GET',
-        url: `/customers/${otherCompanyCustomer._id}/qrcode`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(result.statusCode).toBe(403);
       });
 
-      expect(result.statusCode).toBe(403);
-    });
+      it('should return 404 if customer does not exists', async () => {
+        const result = await app.inject({
+          method: 'GET',
+          url: `/customers/${new ObjectID()}/qrcode`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-    it('should return 404 if customer does not exists', async () => {
-      const result = await app.inject({
-        method: 'GET',
-        url: `/customers/${new ObjectID()}/qrcode`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+        expect(result.statusCode).toBe(404);
       });
-
-      expect(result.statusCode).toBe(404);
     });
 
     describe('Other roles', () => {
@@ -910,7 +934,6 @@ describe('CUSTOMERS ROUTES', () => {
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
         { name: 'vendor_admin', expectedCode: 403 },
       ];
 
@@ -1671,12 +1694,10 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 });
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
-  let helper;
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    [helper] = userList;
-    authToken = await getTokenByCredentials(helper.local);
+    authToken = await getTokenByCredentials(userList[0].local);
   });
 
   describe('POST customers/:id/subscriptionshistory', () => {
@@ -1691,7 +1712,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1699,7 +1720,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.customer.subscriptionsHistory[1]).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(helper.customers[0]);
+      expect(res.result.data.customer._id).toEqual(customersList[0]._id);
       expect(res.result.data.customer.subscriptionsHistory[1].subscriptions).toEqual(expect.arrayContaining([
         expect.objectContaining(payload.subscriptions[0]),
         expect.objectContaining(payload.subscriptions[1]),
@@ -1712,7 +1733,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       const payload = { helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' } };
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1729,7 +1750,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1739,20 +1760,11 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
     it('should return a 403 error if user is not from the same company', async () => {
       const payload = {
-        subscriptions: [{
-          service: 'TestTest',
-          unitTTCRate: 23,
-          estimatedWeeklyVolume: 3,
-        }, {
-          service: 'TestTest2',
-          unitTTCRate: 30,
-          estimatedWeeklyVolume: 10,
-        }],
-        helper: {
-          firstname: 'Emmanuel',
-          lastname: 'Magellan',
-          title: 'mrs',
-        },
+        subscriptions: [
+          { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        ],
+        helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' },
       };
 
       const res = await app.inject({
@@ -1767,26 +1779,15 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
     describe('Other roles', () => {
       const payload = {
-        subscriptions: [{
-          service: 'TestTest',
-          unitTTCRate: 23,
-          estimatedWeeklyVolume: 3,
-        }, {
-          service: 'TestTest2',
-          unitTTCRate: 30,
-          estimatedWeeklyVolume: 10,
-        }],
-        helper: {
-          firstname: 'Lana',
-          lastname: 'Wachowski',
-          title: 'mrs',
-        },
+        subscriptions: [
+          { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        ],
+        helper: { firstname: 'Lana', lastname: 'Wachowski', title: 'mrs' },
       };
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
       ];
 
@@ -2520,13 +2521,12 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         };
         addStub.returns({ id: 'fakeFileDriveId' });
         getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
-        const helper = userList[0];
-        authToken = await getTokenByCredentials(helper.local);
-        const customerId = helper.customers[0];
+        authToken = await getTokenByCredentials(userList[0].local);
         const form = generateFormData(payload);
+
         const res = await app.inject({
           method: 'POST',
-          url: `/customers/${customerId.toHexString()}/gdrive/${fakeDriveId}/upload`,
+          url: `/customers/${customersList[0]._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
@@ -2538,7 +2538,6 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403, callCount: 0 },
         { name: 'auxiliary', expectedCode: 403, callCount: 0 },
-        { name: 'auxiliary_without_company', expectedCode: 403, callCount: 0 },
         { name: 'coach', expectedCode: 200, callCount: 1 },
       ];
 

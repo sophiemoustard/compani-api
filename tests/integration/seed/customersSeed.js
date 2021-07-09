@@ -22,6 +22,7 @@ const {
   DEATH,
 } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const subId = new ObjectID();
 const subId2 = new ObjectID();
@@ -37,7 +38,6 @@ const referentList = [
     picture: { publicId: '1234', link: 'test' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
-    company: authCompany._id,
     origin: WEBAPP,
   },
   {
@@ -46,7 +46,6 @@ const referentList = [
     local: { email: 'auxiliaryreferent2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
-    company: authCompany._id,
     origin: WEBAPP,
   },
 ];
@@ -58,7 +57,7 @@ const customerServiceList = [
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
-      startDate: '2019-01-16 17:58:15',
+      startDate: '2019-01-16T17:58:15',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -71,7 +70,7 @@ const customerServiceList = [
       defaultUnitAmount: 24,
       exemptFromCharges: false,
       name: 'Service 2',
-      startDate: '2019-01-18 19:58:15',
+      startDate: '2019-01-18T19:58:15',
       vat: 12,
     }],
     nature: HOURLY,
@@ -83,7 +82,7 @@ const customerServiceList = [
       defaultUnitAmount: 12,
       exemptFromCharges: false,
       name: 'Service archivé',
-      startDate: '2019-01-18 19:58:15',
+      startDate: '2019-01-18T19:58:15',
       vat: 1,
     }],
     nature: HOURLY,
@@ -641,47 +640,38 @@ const otherCompanyCustomer = {
 const userList = [
   {
     _id: new ObjectID(),
-    company: authCompany._id,
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [customersList[0]._id],
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    company: authCompany._id,
     identity: { firstname: 'HelperForCustomer2', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [customersList[1]._id],
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    company: authCompany._id,
     identity: { firstname: 'HelperForCustomer4', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [customersList[3]._id],
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    company: otherCompany._id,
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Test' },
     local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: otherCompanyCustomerId,
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    company: otherCompany._id,
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -789,18 +779,20 @@ const eventList = [
 ];
 
 const helpersList = [
-  {
-    customer: customersList[0]._id,
-    user: userList[0]._id,
-    company: authCompany._id,
-    referent: true,
-  },
-  {
-    customer: customersList[1]._id,
-    user: userList[1]._id,
-    company: authCompany._id,
-    referent: true,
-  },
+  { customer: customersList[0]._id, user: userList[0]._id, company: authCompany._id, referent: true },
+  { customer: customersList[1]._id, user: userList[1]._id, company: authCompany._id, referent: true },
+  { customer: customersList[4]._id, user: userList[2]._id, company: authCompany._id, referent: true },
+  { customer: otherCompanyCustomerId, user: userList[3]._id, company: otherCompany._id, referent: true },
+];
+
+const userCompanies = [
+  { _id: new ObjectID(), user: referentList[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: referentList[1]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userList[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userList[1]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userList[2]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userList[3]._id, company: otherCompany._id },
+  { _id: new ObjectID(), user: userList[4]._id, company: otherCompany._id },
 ];
 
 const populateDB = async () => {
@@ -816,14 +808,17 @@ const populateDB = async () => {
   await CreditNote.deleteMany();
   await TaxCertificate.deleteMany();
   await Helper.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
+
   await ThirdPartyPayer.insertMany(customerThirdPartyPayers);
   await Service.insertMany(customerServiceList);
   await Customer.insertMany([...customersList, otherCompanyCustomer]);
   await Event.insertMany(eventList);
   await ReferentHistory.insertMany(referentHistories);
   await Helper.insertMany(helpersList);
+  await UserCompany.insertMany(userCompanies);
   for (const user of userList) {
     await (new User(user).save());
   }
