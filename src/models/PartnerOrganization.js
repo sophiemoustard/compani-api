@@ -12,6 +12,7 @@ const PartnerOrganizationSchema = mongoose.Schema({
 }, { timestamps: true });
 
 PartnerOrganizationSchema.pre('find', validateQuery);
+PartnerOrganizationSchema.pre('findOne', validateQuery);
 PartnerOrganizationSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('PartnerOrganization', PartnerOrganizationSchema);

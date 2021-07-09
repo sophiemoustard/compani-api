@@ -5,8 +5,17 @@ exports.create = (payload, credentials) => PartnerOrganization.create({ ...paylo
 
 exports.list = credentials => PartnerOrganization.find({ company: credentials.company._id }).lean();
 
-exports.getPartnerOrganization = partnerOrganizationId => PartnerOrganization.findOne({ _id: partnerOrganizationId })
-  .populate({ path: 'partners', select: 'identity phone email job' })
+exports.getPartnerOrganization = (partnerOrganizationId, credentials) => PartnerOrganization
+  .findOne({ _id: partnerOrganizationId, company: credentials.company._id })
+  .populate({
+    path: 'partners',
+    select: 'identity phone email job',
+    populate: {
+      path: 'customerPartners',
+      match: { prescriber: true, company: credentials.company._id },
+      populate: { path: 'customer', select: 'identity subscriptions' },
+    },
+  })
   .lean();
 
 exports.update = async (partnerOrganizationId, payload) => PartnerOrganization
