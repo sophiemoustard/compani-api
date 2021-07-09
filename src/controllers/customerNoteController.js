@@ -6,7 +6,7 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const customerNotes = await CustomerNotesHelper.createCustomerNote(req.payload, req.auth.credentials);
+    const customerNotes = await CustomerNotesHelper.create(req.payload, req.auth.credentials);
 
     return { message: translate[language].customerNotesCreated, data: { customerNotes } };
   } catch (e) {

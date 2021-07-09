@@ -8,6 +8,16 @@ const CustomerNoteSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, immutable: true, required: true },
 }, { timestamps: true });
 
+CustomerNoteSchema.virtual(
+  'histories',
+  {
+    ref: 'CustomerNoteHistory',
+    localField: '_id',
+    foreignField: 'customerNote',
+    options: { sort: { createdAt: -1 } },
+  }
+);
+
 CustomerNoteSchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('CustomerNote', CustomerNoteSchema);
