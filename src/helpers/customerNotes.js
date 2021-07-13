@@ -24,7 +24,7 @@ exports.list = async (customer, credentials) => CustomerNote.find({ customer, co
   .sort({ updatedAt: -1 })
   .lean();
 
-exports.createHistory = async (query, credentials, customerNoteId) => {
+const createHistory = async (query, credentials, customerNoteId) => {
   await CustomerNoteHistory.create({
     ...query,
     customerNote: customerNoteId,
@@ -41,7 +41,7 @@ exports.update = async (customerNoteId, payload, credentials) => {
     .lean();
 
   if (payload.description.trim() !== initialCustomerNote.description) {
-    promises.push(this.createHistory({ description: payload.description }, credentials, customerNoteId));
+    promises.push(createHistory({ description: payload.description }, credentials, customerNoteId));
   }
   if (promises.length) {
     await CustomerNote.updateOne({ _id: customerNoteId, company: credentials.company._id }, { $set: payload });
