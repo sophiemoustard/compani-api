@@ -1,6 +1,6 @@
 const CustomerNote = require('../models/CustomerNote');
 const CustomerNoteHistory = require('../models/CustomerNoteHistory');
-const { NOTE_CREATION } = require('./constants');
+const { NOTE_CREATION, NOTE_UPDATE } = require('./constants');
 
 exports.create = async (payload, credentials) => {
   const customerNote = await CustomerNote.create({ ...payload, company: credentials.company._id });
@@ -24,4 +24,24 @@ exports.list = async (customer, credentials) => CustomerNote.find({ customer, co
   .sort({ updatedAt: -1 })
   .lean();
 
-exports.update = async (customerNoteId, payload) => CustomerNote.updateOne({ _id: customerNoteId }, { $set: payload });
+exports.createHistory = async (query, credentials, customerNoteId) => {
+  await CustomerNoteHistory.create({
+    ...query,
+    customerNote: customerNoteId,
+    company: credentials.company._id,
+    createdBy: credentials._id,
+    action: NOTE_UPDATE,
+  });
+};
+
+exports.update = async (customerNoteId, payload) => {
+  const promises = [];
+  const initialCustomerNote = await CustomerNote.findOne({ _id: customerNoteId }).lean();
+
+  if (payload.description.trim() !== initialCustomerNote.description) {
+    promises.push(this.createHistory({ description: payload.description }));
+  } else if (promises.length) {
+    CustomerNote.updateOne({ _id: customerNoteId }, { $set: payload });
+    await Promise.all(promises);
+  }
+};
