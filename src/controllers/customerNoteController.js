@@ -33,7 +33,7 @@ const list = async (req) => {
 
 const update = async (req) => {
   try {
-    await CustomerNotesHelper.update(req.params._id, req.payload);
+    await CustomerNotesHelper.update(req.params._id, req.payload, req.auth.credentials);
 
     return { message: translate[language].customerNoteUpdated };
   } catch (e) {

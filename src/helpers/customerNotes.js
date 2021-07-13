@@ -34,14 +34,17 @@ exports.createHistory = async (query, credentials, customerNoteId) => {
   });
 };
 
-exports.update = async (customerNoteId, payload) => {
+exports.update = async (customerNoteId, payload, credentials) => {
   const promises = [];
-  const initialCustomerNote = await CustomerNote.findOne({ _id: customerNoteId }).lean();
+  const initialCustomerNote = await CustomerNote
+    .findOne({ _id: customerNoteId, company: credentials.company._id })
+    .lean();
 
   if (payload.description.trim() !== initialCustomerNote.description) {
-    promises.push(this.createHistory({ description: payload.description }));
-  } else if (promises.length) {
-    CustomerNote.updateOne({ _id: customerNoteId }, { $set: payload });
-    await Promise.all(promises);
+    promises.push(this.createHistory({ description: payload.description }, credentials, customerNoteId));
   }
+  if (promises.length) {
+    await CustomerNote.updateOne({ _id: customerNoteId, company: credentials.company._id }, { $set: payload });
+  }
+  await Promise.all(promises);
 };
