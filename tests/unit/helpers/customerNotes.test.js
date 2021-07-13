@@ -124,7 +124,6 @@ describe('udpate', () => {
         { query: 'lean' },
       ]
     );
-
     sinon.assert.calledOnceWithExactly(
       createHistory,
       {
@@ -135,11 +134,10 @@ describe('udpate', () => {
         action: NOTE_UPDATE,
       }
     );
-
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: customerNote._id, company: credentials.company._id },
-      { $set: payload }
+      { $set: { title: 'titre', description: 'description mise a jour' } }
     );
   });
 });

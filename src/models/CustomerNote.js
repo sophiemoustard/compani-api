@@ -18,6 +18,7 @@ CustomerNoteSchema.virtual(
   }
 );
 
+CustomerNoteSchema.pre('find', validateQuery);
 CustomerNoteSchema.pre('findOne', validateQuery);
 CustomerNoteSchema.pre('updateOne', validateUpdateOne);
 
