@@ -140,4 +140,36 @@ describe('udpate', () => {
       { $set: { title: 'titre', description: 'description mise a jour' } }
     );
   });
+  it(
+    'should not update customer note and not create history if description in payload is the same as before  ',
+    async () => {
+      const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
+      const customerNote =
+        {
+          _id: new ObjectID(),
+          title: 'test',
+          description: 'description',
+          customer: credentials._id,
+        };
+      const payload = { description: 'description' };
+
+      findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
+
+      await CustomerNotesHelper.update(customerNote._id, payload, credentials);
+
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.notCalled(createHistory);
+      sinon.assert.calledOnceWithExactly(
+        updateOne,
+        { _id: customerNote._id, company: credentials.company._id },
+        { $set: { description: 'description' } }
+      );
+    }
+  );
 });
