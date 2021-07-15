@@ -86,34 +86,33 @@ describe('list', () => {
   });
 });
 
-describe('udpate', () => {
+describe('update', () => {
   let updateOne;
   let findOne;
-  let createHistory;
+  let customerNoteHistoryCreate;
   beforeEach(() => {
     updateOne = sinon.stub(CustomerNote, 'updateOne');
     findOne = sinon.stub(CustomerNote, 'findOne');
-    createHistory = sinon.stub(CustomerNoteHistory, 'create');
+    customerNoteHistoryCreate = sinon.stub(CustomerNoteHistory, 'create');
   });
   afterEach(() => {
     updateOne.restore();
     findOne.restore();
-    createHistory.restore();
+    customerNoteHistoryCreate.restore();
   });
 
   it('should update customer note and create an history', async () => {
     const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-    const customerNote =
-      {
-        _id: new ObjectID(),
-        title: 'test',
-        description: 'description',
-        customer: credentials._id,
-      };
+    const customerNote = {
+      _id: new ObjectID(),
+      title: 'test',
+      description: 'description',
+      customer: credentials._id,
+    };
     const payload = { title: 'titre', description: 'description mise a jour' };
 
     findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
-    createHistory.returns(customerNote);
+    customerNoteHistoryCreate.returns(customerNote);
 
     await CustomerNotesHelper.update(customerNote._id, payload, credentials);
 
@@ -125,7 +124,7 @@ describe('udpate', () => {
       ]
     );
     sinon.assert.calledOnceWithExactly(
-      createHistory,
+      customerNoteHistoryCreate,
       {
         description: 'description mise a jour',
         customerNote: customerNote._id,
@@ -140,17 +139,17 @@ describe('udpate', () => {
       { $set: { title: 'titre', description: 'description mise a jour' } }
     );
   });
+
   it(
-    'should not update customer note and not create history if description in payload is the same as before  ',
+    'should not update customer note and not create history if description in payload is the same as before',
     async () => {
       const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-      const customerNote =
-        {
-          _id: new ObjectID(),
-          title: 'test',
-          description: 'description',
-          customer: credentials._id,
-        };
+      const customerNote = {
+        _id: new ObjectID(),
+        title: 'test',
+        description: 'description',
+        customer: credentials._id,
+      };
       const payload = { description: 'description' };
 
       findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
@@ -164,7 +163,7 @@ describe('udpate', () => {
           { query: 'lean' },
         ]
       );
-      sinon.assert.notCalled(createHistory);
+      sinon.assert.notCalled(customerNoteHistoryCreate);
       sinon.assert.calledOnceWithExactly(
         updateOne,
         { _id: customerNote._id, company: credentials.company._id },
