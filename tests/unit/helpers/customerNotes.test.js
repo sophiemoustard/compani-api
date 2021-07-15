@@ -2,10 +2,10 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const CustomerNote = require('../../../src/models/CustomerNote');
+const CustomerNoteHistory = require('../../../src/models/CustomerNoteHistory');
 const CustomerNotesHelper = require('../../../src/helpers/customerNotes');
 const SinonMongoose = require('../sinonMongoose');
-const CustomerNoteHistory = require('../../../src/models/CustomerNoteHistory');
-const { NOTE_CREATION } = require('../../../src/helpers/constants');
+const { NOTE_CREATION, NOTE_UPDATE } = require('../../../src/helpers/constants');
 
 describe('create', () => {
   let create;
@@ -86,25 +86,89 @@ describe('list', () => {
   });
 });
 
-describe('udpate', () => {
+describe('update', () => {
   let updateOne;
+  let findOne;
+  let customerNoteHistoryCreate;
   beforeEach(() => {
     updateOne = sinon.stub(CustomerNote, 'updateOne');
+    findOne = sinon.stub(CustomerNote, 'findOne');
+    customerNoteHistoryCreate = sinon.stub(CustomerNoteHistory, 'create');
   });
   afterEach(() => {
     updateOne.restore();
+    findOne.restore();
+    customerNoteHistoryCreate.restore();
   });
 
-  it('should update customer notes', async () => {
-    const customerNoteId = new ObjectID();
-    const payload = { title: 'titre', description: 'description' };
+  it('should update customer note and create an history', async () => {
+    const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
+    const customerNote = {
+      _id: new ObjectID(),
+      title: 'test',
+      description: 'description',
+      customer: credentials._id,
+    };
+    const payload = { title: 'titre', description: 'description mise a jour' };
 
-    await CustomerNotesHelper.update(customerNoteId, payload);
+    findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
+    customerNoteHistoryCreate.returns(customerNote);
 
+    await CustomerNotesHelper.update(customerNote._id, payload, credentials);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      customerNoteHistoryCreate,
+      {
+        description: 'description mise a jour',
+        customerNote: customerNote._id,
+        company: credentials.company._id,
+        createdBy: credentials._id,
+        action: NOTE_UPDATE,
+      }
+    );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: customerNoteId },
-      { $set: { title: 'titre', description: 'description' } }
+      { _id: customerNote._id, company: credentials.company._id },
+      { $set: { title: 'titre', description: 'description mise a jour' } }
     );
   });
+
+  it(
+    'should not update customer note and not create history if description in payload is the same as before',
+    async () => {
+      const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
+      const customerNote = {
+        _id: new ObjectID(),
+        title: 'test',
+        description: 'description',
+        customer: credentials._id,
+      };
+      const payload = { description: 'description' };
+
+      findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
+
+      await CustomerNotesHelper.update(customerNote._id, payload, credentials);
+
+      SinonMongoose.calledWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },
+          { query: 'lean' },
+        ]
+      );
+      sinon.assert.notCalled(customerNoteHistoryCreate);
+      sinon.assert.calledOnceWithExactly(
+        updateOne,
+        { _id: customerNote._id, company: credentials.company._id },
+        { $set: { description: 'description' } }
+      );
+    }
+  );
 });
