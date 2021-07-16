@@ -102,7 +102,7 @@ describe('getPartnerOrganization', () => {
             populate: {
               path: 'customerPartners',
               match: { prescriber: true, company: credentials.company._id },
-              populate: { path: 'customer', select: 'identity subscriptions createdAt' },
+              populate: { path: 'customer', select: 'identity createdAt' },
             },
           }],
         },
