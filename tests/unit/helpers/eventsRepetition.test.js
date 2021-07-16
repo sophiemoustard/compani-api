@@ -296,8 +296,7 @@ describe('createRepeatedEvents', () => {
       endDate: '2019-01-10T11:00:00Z',
       customer: new ObjectID(),
     };
-    const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z',
-    ];
+    const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z'];
     const customer = { _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00Z') };
     const repeatedEvents = [
       new Event({ company: new ObjectID(), startDate: range[0] }),
@@ -325,25 +324,31 @@ describe('createRepeatedEvents', () => {
     );
   });
 
-  it('should not call customerFindOne if eventType is not intervention', async () => {
-    const sector = new ObjectID();
-    const eventInternalHour = {
-      type: INTERNAL_HOUR,
-      startDate: '2019-01-10T09:00:00.000Z',
-      endDate: '2019-01-10T11:00:00Z',
-    };
-    const eventUnavailability = {
-      type: UNAVAILABILITY,
-      startDate: '2019-01-10T09:00:00.000Z',
-      endDate: '2019-01-10T11:00:00Z',
-    };
-    const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z'];
+  [INTERNAL_HOUR, UNAVAILABILITY].forEach((type) => {
+    it(`should not check if customer is stopped if event is ${type} and not intervention`, async () => {
+      const sector = new ObjectID();
+      const event = {
+        type,
+        startDate: '2019-01-10T09:00:00.000Z',
+        endDate: '2019-01-10T11:00:000Z',
+      };
 
-    await EventsRepetitionHelper.createRepeatedEvents(eventInternalHour, range, sector, false);
-    await EventsRepetitionHelper.createRepeatedEvents(eventUnavailability, range, sector, false);
+      const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z'];
+      const repeatedEvents = [
+        new Event({ company: new ObjectID(), startDate: range[0] }),
+        new Event({ company: new ObjectID(), startDate: range[1] }),
+        new Event({ company: new ObjectID(), startDate: range[2] }),
+      ];
 
-    sinon.assert.callCount(insertMany, 2);
-    sinon.assert.notCalled(customerFindOne);
+      formatRepeatedPayload.onCall(0).returns(repeatedEvents[0]);
+      formatRepeatedPayload.onCall(1).returns(repeatedEvents[1]);
+      formatRepeatedPayload.onCall(2).returns(repeatedEvents[2]);
+
+      await EventsRepetitionHelper.createRepeatedEvents(event, range, sector, false);
+
+      sinon.assert.calledOnceWithExactly(insertMany, repeatedEvents);
+      sinon.assert.notCalled(customerFindOne);
+    });
   });
 });
 
