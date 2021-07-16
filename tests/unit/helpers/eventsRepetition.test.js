@@ -226,11 +226,7 @@ describe('createRepeatedEvents', () => {
       endDate: '2019-01-10T11:00:00Z',
       customer: new ObjectID(),
     };
-    const range = [
-      '2019-01-11T09:00:00.000Z',
-      '2019-01-12T09:00:00.000Z',
-      '2019-01-13T09:00:00.000Z',
-    ];
+    const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z'];
     const repeatedEvents = [
       new Event({ company: new ObjectID(), startDate: range[0] }),
       new Event({ company: new ObjectID(), startDate: range[1] }),
@@ -300,10 +296,7 @@ describe('createRepeatedEvents', () => {
       endDate: '2019-01-10T11:00:00Z',
       customer: new ObjectID(),
     };
-    const range = [
-      '2019-01-11T09:00:00.000Z',
-      '2019-01-12T09:00:00.000Z',
-      '2019-01-13T09:00:00.000Z',
+    const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z',
     ];
     const customer = { _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00Z') };
     const repeatedEvents = [
@@ -344,15 +337,12 @@ describe('createRepeatedEvents', () => {
       startDate: '2019-01-10T09:00:00.000Z',
       endDate: '2019-01-10T11:00:00Z',
     };
-    const range = [
-      '2019-01-11T09:00:00.000Z',
-      '2019-01-12T09:00:00.000Z',
-      '2019-01-13T09:00:00.000Z',
-    ];
+    const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z'];
 
     await EventsRepetitionHelper.createRepeatedEvents(eventInternalHour, range, sector, false);
     await EventsRepetitionHelper.createRepeatedEvents(eventUnavailability, range, sector, false);
 
+    sinon.assert.callCount(insertMany, 2);
     sinon.assert.notCalled(customerFindOne);
   });
 });

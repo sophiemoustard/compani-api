@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const omit = require('lodash/omit');
 const cloneDeep = require('lodash/cloneDeep');
 const pick = require('lodash/pick');
+const has = require('lodash/has');
 const momentRange = require('moment-range');
 const {
   NEVER,
@@ -43,16 +44,16 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
 
 exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetition) => {
   const repeatedEvents = [];
-  const eventIsIntervention = payload.type === INTERVENTION;
+  const isIntervention = payload.type === INTERVENTION;
 
-  const customer = eventIsIntervention
+  const customer = isIntervention
     ? await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }).lean()
     : null;
 
   for (let i = 0, l = range.length; i < l; i++) {
     if (!isWeekDayRepetition || ![0, 6].includes(moment(range[i]).day())) {
       const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
-      if (eventIsIntervention && get(repeatedEvent, 'startDate') > get(customer, 'stoppedAt')) break;
+      if (isIntervention && has(customer, 'stoppedAt') && get(repeatedEvent, 'startDate') > customer.stoppedAt) break;
       if (repeatedEvent) repeatedEvents.push(repeatedEvent);
     }
   }
