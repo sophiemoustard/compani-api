@@ -13,7 +13,7 @@ exports.getPartnerOrganization = (partnerOrganizationId, credentials) => Partner
     populate: {
       path: 'customerPartners',
       match: { prescriber: true, company: credentials.company._id },
-      populate: { path: 'customer', select: 'identity subscriptions' },
+      populate: { path: 'customer', select: 'identity createdAt' },
     },
   })
   .lean();
