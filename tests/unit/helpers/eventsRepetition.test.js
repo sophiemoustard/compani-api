@@ -18,6 +18,7 @@ const {
   NEVER,
   EVERY_WEEK,
   INTERNAL_HOUR,
+  UNAVAILABILITY,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -219,12 +220,13 @@ describe('createRepeatedEvents', () => {
 
   it('should create repetition for each range', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
-    const range = [
-      '2019-01-11T09:00:00.000Z',
-      '2019-01-12T09:00:00.000Z',
-      '2019-01-13T09:00:00.000Z',
-    ];
+    const event = {
+      type: INTERVENTION,
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00.000Z',
+      customer: new ObjectID(),
+    };
+    const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z'];
     const repeatedEvents = [
       new Event({ company: new ObjectID(), startDate: range[0] }),
       new Event({ company: new ObjectID(), startDate: range[1] }),
@@ -253,7 +255,12 @@ describe('createRepeatedEvents', () => {
 
   it('should not create repetition on week-end for week day repetition', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
+    const event = {
+      type: INTERVENTION,
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00.000Z',
+      customer: new ObjectID(),
+    };
     const range = [
       '2019-01-11T09:00:00.000Z',
       '2019-01-12T09:00:00.000Z',
@@ -283,13 +290,14 @@ describe('createRepeatedEvents', () => {
 
   it('should not insert events after stopping date', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
-    const range = [
-      '2019-01-11T09:00:00.000Z',
-      '2019-01-12T09:00:00.000Z',
-      '2019-01-13T09:00:00.000Z',
-    ];
-    const customer = { _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00Z') };
+    const event = {
+      type: INTERVENTION,
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00.000Z',
+      customer: new ObjectID(),
+    };
+    const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z'];
+    const customer = { _id: event.customer, stoppedAt: new Date('2019-01-12T11:00:00.000Z') };
     const repeatedEvents = [
       new Event({ company: new ObjectID(), startDate: range[0] }),
       new Event({ company: new ObjectID(), startDate: range[1] }),
@@ -315,6 +323,33 @@ describe('createRepeatedEvents', () => {
       ]
     );
   });
+
+  [INTERNAL_HOUR, UNAVAILABILITY].forEach((type) => {
+    it(`should not check if customer is stopped if event is ${type} and not intervention`, async () => {
+      const sector = new ObjectID();
+      const event = {
+        type,
+        startDate: '2019-01-10T09:00:00.000Z',
+        endDate: '2019-01-10T11:00:00.000Z',
+      };
+
+      const range = ['2019-01-11T09:00:00.000Z', '2019-01-12T09:00:00.000Z', '2019-01-13T09:00:00.000Z'];
+      const repeatedEvents = [
+        new Event({ company: new ObjectID(), startDate: range[0] }),
+        new Event({ company: new ObjectID(), startDate: range[1] }),
+        new Event({ company: new ObjectID(), startDate: range[2] }),
+      ];
+
+      formatRepeatedPayload.onCall(0).returns(repeatedEvents[0]);
+      formatRepeatedPayload.onCall(1).returns(repeatedEvents[1]);
+      formatRepeatedPayload.onCall(2).returns(repeatedEvents[2]);
+
+      await EventsRepetitionHelper.createRepeatedEvents(event, range, sector, false);
+
+      sinon.assert.calledOnceWithExactly(insertMany, repeatedEvents);
+      sinon.assert.notCalled(customerFindOne);
+    });
+  });
 });
 
 describe('createRepetitionsEveryDay', () => {
@@ -328,7 +363,11 @@ describe('createRepetitionsEveryDay', () => {
 
   it('should create repetition every day', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
+    const event = {
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00.000Z',
+      customer: new ObjectID(),
+    };
     const range = Array.from(
       moment().range(moment('2019-01-11T09:00:00.000Z'), moment('2019-04-10T09:00:00.000Z')).by('days')
     );
@@ -356,7 +395,11 @@ describe('createRepetitionsEveryWeekDay', () => {
 
   it('should create repetition every week day', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
+    const event = {
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00.000Z',
+      customer: new ObjectID(),
+    };
     const range = Array.from(
       moment().range(moment('2019-01-11T09:00:00.000Z'), moment('2019-04-10T09:00:00.000Z')).by('days')
     );
