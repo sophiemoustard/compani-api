@@ -18,6 +18,7 @@ const {
   NEVER,
   EVERY_WEEK,
   INTERNAL_HOUR,
+  UNAVAILABILITY,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -219,7 +220,12 @@ describe('createRepeatedEvents', () => {
 
   it('should create repetition for each range', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
+    const event = {
+      type: INTERVENTION,
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00Z',
+      customer: new ObjectID(),
+    };
     const range = [
       '2019-01-11T09:00:00.000Z',
       '2019-01-12T09:00:00.000Z',
@@ -253,7 +259,12 @@ describe('createRepeatedEvents', () => {
 
   it('should not create repetition on week-end for week day repetition', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
+    const event = {
+      type: INTERVENTION,
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00Z',
+      customer: new ObjectID(),
+    };
     const range = [
       '2019-01-11T09:00:00.000Z',
       '2019-01-12T09:00:00.000Z',
@@ -283,7 +294,12 @@ describe('createRepeatedEvents', () => {
 
   it('should not insert events after stopping date', async () => {
     const sector = new ObjectID();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
+    const event = {
+      type: INTERVENTION,
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00Z',
+      customer: new ObjectID(),
+    };
     const range = [
       '2019-01-11T09:00:00.000Z',
       '2019-01-12T09:00:00.000Z',
@@ -314,6 +330,30 @@ describe('createRepeatedEvents', () => {
         { query: 'lean' },
       ]
     );
+  });
+
+  it('should not call customerFindOne if eventType is not intervention', async () => {
+    const sector = new ObjectID();
+    const eventInternalHour = {
+      type: INTERNAL_HOUR,
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00Z',
+    };
+    const eventUnavailability = {
+      type: UNAVAILABILITY,
+      startDate: '2019-01-10T09:00:00.000Z',
+      endDate: '2019-01-10T11:00:00Z',
+    };
+    const range = [
+      '2019-01-11T09:00:00.000Z',
+      '2019-01-12T09:00:00.000Z',
+      '2019-01-13T09:00:00.000Z',
+    ];
+
+    await EventsRepetitionHelper.createRepeatedEvents(eventInternalHour, range, sector, false);
+    await EventsRepetitionHelper.createRepeatedEvents(eventUnavailability, range, sector, false);
+
+    sinon.assert.notCalled(customerFindOne);
   });
 });
 
