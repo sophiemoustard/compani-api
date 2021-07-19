@@ -1,4 +1,5 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const qs = require('qs');
@@ -747,6 +748,9 @@ describe('POST /events', () => {
     });
 
     it('should create a repetition', async () => {
+      const DateHelperDayDiff = sinon.stub(DatesHelper, 'dayDiff');
+      DateHelperDayDiff.returns(0);
+
       const payload = {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00',
