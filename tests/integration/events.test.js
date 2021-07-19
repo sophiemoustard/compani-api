@@ -2044,7 +2044,7 @@ describe('PUT /{_id}/timestamping', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if incorrect reason', async () => {
+    it('should return 400 if incorrect reason on manual time stamp', async () => {
       authToken = await getTokenByCredentials(auxiliaries[0].local);
       const startDate = new Date();
 
@@ -2090,7 +2090,7 @@ describe('PUT /{_id}/timestamping', () => {
     const missingFields = ['action', 'reason'];
 
     missingFields.forEach((field) => {
-      it(`should return a 400 if missing field ${field}`, async () => {
+      it(`should return a 400 if missing field ${field} on manual time stamp`, async () => {
         authToken = await getTokenByCredentials(auxiliaries[0].local);
 
         const response = await app.inject({
@@ -2102,6 +2102,21 @@ describe('PUT /{_id}/timestamping', () => {
 
         expect(response.statusCode).toBe(400);
       });
+    });
+
+    it('should return 400 if reason is given on qr code time stamp', async () => {
+      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      const startDate = new Date();
+      const endDate = new Date();
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[21]._id}/timestamping`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate, endDate, action: 'qr_code_time_stamping', reason: 'camera_error' },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
