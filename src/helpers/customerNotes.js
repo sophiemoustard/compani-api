@@ -37,11 +37,11 @@ exports.update = async (customerNoteId, payload, credentials) => {
   const initialCustomerNote = await CustomerNote.findOne({ _id: customerNoteId, company: credentials.company._id })
     .lean();
 
-  if (payload.description.trim() !== initialCustomerNote.description) {
+  if (payload.description.trim() !== initialCustomerNote.description.trim()) {
     promises.push(createHistory({ ...query, description: payload.description }));
   }
 
-  if (payload.title.trim() !== initialCustomerNote.title) {
+  if (payload.title.trim() !== initialCustomerNote.title.trim()) {
     promises.push(createHistory({ ...query, title: payload.title }));
   }
 

@@ -103,12 +103,7 @@ describe('update', () => {
 
   it('should update customer note and create an history', async () => {
     const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-    const customerNote = {
-      _id: new ObjectID(),
-      title: 'test',
-      description: 'description',
-      customer: credentials._id,
-    };
+    const customerNote = { _id: new ObjectID(), title: 'test', description: 'description', customer: credentials._id };
     const payload = { title: 'titre mis a jour', description: 'description mise a jour' };
 
     findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
@@ -143,6 +138,7 @@ describe('update', () => {
         action: NOTE_UPDATE,
       }
     );
+    sinon.assert.callCount(customerNoteHistoryCreate, 2);
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: customerNote._id, company: credentials.company._id },
@@ -150,31 +146,28 @@ describe('update', () => {
     );
   });
 
-  it(
-    'should not update customer note and not create history if description and title in payload are the same as before',
-    async () => {
-      const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-      const customerNote = {
-        _id: new ObjectID(),
-        title: 'test',
-        description: 'description',
-        customer: credentials._id,
-      };
-      const payload = { title: 'test', description: 'description' };
+  it('should not update note or create history if neither description nor title are changed', async () => {
+    const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
+    const customerNote = {
+      _id: new ObjectID(),
+      title: 'test',
+      description: 'description',
+      customer: credentials._id,
+    };
+    const payload = { title: '  test', description: 'description' };
 
-      findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
 
-      await CustomerNotesHelper.update(customerNote._id, payload, credentials);
+    await CustomerNotesHelper.update(customerNote._id, payload, credentials);
 
-      SinonMongoose.calledWithExactly(
-        findOne,
-        [
-          { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },
-          { query: 'lean' },
-        ]
-      );
-      sinon.assert.notCalled(customerNoteHistoryCreate);
-      sinon.assert.notCalled(updateOne);
-    }
-  );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(customerNoteHistoryCreate);
+    sinon.assert.notCalled(updateOne);
+  });
 });
