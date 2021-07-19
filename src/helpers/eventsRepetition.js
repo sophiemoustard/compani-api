@@ -23,6 +23,7 @@ const Customer = require('../models/Customer');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
+const DatesHelper = require('./dates');
 
 momentRange.extendMoment(moment);
 
@@ -62,24 +63,33 @@ exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetitio
 };
 
 exports.createRepetitionsEveryDay = async (payload, sector) => {
+  const durationFromStartdayToNow = DatesHelper.dayDiff(moment(), payload.startDate);
+  const numberOfDays = durationFromStartdayToNow > 0 ? durationFromStartdayToNow + 90 : 90;
+
   const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(90, 'd');
+  const end = moment(payload.startDate).add(numberOfDays, 'd');
   const range = Array.from(moment().range(start, end).by('days'));
 
   await exports.createRepeatedEvents(payload, range, sector, false);
 };
 
 exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
+  const durationFromStartdayToNow = DatesHelper.dayDiff(moment(), payload.startDate);
+  const numberOfDays = durationFromStartdayToNow > 0 ? durationFromStartdayToNow + 90 : 90;
+
   const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(90, 'd');
+  const end = moment(payload.startDate).add(numberOfDays, 'd');
   const range = Array.from(moment().range(start, end).by('days'));
 
   await exports.createRepeatedEvents(payload, range, sector, true);
 };
 
 exports.createRepetitionsByWeek = async (payload, sector, step) => {
+  const durationFromStartdayToNow = DatesHelper.dayDiff(moment(), payload.startDate);
+  const numberOfDays = durationFromStartdayToNow > 0 ? durationFromStartdayToNow + 90 : 90;
+
   const start = moment(payload.startDate).add(step, 'w');
-  const end = moment(payload.startDate).add(90, 'd');
+  const end = moment(payload.startDate).add(numberOfDays, 'd');
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
 
   await exports.createRepeatedEvents(payload, range, sector, false);
