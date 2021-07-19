@@ -236,6 +236,13 @@ exports.createTimeStampHistory = async (event, payload, credentials) => {
   const eventPayload = { ...omit(event, ['_id']), eventId: event._id };
   const updatePayload = {};
 
+  const query = {
+    company: event.company,
+    action: payload.action,
+    auxiliaries: [event.auxiliary],
+    createdBy: credentials._id,
+  };
+
   if (startDate) {
     eventPayload.startDate = startDate;
     updatePayload.startHour = { from: event.startDate, to: startDate };
@@ -246,13 +253,7 @@ exports.createTimeStampHistory = async (event, payload, credentials) => {
     updatePayload.endHour = { from: event.endDate, to: endDate };
   }
 
-  await EventHistory.create({
-    event: eventPayload,
-    company: event.company,
-    action: payload.action,
-    manualTimeStampingReason: payload.reason,
-    auxiliaries: [event.auxiliary],
-    update: updatePayload,
-    createdBy: credentials._id,
-  });
+  if (payload.reason) query.manualTimeStampingReason = payload.reason;
+
+  await EventHistory.create({ ...query, event: eventPayload, update: updatePayload });
 };

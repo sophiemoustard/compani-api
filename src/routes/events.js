@@ -28,6 +28,7 @@ const {
   CUSTOMER,
   AUXILIARY,
   TIMESTAMPING_ACTION_TYPE_LIST,
+  MANUAL_TIME_STAMPING,
 } = require('../helpers/constants');
 const {
   EVENT_TYPES,
@@ -294,7 +295,9 @@ exports.plugin = {
             action: Joi.string().required().valid(...Object.keys(TIMESTAMPING_ACTION_TYPE_LIST)),
             startDate: Joi.date(),
             endDate: Joi.date(),
-            reason: Joi.string().required().valid(...Object.keys(MANUAL_TIME_STAMPING_REASONS)),
+            reason: Joi.string()
+              .valid(...Object.keys(MANUAL_TIME_STAMPING_REASONS))
+              .when('action', { is: MANUAL_TIME_STAMPING, then: Joi.required(), otherwise: Joi.forbidden() }),
           }).xor('startDate', 'endDate'),
         },
         pre: [{ method: getEvent, assign: 'event' }, { method: authorizeTimeStamping }],
