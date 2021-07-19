@@ -62,9 +62,14 @@ exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetitio
   await Event.insertMany(repeatedEvents);
 };
 
+const getNumberOfEventToCreate = (startDate) => {
+  const dayDiffWithStartDate = DatesHelper.dayDiff(moment(), startDate);
+
+  return dayDiffWithStartDate > 0 ? dayDiffWithStartDate + 90 : 90;
+};
+
 exports.createRepetitionsEveryDay = async (payload, sector) => {
-  const durationFromStartdayToNow = DatesHelper.dayDiff(moment(), payload.startDate);
-  const numberOfDays = durationFromStartdayToNow > 0 ? durationFromStartdayToNow + 90 : 90;
+  const numberOfDays = getNumberOfEventToCreate(payload.startDate);
 
   const start = moment(payload.startDate).add(1, 'd');
   const end = moment(payload.startDate).add(numberOfDays, 'd');
@@ -74,8 +79,7 @@ exports.createRepetitionsEveryDay = async (payload, sector) => {
 };
 
 exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
-  const durationFromStartdayToNow = DatesHelper.dayDiff(moment(), payload.startDate);
-  const numberOfDays = durationFromStartdayToNow > 0 ? durationFromStartdayToNow + 90 : 90;
+  const numberOfDays = getNumberOfEventToCreate(payload.startDate);
 
   const start = moment(payload.startDate).add(1, 'd');
   const end = moment(payload.startDate).add(numberOfDays, 'd');
@@ -85,8 +89,7 @@ exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
 };
 
 exports.createRepetitionsByWeek = async (payload, sector, step) => {
-  const durationFromStartdayToNow = DatesHelper.dayDiff(moment(), payload.startDate);
-  const numberOfDays = durationFromStartdayToNow > 0 ? durationFromStartdayToNow + 90 : 90;
+  const numberOfDays = getNumberOfEventToCreate(payload.startDate);
 
   const start = moment(payload.startDate).add(step, 'w');
   const end = moment(payload.startDate).add(numberOfDays, 'd');
