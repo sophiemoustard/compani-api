@@ -353,7 +353,7 @@ describe('createRepeatedEvents', () => {
   });
 });
 
-describe('createRepetitionsEveryDay #tag', () => {
+describe('createRepetitionsEveryDay', () => {
   let createRepeatedEvents;
   let dayDiff;
   beforeEach(() => {
@@ -365,7 +365,7 @@ describe('createRepetitionsEveryDay #tag', () => {
     dayDiff.restore();
   });
 
-  it('should create repetition every day from first event to 90 days after', async () => {
+  it('should create repetition every day from today', async () => {
     const sector = new ObjectID();
     const event = {
       startDate: '2019-01-10T09:00:00.000Z',
@@ -389,7 +389,7 @@ describe('createRepetitionsEveryDay #tag', () => {
     );
   });
 
-  it('should create repetition every day from first event to current time plus 90 days #tag', async () => {
+  it('should create repetition every day with first event in the past', async () => {
     const sector = new ObjectID();
     const event = {
       startDate: '2019-01-10T09:00:00.000Z',
@@ -426,7 +426,7 @@ describe('createRepetitionsEveryWeekDay', () => {
     dayDiff.restore();
   });
 
-  it('should create repetition every week day from first event to 90 days after', async () => {
+  it('should create repetition every week day with first event in the future', async () => {
     const sector = new ObjectID();
     const event = {
       startDate: '2019-01-10T09:00:00.000Z',
@@ -450,7 +450,7 @@ describe('createRepetitionsEveryWeekDay', () => {
     );
   });
 
-  it('should create repetition every week day from first event to current time plus 90 days', async () => {
+  it('should create repetition every week day with first event in the past', async () => {
     const sector = new ObjectID();
     const event = {
       startDate: '2019-01-10T09:00:00.000Z',
@@ -475,7 +475,7 @@ describe('createRepetitionsEveryWeekDay', () => {
   });
 });
 
-describe('createRepetitionsByWeek #tag', () => {
+describe('createRepetitionsByWeek', () => {
   let createRepeatedEvents;
   let dayDiff;
   beforeEach(() => {
@@ -487,7 +487,7 @@ describe('createRepetitionsByWeek #tag', () => {
     dayDiff.restore();
   });
 
-  it('should create repetition by week from first event to 90 days after', async () => {
+  it('should create repetition by week with first event in the future', async () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
     const range = Array.from(
@@ -507,7 +507,7 @@ describe('createRepetitionsByWeek #tag', () => {
     );
   });
 
-  it('should create repetition by week from first event to current time plus 90 days', async () => {
+  it('should create repetition by week with first event in the past', async () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
     const range = Array.from(
@@ -527,7 +527,7 @@ describe('createRepetitionsByWeek #tag', () => {
     );
   });
 
-  it('should create repetition every two weeks from first event to 90 days after', async () => {
+  it('should create repetition every two weeks from today', async () => {
     const sector = new ObjectID();
     const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectID() };
 
