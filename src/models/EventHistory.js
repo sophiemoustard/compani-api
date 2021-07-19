@@ -15,7 +15,8 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const EVENTS_HISTORY_ACTIONS = [
-  EVENT_CREATION, EVENT_DELETION,
+  EVENT_CREATION,
+  EVENT_DELETION,
   EVENT_UPDATE,
   MANUAL_TIME_STAMPING,
   QR_CODE_TIME_STAMPING,
