@@ -3,7 +3,13 @@ const Partner = require('../models/Partner');
 
 exports.create = (payload, credentials) => PartnerOrganization.create({ ...payload, company: credentials.company._id });
 
-exports.list = credentials => PartnerOrganization.find({ company: credentials.company._id }).lean();
+exports.list = credentials => PartnerOrganization
+  .find({ company: credentials.company._id })
+  .populate({
+    path: 'partners',
+    populate: { path: 'customerPartners', match: { prescriber: true, company: credentials.company._id } },
+  })
+  .lean();
 
 exports.getPartnerOrganization = (partnerOrganizationId, credentials) => PartnerOrganization
   .findOne({ _id: partnerOrganizationId, company: credentials.company._id })

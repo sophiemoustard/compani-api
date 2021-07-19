@@ -11,6 +11,11 @@ const PartnerOrganizationSchema = mongoose.Schema({
   partners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Partner' }],
 }, { timestamps: true });
 
+// PartnerOrganizationSchema.virtual(
+//   'partners',
+//   { ref: 'Partner', localField: '_id', foreignField: 'partnerOrganization' }
+// );
+
 PartnerOrganizationSchema.pre('find', validateQuery);
 PartnerOrganizationSchema.pre('findOne', validateQuery);
 PartnerOrganizationSchema.pre('aggregate', validateAggregation);

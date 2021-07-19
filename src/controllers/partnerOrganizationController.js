@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const omit = require('lodash/omit');
 const translate = require('../helpers/translate');
 const PartnerOrganizationsHelper = require('../helpers/partnerOrganizations');
 
@@ -17,9 +18,32 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const partnerOrganizations = await PartnerOrganizationsHelper.list(req.auth.credentials);
+    let partnerOrganizations = [];
+    partnerOrganizations = await PartnerOrganizationsHelper.list(req.auth.credentials);
+    const prescribedCustomer = partnerOrganizations
+      .map(partnerOrganization => partnerOrganization.partners.map(partner => partner.customerPartners.length).flat());
 
-    return { message: translate[language].partnerOrganizationsFound, data: { partnerOrganizations } };
+    const prescribedCustomerCopy = [];
+
+    prescribedCustomer.forEach((res) => {
+      if (res.length === 0) prescribedCustomerCopy.push(0);
+      else prescribedCustomerCopy.push(res);
+    });
+
+    console.log('prescribedCustomer', prescribedCustomerCopy);
+
+    prescribedCustomerCopy.forEach((res) => {
+      if (res.length !== 0) res.reduce((acc, val) => acc + val);
+    });
+
+    console.log('---prescribed:', prescribedCustomer);
+
+    // const prescribedCustomerCount = prescribedCustomer.reduce((acc, value) => acc + value);
+
+    return {
+      message: translate[language].partnerOrganizationsFound,
+      data: { partnerOrganizations },
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
