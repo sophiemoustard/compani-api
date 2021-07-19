@@ -103,13 +103,8 @@ describe('update', () => {
 
   it('should update customer note and create an history', async () => {
     const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-    const customerNote = {
-      _id: new ObjectID(),
-      title: 'test',
-      description: 'description',
-      customer: credentials._id,
-    };
-    const payload = { title: 'titre', description: 'description mise a jour' };
+    const customerNote = { _id: new ObjectID(), title: 'test', description: 'description', customer: credentials._id };
+    const payload = { title: 'titre mis a jour', description: 'description mise a jour' };
 
     findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
     customerNoteHistoryCreate.returns(customerNote);
@@ -123,7 +118,17 @@ describe('update', () => {
         { query: 'lean' },
       ]
     );
-    sinon.assert.calledOnceWithExactly(
+    sinon.assert.calledWithExactly(
+      customerNoteHistoryCreate,
+      {
+        title: 'titre mis a jour',
+        customerNote: customerNote._id,
+        company: credentials.company._id,
+        createdBy: credentials._id,
+        action: NOTE_UPDATE,
+      }
+    );
+    sinon.assert.calledWithExactly(
       customerNoteHistoryCreate,
       {
         description: 'description mise a jour',
@@ -133,42 +138,36 @@ describe('update', () => {
         action: NOTE_UPDATE,
       }
     );
+    sinon.assert.callCount(customerNoteHistoryCreate, 2);
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: customerNote._id, company: credentials.company._id },
-      { $set: { title: 'titre', description: 'description mise a jour' } }
+      { $set: { title: 'titre mis a jour', description: 'description mise a jour' } }
     );
   });
 
-  it(
-    'should not update customer note and not create history if description in payload is the same as before',
-    async () => {
-      const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-      const customerNote = {
-        _id: new ObjectID(),
-        title: 'test',
-        description: 'description',
-        customer: credentials._id,
-      };
-      const payload = { description: 'description' };
+  it('should not update note or create history if neither description nor title are changed', async () => {
+    const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
+    const customerNote = {
+      _id: new ObjectID(),
+      title: 'test',
+      description: 'description',
+      customer: credentials._id,
+    };
+    const payload = { title: '  test', description: 'description' };
 
-      findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
 
-      await CustomerNotesHelper.update(customerNote._id, payload, credentials);
+    await CustomerNotesHelper.update(customerNote._id, payload, credentials);
 
-      SinonMongoose.calledWithExactly(
-        findOne,
-        [
-          { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },
-          { query: 'lean' },
-        ]
-      );
-      sinon.assert.notCalled(customerNoteHistoryCreate);
-      sinon.assert.calledOnceWithExactly(
-        updateOne,
-        { _id: customerNote._id, company: credentials.company._id },
-        { $set: { description: 'description' } }
-      );
-    }
-  );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(customerNoteHistoryCreate);
+    sinon.assert.notCalled(updateOne);
+  });
 });
