@@ -616,10 +616,15 @@ describe('GET /events/unassigned-hours', () => {
 
 describe('POST /events', () => {
   let authToken = null;
+  let DatesHelperDayDiff;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('planning_referent');
+      DatesHelperDayDiff = sinon.stub(DatesHelper, 'dayDiff');
+    });
+    afterEach(() => {
+      DatesHelperDayDiff.restore();
     });
 
     it('should create an internal hour', async () => {
@@ -748,9 +753,6 @@ describe('POST /events', () => {
     });
 
     it('should create a repetition', async () => {
-      const DateHelperDayDiff = sinon.stub(DatesHelper, 'dayDiff');
-      DateHelperDayDiff.returns(0);
-
       const payload = {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00',
@@ -767,6 +769,8 @@ describe('POST /events', () => {
         },
         repetition: { frequency: EVERY_DAY },
       };
+
+      DatesHelperDayDiff.returns(0);
 
       const response = await app.inject({
         method: 'POST',

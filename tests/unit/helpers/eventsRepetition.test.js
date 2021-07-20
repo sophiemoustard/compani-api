@@ -11,7 +11,7 @@ const Customer = require('../../../src/models/Customer');
 const EventsHelper = require('../../../src/helpers/events');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
-const datesHelper = require('../../../src/helpers/dates');
+const DatesHelper = require('../../../src/helpers/dates');
 const RepetitionHelper = require('../../../src/helpers/repetitions');
 const {
   INTERVENTION,
@@ -358,7 +358,7 @@ describe('createRepetitionsEveryDay', () => {
   let dayDiff;
   beforeEach(() => {
     createRepeatedEvents = sinon.stub(EventsRepetitionHelper, 'createRepeatedEvents');
-    dayDiff = sinon.stub(datesHelper, 'dayDiff');
+    dayDiff = sinon.stub(DatesHelper, 'dayDiff');
   });
   afterEach(() => {
     createRepeatedEvents.restore();
@@ -419,7 +419,7 @@ describe('createRepetitionsEveryWeekDay', () => {
   let dayDiff;
   beforeEach(() => {
     createRepeatedEvents = sinon.stub(EventsRepetitionHelper, 'createRepeatedEvents');
-    dayDiff = sinon.stub(datesHelper, 'dayDiff');
+    dayDiff = sinon.stub(DatesHelper, 'dayDiff');
   });
   afterEach(() => {
     createRepeatedEvents.restore();
@@ -480,7 +480,7 @@ describe('createRepetitionsByWeek', () => {
   let dayDiff;
   beforeEach(() => {
     createRepeatedEvents = sinon.stub(EventsRepetitionHelper, 'createRepeatedEvents');
-    dayDiff = sinon.stub(datesHelper, 'dayDiff');
+    dayDiff = sinon.stub(DatesHelper, 'dayDiff');
   });
   afterEach(() => {
     createRepeatedEvents.restore();
