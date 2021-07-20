@@ -19,10 +19,7 @@ const list = async (req) => {
   try {
     const partnerOrganizations = await PartnerOrganizationsHelper.list(req.auth.credentials);
 
-    return {
-      message: translate[language].partnerOrganizationsFound,
-      data: { partnerOrganizations },
-    };
+    return { message: translate[language].partnerOrganizationsFound, data: { partnerOrganizations } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

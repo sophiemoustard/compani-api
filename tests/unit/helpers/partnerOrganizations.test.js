@@ -62,13 +62,31 @@ describe('list', () => {
   it('should list partner organizations from my company', async () => {
     const credentials = { company: { _id: new ObjectID() } };
 
-    find.returns(SinonMongoose.stubChainedQueries([[{ _id: new ObjectID(), name: 'skusku' }]], ['lean']));
+    find.returns(
+      SinonMongoose.stubChainedQueries(
+        [[{ _id: new ObjectID(), name: 'skusku', partners: [], prescribedCustomersCount: '0' }]],
+        ['populate', 'lean']
+      )
+    );
 
     await PartnerOrganizationsHelper.list(credentials);
 
     SinonMongoose.calledWithExactly(
       find,
-      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'partners',
+              match: { company: credentials.company._id },
+              populate: { path: 'customerPartners', match: { prescriber: true, company: credentials.company._id } },
+            },
+          ],
+        },
+        { query: 'lean' },
+      ]
     );
   });
 });
