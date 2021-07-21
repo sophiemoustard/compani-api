@@ -405,9 +405,11 @@ module.exports = {
   BLENDED_COURSE_REGISTRATION: 'blended_course_registration',
   // TIMESTAMP
   MANUAL_TIME_STAMPING: 'manual_time_stamping',
+  QR_CODE_TIME_STAMPING: 'qr_code_time_stamping',
   get TIMESTAMPING_ACTION_TYPE_LIST() {
     return {
       [this.MANUAL_TIME_STAMPING]: 'Manuel',
+      [this.QR_CODE_TIME_STAMPING]: 'QR Code',
     };
   },
   QRCODE_MISSING: 'qrcode_missing',

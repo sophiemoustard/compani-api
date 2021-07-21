@@ -248,11 +248,11 @@ exports.createTimeStampHistory = async (event, payload, credentials) => {
 
   await EventHistory.create({
     event: eventPayload,
+    update: updatePayload,
     company: event.company,
     action: payload.action,
-    manualTimeStampingReason: payload.reason,
     auxiliaries: [event.auxiliary],
-    update: updatePayload,
     createdBy: credentials._id,
+    ...(payload.reason && { manualTimeStampingReason: payload.reason }),
   });
 };
