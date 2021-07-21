@@ -64,15 +64,11 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const partnerOrganizationId = new ObjectID();
 
-    find.returns(
-      SinonMongoose.stubChainedQueries(
-        [[{ _id: partnerOrganizationId, name: 'skusku', partners: [] }]],
-        ['populate', 'lean']
-      )
-    );
+    find.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku', partners: [] }]]));
 
     const result = await PartnerOrganizationsHelper.list(credentials);
 
+    expect(result).toEqual([{ _id: partnerOrganizationId, name: 'skusku', partners: [], prescribedCustomersCount: 0 }]);
     SinonMongoose.calledWithExactly(
       find,
       [
@@ -89,10 +85,6 @@ describe('list', () => {
         },
         { query: 'lean' },
       ]
-    );
-
-    expect(result).toEqual(
-      [{ _id: partnerOrganizationId, name: 'skusku', partners: [], prescribedCustomersCount: 0 }]
     );
   });
 
@@ -103,35 +95,27 @@ describe('list', () => {
     const customerPartnersIds = [new ObjectID()];
 
     const partnerOrganizations = [
-      { _id: partnerOrganizationIds[0], name: 'skusku', company: credentials.company._id, partners: [] },
+      { _id: partnerOrganizationIds[0], partners: [] },
       {
         _id: partnerOrganizationIds[1],
-        name: 'Super structure',
-        partners: [
-          {
-            _id: partnersIds[0],
-            identity: { firstname: 'Partenaire', lastname: 'prescripteur' },
-            company: credentials.company._id,
-            phone: '0987654321',
-            email: 'partenaire.agathe@gmail.com',
-            job: 'Psychologue',
-            customerPartners: [
-              {
-                _id: customerPartnersIds[0],
-                identity: { firstname: 'Agathe', lastname: 'The power' },
-                company: credentials.company._id,
-                prescriber: true,
-              },
-            ],
-          },
-        ],
+        partners: [{ _id: partnersIds[0], customerPartners: [{ _id: customerPartnersIds[0], prescriber: true }] }],
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([partnerOrganizations], ['populate', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries([partnerOrganizations]));
 
     const result = await PartnerOrganizationsHelper.list(credentials);
 
+    expect(result).toEqual(
+      [
+        { _id: partnerOrganizationIds[0], partners: [], prescribedCustomersCount: 0 },
+        {
+          _id: partnerOrganizationIds[1],
+          partners: [{ _id: partnersIds[0], customerPartners: [{ _id: customerPartnersIds[0], prescriber: true }] }],
+          prescribedCustomersCount: 1,
+        },
+      ]
+    );
     SinonMongoose.calledWithExactly(
       find,
       [
@@ -147,41 +131,6 @@ describe('list', () => {
           ],
         },
         { query: 'lean' },
-      ]
-    );
-
-    expect(result).toEqual(
-      [
-        {
-          _id: partnerOrganizationIds[0],
-          company: credentials.company._id,
-          name: 'skusku',
-          partners: [],
-          prescribedCustomersCount: 0,
-        },
-        {
-          _id: partnerOrganizationIds[1],
-          name: 'Super structure',
-          partners: [
-            {
-              _id: partnersIds[0],
-              identity: { firstname: 'Partenaire', lastname: 'prescripteur' },
-              company: credentials.company._id,
-              phone: '0987654321',
-              email: 'partenaire.agathe@gmail.com',
-              job: 'Psychologue',
-              customerPartners: [
-                {
-                  _id: customerPartnersIds[0],
-                  identity: { firstname: 'Agathe', lastname: 'The power' },
-                  company: credentials.company._id,
-                  prescriber: true,
-                },
-              ],
-            },
-          ],
-          prescribedCustomersCount: 1,
-        },
       ]
     );
   });

@@ -7,8 +7,7 @@ const populatePrescribedCustomersCount = partnerOrganizationList => partnerOrgan
   .map(partnerOrganization => (
     {
       ...partnerOrganization,
-      prescribedCustomersCount: partnerOrganization.partners
-        .reduce((acc, val) => acc + val.customerPartners.length, 0),
+      prescribedCustomersCount: partnerOrganization.partners.reduce((acc, val) => acc + val.customerPartners.length, 0),
     }
   ));
 
