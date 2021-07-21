@@ -3,12 +3,32 @@ const Partner = require('../models/Partner');
 
 exports.create = (payload, credentials) => PartnerOrganization.create({ ...payload, company: credentials.company._id });
 
-exports.list = credentials => PartnerOrganization.find({ company: credentials.company._id }).lean();
+const populatePrescribedCustomersCount = partnerOrganizationList => partnerOrganizationList
+  .map(partnerOrganization => (
+    {
+      ...partnerOrganization,
+      prescribedCustomersCount: partnerOrganization.partners.reduce((acc, val) => acc + val.customerPartners.length, 0),
+    }
+  ));
+
+exports.list = async (credentials) => {
+  const partnerOrganizationList = await PartnerOrganization
+    .find({ company: credentials.company._id })
+    .populate({
+      path: 'partners',
+      match: { company: credentials.company._id },
+      populate: { path: 'customerPartners', match: { prescriber: true, company: credentials.company._id } },
+    })
+    .lean();
+
+  return populatePrescribedCustomersCount(partnerOrganizationList);
+};
 
 exports.getPartnerOrganization = (partnerOrganizationId, credentials) => PartnerOrganization
   .findOne({ _id: partnerOrganizationId, company: credentials.company._id })
   .populate({
     path: 'partners',
+    match: { company: credentials.company._id },
     select: 'identity phone email job',
     populate: {
       path: 'customerPartners',
