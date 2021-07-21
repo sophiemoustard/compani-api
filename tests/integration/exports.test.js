@@ -54,7 +54,7 @@ describe('GET /exports/working_event/history', () => {
       const rows = response.result.split('\r\n');
       expect(rows).toEqual([
         '\ufeff"Type";"Heure interne";"Service";"Début planifié";"Début horodaté";"Type d\'horodatage";"Motif";"Fin planifiée";"Fin horodatée";"Type d\'horodatage";"Motif";"Durée";"Répétition";"Équipe";"Id Auxiliaire";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"',
-        `"Intervention";;"Service 1";"17/01/2019 15:30:19";"17/01/2019 15:35:19";"Manuel";"QR Code manquant";"17/01/2019 17:30:19";"17/01/2019 17:35:19";"Manuel";"QR Code manquant";"2,00";"Tous les jours";"Etoile";;;;;"Oui";${customer._id.toHexString()};"M.";"BARDET";"Romain";;"Non";"Non";;`,
+        `"Intervention";;"Service 1";"17/01/2019 15:30:19";"17/01/2019 15:35:19";"Manuel";"QR Code manquant";"17/01/2019 17:30:19";"17/01/2019 17:35:19";"QR Code";;"2,00";"Tous les jours";"Etoile";;;;;"Oui";${customer._id.toHexString()};"M.";"BARDET";"Romain";;"Non";"Non";;`,
         `"Heure interne";"planning";;"17/01/2019 15:30:19";;;;"17/01/2019 17:30:19";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";;;;;;"Non";"Non";;`,
         `"Intervention";;"Service 1";"16/01/2019 10:30:19";;;;"16/01/2019 12:30:21";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";${customer._id.toHexString()};"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative de l'intervenant"`,
       ]);
