@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 const Partner = require('../../../src/models/Partner');
@@ -61,15 +62,16 @@ describe('list', () => {
 
   it('should list partner organizations from my company', async () => {
     const credentials = { company: { _id: new ObjectID() } };
+    const partnerOrganizationId = new ObjectID();
 
     find.returns(
       SinonMongoose.stubChainedQueries(
-        [[{ _id: new ObjectID(), name: 'skusku', partners: [], prescribedCustomersCount: '0' }]],
+        [[{ _id: partnerOrganizationId, name: 'skusku', partners: [] }]],
         ['populate', 'lean']
       )
     );
 
-    await PartnerOrganizationsHelper.list(credentials);
+    const result = await PartnerOrganizationsHelper.list(credentials);
 
     SinonMongoose.calledWithExactly(
       find,
@@ -86,6 +88,100 @@ describe('list', () => {
           ],
         },
         { query: 'lean' },
+      ]
+    );
+
+    expect(result).toEqual(
+      [{ _id: partnerOrganizationId, name: 'skusku', partners: [], prescribedCustomersCount: 0 }]
+    );
+  });
+
+  it('should list partner organizations and the number of customers prescribed by each partner', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const partnerOrganizationIds = [new ObjectID(), new ObjectID()];
+    const partnersIds = [new ObjectID()];
+    const customerPartnersIds = [new ObjectID()];
+
+    const partnerOrganizations = [
+      { _id: partnerOrganizationIds[0], name: 'skusku', company: credentials.company._id, partners: [] },
+      {
+        _id: partnerOrganizationIds[1],
+        name: 'Super structure',
+        partners: [
+          {
+            _id: partnersIds[0],
+            identity: { firstname: 'Partenaire', lastname: 'prescripteur' },
+            company: credentials.company._id,
+            phone: '0987654321',
+            email: 'partenaire.agathe@gmail.com',
+            job: 'Psychologue',
+            customerPartners: [
+              {
+                _id: customerPartnersIds[0],
+                identity: { firstname: 'Agathe', lastname: 'The power' },
+                company: credentials.company._id,
+                prescriber: true,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries([partnerOrganizations], ['populate', 'lean']));
+
+    const result = await PartnerOrganizationsHelper.list(credentials);
+
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: credentials.company._id }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'partners',
+              match: { company: credentials.company._id },
+              populate: { path: 'customerPartners', match: { prescriber: true, company: credentials.company._id } },
+            },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
+
+    expect(result).toEqual(
+      [
+        {
+          _id: partnerOrganizationIds[0],
+          company: credentials.company._id,
+          name: 'skusku',
+          partners: [],
+          prescribedCustomersCount: 0,
+        },
+        {
+          _id: partnerOrganizationIds[1],
+          name: 'Super structure',
+          partners: [
+            {
+              _id: partnersIds[0],
+              identity: { firstname: 'Partenaire', lastname: 'prescripteur' },
+              company: credentials.company._id,
+              phone: '0987654321',
+              email: 'partenaire.agathe@gmail.com',
+              job: 'Psychologue',
+              customerPartners: [
+                {
+                  _id: customerPartnersIds[0],
+                  identity: { firstname: 'Agathe', lastname: 'The power' },
+                  company: credentials.company._id,
+                  prescriber: true,
+                },
+              ],
+            },
+          ],
+          prescribedCustomersCount: 1,
+        },
       ]
     );
   });
@@ -116,6 +212,7 @@ describe('getPartnerOrganization', () => {
           query: 'populate',
           args: [{
             path: 'partners',
+            match: { company: credentials.company._id },
             select: 'identity phone email job',
             populate: {
               path: 'customerPartners',
