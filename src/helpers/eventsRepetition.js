@@ -23,6 +23,7 @@ const Customer = require('../models/Customer');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
+const DatesHelper = require('./dates');
 
 momentRange.extendMoment(moment);
 
@@ -61,25 +62,39 @@ exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetitio
   await Event.insertMany(repeatedEvents);
 };
 
+const getNumberOfDays = (startDate) => {
+  const formattedCurrentDate = moment().startOf('d').toDate();
+  const formattedStartDate = moment(startDate).startOf('d').toDate();
+  const dayDiffWithStartDate = DatesHelper.dayDiff(formattedCurrentDate, formattedStartDate);
+
+  return dayDiffWithStartDate > 0 ? dayDiffWithStartDate + 90 : 90;
+};
+
 exports.createRepetitionsEveryDay = async (payload, sector) => {
+  const numberOfDays = getNumberOfDays(payload.startDate);
+
   const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(90, 'd');
+  const end = moment(payload.startDate).add(numberOfDays, 'd');
   const range = Array.from(moment().range(start, end).by('days'));
 
   await exports.createRepeatedEvents(payload, range, sector, false);
 };
 
 exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
+  const numberOfDays = getNumberOfDays(payload.startDate);
+
   const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(90, 'd');
+  const end = moment(payload.startDate).add(numberOfDays, 'd');
   const range = Array.from(moment().range(start, end).by('days'));
 
   await exports.createRepeatedEvents(payload, range, sector, true);
 };
 
 exports.createRepetitionsByWeek = async (payload, sector, step) => {
+  const numberOfDays = getNumberOfDays(payload.startDate);
+
   const start = moment(payload.startDate).add(step, 'w');
-  const end = moment(payload.startDate).add(90, 'd');
+  const end = moment(payload.startDate).add(numberOfDays, 'd');
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
 
   await exports.createRepeatedEvents(payload, range, sector, false);
