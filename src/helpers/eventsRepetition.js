@@ -63,7 +63,9 @@ exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetitio
 };
 
 const getNumberOfDays = (startDate) => {
-  const dayDiffWithStartDate = DatesHelper.dayDiff(new Date(), startDate);
+  const formattedCurrentDate = moment().startOf('d').toDate();
+  const formattedStartDate = moment(startDate).startOf('d').toDate();
+  const dayDiffWithStartDate = DatesHelper.dayDiff(formattedCurrentDate, formattedStartDate);
 
   return dayDiffWithStartDate > 0 ? dayDiffWithStartDate + 90 : 90;
 };
