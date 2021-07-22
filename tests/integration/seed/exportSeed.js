@@ -44,6 +44,7 @@ const {
   WEBAPP,
   MANUAL_TIME_STAMPING,
   QRCODE_MISSING,
+  QR_CODE_TIME_STAMPING,
 } = require('../../../src/helpers/constants');
 
 const sector = { _id: new ObjectID(), name: 'Etoile', company: authCompany._id };
@@ -492,8 +493,7 @@ const eventHistoriesList = [
     _id: new ObjectID(),
     company: authCompany._id,
     event: { eventId: eventList[3]._id },
-    action: MANUAL_TIME_STAMPING,
-    manualTimeStampingReason: QRCODE_MISSING,
+    action: QR_CODE_TIME_STAMPING,
     update: { endHour: { from: '2019-01-17T16:30:19.543Z', to: '2019-01-17T16:35:19.543Z' } },
   },
 ];
