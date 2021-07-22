@@ -29,7 +29,7 @@ exports.createAdministrativeDocument = async (payload, credentials) => {
 };
 
 exports.listAdministrativeDocuments = async credentials =>
-  AdministrativeDocument.find({ company: get(credentials, 'company._id', null) }).lean();
+  AdministrativeDocument.find({ company: get(credentials, 'company._id') }).lean();
 
 exports.removeAdministrativeDocument = async (administrativeDocumentId) => {
   const administrativeDocument = await AdministrativeDocument

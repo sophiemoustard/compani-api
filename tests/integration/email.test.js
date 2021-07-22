@@ -85,7 +85,7 @@ describe('EMAIL ROUTES', () => {
       payload: { ...payload, email: emailUserFromOtherCompany.local.email },
     });
 
-    expect(response.statusCode).toBe(403);
+    expect(response.statusCode).toBe(404);
   });
 
   it('should throw an error if email does not exist', async () => {

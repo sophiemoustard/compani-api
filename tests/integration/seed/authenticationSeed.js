@@ -9,13 +9,15 @@ const Customer = require('../../../src/models/Customer');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Service = require('../../../src/models/Service');
 const UserCompany = require('../../../src/models/UserCompany');
+const UtilsHelper = require('../../../src/helpers/utils');
 const { rolesList } = require('../../seed/roleSeed');
-const { userList } = require('../../seed/userSeed');
+const { userList, userCompaniesList } = require('../../seed/userSeed');
 const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
 const { serviceList } = require('../../seed/serviceSeed');
 const app = require('../../../server');
 const IdentityVerification = require('../../../src/models/IdentityVerification');
+const { VENDOR_ROLES } = require('../../../src/helpers/constants');
 
 const otherCompany = {
   _id: new ObjectID(),
@@ -29,34 +31,15 @@ const otherCompany = {
   subscriptions: { erp: true },
 };
 
-const sector = {
-  _id: new ObjectID(),
-  name: 'Test',
-  company: authCompany._id,
-};
+const sector = { _id: new ObjectID(), name: 'Test', company: authCompany._id };
 
 const sectorHistories = [
-  {
-    auxiliary: userList[2]._id,
-    sector: sector._id,
-    company: authCompany._id,
-    startDate: '2020-12-10',
-  },
-  {
-    auxiliary: userList[4]._id,
-    sector: sector._id,
-    company: authCompany._id,
-    startDate: '2018-12-10',
-  },
+  { auxiliary: userList[2]._id, sector: sector._id, company: authCompany._id, startDate: '2020-12-10' },
+  { auxiliary: userList[4]._id, sector: sector._id, company: authCompany._id, startDate: '2018-12-10' },
 ];
 
 const identityVerifications = [
-  {
-    _id: new ObjectID(),
-    email: 'carolyn@alenvi.io',
-    code: '3310',
-    createdAt: new Date('2021-01-25T10:05:32.582Z'),
-  },
+  { _id: new ObjectID(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
 ];
 
 const populateDBForAuthentication = async () => {
@@ -79,18 +62,25 @@ const populateDBForAuthentication = async () => {
   await Role.insertMany(rolesList);
   await ThirdPartyPayer.insertMany(thirdPartyPayerList);
   await Service.insertMany(serviceList);
+  await UserCompany.insertMany(userCompaniesList);
   for (const user of userList) {
     await (new User(user)).save();
   }
   await IdentityVerification.insertMany(identityVerifications);
 };
 
-const getUser = (roleName, erp = true, list = userList) => {
+const getUser = (roleName, erp = true) => {
   const role = rolesList.find(r => r.name === roleName);
-  const company = [authCompany, companyWithoutSubscription].find(c => c.subscriptions.erp === erp);
 
-  return list.find(u => u.role[role.interface] && u.role[role.interface].toHexString() === role._id.toHexString() &&
-    (!u.company || company._id.toHexString() === u.company.toHexString()));
+  if (!VENDOR_ROLES.includes(roleName)) {
+    const company = [authCompany, companyWithoutSubscription].find(c => c.subscriptions.erp === erp);
+    const filteredUserCompanies = userCompaniesList.filter(u => UtilsHelper.areObjectIdsEquals(u.company, company._id));
+
+    return userList.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id) &&
+      filteredUserCompanies.some(uc => UtilsHelper.areObjectIdsEquals(uc.user, u._id)));
+  }
+
+  return userList.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id));
 };
 
 const getTokenByCredentials = memoize(
@@ -107,8 +97,8 @@ const getTokenByCredentials = memoize(
   credentials => JSON.stringify([credentials.email, credentials.password])
 );
 
-const getToken = (roleName, erp, list) => {
-  const user = getUser(roleName, erp, list);
+const getToken = (roleName, erp) => {
+  const user = getUser(roleName, erp);
   return getTokenByCredentials(user.local);
 };
 

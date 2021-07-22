@@ -24,7 +24,7 @@ describe('validate', () => {
     const userId = new ObjectID();
     const user = { _id: userId, identity: { lastname: 'lastname' }, local: { email: 'email@email.com' } };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user]));
+    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -44,7 +44,7 @@ describe('validate', () => {
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
-        { query: 'populate', args: [{ path: 'company' }] },
+        { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -64,7 +64,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user]));
+    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -135,7 +135,7 @@ describe('validate', () => {
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
-        { query: 'populate', args: [{ path: 'company' }] },
+        { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -157,7 +157,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user]));
+    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -177,7 +177,7 @@ describe('validate', () => {
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
-        { query: 'populate', args: [{ path: 'company' }] },
+        { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -197,7 +197,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user]));
+    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -217,7 +217,7 @@ describe('validate', () => {
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
-        { query: 'populate', args: [{ path: 'company' }] },
+        { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },
@@ -237,7 +237,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user]));
+    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -294,7 +294,7 @@ describe('validate', () => {
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
-        { query: 'populate', args: [{ path: 'company' }] },
+        { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
         { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
         { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
         { query: 'lean', args: [{ autopopulate: true }] },

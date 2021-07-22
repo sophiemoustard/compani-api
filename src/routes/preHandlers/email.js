@@ -12,6 +12,7 @@ exports.authorizeSendEmail = async (req) => {
   const isVendorUser = get(req, 'auth.credentials.role.vendor') || false;
 
   const receiver = await User.findOne({ 'local.email': req.payload.email })
+    .populate({ path: 'company' })
     .populate({ path: 'role.vendor', select: 'name' })
     .populate({ path: 'role.client', select: 'name' })
     .lean();
@@ -23,7 +24,7 @@ exports.authorizeSendEmail = async (req) => {
   const userIsSendingToAuthorizedType = isVendorUser &&
     (receiverIsTrainer || req.payload.type === TRAINEE || receiverIsCoachOrAdmin);
   const sameCompany = areObjectIdsEquals(receiver.company, companyId);
-  if (!userIsSendingToAuthorizedType && !sameCompany) throw Boom.forbidden();
+  if (!userIsSendingToAuthorizedType && !sameCompany) throw Boom.notFound();
 
   return null;
 };

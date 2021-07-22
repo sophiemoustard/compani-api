@@ -20,9 +20,9 @@ describe('BALANCES ROUTES - GET /', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get all clients balances', async () => {
@@ -90,13 +90,7 @@ describe('BALANCES ROUTES - GET /', () => {
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-    ];
-
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -117,9 +111,9 @@ describe('BALANCES ROUTES - GET /details', () => {
   const helper = balanceUserList[0];
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get all clients balances', async () => {
@@ -146,7 +140,7 @@ describe('BALANCES ROUTES - GET /details', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -155,26 +149,20 @@ describe('BALANCES ROUTES - GET /details', () => {
       authToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',
-        url: `/balances/details?customer=${helper.customers[0]}&startDate=2019-10-10&endDate=2019-11-10`,
+        url: `/balances/details?customer=${balanceCustomerList[0]._id}&startDate=2019-10-10&endDate=2019-11-10`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
     });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/balances/details?customer=${helper.customers[0]}&startDate=2019-10-10&endDate=2019-11-10`,
+          url: `/balances/details?customer=${balanceCustomerList[0]._id}&startDate=2019-10-10&endDate=2019-11-10`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

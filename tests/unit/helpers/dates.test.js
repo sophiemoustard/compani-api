@@ -130,7 +130,7 @@ describe('isSameOrAfter', () => {
 });
 
 describe('dayDiff', () => {
-  it('should return number of days between two dates', () => {
+  it('should return a positive number of days between to dates as the first date is later than the second', () => {
     const date1 = '2021-01-05T10:04:34';
     const date2 = '2021-01-01T09:15:24';
 
@@ -139,7 +139,7 @@ describe('dayDiff', () => {
     expect(result).toBe(4);
   });
 
-  it('should return number of days between two dates', () => {
+  it('should return 0 as the date difference is smaller than 24h', () => {
     const date1 = '2021-01-05T10:04:34';
     const date2 = '2021-01-04T11:04:54';
 
@@ -148,7 +148,7 @@ describe('dayDiff', () => {
     expect(result).toBe(0);
   });
 
-  it('should return number of days between two dates', () => {
+  it('should return 0 as the two dates are the same day ', () => {
     const date1 = '2021-01-05T10:04:34';
     const date2 = '2021-01-05T11:04:54';
 
@@ -157,7 +157,7 @@ describe('dayDiff', () => {
     expect(result).toBe(0);
   });
 
-  it('should return number of days between two dates', () => {
+  it('should return a negative number of days between two dates as the first date is earlier than the seconde ', () => {
     const date1 = '2021-01-04T10:04:34';
     const date2 = '2021-01-05T11:04:54';
 

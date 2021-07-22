@@ -8,10 +8,15 @@ const PartnerOrganizationSchema = mongoose.Schema({
   address: { type: mongoose.Schema(addressSchemaDefinition, { id: false, _id: false }) },
   email: { type: String },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
-  partners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Partner' }],
 }, { timestamps: true });
 
+PartnerOrganizationSchema.virtual(
+  'partners',
+  { ref: 'Partner', localField: '_id', foreignField: 'partnerOrganization' }
+);
+
 PartnerOrganizationSchema.pre('find', validateQuery);
+PartnerOrganizationSchema.pre('findOne', validateQuery);
 PartnerOrganizationSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('PartnerOrganization', PartnerOrganizationSchema);

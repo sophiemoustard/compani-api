@@ -1,12 +1,7 @@
 const expect = require('expect');
 const moment = require('moment');
 const app = require('../../server');
-const {
-  populateDB,
-  coursesList,
-  courseHistoriesList,
-  trainerAndCoach,
-} = require('./seed/courseHistoriesSeed');
+const { populateDB, coursesList, courseHistoriesList, trainerAndCoach } = require('./seed/courseHistoriesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -69,10 +64,8 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
     ];

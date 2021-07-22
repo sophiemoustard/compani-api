@@ -15,6 +15,7 @@ const UtilsHelper = require('./utils');
 const Customer = require('../models/Customer');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const UserCompany = require('../models/UserCompany');
 const SectorHistory = require('../models/SectorHistory');
 const ReferentHistory = require('../models/ReferentHistory');
 const Service = require('../models/Service');
@@ -64,7 +65,6 @@ exports.exportCustomers = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const customers = await Customer.find({ company: companyId })
     .populate({ path: 'subscriptions.service' })
-  // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .populate({ path: 'referent', match: { company: companyId } })
     .lean({ autopopulate: true });
@@ -167,29 +167,32 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
 };
 
 exports.exportAuxiliaries = async (credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+  const rows = [auxiliaryExportHeader];
+
+  const companyId = get(credentials, 'company._id');
+  const userCompanies = await UserCompany.find({ company: companyId }, { user: 1 }).lean();
+  if (!userCompanies.length) return rows;
+
   const roles = await Role.find({ name: { $in: AUXILIARY_ROLES } }).lean();
-  const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
-    .find({ 'role.client': { $in: roleIds }, company: companyId })
-    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .find({ 'role.client': { $in: roles.map(role => role._id) }, _id: { $in: userCompanies.map(u => u.user) } })
+    .populate({ path: 'sector', populate: { path: 'sector', select: 'name' }, match: { company: companyId } })
     .populate({ path: 'contracts', select: '_id startDate endDate' })
     .populate({ path: 'establishment', select: 'name', match: { company: companyId } })
-    .lean({ autopopulate: true, virtuals: true });
-  const data = [auxiliaryExportHeader];
+    .lean();
 
   for (const aux of auxiliaries) {
     const { contracts } = aux;
     if (contracts && contracts.length) {
       for (const contract of contracts) {
-        data.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
+        rows.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
       }
     } else {
-      data.push(getDataForAuxiliariesExport(aux, 0));
+      rows.push(getDataForAuxiliariesExport(aux, 0));
     }
   }
 
-  return data;
+  return rows;
 };
 
 const helperExportHeader = [
@@ -209,11 +212,15 @@ const helperExportHeader = [
 ];
 
 exports.exportHelpers = async (credentials) => {
-  const role = await Role.findOne({ name: HELPER }).lean();
-  const companyId = get(credentials, 'company._id', null);
+  const rows = [helperExportHeader];
 
+  const companyId = get(credentials, 'company._id');
+  const userCompanies = await UserCompany.find({ company: companyId }, { user: 1 }).lean();
+  if (!userCompanies.length) return rows;
+
+  const role = await Role.findOne({ name: HELPER }).lean();
   const helpers = await User
-    .find({ 'role.client': role._id, company: companyId })
+    .find({ 'role.client': role._id, _id: { $in: userCompanies.map(u => u.user) } })
     .populate({
       path: 'customers',
       populate: { path: 'customer', select: 'identity contact' },
@@ -221,11 +228,10 @@ exports.exportHelpers = async (credentials) => {
     })
     .lean();
 
-  const data = [helperExportHeader];
   for (const hel of helpers) {
     const customer = hel.customers && hel.customers.customer;
 
-    data.push([
+    rows.push([
       get(hel, 'local.email') || '',
       get(hel, 'contact.phone', '') !== '' ? `+33${hel.contact.phone.substring(1)}` : '',
       get(hel, '_id') || '',
@@ -242,7 +248,7 @@ exports.exportHelpers = async (credentials) => {
     ]);
   }
 
-  return data;
+  return rows;
 };
 
 const sectorExportHeader = [
@@ -329,8 +335,8 @@ const referentsHeader = [
 
 exports.exportReferents = async (credentials) => {
   const referentsHistories = await ReferentHistory.find({ company: get(credentials, 'company._id', '') })
-    .populate('auxiliary')
-    .populate('customer')
+    .populate({ path: 'auxiliary' })
+    .populate({ path: 'customer' })
     .lean();
 
   const rows = [referentsHeader];
@@ -367,7 +373,7 @@ const serviceHeader = [
 exports.exportServices = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const services = await Service.find({ company: companyId })
-    .populate('company')
+    .populate({ path: 'company' })
     .populate({ path: 'versions.surcharge', match: { company: companyId } })
     .lean();
   const data = [serviceHeader];
@@ -403,7 +409,7 @@ const subscriptionExportHeader = [
 
 exports.exportSubscriptions = async (credentials) => {
   const customers = await Customer
-    .find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: get(credentials, 'company._id', null) })
+    .find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: get(credentials, 'company._id') })
     .populate({ path: 'subscriptions.service' })
     .lean();
   const data = [subscriptionExportHeader];

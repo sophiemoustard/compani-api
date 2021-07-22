@@ -32,7 +32,7 @@ exports.authorizeAttendancesGet = async (req) => {
     .populate({
       path: 'course',
       select: 'trainer trainees company type',
-      populate: { path: 'trainees', select: 'company' },
+      populate: { path: 'trainees', select: 'company', populate: { path: 'company' } },
     })
     .lean();
 

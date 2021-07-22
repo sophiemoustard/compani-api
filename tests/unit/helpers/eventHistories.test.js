@@ -1024,4 +1024,32 @@ describe('createTimeStampHistory', () => {
       }
     );
   });
+
+  it('shouldn’t add manualTimeStampingReason to query if reason isn’t in payload', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2021-05-01T10:00:00',
+      endDate: '2021-05-01T12:00:00',
+      customer: new ObjectID(),
+      misc: 'test',
+      company: new ObjectID(),
+      repetition: { frequency: 'every_day', parentID: new ObjectID() },
+    };
+    const payload = { endDate: '2021-05-01T12:05:00', action: 'qr_code_time_stamping' };
+    const credentials = { _id: new ObjectID() };
+
+    await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        event: { ...omit(event, ['_id']), eventId: event._id, endDate: '2021-05-01T12:05:00' },
+        company: event.company,
+        action: 'qr_code_time_stamping',
+        auxiliaries: [event.auxiliary],
+        update: { endHour: { from: '2021-05-01T12:00:00', to: '2021-05-01T12:05:00' } },
+        createdBy: credentials._id,
+      }
+    );
+  });
 });

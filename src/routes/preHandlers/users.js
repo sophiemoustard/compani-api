@@ -25,7 +25,7 @@ const { language } = translate;
 exports.getUser = async (req) => {
   try {
     const userId = req.params._id;
-    const user = await User.findOne({ _id: userId }).lean();
+    const user = await User.findOne({ _id: userId }).populate({ path: 'company' }).lean();
     if (!user) throw Boom.notFound(translate[language].userNotFound);
 
     return user;
@@ -69,7 +69,7 @@ const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
 };
 
 const checkEstablishment = async (companyId, payload) => {
-  const establishment = await Establishment.findOne({ _id: payload.establishment, company: companyId }).lean();
+  const establishment = await Establishment.countDocuments({ _id: payload.establishment, company: companyId });
   if (!establishment) throw Boom.forbidden();
 };
 
@@ -101,8 +101,8 @@ const checkRole = async (userFromDB, payload) => {
 const checkCustomer = async (userCompany, payload) => {
   const role = await Role.findOne({ name: HELPER }).lean();
   if (!UtilsHelper.areObjectIdsEquals(payload.role, role._id)) throw Boom.forbidden();
-  const customerCount = await Customer.countDocuments({ _id: payload.customer, company: userCompany });
 
+  const customerCount = await Customer.countDocuments({ _id: payload.customer, company: userCompany });
   if (!customerCount) throw Boom.forbidden();
 };
 
@@ -128,7 +128,7 @@ exports.authorizeUserGetById = async (req) => {
   const establishmentId = get(req, 'payload.establishment');
 
   if (establishmentId) {
-    const establishment = await Establishment.findOne({ _id: establishmentId, company: companyId }).lean();
+    const establishment = await Establishment.countDocuments({ _id: establishmentId, company: companyId });
     if (!establishment) throw Boom.forbidden();
   }
 
@@ -155,14 +155,6 @@ exports.authorizeUserDeletion = async (req) => {
   return null;
 };
 
-exports.authorizeUserUpdateWithoutCompany = (req) => {
-  const { credentials } = req.auth;
-  const addNewCompanyToTargetUser = !req.pre.user.company && req.payload.company;
-  const loggedUserHasVendorRole = get(credentials, 'role.vendor');
-
-  return !!loggedUserHasVendorRole || !!addNewCompanyToTargetUser;
-};
-
 exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
   if (!credentials) checkUpdateRestrictions(req.payload);
@@ -174,10 +166,7 @@ exports.authorizeUserCreation = async (req) => {
 
   if (req.payload.customer) {
     const { customer } = req.payload;
-    const customerCount = await Customer.countDocuments({
-      _id: customer,
-      company: get(credentials, 'company._id', null),
-    });
+    const customerCount = await Customer.countDocuments({ _id: customer, company: get(credentials, 'company._id') });
     if (!customerCount) throw Boom.forbidden();
   }
 

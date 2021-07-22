@@ -46,23 +46,9 @@ exports.findAmountsGroupedByTpp = async (companyId, customerId = null, dateMax =
         refund: { $sum: '$inclTaxesTpp' },
       },
     },
-    {
-      $lookup: {
-        from: 'thirdpartypayers',
-        localField: '_id.tpp',
-        foreignField: '_id',
-        as: 'thirdPartyPayer',
-      },
-    },
+    { $lookup: { from: 'thirdpartypayers', localField: '_id.tpp', foreignField: '_id', as: 'thirdPartyPayer' } },
     { $unwind: { path: '$thirdPartyPayer' } },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: '_id.customer',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
+    { $lookup: { from: 'customers', localField: '_id.customer', foreignField: '_id', as: 'customer' } },
     { $unwind: { path: '$customer' } },
     {
       $project: {

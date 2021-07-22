@@ -9,12 +9,19 @@ const {
   EVENT_CANCELLATION_REASONS,
   MANUAL_TIME_STAMPING,
   MANUAL_TIME_STAMPING_REASONS,
+  QR_CODE_TIME_STAMPING,
 } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
-const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, MANUAL_TIME_STAMPING];
-const TIME_STAMPING_ACTIONS = [MANUAL_TIME_STAMPING];
+const EVENTS_HISTORY_ACTIONS = [
+  EVENT_CREATION,
+  EVENT_DELETION,
+  EVENT_UPDATE,
+  MANUAL_TIME_STAMPING,
+  QR_CODE_TIME_STAMPING,
+];
+const TIME_STAMPING_ACTIONS = [MANUAL_TIME_STAMPING, QR_CODE_TIME_STAMPING];
 
 const EventHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },

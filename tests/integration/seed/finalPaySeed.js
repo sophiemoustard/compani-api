@@ -27,7 +27,6 @@ const user = {
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'coach')._id },
   inactivityDate: '2018-11-01T12:52:27.461Z',
-  company: authCompany._id,
   origin: WEBAPP,
 };
 
@@ -36,12 +35,9 @@ const auxiliary = {
   identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test7@alenvi.io', password: '123456!eR' },
   inactivityDate: '2019-06-01T00:00:00',
-  employee_id: 12345678,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: contractId,
-  sector: sectorId,
-  company: authCompany._id,
   origin: WEBAPP,
 };
 
@@ -49,18 +45,16 @@ const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Cricri', lastname: 'test' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
-  employee_id: 9876543,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: contractId,
-  sector: sectorId,
-  company: otherCompany._id,
   origin: WEBAPP,
 };
 
 const userCompanyList = [
-  { user: auxiliaryId, company: authCompany._id },
-  { user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectID(), user: user._id, company: authCompany._id },
+  { _id: new ObjectID(), user: auxiliaryId, company: authCompany._id },
+  { _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const contract = {
@@ -108,11 +102,7 @@ const event = {
 const customer = {
   _id: customerId,
   company: authCompany._id,
-  identity: {
-    title: 'mr',
-    firstname: 'Toto',
-    lastname: 'Tata',
-  },
+  identity: { title: 'mr', firstname: 'Toto', lastname: 'Tata' },
   sectors: ['1e*'],
   contact: {
     primaryAddress: {
@@ -123,19 +113,17 @@ const customer = {
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  subscriptions: [
-    {
-      _id: subscriptionId,
-      service: serviceId,
-      versions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-        startDate: '2018-01-01T10:00:00.000',
-      }],
-    },
-  ],
+  subscriptions: [{
+    _id: subscriptionId,
+    service: serviceId,
+    versions: [{
+      unitTTCRate: 12,
+      estimatedWeeklyVolume: 12,
+      evenings: 2,
+      sundays: 1,
+      startDate: '2018-01-01T10:00:00.000',
+    }],
+  }],
 };
 
 const service = {
@@ -151,18 +139,9 @@ const service = {
   nature: 'hourly',
 };
 
-const sector = {
-  name: 'Toto',
-  _id: sectorId,
-  company: authCompany._id,
-};
+const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
 
-const sectorHistory = {
-  auxiliary: auxiliaryId,
-  sector: sectorId,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-};
+const sectorHistory = { auxiliary: auxiliaryId, sector: sectorId, company: authCompany._id, startDate: '2018-12-10' };
 
 const populateDB = async () => {
   await User.deleteMany();

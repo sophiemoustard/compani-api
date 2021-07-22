@@ -7,6 +7,7 @@ const User = require('../../../src/models/User');
 const Payment = require('../../../src/models/Payment');
 const Helper = require('../../../src/models/Helper');
 const { WEBAPP } = require('../../../src/helpers/constants');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const customersList = [
   {
@@ -44,30 +45,15 @@ const helper = {
   local: { email: 'helper_for_customer_taxcertificates@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
-  customers: [customersList[0]._id],
-  company: authCompany._id,
   origin: WEBAPP,
 };
 
+const userCompaniesList = [{ _id: new ObjectID(), company: authCompany._id, user: helper._id }];
+
 const taxCertificatesList = [
-  {
-    _id: new ObjectID(),
-    company: authCompany._id,
-    customer: customersList[0]._id,
-    year: '2019',
-  },
-  {
-    _id: new ObjectID(),
-    company: authCompany._id,
-    customer: customersList[0]._id,
-    year: '2020',
-  },
-  {
-    _id: new ObjectID(),
-    company: otherCompany._id,
-    customer: customersList[1]._id,
-    year: '2019',
-  },
+  { _id: new ObjectID(), company: authCompany._id, customer: customersList[0]._id, year: '2019' },
+  { _id: new ObjectID(), company: authCompany._id, customer: customersList[0]._id, year: '2020' },
+  { _id: new ObjectID(), company: otherCompany._id, customer: customersList[1]._id, year: '2019' },
 ];
 
 const paymentList = [
@@ -113,12 +99,7 @@ const paymentList = [
   },
 ];
 
-const helpersList = [{
-  customer: customersList[0]._id,
-  user: helper._id,
-  company: authCompany._id,
-  referent: true,
-}];
+const helpersList = [{ customer: customersList[0]._id, user: helper._id, company: authCompany._id, referent: true }];
 
 const populateDB = async () => {
   await TaxCertificate.deleteMany();
@@ -126,6 +107,7 @@ const populateDB = async () => {
   await User.deleteMany();
   await Payment.deleteMany();
   await Helper.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Customer.insertMany(customersList);
@@ -133,6 +115,7 @@ const populateDB = async () => {
   await User.create(helper);
   await Payment.insertMany(paymentList);
   await Helper.insertMany(helpersList);
+  await UserCompany.insertMany(userCompaniesList);
 };
 
 module.exports = {

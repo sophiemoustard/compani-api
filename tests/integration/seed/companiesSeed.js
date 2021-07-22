@@ -6,6 +6,7 @@ const User = require('../../../src/models/User');
 const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const { rolesList } = require('../../seed/roleSeed');
 const { INTERVENTION, CLIENT_ADMIN, MOBILE } = require('../../../src/helpers/constants');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const company = {
   _id: new ObjectID(),
@@ -13,17 +14,13 @@ const company = {
   siren: '1234567890',
   name: 'Test',
   tradeName: 'TT',
-  rhConfig: {
-    phoneFeeAmount: 12,
-  },
+  rhConfig: { phoneFeeAmount: 12 },
   iban: 'FR3514508000505917721779B12',
   bic: 'RTYUIKJHBFRG',
   ics: '12345678',
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
-  customersConfig: {
-    billingPeriod: 'two_weeks',
-  },
+  customersConfig: { billingPeriod: 'two_weeks' },
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'kjhgf',
   prefixNumber: 104,
@@ -52,19 +49,23 @@ const companyClientAdmin = {
   refreshToken: uuidv4(),
   local: { email: 'client_admin@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
-  company: company._id,
   origin: MOBILE,
 };
 
+const userCompany = { _id: new ObjectID(), user: companyClientAdmin._id, company: company._id };
+
 const populateDB = async () => {
-  await Company.deleteMany({});
-  await Event.deleteMany({});
-  await User.deleteMany({});
+  await Company.deleteMany();
+  await Event.deleteMany();
+  await User.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
-  await (new Company(company)).save();
-  await (new Event(event)).save();
+
+  await Company.create(company);
+  await Event.create(event);
   await (new User(companyClientAdmin)).save();
+  await UserCompany.create(userCompany);
 };
 
 module.exports = { company, companyClientAdmin, populateDB };

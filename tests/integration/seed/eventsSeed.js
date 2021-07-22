@@ -82,7 +82,6 @@ const auxiliaries = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     contracts: [contracts[0]._id],
-    company: authCompany._id,
     origin: WEBAPP,
   },
   {
@@ -93,7 +92,6 @@ const auxiliaries = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     contracts: [contracts[1]._id],
-    company: authCompany._id,
     origin: WEBAPP,
   },
   {
@@ -104,7 +102,6 @@ const auxiliaries = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     contracts: [contracts[2]._id],
-    company: authCompany._id,
     origin: WEBAPP,
   },
   {
@@ -115,16 +112,8 @@ const auxiliaries = [
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     contracts: [contracts[2]._id],
-    company: authCompany._id,
     origin: WEBAPP,
   },
-];
-
-const userCompanies = [
-  { user: auxiliariesIds[0], company: authCompany._id },
-  { user: auxiliariesIds[1], company: authCompany._id },
-  { user: auxiliariesIds[2], company: authCompany._id },
-  { user: auxiliariesIds[3], company: authCompany._id },
 ];
 
 const sectorHistories = [
@@ -141,7 +130,6 @@ const auxiliaryFromOtherCompany = {
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
   role: { client: rolesList[1]._id },
-  company: otherCompany._id,
   origin: WEBAPP,
 };
 
@@ -291,9 +279,17 @@ const helpersCustomer = {
   refreshToken: uuidv4(),
   customers: [customerAuxiliaries[0]._id],
   role: { client: rolesList[4]._id },
-  company: authCompany._id,
   origin: WEBAPP,
 };
+
+const userCompanies = [
+  { _id: new ObjectID(), user: auxiliariesIds[0], company: authCompany._id },
+  { _id: new ObjectID(), user: auxiliariesIds[1], company: authCompany._id },
+  { _id: new ObjectID(), user: auxiliariesIds[2], company: authCompany._id },
+  { _id: new ObjectID(), user: auxiliariesIds[3], company: authCompany._id },
+  { _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectID(), user: helpersCustomer._id, company: authCompany._id },
+];
 
 const internalHour = { _id: new ObjectID(), name: 'test', company: authCompany._id };
 const internalHourFromOtherCompany = { _id: new ObjectID(), name: 'Tutu', company: otherCompany._id };
@@ -899,8 +895,7 @@ const populateDB = async () => {
   await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
-  await Event.insertMany(eventsList);
-  await (new Event(eventFromOtherCompany)).save();
+  await Event.insertMany([...eventsList, eventFromOtherCompany]);
   await Repetition.insertMany(repetitions);
   await Sector.insertMany(sectors);
   await SectorHistory.insertMany([...sectorHistories, sectorHistoryFromOtherCompany]);
@@ -912,15 +907,10 @@ const populateDB = async () => {
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();
   await Contract.insertMany(contracts);
-  await (new Customer(customerAuxiliaries[0])).save();
-  await (new Customer(customerAuxiliaries[1])).save();
-  await (new Customer(customerFromOtherCompany)).save();
-  await (new ThirdPartyPayer(thirdPartyPayer)).save();
-  await (new ThirdPartyPayer(thirdPartyPayerFromOtherCompany)).save();
-  await Service.insertMany(services);
-  await (new Service(serviceFromOtherCompany)).save();
-  await (new InternalHour(internalHour)).save();
-  await (new InternalHour(internalHourFromOtherCompany)).save();
+  await Customer.insertMany([...customerAuxiliaries, customerFromOtherCompany]);
+  await ThirdPartyPayer.insertMany([thirdPartyPayer, thirdPartyPayerFromOtherCompany]);
+  await Service.insertMany([...services, serviceFromOtherCompany]);
+  await InternalHour.insertMany([internalHour, internalHourFromOtherCompany]);
   await Helper.insertMany(helpersList);
   await EventHistory.insertMany(eventHistoriesList);
   await UserCompany.insertMany(userCompanies);

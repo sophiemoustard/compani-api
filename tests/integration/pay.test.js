@@ -25,6 +25,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
+
     it('should compute draft pay', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -42,7 +43,6 @@ describe('PAY ROUTES - GET /pay/draft', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 

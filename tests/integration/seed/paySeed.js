@@ -33,7 +33,6 @@ const user = {
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'coach')._id },
-  company: authCompany._id,
   origin: WEBAPP,
 };
 
@@ -41,21 +40,17 @@ const auxiliaries = [{
   _id: auxiliaryId1,
   identity: { firstname: 'Test7', lastname: 'auxiliary' },
   local: { email: 'test7@alenvi.io', password: '123456!eR' },
-  employee_id: 12345678,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [contractId1],
-  company: authCompany._id,
   origin: WEBAPP,
 }, {
   _id: auxiliaryId2,
   identity: { firstname: 'OtherTest', lastname: 'Test8' },
   local: { email: 'test8@alenvi.io', password: '123456!eR' },
-  employee_id: 12345679,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [contractId2],
-  company: authCompany._id,
   origin: WEBAPP,
 }];
 
@@ -63,19 +58,18 @@ const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'otherCompany', lastname: 'Chloe' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
-  employee_id: 9876543,
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
   contracts: [contractId2],
   sector: sectorFromOtherCompany._id,
-  company: otherCompany._id,
   origin: WEBAPP,
 };
 
 const userCompanyList = [
-  { user: auxiliaryId1, company: authCompany },
-  { user: auxiliaryId2, company: authCompany },
-  { user: auxiliaryFromOtherCompany._id, company: otherCompany },
+  { _id: new ObjectID(), user: auxiliaryId1, company: authCompany },
+  { _id: new ObjectID(), user: auxiliaryId2, company: authCompany },
+  { _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany },
+  { _id: new ObjectID(), user: user._id, company: authCompany._id },
 ];
 
 const contracts = [{
@@ -167,11 +161,7 @@ const absence = {
 const customer = {
   _id: customerId,
   company: authCompany._id,
-  identity: {
-    title: 'mr',
-    firstname: 'Toto',
-    lastname: 'Tata',
-  },
+  identity: { title: 'mr', firstname: 'Toto', lastname: 'Tata' },
   sectors: ['1e*'],
   contact: {
     primaryAddress: {

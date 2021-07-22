@@ -74,7 +74,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
       $lookup: {
         from: 'sectorhistories',
         as: 'sector',
-        let: { auxiliaryId: '$_id', companyId: '$company' },
+        let: { auxiliaryId: '$_id', companyId: get(credentials, 'company._id') },
         pipeline: [
           {
             $match: {
@@ -119,5 +119,5 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
     ...aggregateAuxiliariesFromEvents,
     ...lookup,
     ...pickFields,
-  ]).option({ company: get(credentials, 'company._id', null) });
+  ]).option({ company: get(credentials, 'company._id') });
 };

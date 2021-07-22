@@ -5,16 +5,9 @@ const Contract = require('../models/Contract');
 const DatesHelper = require('./dates');
 
 exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => {
-  const lastSectorHistory = await SectorHistory
-    .findOne({ auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-    .lean();
-
+  const lastSectorHistory = await SectorHistory.findOne({ auxiliary: auxiliaryId, endDate: null }).lean();
   const contracts = await Contract
-    .find({
-      user: auxiliaryId,
-      company: companyId,
-      $or: [{ endDate: { $exists: false } }, { endDate: null }],
-    })
+    .find({ user: auxiliaryId, company: companyId, endDate: null })
     .sort({ startDate: -1 })
     .lean();
 
@@ -30,13 +23,13 @@ exports.updateHistoryOnSectorUpdate = async (auxiliaryId, sector, companyId) => 
   const lastHistoryStartsOnSameDay = moment().isSame(lastSectorHistory.startDate, 'day');
   if (doesNotHaveContract || contractNotStarted || lastHistoryStartsOnSameDay) {
     return SectorHistory.updateOne(
-      { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { auxiliary: auxiliaryId, endDate: null },
       { $set: { sector } }
     );
   }
 
   await SectorHistory.updateOne(
-    { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+    { auxiliary: auxiliaryId, endDate: null },
     { $set: { endDate: moment().subtract(1, 'day').endOf('day').toDate() } }
   );
 
@@ -66,7 +59,7 @@ exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, comp
   const contract = await Contract.findOne({ _id: contractId, company: companyId }).lean();
   if (moment(versionToUpdate.startDate).isSameOrBefore(contract.startDate, 'day')) {
     return SectorHistory.updateOne(
-      { auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+      { auxiliary: contract.user, endDate: null },
       { $set: { startDate: moment(versionToUpdate.startDate).startOf('day').toDate() } }
     );
   }
@@ -89,19 +82,14 @@ exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, comp
 };
 
 exports.updateHistoryOnContractDeletion = async (contract, companyId) => {
-  const sectorHistory = await SectorHistory
-    .findOne({ auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] })
-    .lean();
+  const sectorHistory = await SectorHistory.findOne({ auxiliary: contract.user, endDate: null }).lean();
   await SectorHistory.remove({
     auxiliary: contract.user,
     company: companyId,
     startDate: { $gte: contract.startDate, $lt: sectorHistory.startDate },
   });
 
-  return SectorHistory.updateOne(
-    { auxiliary: contract.user, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-    { $unset: { startDate: '' } }
-  );
+  return SectorHistory.updateOne({ auxiliary: contract.user, endDate: null }, { $unset: { startDate: '' } });
 };
 
 exports.createHistory = async (user, companyId, startDate = null) => {
@@ -112,7 +100,7 @@ exports.createHistory = async (user, companyId, startDate = null) => {
 };
 
 exports.updateEndDate = async (auxiliaryId, endDate) => SectorHistory.updateOne(
-  { auxiliary: auxiliaryId, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+  { auxiliary: auxiliaryId, endDate: null },
   { $set: { endDate: moment(endDate).endOf('day').toDate() } }
 );
 

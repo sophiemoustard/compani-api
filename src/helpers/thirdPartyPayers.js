@@ -8,7 +8,7 @@ exports.create = async (payload, credentials) => {
   return thirdPartyPayer.toObject();
 };
 
-exports.list = async credentials => ThirdPartyPayer.find({ company: get(credentials, 'company._id', null) }).lean();
+exports.list = async credentials => ThirdPartyPayer.find({ company: get(credentials, 'company._id') }).lean();
 
 exports.update = async (tppId, payload) => ThirdPartyPayer
   .findOneAndUpdate({ _id: tppId }, { $set: payload }, { new: true })

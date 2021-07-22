@@ -793,6 +793,107 @@ describe('getFollowUp', () => {
     );
   });
 
+  it('should return follow up for a questionnaire', async () => {
+    const questionnaireId = new ObjectID();
+    const cardsIds = [new ObjectID(), new ObjectID()];
+    const questionnaire = {
+      _id: questionnaireId,
+      type: EXPECTATIONS,
+      name: 'questionnaire',
+      histories: [
+        {
+          _id: new ObjectID(),
+          course: new ObjectID(),
+          questionnaireAnswersList: [
+            {
+              card: {
+                _id: cardsIds[0],
+                template: 'open_question',
+                isMandatory: true,
+                question: 'aimez-vous ce test ?',
+              },
+              answerList: ['blabla'],
+            },
+            {
+              card: {
+                _id: cardsIds[1],
+                template: 'survey',
+                isMandatory: true,
+                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+                label: { left: '1', right: '5' },
+              },
+              answerList: ['3'],
+            },
+          ],
+        },
+        {
+          _id: new ObjectID(),
+          course: new ObjectID(),
+          questionnaireAnswersList: [
+            {
+              card: {
+                _id: cardsIds[0],
+                template: 'open_question',
+                isMandatory: true,
+                question: 'aimez-vous ce test ?',
+              },
+              answerList: ['test test'],
+            },
+            {
+              card: {
+                _id: cardsIds[1],
+                template: 'survey',
+                isMandatory: true,
+                question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+                label: { left: '1', right: '5' },
+              },
+              answerList: ['2'],
+            },
+          ],
+        },
+      ],
+    };
+
+    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['select', 'populate', 'lean']));
+
+    const result = await QuestionnaireHelper.getFollowUp(questionnaireId);
+
+    expect(result).toMatchObject({
+      questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
+      followUp: [
+        {
+          answers: ['blabla', 'test test'],
+          isMandatory: true,
+          question: 'aimez-vous ce test ?',
+          template: 'open_question',
+        },
+        {
+          answers: ['3', '2'],
+          isMandatory: true,
+          question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
+          template: 'survey',
+          label: { left: '1', right: '5' },
+        },
+      ],
+    });
+    SinonMongoose.calledWithExactly(
+      questionnaireFindOne,
+      [
+        { query: 'findOne', args: [{ _id: questionnaireId }] },
+        { query: 'select', args: ['type name'] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: null,
+            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
   it('should return an empty array for followUp if answerList is empty', async () => {
     const questionnaireId = new ObjectID();
     const courseId = new ObjectID();
