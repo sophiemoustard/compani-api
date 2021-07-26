@@ -10,6 +10,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
 const UserCompany = require('../../src/models/UserCompany');
+const Helper = require('../../src/models/Helper');
 const SectorHistory = require('../../src/models/SectorHistory');
 const {
   HELPER,
@@ -1360,13 +1361,18 @@ describe('DELETE /users/:id', () => {
       authToken = await getToken('coach');
     });
 
-    usersSeedList.forEach((user) => {
+    usersSeedList.forEach(async (user) => {
       let message;
       let statusCode;
       const helperRoleId = rolesList.find(role => role.name === 'helper')._id;
+      let userCompanyExistBefore;
+      let helperExistBefore;
       if (get(user, 'role.client') === helperRoleId) {
         message = 'should delete a helper by id';
         statusCode = 200;
+
+        userCompanyExistBefore = !!await UserCompany.countDocuments({ user: user._id });
+        helperExistBefore = !!await Helper.countDocuments({ user: user._id });
       } else {
         message = 'should return 403 as user is not helper';
         statusCode = 403;
@@ -1378,7 +1384,18 @@ describe('DELETE /users/:id', () => {
           url: `/users/${user._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
+
         expect(res.statusCode).toBe(statusCode);
+
+        if (get(user, 'role.client') === helperRoleId) {
+          const userCompanyExistAfter = !!await UserCompany.countDocuments({ user: user._id });
+          const helperExistAfter = !!await Helper.countDocuments({ user: user._id });
+
+          expect(userCompanyExistBefore).toBeTruthy();
+          expect(helperExistBefore).toBeTruthy();
+          expect(userCompanyExistAfter).toBeFalsy();
+          expect(helperExistAfter).toBeFalsy();
+        }
       });
     });
 

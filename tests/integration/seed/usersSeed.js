@@ -76,14 +76,6 @@ const helperFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const helpers = [{
-  _id: new ObjectID(),
-  customer: customerFromOtherCompany._id,
-  user: helperFromOtherCompany._id,
-  company: otherCompany._id,
-  referent: true,
-}];
-
 const coachFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Arnaud', lastname: 'toto' },
@@ -196,6 +188,23 @@ const usersSeedList = [
     role: {},
     refreshToken: uuidv4(),
     origin: WEBAPP,
+  },
+];
+
+const helpers = [
+  {
+    _id: new ObjectID(),
+    customer: authCustomer._id,
+    user: usersSeedList[3]._id,
+    company: authCompany._id,
+    referent: true,
+  },
+  {
+    _id: new ObjectID(),
+    customer: customerFromOtherCompany._id,
+    user: helperFromOtherCompany._id,
+    company: otherCompany._id,
+    referent: true,
   },
 ];
 
