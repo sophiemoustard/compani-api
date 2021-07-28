@@ -856,16 +856,6 @@ describe('GET /users/:id', () => {
 
       expect(res.statusCode).toBe(403);
     });
-
-    it('should return a 403 error if user has no company', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/${usersSeedList[8]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
-    });
   });
 
   describe('VENDOR_ADMIN', () => {
@@ -896,6 +886,18 @@ describe('GET /users/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if it is not me - no role no company', async () => {
+      authToken = await getTokenByCredentials(userList[11].local);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/users/${usersSeedList[8]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
