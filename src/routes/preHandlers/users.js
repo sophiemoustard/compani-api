@@ -123,18 +123,19 @@ const checkUpdateRestrictions = (payload) => {
 exports.authorizeUserGetById = async (req) => {
   const { credentials } = req.auth;
   const user = req.pre.user || req.payload;
-  const companyId = get(credentials, 'company._id', null);
+  const loggedCompanyId = get(credentials, 'company._id', null);
+  const loggedUserId = credentials._id;
   const isVendorUser = get(credentials, 'role.vendor', null);
   const establishmentId = get(req, 'payload.establishment');
 
   if (establishmentId) {
-    const establishment = await Establishment.countDocuments({ _id: establishmentId, company: companyId });
+    const establishment = await Establishment.countDocuments({ _id: establishmentId, company: loggedCompanyId });
     if (!establishment) throw Boom.forbidden();
   }
 
-  const isClientFromDifferentCompany = !isVendorUser && user.company &&
-    !UtilsHelper.areObjectIdsEquals(user.company, companyId);
-  if (isClientFromDifferentCompany) throw Boom.forbidden();
+  const isVendorOrSameCompany = isVendorUser || UtilsHelper.areObjectIdsEquals(user._id, loggedUserId) ||
+    UtilsHelper.areObjectIdsEquals(user.company, loggedCompanyId);
+  if (!isVendorOrSameCompany) throw Boom.forbidden();
 
   return null;
 };

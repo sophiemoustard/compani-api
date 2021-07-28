@@ -856,6 +856,16 @@ describe('GET /users/:id', () => {
 
       expect(res.statusCode).toBe(403);
     });
+
+    it('should return a 403 error if user has no company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${usersSeedList[8]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
   });
 
   describe('VENDOR_ADMIN', () => {

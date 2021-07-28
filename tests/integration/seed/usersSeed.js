@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
+const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const User = require('../../../src/models/User');
@@ -177,7 +178,6 @@ const usersSeedList = [
     _id: new ObjectID(),
     identity: { firstname: 'no_role_trainee', lastname: 'test' },
     local: { email: 'no_role_trainee@alenvi.io', password: '123456!eR' },
-    role: {},
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -185,7 +185,13 @@ const usersSeedList = [
     _id: new ObjectID(),
     identity: { firstname: 'trainee_to_auxiliary', lastname: 'test' },
     local: { email: 'trainee_to_auxiliary@alenvi.io', password: '123456!eR' },
-    role: {},
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'user_without_company', lastname: 'test' },
+    local: { email: 'user_without_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -257,7 +263,7 @@ const contracts = [
 ];
 
 const sectorHistories = usersSeedList
-  .filter(user => user.role.client === rolesList.find(role => role.name === 'auxiliary')._id)
+  .filter(user => get(user, 'role.client') === rolesList.find(role => role.name === 'auxiliary')._id)
   .map(user => ({
     auxiliary: user._id,
     sector: userSectors[0]._id,
