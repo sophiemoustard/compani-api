@@ -7,12 +7,8 @@ const { language } = translate;
 
 exports.authorizeAdministrativeDocumentDeletion = async (req) => {
   try {
-    const { credentials } = req.auth;
-    const administrativeDocumentId = req.params._id;
-    const administrativeDocument = await AdministrativeDocument.findOne({
-      _id: administrativeDocumentId,
-      company: get(credentials, 'company._id', null),
-    }).lean();
+    const administrativeDocument = await AdministrativeDocument
+      .countDocuments({ _id: req.params._id, company: get(req, 'auth.credentials.company._id') });
 
     if (!administrativeDocument) throw Boom.notFound(translate[language].administrativeDocumentNotFound);
 

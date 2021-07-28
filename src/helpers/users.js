@@ -9,7 +9,6 @@ const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
 const Role = require('../models/Role');
 const User = require('../models/User');
-const Company = require('../models/Company');
 const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
@@ -48,11 +47,11 @@ exports.getUsersList = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
-      match: { company: get(credentials, 'company._id', null) },
+      match: { company: get(credentials, 'company._id') },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
     .populate({ path: 'contracts', select: 'startDate endDate' })
@@ -65,11 +64,11 @@ exports.getUsersListWithSectorHistories = async (query, credentials) => {
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role.client', select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sectorHistories',
       select: '_id sector startDate endDate',
-      match: { company: get(credentials, 'company._id', null) },
+      match: { company: get(credentials, 'company._id') },
       options: { isVendorUser: has(credentials, 'role.vendor') },
     })
     .populate({ path: 'contracts', select: 'startDate endDate' })
@@ -96,7 +95,7 @@ exports.getLearnerList = async (query, credentials) => {
 
   const learnerList = await User
     .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
-    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'company', populate: { path: 'company' }, select: 'name' })
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
     .populate({ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } })
@@ -115,7 +114,7 @@ exports.getUser = async (userId, credentials) => {
 
   const user = await User.findOne({ _id: userId })
     .populate({ path: 'contracts', select: '-__v -createdAt -updatedAt' })
-    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .populate({
       path: 'sector',
       select: '_id sector',
@@ -142,7 +141,9 @@ exports.getUser = async (userId, credentials) => {
 };
 
 exports.userExists = async (email, credentials) => {
-  const targetUser = await User.findOne({ 'local.email': email }, { role: 1, company: 1 }).lean();
+  const targetUser = await User.findOne({ 'local.email': email }, { role: 1 })
+    .populate({ path: 'company', select: 'company' })
+    .lean();
   if (!targetUser) return { exists: false, user: {} };
   if (!credentials) return { exists: true, user: {} };
 
@@ -183,7 +184,7 @@ exports.createAndSaveFile = async (params, payload) => {
 };
 
 const createUserCompany = async (payload, company) => {
-  const user = await User.create({ ...payload, company });
+  const user = await User.create(payload);
   await UserCompaniesHelper.create(user._id, company);
 
   return user;
@@ -222,7 +223,7 @@ exports.createUser = async (userPayload, credentials) => {
 
   return User.findOne({ _id: user._id })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-    .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+    .populate({ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' })
     .lean({ virtuals: true, autopopulate: true });
 };
 
@@ -239,14 +240,10 @@ const formatUpdatePayload = async (updatedUser) => {
   return payload;
 };
 
-exports.updateUser = async (userId, userPayload, credentials, canEditWithoutCompany = false) => {
-  const companyId = get(credentials, 'company._id', null);
-
-  const filterQuery = { _id: userId };
-  if (!canEditWithoutCompany) filterQuery.company = companyId;
+exports.updateUser = async (userId, userPayload, credentials) => {
+  const companyId = get(credentials, 'company._id');
 
   const payload = await formatUpdatePayload(userPayload);
-
   if (userPayload.customer) await HelpersHelper.create(userId, userPayload.customer, companyId);
   if (userPayload.company) await UserCompaniesHelper.create(userId, userPayload.company);
 
@@ -254,17 +251,11 @@ exports.updateUser = async (userId, userPayload, credentials, canEditWithoutComp
     await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
   }
 
-  await User.updateOne(filterQuery, { $set: flat(payload) });
+  await User.updateOne({ _id: userId }, { $set: flat(payload) });
 };
 
-exports.updateUserCertificates = async (userId, userPayload, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-
-  await User.updateOne(
-    { _id: userId, company: companyId },
-    { $pull: { 'administrative.certificates': userPayload.certificates } }
-  );
-};
+exports.updateUserCertificates = async (userId, userPayload) =>
+  User.updateOne({ _id: userId }, { $pull: { 'administrative.certificates': userPayload.certificates } });
 
 exports.updateUserInactivityDate = async (user, contractEndDate, credentials) => {
   const notEndedContractCount = await Contract.countDocuments({
@@ -283,7 +274,8 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 
 exports.removeHelper = async (user) => {
   await HelpersHelper.remove(user._id);
-  await User.updateOne({ _id: user._id }, { $unset: { 'role.client': '', company: '' } });
+  await UserCompany.deleteOne({ user: user._id });
+  await User.updateOne({ _id: user._id }, { $unset: { 'role.client': '' } });
 };
 
 exports.uploadPicture = async (userId, payload) => {
@@ -299,15 +291,20 @@ exports.deletePicture = async (userId, publicId) => {
   await GCloudStorageHelper.deleteUserMedia(publicId);
 };
 
-exports.createDriveFolder = async (user) => {
-  const userCompany = await Company.findOne({ _id: user.company }, { auxiliariesFolderId: 1 }).lean();
-  if (!userCompany || !userCompany.auxiliariesFolderId) throw Boom.badData();
+exports.createDriveFolder = async (userId) => {
+  const userCompany = await UserCompany
+    .findOne({ user: userId })
+    .populate({ path: 'company', select: 'auxiliariesFolderId' })
+    .populate({ path: 'user', select: 'identity' })
+    .lean();
+  if (!get(userCompany, 'company.auxiliariesFolderId')) throw Boom.badData();
 
-  const folder = await GDriveStorageHelper.createFolder(user.identity, userCompany.auxiliariesFolderId);
+  const folder = await GDriveStorageHelper
+    .createFolder(userCompany.user.identity, userCompany.company.auxiliariesFolderId);
 
   const administrative = { driveFolder: { link: folder.webViewLink, driveId: folder.id } };
 
-  await User.updateOne({ _id: user._id }, { $set: flat({ administrative }) });
+  await User.updateOne({ _id: userId }, { $set: flat({ administrative }) });
 };
 
 exports.addExpoToken = async (payload, credentials) => User.updateOne(

@@ -29,7 +29,6 @@ const {
   authorizeUserGetById,
   authorizeUsersGet,
   authorizeUserCreation,
-  authorizeUserUpdateWithoutCompany,
   authorizeUserDeletion,
   authorizeLearnersGet,
   getPicturePublicId,
@@ -289,11 +288,7 @@ exports.plugin = {
             company: Joi.objectId(),
           }).required(),
         },
-        pre: [
-          { method: getUser, assign: 'user' },
-          { method: authorizeUserUpdate },
-          { method: authorizeUserUpdateWithoutCompany, assign: 'canEditWithoutCompany' },
-        ],
+        pre: [{ method: getUser, assign: 'user' }, { method: authorizeUserUpdate }],
       },
       handler: update,
     });
@@ -367,7 +362,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getUser, assign: 'user' }],
+        pre: [{ method: getUser }],
       },
       handler: createDriveFolder,
     });

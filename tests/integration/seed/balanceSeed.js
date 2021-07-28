@@ -9,6 +9,7 @@ const Helper = require('../../../src/models/Helper');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
@@ -200,10 +201,10 @@ const balanceUserList = [{
   local: { email: 'helper_for_customer_balance@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'helper')._id },
-  customers: [balanceCustomerList[0]._id],
-  company: authCompany._id,
   origin: WEBAPP,
 }];
+
+const balanceUserCompanies = [{ _id: ObjectID(), user: balanceUserList[0]._id, company: authCompany._id }];
 
 const helpersList = [{
   customer: balanceCustomerList[0]._id,
@@ -235,6 +236,7 @@ const populateDB = async () => {
   await Bill.deleteMany();
   await User.deleteMany();
   await Helper.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -243,6 +245,7 @@ const populateDB = async () => {
   await Customer.insertMany(balanceCustomerList.concat(customerFromOtherCompany));
   await Bill.insertMany(balanceBillList);
   await Helper.insertMany(helpersList);
+  await UserCompany.insertMany(balanceUserCompanies);
   for (const user of balanceUserList) {
     await (new User(user).save());
   }

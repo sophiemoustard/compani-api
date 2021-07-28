@@ -52,7 +52,7 @@ const CompanySchema = mongoose.Schema({
       folderId: String,
       debitMandate: driveResourceSchemaDefinition,
       quote: driveResourceSchemaDefinition,
-      cgs: driveResourceSchemaDefinition,
+      gcs: driveResourceSchemaDefinition,
     },
   },
 }, { timestamps: true });

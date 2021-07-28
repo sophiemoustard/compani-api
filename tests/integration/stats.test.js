@@ -15,11 +15,11 @@ const { getToken } = require('./seed/authenticationSeed');
 describe('GET /stats/customer-follow-up', () => {
   let authToken = null;
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(populateDBWithEventsForFollowup);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
     it('should get customer follow up', async () => {
       const res = await app.inject({
@@ -49,7 +49,6 @@ describe('GET /stats/customer-follow-up', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {

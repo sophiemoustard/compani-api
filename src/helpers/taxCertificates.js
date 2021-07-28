@@ -11,11 +11,8 @@ const EventRepository = require('../repositories/EventRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
 const TaxCertificatePdf = require('../data/pdf/taxCertificates');
 
-exports.list = async (customer, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-
-  return TaxCertificate.find({ customer, company: companyId }).lean();
-};
+exports.list = async (customer, credentials) =>
+  TaxCertificate.find({ customer, company: get(credentials, 'company._id') }).lean();
 
 exports.formatInterventions = interventions => interventions.map((int) => {
   const service = SubscriptionsHelper.populateService(int.subscription.service);

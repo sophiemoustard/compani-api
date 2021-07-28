@@ -365,6 +365,18 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 403 as user is trainer and route not called for a specific course', async () => {
+      const questionnaireId = questionnairesList[0]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -387,6 +399,19 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+
+    it('should return 200 as user is ROF and route not called for a specific course', async () => {
+      authToken = await getToken('training_organisation_manager');
+      const questionnaireId = questionnairesList[0]._id;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 });

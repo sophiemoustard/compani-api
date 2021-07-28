@@ -83,7 +83,7 @@ const displayDate = (timestamp = null, path, scheduledDate = null) => {
 };
 
 exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
-  const payload = {
+  const query = {
     company: companyId,
     type: { $in: [INTERVENTION, INTERNAL_HOUR] },
     $or: [
@@ -93,7 +93,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     ],
   };
 
-  const events = await Event.find(payload)
+  const events = await Event.find(query)
     .sort({ startDate: -1 })
     .populate({ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } })
     .populate('internalHour')
@@ -356,29 +356,21 @@ const formatCreditNotesForExport = (creditNotes) => {
 };
 
 exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credentials) => {
-  const query = {
-    date: { $lte: endDate, $gte: startDate },
-    company: get(credentials, 'company._id', null),
-  };
+  const query = { date: { $lte: endDate, $gte: startDate }, company: get(credentials, 'company._id') };
 
   const bills = await Bill.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate('thirdPartyPayer')
+    .populate({ path: 'thirdPartyPayer' })
     .lean();
 
   const creditNotes = await CreditNote.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate('thirdPartyPayer')
+    .populate({ path: 'thirdPartyPayer' })
     .lean();
 
-  const rows = [billAndCreditNoteExportHeader];
-
-  rows.push(...formatBillsForExport(bills));
-  rows.push(...formatCreditNotesForExport(creditNotes));
-
-  return rows;
+  return [billAndCreditNoteExportHeader, ...formatBillsForExport(bills), ...formatCreditNotesForExport(creditNotes)];
 };
 
 const contractExportHeader = [
@@ -394,12 +386,9 @@ const contractExportHeader = [
 ];
 
 exports.exportContractHistory = async (startDate, endDate, credentials) => {
-  const query = {
-    company: get(credentials, 'company._id', null),
-    'versions.startDate': { $lte: endDate, $gte: startDate },
-  };
-
+  const query = { company: get(credentials, 'company._id'), 'versions.startDate': { $lte: endDate, $gte: startDate } };
   const contracts = await Contract.find(query).populate({ path: 'user', select: 'identity' }).lean();
+
   const rows = [contractExportHeader];
   for (const contract of contracts) {
     const identity = get(contract, 'user.identity') || {};
@@ -592,10 +581,7 @@ const paymentExportHeader = [
 ];
 
 exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
-  const query = {
-    date: { $lte: endDate, $gte: startDate },
-    company: get(credentials, 'company._id'),
-  };
+  const query = { date: { $lte: endDate, $gte: startDate }, company: get(credentials, 'company._id') };
 
   const payments = await Payment.find(query)
     .sort({ date: 'desc' })

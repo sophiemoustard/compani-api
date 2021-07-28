@@ -11,6 +11,7 @@ const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const Helper = require('../../../src/models/Helper');
 const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const UserCompany = require('../../../src/models/UserCompany');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -75,8 +76,6 @@ const creditNoteUserList = [
     local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
-    customers: [creditNoteCustomer._id],
-    company: authCompany._id,
     origin: WEBAPP,
   },
   {
@@ -85,7 +84,6 @@ const creditNoteUserList = [
     local: { email: 'toto@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-    company: authCompany._id,
     origin: WEBAPP,
   },
 ];
@@ -137,18 +135,11 @@ const creditNotesList = [
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
-      bills: {
-        inclTaxesCustomer: 10,
-        exclTaxesCustomer: 8,
-      },
+      bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
     }],
     subscription: {
       _id: creditNoteCustomer.subscriptions[0]._id,
-      service: {
-        serviceId: creditNoteService._id,
-        nature: 'fixed',
-        name: 'toto',
-      },
+      service: { serviceId: creditNoteService._id, nature: 'fixed', name: 'toto' },
       vat: 5.5,
     },
     origin: 'compani',
@@ -175,11 +166,7 @@ const creditNotesList = [
     }],
     subscription: {
       _id: creditNoteCustomer.subscriptions[0]._id,
-      service: {
-        serviceId: creditNoteService._id,
-        nature: 'fixed',
-        name: 'toto',
-      },
+      service: { serviceId: creditNoteService._id, nature: 'fixed', name: 'toto' },
       vat: 5.5,
     },
     origin: 'ogust',
@@ -199,18 +186,11 @@ const creditNotesList = [
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
-      bills: {
-        inclTaxesCustomer: 10,
-        exclTaxesCustomer: 8,
-      },
+      bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
     }],
     subscription: {
       _id: creditNoteCustomer.subscriptions[0]._id,
-      service: {
-        serviceId: creditNoteService._id,
-        nature: 'fixed',
-        name: 'toto',
-      },
+      service: { serviceId: creditNoteService._id, nature: 'fixed', name: 'toto' },
       vat: 5.5,
     },
     isEditable: false,
@@ -243,11 +223,7 @@ const otherCompanyService = {
 const otherCompanyCustomer = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  identity: {
-    title: 'mr',
-    firstname: 'Jean',
-    lastname: 'Bonbeurre',
-  },
+  identity: { title: 'mr', firstname: 'Jean', lastname: 'Bonbeurre' },
   contact: {
     primaryAddress: {
       fullAddress: '23 rue de ponthieu 75008 Paris',
@@ -262,23 +238,19 @@ const otherCompanyCustomer = {
     bankAccountOwner: 'Jean Bonbeurre',
     iban: 'FR9514708000505917721779B13',
     bic: 'AGMDHISOBD',
-    mandates: [
-      { rum: 'R19879533456767438', _id: new ObjectID(), signedAt: moment().toDate() },
-    ],
+    mandates: [{ rum: 'R19879533456767438', _id: new ObjectID(), signedAt: moment().toDate() }],
   },
-  subscriptions: [
-    {
-      _id: new ObjectID(),
-      service: otherCompanyService._id,
-      versions: [{
-        unitTTCRate: 24,
-        estimatedWeeklyVolume: 6,
-        evenings: 0,
-        sundays: 1,
-        startDate: '2018-01-01T10:00:00.000+01:00',
-      }],
-    },
-  ],
+  subscriptions: [{
+    _id: new ObjectID(),
+    service: otherCompanyService._id,
+    versions: [{
+      unitTTCRate: 24,
+      estimatedWeeklyVolume: 6,
+      evenings: 0,
+      sundays: 1,
+      startDate: '2018-01-01T10:00:00.000+01:00',
+    }],
+  }],
 };
 
 const otherCompanyUser = {
@@ -287,7 +259,6 @@ const otherCompanyUser = {
   local: { email: 'other_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === 'client_admin')._id },
-  company: otherCompany._id,
   origin: WEBAPP,
 };
 
@@ -337,18 +308,11 @@ const otherCompanyCreditNote = {
     startDate: otherCompanyEvent.startDate,
     endDate: otherCompanyEvent.endDate,
     serviceName: 'titi',
-    bills: {
-      inclTaxesCustomer: 10,
-      exclTaxesCustomer: 8,
-    },
+    bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
   }],
   subscription: {
     _id: otherCompanyCustomer.subscriptions[0]._id,
-    service: {
-      serviceId: otherCompanyService._id,
-      nature: 'fixed',
-      name: 'toto',
-    },
+    service: { serviceId: otherCompanyService._id, nature: 'fixed', name: 'toto' },
     vat: 5.5,
   },
   origin: 'compani',
@@ -362,6 +326,12 @@ const helpersList = [{
   referent: true,
 }];
 
+const userCompanies = [
+  { _id: new ObjectID(), user: creditNoteUserList[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: creditNoteUserList[1]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: otherCompanyUser._id, company: otherCompany._id },
+];
+
 const populateDB = async () => {
   await CreditNote.deleteMany();
   await Event.deleteMany();
@@ -371,6 +341,7 @@ const populateDB = async () => {
   await User.deleteMany();
   await ThirdPartyPayer.deleteMany();
   await Helper.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateDBForAuthentication();
   await Event.create([creditNoteEvent, otherCompanyEvent]);
@@ -380,6 +351,7 @@ const populateDB = async () => {
   await CreditNote.insertMany([...creditNotesList, otherCompanyCreditNote]);
   await User.create([...creditNoteUserList, otherCompanyUser]);
   await Helper.insertMany(helpersList);
+  await UserCompany.insertMany(userCompanies);
 };
 
 module.exports = {

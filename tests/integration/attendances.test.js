@@ -22,9 +22,9 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should add an attendance', async () => {
@@ -122,12 +122,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'helper', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-    ];
-
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'client_admin', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -148,9 +143,9 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get course attendances', async () => {
@@ -270,8 +265,8 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if user is client_admin and course is intra and not from user company', async () => {
-      authToken = await getToken('client_admin');
+    it('should return 403 if user is coach and course is intra and not from user company', async () => {
+      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
         url: `/attendances?courseSlot=${slotsList[2]._id}`,
@@ -281,8 +276,8 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if user is client_admin, course is inter and no trainee is from user company', async () => {
-      authToken = await getToken('client_admin');
+    it('should return 403 if user is coach, course is inter and no trainee is from user company', async () => {
+      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
         url: `/attendances?course=${coursesList[4]._id}`,
@@ -293,7 +288,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
     });
 
     it('should get course attendances filtered by company for inter course', async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
         url: `/attendances?course=${coursesList[3]._id}`,
@@ -304,12 +299,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.result.data.attendances.length).toEqual(1);
     });
 
-    const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'helper', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
+    const roles = [{ name: 'helper', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -329,9 +319,9 @@ describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete an attendance', async () => {
@@ -383,12 +373,7 @@ describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'helper', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-    ];
-
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'client_admin', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);

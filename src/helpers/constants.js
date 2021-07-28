@@ -183,6 +183,7 @@ module.exports = {
   AUXILIARY_WITHOUT_COMPANY: 'auxiliary_without_company',
   CLIENT_ADMIN: 'client_admin',
   get AUXILIARY_ROLES() { return [this.AUXILIARY, this.PLANNING_REFERENT, this.AUXILIARY_WITHOUT_COMPANY]; },
+  get VENDOR_ROLES() { return [this.VENDOR_ADMIN, this.TRAINING_ORGANISATION_MANAGER, this.TRAINER]; },
   // ROLE VENDOR
   VENDOR_ADMIN: 'vendor_admin',
   TRAINING_ORGANISATION_MANAGER: 'training_organisation_manager',
@@ -404,9 +405,11 @@ module.exports = {
   BLENDED_COURSE_REGISTRATION: 'blended_course_registration',
   // TIMESTAMP
   MANUAL_TIME_STAMPING: 'manual_time_stamping',
+  QR_CODE_TIME_STAMPING: 'qr_code_time_stamping',
   get TIMESTAMPING_ACTION_TYPE_LIST() {
     return {
       [this.MANUAL_TIME_STAMPING]: 'Manuel',
+      [this.QR_CODE_TIME_STAMPING]: 'QR Code',
     };
   },
   QRCODE_MISSING: 'qrcode_missing',
@@ -427,4 +430,15 @@ module.exports = {
   CONDITION_IMPROVEMENT: 'condition_improvement',
   // FILES
   TMP_FILES_PATH: 'src/data/pdf/tmp/',
+  // DOCUMENTS
+  DOCUMENT_TYPE_LIST: [
+    'contract',
+    'contractVersion',
+    'debitMandate',
+    'quote',
+    'gcs',
+  ],
+  // NOTES
+  NOTE_CREATION: 'note_creation',
+  NOTE_UPDATE: 'note_update',
 };

@@ -23,7 +23,6 @@ const {
 const {
   usersSeedList,
   populateDB,
-  isExistingRole,
   customerFromOtherCompany,
   helperFromOtherCompany,
   userSectors,
@@ -40,7 +39,7 @@ const {
   authCompany,
   rolesList,
 } = require('./seed/authenticationSeed');
-const { trainer, userList, noRoleNoCompany } = require('../seed/userSeed');
+const { trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/userSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../src/helpers/utils');
@@ -384,9 +383,6 @@ describe('GET /users', () => {
     });
 
     it('should get all coachs users (company A)', async () => {
-      const coachUsers = [...userList, ...usersSeedList]
-        .filter(u => u.role && isExistingRole(u.role.client, 'coach') && u.company === authCompany._id);
-
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=coach`,
@@ -394,7 +390,7 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(coachUsers.length);
+      expect(res.result.data.users.length).toBe(2);
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
@@ -483,19 +479,21 @@ describe('GET /users', () => {
 describe('GET /users/exists', () => {
   let authToken;
   beforeEach(populateDB);
-  it('should return 200 if user not connected', async () => {
-    const { email } = usersSeedList[0].local;
-    const res = await app.inject({
-      method: 'GET',
-      url: `/users/exists?email=${email}`,
-    });
+  describe('NOT LOGGED', () => {
+    it('should return 200 if user not connected', async () => {
+      const { email } = usersSeedList[0].local;
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/exists?email=${email}`,
+      });
 
-    expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(200);
+    });
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should return true and user if user exists', async () => {
@@ -507,7 +505,7 @@ describe('GET /users/exists', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.exists).toBe(true);
-      expect(res.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+      expect(res.result.data.user).toEqual({ ...pick(usersSeedList[0], ['role', '_id']), company: authCompany._id });
     });
 
     it('should return false if user does not exists', async () => {
@@ -529,8 +527,6 @@ describe('GET /users/exists', () => {
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 200 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 200 },
     ];
     roles.forEach((role) => {
@@ -546,7 +542,10 @@ describe('GET /users/exists', () => {
 
         if (response.result.data) {
           expect(response.result.data.exists).toBe(true);
-          expect(response.result.data.user).toEqual(pick(usersSeedList[0], ['role', '_id', 'company']));
+          expect(response.result.data.user).toEqual({
+            ...pick(usersSeedList[0], ['role', '_id']),
+            company: authCompany._id,
+          });
         }
       });
     });
@@ -803,7 +802,7 @@ describe('GET /users/:id', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should return user', async () => {
@@ -905,28 +904,30 @@ describe('GET /users/:id', () => {
   });
 });
 
-describe('PUT /users/:id/', () => {
+describe('PUT /users/:id', () => {
   let authToken;
-  const updatePayload = {
-    identity: { firstname: 'Riri' },
-    local: { email: 'riri@alenvi.io' },
-  };
+  const updatePayload = { identity: { firstname: 'Riri' }, local: { email: 'riri@alenvi.io' } };
 
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should update the user', async () => {
+      const userId = usersSeedList[0]._id.toHexString();
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        url: `/users/${userId}`,
         payload: updatePayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
+
+      const userCount = await User
+        .countDocuments({ _id: userId, 'identity.firstname': 'Riri', 'local.email': 'riri@alenvi.io' });
+      expect(userCount).toEqual(1);
     });
 
     it('should update the user sector and sector history', async () => {
@@ -934,21 +935,17 @@ describe('PUT /users/:id/', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userId}`,
-        payload: { ...updatePayload, sector: userSectors[1]._id },
+        payload: { sector: userSectors[1]._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(200);
 
       const updatedUser = await User.findById(userId)
-        .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
+        .populate({ path: 'sector', select: '_id sector', match: { company: authCompany._id } })
         .lean({ autopopulate: true, virtuals: true });
       expect(updatedUser).toBeDefined();
       expect(updatedUser.sector).toEqual(userSectors[1]._id);
-      expect(updatedUser).toMatchObject({
-        _id: usersSeedList[0]._id,
-        identity: expect.objectContaining({ firstname: updatePayload.identity.firstname }),
-        local: expect.objectContaining({ email: updatePayload.local.email }),
-      });
 
       const userSectorHistory = sectorHistories.filter(history => history.auxiliary.toHexString() === userId);
       const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company: authCompany });
@@ -974,8 +971,9 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(secondRespons.statusCode).toBe(200);
+
       const updatedUser = await User.findById(userId)
-        .populate({ path: 'sector', select: '_id sector', match: { company: usersSeedList[0].company } })
+        .populate({ path: 'sector', select: '_id sector', match: { company: authCompany._id } })
         .lean();
 
       expect(updatedUser.sector).toEqual(userSectors[2]._id);
@@ -1116,6 +1114,7 @@ describe('PUT /users/:id/', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
       const userCount = await User
         .countDocuments({ _id: userId, 'identity.lastname': 'Kirk', 'role.vendor': roleTrainer._id });
       expect(userCount).toEqual(1);
@@ -1287,7 +1286,7 @@ describe('PUT /users/:id/', () => {
     });
 
     it('should not update another field than allowed ones if aux-without-company', async () => {
-      authToken = await getToken('auxiliary_without_company', true, userList);
+      authToken = await getToken('auxiliary_without_company');
       const roleAuxiliary = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
       const userId = userList[3]._id;
       const auxiliaryPayload = {
@@ -1358,7 +1357,7 @@ describe('DELETE /users/:id', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     usersSeedList.forEach((user) => {
@@ -1431,7 +1430,7 @@ describe('PUT /users/:id/certificates', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should update user certificates', async () => {
@@ -1470,11 +1469,11 @@ describe('PUT /users/:id/certificates', () => {
 
   describe('Other roles', () => {
     it('should update user certificate if it is me', async () => {
-      authToken = await getToken('auxiliary', true, usersSeedList);
+      authToken = await getToken('auxiliary');
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}/certificates`,
+        url: `/users/${auxiliary._id.toHexString()}/certificates`,
         payload: updatePayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1502,7 +1501,6 @@ describe('PUT /users/:id/certificates', () => {
 
 describe('POST /users/:id/gdrive/:drive_id/upload', () => {
   let authToken;
-  const userFolderId = usersSeedList[0].administrative.driveFolder.driveId;
   let docPayload;
   let form;
   let addFileStub;
@@ -1523,6 +1521,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     });
 
     it('should add an administrative document for a user', async () => {
+      const userFolderId = usersSeedList[0].administrative.driveFolder.driveId;
       const response = await app.inject({
         method: 'POST',
         url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
@@ -1554,6 +1553,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     const wrongParams = ['type', 'file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
+        const userFolderId = usersSeedList[0].administrative.driveFolder.driveId;
         form = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
@@ -1569,11 +1569,12 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
 
   describe('Other roles', () => {
     it('should add administrative document if it is me', async () => {
-      authToken = await getToken('auxiliary', true, usersSeedList);
+      authToken = await getToken('auxiliary');
 
+      const auxiliaryFolderId = auxiliary.administrative.driveFolder.driveId;
       const response = await app.inject({
         method: 'POST',
-        url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
+        url: `/users/${auxiliary._id}/gdrive/${auxiliaryFolderId}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -1795,7 +1796,7 @@ describe('POST /users/:id/drivefolder', () => {
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('coach', true, usersSeedList);
+      authToken = await getToken('coach');
     });
 
     it('should create a drive folder for a user', async () => {

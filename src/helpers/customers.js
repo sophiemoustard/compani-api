@@ -17,6 +17,7 @@ const Repetition = require('../models/Repetition');
 const CustomerPartner = require('../models/CustomerPartner');
 const Rum = require('../models/Rum');
 const User = require('../models/User');
+const UserCompany = require('../models/UserCompany');
 const EventRepository = require('../repositories/EventRepository');
 const CustomerRepository = require('../repositories/CustomerRepository');
 const translate = require('./translate');
@@ -59,7 +60,6 @@ exports.getCustomers = async (credentials) => {
 exports.getCustomersFirstIntervention = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const customers = await Customer.find({ ...query, company: companyId }, { _id: 1 })
-    // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .lean();
 
@@ -79,15 +79,11 @@ exports.getCustomersWithSubscriptions = async (credentials) => {
 exports.getCustomer = async (customerId, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   let customer = await Customer.findOne({ _id: customerId })
-    .populate({
-      path: 'subscriptions.service',
-      populate: { path: 'versions.surcharge' },
-    })
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
     .populate({ path: 'fundings.thirdPartyPayer' })
-    // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .populate({ path: 'referent', match: { company: companyId } })
-    .lean({ autopopulate: true }); // Do not need to add { virtuals: true } as firstIntervention is populated
+    .lean({ autopopulate: true });
   if (!customer) return null;
 
   customer = SubscriptionsHelper.populateSubscriptionsServices(customer);
@@ -219,7 +215,10 @@ exports.removeCustomer = async (customerId) => {
 
   for (const helper of helpers) {
     if (helper.user) {
-      promises.push(User.updateOne({ _id: helper.user }, { $unset: { 'role.client': '', company: '' } }));
+      promises.push(
+        User.updateOne({ _id: helper.user }, { $unset: { 'role.client': '' } }),
+        UserCompany.deleteOne({ user: helper.user })
+      );
     }
   }
 

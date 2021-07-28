@@ -12,11 +12,11 @@ const {
   populateDB,
   payDocumentsList,
   payDocumentUser,
-  payDocumentUserCompany,
+  payDocumentUserCompanies,
   userFromOtherCompany,
-  userCompanyWithoutCompany,
 } = require('./seed/payDocumentsSeed');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { auxiliaryWithoutCompany } = require('../seed/userSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
 const { generateFormData } = require('./utils');
@@ -48,12 +48,12 @@ describe('POST /paydocuments', () => {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         nature: PAYSLIP,
         date: new Date('2019-01-23').toISOString(),
-        user: payDocumentUserCompany.user.toHexString(),
+        user: payDocumentUserCompanies[0].user.toHexString(),
         mimeType: 'application/pdf',
       };
 
       const form = generateFormData(docPayload);
-      const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id }).lean();
+      const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id });
       addFileStub.returns({ id: '1234567890', webViewLink: 'http://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -214,14 +214,14 @@ describe('GET /paydocuments', () => {
       authToken = await getToken('auxiliary_without_company');
       const response = await app.inject({
         method: 'GET',
-        url: `/paydocuments?user=${userCompanyWithoutCompany.user}`,
+        url: `/paydocuments?user=${auxiliaryWithoutCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.payDocuments).toBeDefined();
       expect(response.result.data.payDocuments.length)
-        .toBe(payDocumentsList.filter(payDocument => payDocument.user === userCompanyWithoutCompany.user).length);
+        .toBe(payDocumentsList.filter(payDocument => payDocument.user === auxiliaryWithoutCompany._id).length);
     });
 
     const roles = [
