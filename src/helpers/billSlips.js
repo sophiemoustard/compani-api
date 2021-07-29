@@ -84,7 +84,7 @@ exports.formatFundingInfo = (info, billingDoc) => {
     createdAt: info.createdAt,
     date: moment(info.date).format('DD/MM/YYYY'),
     customer: get(info, 'customer.identity.lastname'),
-    folderNumber: matchingVersion.folderNumber,
+    folderNumber: matchingVersion.folderNumber || '',
     tppParticipationRate: UtilsHelper.formatPercentage((100 - matchingVersion.customerParticipationRate) / 100),
     customerParticipationRate: UtilsHelper.formatPercentage(matchingVersion.customerParticipationRate / 100),
     careHours: UtilsHelper.formatHour(matchingVersion.careHours),
