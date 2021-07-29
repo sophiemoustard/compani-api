@@ -134,7 +134,7 @@ exports.authorizeUserGetById = async (req) => {
 
   const isClientFromDifferentCompany = !isLoggedUserVendor && user.company &&
     !UtilsHelper.areObjectIdsEquals(user.company, loggedCompanyId);
-  if (isClientFromDifferentCompany) throw Boom.forbidden();
+  if (isClientFromDifferentCompany) throw Boom.notFound();
 
   return null;
 };
