@@ -124,9 +124,7 @@ exports.authorizeUserGetById = async (req) => {
   const { credentials } = req.auth;
   const user = req.pre.user || req.payload;
   const loggedCompanyId = get(credentials, 'company._id', null);
-  const loggedUserId = credentials._id;
   const isLoggedUserVendor = get(credentials, 'role.vendor', null);
-  const isLoggedUserClient = get(credentials, 'role.client', null);
   const establishmentId = get(req, 'payload.establishment');
 
   if (establishmentId) {
@@ -136,9 +134,7 @@ exports.authorizeUserGetById = async (req) => {
 
   const isClientFromDifferentCompany = !isLoggedUserVendor && user.company &&
     !UtilsHelper.areObjectIdsEquals(user.company, loggedCompanyId);
-  const isNotLoggedUser = !isLoggedUserClient && !isLoggedUserVendor &&
-    !UtilsHelper.areObjectIdsEquals(user._id, loggedUserId);
-  if (isClientFromDifferentCompany || isNotLoggedUser) throw Boom.forbidden();
+  if (isClientFromDifferentCompany) throw Boom.forbidden();
 
   return null;
 };
