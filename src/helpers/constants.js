@@ -168,8 +168,8 @@ module.exports = {
   },
   get CANCELLATION_REASON_LIST() {
     return {
-      [this.CUSTOMER_INITIATIVE]: 'Initiative du client',
-      [this.AUXILIARY_INITIATIVE]: 'Initiative de l\'intervenant',
+      [this.CUSTOMER_INITIATIVE]: 'Initiative du/de la client(e)',
+      [this.AUXILIARY_INITIATIVE]: 'Initiative de l\'intervenant(e)',
     };
   },
   // INTERFACES

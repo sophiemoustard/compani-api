@@ -161,7 +161,7 @@ describe('getPdfContent', () => {
             body: [
               [
                 { text: 'Date', bold: true },
-                { text: 'Intervenant', bold: true },
+                { text: 'Intervenant(e)', bold: true },
                 { text: 'Début', bold: true },
                 { text: 'Fin', bold: true },
                 { text: 'Service', bold: true },

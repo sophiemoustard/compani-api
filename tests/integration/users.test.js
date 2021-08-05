@@ -1178,7 +1178,7 @@ describe('PUT /users/:id', () => {
       });
 
       expect(response.statusCode).toBe(409);
-      expect(response.result.message).toBe('L\'utilisateur a déjà un role sur cette interface.');
+      expect(response.result.message).toBe('Ce compte a déjà un rôle sur cette interface.');
     });
 
     it('should return a 404 error if no user found', async () => {
