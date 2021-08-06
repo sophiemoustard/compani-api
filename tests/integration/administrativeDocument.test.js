@@ -1,7 +1,6 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
 const GetStream = require('get-stream');
 const AdministrativeDocument = require('../../src/models/AdministrativeDocument');
 const app = require('../../server');
@@ -20,10 +19,10 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
       await populateDB();
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should return all administrative documents', async () => {
@@ -43,7 +42,6 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -120,7 +118,6 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -172,16 +169,6 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
 
       expect(res.statusCode).toBe(404);
     });
-
-    it('should return a 404 if document does not exist', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/administrativedocuments/${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(404);
-    });
   });
 
   describe('Other roles', () => {
@@ -189,7 +176,6 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

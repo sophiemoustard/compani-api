@@ -20,10 +20,10 @@ describe('NODE ENV', () => {
 describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
   let authToken = null;
   let uploadCourseFile;
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('trainer');
       uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
     });
     afterEach(() => {
@@ -86,7 +86,6 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
         method: 'POST',
@@ -106,7 +105,6 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
         method: 'POST',
@@ -126,7 +124,6 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
         method: 'POST',
@@ -146,7 +143,6 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
       };
 
       const form = generateFormData(formData);
-      uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
       const response = await app.inject({
         method: 'POST',
@@ -161,17 +157,10 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
 
   describe('Other roles', () => {
     beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
-      uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
-    });
-    afterEach(() => {
-      uploadCourseFile.restore();
-    });
     const roles = [
       { name: 'client_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -183,7 +172,6 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
           date: new Date('2020-01-23').toISOString(),
         };
         const form = generateFormData(formData);
-        uploadCourseFile.returns({ publicId: '1234567890', link: 'https://test.com/file.pdf' });
 
         const response = await app.inject({
           method: 'POST',
@@ -201,10 +189,10 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
 describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
   let authToken = null;
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('trainer');
     });
 
     it('should get course\'s attendance sheets', async () => {
@@ -218,16 +206,6 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.attendanceSheets.length).toEqual(attendanceSheetsLength);
-    });
-
-    it('should return a 400 if query course is not ObjectID', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/attendancesheets?course=skusku',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 404 if course doesn\'t exist', async () => {
@@ -269,23 +247,10 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
         expect(response.result.data.attendanceSheets.length).toEqual(1);
       });
 
-    it('should get all course\'s attendance sheets for interB2B course if user has vendor role', async () => {
-      authToken = await getToken('trainer');
-
-      const response = await app.inject({
-        method: 'GET',
-        url: `/attendancesheets?course=${coursesList[1]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendanceSheets.length).toEqual(2);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -307,10 +272,10 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
   let authToken = null;
   let deleteCourseFile;
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('trainer');
       deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
     });
     afterEach(() => {
@@ -344,18 +309,11 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
 
   describe('Other roles', () => {
     beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
-      deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
-    });
-    afterEach(() => {
-      deleteCourseFile.restore();
-    });
 
     const roles = [
       { name: 'client_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

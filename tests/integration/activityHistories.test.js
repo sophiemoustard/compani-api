@@ -33,12 +33,6 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
 
   beforeEach(populateDB);
 
-  it('should return a 401 if user is not connected', async () => {
-    const response = await app.inject({ method: 'POST', url: '/activityhistories', payload });
-
-    expect(response.statusCode).toBe(401);
-  });
-
   describe('Logged user', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
@@ -223,10 +217,10 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
 describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
   let authToken = null;
 
-  describe('CLIENT ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should return a list of activity histories', async () => {
@@ -275,7 +269,6 @@ describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
       { name: 'planning_referent', expectedCode: 403 },
     ];
 

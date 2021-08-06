@@ -3,14 +3,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Activity = require('../../src/models/Activity');
 const Card = require('../../src/models/Card');
-const {
-  populateDB,
-  activitiesList,
-  stepsList,
-  subProgramsList,
-  programsList,
-  cardsList,
-} = require('./seed/activitiesSeed');
+const { populateDB, activitiesList, cardsList } = require('./seed/activitiesSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
 const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
@@ -26,9 +19,9 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
   beforeEach(populateDB);
   const activityId = activitiesList[0]._id;
 
-  describe('VENDOR_ADMIN', () => {
+  describe('Logged user', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
 
     it('should get activity', async () => {
@@ -36,62 +29,6 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
         method: 'GET',
         url: `/activities/${activityId.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.activity).toEqual(expect.objectContaining({
-        _id: activityId,
-        name: 'manger',
-        cards: expect.arrayContaining([expect.objectContaining({
-          _id: expect.any(ObjectID),
-          title: 'ceci est un titre',
-          template: 'transition',
-        }),
-        expect.objectContaining({
-          _id: expect.any(ObjectID),
-          template: 'title_text',
-          title: 'ceci est un titre',
-          text: 'test',
-        }),
-        expect.objectContaining({
-          _id: expect.any(ObjectID),
-          template: 'title_text_media',
-          title: 'ceci est un titre',
-          text: 'text',
-          media: { link: 'lien', publicId: 'id' },
-        }),
-        expect.objectContaining({
-          _id: expect.any(ObjectID),
-          template: 'flashcard',
-          text: 'ceci est un text',
-          backText: 'ceci est un backText',
-        }),
-        ]),
-        steps: expect.arrayContaining([{
-          _id: stepsList[0]._id,
-          subProgram: {
-            _id: subProgramsList[0]._id,
-            isStrictlyELearning: false,
-            program: { _id: programsList[0]._id, name: 'au programme télévisé' },
-          },
-        }]),
-      }));
-    });
-  });
-
-  describe('Other roles', () => {
-    it('should return 401 if user is not authenticate', async () => {
-      const response = await app.inject({ method: 'GET', url: `/activities/${activityId.toHexString()}` });
-
-      expect(response.statusCode).toBe(401);
-    });
-
-    it('should return 200 as user is logged', async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
-      const response = await app.inject({
-        method: 'GET',
-        url: `/activities/${activityId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
@@ -104,9 +41,9 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
   beforeEach(populateDB);
   const activityId = activitiesList[0]._id;
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should update activity\'s name', async () => {
@@ -153,17 +90,6 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, cards: payload.cards }));
-    });
-
-    it('should return a 400 if payload is empty', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/activities/${activityId.toHexString()}`,
-        payload: {},
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 400 if name is equal to \'\' ', async () => {
@@ -217,11 +143,8 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -248,9 +171,9 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
   beforeEach(populateDB);
   const payload = { template: TITLE_TEXT_MEDIA };
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create card', async () => {
@@ -278,18 +201,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if missing template', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/activities/${activityId.toHexString()}/cards`,
-        payload: {},
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 if activity does not exist', async () => {
+    it('should return a 404 if activity does not exist', async () => {
       const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
@@ -316,11 +228,8 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -346,9 +255,9 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
   const draftActivity = activitiesList.find(activity => activity.status === 'draft');
   const publishedActivity = activitiesList.find(activity => activity.status === 'published');
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete activity card', async () => {
@@ -393,7 +302,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 

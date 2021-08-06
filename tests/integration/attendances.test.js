@@ -122,7 +122,11 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'client_admin', expectedCode: 403 }];
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+    ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -185,26 +189,6 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/attendances',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if query course has invalid type', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/attendances?course=skusku',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if query courseSlot has invalid type', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/attendances?courseSlot=skusku',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -299,7 +283,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       expect(response.result.data.attendances.length).toEqual(1);
     });
 
-    const roles = [{ name: 'helper', expectedCode: 403 }];
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -373,7 +357,11 @@ describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'client_admin', expectedCode: 403 }];
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+    ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
