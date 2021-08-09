@@ -117,7 +117,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 
@@ -174,7 +174,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
     ];
 

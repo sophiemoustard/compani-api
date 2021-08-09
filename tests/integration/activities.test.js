@@ -32,6 +32,7 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.activity).toEqual(expect.objectContaining({ _id: activityId }));
     });
   });
 });
@@ -55,7 +56,10 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
+      const activityUpdated = await Activity.findById(activityId).lean();
+
       expect(response.statusCode).toBe(200);
+      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, name: 'rigoler' }));
     });
 
     it('should update activity\'s name if activity is published', async () => {
@@ -67,7 +71,10 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
+      const activityUpdated = await Activity.findById(activitiesList[3]._id).lean();
+
       expect(response.statusCode).toBe(200);
+      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activitiesList[3]._id, name: 'rigoler' }));
     });
 
     it('should update cards', async () => {
@@ -115,7 +122,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if actvities from payload and from db are not the same', async () => {
+    it('should return a 400 if cards from payload and from db are not the same', async () => {
       const payload = { cards: [activitiesList[0].cards[1], new ObjectID()] };
       const response = await app.inject({
         method: 'PUT',
@@ -195,6 +202,17 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         method: 'POST',
         url: `/activities/${activityId.toHexString()}/cards`,
         payload: { template: 'invalid template' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if missing template', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/activities/${activityId.toHexString()}/cards`,
+        payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

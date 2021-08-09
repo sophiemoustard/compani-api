@@ -10,6 +10,7 @@ const {
 } = require('./seed/activityHistoriesSeed');
 const { getTokenByCredentials, getToken } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
+const ActivityHistory = require('../../src/models/ActivityHistory');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -39,6 +40,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
     });
 
     it('should create activityHistory', async () => {
+      const activityHistoriesBefore = await ActivityHistory.find().lean();
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
@@ -47,6 +49,8 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const activityHistoriesCount = await ActivityHistory.countDocuments();
+      expect(activityHistoriesCount).toEqual(activityHistoriesBefore.length + 1);
     });
 
     it('should create activityHistory without questionnaireAnswersList', async () => {
