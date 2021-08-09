@@ -34,11 +34,9 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('BILL ROUTES - GET /bills/drafts #tag', () => {
+describe('BILL ROUTES - GET /bills/drafts', () => {
   let authToken = null;
-  beforeEach(async () => {
-    await populateDB();
-  });
+  beforeEach(populateDB);
   const query = {
     endDate: moment.utc().endOf('month').toDate(),
     billingStartDate: moment.utc().startOf('month').toDate(),
@@ -106,7 +104,7 @@ describe('BILL ROUTES - GET /bills/drafts #tag', () => {
   });
 });
 
-describe('BILL ROUTES - POST /bills #tag', () => {
+describe('BILL ROUTES - POST /bills', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = [
@@ -650,7 +648,7 @@ describe('BILL ROUTES - POST /bills #tag', () => {
   });
 });
 
-describe('BILL ROUTES - GET /bills/pdfs #tag', () => {
+describe('BILL ROUTES - GET /bills/pdfs', () => {
   let authToken = null;
   beforeEach(populateDB);
 
