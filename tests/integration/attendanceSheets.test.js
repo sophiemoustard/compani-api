@@ -157,6 +157,13 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
 
   describe('Other roles', () => {
     beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+      uploadCourseFile = sinon.stub(GCloudStorageHelper, 'uploadCourseFile');
+    });
+    afterEach(() => {
+      uploadCourseFile.restore();
+    });
     const roles = [
       { name: 'client_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
@@ -309,6 +316,13 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
 
   describe('Other roles', () => {
     beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('vendor_admin');
+      deleteCourseFile = sinon.stub(GCloudStorageHelper, 'deleteCourseFile');
+    });
+    afterEach(() => {
+      deleteCourseFile.restore();
+    });
 
     const roles = [
       { name: 'client_admin', expectedCode: 403 },

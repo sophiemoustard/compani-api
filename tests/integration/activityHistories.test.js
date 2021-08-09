@@ -40,7 +40,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
     });
 
     it('should create activityHistory', async () => {
-      const activityHistoriesBefore = await ActivityHistory.find().lean();
+      const activityHistoriesBefore = await ActivityHistory.countDocuments();
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
@@ -50,7 +50,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
 
       expect(response.statusCode).toBe(200);
       const activityHistoriesCount = await ActivityHistory.countDocuments();
-      expect(activityHistoriesCount).toEqual(activityHistoriesBefore.length + 1);
+      expect(activityHistoriesCount).toEqual(activityHistoriesBefore + 1);
     });
 
     it('should create activityHistory without questionnaireAnswersList', async () => {

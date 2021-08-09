@@ -32,7 +32,7 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.activity).toEqual(expect.objectContaining({ _id: activityId }));
+      expect(response.result.data.activity._id).toEqual(activityId);
     });
   });
 });
@@ -47,21 +47,6 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should update activity\'s name', async () => {
-      const payload = { name: 'rigoler' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/activities/${activityId.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      const activityUpdated = await Activity.findById(activityId).lean();
-
-      expect(response.statusCode).toBe(200);
-      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, name: 'rigoler' }));
-    });
-
     it('should update activity\'s name if activity is published', async () => {
       const payload = { name: 'rigoler' };
       const response = await app.inject({
@@ -71,10 +56,10 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const activityUpdated = await Activity.findById(activitiesList[3]._id).lean();
+      const activityUpdated = await Activity.countDocuments({ _id: activitiesList[3]._id, name: 'rigoler' });
 
       expect(response.statusCode).toBe(200);
-      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activitiesList[3]._id, name: 'rigoler' }));
+      expect(activityUpdated).toEqual(1);
     });
 
     it('should update cards', async () => {
@@ -93,10 +78,10 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const activityUpdated = await Activity.findById(activityId).lean();
+      const activityUpdated = await Activity.countDocuments({ _id: activityId, cards: payload.cards });
 
       expect(response.statusCode).toBe(200);
-      expect(activityUpdated).toEqual(expect.objectContaining({ _id: activityId, cards: payload.cards }));
+      expect(activityUpdated).toEqual(1);
     });
 
     it('should return a 400 if name is equal to \'\' ', async () => {
