@@ -235,6 +235,7 @@ describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.activityHistories.length).toEqual(1);
     });
 
     it('should return 400 as startDate is missing', async () => {

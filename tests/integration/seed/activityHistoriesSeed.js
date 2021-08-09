@@ -4,8 +4,10 @@ const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const { userList, vendorAdmin } = require('../../seed/userSeed');
+const { STRICTLY_E_LEARNING } = require('../../../src/helpers/constants');
 
 const activityHistoriesUsersList = [userList[6]._id, userList[5]._id];
 
@@ -46,14 +48,25 @@ const coursesList = [
     trainer: new ObjectID(),
     trainees: [userList[6]._id],
     salesRepresentative: vendorAdmin._id,
+    format: STRICTLY_E_LEARNING,
   }];
 
+const activityHistories = [
+  {
+    _id: new ObjectID(),
+    user: userList[6]._id,
+    activity: activitiesList[0]._id,
+    date: new Date('2020-12-15T23:00:00'),
+  },
+];
+
 const populateDB = async () => {
-  await Activity.deleteMany({});
-  await Step.deleteMany({});
-  await SubProgram.deleteMany({});
-  await Course.deleteMany({});
-  await Card.deleteMany({});
+  await Activity.deleteMany();
+  await Step.deleteMany();
+  await SubProgram.deleteMany();
+  await Course.deleteMany();
+  await Card.deleteMany();
+  await ActivityHistory.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -62,6 +75,7 @@ const populateDB = async () => {
   await SubProgram.insertMany(subProgramsList);
   await Course.insertMany(coursesList);
   await Card.insertMany(cardsList);
+  await ActivityHistory.insertMany(activityHistories);
 };
 
 module.exports = {
@@ -72,4 +86,5 @@ module.exports = {
   coursesList,
   activityHistoriesUsersList,
   cardsList,
+  activityHistories,
 };
