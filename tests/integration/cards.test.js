@@ -36,9 +36,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     backText: 'text verso',
   };
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     const cards = [
@@ -159,19 +159,19 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 
     describe('Fill the gaps', () => {
       const requests = [
-        { msg: 'valid gappedText', payload: { gappedText: 'on truc <trou>b\'ien -èï</trou>propre' }, passing: true },
-        { msg: 'no tagging', payload: { gappedText: 'du text sans balise' } },
-        { msg: 'single open tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf<trou>' } },
-        { msg: 'single closing tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjdsfbdjsf</trou>' } },
-        { msg: 'conflicting tags', payload: { gappedText: 'lalaal <trou>l<trou>ili</trou> djsfbjdsfbd</trou>' } },
-        { msg: 'long content', payload: { gappedText: 'lalalalal <trou> rgtrgtghtgtrgtrgtrgtili</trou> djsfbjdsfbd' } },
-        { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbjdsfbd' } },
-        { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfbjdsfbd' } },
-        { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' } },
+        { msg: 'valid gappedText', payload: { gappedText: 'on truc <trou>b\'ien -èï</trou>propre' }, code: 200 },
+        { msg: 'no tagging', payload: { gappedText: 'du text sans balise' }, code: 400 },
+        { msg: 'single open tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjdsfb<trou>' }, code: 400 },
+        { msg: 'single closing tag', payload: { gappedText: 'lalalalal <trou>lili</trou> djsfbjd</trou>' }, code: 400 },
+        { msg: 'conflicting tags', payload: { gappedText: 'lalaal <trou>l<trou>ili</trou> djsfbd</trou>' }, code: 400 },
+        { msg: 'long content', payload: { gappedText: 'al <trou> rgtrgtghtgtrgtrgtrgtili</trou> djssfbd' }, code: 400 },
+        { msg: 'wrong character in content', payload: { gappedText: 'lalalalal <trou>?</trou> djsfbsfbd' }, code: 400 },
+        { msg: 'line break in content', payload: { gappedText: 'lalalalal <trou>bfh\nee</trou> djsfsfbd' }, code: 400 },
+        { msg: 'spaces around answer', payload: { gappedText: 'on truc <trou> test</trou>propre' }, code: 400 },
       ];
 
       requests.forEach((request) => {
-        it(`should return a ${request.passing ? '200' : '400'} if ${request.msg}`, async () => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${fillTheGapId.toHexString()}`,
@@ -179,10 +179,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
-          const cardUpdated = await Card.findById(fillTheGapId).lean({ virtuals: true });
-
-          expect(response.statusCode).toBe(request.passing ? 200 : 400);
-          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
+          expect(response.statusCode).toBe(request.code);
         });
       });
     });
@@ -200,7 +197,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       ];
 
       requests.forEach((request) => {
-        it(`should return a ${request.passing ? '200' : '400'} if ${request.msg}`, async () => {
+        it(`should return a ${request.code} if ${request.msg}`, async () => {
           const response = await app.inject({
             method: 'PUT',
             url: `/cards/${orderTheSequenceId.toHexString()}`,
@@ -208,26 +205,15 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
-          const cardUpdated = await Card.findById(orderTheSequenceId).lean({ virtuals: true });
-
-          expect(response.statusCode).toBe(request.passing ? 200 : 400);
-          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
+          expect(response.statusCode).toBe(request.code);
         });
       });
     });
 
     describe('Single choice question', () => {
       const requests = [
-        {
-          msg: 'valid good answer',
-          payload: { qcuGoodAnswer: 'c\'est le S' },
-          code: 200,
-        },
-        {
-          msg: 'missing good answer',
-          payload: { qcuGoodAnswer: '' },
-          code: 400,
-        },
+        { msg: 'valid good answer', payload: { qcuGoodAnswer: 'c\'est le S' }, code: 200 },
+        { msg: 'missing good answer', payload: { qcuGoodAnswer: '' }, code: 400 },
         {
           msg: 'too many chars in good answer',
           payload: {
@@ -246,10 +232,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
-          const cardUpdated = await Card.findById(singleChoiceQuestionId).lean({ virtuals: true });
-
           expect(response.statusCode).toBe(request.code);
-          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
         });
       });
     });
@@ -271,10 +254,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
-          const cardUpdated = await Card.findById(surveyId).lean({ virtuals: true });
-
           expect(response.statusCode).toBe(request.code);
-          expect(cardUpdated).toEqual(expect.objectContaining({ isValid: false }));
         });
       });
     });
@@ -309,11 +289,8 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -337,9 +314,9 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should add a qcAnswer', async () => {
@@ -446,23 +423,18 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
   });
 
   describe('Other roles', () => {
-    const card = cardsList[11];
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
-
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${card._id.toHexString()}/answers`,
+          url: `/cards/${cardsList[11]._id.toHexString()}/answers`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -476,9 +448,9 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should update a qc answer', async () => {
@@ -639,11 +611,8 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
     const answer = card.qcAnswers[0];
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -667,9 +636,9 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete a qcAnswer', async () => {
@@ -684,15 +653,9 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated).toEqual(expect.objectContaining({
-        ...card,
-        qcAnswers: [
-          card.qcAnswers[1],
-          card.qcAnswers[2],
-          card.qcAnswers[3],
-        ],
-      }));
+      const cardUpdated = await Card
+        .countDocuments({ _id: card._id, qcAnswers: [card.qcAnswers[1], card.qcAnswers[2], card.qcAnswers[3]] });
+      expect(cardUpdated).toEqual(1);
     });
 
     it('should delete an ordered answer', async () => {
@@ -707,13 +670,9 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated).toEqual(expect.objectContaining({
-        orderedAnswers: [
-          card.orderedAnswers[1],
-          card.orderedAnswers[2],
-        ],
-      }));
+      const cardUpdated = await Card
+        .countDocuments({ _id: card._id, orderedAnswers: [card.orderedAnswers[1], card.orderedAnswers[2]] });
+      expect(cardUpdated).toEqual(1);
     });
 
     it('should delete a falsy gap answer', async () => {
@@ -728,16 +687,15 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card.findById(card._id).lean();
-      expect(cardUpdated).toEqual(expect.objectContaining({
-        falsyGapAnswers: [
-          card.falsyGapAnswers[1],
-          card.falsyGapAnswers[2],
-          card.falsyGapAnswers[3],
-          card.falsyGapAnswers[4],
-          card.falsyGapAnswers[5],
-        ],
-      }));
+      const falsyGapAnswers = [
+        card.falsyGapAnswers[1],
+        card.falsyGapAnswers[2],
+        card.falsyGapAnswers[3],
+        card.falsyGapAnswers[4],
+        card.falsyGapAnswers[5],
+      ];
+      const cardUpdated = await Card.countDocuments({ _id: card._id, falsyGapAnswers });
+      expect(cardUpdated).toEqual(1);
     });
 
     it('should return 400 if cardId is missing', async () => {
@@ -763,32 +721,6 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       });
 
       expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 404 if invalid card id', async () => {
-      const card = cardsList[12];
-      const answer = card.qcAnswers[0];
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 if answer is not in card', async () => {
-      const card = cardsList[12];
-
-      const otherQACard = cardsList[11];
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qcAnswers[0]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
     });
 
     it('should return 403 if card is in published activity', async () => {
@@ -851,11 +783,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
     const answer = card.qcAnswers[0];
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -887,10 +816,10 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
     momentFormat.restore();
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should add a card media', async () => {
@@ -943,16 +872,12 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const card = cardsList[0];
         const form = generateFormData({ fileName: 'title_text_media', file: 'true' });
         authToken = await getToken(role.name);
         uploadProgramMediaStub.returns({
@@ -962,7 +887,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
 
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${card._id}/upload`,
+          url: `/cards/${cardsList[0]._id}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
@@ -983,10 +908,10 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
     deleteProgramMediaStub.restore();
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete a card media', async () => {
@@ -1012,20 +937,16 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const card = cardsList[1];
         const response = await app.inject({
           method: 'DELETE',
-          url: `/cards/${card._id}/upload`,
+          url: `/cards/${cardsList[1]._id}/upload`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
