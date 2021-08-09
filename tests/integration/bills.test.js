@@ -17,7 +17,6 @@ const {
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
   fundingHistory,
-  billNumbers,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const BillHelper = require('../../src/helpers/bills');
@@ -27,6 +26,7 @@ const BillNumber = require('../../src/models/BillNumber');
 const CreditNote = require('../../src/models/CreditNote');
 const FundingHistory = require('../../src/models/FundingHistory');
 const Event = require('../../src/models/Event');
+const PdfHelper = require('../../src/helpers/pdf');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -34,9 +34,11 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('BILL ROUTES - GET /bills/drafts', () => {
+describe('BILL ROUTES - GET /bills/drafts #tag', () => {
   let authToken = null;
-  beforeEach(populateDB);
+  beforeEach(async () => {
+    await populateDB();
+  });
   const query = {
     endDate: moment.utc().endOf('month').toDate(),
     billingStartDate: moment.utc().startOf('month').toDate(),
@@ -56,21 +58,9 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.draftBills).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          customer: expect.objectContaining({
-            _id: billCustomerList[0]._id,
-            identity: billCustomerList[0].identity,
-          }),
-          customerBills: expect.objectContaining({
-            bills: expect.any(Array),
-            total: expect.any(Number),
-          }),
-        }),
-      ]));
     });
 
-    it('should not return all draft bills if customer is not from the same company', async () => {
+    it('should return 404 if customer is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/bills/drafts?${qs.stringify(query)}&customer=${customerFromOtherCompany._id}`,
@@ -95,10 +85,10 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -116,7 +106,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
   });
 });
 
-describe('BILL ROUTES - POST /bills', () => {
+describe('BILL ROUTES - POST /bills #tag', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = [
@@ -326,8 +316,10 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
       const billCount = await Bill.countDocuments({ company: authCompany._id });
       expect(billCount).toBe(2 + authBillsList.length);
+
       const creditNote = await CreditNote.find({ customer: billCustomerList[0]._id, company: authCompany._id }).lean();
       expect(creditNote[0].isEditable).toBeFalsy();
     });
@@ -359,18 +351,21 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(response.statusCode).toEqual(500);
       formatBillNumber.restore();
 
-      const billCountAfter = await Bill.countDocuments({});
+      const billCountAfter = await Bill.countDocuments();
       expect(billCountAfter).toEqual(authBillsList.length + billsList.length);
 
-      const billNumberAfter = await BillNumber.findOne({ prefix: '0519' }).lean();
-      expect(billNumberAfter.seq).toEqual(billNumbers.find(bn => bn.prefix === '0519').seq);
+      const billNumberAfter = await BillNumber.countDocuments({ prefix: '0519', seq: 2 });
+      expect(billNumberAfter).toEqual(1);
 
-      const fundingHistoryAfter = await FundingHistory.findOne({ fundingId: fundingHistory.fundingId }).lean();
-      expect(fundingHistoryAfter.amountTTC).toEqual(fundingHistory.amountTTC);
+      const fundingHistoryAfter = await FundingHistory.countDocuments({
+        fundingId: fundingHistory.fundingId,
+        amountTTC: fundingHistory.amountTTC,
+      });
+      expect(fundingHistoryAfter).toEqual(1);
 
-      const eventInBill = await Event.findOne({ _id: eventList[4]._id }).lean();
-      expect(eventInBill.isBilled).toBeFalsy();
-      expect(eventInBill.bills).toEqual({ surcharges: [] });
+      const eventInBill = await Event
+        .countDocuments({ _id: eventList[4]._id, bills: { surcharges: [] }, isBilled: false });
+      expect(eventInBill).toEqual(1);
     });
 
     it('should create new bill with vat 0 if service is not taxed', async () => {
@@ -443,8 +438,8 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find({ 'subscriptions.vat': 0, company: authCompany._id }).lean();
-      expect(bills.length).toBe(1);
+      const bills = await Bill.countDocuments({ 'subscriptions.vat': 0, company: authCompany._id });
+      expect(bills).toBe(1);
     });
 
     it('should create a new external bill', async () => {
@@ -634,16 +629,14 @@ describe('BILL ROUTES - POST /bills', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403, erp: true },
-      { name: 'auxiliary', expectedCode: 403, erp: true },
-      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-      { name: 'coach', expectedCode: 403, erp: true },
-      { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
-        authToken = await getToken(role.name, role.erp);
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
           url: '/bills',
@@ -657,13 +650,13 @@ describe('BILL ROUTES - POST /bills', () => {
   });
 });
 
-describe('BILL ROUTES - GET /bills/pdfs', () => {
+describe('BILL ROUTES - GET /bills/pdfs #tag', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get bill pdf', async () => {
@@ -688,9 +681,17 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
   });
 
   describe('Other roles', () => {
+    let generatePdf;
+    beforeEach(() => {
+      generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    });
+    afterEach(() => {
+      generatePdf.restore();
+    });
+
     it('should return customer bills pdf if I am its helper', async () => {
-      const helper = billUserList[0];
-      authToken = await getTokenByCredentials(helper.local);
+      generatePdf.returns('pdf');
+      authToken = await getTokenByCredentials(billUserList[0].local);
       const res = await app.inject({
         method: 'GET',
         url: `/bills/${authBillsList[0]._id}/pdfs`,
@@ -699,15 +700,11 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        generatePdf.returns('pdf');
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
