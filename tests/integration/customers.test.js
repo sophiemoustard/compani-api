@@ -1600,8 +1600,8 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     it('should create a customer quote', async () => {
       const payload = {
         subscriptions: [
-          { serviceName: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { serviceName: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+          { service: { name: 'TestTest' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+          { service: { name: 'TestTest' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
         ],
       };
 
@@ -1634,14 +1634,32 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
+    it('should return a 400 error if \'service\' is missing from subscriptions in payload', async () => {
+      const payload = {
+        subscriptions: [
+          { unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+          { service: { name: 'TestTest' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        ],
+      };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
     it('should not create a customer quote if from other company', async () => {
       const payload = {
         subscriptions: [{
-          serviceName: 'TestTest',
+          service: { name: 'TestTest' },
           unitTTCRate: 23,
           estimatedWeeklyVolume: 3,
         }, {
-          serviceName: 'TestTest2',
+          service: { name: 'TestTest2' },
           unitTTCRate: 30,
           estimatedWeeklyVolume: 10,
         }],
@@ -1659,11 +1677,11 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     describe('Other roles', () => {
       const payload = {
         subscriptions: [{
-          serviceName: 'TestTest',
+          service: { name: 'TestTest' },
           unitTTCRate: 23,
           estimatedWeeklyVolume: 3,
         }, {
-          serviceName: 'TestTest2',
+          service: { name: 'TestTest2' },
           unitTTCRate: 30,
           estimatedWeeklyVolume: 10,
         }],

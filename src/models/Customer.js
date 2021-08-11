@@ -96,7 +96,6 @@ const CustomerSchema = mongoose.Schema({
     quoteNumber: String,
     subscriptions: [{
       ...subscriptionSchemaDefinition,
-      serviceName: String,
     }],
     drive: driveResourceSchemaDefinition,
     createdAt: { type: Date, default: Date.now },

@@ -104,7 +104,7 @@ describe('createQuote', () => {
   it('should get customer quotes', async () => {
     const customerId = '12345678io0';
     const payload = {
-      subscriptions: [{ serviceName: 'Autonomie', unitTTCRate: 24, estimatedWeeklyVolume: 12 }],
+      subscriptions: [{ service: { name: 'Autonomie' }, unitTTCRate: 24, estimatedWeeklyVolume: 12 }],
     };
     const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
 
