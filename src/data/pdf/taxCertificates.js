@@ -37,7 +37,7 @@ const getTableContent = (taxCertificate) => {
   const content = [
     [
       { text: 'Matricule', bold: true },
-      { text: 'Intervenant', bold: true },
+      { text: 'Intervenant(e)', bold: true },
       { text: 'Mois', bold: true },
       { text: 'Heures', bold: true },
       { text: 'Prestation', bold: true },

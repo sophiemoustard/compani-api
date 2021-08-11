@@ -42,8 +42,8 @@ const customerExportHeader = [
   'Date de naissance',
   'Adresse',
   '1ère intervention',
-  'Id Auxiliaire référent',
-  'Auxiliaire référent',
+  'Id Auxiliaire référent(e)',
+  'Auxiliaire référent(e)',
   'Situation',
   'Environnement',
   'Objectifs',
@@ -198,9 +198,9 @@ exports.exportAuxiliaries = async (credentials) => {
 const helperExportHeader = [
   'Email',
   'Téléphone',
-  'Id Aidant',
-  'Aidant - Nom',
-  'Aidant - Prénom',
+  'Id Aidant(e)',
+  'Aidant(e) - Nom',
+  'Aidant(e) - Prénom',
   'Id Bénéficiaire',
   'Bénéficiaire - Titre',
   'Bénéficiaire - Nom',
@@ -453,7 +453,7 @@ const fundingExportHeader = [
   'Montant unitaire TTC',
   'Nombre d\'heures',
   'Jours',
-  'Participation du bénéficiaire',
+  'Participation du/de la bénéficiaire',
 ];
 
 exports.exportFundings = async (credentials) => {
