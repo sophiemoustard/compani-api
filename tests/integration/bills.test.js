@@ -38,6 +38,8 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
   let authToken = null;
   beforeEach(populateDB);
   const query = {
+    startDate: moment.utc().date(15).startOf('d')
+      .toDate(),
     endDate: moment.utc().endOf('month').toDate(),
     billingStartDate: moment.utc().startOf('month').toDate(),
     billingPeriod: TWO_WEEKS,
@@ -80,7 +82,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    ['endDate', 'billingStartDate', 'billingPeriod'].forEach((param) => {
+    ['endDate', 'startDate', 'billingStartDate', 'billingPeriod'].forEach((param) => {
       it(`should return a 400 error if '${param}' query is missing`, async () => {
         const response = await app.inject({
           method: 'GET',
