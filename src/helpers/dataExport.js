@@ -453,7 +453,7 @@ const fundingExportHeader = [
   'Montant unitaire TTC',
   'Nombre d\'heures',
   'Jours',
-  'Participation du bénéficiaire',
+  'Participation du/de la bénéficiaire',
 ];
 
 exports.exportFundings = async (credentials) => {

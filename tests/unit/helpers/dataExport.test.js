@@ -1020,7 +1020,7 @@ describe('exportFundings', () => {
       'Montant unitaire TTC',
       'Nombre d\'heures',
       'Jours',
-      'Participation du bénéficiaire',
+      'Participation du/de la bénéficiaire',
     ]);
   });
 
