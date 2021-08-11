@@ -49,7 +49,11 @@ exports.findBillsAndHelpersByCustomer = async (date) => {
     .populate({
       path: 'customer',
       select: 'identity',
-      populate: { path: 'helpers', populate: { path: 'user', select: 'local company', options }, options },
+      populate: {
+        path: 'helpers',
+        populate: { path: 'user', select: 'local', populate: { path: 'company', select: 'company' }, options },
+        options,
+      },
       options,
     })
     .setOptions(options)
