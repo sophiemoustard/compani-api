@@ -116,11 +116,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         expect(response.statusCode).toBe(200);
 
         const cardUpdated = await Card.findById(card.id).lean({ virtuals: true });
-        expect(cardUpdated).toEqual(expect.objectContaining({ isValid: true }));
-
-        const expectedObject = omit(card.payload, ['media']);
-        if (card.payload.media) expectedObject.media = expect.objectContaining(card.payload.media);
-        expect(cardUpdated).toEqual(expect.objectContaining(expectedObject));
+        expect(cardUpdated).toEqual(expect.objectContaining({ isValid: true, ...card.payload }));
       });
     });
 
