@@ -2,14 +2,14 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const User = require('../models/User');
 const { rights } = require('../data/rights');
-const { CLIENT_ADMIN, CLIENT } = require('./constants');
+const { CLIENT_ADMIN, VENDOR } = require('./constants');
 
 const formatRights = (roles, company) => {
   let formattedRights = [];
   for (const role of roles) {
     let interfaceRights = rights;
 
-    if (role.interface === CLIENT) {
+    if (role.interface !== VENDOR) {
       const companySubscriptions = Object.keys(company.subscriptions).filter(key => company.subscriptions[key]);
       interfaceRights = interfaceRights.filter(r => !r.subscription || companySubscriptions.includes(r.subscription));
     }

@@ -565,13 +565,13 @@ describe('PUT contract/:id/versions/:versionId', () => {
       expect(contract).toEqual(1);
 
       const sectorHistory = await SectorHistory.countDocuments({
-        uxiliary: contractsList[2].user,
+        auxiliary: contractsList[2].user,
         startDate: {
           $gte: moment(payload.startDate).startOf('d').toDate(),
           $lte: moment(payload.startDate).endOf('d').toDate(),
         },
       });
-      expect(moment(payload.startDate).isSame(sectorHistory.startDate, 'day')).toBeTruthy();
+      expect(sectorHistory).toEqual(1);
     });
 
     it('should update startDate, corresponding sectorhistory and delete unrelevant ones', async () => {

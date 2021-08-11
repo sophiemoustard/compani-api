@@ -52,14 +52,17 @@ describe('validate', () => {
     );
   });
 
-  it('should authenticate user', async () => {
+  it('should authenticate user with company without erp subscription', async () => {
     const userId = new ObjectID();
     const sectorId = new ObjectID();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
-      company: { _id: 'company' },
+      role: {
+        client: { name: 'client_admin', interface: 'client' },
+        vendor: { name: 'vendor_admin', interface: 'vendor' },
+      },
+      company: { _id: 'company', subscriptions: { erp: false } },
       local: { email: 'email@email.com' },
       sector: sectorId,
     };
@@ -74,13 +77,76 @@ describe('validate', () => {
         _id: userId,
         identity: { lastname: 'lastname' },
         email: 'email@email.com',
-        company: { _id: 'company' },
+        company: { _id: 'company', subscriptions: { erp: false } },
         sector: sectorId.toHexString(),
         scope: [
           `user:read-${userId}`,
           `user:edit-${userId}`,
           'client_admin',
           'vendor_admin',
+          'attendancesheets:read',
+          'courses:edit',
+          'courses:read',
+          'exports:edit',
+          'roles:read',
+          'users:edit',
+          'users:exist',
+          'users:list',
+          'attendancesheets:edit',
+          'companies:create',
+          'companies:edit',
+          'companies:read',
+          'courses:create',
+          'programs:edit',
+          'programs:read',
+          'questionnaires:edit',
+          'questionnaires:read',
+          'scripts:run',
+          `company-${user.company._id}`,
+        ],
+        role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
+      },
+    });
+    SinonMongoose.calledWithExactly(
+      findById,
+      [
+        { query: 'findById', args: [userId, '_id identity role local'] },
+        { query: 'populate', args: [{ path: 'company', populate: { path: 'company' } }] },
+        { query: 'populate', args: [{ path: 'sector', options: { requestingOwnInfos: true } }] },
+        { query: 'populate', args: [{ path: 'customers', options: { requestingOwnInfos: true } }] },
+        { query: 'lean', args: [{ autopopulate: true }] },
+      ]
+    );
+  });
+
+  it('should authenticate user with company with erp subscription', async () => {
+    const userId = new ObjectID();
+    const sectorId = new ObjectID();
+    const user = {
+      _id: userId,
+      identity: { lastname: 'lastname' },
+      role: { client: { name: 'client_admin', interface: 'client' } },
+      company: { _id: 'company', subscriptions: { erp: true } },
+      local: { email: 'email@email.com' },
+      sector: sectorId,
+    };
+
+    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+
+    const result = await AuthorizationHelper.validate({ _id: userId });
+
+    expect(result).toEqual({
+      isValid: true,
+      credentials: {
+        _id: userId,
+        identity: { lastname: 'lastname' },
+        email: 'email@email.com',
+        company: { _id: 'company', subscriptions: { erp: true } },
+        sector: sectorId.toHexString(),
+        scope: [
+          `user:read-${userId}`,
+          `user:edit-${userId}`,
+          'client_admin',
           'attendancesheets:read',
           'bills:edit',
           'bills:read',
@@ -116,19 +182,9 @@ describe('validate', () => {
           'users:edit',
           'users:exist',
           'users:list',
-          'attendancesheets:edit',
-          'companies:create',
-          'companies:edit',
-          'companies:read',
-          'courses:create',
-          'programs:edit',
-          'programs:read',
-          'questionnaires:edit',
-          'questionnaires:read',
-          'scripts:run',
           `company-${user.company._id}`,
         ],
-        role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
+        role: { client: { name: 'client_admin' } },
       },
     });
     SinonMongoose.calledWithExactly(
@@ -150,9 +206,9 @@ describe('validate', () => {
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: { client: { name: 'helper' } },
+      role: { client: { name: 'helper', interface: 'client' } },
       customers: [customerId],
-      company: { _id: 'company' },
+      company: { _id: 'company', subscriptions: { erp: true } },
       local: { email: 'email@email.com' },
       sector: sectorId,
     };
@@ -167,7 +223,7 @@ describe('validate', () => {
         _id: userId,
         identity: { lastname: 'lastname' },
         email: 'email@email.com',
-        company: { _id: 'company' },
+        company: { _id: 'company', subscriptions: { erp: true } },
         sector: sectorId.toHexString(),
         scope: [`user:read-${userId}`, `user:edit-${userId}`, 'helper', `customer-${customerId.toHexString()}`],
         role: { client: { name: 'helper' } },
@@ -191,8 +247,8 @@ describe('validate', () => {
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
-      company: { _id: 'company' },
+      role: { client: { name: AUXILIARY_WITHOUT_COMPANY, interface: 'client' } },
+      company: { _id: 'company', subscriptions: { erp: true } },
       local: { email: 'email@email.com' },
       sector: sectorId,
     };
@@ -207,7 +263,7 @@ describe('validate', () => {
         _id: userId,
         identity: { lastname: 'lastname' },
         email: 'email@email.com',
-        company: { _id: 'company' },
+        company: { _id: 'company', subscriptions: { erp: true } },
         sector: sectorId.toHexString(),
         scope: [`user:read-${userId}`, `user:edit-${userId}`, 'auxiliary_without_company'],
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
@@ -231,8 +287,8 @@ describe('validate', () => {
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
-      role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
-      company: { _id: 'company' },
+      role: { client: { name: 'coach', interface: 'client' }, vendor: { name: 'trainer' } },
+      company: { _id: 'company', subscriptions: { erp: true } },
       local: { email: 'email@email.com' },
       sector: sectorId,
     };
@@ -247,7 +303,7 @@ describe('validate', () => {
         _id: userId,
         identity: { lastname: 'lastname' },
         email: 'email@email.com',
-        company: { _id: 'company' },
+        company: { _id: 'company', subscriptions: { erp: true } },
         sector: sectorId.toHexString(),
         scope: [
           `user:read-${userId}`,
