@@ -346,7 +346,7 @@ describe('BILL ROUTES - POST /bills', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(500);
+      expect(response.statusCode).toEqual(409);
       formatBillNumber.restore();
 
       const billCountAfter = await Bill.countDocuments();
@@ -442,73 +442,56 @@ describe('BILL ROUTES - POST /bills', () => {
 
     it('should create a new external bill', async () => {
       const fundingId = new ObjectID();
-      const draftBillPayload = [
-        {
-          customer: {
-            _id: billCustomerList[0]._id,
-            identity: billCustomerList[0].identity,
-          },
-          endDate: '2019-05-31T23:59:59.999Z',
-          customerBills: { bills: [], total: 0 },
-          thirdPartyPayerBills: [
-            {
-              bills: [
-                {
-                  _id: new ObjectID(),
-                  subscription: {
-                    _id: billCustomerList[0].subscriptions[0]._id,
-                    service: billServices[0],
-                    versions: [
-                      {
-                        _id: new ObjectID(),
-                        unitTTCRate: 12,
-                        estimatedWeeklyVolume: 12,
-                        evenings: 2,
-                        sundays: 1,
-                        startDate: '2019-04-03T08:33:55.370Z',
-                        createdAt: '2019-05-03T08:33:56.144Z',
-                      },
-                    ],
-                    createdAt: '2019-05-03T08:33:56.144Z',
-                  },
-                  discount: 0,
-                  startDate: '2019-05-01T00:00:00.000Z',
-                  endDate: '2019-05-31T23:59:59.999Z',
-                  unitExclTaxes: 10.714285714285714,
-                  unitInclTaxes: 12,
-                  vat: 12,
-                  exclTaxes: 21.428571428571427,
-                  inclTaxes: 24,
-                  hours: 2,
-                  eventsList: [
-                    {
-                      event: eventList[4]._id,
-                      auxiliary: new ObjectID(),
-                      startDate: '2019-05-02T08:00:00.000Z',
-                      endDate: '2019-05-02T10:00:00.000Z',
-                      inclTaxesTpp: 24,
-                      exclTaxesTpp: 21.428571428571427,
-                      thirdPartyPayer: billThirdPartyPayer._id,
-                      inclTaxesCustomer: 0,
-                      exclTaxesCustomer: 0,
-                      history: {
-                        amountTTC: 24,
-                        fundingId,
-                        nature: 'fixed',
-                      },
-                      fundingId,
-                      nature: 'fixed',
-                    },
-                  ],
-                  externalBilling: true,
-                  thirdPartyPayer: billThirdPartyPayer,
-                },
-              ],
-              total: 24,
+      const draftBillPayload = [{
+        customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
+        endDate: '2019-05-31T23:59:59.999Z',
+        customerBills: { bills: [], total: 0 },
+        thirdPartyPayerBills: [{
+          bills: [{
+            _id: new ObjectID(),
+            subscription: {
+              _id: billCustomerList[0].subscriptions[0]._id,
+              service: billServices[0],
+              versions: [{
+                _id: new ObjectID(),
+                unitTTCRate: 12,
+                estimatedWeeklyVolume: 12,
+                evenings: 2,
+                sundays: 1,
+                startDate: '2019-04-03T08:33:55.370Z',
+                createdAt: '2019-05-03T08:33:56.144Z',
+              }],
+              createdAt: '2019-05-03T08:33:56.144Z',
             },
-          ],
-        },
-      ];
+            discount: 0,
+            startDate: '2019-05-01T00:00:00.000Z',
+            endDate: '2019-05-31T23:59:59.999Z',
+            unitExclTaxes: 10.714285714285714,
+            unitInclTaxes: 12,
+            vat: 12,
+            exclTaxes: 21.428571428571427,
+            inclTaxes: 24,
+            hours: 2,
+            eventsList: [{
+              event: eventList[4]._id,
+              auxiliary: new ObjectID(),
+              startDate: '2019-05-02T08:00:00.000Z',
+              endDate: '2019-05-02T10:00:00.000Z',
+              inclTaxesTpp: 24,
+              exclTaxesTpp: 21.428571428571427,
+              thirdPartyPayer: billThirdPartyPayer._id,
+              inclTaxesCustomer: 0,
+              exclTaxesCustomer: 0,
+              history: { amountTTC: 24, fundingId, nature: 'fixed' },
+              fundingId,
+              nature: 'fixed',
+            }],
+            externalBilling: true,
+            thirdPartyPayer: billThirdPartyPayer,
+          }],
+          total: 24,
+        }],
+      }];
 
       const response = await app.inject({
         method: 'POST',
@@ -518,8 +501,10 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find({ company: authCompany._id }).lean();
+
+      const bills = await Bill.find({ company: authCompany._id }, { number: 1 }).lean();
       expect(bills.some(bill => !bill.number)).toBeTruthy();
+
       const draftBillsLength = draftBillPayload[0].thirdPartyPayerBills[0].bills.length;
       expect(bills.length).toBe(draftBillsLength + authBillsList.length);
     });
@@ -601,17 +586,15 @@ describe('BILL ROUTES - POST /bills', () => {
                 subscription: {
                   _id: billCustomerList[2].subscriptions[0]._id,
                   service: billServices[1],
-                  versions: [
-                    {
-                      _id: new ObjectID(),
-                      unitTTCRate: 12,
-                      estimatedWeeklyVolume: 12,
-                      evenings: 2,
-                      sundays: 1,
-                      startDate: '2019-04-03T08:33:55.370Z',
-                      createdAt: '2019-05-03T08:33:56.144Z',
-                    },
-                  ],
+                  versions: [{
+                    _id: new ObjectID(),
+                    unitTTCRate: 12,
+                    estimatedWeeklyVolume: 12,
+                    evenings: 2,
+                    sundays: 1,
+                    startDate: '2019-04-03T08:33:55.370Z',
+                    createdAt: '2019-05-03T08:33:56.144Z',
+                  }],
                   createdAt: '2019-05-03T08:33:56.144Z',
                 },
               }],
@@ -627,14 +610,16 @@ describe('BILL ROUTES - POST /bills', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403, erp: true },
+      { name: 'planning_referent', expectedCode: 403, erp: true },
+      { name: 'coach', expectedCode: 403, erp: true },
+      { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'POST',
           url: '/bills',
@@ -698,8 +683,11 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
-
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+    ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         generatePdf.returns('pdf');

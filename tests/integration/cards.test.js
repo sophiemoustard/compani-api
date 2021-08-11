@@ -45,13 +45,13 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       { template: 'transition', payload: { title: 'transition' }, id: transitionId },
       {
         template: 'title_text_media',
-        payload: { title: 'TTM', text: 'test', media: { link: 'lien', publicId: 'id' } },
+        payload: { title: 'TTM', text: 'title_text_media', media: { type: 'video', link: 'lien', publicId: 'id' } },
         id: cardsList[1]._id,
       },
       { template: 'title_text', payload: { title: 'titre', text: 'this is a text' }, id: cardsList[2]._id },
       {
         template: 'text_media',
-        payload: { text: 'still a text', media: { link: '123', publicId: '456' } },
+        payload: { text: 'still a text', media: { type: 'audio', link: '123', publicId: '456' } },
         id: cardsList[3]._id,
       },
       { template: 'flashcard', payload: { backText: 'verso', text: 'this is a text' }, id: cardsList[4]._id },
@@ -826,10 +826,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
       const card = cardsList[0];
       const form = generateFormData({ fileName: 'title_text_media', file: 'true' });
       momentFormat.returns('20200625054512');
-      uploadProgramMediaStub.returns({
-        link: 'https://storage.googleapis.com/BucketKFC/myMedia',
-        publicId: 'media-titletextmedia-20200625054512',
-      });
+      uploadProgramMediaStub.returns({ link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' });
 
       const payload = await GetStream(form);
       const response = await app.inject({
@@ -839,16 +836,11 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
-      const cardUpdated = await Card.findById(card._id).lean();
-
       expect(response.statusCode).toBe(200);
-      expect(cardUpdated).toMatchObject({
-        _id: card._id,
-        media: {
-          link: 'https://storage.googleapis.com/BucketKFC/myMedia',
-          publicId: 'media-titletextmedia-20200625054512',
-        },
-      });
+
+      const cardUpdated = await Card
+        .countDocuments({ _id: card._id, media: { link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' } });
+      expect(cardUpdated).toEqual(1);
       sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'title_text_media', file: 'true' });
     });
 
@@ -880,10 +872,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const form = generateFormData({ fileName: 'title_text_media', file: 'true' });
         authToken = await getToken(role.name);
-        uploadProgramMediaStub.returns({
-          link: 'https://storage.googleapis.com/BucketKFC/myMedia',
-          publicId: 'media-titletextmedia-20200625054512',
-        });
+        uploadProgramMediaStub.returns({ link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' });
 
         const response = await app.inject({
           method: 'POST',

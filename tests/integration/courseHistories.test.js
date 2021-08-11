@@ -30,7 +30,6 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       const courseHistoriesFromCourse = courseHistoriesList.filter(ch => ch.course === coursesList[0]._id);
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseHistories).toBeDefined();
       expect(response.result.data.courseHistories.length).toEqual(courseHistoriesFromCourse.length);
     });
 
@@ -46,7 +45,6 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
       );
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseHistories).toBeDefined();
       expect(response.result.data.courseHistories.length).toEqual(courseHistoriesFromCourse.length);
     });
 

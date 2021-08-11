@@ -30,6 +30,7 @@ const createBills = async (req) => {
     return { message: translate[language].billsCreated };
   } catch (e) {
     req.log('error', e);
+    if (e.code === 11000) return Boom.conflict();
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };

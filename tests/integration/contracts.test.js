@@ -1,6 +1,5 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
-const moment = require('moment');
 const sinon = require('sinon');
 const get = require('lodash/get');
 const fs = require('fs');
@@ -9,6 +8,7 @@ const path = require('path');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const app = require('../../server');
+const moment = require('../../src/extensions/moment');
 const Contract = require('../../src/models/Contract');
 const User = require('../../src/models/User');
 const Event = require('../../src/models/Event');
@@ -54,7 +54,6 @@ describe('GET /contracts', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.contracts).toBeDefined();
       expect(response.result.data.contracts.length)
         .toEqual(contractsList.filter(contract => contract.user === userId).length);
     });
@@ -87,6 +86,7 @@ describe('GET /contracts', () => {
     const roles = [
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -169,7 +169,6 @@ describe('POST /contracts', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.contract).toBeDefined();
 
       const sectorHistories = await SectorHistory
         .find({ auxiliary: contractUsers[2]._id, company: authCompany._id })
@@ -227,7 +226,7 @@ describe('POST /contracts', () => {
       { name: 'helper', expectedCode: 403 },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = {
           startDate: '2019-09-01T00:00:00',
           versions: [{ weeklyHours: 24, grossHourlyRate: 10.43, startDate: '2019-09-01T00:00:00' }],
@@ -270,18 +269,23 @@ describe('PUT contract/:id', () => {
       expect(moment(response.result.data.contract.endDate).format('YYYY/MM/DD'))
         .toEqual(moment(endDate).format('YYYY/MM/DD'));
 
-      const user = await User.findOne({ _id: contractsList[0].user }).lean();
-      expect(user.inactivityDate).not.toBeNull();
-      expect(moment(user.inactivityDate).format('YYYY-MM-DD'))
-        .toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
+      const user = await User.countDocuments({
+        _id: contractsList[0].user,
+        inactivityDate: moment(endDate).add('1', 'months').startOf('M').toDate(),
+      });
+      expect(user).toEqual(1);
 
       const events = await Event.find({ company: authCompany._id }).lean();
       expect(events.length).toBe(contractEvents.length - 1);
       const absence = events.find(e => e.type === 'absence' && moment(e.startDate).isSame('2019-07-06', 'day'));
       expect(moment(absence.endDate).isSame('2019-07-08', 'day')).toBeTruthy();
 
-      const sectorHistories = await SectorHistory.find({ company: authCompany._id, auxiliary: user._id }).lean();
-      expect(sectorHistories[0].endDate).toEqual(moment(response.result.data.contract.endDate).endOf('day').toDate());
+      const sectorHistories = await SectorHistory.countDocuments({
+        company: authCompany._id,
+        auxiliary: contractsList[0].user,
+        endDate: moment(response.result.data.contract.endDate).endOf('day').toDate(),
+      });
+      expect(sectorHistories).toEqual(1);
     });
 
     it('should return 404 as user and contract are not in the same company', async () => {
@@ -551,10 +555,22 @@ describe('PUT contract/:id/versions/:versionId', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const contract = await Contract.findById(contractsList[2]._id).lean();
-      expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
+      const contract = await Contract.countDocuments({
+        _id: contractsList[2]._id,
+        startDate: {
+          $gte: moment(payload.startDate).startOf('d').toDate(),
+          $lte: moment(payload.startDate).endOf('d').toDate(),
+        },
+      });
+      expect(contract).toEqual(1);
 
-      const sectorHistory = await SectorHistory.findOne({ auxiliary: contract.user }).lean();
+      const sectorHistory = await SectorHistory.countDocuments({
+        uxiliary: contractsList[2].user,
+        startDate: {
+          $gte: moment(payload.startDate).startOf('d').toDate(),
+          $lte: moment(payload.startDate).endOf('d').toDate(),
+        },
+      });
       expect(moment(payload.startDate).isSame(sectorHistory.startDate, 'day')).toBeTruthy();
     });
 
@@ -568,10 +584,18 @@ describe('PUT contract/:id/versions/:versionId', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const contract = await Contract.findById(contractsList[5]._id).lean();
-      expect(moment(payload.startDate).isSame(contract.startDate, 'day')).toBeTruthy();
+      const contract = await Contract.countDocuments({
+        _id: contractsList[5]._id,
+        startDate: {
+          $gte: moment(payload.startDate).startOf('d').toDate(),
+          $lte: moment(payload.startDate).endOf('d').toDate(),
+        },
+      });
+      expect(contract).toEqual(1);
 
-      const sectorHistories = await SectorHistory.find({ auxiliary: contract.user, company: authCompany._id }).lean();
+      const sectorHistories = await SectorHistory
+        .find({ auxiliary: contractsList[5].user, company: authCompany._id })
+        .lean();
       expect(sectorHistories.length).toBe(1);
       expect(moment(payload.startDate).isSame(sectorHistories[0].startDate, 'day')).toBeTruthy();
     });
@@ -657,10 +681,8 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
       expect(response.statusCode).toBe(200);
 
       const sectorHistories = await SectorHistory
-        .find({ company: authCompany._id, auxiliary: contractsList[5].user })
-        .lean();
-      expect(sectorHistories.length).toEqual(1);
-      expect(sectorHistories[0].startDate).toBeUndefined();
+        .countDocuments({ company: authCompany._id, auxiliary: contractsList[5].user, startDtae: { $exists: false } });
+      expect(sectorHistories).toEqual(1);
     });
 
     it('should return a 404 as user and contract are not in the same company', async () => {

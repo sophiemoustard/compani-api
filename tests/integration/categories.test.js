@@ -144,10 +144,10 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
         payload: { name: 'nouveau nom' },
       });
 
-      const categoryUpdated = await Category.findById(categoryId).lean();
-
       expect(response.statusCode).toBe(200);
-      expect(categoryUpdated.name).toEqual('nouveau nom');
+
+      const categoryUpdated = await Category.countDocuments({ _id: categoryId, name: 'nouveau nom' });
+      expect(categoryUpdated).toEqual(1);
     });
 
     it('should return 404 if category does not exist', async () => {

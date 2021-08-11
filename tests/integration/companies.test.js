@@ -1,5 +1,4 @@
 const expect = require('expect');
-const omit = require('lodash/omit');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const GetStream = require('get-stream');
@@ -173,11 +172,7 @@ describe('POST /{_id}/gdrive/{driveId}/upload', () => {
     });
 
     it('should not upload file if the user is not from the same company', async () => {
-      const payload = {
-        fileName: 'mandat_signe',
-        file: 'true',
-        type: 'contract',
-      };
+      const payload = { fileName: 'mandat_signe', file: 'true', type: 'contract' };
       const form = generateFormData(payload);
 
       const response = await app.inject({
@@ -195,7 +190,6 @@ describe('POST /{_id}/gdrive/{driveId}/upload', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
     ];
 
@@ -256,15 +250,6 @@ describe('POST /companies', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.company).toMatchObject({
-        subscriptions: { erp: false },
-        folderId: '1234567890',
-        directDebitsFolderId: '0987654321',
-        customersFolderId: 'qwerty',
-        auxiliariesFolderId: 'asdfgh',
-        prefixNumber: 105,
-      });
-
       const companiesCount = await Company.countDocuments();
       expect(companiesCount).toEqual(companiesBefore.length + 1);
     });
@@ -285,34 +270,26 @@ describe('POST /companies', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    ['name', 'type'].forEach((param) => {
-      it(`should return a 400 error if missing '${param}' parameter`, async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/companies',
-          payload: omit({ ...payload }, param),
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(400);
+    it('should return a 400 error if missing name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companies',
+        payload: { tradeName: 'Test', type: 'company' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
+      expect(response.statusCode).toBe(400);
     });
 
-    const falsyAssertions = [
-      { payload: { type: 'falsy type' }, case: 'wrong company type' },
-      { payload: { address: { street: '38 rue de ponthieu' } }, case: 'wrong address' },
-    ];
-    falsyAssertions.forEach((assertion) => {
-      it(`should return a 400 error if ${assertion.case}`, async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/companies',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { ...payload, ...assertion.payload },
-        });
-
-        expect(response.statusCode).toBe(400);
+    it('should return a 400 error if wrong type', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companies',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { type: 'falsy type' },
       });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -379,7 +356,6 @@ describe('GET /companies/first-intervention', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
     ];
     roles.forEach((role) => {
