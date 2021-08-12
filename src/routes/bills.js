@@ -21,8 +21,15 @@ exports.plugin = {
         auth: { scope: ['bills:edit'] },
         validate: {
           query: Joi.object({
-            endDate: Joi.date().required(),
             startDate: Joi.date(),
+            endDate: Joi.when(
+              'startDate',
+              {
+                is: Joi.exist(),
+                then: Joi.date().required().greater(Joi.ref('startDate')),
+                otherwise: Joi.date().required(),
+              }
+            ),
             billingStartDate: Joi.date().required(),
             billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS).required(),
             customer: Joi.objectId(),
