@@ -5,10 +5,9 @@ const BillSlip = require('../../models/BillSlip');
 exports.authorizeGetBillSlipDocx = async (req) => {
   try {
     const companyId = get(req, 'auth.credentials.company._id', null);
-    const billSlip = await BillSlip.findById(req.params._id).lean();
+    const billSlip = await BillSlip.countDocuments({ _id: req.params._id, company: companyId });
 
     if (!billSlip) throw Boom.notFound();
-    if (billSlip.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
     return null;
   } catch (e) {

@@ -97,7 +97,7 @@ const getTokenByCredentials = memoize(
   credentials => JSON.stringify([credentials.email, credentials.password])
 );
 
-const getToken = (roleName, erp) => {
+const getToken = async (roleName, erp) => {
   const user = getUser(roleName, erp);
   return getTokenByCredentials(user.local);
 };
