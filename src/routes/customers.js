@@ -351,7 +351,11 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             subscriptions: Joi.array().items(Joi.object().keys({
-              serviceName: Joi.string(),
+              service: Joi.object().keys({
+                name: Joi.string().required(),
+                nature: Joi.string().required(),
+                surcharge: Joi.object().keys({ evening: Joi.number(), sunday: Joi.number() }),
+              }).required(),
               unitTTCRate: Joi.number(),
               estimatedWeeklyVolume: Joi.number(),
               evenings: Joi.number(),
