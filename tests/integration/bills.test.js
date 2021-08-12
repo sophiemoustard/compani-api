@@ -1,5 +1,4 @@
 const expect = require('expect');
-const moment = require('moment');
 const qs = require('qs');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
@@ -38,10 +37,8 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
   let authToken = null;
   beforeEach(populateDB);
   const query = {
-    startDate: moment.utc().date(15).startOf('d')
-      .toDate(),
-    endDate: moment.utc().endOf('month').toDate(),
-    billingStartDate: moment.utc().startOf('month').toDate(),
+    endDate: new Date('2021-08-31T23:59:59.999Z'),
+    billingStartDate: new Date('2021-08-01T00:00:00.000Z'),
     billingPeriod: TWO_WEEKS,
   };
 
@@ -82,7 +79,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    ['endDate', 'startDate', 'billingStartDate', 'billingPeriod'].forEach((param) => {
+    ['endDate', 'billingStartDate', 'billingPeriod'].forEach((param) => {
       it(`should return a 400 error if '${param}' query is missing`, async () => {
         const response = await app.inject({
           method: 'GET',
