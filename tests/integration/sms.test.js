@@ -2,7 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const { getToken, populateDBForAuthentication, authCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 const { smsUser, smsUserFromOtherCompany, populateDB } = require('./seed/smsSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const { COURSE_SMS, HR_SMS } = require('../../src/helpers/constants');
@@ -13,15 +13,13 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('SMS ROUTES', () => {
+describe('POST /sms', () => {
   let authToken;
   let SmsHelperStub;
-  beforeEach(populateDBForAuthentication);
-  beforeEach(populateDB);
-
-  describe('POST /sms', () => {
+  describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
       SmsHelperStub = sinon.stub(SmsHelper, 'sendFromCompany').returns('SMS SENT !');
     });
     afterEach(() => {
@@ -59,19 +57,6 @@ describe('SMS ROUTES', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
-    it('should throw error if phone does not exist', async () => {
-      const payload = { recipient: '+33676543243', content: 'Ceci est un test', tag: HR_SMS };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/sms',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-      sinon.assert.notCalled(SmsHelperStub);
-    });
-
     const missingParams = ['recipient', 'content', 'tag'];
     missingParams.forEach((path) => {
       const payload = { recipient: `+33${smsUser.contact.phone}`, content: 'Ceci est un test', tag: COURSE_SMS };
@@ -88,10 +73,9 @@ describe('SMS ROUTES', () => {
     });
 
     const roles = [
-      { name: 'coach', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
