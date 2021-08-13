@@ -9,8 +9,9 @@ const { language } = translate;
 
 exports.getSector = async (req) => {
   try {
+    const { credentials } = req.auth;
     const sectorId = req.params._id;
-    const sector = await Sector.findById(sectorId).lean();
+    const sector = await Sector.findOne({ _id: sectorId, company: get(credentials, 'company._id') }).lean();
     if (!sector) throw Boom.notFound(translate[language].sectorNotFound);
 
     return sector;
@@ -34,7 +35,7 @@ exports.authorizeSectorCreation = async (req) => {
 exports.authorizeSectorUpdate = async (req) => {
   const { credentials } = req.auth;
   const sector = req.pre.sector || req.payload;
-  if (!areObjectIdsEquals(sector.company, credentials.company._id)) throw Boom.forbidden();
+  if (!areObjectIdsEquals(sector.company, credentials.company._id)) throw Boom.notFound();
 
   const existingSector = await Sector.countDocuments({ name: req.payload.name, company: sector.company });
   if (existingSector) throw Boom.conflict(translate[language].sectorAlreadyExists);
@@ -43,9 +44,8 @@ exports.authorizeSectorUpdate = async (req) => {
 };
 
 exports.authorizeSectorDeletion = async (req) => {
-  const { credentials } = req.auth;
   const { sector } = req.pre;
-  if (!areObjectIdsEquals(sector.company, credentials.company._id)) throw Boom.forbidden();
+  if (!sector) throw Boom.notFound();
 
   const historiesCount = await SectorHistory.countDocuments({ sector: sector._id });
   if (historiesCount) throw Boom.forbidden();
