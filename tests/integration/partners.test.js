@@ -14,9 +14,9 @@ describe('NODE ENV', () => {
 
 describe('PARTNERS ROUTES - GET /partners', () => {
   let authToken;
-  beforeEach(populateDB);
 
   describe('AUXILIARY', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('auxiliary');
     });
@@ -59,9 +59,9 @@ describe('PARTNERS ROUTES - GET /partners', () => {
 
 describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
   let authToken;
-  beforeEach(populateDB);
 
   describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
