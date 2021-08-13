@@ -23,24 +23,6 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
   let authToken = null;
   beforeEach(populateDB);
 
-  it('should return a 401 if user is not connected', async () => {
-    const payload = {
-      course: coursesList[0]._id,
-      user: questionnaireHistoriesUsersList[0],
-      questionnaire: questionnairesList[0]._id,
-      questionnaireAnswersList: [
-        { card: cardsList[0]._id, answerList: ['blabla'] },
-        { card: cardsList[3]._id, answerList: ['blebleble'] },
-        { card: cardsList[4]._id, answerList: [new ObjectID(), new ObjectID()] },
-        { card: cardsList[5]._id, answerList: [new ObjectID()] },
-      ],
-    };
-
-    const response = await app.inject({ method: 'POST', url: '/questionnairehistories', payload });
-
-    expect(response.statusCode).toBe(401);
-  });
-
   describe('Logged user', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
@@ -67,11 +49,11 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(200);
+      const questionnaireHistoriesCount = await QuestionnaireHistory.countDocuments();
+      expect(questionnaireHistoriesCount).toBe(1);
     });
 
     it('should create questionnaireHistory without questionnaireAnswersList', async () => {
-      await QuestionnaireHistory.deleteMany({});
-
       const payload = {
         course: coursesList[0]._id,
         user: questionnaireHistoriesUsersList[0],
@@ -86,6 +68,8 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(200);
+      const questionnaireHistoriesCount = await QuestionnaireHistory.countDocuments();
+      expect(questionnaireHistoriesCount).toBe(1);
     });
 
     it('should return 400 if questionnaire answer without card', async () => {
@@ -151,6 +135,8 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         questionnaire: questionnairesList[0]._id,
       };
 
+      await QuestionnaireHistory.create(payload);
+
       const response = await app.inject({
         method: 'POST',
         url: '/questionnairehistories',
@@ -159,19 +145,6 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       });
 
       expect(response.statusCode).toBe(409);
-    });
-
-    it('should return a 404 if user doesn\'t exist', async () => {
-      const payload = { course: coursesList[0]._id, user: new ObjectID(), questionnaire: questionnairesList[0]._id };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/questionnairehistories',
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 404 if questionnaire doesn\'t exist', async () => {
@@ -196,26 +169,6 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         course: coursesList[1]._id,
         user: questionnaireHistoriesUsersList[0],
         questionnaire: questionnairesList[0]._id,
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/questionnairehistories',
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 404 if card does not exist', async () => {
-      await QuestionnaireHistory.deleteMany({});
-
-      const payload = {
-        course: coursesList[0]._id,
-        user: questionnaireHistoriesUsersList[0],
-        questionnaire: questionnairesList[0]._id,
-        questionnaireAnswersList: [{ card: new ObjectID(), answerList: ['blabla'] }],
       };
 
       const response = await app.inject({
