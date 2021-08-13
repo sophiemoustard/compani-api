@@ -13,9 +13,9 @@ describe('NODE ENV', () => {
 
 describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
   let authToken;
-  beforeEach(populateDB);
 
   describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -123,9 +123,9 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
 
 describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
   let authToken;
-  beforeEach(populateDB);
 
   describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -169,9 +169,9 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
 
 describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => {
   let authToken;
-  beforeEach(populateDB);
 
   describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -221,9 +221,9 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
 
 describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => {
   let authToken;
-  beforeEach(populateDB);
 
   describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -331,9 +331,9 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
 
 describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partners', () => {
   let authToken;
-  beforeEach(populateDB);
 
   describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
