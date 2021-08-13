@@ -18,8 +18,9 @@ describe('NODE ENV', () => {
 
 describe('POST /internalhours', () => {
   let authToken = null;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -70,6 +71,7 @@ describe('POST /internalhours', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -90,8 +92,9 @@ describe('POST /internalhours', () => {
 
 describe('GET /internalhours', () => {
   let authToken = null;
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -125,6 +128,7 @@ describe('GET /internalhours', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -144,8 +148,9 @@ describe('GET /internalhours', () => {
 
 describe('DELETE /internalhours/:id', () => {
   let authToken = null;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -197,6 +202,7 @@ describe('DELETE /internalhours/:id', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

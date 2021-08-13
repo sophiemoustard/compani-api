@@ -4,6 +4,8 @@ const { populateDB, partnerOrganizationsList } = require('./seed/partnerOrganiza
 const { getToken } = require('./seed/authenticationSeed');
 const { authCompany } = require('../seed/companySeed');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
+const PartnerOrganization = require('../../src/models/PartnerOrganization');
+const Partner = require('../../src/models/Partner');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -13,14 +15,16 @@ describe('NODE ENV', () => {
 
 describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
 
     it('should add a partner organization', async () => {
+      const partnerOrganizationsCountBefore = await PartnerOrganization.countDocuments();
+
       const response = await app.inject({
         method: 'POST',
         url: '/partnerorganizations',
@@ -40,6 +44,8 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const partnerOrganizationsCount = await PartnerOrganization.countDocuments();
+      expect(partnerOrganizationsCount).toEqual(partnerOrganizationsCountBefore + 1);
     });
 
     it('should return 400 if missing name', async () => {
@@ -123,9 +129,9 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
 
 describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -169,9 +175,9 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
 
 describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -184,6 +190,7 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.partnerOrganization._id).toEqual(partnerOrganizationsList[0]._id);
     });
 
     it('should return 404 if partner organization isn\'t from auth company', async () => {
@@ -221,9 +228,9 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
 
 describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -237,6 +244,9 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
       });
 
       expect(response.statusCode).toBe(200);
+      const partnerOrganizationUpdated = await PartnerOrganization
+        .countDocuments({ _id: partnerOrganizationsList[0]._id, name: 'skusku' });
+      expect(partnerOrganizationUpdated).toEqual(1);
     });
 
     it('should return 400 if name is not a string', async () => {
@@ -339,6 +349,8 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     });
 
     it('should create a partner', async () => {
+      const partnerCountBefore = await Partner.countDocuments();
+
       const response = await app.inject({
         method: 'POST',
         url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
@@ -346,7 +358,9 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, job: 'doctor' },
       });
 
+      const partnerCount = await Partner.countDocuments();
       expect(response.statusCode).toBe(200);
+      expect(partnerCount).toEqual(partnerCountBefore + 1);
     });
 
     it('should return a 400 if missing lastname', async () => {
@@ -417,6 +431,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },

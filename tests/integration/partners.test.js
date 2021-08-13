@@ -1,10 +1,10 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, partnersList } = require('./seed/partnersSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { authCompany } = require('../seed/companySeed');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
+const Partner = require('../../src/models/Partner');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -14,9 +14,9 @@ describe('NODE ENV', () => {
 
 describe('PARTNERS ROUTES - GET /partners', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('AUXILIARY', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('auxiliary');
     });
@@ -40,6 +40,7 @@ describe('PARTNERS ROUTES - GET /partners', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -59,27 +60,32 @@ describe('PARTNERS ROUTES - GET /partners', () => {
 
 describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
 
     it('should update partner', async () => {
+      const payload = {
+        identity: { firstname: 'Ulysse', lastname: 'TeDatente' },
+        email: 'skulysse@alenvi.io',
+        phone: '0712345678',
+        job: 'doctor',
+      };
+
       const response = await app.inject({
         method: 'PUT',
         url: `/partners/${partnersList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
-          identity: { firstname: 'Ulysse', lastname: 'TeDatente' },
-          email: 'skulysse@alenvi.io',
-          phone: '0712345678',
-          job: 'doctor',
-        },
+        payload,
       });
 
       expect(response.statusCode).toBe(200);
+      const partnerUpdated = await Partner
+        .countDocuments({ ...payload, _id: partnersList[0]._id });
+      expect(partnerUpdated).toEqual(1);
     });
 
     it('should return 400 if empty payload', async () => {
@@ -137,10 +143,10 @@ describe('PARTNERS ROUTES - PUT /partners/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if partner does not exist', async () => {
+    it('should return 404 if partner is from an other compani', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/partners/${new ObjectID()}`,
+        url: `/partners/${partnersList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { lastname: 'bonjour' } },
       });
