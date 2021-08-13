@@ -12,7 +12,7 @@ exports.getInternalHour = async (req) => {
     const { credentials } = req.auth;
     const internalHour = await InternalHour.findOne({ _id: req.params._id }).lean();
     if (!internalHour) throw Boom.notFound(translate[language].companyInternalHourNotFound);
-    if (!UtilsHelper.areObjectIdsEquals(internalHour.company, credentials.company._id)) return Boom.forbidden();
+    if (!UtilsHelper.areObjectIdsEquals(internalHour.company, credentials.company._id)) return Boom.notFound();
 
     return internalHour;
   } catch (e) {
