@@ -50,6 +50,56 @@ describe('populateService', () => {
   });
 });
 
+describe('populateSubscriptionsServices', () => {
+  let populateService;
+  beforeEach(() => {
+    populateService = sinon.stub(SubscriptionsHelper, 'populateService');
+  });
+  afterEach(() => {
+    populateService.restore();
+  });
+
+  it('should retrun customer if subscriptions array is missing', () => {
+    const customer = { identity: { firstname: 'Toto' } };
+
+    const result = SubscriptionsHelper.populateSubscriptionsServices(customer);
+
+    expect(result).toEqual({ identity: { firstname: 'Toto' } });
+    sinon.assert.notCalled(populateService);
+  });
+
+  it('should return customer with subscriptions services populated', () => {
+    const customer = {
+      identity: { firstname: 'Toto' },
+      subscriptions: [{
+        versions: [{ unitTTCRate: 13, estimatedWeeklyVolume: 12 }],
+        service: { nature: 'fixed' },
+      }, {
+        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 20 }],
+        service: { nature: 'hourly' },
+      }],
+    };
+    populateService.onCall(0).returns({ nature: 'fixed', name: 'toto' });
+    populateService.onCall(1).returns({ nature: 'hourly', name: 'pouet' });
+
+    const result = SubscriptionsHelper.populateSubscriptionsServices(customer);
+
+    expect(result).toEqual({
+      identity: { firstname: 'Toto' },
+      subscriptions: [{
+        versions: [{ unitTTCRate: 13, estimatedWeeklyVolume: 12 }],
+        service: { nature: 'fixed', name: 'toto' },
+      }, {
+        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 20 }],
+        service: { nature: 'hourly', name: 'pouet' },
+      }],
+    });
+
+    sinon.assert.calledWithExactly(populateService.getCall(0), { nature: 'fixed' });
+    sinon.assert.calledWithExactly(populateService.getCall(1), { nature: 'hourly' });
+  });
+});
+
 describe('subscriptionsAccepted', () => {
   let findOne;
   beforeEach(() => {
