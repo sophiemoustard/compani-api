@@ -5,6 +5,7 @@ const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const SubProgram = require('../../../src/models/SubProgram');
 const Program = require('../../../src/models/Program');
+const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const { populateDBForAuthentication, rolesList, userList, authCompany } = require('./authenticationSeed');
 const { TRANSITION, OPEN_QUESTION } = require('../../../src/helpers/constants');
 
@@ -73,6 +74,16 @@ const slots = [{
   step: new ObjectID(),
 }];
 
+const questionnaireHistories = [{
+  course: coursesList[0]._id,
+  questionnaire: questionnairesList[0]._id,
+  user: new ObjectID(),
+  questionnaireAnswersList: [{
+    card: cardsList[1]._id,
+    answerList: ['blabla'],
+  }],
+}];
+
 const populateDB = async () => {
   await Questionnaire.deleteMany({});
   await Card.deleteMany({});
@@ -80,6 +91,7 @@ const populateDB = async () => {
   await CourseSlot.deleteMany({});
   await SubProgram.deleteMany({});
   await Program.deleteMany({});
+  await QuestionnaireHistory.deleteMany({});
 
   await populateDBForAuthentication();
 
@@ -89,6 +101,7 @@ const populateDB = async () => {
   await CourseSlot.insertMany(slots);
   await SubProgram.insertMany(subProgramsList);
   await Program.insertMany(programsList);
+  await QuestionnaireHistory.insertMany(questionnaireHistories);
 };
 
 module.exports = {
