@@ -3,7 +3,6 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
-const Company = require('../../../src/models/Company');
 const Customer = require('../../../src/models/Customer');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -59,7 +58,7 @@ describe('populateSubscriptionsServices', () => {
     populateService.restore();
   });
 
-  it('should retrun customer if subscriptions array is missing', () => {
+  it('should return customer if subscriptions array is missing', () => {
     const customer = { identity: { firstname: 'Toto' } };
 
     const result = SubscriptionsHelper.populateSubscriptionsServices(customer);
@@ -71,13 +70,10 @@ describe('populateSubscriptionsServices', () => {
   it('should return customer with subscriptions services populated', () => {
     const customer = {
       identity: { firstname: 'Toto' },
-      subscriptions: [{
-        versions: [{ unitTTCRate: 13, estimatedWeeklyVolume: 12 }],
-        service: { nature: 'fixed' },
-      }, {
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 20 }],
-        service: { nature: 'hourly' },
-      }],
+      subscriptions: [
+        { versions: [{ unitTTCRate: 13, estimatedWeeklyVolume: 12 }], service: { nature: 'fixed' } },
+        { versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 20 }], service: { nature: 'hourly' } },
+      ],
     };
     populateService.onCall(0).returns({ nature: 'fixed', name: 'toto' });
     populateService.onCall(1).returns({ nature: 'hourly', name: 'pouet' });
@@ -86,13 +82,10 @@ describe('populateSubscriptionsServices', () => {
 
     expect(result).toEqual({
       identity: { firstname: 'Toto' },
-      subscriptions: [{
-        versions: [{ unitTTCRate: 13, estimatedWeeklyVolume: 12 }],
-        service: { nature: 'fixed', name: 'toto' },
-      }, {
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 20 }],
-        service: { nature: 'hourly', name: 'pouet' },
-      }],
+      subscriptions: [
+        { versions: [{ unitTTCRate: 13, estimatedWeeklyVolume: 12 }], service: { nature: 'fixed', name: 'toto' } },
+        { versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 20 }], service: { nature: 'hourly', name: 'pouet' } },
+      ],
     });
 
     sinon.assert.calledWithExactly(populateService.getCall(0), { nature: 'fixed' });
@@ -101,94 +94,66 @@ describe('populateSubscriptionsServices', () => {
 });
 
 describe('subscriptionsAccepted', () => {
-  let findOne;
-  beforeEach(() => {
-    findOne = sinon.stub(Company, 'findOne');
-  });
-
-  afterEach(() => {
-    findOne.restore();
-  });
-
   it('should set subscriptionsAccepted to true', async () => {
     const subId = new ObjectID();
     const customer = {
-      subscriptions: [{
-        versions: [{
-          startDate: '2019-01-18T15:46:30.636Z',
-          createdAt: '2019-01-18T15:46:30.636Z',
-          _id: new ObjectID(),
-          unitTTCRate: 13,
-          estimatedWeeklyVolume: 12,
-          sundays: 2,
-        }, {
-          startDate: '2019-01-27T23:00:00.000Z',
-          createdAt: '2019-01-18T15:46:37.471Z',
-          _id: new ObjectID(),
-          unitTTCRate: 24,
-          estimatedWeeklyVolume: 12,
-          sundays: 2,
-          evenings: 3,
-        }],
-        createdAt: '2019-01-18T15:46:30.637Z',
-        _id: subId,
-        service: {
-          _id: new ObjectID(),
-          nature: 'Horaire',
-          defaultUnitAmount: 25,
-          vat: 5.5,
-          holidaySurcharge: 10,
-          eveningSurcharge: 25,
-          name: 'Temps de qualité - Autonomie',
-          startDate: '2019-01-18T15:37:30.636Z',
-        },
-      }],
-      subscriptionsHistory: [{
-        helper: {
-          firstname: 'Test',
-          lastname: 'Test',
-          title: '',
-        },
-        subscriptions: [{
-          _id: new ObjectID(),
-          service: 'Temps de qualité - Autonomie',
-          unitTTCRate: 24,
-          estimatedWeeklyVolume: 12,
-          startDate: '2019-01-27T23:00:00.000Z',
-          evenings: 3,
-          sundays: 2,
-          subscriptionId: subId,
-        }],
-        approvalDate: '2019-01-21T11:14:23.030Z',
-        _id: new ObjectID(),
-      }],
-    };
-
-    findOne.returns({
-      customersConfig: {
-        services: [{
-          _id: new ObjectID(),
-          nature: 'Horaire',
-          versions: [{
+      subscriptions: [
+        {
+          versions: [
+            {
+              startDate: '2019-01-18T15:46:30.636Z',
+              createdAt: '2019-01-18T15:46:30.636Z',
+              _id: new ObjectID(),
+              unitTTCRate: 13,
+              estimatedWeeklyVolume: 12,
+              sundays: 2,
+            },
+            {
+              startDate: '2019-01-27T23:00:00.000Z',
+              createdAt: '2019-01-18T15:46:37.471Z',
+              _id: new ObjectID(),
+              unitTTCRate: 24,
+              estimatedWeeklyVolume: 12,
+              sundays: 2,
+              evenings: 3,
+            },
+          ],
+          createdAt: '2019-01-18T15:46:30.637Z',
+          _id: subId,
+          service: {
+            _id: new ObjectID(),
+            nature: 'Horaire',
             defaultUnitAmount: 25,
             vat: 5.5,
             holidaySurcharge: 10,
             eveningSurcharge: 25,
             name: 'Temps de qualité - Autonomie',
             startDate: '2019-01-18T15:37:30.636Z',
+          },
+        },
+      ],
+      subscriptionsHistory: [
+        {
+          helper: {
+            firstname: 'Test',
+            lastname: 'Test',
+            title: '',
+          },
+          subscriptions: [{
+            _id: new ObjectID(),
+            service: 'Temps de qualité - Autonomie',
+            unitTTCRate: 24,
+            estimatedWeeklyVolume: 12,
+            startDate: '2019-01-27T23:00:00.000Z',
+            evenings: 3,
+            sundays: 2,
+            subscriptionId: subId,
           }],
-        }, {
+          approvalDate: '2019-01-21T11:14:23.030Z',
           _id: new ObjectID(),
-          versions: [{
-            name: 'Nuit',
-            defaultUnitAmount: 175,
-            vat: 12,
-            startDate: '2019-01-19T18:46:30.636Z',
-          }],
-          nature: 'Horaire',
-        }],
-      },
-    });
+        },
+      ],
+    };
 
     const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
     expect(result).toBeDefined();
@@ -197,62 +162,49 @@ describe('subscriptionsAccepted', () => {
 
   it('should set subscriptionsAccepted to false', async () => {
     const customer = {
-      subscriptions: [{
-        versions: [{
-          startDate: '2019-01-18T15:46:30.636Z',
-          createdAt: '2019-01-18T15:46:30.636Z',
+      subscriptions: [
+        {
+          versions: [
+            {
+              startDate: '2019-01-18T15:46:30.636Z',
+              createdAt: '2019-01-18T15:46:30.636Z',
+              _id: new ObjectID(),
+              unitTTCRate: 13,
+              estimatedWeeklyVolume: 12,
+              sundays: 2,
+            }, {
+              startDate: '2019-01-27T23:00:00.000Z',
+              createdAt: '2019-01-18T15:46:37.471Z',
+              _id: new ObjectID(),
+              unitTTCRate: 24,
+              estimatedWeeklyVolume: 12,
+              sundays: 2,
+              evenings: 3,
+            },
+          ],
+          createdAt: '2019-01-18T15:46:30.637Z',
           _id: new ObjectID(),
-          unitTTCRate: 13,
-          estimatedWeeklyVolume: 12,
-          sundays: 2,
-        }, {
-          startDate: '2019-01-27T23:00:00.000Z',
-          createdAt: '2019-01-18T15:46:37.471Z',
-          _id: new ObjectID(),
-          unitTTCRate: 24,
-          estimatedWeeklyVolume: 12,
-          sundays: 2,
-          evenings: 3,
-        }],
-        createdAt: '2019-01-18T15:46:30.637Z',
-        _id: new ObjectID(),
-        service: new ObjectID(),
-      }],
-      subscriptionsHistory: [{
-        helper: {
-          firstname: 'Test',
-          lastname: 'Test',
-          title: '',
+          service: new ObjectID(),
         },
-        subscriptions: [{
+      ],
+      subscriptionsHistory: [
+        {
+          helper: { firstname: 'Test', lastname: 'Test', title: '' },
+          subscriptions: [
+            {
+              _id: new ObjectID(),
+              service: 'Temps de qualité - Autonomie',
+              unitTTCRate: 35,
+              estimatedWeeklyVolume: 12,
+              startDate: '2019-01-27T23:00:00.000Z',
+              subscriptionId: new ObjectID(),
+            },
+          ],
+          approvalDate: '2019-01-21T11:14:23.030Z',
           _id: new ObjectID(),
-          service: 'Temps de qualité - Autonomie',
-          unitTTCRate: 35,
-          estimatedWeeklyVolume: 12,
-          startDate: '2019-01-27T23:00:00.000Z',
-          subscriptionId: new ObjectID(),
-        }],
-        approvalDate: '2019-01-21T11:14:23.030Z',
-        _id: new ObjectID(),
-      }],
+        },
+      ],
     };
-
-    findOne.returns({
-      customersConfig: {
-        services: [{
-          _id: new ObjectID(),
-          nature: 'Horaire',
-          versions: [{
-            defaultUnitAmount: 25,
-            vat: 5.5,
-            holidaySurcharge: 10,
-            eveningSurcharge: 25,
-            name: 'Temps de qualité - Autonomie',
-            startDate: '2019-01-18T15:37:30.636Z',
-          }],
-        }],
-      },
-    });
 
     const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
     expect(result).toBeDefined();
