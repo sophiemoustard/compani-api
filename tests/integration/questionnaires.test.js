@@ -343,7 +343,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -635,6 +635,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -707,6 +708,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 

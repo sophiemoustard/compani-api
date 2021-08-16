@@ -31,6 +31,7 @@ describe('POST /services', () => {
         }],
         nature: HOURLY,
       };
+
       const response = await app.inject({
         method: 'POST',
         url: '/services',
@@ -160,6 +161,7 @@ describe('PUT /services/:id', () => {
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
+
     it('should update service', async () => {
       const payload = { defaultUnitAmount: 15, name: 'Service bis', startDate: '2019-01-16 17:58:15.519', vat: 12 };
       const response = await app.inject({
@@ -175,12 +177,11 @@ describe('PUT /services/:id', () => {
     });
 
     it('should archive service', async () => {
-      const payload = { isArchived: true };
       const response = await app.inject({
         method: 'PUT',
         url: `/services/${servicesList[0]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
+        payload: { isArchived: true },
       });
 
       expect(response.statusCode).toBe(200);
@@ -251,6 +252,7 @@ describe('PUT /services/:id', () => {
       expect(response.statusCode).toBe(404);
     });
   });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
@@ -260,12 +262,7 @@ describe('PUT /services/:id', () => {
     ];
 
     roles.forEach((role) => {
-      const payload = {
-        defaultUnitAmount: 15,
-        name: 'Service bis',
-        startDate: '2019-01-16 17:58:15.519',
-        vat: 12,
-      };
+      const payload = { defaultUnitAmount: 15, name: 'Service bis', startDate: '2019-01-16 17:58:15.519', vat: 12 };
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({

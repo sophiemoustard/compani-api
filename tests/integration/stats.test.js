@@ -20,6 +20,7 @@ describe('GET /stats/customer-follow-up', () => {
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
+
     it('should get customer follow up', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -28,9 +29,21 @@ describe('GET /stats/customer-follow-up', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.followUp.length).toBe(1);
-      expect(res.result.data.followUp[0].totalHours).toBe(5);
-      expect(res.result.data.followUp[0]._id.toHexString()).toEqual(userList[0]._id.toHexString());
+      expect(res.result.data).toEqual(expect.objectContaining({
+        followUp: [
+          {
+            _id: userList[0]._id,
+            contracts: expect.any(Array),
+            inactivityDate: null,
+            identity: { firstname: 'Auxiliary', lastname: 'White' },
+            role: { client: { name: 'auxiliary' } },
+            createdAt: expect.any(Date),
+            lastEvent: expect.objectContaining({ startDate: expect.any(Date) }),
+            totalHours: 5,
+            sector: { name: 'Neptune' },
+          },
+        ],
+      }));
     });
 
     it('should not get customer follow up if customer is not from the same company', async () => {
@@ -83,9 +96,9 @@ describe('GET /stats/customer-fundings-monitoring', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customerFundingsMonitoring[0].careHours).toBe(40);
-      expect(res.result.data.customerFundingsMonitoring[0].currentMonthCareHours).toBe(6);
-      expect(res.result.data.customerFundingsMonitoring[0].prevMonthCareHours).toBe(4);
+      expect(res.result.data.customerFundingsMonitoring).toEqual(expect.arrayContaining([
+        { thirdPartyPayer: 'tiers payeur', careHours: 40, prevMonthCareHours: 4, currentMonthCareHours: 6 },
+      ]));
     });
 
     it('should get only hourly and monthly fundings', async () => {
@@ -140,7 +153,16 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
-
+      expect(res.result.data.allCustomersFundingsMonitoring).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          sector: expect.objectContaining({ name: 'Neptune' }),
+          customer: expect.objectContaining({ lastname: 'Giscard d\'Estaing' }),
+          referent: expect.objectContaining({ firstname: 'Auxiliary', lastname: 'Black' }),
+          currentMonthCareHours: 6,
+          prevMonthCareHours: 4,
+          nextMonthCareHours: 0,
+        }),
+      ]));
       expect(res.result.data.allCustomersFundingsMonitoring.length).toBe(1);
     });
   });
@@ -196,16 +218,18 @@ describe('GET /stats/paid-intervention-stats', () => {
       expect(auxiliaryResult2.duration).toEqual(1.5);
     });
 
-    it('should get customer and duration stats for auxiliary', async () => {
+    it('should get customer and duration stats for auxiliary tag', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&auxiliary=${userList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.paidInterventionStats[0]._id).toEqual(userList[0]._id);
-      expect(res.result.data.paidInterventionStats[0].customerCount).toEqual(2);
-      expect(res.result.data.paidInterventionStats[0].duration).toEqual(3.5);
+      expect(res.result.data.paidInterventionStats[0]).toEqual(expect.objectContaining({
+        _id: userList[0]._id,
+        customerCount: 2,
+        duration: 3.5,
+      }));
     });
 
     it('should return 404 if sector is not from the same company', async () => {

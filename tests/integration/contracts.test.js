@@ -750,6 +750,14 @@ describe('GET contracts/staff-register', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.staffRegister.length).toEqual(contractsList.length);
+      expect(response.result.data.staffRegister[0]).toEqual(expect.objectContaining({
+        _id: expect.any(ObjectID),
+        serialNumber: expect.any(String),
+        user: expect.objectContaining({ _id: expect.any(ObjectID) }),
+        startDate: expect.any(Date),
+        company: expect.any(ObjectID),
+        versions: expect.any(Array),
+      }));
     });
   });
 

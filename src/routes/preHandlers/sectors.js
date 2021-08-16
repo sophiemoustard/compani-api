@@ -45,7 +45,6 @@ exports.authorizeSectorUpdate = async (req) => {
 
 exports.authorizeSectorDeletion = async (req) => {
   const { sector } = req.pre;
-  if (!sector) throw Boom.notFound();
 
   const historiesCount = await SectorHistory.countDocuments({ sector: sector._id });
   if (historiesCount) throw Boom.forbidden();

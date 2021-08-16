@@ -78,20 +78,17 @@ const questionnaireHistories = [{
   course: coursesList[0]._id,
   questionnaire: questionnairesList[0]._id,
   user: new ObjectID(),
-  questionnaireAnswersList: [{
-    card: cardsList[1]._id,
-    answerList: ['blabla'],
-  }],
+  questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla'] }],
 }];
 
 const populateDB = async () => {
-  await Questionnaire.deleteMany({});
-  await Card.deleteMany({});
-  await Course.deleteMany({});
-  await CourseSlot.deleteMany({});
-  await SubProgram.deleteMany({});
-  await Program.deleteMany({});
-  await QuestionnaireHistory.deleteMany({});
+  await Questionnaire.deleteMany();
+  await Card.deleteMany();
+  await Course.deleteMany();
+  await CourseSlot.deleteMany();
+  await SubProgram.deleteMany();
+  await Program.deleteMany();
+  await QuestionnaireHistory.deleteMany();
 
   await populateDBForAuthentication();
 

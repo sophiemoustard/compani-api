@@ -27,13 +27,23 @@ describe('GET /roles', () => {
       expect(res.result.data.roles.length).toBe(rolesList.length + authRolesList.length);
     });
 
-    it('should return a 400 error if query parameter does not exist', async () => {
+    it('should return a specific role', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/roles?toto=test',
+        url: '/roles?name=chef',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.roles.length).toBe(1);
+    });
+
+    it('should return 404 if role doesn\'t exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles?name=caporal',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(404);
     });
   });
 

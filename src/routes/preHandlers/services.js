@@ -5,12 +5,18 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
+const authorizeServiceEdit = async (req) => {
+  const serviceId = req.params._id;
+  const companyId = req.auth.credentials.company._id;
+  const service = await Service.findOne({ _id: serviceId, company: companyId, isArchived: false }).lean();
+
+  if (!service) throw Boom.notFound(translate[language].serviceNotFound);
+};
+
 exports.authorizeServicesUpdate = async (req) => {
   try {
-    const companyId = req.auth.credentials.company._id;
-    const service = await Service.findOne({ _id: req.params._id, company: companyId, isArchived: false }).lean();
+    await authorizeServiceEdit(req);
 
-    if (!service) throw Boom.notFound(translate[language].serviceNotFound);
     return null;
   } catch (e) {
     req.log('error', e);
@@ -20,13 +26,9 @@ exports.authorizeServicesUpdate = async (req) => {
 
 exports.authorizeServicesDeletion = async (req) => {
   try {
-    const serviceId = req.params._id;
-    const companyId = req.auth.credentials.company._id;
-    const service = await Service.findOne({ _id: serviceId, company: companyId, isArchived: false }).lean();
+    await authorizeServiceEdit(req);
 
-    if (!service) throw Boom.notFound(translate[language].serviceNotFound);
-
-    const subscriptionsCount = await Customer.countDocuments({ 'subscriptions.service': serviceId });
+    const subscriptionsCount = await Customer.countDocuments({ 'subscriptions.service': req.params._id });
     if (subscriptionsCount) throw Boom.forbidden();
 
     return null;
