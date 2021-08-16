@@ -12,8 +12,9 @@ describe('NODE ENV', () => {
 
 describe('POST /sectors', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -82,8 +83,9 @@ describe('POST /sectors', () => {
 
 describe('GET /sectors', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -126,8 +128,9 @@ describe('GET /sectors', () => {
 
 describe('PUT /sectors/:id', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -202,8 +205,9 @@ describe('PUT /sectors/:id', () => {
 
 describe('DELETE /sectors/:id', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
