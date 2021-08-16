@@ -95,10 +95,7 @@ exports.plugin = {
             endNotificationDate: Joi.date().required(),
           }),
         },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractUpdate },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }, { method: authorizeContractUpdate }],
       },
       handler: update,
     });
@@ -194,10 +191,7 @@ exports.plugin = {
             versionId: Joi.objectId().required(),
           }),
         },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractUpdate },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }, { method: authorizeContractUpdate }],
       },
       handler: removeContractVersion,
     });
@@ -222,10 +216,7 @@ exports.plugin = {
             type: Joi.string().required().valid('signedContract'),
           }),
         },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeUpload },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }, { method: authorizeUpload }],
       },
     });
 
