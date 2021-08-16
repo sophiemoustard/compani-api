@@ -1,5 +1,4 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const InternalHour = require('../../src/models/InternalHour');
 const Event = require('../../src/models/Event');
@@ -19,8 +18,9 @@ describe('NODE ENV', () => {
 
 describe('POST /internalhours', () => {
   let authToken = null;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -34,8 +34,8 @@ describe('POST /internalhours', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const internalHours = await InternalHour.find({ company: authCompany._id });
-      expect(internalHours.length).toEqual(authInternalHoursList.length + 1);
+      const internalHoursCount = await InternalHour.countDocuments({ company: authCompany._id });
+      expect(internalHoursCount).toEqual(authInternalHoursList.length + 1);
     });
 
     it('should return a 403 error if company internal hours reach limits', async () => {
@@ -69,9 +69,9 @@ describe('POST /internalhours', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -92,10 +92,11 @@ describe('POST /internalhours', () => {
 
 describe('GET /internalhours', () => {
   let authToken = null;
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get internal hours (company A)', async () => {
@@ -126,9 +127,8 @@ describe('GET /internalhours', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
-      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -148,8 +148,9 @@ describe('GET /internalhours', () => {
 
 describe('DELETE /internalhours/:id', () => {
   let authToken = null;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -171,17 +172,7 @@ describe('DELETE /internalhours/:id', () => {
       expect(deletedInternalHourEventsCount).toBe(0);
     });
 
-    it('should return a 404 error if internal hour does not exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/internalhours/${new ObjectID().toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 403 if not in same company', async () => {
+    it('should return 404 if not in same company', async () => {
       authToken = await getToken('client_admin');
       const internalHour = internalHoursList[0];
 
@@ -191,7 +182,7 @@ describe('DELETE /internalhours/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 403 if internal hour is used in an event', async () => {
@@ -209,10 +200,9 @@ describe('DELETE /internalhours/:id', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
