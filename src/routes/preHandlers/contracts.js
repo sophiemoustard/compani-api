@@ -33,7 +33,7 @@ exports.authorizeContractCreation = async (req) => {
 
 exports.authorizeContractUpdate = async (req) => {
   const { contract } = req.pre;
-  if (!req.path.match(/upload/) && !!contract.endDate) throw Boom.forbidden();
+  if (contract.endDate) throw Boom.forbidden();
 
   return null;
 };
