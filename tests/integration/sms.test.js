@@ -57,6 +57,17 @@ describe('POST /sms', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
+    it('should return a 400 error if tag is invalid', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/sms',
+        payload: { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: 'test' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(400);
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
     const missingParams = ['recipient', 'content', 'tag'];
     missingParams.forEach((path) => {
       const payload = { recipient: `+33${smsUser.contact.phone}`, content: 'Ceci est un test', tag: COURSE_SMS };
@@ -72,24 +83,26 @@ describe('POST /sms', () => {
       });
     });
 
-    const roles = [
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'helper', expectedCode: 403 },
-      { name: 'vendor_admin', expectedCode: 403 },
-    ];
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'planning_referent', expectedCode: 403 },
+        { name: 'helper', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
+      ];
 
-    roles.forEach((role) => {
-      const payload = { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: COURSE_SMS };
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'POST',
-          url: '/sms',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload,
+      roles.forEach((role) => {
+        const payload = { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: COURSE_SMS };
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: '/sms',
+            headers: { Cookie: `alenvi_token=${authToken}` },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
         });
-
-        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });

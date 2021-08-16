@@ -67,6 +67,7 @@ describe('POST /services', () => {
       });
     });
   });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
@@ -198,16 +199,6 @@ describe('PUT /services/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if nothing in payload', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/services/${servicesList[0]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {},
-      });
       expect(response.statusCode).toBe(400);
     });
 

@@ -37,6 +37,16 @@ describe('GET /roles', () => {
       expect(res.result.data.roles.length).toBe(1);
     });
 
+    it('should return an array of roles', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles?name=chef&name=general',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.roles.length).toBe(2);
+    });
+
     it('should return 404 if role doesn\'t exist', async () => {
       const res = await app.inject({
         method: 'GET',

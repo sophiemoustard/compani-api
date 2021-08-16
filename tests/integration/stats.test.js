@@ -218,7 +218,7 @@ describe('GET /stats/paid-intervention-stats', () => {
       expect(auxiliaryResult2.duration).toEqual(1.5);
     });
 
-    it('should get customer and duration stats for auxiliary tag', async () => {
+    it('should get customer and duration stats for auxiliary', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/paid-intervention-stats?month=07-2019&auxiliary=${userList[0]._id}`,
@@ -256,6 +256,16 @@ describe('GET /stats/paid-intervention-stats', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/paid-intervention-stats?month=07-2019',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should not get customer and duration stats as auxiliary and sector are both in query', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/paid-intervention-stats?month=07-2019&sector=${sectorList[0]._id}&auxiliary=${userList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
