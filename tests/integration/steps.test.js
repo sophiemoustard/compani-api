@@ -18,9 +18,9 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
   beforeEach(populateDB);
   const stepId = stepsList[0]._id;
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should update step name', async () => {
@@ -125,11 +125,8 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     const payload = { name: 'une nouvelle étape super innovant' };
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -155,9 +152,9 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   const payload = { name: 'new activity', type: 'video' };
   const step = stepsList[0];
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     describe('creation', () => {
@@ -292,11 +289,8 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -321,9 +315,9 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
   beforeEach(populateDB);
   const stepId = stepsList[0]._id;
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should push a reused activity', async () => {
@@ -405,11 +399,8 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
     const payload = { activities: activitiesList[0]._id };
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -435,9 +426,9 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
   const activityId = activitiesList[0]._id;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should detach activity from step', async () => {
@@ -494,11 +485,8 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
