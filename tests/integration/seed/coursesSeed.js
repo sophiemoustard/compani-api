@@ -12,6 +12,8 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
+const Questionnaire = require('../../../src/models/Questionnaire');
+const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
 const {
   vendorAdmin,
@@ -74,9 +76,16 @@ const userCompanies = [
   { _id: new ObjectID(), user: trainerAndCoach._id, company: authCompany._id },
 ];
 
-const card = { _id: ObjectID(), template: 'title_text' };
+const cardsList = [
+  { _id: new ObjectID(), template: 'title_text' },
+  { _id: new ObjectID(), template: 'survey' },
+  { _id: new ObjectID(), template: 'survey' },
+];
 
-const activitiesList = [{ _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [card._id] }];
+const activitiesList = [
+  { _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [cardsList[0]._id] },
+  { _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [cardsList[1]._id] },
+];
 const activitiesHistory = [
   { _id: new ObjectID(), user: coach._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: clientAdmin._id, activity: activitiesList[0]._id },
@@ -86,9 +95,15 @@ const activitiesHistory = [
   { _id: new ObjectID(), user: trainerOrganisationManager._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: trainer._id, activity: activitiesList[0]._id },
   { _id: new ObjectID(), user: noRoleNoCompany._id, activity: activitiesList[0]._id },
+  {
+    _id: new ObjectID(),
+    user: coach._id,
+    activity: activitiesList[1]._id,
+    questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: ['3'] }],
+  },
 ];
 
-const step = { _id: new ObjectID(), name: 'etape', type: 'on_site', activities: [activitiesList[0]._id] };
+const step = { _id: new ObjectID(), name: 'etape', type: 'on_site', activities: activitiesList.map(a => a._id) };
 
 const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme', steps: [step._id] }];
 
@@ -140,17 +155,17 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
     misc: 'second team formation',
-    trainer: new ObjectID(),
     type: 'intra',
     trainees: [coach._id, clientAdmin._id],
     salesRepresentative: vendorAdmin._id,
+    trainer: trainerAndCoach._id,
   },
   { // course without slots
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
-    trainees: [traineeFromOtherCompany._id, coach._id],
+    trainees: [traineeFromOtherCompany._id, coach._id, traineeFromAuthCompanyWithFormationExpoToken._id],
     format: 'strictly_e_learning',
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
@@ -222,6 +237,20 @@ const coursesList = [
   },
 ];
 
+const questionnaire = {
+  _id: new ObjectID(),
+  name: 'questionnaire',
+  status: 'published',
+  cards: [cardsList[2]._id],
+  type: 'end_of_course',
+};
+const questionnaireHistory = {
+  course: coursesList[0]._id,
+  questionnaire: questionnaire._id,
+  user: coach._id,
+  questionnaireAnswersList: [{ card: cardsList[2]._id, answerList: ['4'] }],
+};
+
 const courseSmsHistory = {
   date: '2020-01-01T00:00:00.000Z',
   type: 'convocation',
@@ -283,6 +312,8 @@ const populateDB = async () => {
   await Card.deleteMany();
   await ActivityHistory.deleteMany();
   await UserCompany.deleteMany();
+  await Questionnaire.deleteMany();
+  await QuestionnaireHistory.deleteMany();
 
   await populateDBForAuthentication();
 
@@ -295,9 +326,11 @@ const populateDB = async () => {
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
   await Activity.insertMany(activitiesList);
-  await Card.create(card);
+  await Card.insertMany(cardsList);
   await ActivityHistory.insertMany(activitiesHistory);
   await UserCompany.insertMany(userCompanies);
+  await Questionnaire.create(questionnaire);
+  await QuestionnaireHistory.create(questionnaireHistory);
 };
 
 module.exports = {

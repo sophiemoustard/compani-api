@@ -51,9 +51,9 @@ describe('COURSES ROUTES - POST /courses', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create inter_b2b course', async () => {
@@ -63,6 +63,8 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
       };
+      const coursesCountBefore = await Course.countDocuments({});
+
       const response = await app.inject({
         method: 'POST',
         url: '/courses',
@@ -71,6 +73,30 @@ describe('COURSES ROUTES - POST /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const coursesCountAfter = await Course.countDocuments({});
+      expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
+    });
+
+    it('should create intra course', async () => {
+      const payload = {
+        misc: 'course',
+        type: 'intra',
+        company: authCompany._id,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+      };
+      const coursesCountBefore = await Course.countDocuments({});
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const coursesCountAfter = await Course.countDocuments({});
+      expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
     });
 
     it('should return 403 if invalid salesRepresentative', async () => {
@@ -90,14 +116,31 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 400 if invalid type', async () => {
+      const payload = {
+        misc: 'course',
+        type: 'qwer',
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const payload = {
       misc: 'course',
-      type: 'intra',
       company: authCompany._id,
       subProgram: subProgramsList[0]._id,
+      type: 'intra',
       salesRepresentative: vendorAdmin._id,
     };
-    ['company', 'subProgram', 'type', 'salesRepresentative'].forEach((param) => {
+    ['company', 'subProgram'].forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const response = await app.inject({
           method: 'POST',
@@ -114,11 +157,8 @@ describe('COURSES ROUTES - POST /courses', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
@@ -148,13 +188,12 @@ describe('COURSES ROUTES - GET /courses', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get all courses', async () => {
-      const coursesNumber = coursesList.length;
       const response = await app.inject({
         method: 'GET',
         url: '/courses',
@@ -162,8 +201,10 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(coursesNumber);
-      expect(response.result.data.courses[3]).toEqual(expect.objectContaining({
+      expect(response.result.data.courses.length).toEqual(coursesList.length);
+
+      const course = response.result.data.courses.find(c => areObjectIdsEquals(coursesList[3]._id, c._id));
+      expect(course).toEqual(expect.objectContaining({
         company: pick(otherCompany, ['_id', 'name']),
         subProgram: expect.objectContaining({
           _id: expect.any(ObjectID),
@@ -174,7 +215,7 @@ describe('COURSES ROUTES - GET /courses', () => {
             subPrograms: [expect.any(ObjectID)],
           },
         }),
-        trainer: null,
+        trainer: pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname']),
         slots: [{
           startDate: moment('2020-03-20T09:00:00').toDate(),
           endDate: moment('2020-03-20T11:00:00').toDate(),
@@ -185,11 +226,10 @@ describe('COURSES ROUTES - GET /courses', () => {
           _id: expect.any(ObjectID),
           company: expect.objectContaining(pick(authCompany, ['_id', 'name'])),
         })]),
+        slotsToPlan: [{ _id: expect.any(ObjectID), course: course._id }],
       }));
-      expect(response.result.data.courses[3].slotsToPlan).toHaveLength(1);
-      expect(response.result.data.courses[3].subProgram.program.description).toBeUndefined();
-      expect(response.result.data.courses[3].trainees[0].local).toBeUndefined();
-      expect(response.result.data.courses[3].trainees[0].refreshtoken).toBeUndefined();
+      expect(course.trainees[0].local).toBeUndefined();
+      expect(course.trainees[0].refreshtoken).toBeUndefined();
     });
 
     it('should get blended courses', async () => {
@@ -213,21 +253,15 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.courses.length).toEqual(7);
     });
-  });
 
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(async () => {
-      authToken = await getToken('client_admin');
-    });
-
-    it('should not get any course', async () => {
+    it('should return 400 if bad format', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses',
+        url: '/courses?format=poiuytrewq',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -258,8 +292,8 @@ describe('COURSES ROUTES - GET /courses', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
@@ -283,9 +317,9 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
   const courseFromAuthCompanyInterB2b = coursesList[4];
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISTION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get intra course', async () => {
@@ -296,73 +330,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course).toEqual(expect.objectContaining({
-        _id: courseFromAuthCompanyIntra._id,
-        subProgram: {
-          _id: expect.any(ObjectID),
-          program: {
-            _id: expect.any(ObjectID),
-            name: programsList[0].name,
-            learningGoals: programsList[0].learningGoals,
-            subPrograms: [expect.any(ObjectID)],
-          },
-          steps: expect.arrayContaining([{
-            _id: expect.any(ObjectID),
-            name: step.name,
-            type: step.type,
-            activities: expect.arrayContaining([{
-              _id: expect.any(ObjectID),
-              name: activitiesList[0].name,
-              type: activitiesList[0].type,
-              activityHistories: expect.arrayContaining([expect.objectContaining({
-                _id: expect.any(ObjectID),
-                user: expect.any(ObjectID),
-              })]),
-            }]),
-          }]),
-        },
-        trainer: expect.objectContaining({
-          _id: trainer._id,
-          identity: { firstname: 'trainer', lastname: 'trainer' },
-        }),
-        company: { _id: authCompany._id, name: 'Test SAS' },
-        contact: { name: '' },
-        slots: expect.arrayContaining([
-          expect.objectContaining({
-            startDate: moment('2020-03-20T09:00:00').toDate(),
-            endDate: moment('2020-03-20T11:00:00').toDate(),
-            course: courseFromAuthCompanyIntra._id,
-            _id: expect.any(ObjectID),
-          }),
-          expect.objectContaining({
-            startDate: moment('2020-03-20T14:00:00').toDate(),
-            endDate: moment('2020-03-20T18:00:00').toDate(),
-            course: courseFromAuthCompanyIntra._id,
-            _id: expect.any(ObjectID),
-          }),
-        ]),
-        trainees: expect.arrayContaining([
-          expect.objectContaining({
-            _id: expect.any(ObjectID),
-            identity: { firstname: 'Coach', lastname: 'Calif' },
-            company: pick(authCompany, ['_id', 'name']),
-          }),
-          expect.objectContaining({
-            _id: expect.any(ObjectID),
-            identity: { firstname: 'Helper', lastname: 'Test' },
-            company: pick(authCompany, ['_id', 'name']),
-          }),
-          expect.objectContaining({
-            _id: expect.any(ObjectID),
-            identity: { firstname: 'client_admin', lastname: 'Chef' },
-            company: pick(authCompany, ['_id', 'name']),
-          }),
-          expect.objectContaining({
-            _id: expect.any(ObjectID),
-            identity: { firstname: 'trainer', lastname: 'trainer' },
-          }),
-        ]),
-      }));
+      expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyIntra._id.toHexString());
     });
 
     it('should get inter b2b course with all trainees', async () => {
@@ -373,27 +341,16 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          _id: expect.any(ObjectID),
-          identity: { firstname: 'Coach', lastname: 'Calif' },
-          company: pick(authCompany, ['_id', 'name']),
-        }),
-        expect.objectContaining({
-          _id: expect.any(ObjectID),
-          identity: { firstname: 'Fred', lastname: 'Astaire' },
-          company: pick(otherCompany, ['_id', 'name']),
-        }),
-      ]));
+      expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyInterB2b._id.toHexString());
     });
   });
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
-    it('should get inter b2b course with trainees from same company', async () => {
+    it('should get inter b2b course', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
@@ -401,11 +358,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.course.trainees).toEqual(expect.arrayContaining([expect.objectContaining({
-        _id: expect.any(ObjectID),
-        identity: { firstname: 'Coach', lastname: 'Calif' },
-        company: pick(authCompany, ['_id', 'name']),
-      })]));
+      expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyInterB2b._id.toHexString());
     });
 
     it('should return 403 if course is eLearning and has accessRules that doesn\'t contain user company ',
@@ -440,20 +393,12 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     });
   });
 
-  describe('Other roles', () => {
-    it('should return 403 if user is trainer and isn\'t course\'s trainer', async () => {
+  describe('TRAINER', () => {
+    beforeEach(async () => {
       authToken = await getToken('trainer');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${coursesList[10]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
     });
 
     it('should return 200 if user is trainer and is course\'s trainer', async () => {
-      authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
@@ -463,14 +408,20 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-    ];
+    it('should return 403 if user is trainer and isn\'t course\'s trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[10]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
+
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -492,9 +443,9 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
   const courseFromAuthCompanyIntra = coursesList[0];
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRANING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get course with follow up', async () => {
@@ -504,51 +455,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const courseSlots = slots.filter(s => areObjectIdsEquals(s.course._id, coursesList[0]._id));
-
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.followUp).toEqual(expect.objectContaining({
-        _id: courseFromAuthCompanyIntra._id,
-        subProgram: expect.objectContaining({
-          _id: subProgramsList[0]._id,
-          name: subProgramsList[0].name,
-          program: expect.objectContaining({
-            _id: programsList[0]._id,
-            name: programsList[0].name,
-            subPrograms: programsList[0].subPrograms,
-          }),
-          steps: expect.arrayContaining([expect.objectContaining({
-            _id: step._id,
-            name: step.name,
-            type: step.type,
-            activities: expect.arrayContaining([expect.objectContaining({
-              _id: activitiesList[0]._id,
-              followUp: expect.any(Array),
-              activityHistories: expect.any(Array),
-              name: expect.any(String),
-              type: expect.any(String),
-            })]),
-          })]),
-        }),
-        slots: expect.arrayContaining([expect.objectContaining({
-          _id: expect.any(ObjectID),
-          startDate: courseSlots[0].startDate,
-          endDate: courseSlots[0].endDate,
-          course: courseSlots[0].course._id,
-          step: { _id: courseSlots[0].step },
-        })]),
-        trainees: expect.arrayContaining([expect.objectContaining({
-          _id: coach._id,
-          identity: coach.identity,
-          steps: expect.arrayContaining([expect.objectContaining({
-            _id: expect.any(ObjectID),
-            activities: expect.any(Array),
-            name: expect.any(String),
-            type: expect.any(String),
-            progress: 1,
-          })]),
-        })]),
-      }));
+      expect(response.result.data.followUp._id.toHexString()).toBe(courseFromAuthCompanyIntra._id.toHexString());
     });
   });
 
@@ -578,6 +486,32 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
     });
   });
 
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should return 200 as user trainer and course trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[0]._id.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
+    });
+
+    it('should return 403 as user trainer but not course trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[1]._id.toHexString()}/follow-up`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+  });
+
   describe('Other roles', () => {
     it('should return 403 if user has no company and query has no company', async () => {
       authToken = await getToken('auxiliary_without_company');
@@ -602,11 +536,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
       expect(response.statusCode).toEqual(200);
     });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 200 },
-    ];
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -627,9 +557,9 @@ describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('trainer');
     });
 
     it('should get questionnaire answers', async () => {
@@ -640,16 +570,15 @@ describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaireAnswers.length).toBe(1);
     });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -684,6 +613,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toBe(1);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
@@ -720,8 +650,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -743,175 +673,95 @@ describe('COURSES ROUTES - GET /courses/user', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('Get user own courses for each role', () => {
-    it('should return 200 as user is logged', async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+  it('should return 200 as user is logged in', async () => {
+    authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
+    const response = await app.inject({
+      method: 'GET',
+      url: '/courses/user',
+      headers: { 'x-access-token': authToken },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.result.data.courses.length).toBe(1);
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    it('should return 200 if valid traineeId', async () => {
+      authToken = await getToken('training_organisation_manager');
       const response = await app.inject({
         method: 'GET',
-        url: '/courses/user',
-        headers: { 'x-access-token': authToken },
+        url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toBe(1);
-      expect(response.result.data.courses[0]).toEqual(expect.objectContaining({
-        subProgram: expect.objectContaining({
-          _id: expect.any(ObjectID),
-          program: {
-            _id: expect.any(ObjectID),
-            name: programsList[0].name,
-            image: programsList[0].image,
-            description: programsList[0].description,
-            subPrograms: [expect.any(ObjectID)],
-          },
-          steps: expect.arrayContaining([
-            expect.objectContaining({
-              _id: expect.any(ObjectID),
-              name: step.name,
-              type: step.type,
-              areActivitiesValid: false,
-              progress: expect.any(Number),
-              activities: expect.arrayContaining([
-                expect.objectContaining({
-                  _id: expect.any(ObjectID),
-                  name: activitiesList[0].name,
-                  type: activitiesList[0].type,
-                  cards: expect.arrayContaining([
-                    expect.objectContaining({ _id: expect.any(ObjectID), template: 'title_text', isValid: false }),
-                  ]),
-                  quizCount: 0,
-                  areCardsValid: false,
-                  activityHistories: expect.arrayContaining([expect.objectContaining({ user: noRoleNoCompany._id })]),
-                })]),
-            }),
-          ]),
-        }),
-        slots: expect.arrayContaining([expect.objectContaining({
-          startDate: expect.any(Date),
-          endDate: expect.any(Date),
-          step: expect.objectContaining({ type: expect.any(String) }),
-        })]),
-      }));
-      expect(response.result.data.courses[0].subProgram.steps[0].activities[0].activityHistories
-        .every(history => history.user.toHexString() === noRoleNoCompany._id.toHexString())).toBeTruthy();
+    });
+
+    it('should throw 404 if invalid traineeId', async () => {
+      authToken = await getToken('vendor_admin');
+      const traineeId = new ObjectID();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/user?traineeId=${traineeId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 
-  describe('should get trainee courses', () => {
-    describe('vendor_admin', () => {
-      it('should return 200 if valid traineeId', async () => {
-        authToken = await getToken('vendor_admin');
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(200);
+  describe('Other roles', () => {
+    it('should return 200 if coach and same company', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/user?traineeId=${userCompanies[1].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      it('should return only the courses that the trainee has the right to access', async () => {
-        authToken = await getToken('vendor_admin');
-        const courseWithAccessRules = coursesList[9];
-
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(200);
-        expect(courseWithAccessRules.trainees.includes(traineeFromOtherCompany._id)).toBe(true);
-        expect(response.result.data.courses.every(course =>
-          !areObjectIdsEquals(course._id, courseWithAccessRules._id_)))
-          .toBe(true);
-      });
-
-      it('should throw 404 if invalid traineeId', async () => {
-        authToken = await getToken('vendor_admin');
-        const traineeId = new ObjectID();
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/user?traineeId=${traineeId.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(404);
-      });
+      expect(response.statusCode).toBe(200);
     });
 
-    describe('Other roles', () => {
-      it('should return 200 if client admin and same company', async () => {
-        authToken = await getToken('client_admin');
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/user?traineeId=${userCompanies[1].user.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(200);
+    it('should return 200 if coach and trainer and same company', async () => {
+      authToken = await getTokenByCredentials(trainerAndCoach.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/user?traineeId=${userCompanies[1].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      it('should return 200 if coach and trainer and same company', async () => {
-        authToken = await getTokenByCredentials(trainerAndCoach.local);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/user?traineeId=${userCompanies[1].user.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
+      expect(response.statusCode).toBe(200);
+    });
 
-        expect(response.statusCode).toBe(200);
+    it('should return 404 if client admin and different company', async () => {
+      authToken = await getToken('client_admin');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      it('should return 404 if client admin and different company', async () => {
-        authToken = await getToken('client_admin');
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
+      expect(response.statusCode).toBe(404);
+    });
 
-        expect(response.statusCode).toBe(404);
-      });
-
-      it('should return 404 if coach and different company', async () => {
-        authToken = await getToken('coach');
+    const roles = [
+      { name: 'helper', expectedCode: 404 },
+      { name: 'planning_referent', expectedCode: 404 },
+      { name: 'trainer', expectedCode: 404 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
           url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(404);
-      });
-
-      const roles = [
-        { name: 'helper', expectedCode: 404 },
-        { name: 'auxiliary', expectedCode: 404 },
-        { name: 'auxiliary_without_company', expectedCode: 404 },
-        { name: 'trainer', expectedCode: 404 },
-        { name: 'training_organisation_manager', expectedCode: 200 },
-      ];
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'GET',
-            url: `/courses/user?traineeId=${userCompanies[0].user.toHexString()}`,
-            headers: { Cookie: `alenvi_token=${authToken}` },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
+        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
-  });
-
-  it('should return 401 if user is not login', async () => {
-    const response = await app.inject({ method: 'GET', url: '/courses/user' });
-
-    expect(response.statusCode).toBe(401);
   });
 });
 
