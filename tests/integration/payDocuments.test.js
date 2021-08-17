@@ -28,13 +28,14 @@ describe('NODE ENV', () => {
 });
 
 describe('POST /paydocuments', () => {
-  let authToken = null;
+  let authToken;
   let addStub;
   let addFileStub;
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
       addStub = sinon.stub(Gdrive, 'add');
       addFileStub = sinon.stub(GDriveStorageHelper, 'addFile');
     });
@@ -44,6 +45,8 @@ describe('POST /paydocuments', () => {
     });
 
     it('should create a new pay document', async () => {
+      const payDocumentsLengthBefore = await PayDocument.countDocuments({});
+
       const docPayload = {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         nature: PAYSLIP,
@@ -51,9 +54,7 @@ describe('POST /paydocuments', () => {
         user: payDocumentUserCompanies[0].user.toHexString(),
         mimeType: 'application/pdf',
       };
-
       const form = generateFormData(docPayload);
-      const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id });
       addFileStub.returns({ id: '1234567890', webViewLink: 'http://test.com/file.pdf' });
 
       const response = await app.inject({
@@ -63,19 +64,13 @@ describe('POST /paydocuments', () => {
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
+      const payDocumentsLength = await PayDocument.countDocuments({});
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.payDocument).toMatchObject({
-        nature: docPayload.nature,
-        date: new Date(docPayload.date),
-        file: { driveId: '1234567890', link: 'http://test.com/file.pdf' },
-      });
-      const payDocumentsLength = await PayDocument.countDocuments({ company: authCompany._id });
       expect(payDocumentsLength).toBe(payDocumentsLengthBefore + 1);
       sinon.assert.calledOnce(addFileStub);
     });
 
-    const wrongParams = ['file', 'nature', 'mimeType', 'user'];
-    wrongParams.forEach((param) => {
+    ['file', 'nature', 'mimeType', 'user'].forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const docPayload = {
           file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
@@ -98,7 +93,7 @@ describe('POST /paydocuments', () => {
       });
     });
 
-    it('should not create a new pay document if the user is not from the same company', async () => {
+    it('should return a 404 if the user is not from the same company', async () => {
       const docPayload = {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         nature: PAYSLIP,
@@ -137,9 +132,8 @@ describe('POST /paydocuments', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403, erp: true },
-      { name: 'auxiliary', expectedCode: 403, erp: true },
-      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-      { name: 'coach', expectedCode: 200, erp: true },
+      { name: 'planning_referent', expectedCode: 403, erp: true },
+      { name: 'vendor_admin', expectedCode: 403, erp: true },
       { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
@@ -171,11 +165,12 @@ describe('POST /paydocuments', () => {
 });
 
 describe('GET /paydocuments', () => {
-  let authToken = null;
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get all pay documents for one user', async () => {
@@ -186,9 +181,10 @@ describe('GET /paydocuments', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.payDocuments.length).toEqual(4);
     });
 
-    it('should not get all pay documents if user is not from the same company', async () => {
+    it('should return a 404 if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/paydocuments?user=${userFromOtherCompany._id}`,
@@ -200,16 +196,6 @@ describe('GET /paydocuments', () => {
   });
 
   describe('Other roles', () => {
-    it('should return my payDocuments', async () => {
-      authToken = await getTokenByCredentials(payDocumentUser.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/paydocuments?user=${payDocumentUser._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
     it('should get my pay documents if I am an auxiliary without company', async () => {
       authToken = await getToken('auxiliary_without_company');
       const response = await app.inject({
@@ -226,9 +212,8 @@ describe('GET /paydocuments', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -247,16 +232,18 @@ describe('GET /paydocuments', () => {
 });
 
 describe('DELETE /paydocuments', () => {
-  let authToken = null;
-  describe('CLIENT_ADMIN', () => {
+  let authToken;
+
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should delete a pay document', async () => {
       const deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
-      const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id });
+      const payDocumentsCountBefore = await PayDocument.countDocuments({ company: authCompany._id });
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/paydocuments/${payDocumentsList[0]._id.toHexString()}`,
@@ -264,24 +251,13 @@ describe('DELETE /paydocuments', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const payDocumentsLength = await PayDocument.countDocuments({ company: authCompany._id });
-      expect(payDocumentsLength).toBe(payDocumentsLengthBefore - 1);
+      const payDocumentsCount = await PayDocument.countDocuments({ company: authCompany._id });
+      expect(payDocumentsCount).toBe(payDocumentsCountBefore - 1);
       sinon.assert.calledWith(deleteFileStub, payDocumentsList[0].file.driveId);
       deleteFileStub.restore();
     });
 
-    it('should return a 404 error if pay document does not exist', async () => {
-      const randomId = new ObjectID();
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/paydocuments/${randomId}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should not delete a pay document if it is not from the same company', async () => {
+    it('should return a 404 if it is not from the same company', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/paydocuments/${payDocumentsList[payDocumentsList.length - 1]._id.toHexString()}`,
@@ -295,9 +271,8 @@ describe('DELETE /paydocuments', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
