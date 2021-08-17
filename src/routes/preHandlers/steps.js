@@ -4,7 +4,7 @@ const Activity = require('../../models/Activity');
 const { PUBLISHED } = require('../../helpers/constants');
 
 exports.authorizeStepUpdate = async (req) => {
-  const step = await Step.findOne({ _id: req.params._id }).lean();
+  const step = await Step.findOne({ _id: req.params._id }, { activities: 1, status: 1 }).lean();
   if (!step) throw Boom.notFound();
   if (step.status === PUBLISHED && Object.keys(req.payload).some(key => key !== 'name')) throw Boom.forbidden();
 
@@ -13,7 +13,7 @@ exports.authorizeStepUpdate = async (req) => {
     const lengthAreEquals = step.activities.length === activities.length;
     const dbActivitiesAreInPayload = step.activities.every(value => activities.includes(value.toHexString()));
     const payloadActivitiesAreInDb = activities
-      .every(value => step.activities.map(s => s.toHexString()).includes(value));
+      .every(value => step.activities.map(a => a.toHexString()).includes(value));
     if (!lengthAreEquals || !payloadActivitiesAreInDb || !dbActivitiesAreInPayload) return Boom.badRequest();
   }
 

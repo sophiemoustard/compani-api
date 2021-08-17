@@ -24,7 +24,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     });
 
     it('should update step name', async () => {
-      const payload = { name: 'une nouvelle étape super innovant' };
+      const payload = { name: 'une nouvelle étape super innovante' };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
@@ -33,10 +33,13 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const updatedStep = await Step.findOne({ _id: stepsList[0]._id }, { name: 1 }).lean();
+      expect(updatedStep.name).toBe('une nouvelle étape super innovante');
     });
 
-    it('should update step name if step is published', async () => {
-      const payload = { name: 'une nouvelle étape super innovant' };
+    it('should update step name even if step is published', async () => {
+      const payload = { name: 'une nouvelle étape super innovante' };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepsList[3]._id.toHexString()}`,
@@ -62,6 +65,29 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, activities: payload.activities }));
     });
 
+    it('should return a 404 if step is invalid', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${new ObjectID()}`,
+        payload: { name: 'une nouvelle étape super innovante' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if step is published and payload has activities', async () => {
+      const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]], name: 'skusku' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepsList[3]._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return a 400 if payload is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -73,7 +99,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if name is equal to \'\' ', async () => {
+    it('should return a 400 if name is empty ', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId.toHexString()}`,
@@ -84,7 +110,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if lengths are not equal', async () => {
+    it('should return a 400 if activities\' lengths from db and payload are not equal', async () => {
       const payload = { activities: [stepsList[0].activities[1]] };
       const response = await app.inject({
         method: 'PUT',
@@ -96,7 +122,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if actvities from payload and from db are not the same', async () => {
+    it('should return a 400 if activities from payload and from db are not strict equal', async () => {
       const payload = { activities: [stepsList[0].activities[1], new ObjectID()] };
       const response = await app.inject({
         method: 'PUT',
@@ -107,22 +133,10 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 
       expect(response.statusCode).toBe(400);
     });
-
-    it('should return a 403 if step is published', async () => {
-      const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]] };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/steps/${stepsList[3]._id.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
   });
 
   describe('Other roles', () => {
-    const payload = { name: 'une nouvelle étape super innovant' };
+    const payload = { name: 'une nouvelle étape super innovante' };
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
