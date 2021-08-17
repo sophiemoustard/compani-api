@@ -2,14 +2,13 @@ const Boom = require('@hapi/boom');
 
 const translate = require('../helpers/translate');
 const User = require('../models/User');
-const { getCustomerFollowUp } = require('../repositories/CompanyRepository');
 const StatsHelper = require('../helpers/stats');
 
 const messages = translate[translate.language];
 
 exports.getCustomerFollowUp = async (req) => {
   try {
-    let followUp = await getCustomerFollowUp(req.query.customer, req.auth.credentials);
+    let followUp = await StatsHelper.getCustomerFollowUp(req.query.customer, req.auth.credentials);
     followUp = followUp.filter(user => User.isActive(user));
 
     return {

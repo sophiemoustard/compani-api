@@ -408,3 +408,5 @@ exports.auxiliaryHasActiveContractOnDay = (contracts, day) =>
 exports.auxiliaryHasActiveContractBetweenDates = (contracts, startDate, endDate) =>
   contracts.some(c => DatesHelper.isSameOrBefore(c.startDate, startDate) &&
     (!c.endDate || DatesHelper.isSameOrAfter(c.endDate, endDate)));
+
+exports.getStaffRegister = async companyId => ContractRepository.getStaffRegister(companyId);
