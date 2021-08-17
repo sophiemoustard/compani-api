@@ -85,6 +85,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
       };
+      const coursesCountBefore = await Course.countDocuments({});
 
       const response = await app.inject({
         method: 'POST',
@@ -94,6 +95,8 @@ describe('COURSES ROUTES - POST /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const coursesCountAfter = await Course.countDocuments({});
+      expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
     });
 
     it('should return 403 if invalid salesRepresentative', async () => {
@@ -113,7 +116,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if invalid salesRepresentative', async () => {
+    it('should return 400 if invalid type', async () => {
       const payload = {
         misc: 'course',
         type: 'qwer',
@@ -134,8 +137,10 @@ describe('COURSES ROUTES - POST /courses', () => {
       misc: 'course',
       company: authCompany._id,
       subProgram: subProgramsList[0]._id,
+      type: 'intra',
+      salesRepresentative: vendorAdmin._id,
     };
-    ['company', 'subProgram', 'type', 'salesRepresentative'].forEach((param) => {
+    ['company', 'subProgram'].forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const response = await app.inject({
           method: 'POST',
@@ -189,7 +194,6 @@ describe('COURSES ROUTES - GET /courses', () => {
     });
 
     it('should get all courses', async () => {
-      const coursesNumber = coursesList.length;
       const response = await app.inject({
         method: 'GET',
         url: '/courses',
@@ -197,7 +201,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(coursesNumber);
+      expect(response.result.data.courses.length).toEqual(coursesList.length);
 
       const course = response.result.data.courses.find(c => areObjectIdsEquals(coursesList[3]._id, c._id));
       expect(course).toEqual(expect.objectContaining({
@@ -289,6 +293,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
@@ -393,16 +398,6 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       authToken = await getToken('trainer');
     });
 
-    it('should return 403 if user is trainer and isn\'t course\'s trainer', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${coursesList[10]._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
     it('should return 200 if user is trainer and is course\'s trainer', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -412,13 +407,21 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
     });
+
+    it('should return 403 if user is trainer and isn\'t course\'s trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[10]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-    ];
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
+
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -533,10 +536,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
       expect(response.statusCode).toEqual(200);
     });
 
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-    ];
+    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
