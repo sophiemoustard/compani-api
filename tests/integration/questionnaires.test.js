@@ -494,6 +494,18 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 404 if questionnaire does not exist', async () => {
+      const payload = { name: 'test2' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/questionnaires/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     it('should return 403 if cards are not valid', async () => {
       await Questionnaire.deleteMany({ _id: questionnairesList[1]._id });
       await Card.updateMany({ title: 'test1' }, { $set: { title: '' } });

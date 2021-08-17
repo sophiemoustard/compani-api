@@ -1565,3 +1565,33 @@ describe('auxiliaryHasActiveContractOnDay', () => {
     expect(result).toBeTruthy();
   });
 });
+
+describe('getStaffRegister', () => {
+  let getStaffRegisterStub;
+  beforeEach(() => {
+    getStaffRegisterStub = sinon.stub(ContractRepository, 'getStaffRegister');
+  });
+  afterEach(() => {
+    getStaffRegisterStub.restore();
+  });
+
+  it('should get staff register ', async () => {
+    const companyId = new ObjectID();
+    const staffRegister = [
+      {
+        _id: new ObjectID(),
+        serialNumber: '123',
+        user: { _id: new ObjectID() },
+        startDate: new Date(),
+        company: companyId,
+        versions: [{ _id: new ObjectID() }],
+      },
+    ];
+
+    getStaffRegisterStub.returns(staffRegister);
+
+    const result = await ContractHelper.getStaffRegister(companyId);
+    expect(result).toEqual(staffRegister);
+    sinon.assert.calledWithExactly(getStaffRegisterStub, companyId);
+  });
+});

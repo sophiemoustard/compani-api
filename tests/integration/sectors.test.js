@@ -99,7 +99,7 @@ describe('GET /sectors', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.sectors.length).toEqual(3);
-      // expect(response.result.data.sectors[0].hasAuxiliaries).toBeTruthy();
+      expect(response.result.data.sectors[0].hasAuxiliaries).toBeDefined();
     });
   });
 
