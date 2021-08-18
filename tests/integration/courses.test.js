@@ -119,7 +119,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     it('should return 400 if invalid type', async () => {
       const payload = {
         misc: 'course',
-        type: 'qwer',
+        type: 'invalid type',
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
       };
