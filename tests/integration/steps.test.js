@@ -27,7 +27,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       const payload = { name: 'une nouvelle étape super innovante' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}`,
+        url: `/steps/${stepId}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -42,7 +42,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       const payload = { name: 'une nouvelle étape super innovante' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepsList[3]._id.toHexString()}`,
+        url: `/steps/${stepsList[3]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -54,7 +54,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]] };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}`,
+        url: `/steps/${stepId}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -80,7 +80,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]], name: 'skusku' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepsList[3]._id.toHexString()}`,
+        url: `/steps/${stepsList[3]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -91,7 +91,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     it('should return a 400 if payload is empty', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}`,
+        url: `/steps/${stepId}`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -102,7 +102,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     it('should return a 400 if name is empty ', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}`,
+        url: `/steps/${stepId}`,
         payload: { name: '' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -114,7 +114,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       const payload = { activities: [stepsList[0].activities[1]] };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}`,
+        url: `/steps/${stepId}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -126,7 +126,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       const payload = { activities: [stepsList[0].activities[1], new ObjectID()] };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}`,
+        url: `/steps/${stepId}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -150,7 +150,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload,
-          url: `/steps/${stepId.toHexString()}`,
+          url: `/steps/${stepId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -174,7 +174,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const payload = { name: 'new activity', type: 'video' };
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${step._id.toHexString()}/activities`,
+        url: `/steps/${step._id}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -191,7 +191,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const payload = { name: 'new activity', type: 'video' };
         const response = await app.inject({
           method: 'POST',
-          url: `/steps/${step._id.toHexString()}/activities`,
+          url: `/steps/${step._id}/activities`,
           payload: omit(payload, missingParam),
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -205,7 +205,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const wrongPayload = { ...payload, type: 'something_wrong' };
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${step._id.toHexString()}/activities`,
+        url: `/steps/${step._id}/activities`,
         payload: wrongPayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -218,7 +218,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const duplicatedCardId = cardsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${step._id.toHexString()}/activities`,
+        url: `/steps/${step._id}/activities`,
         payload: { activityId: duplicatedActivityId },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -256,7 +256,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const duplicatedActivityId = activitiesList[3]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${step._id.toHexString()}/activities`,
+        url: `/steps/${step._id}/activities`,
         payload: { activityId: duplicatedActivityId },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -319,7 +319,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const payload = { name: 'new activity', type: 'video' };
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${stepsList[3]._id.toHexString()}/activities`,
+        url: `/steps/${stepsList[3]._id}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -343,7 +343,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/steps/${step._id.toHexString()}/activities`,
+          url: `/steps/${step._id}/activities`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -369,7 +369,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       const reusedCardId = cardsList[0]._id;
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}/activities`,
+        url: `/steps/${stepId}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -428,7 +428,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       const payload = { activities: activitiesList[0]._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepsList[3]._id.toHexString()}/activities`,
+        url: `/steps/${stepsList[3]._id}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -437,10 +437,10 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
     });
 
     it('should return a 404 if invalid activity id', async () => {
-      const payload = { activities: (new ObjectID()).toHexString() };
+      const payload = { activities: (new ObjectID()) };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}/activities`,
+        url: `/steps/${stepId}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -452,7 +452,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       const payload = { activities: activitiesList[1]._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}/activities`,
+        url: `/steps/${stepId}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -476,7 +476,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
         const response = await app.inject({
           method: 'PUT',
           payload,
-          url: `/steps/${stepId.toHexString()}/activities`,
+          url: `/steps/${stepId}/activities`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -500,7 +500,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
     it('should detach activity from step', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/steps/${step._id.toHexString()}/activities/${activityId.toHexString()}`,
+        url: `/steps/${step._id}/activities/${activityId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -517,7 +517,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       const invalidActivityId = activitiesList[1]._id;
       const response = await app.inject({
         method: 'DELETE',
-        url: `/steps/${step._id.toHexString()}/activities/${invalidActivityId.toHexString()}`,
+        url: `/steps/${step._id}/activities/${invalidActivityId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -528,7 +528,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       const payload = { activities: activitiesList[0]._id };
       const response = await app.inject({
         method: 'DELETE',
-        url: `/steps/${stepsList[3]._id.toHexString()}/activities/${activitiesList[3]._id.toHexString()}`,
+        url: `/steps/${stepsList[3]._id}/activities/${activitiesList[3]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -550,7 +550,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/steps/${step._id.toHexString()}/activities/${activityId.toHexString()}`,
+          url: `/steps/${step._id}/activities/${activityId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
