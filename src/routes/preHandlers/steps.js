@@ -29,13 +29,13 @@ exports.authorizeActivityAdd = async (req) => {
 };
 
 exports.authorizeActivityReuse = async (req) => {
-  const step = await Step.findOne({ _id: req.params._id }).lean();
+  const step = await Step.findOne({ _id: req.params._id }, { activities: 1, status: 1 }).lean();
   if (!step) throw Boom.notFound();
   if (step.status === PUBLISHED) throw Boom.forbidden();
 
   const { activities } = req.payload;
   const existingActivity = await Activity.countDocuments({ _id: activities });
-  if (!existingActivity) throw Boom.badRequest();
+  if (!existingActivity) throw Boom.notFound();
   if (step.activities.map(a => a.toHexString()).includes(activities)) throw Boom.badRequest();
 
   return null;

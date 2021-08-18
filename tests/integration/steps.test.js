@@ -401,28 +401,27 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       }));
     });
 
-    it('should not push a reused activity from the same step', async () => {
-      const payload = { activities: activitiesList[1]._id };
+    it('should return a 400 if missing acitivities in payload', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}/activities`,
-        payload,
+        url: `/steps/${new ObjectID()}/activities`,
+        payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
     });
 
-    it('should not push an invalid activityid', async () => {
-      const payload = { activities: (new ObjectID()).toHexString() };
+    it('should return a 404 if invalid step id', async () => {
+      const payload = { activities: activitiesList[0]._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId.toHexString()}/activities`,
+        url: `/steps/${new ObjectID()}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 403 if step is published', async () => {
@@ -435,6 +434,30 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 404 if invalid activity id', async () => {
+      const payload = { activities: (new ObjectID()).toHexString() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}/activities`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 400 if reused activity is from the same step', async () => {
+      const payload = { activities: activitiesList[1]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId.toHexString()}/activities`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
