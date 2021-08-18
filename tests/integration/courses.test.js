@@ -965,9 +965,9 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
   const courseIdWithSlotsToPLan = coursesList[7]._id;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete course', async () => {
@@ -978,6 +978,18 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const courseCount = await Course.countDocuments({ _id: courseIdWithoutTraineesAndSlots });
+      expect(courseCount).toBe(0);
+    });
+
+    it('should return 404 if course does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 403 as course has trainees', async () => {
@@ -1014,12 +1026,9 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
