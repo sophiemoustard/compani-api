@@ -27,7 +27,7 @@ exports.authorizePaymentUpdate = (req) => {
     const { payment } = req.pre;
     if (UtilsHelper.areObjectIdsEquals(payment.company, get(credentials, 'company._id', null))) return null;
 
-    throw Boom.forbidden();
+    throw Boom.notFound();
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -45,7 +45,7 @@ exports.authorizePaymentsListCreation = async (req) => {
     });
     if (customersCount === customersIds.length) return null;
 
-    throw Boom.forbidden();
+    throw Boom.notFound();
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -59,11 +59,11 @@ exports.authorizePaymentCreation = async (req) => {
     const companyId = get(credentials, 'company._id', null).toHexString();
 
     const customer = await Customer.countDocuments({ _id: payment.customer, company: companyId });
-    if (!customer) throw Boom.forbidden();
+    if (!customer) throw Boom.notFound();
 
     if (payment.thirdPartyPayer) {
       const tpp = await ThirdPartyPayer.countDocuments({ _id: payment.thirdPartyPayer, company: companyId });
-      if (!tpp) throw Boom.forbidden();
+      if (!tpp) throw Boom.notFound();
     }
 
     return null;
