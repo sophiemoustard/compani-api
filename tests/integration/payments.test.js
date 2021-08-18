@@ -13,14 +13,10 @@ const {
   tppFromOtherCompany,
 } = require('./seed/paymentsSeed');
 const { PAYMENT } = require('../../src/helpers/constants');
-const translate = require('../../src/helpers/translate');
 const Payment = require('../../src/models/Payment');
-const PaymentNumber = require('../../src/models/PaymentNumber');
 const Drive = require('../../src/models/Google/Drive');
 const PaymentHelper = require('../../src/helpers/payments');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
-
-const { language } = translate;
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -54,10 +50,9 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const paymentCount = await Payment.countDocuments({ company: authCompany._id });
+      const paymentCountAfter = await Payment.countDocuments({ company: authCompany._id });
       expect(response.statusCode).toBe(200);
-      expect(response.result.message).toBe(translate[language].paymentCreated);
-      expect(paymentCount).toBe(paymentCountBefore + 1);
+      expect(paymentCountAfter).toBe(paymentCountBefore + 1);
     });
 
     ['date', 'customer', 'netInclTaxes', 'nature', 'type'].forEach((param) => {

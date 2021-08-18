@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const GetStream = require('get-stream');
 const omit = require('lodash/omit');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Gdrive = require('../../src/models/Google/Drive');
 const PayDocument = require('../../src/models/PayDocument');
@@ -15,7 +14,7 @@ const {
   payDocumentUserCompanies,
   userFromOtherCompany,
 } = require('./seed/payDocumentsSeed');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 const { auxiliaryWithoutCompany } = require('../seed/userSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
@@ -45,7 +44,7 @@ describe('POST /paydocuments', () => {
     });
 
     it('should create a new pay document', async () => {
-      const payDocumentsLengthBefore = await PayDocument.countDocuments({});
+      const payDocumentsCountBefore = await PayDocument.countDocuments({});
 
       const docPayload = {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
@@ -64,9 +63,9 @@ describe('POST /paydocuments', () => {
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
-      const payDocumentsLength = await PayDocument.countDocuments({});
+      const payDocumentsCountAfter = await PayDocument.countDocuments({});
       expect(response.statusCode).toBe(200);
-      expect(payDocumentsLength).toBe(payDocumentsLengthBefore + 1);
+      expect(payDocumentsCountAfter).toBe(payDocumentsCountBefore + 1);
       sinon.assert.calledOnce(addFileStub);
     });
 
@@ -251,8 +250,8 @@ describe('DELETE /paydocuments', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const payDocumentsCount = await PayDocument.countDocuments({ company: authCompany._id });
-      expect(payDocumentsCount).toBe(payDocumentsCountBefore - 1);
+      const payDocumentsCountAfter = await PayDocument.countDocuments({ company: authCompany._id });
+      expect(payDocumentsCountAfter).toBe(payDocumentsCountBefore - 1);
       sinon.assert.calledWith(deleteFileStub, payDocumentsList[0].file.driveId);
       deleteFileStub.restore();
     });

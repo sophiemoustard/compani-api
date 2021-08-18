@@ -111,7 +111,7 @@ describe('PAY ROUTES - POST /pay', () => {
     });
 
     it('should create a new pay', async () => {
-      const payListBefore = await Pay.countDocuments({});
+      const payListCountBefore = await Pay.countDocuments({});
 
       const response = await app.inject({
         method: 'POST',
@@ -122,8 +122,8 @@ describe('PAY ROUTES - POST /pay', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const payListCount = await Pay.countDocuments({});
-      expect(payListCount).toEqual(payListBefore + 1);
+      const payListCountAfter = await Pay.countDocuments({});
+      expect(payListCountAfter).toEqual(payListCountBefore + 1);
     });
 
     it('should return 404 if user is not from the same company', async () => {
@@ -239,7 +239,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a if there is both sector and auxiliary', async () => {
+    it('should return a 400 if there is both sector and auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[0]._id}&auxiliary=${auxiliaries[0]._id}&month=10-2022`,
