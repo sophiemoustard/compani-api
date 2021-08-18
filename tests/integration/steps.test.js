@@ -401,10 +401,10 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       }));
     });
 
-    it('should return a 400 if missing acitivities in payload', async () => {
+    it('should return a 400 if missing activities in payload', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${new ObjectID()}/activities`,
+        url: `/steps/${stepId}/activities`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -505,15 +505,26 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       });
 
       const stepUpdated = await Step.findById(step._id).lean();
-      const detachedActivity = await Activity.findById(activityId).lean();
+      const detachedActivity = await Activity.countDocuments({ _id: activityId });
 
       expect(response.statusCode).toBe(200);
       expect(stepUpdated._id).toEqual(step._id);
       expect(stepUpdated.activities.length).toEqual(step.activities.length - 1);
-      expect(detachedActivity._id).toEqual(activityId);
+      expect(detachedActivity).toEqual(1);
     });
 
-    it('should return a 404 if step does not exists or doesn\'t have the specified activities', async () => {
+    it('should return a 404 if step doesn\'t exist', async () => {
+      const unknownStepId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/steps/${unknownStepId.toHexString()}/activities/${activityId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if step doesn\'t have the specified activities', async () => {
       const invalidActivityId = activitiesList[1]._id;
       const response = await app.inject({
         method: 'DELETE',

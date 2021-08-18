@@ -12,9 +12,7 @@ exports.authorizeStepUpdate = async (req) => {
   if (activities) {
     const lengthAreEquals = step.activities.length === activities.length;
     const dbActivitiesAreInPayload = step.activities.every(value => activities.includes(value.toHexString()));
-    const payloadActivitiesAreInDb = activities
-      .every(value => step.activities.map(a => a.toHexString()).includes(value));
-    if (!lengthAreEquals || !payloadActivitiesAreInDb || !dbActivitiesAreInPayload) return Boom.badRequest();
+    if (!lengthAreEquals || !dbActivitiesAreInPayload) return Boom.badRequest();
   }
 
   return null;
