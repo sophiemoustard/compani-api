@@ -163,7 +163,6 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   let authToken = null;
   beforeEach(populateDB);
-  const payload = { name: 'new activity', type: 'video' };
   const step = stepsList[0];
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -171,46 +170,47 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    describe('creation', () => {
-      it('should create activity', async () => {
+    it('should create activity', async () => {
+      const payload = { name: 'new activity', type: 'video' };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/steps/${step._id.toHexString()}/activities`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      const stepUpdated = await Step.findById(step._id).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(stepUpdated._id).toEqual(step._id);
+      expect(stepUpdated.activities.length).toEqual(step.activities.length + 1);
+    });
+
+    ['name', 'type'].forEach((missingParam) => {
+      it('should return a 400 if missing required param', async () => {
+        const payload = { name: 'new activity', type: 'video' };
         const response = await app.inject({
           method: 'POST',
           url: `/steps/${step._id.toHexString()}/activities`,
-          payload,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        const stepUpdated = await Step.findById(step._id);
-
-        expect(response.statusCode).toBe(200);
-        expect(stepUpdated._id).toEqual(step._id);
-        expect(stepUpdated.activities.length).toEqual(step.activities.length + 1);
-      });
-
-      ['name', 'type'].forEach((missingParam) => {
-        it('should return a 400 if missing requiered param', async () => {
-          const response = await app.inject({
-            method: 'POST',
-            url: `/steps/${step._id.toHexString()}/activities`,
-            payload: omit(payload, missingParam),
-            headers: { Cookie: `alenvi_token=${authToken}` },
-          });
-
-          expect(response.statusCode).toBe(400);
-        });
-      });
-
-      it('should return a 400 if invalid type', async () => {
-        const wrongPayload = { ...payload, type: 'something_wrong' };
-        const response = await app.inject({
-          method: 'POST',
-          url: `/steps/${step._id.toHexString()}/activities`,
-          payload: wrongPayload,
+          payload: omit(payload, missingParam),
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(400);
       });
+    });
+
+    it('should return a 400 if invalid type', async () => {
+      const payload = { name: 'new activity', type: 'video' };
+      const wrongPayload = { ...payload, type: 'something_wrong' };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/steps/${step._id.toHexString()}/activities`,
+        payload: wrongPayload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should duplicate an activity', async () => {
@@ -276,7 +276,34 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       expect(duplicatedActivity.status).toBe('published');
     });
 
-    it('should return a 400 if step does not exist', async () => {
+    it('should return a 400 if duplicated activity with name in payload', async () => {
+      const duplicatedActivityId = activitiesList[3]._id;
+      const payload = { name: 'new activity', activityId: duplicatedActivityId };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/steps/${step._id}/activities`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if duplicated activity with type in payload', async () => {
+      const duplicatedActivityId = activitiesList[3]._id;
+      const payload = { type: 'video', activityId: duplicatedActivityId };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/steps/${step._id}/activities`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 404 if step does not exist', async () => {
+      const payload = { name: 'new activity', type: 'video' };
       const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
@@ -289,6 +316,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
     });
 
     it('should return a 403 if step is published', async () => {
+      const payload = { name: 'new activity', type: 'video' };
       const response = await app.inject({
         method: 'POST',
         url: `/steps/${stepsList[3]._id.toHexString()}/activities`,
@@ -311,6 +339,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
+        const payload = { name: 'new activity', type: 'video' };
         const response = await app.inject({
           method: 'POST',
           payload,
