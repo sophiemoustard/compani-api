@@ -42,7 +42,7 @@ exports.authorizeActivityReuse = async (req) => {
 };
 
 exports.authorizeActivityDetachment = async (req) => {
-  const step = await Step.findOne({ _id: req.params._id, activities: req.params.activityId }).lean();
+  const step = await Step.findOne({ _id: req.params._id, activities: req.params.activityId }, { status: 1 }).lean();
   if (!step) throw Boom.notFound();
   if (step.status === PUBLISHED) throw Boom.forbidden();
 

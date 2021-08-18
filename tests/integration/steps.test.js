@@ -504,8 +504,8 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const stepUpdated = await Step.findById(step._id);
-      const detachedActivity = await Activity.findById(activityId);
+      const stepUpdated = await Step.findById(step._id).lean();
+      const detachedActivity = await Activity.findById(activityId).lean();
 
       expect(response.statusCode).toBe(200);
       expect(stepUpdated._id).toEqual(step._id);
@@ -513,18 +513,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
       expect(detachedActivity._id).toEqual(activityId);
     });
 
-    it('should return a 404 if step does not exist', async () => {
-      const unknownStepId = new ObjectID();
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/steps/${unknownStepId.toHexString()}/activities/${activityId.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return a 404 if step does not contain activity', async () => {
+    it('should return a 404 if step does not exists or doesn\'t have the specified activities', async () => {
       const invalidActivityId = activitiesList[1]._id;
       const response = await app.inject({
         method: 'DELETE',

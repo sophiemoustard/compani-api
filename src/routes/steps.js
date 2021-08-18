@@ -70,7 +70,10 @@ exports.plugin = {
       path: '/{_id}/activities/{activityId}',
       options: {
         validate: {
-          params: Joi.object({ _id: Joi.objectId().required(), activityId: Joi.objectId().required() }),
+          params: Joi.object({
+            _id: Joi.objectId().required(),
+            activityId: Joi.objectId().required(),
+          }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeActivityDetachment }],
