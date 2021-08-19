@@ -1,5 +1,4 @@
 const { v4: uuidv4 } = require('uuid');
-const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const User = require('../../../src/models/User');
@@ -138,7 +137,7 @@ const usersSeedList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Admin3', lastname: 'Kitty' },
+    identity: { firstname: 'Coach3', lastname: 'Kitty' },
     local: { email: 'kitty@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'coach')._id },
@@ -159,7 +158,7 @@ const usersSeedList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary2', lastname: 'White' },
     local: { email: 'aux@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: rolesList.find(role => role.name === 'planning_referent')._id },
     refreshToken: uuidv4(),
     contracts: [endedContractId, contractNotStartedId],
     administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
@@ -172,6 +171,14 @@ const usersSeedList = [
     role: { client: rolesList.find(role => role.name === 'auxiliary_without_company')._id },
     refreshToken: uuidv4(),
     administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Coach3', lastname: 'Kitty' },
+    local: { email: 'cae@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
     origin: WEBAPP,
   },
   {
@@ -227,6 +234,7 @@ const userCompanies = [
   { user: usersSeedList[5]._id, company: authCompany._id },
   { user: usersSeedList[6]._id, company: authCompany._id },
   { user: usersSeedList[7]._id, company: authCompany._id },
+  { user: usersSeedList[8]._id, company: authCompany._id },
 ];
 
 const userSectors = [
@@ -262,14 +270,11 @@ const contracts = [
   },
 ];
 
-const sectorHistories = usersSeedList
-  .filter(user => get(user, 'role.client') === rolesList.find(role => role.name === 'auxiliary')._id)
-  .map(user => ({
-    auxiliary: user._id,
-    sector: userSectors[0]._id,
-    company: authCompany._id,
-    startDate: '2018-12-10',
-  }));
+const sectorHistories = [
+  { auxiliary: usersSeedList[0]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
+  { auxiliary: usersSeedList[1]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
+  { auxiliary: usersSeedList[4]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
+];
 
 const followingCourses = [
   {
