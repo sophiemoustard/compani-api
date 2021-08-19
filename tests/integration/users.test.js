@@ -1396,6 +1396,7 @@ describe('DELETE /users/:id', () => {
           userCompanyExistBefore = !!await UserCompany.countDocuments({ user: userToDelete._id });
           helperExistBefore = !!await Helper.countDocuments({ user: userToDelete._id });
         }
+
         const res = await app.inject({
           method: 'DELETE',
           url: `/users/${userToDelete._id}`,

@@ -175,7 +175,7 @@ const usersSeedList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Coach3', lastname: 'Kitty' },
+    identity: { firstname: 'adminion', lastname: 'Kitty' },
     local: { email: 'cae@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'client_admin')._id },
