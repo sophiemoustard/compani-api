@@ -18,7 +18,7 @@ describe('NODE ENV', () => {
 });
 
 describe('PAY ROUTES - GET /pay/draft', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -43,6 +43,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -159,6 +160,7 @@ describe('PAY ROUTES - POST /pay', () => {
       { name: 'planning_referent', expectedCode: 403, erp: true },
       { name: 'coach', expectedCode: 403, erp: true },
       { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403, erp: true },
     ];
 
     roles.forEach((role) => {
@@ -178,7 +180,7 @@ describe('PAY ROUTES - POST /pay', () => {
 });
 
 describe('PAY ROUTES - GET /hours-balance-details', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -275,6 +277,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -293,7 +296,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
 });
 
 describe('PAY ROUTES - GET /hours-to-work', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -309,7 +312,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursToWork).toBeDefined();
+      expect(response.result.data.hoursToWork.length).toEqual(1);
     });
 
     it('should get relevant hours to work by sector if an auxiliary has changed sector', async () => {
@@ -320,7 +323,6 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursToWork).toBeDefined();
       const oldSectorResult = response.result.data.hoursToWork
         .find(res => res.sector.toHexString() === sectors[0]._id.toHexString());
       const newSectorResult = response.result.data.hoursToWork
@@ -366,6 +368,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -384,7 +387,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
 });
 
 describe('PAY ROUTES - GET /pays/export/{type}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -400,6 +403,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should export contract versions for pay', async () => {
@@ -410,6 +414,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should export absences for pay', async () => {
@@ -420,6 +425,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should export contract ends for pay', async () => {
@@ -430,6 +436,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should export hours for pay', async () => {
@@ -440,6 +447,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should return 400 if invalid type', async () => {
@@ -488,6 +496,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

@@ -204,7 +204,6 @@ describe('GET /paydocuments', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.payDocuments).toBeDefined();
       expect(response.result.data.payDocuments.length)
         .toBe(payDocumentsList.filter(payDocument => payDocument.user === auxiliaryWithoutCompany._id).length);
     });

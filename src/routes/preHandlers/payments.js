@@ -43,9 +43,10 @@ exports.authorizePaymentsListCreation = async (req) => {
       _id: { $in: customersIds },
       company: get(credentials, 'company._id'),
     });
-    if (customersCount === customersIds.length) return null;
 
-    throw Boom.notFound();
+    if (customersCount !== customersIds.length) throw Boom.notFound();
+
+    return null;
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

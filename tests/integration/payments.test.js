@@ -33,7 +33,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should create a paiment', async () => {
+    it('should create a payment', async () => {
       const payload = {
         date: moment('2019-09-15').toDate(),
         customer: paymentCustomerList[0]._id,
@@ -121,6 +121,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
       { name: 'planning_referent', expectedCode: 403, erp: true },
       { name: 'coach', expectedCode: 403, erp: true },
       { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403, erp: true },
     ];
 
     roles.forEach((role) => {
@@ -169,7 +170,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
     },
   ];
 
-  describe('Admin with company', () => {
+  describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     let addStub;
 
@@ -198,25 +199,6 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       sinon.assert.called(addStub);
     });
 
-    it('should not create new payment with existing number', async () => {
-      const payload = [...originalPayload];
-      const formatPaymentNumber = sinon.stub(PaymentHelper, 'formatPaymentNumber');
-      const generateXML = sinon.stub(PaymentHelper, 'generateXML');
-      formatPaymentNumber.returns(paymentsList[0].number);
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/payments/createlist',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(500);
-      sinon.assert.notCalled(generateXML);
-      formatPaymentNumber.restore();
-      generateXML.restore();
-    });
-
     it('should return a 404 if at least one customer is not from the same company', async () => {
       const payload = [
         { ...originalPayload[0], customer: customerFromOtherCompany._id },
@@ -233,23 +215,43 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 400 if at least one paiement has a tpp', async () => {
-      const payload = [
-        { ...originalPayload[0], thirdPartyPayer: new ObjectID() },
-        { ...originalPayload[1] },
-      ];
+    it('should return a 400 if user tries to create a payment with an existing number', async () => {
+      const generateXML = sinon.stub(PaymentHelper, 'generateXML');
+
+      const payload = [{ ...originalPayload[0], number: paymentsList[0].number }];
+
       const response = await app.inject({
         method: 'POST',
         url: '/payments/createlist',
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
+      expect(response.statusCode).toEqual(400);
+      sinon.assert.notCalled(generateXML);
+      generateXML.restore();
+    });
+
+    it('should return a 400 if at least one paiement has a tpp', async () => {
+      const payload = [
+        { ...originalPayload[0], thirdPartyPayer: new ObjectID() },
+        { ...originalPayload[1] },
+      ];
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
       expect(response.statusCode).toBe(400);
     });
   });
 
-  describe('Admin without company', () => {
+  describe('CLIENT_ADMIN without company credentials', () => {
     beforeEach(populateDB);
+
     beforeEach(async () => {
       authToken = await getTokenByCredentials(userFromOtherCompany.local);
     });
@@ -276,6 +278,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -355,6 +358,7 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -425,6 +429,7 @@ describe('PAYMENTS ROUTES - DELETE /payments/_id', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
