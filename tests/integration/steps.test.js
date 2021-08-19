@@ -6,6 +6,7 @@ const Step = require('../../src/models/Step');
 const { populateDB, stepsList, activitiesList, cardsList } = require('./seed/stepsSeed');
 const Activity = require('../../src/models/Activity');
 const { getToken } = require('./seed/authenticationSeed');
+const UtilsHelper = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -48,6 +49,11 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const updatedStepCount = await Step.countDocuments({
+        _id: stepsList[3]._id,
+        name: 'une nouvelle étape super innovante',
+      });
+      expect(updatedStepCount).toBe(1);
     });
 
     it('should update activities', async () => {
@@ -366,7 +372,6 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
     it('should push a reused activity', async () => {
       const payload = { activities: activitiesList[0]._id };
       const reusedActivityId = activitiesList[0]._id;
-      const reusedCardId = cardsList[0]._id;
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}/activities`,
@@ -383,22 +388,8 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
         .lean();
 
       expect(response.statusCode).toBe(200);
-      expect(stepUpdated).toEqual(expect.objectContaining({
-        _id: stepId,
-        name: 'c\'est une étape',
-        type: 'on_site',
-        status: 'draft',
-        activities: expect.arrayContaining([
-          {
-            _id: reusedActivityId,
-            type: 'lesson',
-            name: 'chanter',
-            cards: expect.arrayContaining([
-              { _id: reusedCardId, template: 'transition', title: 'do mi sol do' },
-            ]),
-          },
-        ]),
-      }));
+      expect(stepUpdated.activities.some(act => UtilsHelper.areObjectIdsEquals(act._id, reusedActivityId)))
+        .toBeTruthy();
     });
 
     it('should return a 400 if missing activities in payload', async () => {
