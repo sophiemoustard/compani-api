@@ -132,7 +132,7 @@ describe('PAY ROUTES - POST /pay', () => {
         method: 'POST',
         url: '/pay',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: [{ ...payload[0], auxiliary: new ObjectID(auxiliaryFromOtherCompany._id) }],
+        payload: [{ ...payload[0], auxiliary: auxiliaryFromOtherCompany._id }],
       });
 
       expect(response.statusCode).toBe(404);
@@ -261,6 +261,16 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       expect(response.statusCode).toEqual(400);
     });
 
+    it('should return a 400 if missing month', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
     it('should return a 400 if month does not correspond to regex', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -269,6 +279,55 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       });
 
       expect(response.statusCode).toEqual(400);
+    });
+  });
+
+  describe('AUXILIARY', () => {
+    beforeEach(async () => {
+      authToken = await getToken('auxiliary');
+    });
+
+    it('should get hours balance details', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2022`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail.auxiliaryId).toEqual(auxiliaries[0]._id);
+    });
+
+    it('should get hours balance details by sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2022`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail.length).toEqual(1);
+    });
+
+    it('should get hours balance details for a sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[1]._id}&month=10-2022`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail.length).toEqual(1);
+    });
+
+    it('should return a 404 if user is not from the same company as auxiliary', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2022`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 

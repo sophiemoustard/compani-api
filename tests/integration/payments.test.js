@@ -2,7 +2,6 @@ const expect = require('expect');
 const moment = require('moment');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const {
   paymentsList,
@@ -230,22 +229,6 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       expect(response.statusCode).toEqual(400);
       sinon.assert.notCalled(generateXML);
       generateXML.restore();
-    });
-
-    it('should return a 400 if at least one paiement has a tpp', async () => {
-      const payload = [
-        { ...originalPayload[0], thirdPartyPayer: new ObjectID() },
-        { ...originalPayload[1] },
-      ];
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/payments/createlist',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
     });
   });
 

@@ -4,30 +4,17 @@ const Payment = require('../../models/Payment');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const translate = require('../../helpers/translate');
-const UtilsHelper = require('../../helpers/utils');
 const { REFUND } = require('../../helpers/constants');
 
 const { language } = translate;
 
-exports.getPayment = async (req) => {
+exports.authorizePaymentUpdate = async (req) => {
   try {
-    const payment = await Payment.findOne({ _id: req.params._id }).lean();
+    const { credentials } = req.auth;
+    const payment = await Payment.findOne({ _id: req.params._id, company: credentials.company._id }).lean();
     if (!payment) throw Boom.notFound(translate[language].paymentNotFound);
 
     return payment;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-exports.authorizePaymentUpdate = (req) => {
-  try {
-    const { credentials } = req.auth;
-    const { payment } = req.pre;
-    if (UtilsHelper.areObjectIdsEquals(payment.company, get(credentials, 'company._id', null))) return null;
-
-    throw Boom.notFound();
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

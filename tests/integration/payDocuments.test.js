@@ -229,17 +229,21 @@ describe('GET /paydocuments', () => {
   });
 });
 
-describe('DELETE /paydocuments', () => {
+describe('DELETE /paydocuments #tag', () => {
   let authToken;
 
   describe('COACH', () => {
+    let deleteFileStub;
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
+      deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
+    });
+    afterEach(() => {
+      deleteFileStub.restore();
     });
 
     it('should delete a pay document', async () => {
-      const deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
       const payDocumentsCountBefore = await PayDocument.countDocuments({ company: authCompany._id });
 
       const response = await app.inject({
@@ -252,7 +256,6 @@ describe('DELETE /paydocuments', () => {
       const payDocumentsCountAfter = await PayDocument.countDocuments({ company: authCompany._id });
       expect(payDocumentsCountAfter).toBe(payDocumentsCountBefore - 1);
       sinon.assert.calledWith(deleteFileStub, payDocumentsList[0].file.driveId);
-      deleteFileStub.restore();
     });
 
     it('should return a 404 if it is not from the same company', async () => {
