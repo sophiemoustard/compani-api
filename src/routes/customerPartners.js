@@ -15,10 +15,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customerpartners:edit'] },
         validate: {
-          payload: Joi.object().keys({
-            partner: Joi.objectId().required(),
-            customer: Joi.objectId().required(),
-          }),
+          payload: Joi.object().keys({ partner: Joi.objectId().required(), customer: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeCustomerPartnerCreation }],
       },

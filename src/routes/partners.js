@@ -23,10 +23,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            identity: Joi.object({
-              firstname: Joi.string().allow(''),
-              lastname: Joi.string(),
-            }),
+            identity: Joi.object({ firstname: Joi.string().allow(''), lastname: Joi.string() }),
             phone: phoneNumberValidation.allow(''),
             email: Joi.string().email().allow(''),
             job: Joi.string().valid(...JOBS).allow(''),

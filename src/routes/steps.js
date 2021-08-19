@@ -22,10 +22,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({
-            name: Joi.string(),
-            activities: Joi.array().items(Joi.objectId()),
-          }).min(1),
+          payload: Joi.object({ name: Joi.string(), activities: Joi.array().items(Joi.objectId()) }).min(1),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeStepUpdate }],
@@ -70,10 +67,7 @@ exports.plugin = {
       path: '/{_id}/activities/{activityId}',
       options: {
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            activityId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), activityId: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeActivityDetachment }],
