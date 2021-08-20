@@ -58,7 +58,7 @@ describe('getPdfContent', () => {
         [{ text: '' }, { text: '' }],
         [{ text: '' }, { text: '' }],
         [{ text: '' }, { text: '' }],
-        [{ text: 'Signature du/de la formateur(rice)', italics: true, margin: [0, 8, 0, 0] }, { text: '' }],
+        [{ text: 'Signature de l\'intervenant(e)', italics: true, margin: [0, 8, 0, 0] }, { text: '' }],
       ],
       widths: ['*', '*'],
       heights: ['auto', 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
