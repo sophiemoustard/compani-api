@@ -17,9 +17,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['scripts:run'] },
         validate: {
-          query: Joi.object({
-            date: Joi.date(),
-          }),
+          query: Joi.object({ date: Joi.date() }),
         },
       },
       handler: billDispatchScript,
@@ -31,10 +29,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['scripts:run'] },
         validate: {
-          query: Joi.object({
-            date: Joi.date(),
-            type: Joi.string(),
-          }),
+          query: Joi.object({ date: Joi.date(), type: Joi.string() }),
         },
       },
       handler: eventRepetitionsScript,

@@ -22,9 +22,7 @@ exports.plugin = {
       path: '/',
       options: {
         validate: {
-          payload: Joi.object({
-            name: Joi.string().required(),
-          }),
+          payload: Joi.object({ name: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: checkCategoryNameExists }],
@@ -38,9 +36,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({
-            name: Joi.string().required(),
-          }),
+          payload: Joi.object({ name: Joi.string().required() }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: checkCategoryNameExists }, { method: checkCategoryExists }],

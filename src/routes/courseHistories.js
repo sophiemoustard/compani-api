@@ -15,10 +15,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['courses:edit'] },
         validate: {
-          query: Joi.object({
-            course: Joi.objectId().required(),
-            createdAt: Joi.date(),
-          }),
+          query: Joi.object({ course: Joi.objectId().required(), createdAt: Joi.date() }),
         },
         pre: [{ method: authorizeGetCourseHistories }],
       },

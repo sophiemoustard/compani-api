@@ -78,14 +78,8 @@ exports.plugin = {
       path: '/{_id}/answers/{answerId}',
       options: {
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            answerId: Joi.objectId().required(),
-          }),
-          payload: Joi.object({
-            text: Joi.string(),
-            correct: Joi.boolean(),
-          }).min(1),
+          params: Joi.object({ _id: Joi.objectId().required(), answerId: Joi.objectId().required() }),
+          payload: Joi.object({ text: Joi.string(), correct: Joi.boolean() }).min(1),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeCardAnswerUpdate, assign: 'card' }],
@@ -114,14 +108,9 @@ exports.plugin = {
           payload: Joi.object({
             fileName: Joi.string().required(),
             file: Joi.any().required(),
-            media: Joi.object().keys({
-              link: Joi.string().allow(null),
-              publicId: Joi.string().allow(null),
-            }),
+            media: Joi.object().keys({ link: Joi.string().allow(null), publicId: Joi.string().allow(null) }),
           }),
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
       },

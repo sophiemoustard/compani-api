@@ -100,10 +100,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['users:list'] },
         validate: {
-          query: Joi.object({
-            role: [Joi.array(), Joi.string()],
-            company: Joi.objectId(),
-          }),
+          query: Joi.object({ role: [Joi.array(), Joi.string()], company: Joi.objectId() }),
         },
         pre: [{ method: authorizeUsersGet }],
       },
@@ -193,14 +190,9 @@ exports.plugin = {
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
-            local: Joi.object().keys({
-              email: Joi.string().email(),
-            }),
+            local: Joi.object().keys({ email: Joi.string().email() }),
             role: Joi.objectId(),
-            picture: Joi.object().keys({
-              link: Joi.string().allow(null),
-              publicId: Joi.string().allow(null),
-            }),
+            picture: Joi.object().keys({ link: Joi.string().allow(null), publicId: Joi.string().allow(null) }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
               title: Joi.string(),
@@ -213,50 +205,26 @@ exports.plugin = {
               birthCity: Joi.string(),
               socialSecurityNumber: Joi.number(),
             }),
-            contact: Joi.object().keys({
-              phone: phoneNumberValidation.allow('', null),
-              address: addressValidation,
-            }),
+            contact: Joi.object().keys({ phone: phoneNumberValidation.allow('', null), address: addressValidation }),
             administrative: Joi.object().keys({
-              signup: Joi.object().keys({
-                step: Joi.string(),
-                complete: Joi.boolean(),
-              }),
+              signup: Joi.object().keys({ step: Joi.string(), complete: Joi.boolean() }),
               identityDocs: Joi.string().valid('pp', 'cni', 'ts'),
               mutualFund: Joi.object().keys({
                 has: Joi.boolean(),
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
               }),
-              navigoInvoice: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
+              navigoInvoice: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
               transportInvoice: Joi.object().keys({
                 transportType: Joi.string(),
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
               }),
-              phoneInvoice: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              healthAttest: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              idCardRecto: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              idCardVerso: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
-              passport: Joi.object().keys({
-                driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null),
-              }),
+              phoneInvoice: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
+              healthAttest: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
+              idCardRecto: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
+              idCardVerso: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
+              passport: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
               residencePermitRecto: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
@@ -270,16 +238,8 @@ exports.plugin = {
                 link: Joi.string().allow(null),
               }),
               socialSecurityNumber: Joi.number(),
-              payment: Joi.object().keys({
-                rib: Joi.object().keys({
-                  iban: Joi.string(),
-                  bic: Joi.string(),
-                }),
-              }),
-              emergencyContact: Joi.object().keys({
-                name: Joi.string(),
-                phoneNumber: Joi.string(),
-              }),
+              payment: Joi.object().keys({ rib: Joi.object().keys({ iban: Joi.string(), bic: Joi.string() }) }),
+              emergencyContact: Joi.object().keys({ name: Joi.string(), phoneNumber: Joi.string() }),
             }),
             isActive: Joi.boolean(),
             establishment: Joi.objectId(),
@@ -300,9 +260,7 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            certificates: Joi.object().keys({ driveId: Joi.string() }),
-          }),
+          payload: Joi.object().keys({ certificates: Joi.object().keys({ driveId: Joi.string() }) }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -342,10 +300,7 @@ exports.plugin = {
             type: Joi.string().required().valid(...driveUploadKeys),
             file: Joi.any().required(),
           }),
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            driveId: Joi.string().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
         },
         pre: [
           { method: getUser, assign: 'user' },
@@ -375,10 +330,7 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({
-            fileName: Joi.string().required(),
-            file: Joi.any().required(),
-          }),
+          payload: Joi.object({ fileName: Joi.string().required(), file: Joi.any().required() }),
         },
         payload: formDataPayload(),
       },
@@ -417,10 +369,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['user:edit-{params._id}'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            expoToken: Joi.string().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), expoToken: Joi.string().required() }),
         },
         pre: [{ method: authorizeExpoTokenEdit }],
       },

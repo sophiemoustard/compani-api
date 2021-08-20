@@ -23,10 +23,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['pay:edit'] },
         validate: {
-          query: Joi.object({
-            endDate: Joi.date(),
-            startDate: Joi.date(),
-          }),
+          query: Joi.object({ endDate: Joi.date(), startDate: Joi.date() }),
         },
       },
       handler: draftPayList,
@@ -70,10 +67,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['pay:read'] },
         validate: {
-          query: Joi.object({
-            sector: objectIdOrArray.required(),
-            month: monthValidation.required(),
-          }),
+          query: Joi.object({ sector: objectIdOrArray.required(), month: monthValidation.required() }),
         },
         pre: [{ method: authorizeGetHoursToWork }],
       },
