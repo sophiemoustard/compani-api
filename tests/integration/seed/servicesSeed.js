@@ -3,6 +3,7 @@ const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
 const { HOURLY, FIXED } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { serviceList } = require('../../seed/customerSeed');
 
 const servicesList = [
   {
@@ -97,7 +98,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
 
-  await Service.insertMany(servicesList);
+  await Service.insertMany([...serviceList, ...servicesList]);
   await Service.insertMany([serviceFromOtherCompany]);
   await (new Customer(customer)).save();
 };

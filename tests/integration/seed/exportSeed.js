@@ -20,7 +20,7 @@ const Establishment = require('../../../src/models/Establishment');
 const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCustomer } = require('../../seed/customerSeed');
+const { authCustomer, serviceList: customerServiceList } = require('../../seed/customerSeed');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const { helper } = require('../../seed/userSeed');
 const {
@@ -871,7 +871,7 @@ const populateDB = async () => {
   await ReferentHistory.insertMany(referentList);
   await Sector.create(sector);
   await SectorHistory.insertMany(sectorHistories);
-  await Service.insertMany(serviceList);
+  await Service.insertMany([...customerServiceList, ...serviceList]);
   await ThirdPartyPayer.create(thirdPartyPayer);
   await (new User(user)).save();
   await User.insertMany(auxiliaryList);

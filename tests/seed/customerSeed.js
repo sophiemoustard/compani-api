@@ -1,10 +1,31 @@
 const { ObjectID } = require('mongodb');
 const { authCompany } = require('./companySeed');
-const { serviceList } = require('./serviceSeed');
-const { thirdPartyPayerList } = require('./thirdPartyPayerSeed');
-const { FIXED, ONCE } = require('../../src/helpers/constants');
+const { FIXED, ONCE, HOURLY } = require('../../src/helpers/constants');
 
 const subscriptionId = new ObjectID();
+
+const serviceList = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      name: 'Service 1',
+      startDate: '2019-01-16T17:58:15',
+      vat: 12,
+      exemptFromCharges: false,
+    }],
+    nature: HOURLY,
+  },
+];
+
+const thirdPartyPayerList = [{
+  _id: new ObjectID(),
+  name: 'Toto',
+  company: authCompany._id,
+  isApa: true,
+  billingMode: 'direct',
+}];
 
 const authCustomer = {
   _id: new ObjectID(),
@@ -97,4 +118,4 @@ const authCustomer = {
   ],
 };
 
-module.exports = { authCustomer };
+module.exports = { authCustomer, serviceList };

@@ -5,18 +5,12 @@ const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
-const Customer = require('../../../src/models/Customer');
-const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
-const Service = require('../../../src/models/Service');
 const UserCompany = require('../../../src/models/UserCompany');
 const UtilsHelper = require('../../../src/helpers/utils');
 const { rolesList } = require('../../seed/roleSeed');
 const { userList, userCompaniesList } = require('../../seed/userSeed');
-const { thirdPartyPayerList } = require('../../seed/thirdPartyPayerSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
-const { serviceList } = require('../../seed/serviceSeed');
 const app = require('../../../server');
-const IdentityVerification = require('../../../src/models/IdentityVerification');
 const { VENDOR_ROLES } = require('../../../src/helpers/constants');
 
 const otherCompany = {
@@ -38,35 +32,26 @@ const sectorHistories = [
   { auxiliary: userList[4]._id, sector: sector._id, company: authCompany._id, startDate: '2018-12-10' },
 ];
 
-const identityVerifications = [
-  { _id: new ObjectID(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
-];
-
 const populateDBForAuthentication = async () => {
-  await Role.deleteMany();
-  await User.deleteMany();
-  await Company.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Service.deleteMany();
-  await IdentityVerification.deleteMany();
-  await UserCompany.deleteMany();
+  await Promise.all([
+    Role.deleteMany(),
+    User.deleteMany(),
+    Company.deleteMany(),
+    Sector.deleteMany(),
+    SectorHistory.deleteMany(),
+    UserCompany.deleteMany(),
+  ]);
 
-  await new Company(authCompany).save();
-  await new Company(otherCompany).save();
-  await new Company(companyWithoutSubscription).save();
-  await new Sector(sector).save();
-  await SectorHistory.insertMany(sectorHistories);
-  await Role.insertMany(rolesList);
-  await ThirdPartyPayer.insertMany(thirdPartyPayerList);
-  await Service.insertMany(serviceList);
-  await UserCompany.insertMany(userCompaniesList);
+  await Promise.all([
+    Company.create([authCompany, otherCompany, companyWithoutSubscription]),
+    Sector.create(sector),
+    SectorHistory.insertMany(sectorHistories),
+    Role.insertMany(rolesList),
+    UserCompany.insertMany(userCompaniesList),
+  ]);
   for (const user of userList) {
-    await (new User(user)).save();
+    await User.create(user);
   }
-  await IdentityVerification.insertMany(identityVerifications);
 };
 
 const getUser = (roleName, erp = true) => {
@@ -111,4 +96,5 @@ module.exports = {
   getTokenByCredentials,
   authCompany,
   otherCompany,
+  sector,
 };
