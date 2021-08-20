@@ -40,7 +40,7 @@ exports.createPayList = async (payToCreate, credentials) => {
   const list = [];
   const companyId = get(credentials, 'company._id', null);
   for (const pay of payToCreate) {
-    list.push(new Pay(this.formatPay(pay, companyId)));
+    list.push(new Pay(exports.formatPay(pay, companyId)));
   }
 
   await Pay.insertMany(list);
@@ -59,7 +59,7 @@ exports.hoursBalanceDetail = async (query, credentials) => {
 
   if (query.sector) return exports.hoursBalanceDetailBySector(query.sector, startDate, endDate, credentials);
 
-  return this.hoursBalanceDetailByAuxiliary(query.auxiliary, startDate, endDate, credentials);
+  return exports.hoursBalanceDetailByAuxiliary(query.auxiliary, startDate, endDate, credentials);
 };
 
 exports.hoursBalanceDetailByAuxiliary = async (auxiliaryId, startDate, endDate, credentials) => {
