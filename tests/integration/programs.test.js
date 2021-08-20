@@ -6,16 +6,16 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const Program = require('../../src/models/Program');
-const Course = require('../../src/models/Course');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const {
   populateDB,
   programsList,
   categoriesList,
-  vendorAdmin,
+  course,
 } = require('./seed/programsSeed');
 const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
+const { trainerOrganisationManager } = require('../seed/userSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -27,12 +27,14 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create program', async () => {
+      const programCountBefore = await Program.countDocuments();
+
       const categoryId = categoriesList[0]._id;
       const response = await app.inject({
         method: 'POST',
@@ -41,7 +43,9 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
         payload: { name: 'program', categories: [categoryId] },
       });
 
+      const programCountAfter = await Program.countDocuments();
       expect(response.statusCode).toBe(200);
+      expect(programCountAfter).toEqual(programCountBefore + 1);
     });
 
     it('should return 404 if wrong category id', async () => {
@@ -59,11 +63,8 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -85,16 +86,15 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
 });
 
 describe('PROGRAMS ROUTES - GET /programs', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get all programs', async () => {
-      const programsNumber = programsList.length;
       const response = await app.inject({
         method: 'GET',
         url: '/programs',
@@ -102,18 +102,15 @@ describe('PROGRAMS ROUTES - GET /programs', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.programs.length).toEqual(programsNumber);
+      expect(response.result.data.programs.length).toEqual(programsList.length);
     });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -133,15 +130,15 @@ describe('PROGRAMS ROUTES - GET /programs', () => {
 });
 
 describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('trainer');
     });
 
-    it('should get all programs', async () => {
+    it('should get all e-learning programs', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/programs/e-learning',
@@ -149,11 +146,7 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.programs.length).toEqual(1);
-      const coursesIds = response.result.data.programs[0].subPrograms[0].courses.map(c => c._id);
-
-      const courses = await Course.find({ _id: { $in: coursesIds } }).lean();
-      expect(courses.every(c => c.format === 'strictly_e_learning')).toBeTruthy();
+      expect(response.result.data.programs._id).toEqual(course.id);
     });
 
     it('should return 401 if user is not connected', async () => {
@@ -170,12 +163,8 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 200 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'client_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -194,40 +183,23 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
 });
 
 describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get program', async () => {
-      const programId = programsList[0]._id;
       const response = await app.inject({
         method: 'GET',
-        url: `/programs/${programId.toHexString()}`,
+        url: `/programs/${programsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.program).toMatchObject({
-        _id: programId,
-        name: 'program',
-        subPrograms: [{
-          name: 'c\'est un sous-programme',
-          steps: [{
-            type: 'on_site',
-            name: 'encore une étape',
-            areActivitiesValid: true,
-            activities: [{
-              name: 'c\'est une activité',
-              type: 'sharing_experience',
-              areCardsValid: true,
-            }],
-          }],
-        }],
-      });
+      expect(response.result.data.program._id).toEqual(programsList[0]._id);
     });
 
     it('should return 404 if program does not exists', async () => {
@@ -240,39 +212,23 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should get program with non valid activities and non valid steps', async () => {
-      const programId = programsList[2]._id;
+    it('should get a program even if activities and steps are non valid', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/programs/${programId.toHexString()}`,
+        url: `/programs/${programsList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.program).toMatchObject({
-        _id: programId,
-        name: 'non valid program',
-        subPrograms: [{
-          name: 'c\'est un sous-programme',
-          steps: [{
-            type: 'on_site',
-            name: 'encore une étape',
-            areActivitiesValid: false,
-            activities: [{ areCardsValid: false }],
-          }],
-        }],
-      });
+      expect(response.result.data.program._id).toEqual(programsList[2]._id);
     });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -293,30 +249,29 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
 });
 
 describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
-  describe('VENDOR_ADMIN', () => {
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should update program', async () => {
-      const programId = programsList[0]._id;
-      const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
+      const payload = { name: 'mis a jour', description: 'On apprend des trucs\nc\'est chouette' };
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/programs/${programId.toHexString()}`,
+        url: `/programs/${programsList[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const programUpdated = await Program.findById(programId).lean();
-
+      const programUpdatedCount = await Program.countDocuments(
+        { _id: programsList[0]._id, name: 'mis a jour', description: 'On apprend des trucs\nc\'est chouette' }
+      );
       expect(response.statusCode).toBe(200);
-      expect(programUpdated._id).toEqual(programId);
-      expect(programUpdated.name).toEqual('new name');
-      expect(programUpdated.description).toEqual('On apprend des trucs\nc\'est chouette');
+      expect(programUpdatedCount).toEqual(1);
     });
 
     it('should return 404 if program does not exist', async () => {
@@ -343,14 +298,12 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const falsyParams = ['name', 'description', 'learningGoals'];
-    falsyParams.forEach((param) => {
-      it(`should return a 400 if ${param} is equal to '' `, async () => {
-        const programId = programsList[0]._id;
+    ['name', 'description', 'learningGoals'].forEach((param) => {
+      it(`should return a 400 if ${param} is empty `, async () => {
         const payload = { name: 'new name', description: 'Trop top', learningGoals: 'Truc chouette' };
         const response = await app.inject({
           method: 'PUT',
-          url: `/programs/${programId.toHexString()}`,
+          url: `/programs/${programsList[0]._id}`,
           payload: { ...payload, [param]: '' },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -363,11 +316,8 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -389,30 +339,28 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
 });
 
 describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const payload = { name: 'new subProgram' };
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create subProgram', async () => {
-      const programId = programsList[0]._id;
-      const subProgramLengthBefore = programsList[0].subPrograms.length;
+      const subProgramCountBefore = programsList[0].subPrograms.length;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/subprograms`,
+        url: `/programs/${programsList[0]._id}/subprograms`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const programUpdated = await Program.findById(programId).lean();
+      const programUpdated = await Program.findById(programsList[0]._id).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(programUpdated._id).toEqual(programId);
-      expect(programUpdated.subPrograms.length).toEqual(subProgramLengthBefore + 1);
+      expect(programUpdated.subPrograms.length).toEqual(subProgramCountBefore + 1);
     });
 
     it('should return 404 if program does not exist', async () => {
@@ -431,34 +379,19 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${programId.toHexString()}/subprograms`,
-        payload: omit(payload, 'name'),
+        payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 if program does not exist', async () => {
-      const invalidId = new ObjectID();
-      const response = await app.inject({
-        method: 'POST',
-        url: `/programs/${invalidId}/subprograms`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
     });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -483,6 +416,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
   let authToken;
   let uploadProgramMediaStub;
   const program = programsList[0];
+
   beforeEach(() => {
     uploadProgramMediaStub = sinon.stub(GCloudStorageHelper, 'uploadProgramMedia');
   });
@@ -490,10 +424,10 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
     uploadProgramMediaStub.restore();
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should add a program image', async () => {
@@ -507,13 +441,12 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
-      const programUpdated = await Program.findById(program._id, { name: 1, image: 1 }).lean();
+      const programUpdated = await Program.countDocuments(
+        { _id: program._id, image: { link: 'https://alenvi.io', publicId: 'abcdefgh' } }
+      );
 
       expect(response.statusCode).toBe(200);
-      expect(programUpdated).toMatchObject({
-        ...pick(program, ['_id', 'name']),
-        image: { publicId: 'abcdefgh', link: 'https://alenvi.io' },
-      });
+      expect(programUpdated).toEqual(1);
       sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'program_image_test', file: 'true' });
     });
 
@@ -529,8 +462,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    const wrongParams = ['file', 'fileName'];
-    wrongParams.forEach((param) => {
+    ['file', 'fileName'].forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const invalidForm = generateFormData(omit({ fileName: 'program_image_test', file: 'true' }, param));
         const response = await app.inject({
@@ -548,11 +480,8 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
@@ -584,27 +513,28 @@ describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
     deleteProgramMediaStub.restore();
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete a program media', async () => {
-      const program = programsList[0];
       const imageExistsBeforeUpdate = await Program
-        .countDocuments({ _id: program._id, 'image.publicId': { $exists: true } });
+        .countDocuments({ _id: programsList[0]._id, 'image.publicId': { $exists: true } });
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${program._id}/upload`,
+        url: `/programs/${programsList[0]._id}/upload`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'au revoir');
 
-      const isPictureDeleted = await Program.countDocuments({ _id: program._id, 'image.publicId': { $exists: false } });
+      const isPictureDeleted = await Program.countDocuments(
+        { _id: programsList[0]._id, 'image.publicId': { $exists: false } }
+      );
       expect(imageExistsBeforeUpdate).toBeTruthy();
       expect(isPictureDeleted).toBeTruthy();
     });
@@ -613,20 +543,16 @@ describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const program = programsList[0];
         const response = await app.inject({
           method: 'DELETE',
-          url: `/programs/${program._id}/upload`,
+          url: `/programs/${programsList[0]._id}/upload`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -637,29 +563,27 @@ describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
 });
 
 describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
-  const programId = programsList[0]._id;
   const payload = { categoryId: categoriesList[1]._id };
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should add category', async () => {
       const categoryLengthBefore = programsList[0].categories.length;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/categories`,
+        url: `/programs/${programsList[0]._id.toHexString()}/categories`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const programUpdated = await Program.findById(programId).lean();
+      const programUpdated = await Program.findById(programsList[0]._id).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(programUpdated._id).toEqual(programId);
       expect(programUpdated.categories.length).toEqual(categoryLengthBefore + 1);
     });
 
@@ -677,7 +601,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
     it('should return a 404 if category does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/categories`,
+        url: `/programs/${programsList[0]._id}/categories`,
         payload: { categoryId: new ObjectID() },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -689,11 +613,8 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -703,7 +624,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/programs/${programId.toHexString()}/categories`,
+          url: `/programs/${programsList[0]._id}/categories`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -714,36 +635,33 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
 });
 
 describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should remove category from program', async () => {
-      const programId = programsList[0]._id;
       const categoryLengthBefore = programsList[0].categories.length;
+
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${programId.toHexString()}/categories/${programsList[0].categories[0]._id}`,
+        url: `/programs/${programsList[0]._id}/categories/${programsList[0].categories[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      await Program.findById(programId).lean();
+      const programUpdated = await Program.findOne({ _id: programsList[0]._id }).lean();
 
       expect(response.statusCode).toBe(200);
-      const programUpdated = await Program.findOne({ _id: programId }).lean();
       expect(programUpdated.categories.length).toEqual(categoryLengthBefore - 1);
-      expect(programUpdated.categories.some(c => c._id === programsList[0].categories[0]._id)).toBeFalsy();
     });
 
     it('should return a 404 if program does not exist', async () => {
-      const programId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${programId}/categories/${programsList[0].categories[0]._id}`,
+        url: `/programs/${new ObjectID()}/categories/${programsList[0].categories[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -751,10 +669,9 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
     });
 
     it('should return a 404 if program does not contain category', async () => {
-      const categoryId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${programsList[0]._id}/categories/${categoryId}`,
+        url: `/programs/${programsList[0]._id}/categories/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -764,11 +681,8 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
@@ -792,13 +706,13 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
 describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
   let authToken;
   beforeEach(populateDB);
-  describe('ROF', () => {
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
 
     it('should add a tester to a program', async () => {
-      const programId = programsList[0]._id;
       const payload = {
         identity: { lastname: 'test', firstname: 'test' },
         local: { email: 'test@alenvi.io' },
@@ -807,34 +721,39 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/testers`,
+        url: `/programs/${programsList[0]._id}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
-      const program = await Program.findById(programId).lean();
-      expect(program.testers).toHaveLength(1);
+      const program = await Program.findById(programsList[0]._id).lean();
+      expect(program.testers.length).toEqual(1);
     });
 
-    it('should add an existing user to a program', async () => {
-      const programId = programsList[0]._id;
-      const payload = pick(vendorAdmin, ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']);
+    it('should add an existing user as tester to a program', async () => {
+      const payload = pick(
+        trainerOrganisationManager,
+        ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']
+      );
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/testers`,
+        url: `/programs/${programsList[0]._id}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
-      const program = await Program.findById(programId).lean();
-      expect(program.testers).toHaveLength(1);
+      const program = await Program.findById(programsList[0]._id).lean();
+      expect(program.testers.length).toEqual(1);
     });
 
     it('should return a 404 if program does not exist', async () => {
-      const payload = pick(vendorAdmin, ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']);
+      const payload = pick(
+        trainerOrganisationManager,
+        ['local.email', 'identity.firstname', 'identity.lastname', 'contact.phone']
+      );
 
       const response = await app.inject({
         method: 'POST',
@@ -854,7 +773,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
+        url: `/programs/${programsList[0]._id}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -871,7 +790,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
+        url: `/programs/${programsList[0]._id}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -879,7 +798,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 if user does not exist and missing phone', async () => {
+    it('should return a 400 if phone is missing', async () => {
       const payload = {
         identity: { firstname: 'test', lastname: 'oiuy' },
         local: { email: 'test@alenvi.io' },
@@ -887,7 +806,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[0]._id.toHexString()}/testers`,
+        url: `/programs/${programsList[0]._id}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -895,12 +814,12 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 409 if user already is a tester for this program', async () => {
+    it('should return a 409 if user is already a tester for this program', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[1]._id.toHexString()}/testers`,
+        url: `/programs/${programsList[1]._id}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: pick(vendorAdmin, 'local.email'),
+        payload: pick(trainerOrganisationManager, 'local.email'),
       });
 
       expect(response.statusCode).toBe(409);
@@ -911,6 +830,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
     const payload = {
@@ -935,34 +855,33 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
+describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId} #tag', () => {
   let authToken;
   beforeEach(populateDB);
-  describe('ROF', () => {
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
 
     it('should remove a tester to a program', async () => {
-      const programId = programsList[1]._id;
-      const programBefore = await Program.findById(programId).lean();
+      const programBefore = await Program.findById(programsList[1]._id).lean();
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${programId.toHexString()}/testers/${vendorAdmin._id}`,
+        url: `/programs/${programsList[1]._id}/testers/${trainerOrganisationManager._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const program = await Program.findById(programId).lean();
-      expect(programBefore.testers).toHaveLength(1);
-      expect(program.testers).toHaveLength(0);
+      const program = await Program.findById(programsList[1]._id).lean();
+      expect(program.testers.length).toEqual(programBefore.testers.length - 1);
     });
 
     it('should return a 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${new ObjectID()}/testers/${vendorAdmin._id}`,
+        url: `/programs/${new ObjectID()}/testers/${trainerOrganisationManager._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -972,7 +891,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
     it('should return a 409 if tester is not in program', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${programsList[0]._id}/testers/${vendorAdmin._id}`,
+        url: `/programs/${programsList[0]._id}/testers/${trainerOrganisationManager._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -984,6 +903,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -992,7 +912,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/programs/${programsList[1]._id.toHexString()}/testers/${vendorAdmin._id}`,
+          url: `/programs/${programsList[1]._id}/testers/${trainerOrganisationManager._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
