@@ -1444,6 +1444,7 @@ describe('DELETE /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
     ];
     roles.forEach((role) => {
