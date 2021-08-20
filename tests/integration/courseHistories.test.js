@@ -1,7 +1,8 @@
 const expect = require('expect');
 const moment = require('moment');
 const app = require('../../server');
-const { populateDB, coursesList, courseHistoriesList, trainerAndCoach } = require('./seed/courseHistoriesSeed');
+const { populateDB, coursesList, courseHistoriesList } = require('./seed/courseHistoriesSeed');
+const { trainerAndCoach } = require('../seed/userSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {

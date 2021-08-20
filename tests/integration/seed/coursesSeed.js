@@ -25,8 +25,9 @@ const {
   trainerOrganisationManager,
   coach,
   trainer,
+  trainerAndCoach,
 } = require('../../seed/userSeed');
-const { COACH, VIDEO, WEBAPP, TRAINER } = require('../../../src/helpers/constants');
+const { VIDEO, WEBAPP } = require('../../../src/helpers/constants');
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
@@ -58,22 +59,9 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
-const trainerAndCoach = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
-  refreshToken: uuidv4(),
-  local: { email: 'simonDu12@alenvi.io', password: '123456!eR' },
-  role: {
-    client: rolesList.find(role => role.name === COACH)._id,
-    vendor: rolesList.find(role => role.name === TRAINER)._id,
-  },
-  origin: WEBAPP,
-};
-
 const userCompanies = [
   { _id: new ObjectID(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectID(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
-  { _id: new ObjectID(), user: trainerAndCoach._id, company: authCompany._id },
 ];
 
 const cardsList = [
@@ -322,7 +310,6 @@ const populateDB = async () => {
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
   await User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]);
-  await new User(trainerAndCoach).save();
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
   await Activity.insertMany(activitiesList);
@@ -346,5 +333,4 @@ module.exports = {
   slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
-  trainerAndCoach,
 };
