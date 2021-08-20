@@ -232,29 +232,6 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
     });
   });
 
-  describe('CLIENT_ADMIN without company credentials', () => {
-    beforeEach(populateDB);
-
-    beforeEach(async () => {
-      authToken = await getTokenByCredentials(userFromOtherCompany.local);
-    });
-
-    it('should return a 400 if company credentials are missing', async () => {
-      const payload = [
-        { ...originalPayload[0], customer: customerFromOtherCompany._id },
-        { ...originalPayload[1], customer: customerFromOtherCompany._id },
-      ];
-      const response = await app.inject({
-        method: 'POST',
-        url: '/payments/createlist',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-  });
-
   describe('Other roles', () => {
     beforeEach(populateDB);
     const roles = [

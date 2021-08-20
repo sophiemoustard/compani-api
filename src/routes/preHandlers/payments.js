@@ -8,7 +8,7 @@ const { REFUND } = require('../../helpers/constants');
 
 const { language } = translate;
 
-exports.authorizePaymentUpdate = async (req) => {
+exports.getPayment = async (req) => {
   try {
     const { credentials } = req.auth;
     const payment = await Payment.findOne({ _id: req.params._id, company: credentials.company._id }).lean();

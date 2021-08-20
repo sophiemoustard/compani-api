@@ -309,17 +309,6 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       expect(response.result.data.hoursBalanceDetail.length).toEqual(1);
     });
 
-    it('should get hours balance details for a sector', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/pay/hours-balance-details?sector=${sectors[1]._id}&month=10-2022`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursBalanceDetail.length).toEqual(1);
-    });
-
     it('should return a 404 if user is not from the same company as auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -334,7 +323,6 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
     ];

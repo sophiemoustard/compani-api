@@ -229,7 +229,7 @@ describe('GET /paydocuments', () => {
   });
 });
 
-describe('DELETE /paydocuments #tag', () => {
+describe('DELETE /paydocuments', () => {
   let authToken;
 
   describe('COACH', () => {
