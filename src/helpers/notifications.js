@@ -25,7 +25,7 @@ exports.sendBlendedCourseRegistrationNotification = async (trainee, courseId) =>
   for (const expoToken of trainee.formationExpoTokenList) {
     notifications.push(
       this.sendNotificationToUser({
-        title: 'Vous avez été inscrit à une formation',
+        title: 'Vous avez été inscrit(e) à une formation',
         body: `Rendez-vous sur la page "à propos" de votre formation ${courseName} pour en découvrir le programme.`,
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
         expoToken,

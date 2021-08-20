@@ -114,7 +114,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
     sinon.assert.calledWithExactly(
       sendNotificationToUser.getCall(0),
       {
-        title: 'Vous avez été inscrit à une formation',
+        title: 'Vous avez été inscrit(e) à une formation',
         body: 'Rendez-vous sur la page "à propos" de votre formation La communication avec Patrick - skusku'
         + ' pour en découvrir le programme.',
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
@@ -124,7 +124,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
     sinon.assert.calledWithExactly(
       sendNotificationToUser.getCall(1),
       {
-        title: 'Vous avez été inscrit à une formation',
+        title: 'Vous avez été inscrit(e) à une formation',
         body: 'Rendez-vous sur la page "à propos" de votre formation La communication avec Patrick - skusku'
         + ' pour en découvrir le programme.',
         data: { _id: courseId, type: BLENDED_COURSE_REGISTRATION },
