@@ -55,7 +55,7 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, otherCompany, sector } = require('./authenticationSeed');
+const { populateDBForAuthentication, otherCompany, sector, sectorHistories } = require('./authenticationSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
 const { rolesList } = require('../../seed/roleSeed');
 const { userList } = require('../../seed/userSeed');
@@ -113,7 +113,7 @@ const deleteNonAuthenticationSeeds = async () => {
     Repetition.deleteMany(),
     Role.deleteMany({ _id: { $nin: rolesList.map(role => role._id) } }),
     Rum.deleteMany(),
-    SectorHistory.deleteMany({ sector: { $nin: [sector._id] } }),
+    SectorHistory.deleteMany({ _id: { $nin: sectorHistories.map(sectorHistory => sectorHistory._id) } }),
     Sector.deleteMany({ _id: { $nin: [sector._id] } }),
     Service.deleteMany(),
     Step.deleteMany(),
