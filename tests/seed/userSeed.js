@@ -19,7 +19,7 @@ const {
 const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'client_admin', lastname: 'Chef' },
+    identity: { firstname: 'client_admin', lastname: 'GrandChef' },
     refreshToken: uuidv4(),
     local: { email: 'client-admin@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
@@ -46,7 +46,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
+    identity: { firstname: 'Auxiliary without company', lastname: 'BetaTest' },
     local: { email: 'auxiliary-without-company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === AUXILIARY_WITHOUT_COMPANY)._id },
@@ -94,7 +94,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'client_admin_company_without_subscription', lastname: 'Chef' },
+    identity: { firstname: 'client_admin_company_without_subscription', lastname: 'PetitChef' },
     refreshToken: uuidv4(),
     local: { email: 'client-admin-company-without-erp@alenvi.io', password: '123456!eR' },
     role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },

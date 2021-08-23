@@ -12,11 +12,9 @@ const populateAuthentication = async () => {
   await User.deleteMany();
   await UserCompany.deleteMany();
 
-  await new Company(authCompany).save();
+  await Company.create(authCompany);
   await Role.insertMany(rolesList);
-  for (const user of userList) {
-    await (new User(user)).save();
-  }
+  await User.create(userList);
   await UserCompany.insertMany(userCompaniesList);
 };
 

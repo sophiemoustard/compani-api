@@ -557,7 +557,7 @@ const populateBilling = async () => {
   await TaxCertificate.insertMany(customerTaxCertificateList);
   await Payment.insertMany(customerPaymentList);
   await Bill.insertMany(authBillList);
-  await new ThirdPartyPayer(thirdPartyPayer).save();
+  await ThirdPartyPayer.create(thirdPartyPayer);
   await Service.insertMany(services);
   await Customer.insertMany(customerList.concat(billAuthcustomer));
   await User.create(billUserList);
