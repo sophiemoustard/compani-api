@@ -82,7 +82,7 @@ const populateDB = async () => {
   await Category.insertMany(categoriesList);
   await ActivityHistory.insertMany(activityHistoriesList);
   await Card.insertMany(cards);
-  await new Course(course).save();
+  await Course.create(course);
 };
 
 module.exports = {

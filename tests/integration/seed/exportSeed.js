@@ -854,7 +854,7 @@ const populateDB = async () => {
   await SectorHistory.insertMany(sectorHistories);
   await Service.insertMany([...customerServiceList, ...serviceList]);
   await ThirdPartyPayer.create(thirdPartyPayer);
-  await (new User(user)).save();
+  await User.create(user);
   await User.insertMany(auxiliaryList);
   await UserCompany.insertMany(userCompanies);
 };

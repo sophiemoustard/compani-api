@@ -183,12 +183,9 @@ const populateDB = async () => {
 
   await EventHistory.insertMany(eventHistoryList);
   await UserCompany.insertMany(userCompanies);
-  for (const u of users) {
-    await (new User(u)).save();
-  }
-  await (new Customer(customer)).save();
-  await Sector.create(sectors);
-  await (new Sector(sectorFromOtherCompany)).save();
+  await User.create(users);
+  await Customer.create(customer);
+  await Sector.create([...sectors, sectorFromOtherCompany]);
   await Event.insertMany(events);
 };
 

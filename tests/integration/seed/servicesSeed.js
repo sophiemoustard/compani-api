@@ -97,7 +97,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Service.insertMany([...serviceList, ...servicesList, serviceFromOtherCompany]);
-  await (new Customer(customer)).save();
+  await Customer.create(customer);
 };
 
 module.exports = { servicesList, populateDB, serviceFromOtherCompany };

@@ -887,12 +887,7 @@ const populateDB = async () => {
   await Sector.insertMany(sectors);
   await SectorHistory.insertMany([...sectorHistories, sectorHistoryFromOtherCompany]);
   await DistanceMatrix.insertMany(distanceMatrixList);
-  await (new User(auxiliaries[0])).save();
-  await (new User(auxiliaries[1])).save();
-  await (new User(auxiliaries[2])).save();
-  await (new User(auxiliaries[3])).save();
-  await (new User(helpersCustomer)).save();
-  await (new User(auxiliaryFromOtherCompany)).save();
+  await User.create([...auxiliaries, helpersCustomer, auxiliaryFromOtherCompany]);
   await Contract.insertMany(contracts);
   await Customer.insertMany([...customerAuxiliaries, customerFromOtherCompany]);
   await ThirdPartyPayer.insertMany([thirdPartyPayer, thirdPartyPayerFromOtherCompany]);

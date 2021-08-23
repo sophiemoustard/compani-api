@@ -316,8 +316,8 @@ const populateDB = async () => {
   await Sector.create([...sectors, sectorFromOtherCompany]);
   await SectorHistory.create(sectorHistories);
   await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
-  await (new Customer(customer)).save();
-  await (new Service(service)).save();
+  await Customer.create(customer);
+  await Service.create(service);
   await Event.create([event, absence]);
   await Contract.insertMany(contracts);
   await Pay.insertMany(payList);

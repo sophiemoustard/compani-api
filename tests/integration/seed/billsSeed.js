@@ -544,7 +544,7 @@ const helpersList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await (new ThirdPartyPayer(billThirdPartyPayer)).save();
+  await ThirdPartyPayer.create(billThirdPartyPayer);
   await Service.insertMany(billServices);
   await Customer.insertMany(billCustomerList.concat(customerFromOtherCompany));
   await Bill.insertMany([...authBillsList, ...billsList]);

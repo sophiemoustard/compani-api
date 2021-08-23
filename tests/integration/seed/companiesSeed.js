@@ -60,7 +60,7 @@ const populateDB = async () => {
 
   await Company.create(company);
   await Event.create(event);
-  await (new User(companyClientAdmin)).save();
+  await User.create(companyClientAdmin);
   await UserCompany.create(userCompany);
 };
 

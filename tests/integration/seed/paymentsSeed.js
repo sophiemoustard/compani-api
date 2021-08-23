@@ -189,10 +189,9 @@ const populateDB = async () => {
   await PaymentNumber.insertMany(paymentNumberList);
   await UserCompany.insertMany(userCompanies);
   await Helper.insertMany(helpersList);
-  await (new User(paymentUser).save());
-  await (new User(userFromOtherCompany).save());
-  await (new Customer(customerFromOtherCompany).save());
-  await (new ThirdPartyPayer(tppFromOtherCompany).save());
+  await User.create(paymentUser, userFromOtherCompany);
+  await Customer.create(customerFromOtherCompany);
+  await ThirdPartyPayer.create(tppFromOtherCompany);
 };
 
 module.exports = {

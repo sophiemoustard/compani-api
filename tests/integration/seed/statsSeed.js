@@ -28,21 +28,9 @@ const {
 } = require('../../../src/helpers/constants');
 
 const sectorList = [
-  {
-    _id: new ObjectID(),
-    name: 'Vénus',
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Neptune',
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Mars',
-    company: otherCompany._id,
-  },
+  { _id: new ObjectID(), name: 'Vénus', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Neptune', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Mars', company: otherCompany._id },
 ];
 
 const internalHoursList = [
@@ -56,11 +44,7 @@ const contractList = [{
   user: new ObjectID(),
   company: authCompany._id,
   startDate: '2010-09-03T00:00:00',
-  versions: [{
-    startDate: '2010-09-03T00:00:00',
-    grossHourlyRate: 10.43,
-    weeklyHours: 12,
-  }],
+  versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
 }];
 
 const userList = [
@@ -646,9 +630,7 @@ const populateDBWithEventsForFundingsMonitoring = async () => {
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  for (const user of userList) {
-    await new User(user).save();
-  }
+  await User.create(userList);
   await Customer.insertMany(customerList.concat(customerFromOtherCompany));
   await Service.insertMany(serviceList);
   await Sector.insertMany(sectorList);

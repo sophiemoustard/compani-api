@@ -24,7 +24,7 @@ const userCompany = { _id: new ObjectID(), user: auxiliary._id, company: authCom
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await (new User(auxiliary)).save();
+  await User.create(auxiliary);
   await UserCompany.create(userCompany);
 };
 

@@ -42,9 +42,7 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await new User(emailUser).save();
-  await new User(emailUserFromOtherCompany).save();
-  await new User(trainerFromOtherCompany).save();
+  await User.create(emailUser, emailUserFromOtherCompany, trainerFromOtherCompany);
   await UserCompany.insertMany(userCompanies);
 };
 
