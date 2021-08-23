@@ -24,6 +24,7 @@ const {
 const {
   usersSeedList,
   populateDB,
+  customer,
   customerFromOtherCompany,
   helperFromOtherCompany,
   userSectors,
@@ -31,7 +32,6 @@ const {
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
-  authCustomer,
 } = require('./seed/usersSeed');
 const {
   getToken,
@@ -1065,7 +1065,7 @@ describe('PUT /users/:id', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[6]._id}`,
-        payload: { customer: authCustomer._id, role: role._id },
+        payload: { customer: customer._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1079,7 +1079,7 @@ describe('PUT /users/:id', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[8]._id}`,
-        payload: { customer: authCustomer._id, role: role._id, company: authCompany._id },
+        payload: { customer: customer._id, role: role._id, company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

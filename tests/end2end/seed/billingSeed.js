@@ -13,7 +13,6 @@ const FundingHistory = require('../../../src/models/FundingHistory');
 const Service = require('../../../src/models/Service');
 const { populateAuthentication } = require('./authenticationSeed');
 const { authCompany, otherCompany } = require('../../seed/companySeed');
-const { authCustomer } = require('../../seed/customerSeed');
 const { userList, helper } = require('../../seed/userSeed');
 const { rolesList } = require('../../seed/roleSeed');
 const {
@@ -61,7 +60,7 @@ const thirdPartyPayer = {
 };
 
 const billAuthcustomer = {
-  ...authCustomer,
+  _id: new ObjectID(),
   email: 'fake@test.com',
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {

@@ -4,7 +4,6 @@ const Customer = require('../../../src/models/Customer');
 const { HOURLY, FIXED } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('./authenticationSeed');
 const { deleteNonAuthenticationSeeds } = require('./initializeDB');
-const { serviceList } = require('../../seed/customerSeed');
 
 const servicesList = [
   {
@@ -13,7 +12,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
-      startDate: '2019-01-16T17:58:15.519',
+      startDate: '2019-01-16T00:00:00',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -25,7 +24,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
-      startDate: '2019-01-18T19:58:15.519',
+      startDate: '2019-01-18T00:00:00',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -37,7 +36,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 150,
       name: 'Service 3',
-      startDate: '2019-01-16T17:58:15.519',
+      startDate: '2019-01-16T00:00:00',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -49,7 +48,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 150,
       name: 'Service 3',
-      startDate: '2019-01-16T17:58:15.519',
+      startDate: '2019-01-16T00:00:00',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -64,7 +63,7 @@ const serviceFromOtherCompany = {
   versions: [{
     defaultUnitAmount: 150,
     name: 'Service 3',
-    startDate: '2019-01-16T17:58:15.519',
+    startDate: '2019-01-16T00:00:00',
     vat: 12,
     exemptFromCharges: false,
   }],
@@ -96,7 +95,7 @@ const customer = {
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Service.insertMany([...serviceList, ...servicesList, serviceFromOtherCompany]);
+  await Service.insertMany([...servicesList, serviceFromOtherCompany]);
   await Customer.create(customer);
 };
 

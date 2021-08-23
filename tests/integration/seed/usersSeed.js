@@ -12,7 +12,6 @@ const Establishment = require('../../../src/models/Establishment');
 const { rolesList, otherCompany, authCompany } = require('./authenticationSeed');
 const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { vendorAdmin } = require('../../seed/userSeed');
-const { authCustomer } = require('../../seed/customerSeed');
 const Course = require('../../../src/models/Course');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
@@ -194,10 +193,26 @@ const usersSeedList = [
   },
 ];
 
+const customer = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    phone: '0123456789',
+  },
+};
+
 const helpers = [
   {
     _id: new ObjectID(),
-    customer: authCustomer._id,
+    customer: customer._id,
     user: usersSeedList[3]._id,
     company: authCompany._id,
     referent: true,
@@ -298,8 +313,7 @@ const populateDB = async () => {
     coachFromOtherCompany,
     auxiliaryFromOtherCompany,
   ]);
-  await Customer.create(customerFromOtherCompany);
-  await Customer.create(authCustomer);
+  await Customer.create(customer, customerFromOtherCompany);
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
   await Contract.insertMany(contracts);
@@ -314,6 +328,7 @@ module.exports = {
   usersSeedList,
   populateDB,
   isInList,
+  customer,
   customerFromOtherCompany,
   helperFromOtherCompany,
   userSectors,
@@ -321,6 +336,5 @@ module.exports = {
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
-  authCustomer,
   userCompanies,
 };

@@ -20,7 +20,6 @@ const Establishment = require('../../../src/models/Establishment');
 const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCustomer, serviceList: customerServiceList } = require('../../seed/customerSeed');
 const { rolesList, authCompany } = require('./authenticationSeed');
 const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { helper } = require('../../seed/userSeed');
@@ -307,7 +306,8 @@ const referentList = [
 
 const customerSubscriptionId = new ObjectID();
 const customer = {
-  ...authCustomer,
+  _id: new ObjectID(),
+  company: authCompany._id,
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
@@ -852,7 +852,7 @@ const populateDB = async () => {
   await ReferentHistory.insertMany(referentList);
   await Sector.create(sector);
   await SectorHistory.insertMany(sectorHistories);
-  await Service.insertMany([...customerServiceList, ...serviceList]);
+  await Service.insertMany(serviceList);
   await ThirdPartyPayer.create(thirdPartyPayer);
   await User.create(user);
   await User.insertMany(auxiliaryList);
