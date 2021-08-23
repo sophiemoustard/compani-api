@@ -1796,7 +1796,7 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
 
     let downloadFileByIdStub;
@@ -1807,7 +1807,7 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
       createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
 
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     afterEach(() => {
@@ -1858,9 +1858,8 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
@@ -1886,6 +1885,17 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 200 as user is the course trainer', async () => {
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     ['coach', 'client_admin'].forEach((role) => {
       it(`should return 403 as user is ${role} requesting on an other company`, async () => {
         authToken = await getToken(role);
@@ -1897,17 +1907,6 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
 
         expect(response.statusCode).toBe(403);
       });
-    });
-
-    it('should return 200 as user is the course trainer', async () => {
-      authToken = await getTokenByCredentials(trainer.local);
-      const response = await app.inject({
-        method: 'GET',
-        url: `/courses/${courseIdFromAuthCompany}/completion-certificates`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
     });
   });
 });
