@@ -1050,14 +1050,16 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   const payload = { content: 'Ceci est un test', type: CONVOCATION };
 
   beforeEach(populateDB);
+  beforeEach(async () => {
+    SmsHelperStub = sinon.stub(SmsHelper, 'send');
+  });
+  afterEach(() => {
+    SmsHelperStub.restore();
+  });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
-      SmsHelperStub = sinon.stub(SmsHelper, 'send');
-    });
-    afterEach(() => {
-      SmsHelperStub.restore();
     });
 
     it('should send a SMS to user from compani', async () => {
