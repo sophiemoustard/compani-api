@@ -1994,22 +1994,27 @@ describe('COURSES ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should return 200', async () => {
+      const courseId = coursesList[8]._id;
+      const accessRulesExistBefore = await Course.countDocuments({ _id: courseId, accessRules: authCompany._id });
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${coursesList[8]._id}/accessrules/${authCompany._id}`,
+        url: `/courses/${courseId}/accessrules/${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
+      expect(accessRulesExistBefore).toBe(1);
+      const accessRulesExistAfter = await Course.countDocuments({ _id: courseId, accessRules: authCompany._id });
+      expect(accessRulesExistAfter).toBe(0);
     });
 
-    it('should return 404 if course doen\'t exist', async () => {
+    it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${new ObjectID()}/accessrules/${authCompany._id}`,
@@ -2033,9 +2038,9 @@ describe('COURSES ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
