@@ -15,13 +15,10 @@ const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION, WEBAPP } = 
 const {
   populateDB,
   coursesList,
-  activitiesList,
-  step,
   subProgramsList,
   programsList,
   traineeWithoutCompany,
   traineeFromOtherCompany,
-  slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
 } = require('./seed/coursesSeed');
@@ -1054,78 +1051,93 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
 
   beforeEach(populateDB);
 
-  beforeEach(async () => {
-    authToken = await getToken('vendor_admin');
-    SmsHelperStub = sinon.stub(SmsHelper, 'send');
-  });
-  afterEach(() => {
-    SmsHelperStub.restore();
-  });
-
-  it('should send a SMS to user from compani', async () => {
-    SmsHelperStub.returns('SMS SENT !');
-    const response = await app.inject({
-      method: 'POST',
-      url: `/courses/${courseIdFromAuthCompany}/sms`,
-      payload,
-      headers: { Cookie: `alenvi_token=${authToken}` },
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+      SmsHelperStub = sinon.stub(SmsHelper, 'send');
+    });
+    afterEach(() => {
+      SmsHelperStub.restore();
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.result.message).toBe('SMS bien envoyé.');
-    const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
-    expect(smsHistoryAfter).toEqual(1);
-    sinon.assert.calledWithExactly(
-      SmsHelperStub,
-      {
-        recipient: `+33${coach.contact.phone.substring(1)}`,
-        sender: 'Compani',
-        content: payload.content,
-        tag: COURSE_SMS,
-      }
-    );
-  });
+    it('should send a SMS to user from compani', async () => {
+      SmsHelperStub.returns('SMS SENT !');
+      const smsHistoryBefore = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
 
-  it('should return a 400 error if type is invalid', async () => {
-    SmsHelperStub.returns('SMS SENT !');
-    const response = await app.inject({
-      method: 'POST',
-      url: `/courses/${courseIdFromAuthCompany}/sms`,
-      payload: { ...payload, type: 'qwert' },
-      headers: { Cookie: `alenvi_token=${authToken}` },
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const smsHistoryAfter = await CourseSmsHistory.countDocuments({ course: courseIdFromAuthCompany });
+      expect(smsHistoryAfter).toEqual(smsHistoryBefore + 1);
+      sinon.assert.calledWithExactly(
+        SmsHelperStub,
+        {
+          recipient: `+33${coach.contact.phone.substring(1)}`,
+          sender: 'Compani',
+          content: payload.content,
+          tag: COURSE_SMS,
+        }
+      );
     });
 
-    expect(response.statusCode).toBe(400);
-    sinon.assert.notCalled(SmsHelperStub);
-  });
-
-  ['content', 'type'].forEach((param) => {
-    it(`should return a 400 error if missing ${param} parameter`, async () => {
+    it('should return a 400 error if type is invalid', async () => {
       SmsHelperStub.returns('SMS SENT !');
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${courseIdFromAuthCompany}/sms`,
-        payload: omit(payload, param),
+        payload: { ...payload, type: 'qwert' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(400);
       sinon.assert.notCalled(SmsHelperStub);
     });
+
+    ['content', 'type'].forEach((param) => {
+      it(`should return a 400 error if missing ${param} parameter`, async () => {
+        SmsHelperStub.returns('SMS SENT !');
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${courseIdFromAuthCompany}/sms`,
+          payload: omit(payload, param),
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(400);
+        sinon.assert.notCalled(SmsHelperStub);
+      });
+    });
   });
 
-  const roles = [
-    { name: 'helper', expectedCode: 403 },
-    { name: 'auxiliary', expectedCode: 403 },
-    { name: 'auxiliary_without_company', expectedCode: 403 },
-    { name: 'coach', expectedCode: 200 },
-    { name: 'client_admin', expectedCode: 200 },
-    { name: 'training_organisation_manager', expectedCode: 200 },
-  ];
-  roles.forEach((role) => {
-    it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+  describe('OTHER ROLES', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
+        SmsHelperStub.returns('SMS SENT !');
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${courseIdFromAuthCompany}/sms`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+
+    it('should return 200 as user is the course trainer', async () => {
       SmsHelperStub.returns('SMS SENT !');
-      authToken = await getToken(role.name);
+      authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${courseIdFromAuthCompany}/sms`,
@@ -1133,49 +1145,36 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(role.expectedCode);
-    });
-  });
-
-  it('should return 403 as user is trainer if not one of his courses', async () => {
-    SmsHelperStub.returns('SMS SENT !');
-    authToken = await getToken('trainer');
-    const response = await app.inject({
-      method: 'POST',
-      url: `/courses/${coursesList[1]._id}/sms`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload,
+      expect(response.statusCode).toBe(200);
     });
 
-    expect(response.statusCode).toBe(403);
-  });
-
-  ['coach', 'client_admin'].forEach((role) => {
-    it(`should return 403 as user is ${role} requesting on an other company`, async () => {
+    it('should return 403 as user is trainer if not one of his courses', async () => {
       SmsHelperStub.returns('SMS SENT !');
-      authToken = await getToken(role);
+      authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${courseIdFromOtherCompany}/sms`,
+        url: `/courses/${coursesList[1]._id}/sms`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(403);
     });
-  });
 
-  it('should return 200 as user is the course trainer', async () => {
-    SmsHelperStub.returns('SMS SENT !');
-    authToken = await getTokenByCredentials(trainer.local);
-    const response = await app.inject({
-      method: 'POST',
-      url: `/courses/${courseIdFromAuthCompany}/sms`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload,
+    ['coach', 'client_admin'].forEach((role) => {
+      it(`should return 403 as user is ${role} requesting on an other company`, async () => {
+        SmsHelperStub.returns('SMS SENT !');
+        authToken = await getToken(role);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/courses/${courseIdFromOtherCompany}/sms`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
-
-    expect(response.statusCode).toBe(200);
   });
 });
 
