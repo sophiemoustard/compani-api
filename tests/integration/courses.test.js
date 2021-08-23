@@ -11,7 +11,7 @@ const Course = require('../../src/models/Course');
 const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
-const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION, WEBAPP } = require('../../src/helpers/constants');
+const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
@@ -1207,7 +1207,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}, requesting on his company`, async () => {
@@ -2058,19 +2058,13 @@ describe('COURSES ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
 });
 
 describe('COURSES ROUTES - GET /:_id/convocations', () => {
-  let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
-    beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
-    });
-
+  describe('NOT LOGGED', () => {
     it('should return 200', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${coursesList[9]._id}/convocations`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
@@ -2080,21 +2074,9 @@ describe('COURSES ROUTES - GET /:_id/convocations', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${new ObjectID()}/convocations`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
-    });
-
-    describe('User not authenticate', () => {
-      it('should get pdf even if not authenticate', async () => {
-        const response = await app.inject({
-          method: 'GET',
-          url: `/courses/${coursesList[9]._id}/convocations`,
-        });
-
-        expect(response.statusCode).toBe(200);
-      });
     });
   });
 });
