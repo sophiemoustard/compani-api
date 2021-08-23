@@ -1915,9 +1915,9 @@ describe('COURSES ROUTES - POST /:_id/accessrules', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should return 200', async () => {
@@ -1929,6 +1929,8 @@ describe('COURSES ROUTES - POST /:_id/accessrules', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const course = await Course.countDocuments({ _id: coursesList[8]._id, accessRules: otherCompany._id });
+      expect(course).toBe(1);
     });
 
     it('should return 404 if course doen\'t exist', async () => {
@@ -1953,11 +1955,12 @@ describe('COURSES ROUTES - POST /:_id/accessrules', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should return 400 if no accessRules in payload', async () => {
+    it('should return 400 if company does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${coursesList[8]._id}/accessrules`,
         headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { company: new ObjectID() },
       });
 
       expect(response.statusCode).toBe(400);
@@ -1967,9 +1970,9 @@ describe('COURSES ROUTES - POST /:_id/accessrules', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
