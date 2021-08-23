@@ -7,8 +7,8 @@ const Category = require('../../../src/models/Category');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
-const { populateDBForAuthentication } = require('./authenticationSeed');
 const { userList, vendorAdmin } = require('../../seed/userSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const cards = [
   { _id: new ObjectID(), template: 'transition', title: 'skusku' },
@@ -73,16 +73,7 @@ const course = {
 };
 
 const populateDB = async () => {
-  await Program.deleteMany({});
-  await SubProgram.deleteMany({});
-  await Step.deleteMany({});
-  await Activity.deleteMany({});
-  await Category.deleteMany({});
-  await ActivityHistory.deleteMany({});
-  await Card.deleteMany({});
-  await Course.deleteMany({});
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await SubProgram.insertMany(subProgramsList);
   await Program.insertMany(programsList);

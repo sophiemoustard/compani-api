@@ -2,7 +2,6 @@ const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const Questionnaire = require('../../../src/models/Questionnaire');
-const { populateDBForAuthentication } = require('./authenticationSeed');
 const {
   TRANSITION,
   TITLE_TEXT_MEDIA,
@@ -17,6 +16,7 @@ const {
   OPEN_QUESTION,
   QUESTION_ANSWER,
 } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const cardsList = [
   { _id: new ObjectID(), template: TRANSITION, title: 'Lala' },
@@ -147,11 +147,7 @@ const questionnairesList = [
 ];
 
 const populateDB = async () => {
-  await Card.deleteMany({});
-  await Activity.deleteMany({});
-  await Questionnaire.deleteMany({});
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Card.insertMany(cardsList);
   await Activity.create(activitiesList);

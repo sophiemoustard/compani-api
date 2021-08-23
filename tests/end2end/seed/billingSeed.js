@@ -63,11 +63,7 @@ const thirdPartyPayer = {
 const billAuthcustomer = {
   ...authCustomer,
   email: 'fake@test.com',
-  identity: {
-    title: 'mr',
-    firstname: 'Romain',
-    lastname: 'Bardet',
-  },
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
       fullAddress: '12 rue de ponthieu 75008 Paris',

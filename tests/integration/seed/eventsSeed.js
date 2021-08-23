@@ -13,7 +13,8 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Helper = require('../../../src/models/Helper');
-const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const app = require('../../../server');
 const {
   EVERY_WEEK,
@@ -879,22 +880,8 @@ const eventHistoriesList = [
 ];
 
 const populateDB = async () => {
-  await Event.deleteMany();
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Contract.deleteMany();
-  await Service.deleteMany();
-  await EventHistory.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Repetition.deleteMany();
-  await InternalHour.deleteMany();
-  await DistanceMatrix.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Event.insertMany([...eventsList, eventFromOtherCompany]);
   await Repetition.insertMany(repetitions);
   await Sector.insertMany(sectors);

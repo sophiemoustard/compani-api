@@ -2,9 +2,10 @@ const { ObjectID } = require('mongodb');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('./authenticationSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const { vendorAdmin, coach } = require('../../seed/userSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
 
 const traineeFromOtherCompany = {
@@ -75,12 +76,7 @@ const slotsList = [
 ];
 
 const populateDB = async () => {
-  await AttendanceSheet.deleteMany();
-  await Course.deleteMany();
-  await CourseSlot.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await AttendanceSheet.insertMany(attendanceSheetsList);
   await Course.insertMany(coursesList);

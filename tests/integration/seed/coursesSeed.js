@@ -14,7 +14,8 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const {
   vendorAdmin,
   noRoleNoCompany,
@@ -289,21 +290,7 @@ const slots = [
 ];
 
 const populateDB = async () => {
-  await Course.deleteMany();
-  await SubProgram.deleteMany();
-  await Program.deleteMany();
-  await User.deleteMany();
-  await CourseSlot.deleteMany();
-  await CourseSmsHistory.deleteMany();
-  await Step.deleteMany();
-  await Activity.deleteMany();
-  await Card.deleteMany();
-  await ActivityHistory.deleteMany();
-  await UserCompany.deleteMany();
-  await Questionnaire.deleteMany();
-  await QuestionnaireHistory.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await SubProgram.insertMany(subProgramsList);
   await Program.insertMany(programsList);

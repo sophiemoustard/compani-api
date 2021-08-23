@@ -55,13 +55,31 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, otherCompany, sector, sectorHistories } = require('./authenticationSeed');
+const { otherCompany, sector, sectorHistories } = require('./authenticationSeed');
 const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
 const { rolesList } = require('../../seed/roleSeed');
-const { userList } = require('../../seed/userSeed');
+const { userList, userCompaniesList } = require('../../seed/userSeed');
 
 before(async () => {
-  await populateDBForAuthentication();
+  await Promise.all([
+    Role.deleteMany(),
+    User.deleteMany(),
+    Company.deleteMany(),
+    Sector.deleteMany(),
+    SectorHistory.deleteMany(),
+    UserCompany.deleteMany(),
+  ]);
+
+  await Promise.all([
+    Company.create([authCompany, otherCompany, companyWithoutSubscription]),
+    Sector.create(sector),
+    SectorHistory.insertMany(sectorHistories),
+    Role.insertMany(rolesList),
+    UserCompany.insertMany(userCompaniesList),
+  ]);
+  for (const user of userList) {
+    await User.create(user);
+  }
 });
 
 const deleteNonAuthenticationSeeds = async () => {

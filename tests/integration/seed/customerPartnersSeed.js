@@ -5,7 +5,8 @@ const Partner = require('../../../src/models/Partner');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { WEBAPP } = require('../../../src/helpers/constants');
 
 const customersList = [
@@ -77,13 +78,7 @@ const auxiliaryFromOtherCompany = {
 const userCompanies = [{ _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id }];
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Partner.deleteMany();
-  await CustomerPartner.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await User.create(auxiliaryFromOtherCompany);
   await UserCompany.insertMany(userCompanies);

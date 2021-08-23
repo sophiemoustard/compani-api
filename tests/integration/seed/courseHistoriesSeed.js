@@ -1,12 +1,10 @@
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
-const UserCompany = require('../../../src/models/UserCompany');
-const User = require('../../../src/models/User');
-const { populateDBForAuthentication } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
 const { vendorAdmin, trainer } = require('../../seed/userSeed');
 const { SLOT_CREATION } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [] }];
 
@@ -109,12 +107,7 @@ const courseHistoriesList = [{
 }];
 
 const populateDB = async () => {
-  await Course.deleteMany();
-  await CourseHistory.deleteMany();
-  await UserCompany.deleteMany();
-  await User.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Course.insertMany(coursesList);
   await CourseHistory.insertMany(courseHistoriesList);

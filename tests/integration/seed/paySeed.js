@@ -10,7 +10,8 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { WEBAPP, UNPAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
 
 const contractId1 = new ObjectID();
@@ -310,17 +311,8 @@ const payList = [
 ];
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Service.deleteMany();
-  await Contract.deleteMany();
-  await Event.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Pay.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Sector.create([...sectors, sectorFromOtherCompany]);
   await SectorHistory.create(sectorHistories);
   await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
