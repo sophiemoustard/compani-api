@@ -4,20 +4,18 @@ const { FIXED, ONCE, HOURLY } = require('../../src/helpers/constants');
 
 const subscriptionId = new ObjectID();
 
-const serviceList = [
-  {
-    _id: new ObjectID(),
-    company: authCompany._id,
-    versions: [{
-      defaultUnitAmount: 12,
-      name: 'Service 1',
-      startDate: '2019-01-16T17:58:15',
-      vat: 12,
-      exemptFromCharges: false,
-    }],
-    nature: HOURLY,
-  },
-];
+const serviceList = [{
+  _id: new ObjectID(),
+  company: authCompany._id,
+  versions: [{
+    defaultUnitAmount: 12,
+    name: 'Service 1',
+    startDate: '2019-01-16T17:58:15',
+    vat: 12,
+    exemptFromCharges: false,
+  }],
+  nature: HOURLY,
+}];
 
 const thirdPartyPayerList = [{
   _id: new ObjectID(),

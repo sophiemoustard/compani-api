@@ -9,8 +9,9 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Event = require('../../../src/models/Event');
 const Establishment = require('../../../src/models/Establishment');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, getUser } = require('./authenticationSeed');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const customer = {
   _id: new ObjectID(),
@@ -71,122 +72,191 @@ const establishment = {
   company: authCompany,
 };
 
-const contractUsers = [{
-  _id: new ObjectID(),
-  establishment: establishment._id,
-  identity: {
-    firstname: 'Test7',
-    lastname: 'Test7',
-    nationality: 'FR',
-    socialSecurityNumber: '2987654334562',
-    birthDate: '1999-09-08T00:00:00',
-    birthCity: 'Paris',
-    birthState: 75,
-  },
-  local: { email: 'test7@alenvi.io', password: '123456!eR' },
-  refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: [new ObjectID()],
-  contact: {
-    address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+const contractUsers = [
+  {
+    _id: new ObjectID(),
+    establishment: establishment._id,
+    identity: {
+      firstname: 'Test7',
+      lastname: 'Test7',
+      nationality: 'FR',
+      socialSecurityNumber: '2987654334562',
+      birthDate: '1999-09-08T00:00:00',
+      birthCity: 'Paris',
+      birthState: 75,
     },
-  },
-  origin: WEBAPP,
-},
-{
-  _id: new ObjectID(),
-  identity: {
-    firstname: 'ayolo',
-    lastname: 'Toto',
-    nationality: 'FR',
-    socialSecurityNumber: '2987654334562',
-    birthDate: '1999-09-08T00:00:00',
-    birthCity: 'Paris',
-    birthState: 75,
-  },
-  establishment: new ObjectID(),
-  local: { email: 'tototest@alenvi.io', password: '123456!eR' },
-  refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: [new ObjectID()],
-  contact: {
-    address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    local: { email: 'test7@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contracts: [new ObjectID()],
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
     },
+    origin: WEBAPP,
   },
-  origin: WEBAPP,
-},
-{
-  _id: new ObjectID(),
-  identity: {
-    firstname: 'ok',
-    lastname: 'Titi',
-    nationality: 'FR',
-    socialSecurityNumber: '2987654334562',
-    birthDate: '1999-09-08T00:00:00',
-    birthCity: 'Paris',
-    birthState: 75,
-  },
-  establishment: new ObjectID(),
-  local: { email: 'ok@alenvi.io', password: '123456!eR' },
-  refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contact: {
-    address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+  {
+    _id: new ObjectID(),
+    identity: {
+      firstname: 'ayolo',
+      lastname: 'Toto',
+      nationality: 'FR',
+      socialSecurityNumber: '2987654334562',
+      birthDate: '1999-09-08T00:00:00',
+      birthCity: 'Paris',
+      birthState: 75,
     },
+    establishment: new ObjectID(),
+    local: { email: 'tototest@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contracts: [new ObjectID()],
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+    origin: WEBAPP,
   },
-  origin: WEBAPP,
-},
-{
-  _id: new ObjectID(),
-  identity: { firstname: 'contract', lastname: 'Titi' },
-  local: { email: 'contract@alenvi.io', password: '123456!eR' },
-  refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: [new ObjectID()],
-  sector: sector._id,
-  origin: WEBAPP,
-}];
+  {
+    _id: new ObjectID(),
+    identity: {
+      firstname: 'ok',
+      lastname: 'Titi',
+      nationality: 'FR',
+      socialSecurityNumber: '2987654334562',
+      birthDate: '1999-09-08T00:00:00',
+      birthCity: 'Paris',
+      birthState: 75,
+    },
+    establishment: new ObjectID(),
+    local: { email: 'ok@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+    contracts: [new ObjectID()],
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'contract', lastname: 'Titi' },
+    local: { email: 'contract@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contracts: [new ObjectID()],
+    sector: sector._id,
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'contract', lastname: 'Uelle' },
+    local: { email: 'dfghjkscs@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contracts: [new ObjectID()],
+    sector: sector._id,
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'contract', lastname: 'ant' },
+    local: { email: 'iuytr@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contracts: [new ObjectID()],
+    sector: sector._id,
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: {
+      firstname: 'contract',
+      lastname: 'ion',
+      nationality: 'FR',
+      socialSecurityNumber: '2987654334562',
+      birthDate: '1999-09-08T00:00:00',
+      birthCity: 'Paris',
+      birthState: 75,
+    },
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+    local: { email: 'dfghjk@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    contracts: [new ObjectID()],
+    sector: sector._id,
+    origin: WEBAPP,
+    establishment: new ObjectID(),
+  },
+];
 
 const sectorHistories = [
   { auxiliary: contractUsers[0]._id, sector: sector._id, company: authCompany._id },
   { auxiliary: contractUsers[1]._id, sector: sector._id, company: authCompany._id },
   {
+    auxiliary: contractUsers[6]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-08-02T00:00:00',
+    endDate: '2019-09-02T23:59:59',
+  },
+  {
     auxiliary: contractUsers[2]._id,
     sector: sector._id,
     company: authCompany._id,
-    startDate: '2016-12-01',
-    endDate: '2016-12-20',
+    startDate: '2016-12-01T00:00:00',
+    endDate: '2016-12-20T23:59:59',
   },
   {
     auxiliary: contractUsers[3]._id,
     sector: sector._id,
     company: authCompany._id,
-    startDate: '2018-08-03',
-    endDate: '2018-09-02',
+    startDate: '2018-08-03T00:00:00',
+    endDate: '2018-09-02T23:59:59',
   },
   {
     auxiliary: contractUsers[2]._id,
     sector: sector._id,
     company: authCompany._id,
-    startDate: '2017-01-01',
-    endDate: '2017-11-30',
+    startDate: '2017-01-01T00:00:00',
   },
-  { auxiliary: contractUsers[3]._id, sector: sector._id, company: authCompany._id, startDate: '2018-09-03' },
+  {
+    auxiliary: contractUsers[4]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-08-02T00:00:00',
+  },
+  {
+    auxiliary: contractUsers[5]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2017-01-01T00:00:00',
+  },
+  { auxiliary: contractUsers[3]._id, sector: sector._id, company: authCompany._id, startDate: '2018-08-02T00:00:00' },
 ];
 
 const otherContract = {
@@ -213,6 +283,9 @@ const contractUserCompanies = [
   { _id: new ObjectID(), user: contractUsers[1]._id, company: authCompany._id },
   { _id: new ObjectID(), user: contractUsers[2]._id, company: authCompany._id },
   { _id: new ObjectID(), user: contractUsers[3]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[4]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[5]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: contractUsers[6]._id, company: authCompany._id },
   { _id: new ObjectID(), user: otherContractUser._id, company: otherCompany._id },
   { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id },
 ];
@@ -233,7 +306,7 @@ const contractsList = [
     endDate: '2019-02-03T23:00:00.000Z',
     endNotificationDate: '2019-02-03T23:00:00.000Z',
     endReason: 'mutation',
-    _id: new ObjectID(),
+    _id: contractUsers[1].contracts[0],
     company: authCompany._id,
     versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectID() }],
   },
@@ -241,19 +314,16 @@ const contractsList = [
     serialNumber: 'qwdfgbnhygfc',
     endDate: null,
     company: authCompany._id,
-    user: getUser('auxiliary')._id,
+    user: contractUsers[2]._id,
     startDate: '2018-08-02T00:00:00',
-    _id: new ObjectID(),
+    _id: contractUsers[2].contracts[0],
     versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
   },
   {
     serialNumber: 'cvfdjsbjknvkaskdj',
-    user: getUser('auxiliary')._id,
+    user: contractUsers[4]._id,
     startDate: '2018-08-02T00:00:00',
-    endDate: '2018-09-02T23:59:59',
-    endNotificationDate: '2018-02-03T23:00:00.000Z',
-    endReason: 'mutation',
-    _id: new ObjectID(),
+    _id: contractUsers[4].contracts[0],
     company: authCompany._id,
     versions: [{
       endDate: '2018-09-02T23:59:59',
@@ -265,18 +335,21 @@ const contractsList = [
   },
   {
     serialNumber: 'cacnxnkzlas',
-    user: contractUsers[2]._id,
+    user: contractUsers[5]._id,
     startDate: '2017-08-02T00:00:00',
-    endDate: '2017-09-02T23:59:59',
-    endNotificationDate: '2017-09-02T17:12:55',
-    endReason: 'mutation',
-    _id: new ObjectID(),
+    _id: contractUsers[5].contracts[0],
     company: authCompany._id,
     versions: [{
-      endDate: '2017-09-02T17:12:55',
+      endDate: '2017-09-02T23:59:59',
       grossHourlyRate: 10.12,
       startDate: '2017-08-02T00:00:00',
       weeklyHours: 15,
+      _id: new ObjectID(),
+    }, {
+      endDate: '2017-10-10T23:59:59',
+      grossHourlyRate: 10.12,
+      startDate: '2017-09-03T00:00:00',
+      weeklyHours: 22,
       _id: new ObjectID(),
     }],
   },
@@ -284,29 +357,26 @@ const contractsList = [
     serialNumber: 'sldfnasdlknfkds',
     user: contractUsers[3]._id,
     startDate: '2018-08-02T00:00:00',
-    _id: new ObjectID(),
+    _id: contractUsers[3].contracts[0],
     company: authCompany._id,
     versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
   },
   {
-    serialNumber: 'lqwjrewjqpjefek',
-    user: getUser('auxiliary_without_company')._id,
+    serialNumber: 'lkjhgfdcdsvbnjckasdf',
+    user: contractUsers[6]._id,
     startDate: '2018-08-02T00:00:00',
-    _id: new ObjectID(),
+    endDate: '2019-09-02T23:59:59',
+    endNotificationDate: '2019-09-02T23:59:59',
+    endReason: 'mutation',
+    _id: contractUsers[6].contracts[0],
     company: authCompany._id,
-    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
-  },
-  {
-    serialNumber: 'xbcbdsvknsdk',
-    endDate: null,
-    company: authCompany._id,
-    user: getUser('auxiliary')._id,
-    startDate: '2017-10-12T00:00:00',
-    _id: new ObjectID(),
-    versions: [
-      { grossHourlyRate: 10.12, startDate: '2017-10-12T00:00:00', weeklyHours: 23, _id: new ObjectID() },
-      { grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() },
-    ],
+    versions: [{
+      grossHourlyRate: 10.12,
+      startDate: '2018-08-02T00:00:00',
+      weeklyHours: 15,
+      _id: new ObjectID(),
+      endDate: '2019-09-02T23:59:59',
+    }],
   },
 ];
 
@@ -382,16 +452,7 @@ const contractEvents = [
 ];
 
 const populateDB = async () => {
-  await Contract.deleteMany();
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Event.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Establishment.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await User.insertMany([...contractUsers, otherContractUser, userFromOtherCompany]);
   await Sector.create(sector);

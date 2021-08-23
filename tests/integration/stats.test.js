@@ -30,19 +30,17 @@ describe('GET /stats/customer-follow-up', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data).toEqual(expect.objectContaining({
-        followUp: [
-          {
-            _id: userList[0]._id,
-            contracts: expect.any(Array),
-            inactivityDate: null,
-            identity: { firstname: 'Auxiliary', lastname: 'White' },
-            role: { client: { name: 'auxiliary' } },
-            createdAt: expect.any(Date),
-            lastEvent: expect.objectContaining({ startDate: expect.any(Date) }),
-            totalHours: 5,
-            sector: { name: 'Neptune' },
-          },
-        ],
+        followUp: [{
+          _id: userList[0]._id,
+          contracts: expect.any(Array),
+          inactivityDate: null,
+          identity: { firstname: 'Auxiliary', lastname: 'White' },
+          role: { client: { name: 'auxiliary' } },
+          createdAt: expect.any(Date),
+          lastEvent: expect.objectContaining({ startDate: expect.any(Date) }),
+          totalHours: 5,
+          sector: { name: 'Neptune' },
+        }],
       }));
     });
 

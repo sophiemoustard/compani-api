@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const Bill = require('../../../src/models/Bill');
 const Customer = require('../../../src/models/Customer');
 const Helper = require('../../../src/models/Helper');
@@ -45,13 +46,8 @@ const userCompany = { _id: new ObjectID(), user: userId, company: authCompany._i
 const helper = { _id: new ObjectID(), customer: customerId, user: userId, company: authCompany._id, referent: false };
 
 const populateDB = async () => {
-  await Bill.deleteMany();
-  await Customer.deleteMany();
-  await Helper.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Bill.create(bill);
   await Customer.create(customer);
   await Helper.create(helper);

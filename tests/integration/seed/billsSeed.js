@@ -21,8 +21,9 @@ const CreditNote = require('../../../src/models/CreditNote');
 const Contract = require('../../../src/models/Contract');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const Helper = require('../../../src/models/Helper');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 const UserCompany = require('../../../src/models/UserCompany');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const billThirdPartyPayer = {
   _id: new ObjectID(),
@@ -541,20 +542,8 @@ const helpersList = [
 ];
 
 const populateDB = async () => {
-  await Service.deleteMany();
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Bill.deleteMany();
-  await Event.deleteMany();
-  await BillNumber.deleteMany();
-  await User.deleteMany();
-  await FundingHistory.deleteMany();
-  await CreditNote.deleteMany();
-  await Contract.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await (new ThirdPartyPayer(billThirdPartyPayer)).save();
   await Service.insertMany(billServices);
   await Customer.insertMany(billCustomerList.concat(customerFromOtherCompany));

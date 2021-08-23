@@ -10,12 +10,11 @@ const PayDocument = require('../../src/models/PayDocument');
 const {
   populateDB,
   payDocumentsList,
-  payDocumentUser,
+  payDocumentUsers,
   payDocumentUserCompanies,
   userFromOtherCompany,
 } = require('./seed/payDocumentsSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
-const { auxiliaryWithoutCompany } = require('../seed/userSeed');
+const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
 const { generateFormData } = require('./utils');
@@ -75,7 +74,7 @@ describe('POST /paydocuments', () => {
           file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           nature: PAYSLIP,
           date: new Date('2019-01-23').toISOString(),
-          user: payDocumentUser._id.toHexString(),
+          user: payDocumentUsers[0]._id.toHexString(),
           mimeType: 'application/pdf',
         };
 
@@ -143,7 +142,7 @@ describe('POST /paydocuments', () => {
           file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           nature: PAYSLIP,
           date: new Date('2019-01-23').toISOString(),
-          user: payDocumentUser._id.toHexString(),
+          user: payDocumentUsers[0]._id.toHexString(),
           mimeType: 'application/pdf',
         };
 
@@ -175,7 +174,7 @@ describe('GET /paydocuments', () => {
     it('should get all pay documents for one user', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/paydocuments?user=${payDocumentUser._id.toHexString()}`,
+        url: `/paydocuments?user=${payDocumentUsers[0]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -196,16 +195,16 @@ describe('GET /paydocuments', () => {
 
   describe('Other roles', () => {
     it('should get my pay documents if I am an auxiliary without company', async () => {
-      authToken = await getToken('auxiliary_without_company');
+      authToken = await getTokenByCredentials(payDocumentUsers[1].local);
       const response = await app.inject({
         method: 'GET',
-        url: `/paydocuments?user=${auxiliaryWithoutCompany._id}`,
+        url: `/paydocuments?user=${payDocumentUsers[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.payDocuments.length)
-        .toBe(payDocumentsList.filter(payDocument => payDocument.user === auxiliaryWithoutCompany._id).length);
+        .toBe(payDocumentsList.filter(payDocument => payDocument.user === payDocumentUsers[1]._id).length);
     });
 
     const roles = [
@@ -219,7 +218,7 @@ describe('GET /paydocuments', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/paydocuments?user=${payDocumentUser._id.toHexString()}`,
+          url: `/paydocuments?user=${payDocumentUsers[0]._id.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

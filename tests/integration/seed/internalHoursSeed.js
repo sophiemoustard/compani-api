@@ -3,7 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 const InternalHour = require('../../../src/models/InternalHour');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
-const { populateDBForAuthentication, authCompany, rolesList, otherCompany } = require('./authenticationSeed');
+const { authCompany, rolesList, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { userList } = require('../../seed/userSeed');
 const { INTERNAL_HOUR, WEBAPP } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -69,11 +70,7 @@ const eventList = [
 ];
 
 const populateDB = async () => {
-  await InternalHour.deleteMany();
-  await Event.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Event.insertMany(eventList);
   await InternalHour.insertMany([...internalHoursList, ...authInternalHoursList]);

@@ -2,7 +2,8 @@ const { ObjectID } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
 const { HOURLY, FIXED } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { serviceList } = require('../../seed/customerSeed');
 
 const servicesList = [
@@ -93,13 +94,9 @@ const customer = {
 };
 
 const populateDB = async () => {
-  await Service.deleteMany({});
-  await Customer.deleteMany({});
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await Service.insertMany([...serviceList, ...servicesList]);
-  await Service.insertMany([serviceFromOtherCompany]);
+  await Service.insertMany([...serviceList, ...servicesList, serviceFromOtherCompany]);
   await (new Customer(customer)).save();
 };
 

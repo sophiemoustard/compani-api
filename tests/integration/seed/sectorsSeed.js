@@ -3,7 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const { rolesList } = require('./authenticationSeed');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -51,12 +52,8 @@ const userFromOtherCompany = {
 const userCompany = { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id };
 
 const populateDB = async () => {
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Sector.insertMany(sectorsList);
   await SectorHistory.insertMany(historyList);
   await User.create(userFromOtherCompany);

@@ -3,7 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { populateDBForAuthentication, rolesList, otherCompany, authCompany } = require('./authenticationSeed');
+const { rolesList, otherCompany, authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const emailUser = {
   _id: new ObjectID(),
@@ -39,10 +40,7 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await new User(emailUser).save();
   await new User(emailUserFromOtherCompany).save();

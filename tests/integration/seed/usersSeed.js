@@ -9,7 +9,8 @@ const UserCompany = require('../../../src/models/UserCompany');
 const IdentityVerification = require('../../../src/models/IdentityVerification');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
-const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
+const { rolesList, otherCompany, authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { vendorAdmin } = require('../../seed/userSeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const Course = require('../../../src/models/Course');
@@ -289,18 +290,8 @@ const identityVerifications = [
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Contract.deleteMany();
-  await Establishment.deleteMany();
-  await Course.deleteMany();
-  await UserCompany.deleteMany();
-  await Helper.deleteMany();
-  await IdentityVerification.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await User.create([
     ...usersSeedList,
     helperFromOtherCompany,

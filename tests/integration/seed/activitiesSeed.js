@@ -4,10 +4,10 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
-const { populateDBForAuthentication } = require('./authenticationSeed');
 const { TRANSITION, FLASHCARD, TITLE_TEXT, TITLE_TEXT_MEDIA } = require('../../../src/helpers/constants');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const { userList } = require('../../seed/userSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const cardsList = [
   { _id: new ObjectID(), template: TRANSITION, title: 'ceci est un titre' },
@@ -75,14 +75,7 @@ const activityHistoriesList = [
 ];
 
 const populateDB = async () => {
-  await Program.deleteMany({});
-  await SubProgram.deleteMany({});
-  await Step.deleteMany({});
-  await Activity.deleteMany({});
-  await Card.deleteMany({});
-  await ActivityHistory.deleteMany({});
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Program.insertMany(programsList);
   await SubProgram.insertMany(subProgramsList);

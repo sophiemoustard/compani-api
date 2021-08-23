@@ -4,7 +4,6 @@ const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
-const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const User = require('../../../src/models/User');
@@ -21,7 +20,8 @@ const {
   WEBAPP,
   DEATH,
 } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
 
 const subId = new ObjectID();
@@ -796,21 +796,7 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await Service.deleteMany();
-  await Customer.deleteMany();
-  await Event.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await QuoteNumber.deleteMany();
-  await User.deleteMany();
-  await ReferentHistory.deleteMany();
-  await Bill.deleteMany();
-  await Payment.deleteMany();
-  await CreditNote.deleteMany();
-  await TaxCertificate.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await ThirdPartyPayer.insertMany(customerThirdPartyPayers);
   await Service.insertMany(customerServiceList);

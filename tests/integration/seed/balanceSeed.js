@@ -8,7 +8,8 @@ const Bill = require('../../../src/models/Bill');
 const Helper = require('../../../src/models/Helper');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
 
 const balanceThirdPartyPayer = {
@@ -230,15 +231,7 @@ const customerFromOtherCompany = {
 };
 
 const populateDB = async () => {
-  await Service.deleteMany();
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Bill.deleteMany();
-  await User.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await (new ThirdPartyPayer(balanceThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);

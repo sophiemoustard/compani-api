@@ -9,8 +9,8 @@ const { rolesList } = require('../../seed/roleSeed');
 const { otherCompany } = require('../../seed/companySeed');
 const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
 const { vendorAdmin } = require('../../seed/userSeed');
-
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const trainerList = [
   {
@@ -164,13 +164,7 @@ const userCompanyList = [
 ];
 
 const populateDB = async () => {
-  await Attendance.deleteMany();
-  await Course.deleteMany();
-  await CourseSlot.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Attendance.insertMany(attendancesList);
   await Course.insertMany(coursesList);

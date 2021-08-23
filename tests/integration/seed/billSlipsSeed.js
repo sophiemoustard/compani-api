@@ -3,7 +3,8 @@ const Bill = require('../../../src/models/Bill');
 const BillSlip = require('../../../src/models/BillSlip');
 const CreditNote = require('../../../src/models/CreditNote');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const tppList = [
   { _id: new ObjectID(), name: 'third party payer', company: authCompany._id, isApa: true, billingMode: 'direct' },
@@ -114,12 +115,7 @@ const billSlipFromAnotherCompany = {
 };
 
 const populateDB = async () => {
-  await Bill.deleteMany();
-  await BillSlip.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await CreditNote.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await ThirdPartyPayer.insertMany(tppList);
   await BillSlip.insertMany([...billSlipList, billSlipFromAnotherCompany]);

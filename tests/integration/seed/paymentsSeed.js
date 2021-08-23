@@ -7,7 +7,8 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND, WEBAPP } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
 const Helper = require('../../../src/models/Helper');
 
@@ -180,15 +181,7 @@ const tppFromOtherCompany = {
 };
 
 const populateDB = async () => {
-  await PaymentNumber.deleteMany();
-  await Payment.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Customer.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-  await Helper.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
