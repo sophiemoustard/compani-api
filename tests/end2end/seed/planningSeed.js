@@ -6,6 +6,7 @@ const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const Contract = require('../../../src/models/Contract');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Sector = require('../../../src/models/Sector');
@@ -13,7 +14,7 @@ const { populateAuthentication } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
 const { authCustomer } = require('../../seed/customerSeed');
 const { rolesList } = require('../../seed/roleSeed');
-const { userList } = require('../../seed/userSeed');
+const { userList, userCompaniesList } = require('../../seed/userSeed');
 const { NEVER, INTERVENTION, HOURLY, AUXILIARY, WEBAPP } = require('../../../src/helpers/constants');
 
 const subscriptionId = new ObjectID();
@@ -34,12 +35,7 @@ const service = {
 
 const customer = {
   ...authCustomer,
-  email: 'fake@test.com',
-  identity: {
-    title: 'mr',
-    firstname: 'Romain',
-    lastname: 'Bardet',
-  },
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -61,7 +57,7 @@ const customer = {
 const secondAuxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Customer referent', lastname: 'Test', title: 'mr' },
-  local: { email: 'customer-referent@alenvi.io', password: '123456!eR' },
+  local: { email: 'customer-referent@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
   company: authCompany._id,
@@ -194,22 +190,25 @@ const eventList = [
 ];
 
 const populatePlanning = async () => {
-  await Customer.deleteMany({});
-  await Service.deleteMany({});
-  await Event.deleteMany({});
-  await ReferentHistory.deleteMany({});
-  await User.deleteMany({});
-  await Contract.deleteMany({});
-  await SectorHistory.deleteMany({});
-  await Sector.deleteMany({});
+  await Customer.deleteMany();
+  await Service.deleteMany();
+  await Event.deleteMany();
+  await ReferentHistory.deleteMany();
+  await User.deleteMany();
+  await UserCompany.deleteMany();
+  await Contract.deleteMany();
+  await SectorHistory.deleteMany();
+  await Sector.deleteMany();
+  await UserCompany.deleteMany();
 
   await populateAuthentication();
 
   await Event.insertMany(eventList);
   await ReferentHistory.insertMany(referentHistories);
-  await (new Customer(customer)).save();
-  await new Service(service).save();
-  await (new User(secondAuxiliary)).save();
+  await Customer.create(customer);
+  await Service.create(service);
+  await User.create(secondAuxiliary);
+  await UserCompany.create(userCompaniesList);
   await Contract.insertMany(contracts);
   await SectorHistory.insertMany(sectorHistories);
   await Sector.insertMany(sectors);

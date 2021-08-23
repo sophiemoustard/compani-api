@@ -9,11 +9,7 @@ const subscriptionId = new ObjectID();
 const authCustomer = {
   _id: new ObjectID(),
   company: authCompany._id,
-  identity: {
-    title: 'mr',
-    firstname: 'Romain',
-    lastname: 'Bardet',
-  },
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -32,40 +28,17 @@ const authCustomer = {
     phone: '0123456789',
     accessCodes: 'porte c3po',
   },
-  followUp: {
-    environment: 'ne va pas bien',
-    objectives: 'preparer le dejeuner + balade',
-    misc: 'code porte: 1234',
-  },
+  followUp: { environment: 'ne va pas bien', objectives: 'preparer le dejeuner + balade', misc: 'code porte: 1234' },
   subscriptions: [{
     _id: subscriptionId,
     service: serviceList[0]._id,
     versions: [
-      {
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-        createdAt: '2020-01-01T23:00:00',
-      },
-      {
-        unitTTCRate: 10,
-        estimatedWeeklyVolume: 8,
-        evenings: 0,
-        sundays: 2,
-        createdAt: '2019-06-01T23:00:00',
-      },
+      { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
+      { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
     ],
   }],
   subscriptionsHistory: [],
-  payment: {
-    bankAccountOwner: 'David gaudu',
-    iban: '',
-    bic: '',
-    mandates: [
-      { rum: 'R012345678903456789' },
-    ],
-  },
+  payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
   quotes: [],
   fundings: [
     {

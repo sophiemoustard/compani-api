@@ -172,6 +172,7 @@ async function save(next) {
     }
 
     if (!get(user, 'local.password') || !user.isModified('local.password')) return next();
+
     const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
     const hash = await bcrypt.hash(user.local.password, salt);
     user.local.password = hash;

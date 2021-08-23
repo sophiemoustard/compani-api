@@ -13,7 +13,12 @@ const authCompany = {
   customersFolderId: 'mnbvcxz',
   auxiliariesFolderId: 'iuytre',
   customersConfig: {
-    templates: { debitMandate: { driveId: '12345' } },
+    templates: {
+      debitMandate: {
+        driveId: '1EosL9GhGBZvrvnrF5o__TOHnponTGlE0',
+        link: 'https://docs.google.com/document/d/1EosL9GhGBZvrvnrF5o__TOHnponTGlE0/edit',
+      },
+    },
     billingPeriod: 'two_weeks',
   },
   address: {
