@@ -1550,12 +1550,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
 
   beforeEach(populateDB);
 
-  it('should return 401 if user not authenticated', async () => {
-    const response = await app.inject({ method: 'POST', url: `/courses/${course._id}/register-e-learning` });
-
-    expect(response.statusCode).toBe(401);
-  });
-
   describe('Logged user', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
@@ -1569,8 +1563,8 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const courseUpdated = await Course.findById(course._id, { trainees: 1 }).lean();
-      expect(courseUpdated.trainees).toEqual(expect.arrayContaining([noRoleNoCompany._id]));
+      const courseUpdated = await Course.countDocuments({ _id: course._id, trainees: noRoleNoCompany._id });
+      expect(courseUpdated).toEqual(1);
     });
 
     it('should return 404 if course does not exist', async () => {
