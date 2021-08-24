@@ -339,19 +339,22 @@ const contractsList = [
     startDate: '2017-08-02T00:00:00',
     _id: contractUsers[5].contracts[0],
     company: authCompany._id,
-    versions: [{
-      endDate: '2017-09-02T23:59:59',
-      grossHourlyRate: 10.12,
-      startDate: '2017-08-02T00:00:00',
-      weeklyHours: 15,
-      _id: new ObjectID(),
-    }, {
-      endDate: '2017-10-10T23:59:59',
-      grossHourlyRate: 10.12,
-      startDate: '2017-09-03T00:00:00',
-      weeklyHours: 22,
-      _id: new ObjectID(),
-    }],
+    versions: [
+      {
+        endDate: '2017-09-02T23:59:59',
+        grossHourlyRate: 10.12,
+        startDate: '2017-08-02T00:00:00',
+        weeklyHours: 15,
+        _id: new ObjectID(),
+      },
+      {
+        endDate: '2017-10-10T23:59:59',
+        grossHourlyRate: 10.12,
+        startDate: '2017-09-03T00:00:00',
+        weeklyHours: 22,
+        _id: new ObjectID(),
+      },
+    ],
   },
   {
     serialNumber: 'sldfnasdlknfkds',

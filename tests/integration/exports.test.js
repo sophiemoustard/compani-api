@@ -25,7 +25,7 @@ const {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
-} = require('./seed/exportSeed');
+} = require('./seed/exportsSeed');
 const { helper } = require('../seed/userSeed');
 const { formatPrice } = require('../../src/helpers/utils');
 

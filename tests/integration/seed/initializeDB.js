@@ -76,10 +76,8 @@ before(async () => {
     SectorHistory.insertMany(sectorHistories),
     Role.insertMany(rolesList),
     UserCompany.insertMany(userCompaniesList),
+    User.create(userList),
   ]);
-  for (const user of userList) {
-    await User.create(user);
-  }
 });
 
 const deleteNonAuthenticationSeeds = async () => {
