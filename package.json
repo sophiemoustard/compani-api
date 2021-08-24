@@ -5,9 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test:unit": "NODE_ENV=test mocha --timeout 999999 --colors --exit tests/unit/*",
-    "test:integration": "NODE_ENV=test mocha --timeout 999999 --colors --exit tests/integration/helpers/initializeDB tests/integration/*",
-    "test:tag": "NODE_ENV=test mocha --timeout 999999 --colors --recursive --exit --grep '#tag' tests/integration/helpers/initializeDB tests/*",
-    "test": "NODE_ENV=test mocha --timeout 999999 --colors --recursive --exit tests/integration/helpers/initializeDB tests/*",
+    "test:integration": "NODE_ENV=test mocha --timeout 999999 --colors --exit --file tests/integration/helpers/initializeDB tests/integration/*",
+    "test:tag": "NODE_ENV=test mocha --timeout 999999 --colors --recursive --exit --grep '#tag' --file tests/integration/helpers/initializeDB tests/*",
+    "test": "NODE_ENV=test mocha --timeout 999999 --colors --recursive --exit --file tests/integration/helpers/initializeDB tests/*",
     "test-watch": "nodemon --exec 'npm test'",
     "debug": "nodemon --inspect",
     "lint": "eslint ./ --ext .js -c .eslintrc.js"
