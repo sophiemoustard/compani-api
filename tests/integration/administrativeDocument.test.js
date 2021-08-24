@@ -6,7 +6,8 @@ const AdministrativeDocument = require('../../src/models/AdministrativeDocument'
 const app = require('../../server');
 const Drive = require('../../src/models/Google/Drive');
 const { populateDB, administrativeDocumentsList } = require('./seed/administrativeDocumentSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {

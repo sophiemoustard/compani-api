@@ -9,7 +9,7 @@ const {
   userList,
   customerFromOtherCompany,
 } = require('./seed/statsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('GET /stats/customer-follow-up', () => {
   let authToken = null;

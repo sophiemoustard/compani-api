@@ -10,7 +10,7 @@ const {
   trainerList,
   companyTraineesList,
 } = require('./seed/attendancesSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

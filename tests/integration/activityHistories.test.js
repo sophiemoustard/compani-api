@@ -8,8 +8,8 @@ const {
   activityHistoriesUsersList,
   cardsList,
 } = require('./seed/activityHistoriesSeed');
-const { getTokenByCredentials, getToken } = require('./seed/authenticationSeed');
-const { noRoleNoCompany } = require('../seed/userSeed');
+const { getTokenByCredentials, getToken } = require('./helpers/authentication');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const ActivityHistory = require('../../src/models/ActivityHistory');
 
 describe('NODE ENV', () => {

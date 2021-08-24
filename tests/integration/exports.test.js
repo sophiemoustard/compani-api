@@ -13,7 +13,7 @@ const {
   RUP,
   REFERENT,
 } = require('../../src/helpers/constants');
-const { getToken, userList } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const {
   paymentsList,
   populateDB,
@@ -26,7 +26,7 @@ const {
   establishment,
   thirdPartyPayer,
 } = require('./seed/exportsSeed');
-const { helper } = require('../seed/userSeed');
+const { helper, userList } = require('../seed/authUsersSeed');
 const { formatPrice } = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
@@ -289,7 +289,7 @@ const exportTypes = [
     exportType: AUXILIARY,
     expectedRows: [
       '\ufeff"Email";"Équipe";"Id Auxiliaire";"Titre";"Nom";"Prénom";"Date de naissance";"Pays de naissance";"Departement de naissance";"Ville de naissance";"Nationalité";"N° de sécurité sociale";"Addresse";"Téléphone";"Nombre de contracts";"Établissement";"Date de début de contrat prestataire";"Date de fin de contrat prestataire";"Date d\'inactivité";"Date de création"',
-      `"auxiliary@alenvi.io";"Test";${userList[2]._id};"M.";"TEST";"Auxiliary";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
+      `"auxiliary@alenvi.io";"Test";${userList[2]._id};"M.";"OLAIT";"Auxiliary";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
       `"auxiliary-without-company@alenvi.io";;${userList[3]._id};;"TEST";"Auxiliary without company";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
       `"planning-referent@alenvi.io";"Test";${userList[4]._id};"Mme";"TEST";"PlanningReferent";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
       `"export_auxiliary_1@alenvi.io";"Etoile";${auxiliaryList[0]._id};"M.";"UIUI";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";2;"${establishment.name}";"01/01/2018";"01/01/2020";;"${moment().format('DD/MM/YYYY')}"`,
@@ -337,7 +337,7 @@ const exportTypes = [
     exportType: SECTOR,
     expectedRows: [
       '\ufeff"Equipe";"Id Auxiliaire";"Nom";"Prénom";"Date d\'arrivée dans l\'équipe";"Date de départ de l\'équipe"',
-      `"Test";${userList[2]._id};"Test";"Auxiliary";"10/12/2020";`,
+      `"Test";${userList[2]._id};"Olait";"Auxiliary";"10/12/2020";`,
       `"Test";${userList[4]._id};"Test";"PlanningReferent";"10/12/2018";`,
       `"Etoile";${auxiliaryList[0]._id};"Uiui";"Lulu";"10/12/2018";`,
     ],

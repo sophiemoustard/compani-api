@@ -20,9 +20,9 @@ const Establishment = require('../../../src/models/Establishment');
 const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, authCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
-const { helper } = require('../../seed/userSeed');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { helper } = require('../../seed/authUsersSeed');
 const {
   PAYMENT,
   REFUND,
@@ -36,7 +36,6 @@ const {
   ABSENCE,
   UNJUSTIFIED,
   AUXILIARY_INITIATIVE,
-  AUXILIARY,
   EVERY_DAY,
   MISTER,
   MONTHLY,
@@ -46,6 +45,7 @@ const {
   QRCODE_MISSING,
   QR_CODE_TIME_STAMPING,
 } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
 const sector = { _id: new ObjectID(), name: 'Etoile', company: authCompany._id };
 
@@ -126,7 +126,7 @@ const auxiliaryList = [{
     },
     phone: '0123456789',
   },
-  role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+  role: { client: auxiliaryRoleId },
   local: { email: 'export_auxiliary_1@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   contracts: [contract1Id, contract2Id],
@@ -155,7 +155,7 @@ const auxiliaryList = [{
     },
     phone: '0123456789',
   },
-  role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+  role: { client: auxiliaryRoleId },
   local: { email: 'export_auxiliary_2@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   contracts: [contract3Id],
@@ -819,7 +819,7 @@ const user = {
   identity: { firstname: 'test', lastname: 'Toto' },
   local: { email: 'toto@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   origin: WEBAPP,
 };
 

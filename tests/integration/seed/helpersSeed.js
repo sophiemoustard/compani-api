@@ -3,10 +3,11 @@ const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Helper = require('../../../src/models/Helper');
-const { rolesList, otherCompany, authCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
+const { helperRoleId } = require('../../seed/authRolesSeed');
 
 const customer = {
   _id: new ObjectID(),
@@ -44,7 +45,7 @@ const helperFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Guigui', lastname: 'toto' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   refreshToken: uuidv4(),
   inactivityDate: null,
   origin: WEBAPP,
@@ -55,7 +56,7 @@ const usersSeedList = [{
   identity: { firstname: 'Helper1', lastname: 'Carolyn' },
   local: { email: 'carolyn@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   origin: WEBAPP,
 }];
 

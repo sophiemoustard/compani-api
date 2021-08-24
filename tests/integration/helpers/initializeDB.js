@@ -55,10 +55,10 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
-const { otherCompany, sector, sectorHistories } = require('./authenticationSeed');
-const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
-const { rolesList } = require('../../seed/roleSeed');
-const { userList, userCompaniesList } = require('../../seed/userSeed');
+const { sector, sectorHistories } = require('../../seed/authSectorsSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { rolesList } = require('../../seed/authRolesSeed');
+const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
 
 before(async () => {
   await Promise.all([
@@ -71,12 +71,12 @@ before(async () => {
   ]);
 
   await Promise.all([
+    Role.insertMany(rolesList),
+    User.create(userList),
     Company.create([authCompany, otherCompany, companyWithoutSubscription]),
+    UserCompany.insertMany(userCompaniesList),
     Sector.create(sector),
     SectorHistory.insertMany(sectorHistories),
-    Role.insertMany(rolesList),
-    UserCompany.insertMany(userCompaniesList),
-    User.create(userList),
   ]);
 });
 

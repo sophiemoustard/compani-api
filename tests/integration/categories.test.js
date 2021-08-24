@@ -6,7 +6,7 @@ const {
   populateDB,
   categoriesList,
 } = require('./seed/categoriesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

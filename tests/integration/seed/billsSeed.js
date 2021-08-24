@@ -21,9 +21,10 @@ const CreditNote = require('../../../src/models/CreditNote');
 const Contract = require('../../../src/models/Contract');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const Helper = require('../../../src/models/Helper');
-const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 const UserCompany = require('../../../src/models/UserCompany');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { helperRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const billThirdPartyPayer = {
   _id: new ObjectID(),
@@ -175,7 +176,7 @@ const billUserList = [
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
     local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     customers: [billCustomerList[0]._id],
     origin: WEBAPP,
   },
@@ -184,7 +185,7 @@ const billUserList = [
     identity: { firstname: 'Youpi', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     origin: WEBAPP,
   },
@@ -193,7 +194,7 @@ const billUserList = [
     identity: { firstname: 'Bravo', lastname: 'Toto' },
     local: { email: 'tutu@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     origin: WEBAPP,
   },
@@ -202,7 +203,7 @@ const billUserList = [
     identity: { firstname: 'Tata', lastname: 'Toto' },
     local: { email: 'toto2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     origin: WEBAPP,
   },

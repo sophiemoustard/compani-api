@@ -1,6 +1,6 @@
 const expect = require('expect');
 const app = require('../../server');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const { customersList, populateDB, customerNotesList } = require('./seed/customerNotesSeed');
 
 describe('NODE ENV', () => {

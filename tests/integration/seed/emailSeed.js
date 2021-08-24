@@ -3,15 +3,16 @@ const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, otherCompany, authCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
+const { clientAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 
 const emailUser = {
   _id: new ObjectID(),
   identity: { firstname: 'emailUser', lastname: 'Test' },
   local: { email: 'email_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 };
 
@@ -20,7 +21,7 @@ const emailUserFromOtherCompany = {
   identity: { firstname: 'otherCompany', lastname: 'Test' },
   local: { email: 'email_user_other_company@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 };
 
@@ -29,7 +30,7 @@ const trainerFromOtherCompany = {
   identity: { firstname: 'trainer', lastname: 'Test' },
   local: { email: 'trainer_email_other_company@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  role: { vendor: trainerRoleId },
   origin: WEBAPP,
 };
 

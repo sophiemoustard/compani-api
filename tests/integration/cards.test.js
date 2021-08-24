@@ -8,7 +8,7 @@ const app = require('../../server');
 const Card = require('../../src/models/Card');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const { populateDB, cardsList } = require('./seed/cardsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {

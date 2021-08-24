@@ -17,7 +17,8 @@ const {
   otherCompanyCreditNote,
 } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

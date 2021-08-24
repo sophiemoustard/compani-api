@@ -4,7 +4,8 @@ const { servicesList, serviceFromOtherCompany, populateDB } = require('./seed/se
 const Service = require('../../src/models/Service');
 const app = require('../../server');
 const { HOURLY } = require('../../src/helpers/constants');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

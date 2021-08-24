@@ -12,17 +12,11 @@ const Payment = require('../../../src/models/Payment');
 const CreditNote = require('../../../src/models/CreditNote');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Helper = require('../../../src/models/Helper');
-const {
-  FIXED,
-  ONCE,
-  HOURLY,
-  AUXILIARY,
-  WEBAPP,
-  DEATH,
-} = require('../../../src/helpers/constants');
-const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { FIXED, ONCE, HOURLY, WEBAPP, DEATH } = require('../../../src/helpers/constants');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
+const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const subId = new ObjectID();
 const subId2 = new ObjectID();
@@ -37,7 +31,7 @@ const referentList = [
     contact: { phone: '0987654321' },
     picture: { publicId: '1234', link: 'test' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+    role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
   {
@@ -45,7 +39,7 @@ const referentList = [
     identity: { firstname: 'SuperReferent', lastname: 'Test', title: 'mr' },
     local: { email: 'auxiliaryreferent2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+    role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
 ];
@@ -643,7 +637,7 @@ const userList = [
     identity: { firstname: 'HelperForCustomer', lastname: 'TheEtMoselle' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
@@ -651,7 +645,7 @@ const userList = [
     identity: { firstname: 'HelperForCustomer2', lastname: 'Rtre' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
@@ -659,7 +653,7 @@ const userList = [
     identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
@@ -667,7 +661,7 @@ const userList = [
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Caragua' },
     local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
@@ -675,7 +669,7 @@ const userList = [
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+    role: { client: clientAdminRoleId },
     origin: WEBAPP,
   },
 ];

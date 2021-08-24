@@ -3,7 +3,8 @@ const { ObjectID } = require('mongodb');
 const { surchargesList, populateDB, surchargeFromOtherCompany } = require('./seed/surchargesSeed');
 const Surcharge = require('../../src/models/Surcharge');
 const app = require('../../server');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

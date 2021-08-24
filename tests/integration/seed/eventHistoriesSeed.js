@@ -16,15 +16,16 @@ const {
   EVENT_CREATION,
   WEBAPP,
 } = require('../../../src/helpers/constants');
-const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const users = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Mimi', lastname: 'Mita' },
     local: { email: 'lili@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[2]._id },
+    role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -32,7 +33,7 @@ const users = [
     _id: new ObjectID(),
     identity: { firstname: 'Joséphine', lastname: 'Mita' },
     local: { email: 'lili2@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[2]._id },
+    role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -40,7 +41,7 @@ const users = [
     _id: new ObjectID(),
     identity: { firstname: 'Bob', lastname: 'Marley' },
     local: { email: 'lala@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[1]._id },
+    role: { client: clientAdminRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -48,7 +49,7 @@ const users = [
     _id: new ObjectID(),
     identity: { firstname: 'test', lastname: 'Mita' },
     local: { email: 'otherCompany@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[2]._id },
+    role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },

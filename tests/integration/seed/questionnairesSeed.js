@@ -6,9 +6,11 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const SubProgram = require('../../../src/models/SubProgram');
 const Program = require('../../../src/models/Program');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const { rolesList, userList, authCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { userList } = require('../../seed/authUsersSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 const { TRANSITION, OPEN_QUESTION } = require('../../../src/helpers/constants');
+const { trainerRoleId } = require('../../seed/authRolesSeed');
 
 const cardsList = [
   { _id: new ObjectID(), template: TRANSITION, title: 'test1' },
@@ -34,7 +36,7 @@ const questionnairesList = [
   },
 ];
 
-const courseTrainer = userList.find(user => user.role.vendor === rolesList.find(role => role.name === 'trainer')._id);
+const courseTrainer = userList.find(user => user.role.vendor === trainerRoleId);
 
 const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme', steps: [new ObjectID()] }];
 

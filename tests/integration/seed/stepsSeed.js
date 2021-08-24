@@ -3,7 +3,7 @@ const Program = require('../../../src/models/Program');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 
 const cardsList = [
   { _id: new ObjectID(), template: 'transition', title: 'do mi sol do' },

@@ -2,8 +2,8 @@ const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
-const { userList } = require('../../seed/userSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { userList } = require('../../seed/authUsersSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 
 const questionnaireHistoriesUsersList = [userList[6]._id, userList[5]._id];
 

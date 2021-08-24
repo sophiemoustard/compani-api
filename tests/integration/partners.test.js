@@ -1,8 +1,8 @@
 const expect = require('expect');
 const app = require('../../server');
 const { populateDB, partnersList } = require('./seed/partnersSeed');
-const { getToken } = require('./seed/authenticationSeed');
-const { authCompany } = require('../seed/companySeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
 const Partner = require('../../src/models/Partner');
 

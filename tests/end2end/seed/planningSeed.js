@@ -11,9 +11,9 @@ const Contract = require('../../../src/models/Contract');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Sector = require('../../../src/models/Sector');
 const { populateAuthentication } = require('./authenticationSeed');
-const { authCompany } = require('../../seed/companySeed');
-const { rolesList } = require('../../seed/roleSeed');
-const { userList, userCompaniesList } = require('../../seed/userSeed');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { rolesList } = require('../../seed/authRolesSeed');
+const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
 const { NEVER, INTERVENTION, HOURLY, AUXILIARY, WEBAPP } = require('../../../src/helpers/constants');
 
 const subscriptionId = new ObjectID();

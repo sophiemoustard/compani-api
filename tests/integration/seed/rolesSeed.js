@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Role = require('../../../src/models/Role');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 
 const rolesList = [
   { _id: new ObjectID(), name: 'general', interface: 'client' },

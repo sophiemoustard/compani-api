@@ -1,6 +1,6 @@
 const expect = require('expect');
 const { populateDB, billSlipList, billSlipFromAnotherCompany } = require('./seed/billSlipsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const app = require('../../server');
 
 describe('NODE ENV', () => {

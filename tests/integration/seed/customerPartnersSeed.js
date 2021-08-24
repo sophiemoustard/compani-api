@@ -5,9 +5,10 @@ const Partner = require('../../../src/models/Partner');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
-const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 const { WEBAPP } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customersList = [
   {
@@ -70,7 +71,7 @@ const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Philou', lastname: 'toto' },
   local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };

@@ -4,8 +4,9 @@ const { WEBAPP } = require('../../../src/helpers/constants');
 const Establishment = require('../../../src/models/Establishment');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { clientAdminRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 
 const establishmentsList = [
   {
@@ -64,7 +65,7 @@ const userFromOtherCompany = {
   identity: { firstname: 'Admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
   local: { email: 'other_admin@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 };
 
@@ -73,7 +74,7 @@ const user = {
   identity: { firstname: 'User', lastname: 'Test' },
   local: { email: 'auxiliary_establishment@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   establishment: establishmentsList[1]._id,
   origin: WEBAPP,
 };

@@ -1,7 +1,8 @@
 const expect = require('expect');
 const app = require('../../server');
 const { populateDB, rolesList } = require('./seed/rolesSeed');
-const { getToken, rolesList: authRolesList } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { rolesList: authRolesList } = require('../seed/authRolesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

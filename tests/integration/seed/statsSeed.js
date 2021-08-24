@@ -12,8 +12,8 @@ const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 const {
   HOURLY,
   MONTHLY,
@@ -26,6 +26,7 @@ const {
   INTERVENTION,
   WEBAPP,
 } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const sectorList = [
   { _id: new ObjectID(), name: 'Vénus', company: authCompany._id },
@@ -52,7 +53,7 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [contractList[0]._id],
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -61,7 +62,7 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
     local: { email: 'black@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     inactivityDate: '2019-01-01T23:59:59',
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -70,7 +71,7 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'Red' },
     local: { email: 'blue@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     inactivityDate: '2019-01-01T23:59:59',
     refreshToken: uuidv4(),
     origin: WEBAPP,

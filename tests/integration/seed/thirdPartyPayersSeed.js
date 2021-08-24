@@ -1,8 +1,8 @@
 const { ObjectID } = require('mongodb');
 const { BILLING_DIRECT } = require('../../../src/helpers/constants');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
-const { authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 
 const thirdPartyPayersList = [
   { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: false, billingMode: BILLING_DIRECT },

@@ -3,16 +3,17 @@ const { v4: uuidv4 } = require('uuid');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, authCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 const { PAYSLIP, CERTIFICATE, OTHER, WEBAPP } = require('../../../src/helpers/constants');
+const { auxiliaryWithoutCompanyRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const payDocumentUsers = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Bob', lastname: 'Marley' },
     local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[3]._id },
+    role: { client: auxiliaryRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -20,7 +21,7 @@ const payDocumentUsers = [
     _id: new ObjectID(),
     identity: { firstname: 'Bob', lastname: 'Dylan' },
     local: { email: 'paydocumentawc@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[4]._id },
+    role: { client: auxiliaryWithoutCompanyRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -38,7 +39,7 @@ const userFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'test', lastname: 'toto' },
   local: { email: 'test@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList[1]._id },
+  role: { client: clientAdminRoleId },
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };

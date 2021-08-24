@@ -1,10 +1,10 @@
 const { ObjectID } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
-const { authCompany } = require('../../seed/companySeed');
-const { vendorAdmin, trainer } = require('../../seed/userSeed');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { vendorAdmin, trainer } = require('../../seed/authUsersSeed');
 const { SLOT_CREATION } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 
 const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [] }];
 

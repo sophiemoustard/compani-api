@@ -7,8 +7,8 @@ const Category = require('../../../src/models/Category');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
-const { userList, vendorAdmin } = require('../../seed/userSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 
 const cards = [
   { _id: new ObjectID(), template: 'transition', title: 'skusku' },

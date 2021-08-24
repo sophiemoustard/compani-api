@@ -9,9 +9,10 @@ const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Helper = require('../../../src/models/Helper');
 const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
-const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
+const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -75,7 +76,7 @@ const creditNoteUserList = [
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
     local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
@@ -83,7 +84,7 @@ const creditNoteUserList = [
     identity: { firstname: 'Tata', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
 ];
@@ -258,7 +259,7 @@ const otherCompanyUser = {
   identity: { firstname: 'Renégat', lastname: 'Toto' },
   local: { email: 'other_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 };
 

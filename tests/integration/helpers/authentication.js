@@ -1,42 +1,10 @@
-const { ObjectID } = require('mongodb');
 const memoize = require('lodash/memoize');
 const UtilsHelper = require('../../../src/helpers/utils');
-const { rolesList } = require('../../seed/roleSeed');
-const { userList, userCompaniesList } = require('../../seed/userSeed');
-const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
+const { rolesList } = require('../../seed/authRolesSeed');
+const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
+const { authCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const app = require('../../../server');
 const { VENDOR_ROLES } = require('../../../src/helpers/constants');
-
-const otherCompany = {
-  _id: new ObjectID(),
-  prefixNumber: 102,
-  name: 'Other test SAS',
-  tradeName: 'Othertest',
-  folderId: '0987654321',
-  directDebitsFolderId: '1234567890',
-  customersFolderId: 'mnbvcxz',
-  auxiliariesFolderId: 'iuytre',
-  subscriptions: { erp: true },
-};
-
-const sector = { _id: new ObjectID(), name: 'Test', company: authCompany._id };
-
-const sectorHistories = [
-  {
-    _id: new ObjectID(),
-    auxiliary: userList[2]._id,
-    sector: sector._id,
-    company: authCompany._id,
-    startDate: '2020-12-10T00:00:00',
-  },
-  {
-    _id: new ObjectID(),
-    auxiliary: userList[4]._id,
-    sector: sector._id,
-    company: authCompany._id,
-    startDate: '2018-12-10T00:00:00',
-  },
-];
 
 const getUser = (roleName, erp = true) => {
   const role = rolesList.find(r => r.name === roleName);
@@ -72,13 +40,4 @@ const getToken = async (roleName, erp) => {
   return getTokenByCredentials(user.local);
 };
 
-module.exports = {
-  rolesList,
-  userList,
-  getToken,
-  getTokenByCredentials,
-  authCompany,
-  otherCompany,
-  sector,
-  sectorHistories,
-};
+module.exports = { getToken, getTokenByCredentials };

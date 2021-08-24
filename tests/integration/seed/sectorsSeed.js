@@ -3,11 +3,11 @@ const { v4: uuidv4 } = require('uuid');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const User = require('../../../src/models/User');
-const { authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
 const { WEBAPP } = require('../../../src/helpers/constants');
-const { rolesList } = require('./authenticationSeed');
 const UserCompany = require('../../../src/models/UserCompany');
+const { clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const sectorsList = [
   { _id: new ObjectID(), name: 'Test', company: authCompany._id },
@@ -44,7 +44,7 @@ const userFromOtherCompany = {
   identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test@othercompany.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList[1]._id },
+  role: { client: clientAdminRoleId },
   contracts: [new ObjectID()],
   origin: WEBAPP,
 };

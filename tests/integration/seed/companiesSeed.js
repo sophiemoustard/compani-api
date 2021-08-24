@@ -3,11 +3,11 @@ const { v4: uuidv4 } = require('uuid');
 const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
-const { authCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
-const { rolesList } = require('../../seed/roleSeed');
-const { INTERVENTION, CLIENT_ADMIN, MOBILE } = require('../../../src/helpers/constants');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { INTERVENTION, MOBILE } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
+const { clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const company = {
   _id: new ObjectID(),
@@ -49,7 +49,7 @@ const companyClientAdmin = {
   identity: { firstname: 'client_admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
   local: { email: 'client_admin@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === CLIENT_ADMIN)._id },
+  role: { client: clientAdminRoleId },
   origin: MOBILE,
 };
 
