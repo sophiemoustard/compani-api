@@ -12,7 +12,6 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Sector = require('../../../src/models/Sector');
 const { populateAuthentication } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
-const { authCustomer } = require('../../seed/customerSeed');
 const { rolesList } = require('../../seed/roleSeed');
 const { userList, userCompaniesList } = require('../../seed/userSeed');
 const { NEVER, INTERVENTION, HOURLY, AUXILIARY, WEBAPP } = require('../../../src/helpers/constants');
@@ -34,7 +33,7 @@ const service = {
 };
 
 const customer = {
-  ...authCustomer,
+  _id: new ObjectID(),
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {

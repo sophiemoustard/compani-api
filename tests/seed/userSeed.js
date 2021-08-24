@@ -118,6 +118,17 @@ const userList = [
     origin: MOBILE,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainercoach@alenvi.io', password: '123456!eR' },
+    role: {
+      client: rolesList.find(role => role.name === COACH)._id,
+      vendor: rolesList.find(role => role.name === TRAINER)._id,
+    },
+    origin: WEBAPP,
+  },
 ];
 
 const userCompaniesList = [
@@ -131,6 +142,7 @@ const userCompaniesList = [
   { user: userList[7]._id, company: authCompany._id },
   { user: userList[9]._id, company: companyWithoutSubscription._id },
   { user: userList[10]._id, company: companyWithoutSubscription._id },
+  { user: userList[12]._id, company: authCompany._id },
 ];
 
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');
@@ -142,6 +154,7 @@ const coach = userList.find(u => u.local.email === 'coach@alenvi.io');
 const auxiliaryWithoutCompany = userList.find(u => u.local.email === 'auxiliary-without-company@alenvi.io');
 const clientAdmin = userList.find(u => u.local.email === 'client-admin@alenvi.io');
 const trainerOrganisationManager = userList.find(u => u.local.email === 'training-organisation-manager@alenvi.io');
+const trainerAndCoach = userList.find(u => u.local.email === 'trainercoach@alenvi.io');
 
 module.exports = {
   userList,
@@ -155,4 +168,5 @@ module.exports = {
   auxiliaryWithoutCompany,
   clientAdmin,
   trainerOrganisationManager,
+  trainerAndCoach,
 };

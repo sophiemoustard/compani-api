@@ -20,8 +20,8 @@ const Establishment = require('../../../src/models/Establishment');
 const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCustomer } = require('../../seed/customerSeed');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { rolesList, authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { helper } = require('../../seed/userSeed');
 const {
   PAYMENT,
@@ -306,7 +306,8 @@ const referentList = [
 
 const customerSubscriptionId = new ObjectID();
 const customer = {
-  ...authCustomer,
+  _id: new ObjectID(),
+  company: authCompany._id,
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
@@ -834,27 +835,7 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await Bill.deleteMany();
-  await Contract.deleteMany();
-  await CreditNote.deleteMany();
-  await Customer.deleteMany();
-  await Establishment.deleteMany();
-  await Event.deleteMany();
-  await EventHistory.deleteMany();
-  await FinalPay.deleteMany();
-  await Helper.deleteMany();
-  await InternalHour.deleteMany();
-  await Pay.deleteMany();
-  await Payment.deleteMany();
-  await ReferentHistory.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Service.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Bill.insertMany(billsList);
   await Contract.insertMany(contractList);
@@ -873,7 +854,7 @@ const populateDB = async () => {
   await SectorHistory.insertMany(sectorHistories);
   await Service.insertMany(serviceList);
   await ThirdPartyPayer.create(thirdPartyPayer);
-  await (new User(user)).save();
+  await User.create(user);
   await User.insertMany(auxiliaryList);
   await UserCompany.insertMany(userCompanies);
 };

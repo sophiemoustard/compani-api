@@ -8,9 +8,9 @@ const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
-const FinalPay = require('../../../src/models/FinalPay');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { WEBAPP } = require('../../../src/helpers/constants');
 
 const contractId = new ObjectID();
@@ -144,24 +144,15 @@ const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
 const sectorHistory = { auxiliary: auxiliaryId, sector: sectorId, company: authCompany._id, startDate: '2018-12-10' };
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Service.deleteMany();
-  await Contract.deleteMany();
-  await Event.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await FinalPay.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-  await (new Sector(sector)).save();
+  await Sector.create(sector);
   await SectorHistory.create(sectorHistory);
   await User.create([user, auxiliary, auxiliaryFromOtherCompany]);
-  await (new Customer(customer)).save();
-  await (new Service(service)).save();
-  await (new Event(event)).save();
-  await (new Contract(contract)).save();
+  await Customer.create(customer);
+  await Service.create(service);
+  await Event.create(event);
+  await Contract.create(contract);
   await UserCompany.insertMany(userCompanyList);
 };
 

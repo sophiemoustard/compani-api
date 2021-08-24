@@ -3,7 +3,7 @@ const Program = require('../../../src/models/Program');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const cardsList = [
   { _id: new ObjectID(), template: 'transition', title: 'do mi sol do' },
@@ -41,12 +41,7 @@ const programsList = [
 ];
 
 const populateDB = async () => {
-  await Program.deleteMany({});
-  await Step.deleteMany({});
-  await Activity.deleteMany({});
-  await Card.deleteMany({});
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Program.insertMany(programsList);
   await Step.insertMany(stepsList);

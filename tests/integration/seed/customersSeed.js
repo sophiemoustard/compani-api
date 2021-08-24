@@ -4,7 +4,6 @@ const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
-const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const User = require('../../../src/models/User');
@@ -21,7 +20,8 @@ const {
   WEBAPP,
   DEATH,
 } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
 
 const subId = new ObjectID();
@@ -640,7 +640,7 @@ const otherCompanyCustomer = {
 const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    identity: { firstname: 'HelperForCustomer', lastname: 'TheEtMoselle' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
@@ -648,7 +648,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer2', lastname: 'Test' },
+    identity: { firstname: 'HelperForCustomer2', lastname: 'Rtre' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
@@ -656,7 +656,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer4', lastname: 'Test' },
+    identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
@@ -664,7 +664,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Test' },
+    identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Caragua' },
     local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'helper')._id },
@@ -796,21 +796,7 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await Service.deleteMany();
-  await Customer.deleteMany();
-  await Event.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await QuoteNumber.deleteMany();
-  await User.deleteMany();
-  await ReferentHistory.deleteMany();
-  await Bill.deleteMany();
-  await Payment.deleteMany();
-  await CreditNote.deleteMany();
-  await TaxCertificate.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await ThirdPartyPayer.insertMany(customerThirdPartyPayers);
   await Service.insertMany(customerServiceList);
@@ -819,16 +805,11 @@ const populateDB = async () => {
   await ReferentHistory.insertMany(referentHistories);
   await Helper.insertMany(helpersList);
   await UserCompany.insertMany(userCompanies);
-  for (const user of userList) {
-    await (new User(user).save());
-  }
-  for (const user of referentList) {
-    await (new User(user).save());
-  }
-  await (new Bill(bill).save());
-  await (new Payment(payment).save());
-  await (new CreditNote(creditNote).save());
-  await (new TaxCertificate(taxCertificate).save());
+  await User.create([...userList, ...referentList]);
+  await Bill.create(bill);
+  await Payment.create(payment);
+  await CreditNote.create(creditNote);
+  await TaxCertificate.create(taxCertificate);
 };
 
 module.exports = {

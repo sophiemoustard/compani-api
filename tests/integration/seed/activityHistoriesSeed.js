@@ -5,9 +5,9 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
-const { populateDBForAuthentication } = require('./authenticationSeed');
 const { userList, vendorAdmin } = require('../../seed/userSeed');
 const { STRICTLY_E_LEARNING } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const activityHistoriesUsersList = [userList[6]._id, userList[5]._id];
 
@@ -61,14 +61,7 @@ const activityHistories = [
 ];
 
 const populateDB = async () => {
-  await Activity.deleteMany();
-  await Step.deleteMany();
-  await SubProgram.deleteMany();
-  await Course.deleteMany();
-  await Card.deleteMany();
-  await ActivityHistory.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Activity.insertMany(activitiesList);
   await Step.insertMany(stepsList);

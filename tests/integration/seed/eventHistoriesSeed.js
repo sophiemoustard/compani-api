@@ -16,7 +16,8 @@ const {
   EVENT_CREATION,
   WEBAPP,
 } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const users = [
   {
@@ -178,23 +179,13 @@ const eventHistoryList = [
 ];
 
 const populateDB = async () => {
-  await Customer.deleteMany();
-  await User.deleteMany();
-  await Sector.deleteMany();
-  await EventHistory.deleteMany();
-  await Event.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await EventHistory.insertMany(eventHistoryList);
   await UserCompany.insertMany(userCompanies);
-  for (const u of users) {
-    await (new User(u)).save();
-  }
-  await (new Customer(customer)).save();
-  await Sector.create(sectors);
-  await (new Sector(sectorFromOtherCompany)).save();
+  await User.create(users);
+  await Customer.create(customer);
+  await Sector.create([...sectors, sectorFromOtherCompany]);
   await Event.insertMany(events);
 };
 

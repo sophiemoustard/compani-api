@@ -9,13 +9,13 @@ const { rolesList } = require('../../seed/roleSeed');
 const { otherCompany } = require('../../seed/companySeed');
 const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
 const { vendorAdmin } = require('../../seed/userSeed');
-
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const trainerList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'trainer', lastname: 'withCourse' },
+    identity: { firstname: 'course', lastname: 'Trainer' },
     refreshToken: uuidv4(),
     local: { email: 'trainerWithCourse@alenvi.io', password: '123456!eR' },
     role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
@@ -126,31 +126,31 @@ const attendancesList = [
 const companyTraineesList = [
   {
     _id: coursesList[0].trainees[1],
-    identity: { firstname: 'trainee', lastname: 'withCompany' },
+    identity: { firstname: 'Trainee', lastname: 'withCompany' },
     local: { email: 'traineeWithCompany@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'trainee', lastname: 'withoutCompany' },
+    identity: { firstname: 'Player', lastname: 'withoutCompany' },
     local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[3].trainees[0],
-    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'otherCompany' },
     local: { email: 'traineeFromINTERB2B@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[3].trainees[1],
-    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withAuthCompany' },
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'authCompany' },
     local: { email: 'authTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[4].trainees[0],
-    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
+    identity: { firstname: 'interB2Btrainee', lastname: 'withOtherCompany' },
     local: { email: 'otherTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
     origin: WEBAPP,
   },
@@ -164,23 +164,12 @@ const userCompanyList = [
 ];
 
 const populateDB = async () => {
-  await Attendance.deleteMany();
-  await Course.deleteMany();
-  await CourseSlot.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Attendance.insertMany(attendancesList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slotsList);
-  for (const user of trainerList) {
-    await (new User(user)).save();
-  }
-  for (const user of companyTraineesList) {
-    await (new User(user)).save();
-  }
+  await User.create([...trainerList, ...companyTraineesList]);
   await UserCompany.insertMany(userCompanyList);
 };
 

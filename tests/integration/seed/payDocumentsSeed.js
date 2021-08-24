@@ -3,20 +3,32 @@ const { v4: uuidv4 } = require('uuid');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { populateDBForAuthentication, rolesList, authCompany, getUser } = require('./authenticationSeed');
+const { rolesList, authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { PAYSLIP, CERTIFICATE, OTHER, WEBAPP } = require('../../../src/helpers/constants');
 
-const payDocumentUser = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Bob', lastname: 'Marley' },
-  local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList[1]._id },
-  refreshToken: uuidv4(),
-  origin: WEBAPP,
-};
+const payDocumentUsers = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Bob', lastname: 'Marley' },
+    local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456!eR' },
+    role: { client: rolesList[3]._id },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Bob', lastname: 'Dylan' },
+    local: { email: 'paydocumentawc@alenvi.io', password: '123456!eR' },
+    role: { client: rolesList[4]._id },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
+];
 
 const payDocumentUserCompanies = [
-  { _id: new ObjectID(), user: payDocumentUser._id, company: authCompany._id },
+  { _id: new ObjectID(), user: payDocumentUsers[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: payDocumentUsers[1]._id, company: authCompany._id },
 ];
 
 const otherCompanyId = new ObjectID();
@@ -33,7 +45,7 @@ const userFromOtherCompany = {
 
 const payDocumentsList = [{
   _id: new ObjectID(),
-  user: payDocumentUser._id,
+  user: payDocumentUsers[0]._id,
   company: authCompany._id,
   nature: PAYSLIP,
   date: new Date('2019-01-01'),
@@ -42,7 +54,7 @@ const payDocumentsList = [{
 {
   _id: new ObjectID(),
   company: authCompany._id,
-  user: payDocumentUser._id,
+  user: payDocumentUsers[0]._id,
   nature: CERTIFICATE,
   date: new Date('2019-01-02'),
   file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
@@ -50,7 +62,7 @@ const payDocumentsList = [{
 {
   _id: new ObjectID(),
   company: authCompany._id,
-  user: payDocumentUser._id,
+  user: payDocumentUsers[0]._id,
   nature: OTHER,
   date: new Date('2019-01-03'),
   file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
@@ -58,14 +70,14 @@ const payDocumentsList = [{
 {
   _id: new ObjectID(),
   company: authCompany._id,
-  user: payDocumentUser._id,
+  user: payDocumentUsers[0]._id,
   nature: OTHER,
   date: new Date('2019-01-04'),
 },
 {
   _id: new ObjectID(),
   company: authCompany._id,
-  user: getUser('auxiliary_without_company')._id,
+  user: payDocumentUsers[1]._id,
   nature: OTHER,
   date: new Date('2019-01-04'),
 },
@@ -78,13 +90,9 @@ const payDocumentsList = [{
 }];
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-  await PayDocument.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await User.create([payDocumentUser, userFromOtherCompany]);
+  await User.create([...payDocumentUsers, userFromOtherCompany]);
   await UserCompany.insertMany(payDocumentUserCompanies);
   await PayDocument.insertMany(payDocumentsList);
 };
@@ -92,7 +100,7 @@ const populateDB = async () => {
 module.exports = {
   populateDB,
   payDocumentsList,
-  payDocumentUser,
+  payDocumentUsers,
   payDocumentUserCompanies,
   userFromOtherCompany,
 };

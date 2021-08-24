@@ -1,29 +1,12 @@
 const { ObjectID } = require('mongodb');
-const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
-const UserCompany = require('../../../src/models/UserCompany');
-const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/companySeed');
 const { vendorAdmin, trainer } = require('../../seed/userSeed');
-const { SLOT_CREATION, WEBAPP, TRAINER, COACH } = require('../../../src/helpers/constants');
+const { SLOT_CREATION } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [] }];
-
-const trainerAndCoach = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
-  refreshToken: uuidv4(),
-  local: { email: 'simonDu77@alenvi.io', password: '123456!eR' },
-  role: {
-    client: rolesList.find(role => role.name === COACH)._id,
-    vendor: rolesList.find(role => role.name === TRAINER)._id,
-  },
-  origin: WEBAPP,
-};
-
-const userCompanies = [{ _id: new ObjectID(), user: trainerAndCoach._id, company: authCompany._id }];
 
 const coursesList = [{
   _id: new ObjectID(),
@@ -124,22 +107,14 @@ const courseHistoriesList = [{
 }];
 
 const populateDB = async () => {
-  await Course.deleteMany();
-  await CourseHistory.deleteMany();
-  await UserCompany.deleteMany();
-  await User.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Course.insertMany(coursesList);
   await CourseHistory.insertMany(courseHistoriesList);
-  await UserCompany.insertMany(userCompanies);
-  await new User(trainerAndCoach).save();
 };
 
 module.exports = {
   populateDB,
   coursesList,
   courseHistoriesList,
-  trainerAndCoach,
 };

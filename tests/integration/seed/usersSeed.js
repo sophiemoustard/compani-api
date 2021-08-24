@@ -6,11 +6,12 @@ const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const UserCompany = require('../../../src/models/UserCompany');
+const IdentityVerification = require('../../../src/models/IdentityVerification');
 const Contract = require('../../../src/models/Contract');
 const Establishment = require('../../../src/models/Establishment');
-const { rolesList, populateDBForAuthentication, otherCompany, authCompany } = require('./authenticationSeed');
+const { rolesList, otherCompany, authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { vendorAdmin } = require('../../seed/userSeed');
-const { authCustomer } = require('../../seed/customerSeed');
 const Course = require('../../../src/models/Course');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
@@ -90,18 +91,6 @@ const auxiliaryFromOtherCompany = {
   identity: { firstname: 'Philou', lastname: 'toto' },
   local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  refreshToken: uuidv4(),
-  origin: WEBAPP,
-};
-
-const coachAndTrainer = {
-  _id: new ObjectID(),
-  identity: { firstname: 'bothInterface', lastname: 'Coach Trainer' },
-  local: { email: 'both-interface@alenvi.io', password: '123456!eR' },
-  role: {
-    client: rolesList.find(role => role.name === 'coach')._id,
-    vendor: rolesList.find(role => role.name === 'trainer')._id,
-  },
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };
@@ -204,10 +193,26 @@ const usersSeedList = [
   },
 ];
 
+const customer = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    phone: '0123456789',
+  },
+};
+
 const helpers = [
   {
     _id: new ObjectID(),
-    customer: authCustomer._id,
+    customer: customer._id,
     user: usersSeedList[3]._id,
     company: authCompany._id,
     referent: true,
@@ -224,7 +229,6 @@ const helpers = [
 const userCompanies = [
   { user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
   { user: helperFromOtherCompany._id, company: otherCompany._id },
-  { user: coachAndTrainer._id, company: otherCompany._id },
   { user: coachFromOtherCompany._id, company: otherCompany._id },
   { user: usersSeedList[0]._id, company: authCompany._id },
   { user: usersSeedList[1]._id, company: authCompany._id },
@@ -294,29 +298,22 @@ const followingCourses = [
   },
 ];
 
+const identityVerifications = [
+  { _id: new ObjectID(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
+];
+
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Contract.deleteMany();
-  await Establishment.deleteMany();
-  await Course.deleteMany();
-  await UserCompany.deleteMany();
-  await Helper.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await User.create([
     ...usersSeedList,
     helperFromOtherCompany,
     coachFromOtherCompany,
     auxiliaryFromOtherCompany,
-    coachAndTrainer,
   ]);
-  await Customer.create(customerFromOtherCompany);
-  await Customer.create(authCustomer);
+  await Customer.create(customer, customerFromOtherCompany);
   await Sector.create(userSectors);
   await SectorHistory.create(sectorHistories);
   await Contract.insertMany(contracts);
@@ -324,12 +321,14 @@ const populateDB = async () => {
   await Course.insertMany(followingCourses);
   await UserCompany.insertMany(userCompanies);
   await Helper.insertMany(helpers);
+  await IdentityVerification.insertMany(identityVerifications);
 };
 
 module.exports = {
   usersSeedList,
   populateDB,
   isInList,
+  customer,
   customerFromOtherCompany,
   helperFromOtherCompany,
   userSectors,
@@ -337,7 +336,5 @@ module.exports = {
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
-  authCustomer,
-  coachAndTrainer,
   userCompanies,
 };

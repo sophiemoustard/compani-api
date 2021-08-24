@@ -7,10 +7,10 @@ const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
-const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const Helper = require('../../../src/models/Helper');
 const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
 
 const creditNoteThirdPartyPayer = {
@@ -333,17 +333,8 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await CreditNote.deleteMany();
-  await Event.deleteMany();
-  await Customer.deleteMany();
-  await Service.deleteMany();
-  await CreditNoteNumber.deleteMany();
-  await User.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Event.create([creditNoteEvent, otherCompanyEvent]);
   await Customer.create([creditNoteCustomer, otherCompanyCustomer]);
   await Service.create([creditNoteService, otherCompanyService]);

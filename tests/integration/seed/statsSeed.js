@@ -12,7 +12,8 @@ const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const {
   HOURLY,
   MONTHLY,
@@ -27,21 +28,9 @@ const {
 } = require('../../../src/helpers/constants');
 
 const sectorList = [
-  {
-    _id: new ObjectID(),
-    name: 'Vénus',
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Neptune',
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Mars',
-    company: otherCompany._id,
-  },
+  { _id: new ObjectID(), name: 'Vénus', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Neptune', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Mars', company: otherCompany._id },
 ];
 
 const internalHoursList = [
@@ -55,11 +44,7 @@ const contractList = [{
   user: new ObjectID(),
   company: authCompany._id,
   startDate: '2010-09-03T00:00:00',
-  versions: [{
-    startDate: '2010-09-03T00:00:00',
-    grossHourlyRate: 10.43,
-    weeklyHours: 12,
-  }],
+  versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
 }];
 
 const userList = [
@@ -643,21 +628,9 @@ const populateDBWithEventsForFundingsMonitoring = async () => {
 };
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Service.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Contract.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await ReferentHistory.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  for (const user of userList) {
-    await new User(user).save();
-  }
+  await User.create(userList);
   await Customer.insertMany(customerList.concat(customerFromOtherCompany));
   await Service.insertMany(serviceList);
   await Sector.insertMany(sectorList);

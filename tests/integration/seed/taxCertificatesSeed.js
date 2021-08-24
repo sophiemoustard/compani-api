@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
-const { authCompany, otherCompany, populateDBForAuthentication, rolesList } = require('./authenticationSeed');
+const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -102,14 +103,8 @@ const paymentList = [
 const helpersList = [{ customer: customersList[0]._id, user: helper._id, company: authCompany._id, referent: true }];
 
 const populateDB = async () => {
-  await TaxCertificate.deleteMany();
-  await Customer.deleteMany();
-  await User.deleteMany();
-  await Payment.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Customer.insertMany(customersList);
   await TaxCertificate.insertMany(taxCertificatesList);
   await User.create(helper);

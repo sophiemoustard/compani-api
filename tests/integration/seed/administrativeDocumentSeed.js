@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const AdministrativeDocument = require('../../../src/models/AdministrativeDocument');
-const { authCompany, otherCompany, populateDBForAuthentication } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const administrativeDocumentsList = [
   {
@@ -24,9 +25,7 @@ const administrativeDocumentsList = [
 ];
 
 const populateDB = async () => {
-  await AdministrativeDocument.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await AdministrativeDocument.insertMany(administrativeDocumentsList);
 };

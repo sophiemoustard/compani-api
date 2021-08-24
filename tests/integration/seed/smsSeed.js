@@ -3,11 +3,12 @@ const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { populateDBForAuthentication, rolesList, otherCompany, authCompany } = require('./authenticationSeed');
+const { rolesList, otherCompany, authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 
 const smsUser = {
   _id: new ObjectID(),
-  identity: { firstname: 'emailUser', lastname: 'Test' },
+  identity: { firstname: 'sms', lastname: 'Test' },
   local: { email: 'email_user@alenvi.io', password: '123456!eR' },
   contact: { phone: '0987654321' },
   refreshToken: uuidv4(),
@@ -17,7 +18,7 @@ const smsUser = {
 
 const smsUserFromOtherCompany = {
   _id: new ObjectID(),
-  identity: { firstname: 'emailUser', lastname: 'Test' },
+  identity: { firstname: 'texto', lastname: 'Test' },
   local: { email: 'email_user_other_company@alenvi.io', password: '123456!eR' },
   contact: { phone: '0253647382' },
   refreshToken: uuidv4(),
@@ -31,12 +32,9 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-  await new User(smsUser).save();
-  await new User(smsUserFromOtherCompany).save();
+  await User.create(smsUser, smsUserFromOtherCompany);
   await UserCompany.insertMany(userCompanies);
 };
 

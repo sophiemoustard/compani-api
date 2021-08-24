@@ -157,9 +157,9 @@ describe('POST /contracts', () => {
 
     it('should create new sectorhistory if auxiliary does not have sectorhistory without a startDate', async () => {
       const payload = {
-        startDate: '2019-09-01T00:00:00',
+        startDate: '2020-09-01T00:00:00',
         versions: [{ weeklyHours: 24, grossHourlyRate: 10.43, startDate: '2019-09-01T00:00:00' }],
-        user: contractUsers[2]._id,
+        user: contractUsers[6]._id,
       };
       const response = await app.inject({
         method: 'POST',
@@ -171,10 +171,10 @@ describe('POST /contracts', () => {
       expect(response.statusCode).toBe(200);
 
       const sectorHistories = await SectorHistory
-        .find({ auxiliary: contractUsers[2]._id, company: authCompany._id })
+        .find({ auxiliary: contractUsers[6]._id, company: authCompany._id })
         .lean();
-      expect(sectorHistories.length).toBe(3);
-      expect(sectorHistories[2].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
+      expect(sectorHistories.length).toBe(2);
+      expect(sectorHistories[1].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
     });
 
     it('should not create a contract if user is not from the same company', async () => {
@@ -332,7 +332,7 @@ describe('PUT contract/:id', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[4]._id}`,
+        url: `/contracts/${contractsList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -479,7 +479,7 @@ describe('POST contract/:id/versions', () => {
       const payload = { grossHourlyRate: 10.12, startDate: '2020-10-15T00:00:00', weeklyHours: 24 };
       const response = await app.inject({
         method: 'POST',
-        url: `/contracts/${contractsList[3]._id}/versions`,
+        url: `/contracts/${contractsList[1]._id}/versions`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -549,14 +549,14 @@ describe('PUT contract/:id/versions/:versionId', () => {
       const payload = { grossHourlyRate: 8, startDate: '2020-11-28T00:00:00' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[2]._id}/versions/${contractsList[2].versions[0]._id}`,
+        url: `/contracts/${contractsList[3]._id}/versions/${contractsList[3].versions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
       const contract = await Contract.countDocuments({
-        _id: contractsList[2]._id,
+        _id: contractsList[3]._id,
         startDate: {
           $gte: moment(payload.startDate).startOf('d').toDate(),
           $lte: moment(payload.startDate).endOf('d').toDate(),
@@ -565,7 +565,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
       expect(contract).toEqual(1);
 
       const sectorHistory = await SectorHistory.countDocuments({
-        auxiliary: contractsList[2].user,
+        auxiliary: contractsList[3].user,
         startDate: {
           $gte: moment(payload.startDate).startOf('d').toDate(),
           $lte: moment(payload.startDate).endOf('d').toDate(),
@@ -604,7 +604,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
       const payload = { startDate: '2020-02-01' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[7]._id}/versions/${contractsList[7].versions[0]._id}`,
+        url: `/contracts/${contractsList[4]._id}/versions/${contractsList[4].versions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -628,7 +628,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
       const payload = { startDate: '2020-02-01' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[3]._id}/versions/${contractsList[3].versions[0]._id}`,
+        url: `/contracts/${contractsList[1]._id}/versions/${contractsList[1].versions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -681,7 +681,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
       expect(response.statusCode).toBe(200);
 
       const sectorHistories = await SectorHistory
-        .countDocuments({ company: authCompany._id, auxiliary: contractsList[5].user, startDtae: { $exists: false } });
+        .countDocuments({ company: authCompany._id, auxiliary: contractsList[5].user, startDate: { $exists: false } });
       expect(sectorHistories).toEqual(1);
     });
 

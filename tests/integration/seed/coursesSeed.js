@@ -14,7 +14,8 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const {
   vendorAdmin,
   noRoleNoCompany,
@@ -25,8 +26,9 @@ const {
   trainerOrganisationManager,
   coach,
   trainer,
+  trainerAndCoach,
 } = require('../../seed/userSeed');
-const { COACH, VIDEO, WEBAPP, TRAINER } = require('../../../src/helpers/constants');
+const { VIDEO, WEBAPP } = require('../../../src/helpers/constants');
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
@@ -58,22 +60,9 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
-const trainerAndCoach = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
-  refreshToken: uuidv4(),
-  local: { email: 'simonDu12@alenvi.io', password: '123456!eR' },
-  role: {
-    client: rolesList.find(role => role.name === COACH)._id,
-    vendor: rolesList.find(role => role.name === TRAINER)._id,
-  },
-  origin: WEBAPP,
-};
-
 const userCompanies = [
   { _id: new ObjectID(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectID(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
-  { _id: new ObjectID(), user: trainerAndCoach._id, company: authCompany._id },
 ];
 
 const cardsList = [
@@ -301,28 +290,13 @@ const slots = [
 ];
 
 const populateDB = async () => {
-  await Course.deleteMany();
-  await SubProgram.deleteMany();
-  await Program.deleteMany();
-  await User.deleteMany();
-  await CourseSlot.deleteMany();
-  await CourseSmsHistory.deleteMany();
-  await Step.deleteMany();
-  await Activity.deleteMany();
-  await Card.deleteMany();
-  await ActivityHistory.deleteMany();
-  await UserCompany.deleteMany();
-  await Questionnaire.deleteMany();
-  await QuestionnaireHistory.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await SubProgram.insertMany(subProgramsList);
   await Program.insertMany(programsList);
   await Course.insertMany(coursesList);
   await CourseSlot.insertMany(slots);
   await User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]);
-  await new User(trainerAndCoach).save();
   await CourseSmsHistory.create(courseSmsHistory);
   await Step.create(step);
   await Activity.insertMany(activitiesList);
@@ -346,5 +320,4 @@ module.exports = {
   slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
-  trainerAndCoach,
 };

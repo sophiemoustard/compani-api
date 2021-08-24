@@ -3,7 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { authCompany } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const { rolesList } = require('../../seed/roleSeed');
 const { INTERVENTION, CLIENT_ADMIN, MOBILE } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -55,16 +56,11 @@ const companyClientAdmin = {
 const userCompany = { _id: new ObjectID(), user: companyClientAdmin._id, company: company._id };
 
 const populateDB = async () => {
-  await Company.deleteMany();
-  await Event.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Company.create(company);
   await Event.create(event);
-  await (new User(companyClientAdmin)).save();
+  await User.create(companyClientAdmin);
   await UserCompany.create(userCompany);
 };
 
