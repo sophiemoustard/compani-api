@@ -14,7 +14,7 @@ exports.getPdfContent = async (data) => {
         { text: `Durée : ${date.course.duration}` },
         { text: `Lieu : ${date.address}` },
         { text: `Structure : ${date.course.company}` },
-        { text: `Intervenant : ${date.course.trainer}` },
+        { text: `Intervenant(e) : ${date.course.trainer}` },
       ],
       { image: decision, width: 64 },
     ];
@@ -27,7 +27,7 @@ exports.getPdfContent = async (data) => {
       body.push([]);
       for (let column = 0; column <= date.slots.length; column++) {
         if (row === numberOfRows && column === 0) {
-          body[row].push({ text: 'Signature du formateur', italics: true, margin: [0, 8, 0, 0] });
+          body[row].push({ text: 'Signature de l\'intervenant(e)', italics: true, margin: [0, 8, 0, 0] });
         } else body[row].push({ text: '' });
       }
     }

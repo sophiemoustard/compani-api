@@ -4,13 +4,13 @@ const Contract = require('../../models/Contract');
 const UserCompany = require('../../models/UserCompany');
 const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
-const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
 exports.getContract = async (req) => {
   try {
-    const contract = await Contract.findOne({ _id: req.params._id }).lean();
+    const loggedCompanyId = get(req, 'auth.credentials.company._id');
+    const contract = await Contract.findOne({ _id: req.params._id, company: loggedCompanyId }).lean();
     if (!contract) throw Boom.notFound(translate[language].contractNotFound);
 
     return contract;
@@ -32,11 +32,8 @@ exports.authorizeContractCreation = async (req) => {
 };
 
 exports.authorizeContractUpdate = async (req) => {
-  const { credentials } = req.auth;
   const { contract } = req.pre;
-
-  if (!UtilsHelper.areObjectIdsEquals(credentials.company._id, contract.company)) throw Boom.forbidden();
-  if (!req.path.match(/upload/) && !!contract.endDate) throw Boom.forbidden();
+  if (contract.endDate) throw Boom.forbidden();
 
   return null;
 };

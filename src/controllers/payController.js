@@ -1,18 +1,18 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
-const { getDraftPay } = require('../helpers/draftPay');
+const DraftPayHelper = require('../helpers/draftPay');
 const Absences123PayHelper = require('../helpers/123paie/absences');
 const Contracts123PayHelper = require('../helpers/123paie/contracts');
 const Identification123PayHelper = require('../helpers/123paie/identification');
 const Pay123PayHelper = require('../helpers/123paie/pay');
-const { createPayList, hoursBalanceDetail, getHoursToWorkBySector } = require('../helpers/pay');
+const PayHelper = require('../helpers/pay');
 const { IDENTIFICATION, CONTRACT_VERSION, ABSENCE, CONTRACT_END, PAY } = require('../helpers/constants');
 
 const { language } = translate;
 
 const draftPayList = async (req) => {
   try {
-    const draftPay = await getDraftPay(req.query, req.auth.credentials);
+    const draftPay = await DraftPayHelper.getDraftPay(req.query, req.auth.credentials);
 
     return {
       message: translate[language].draftPay,
@@ -26,7 +26,7 @@ const draftPayList = async (req) => {
 
 const createList = async (req) => {
   try {
-    await createPayList(req.payload, req.auth.credentials);
+    await PayHelper.createPayList(req.payload, req.auth.credentials);
 
     return { message: translate[language].payListCreated };
   } catch (e) {
@@ -38,7 +38,7 @@ const createList = async (req) => {
 const getHoursBalanceDetails = async (req) => {
   try {
     const { query, auth } = req;
-    const detail = await hoursBalanceDetail(query, auth.credentials);
+    const detail = await PayHelper.hoursBalanceDetail(query, auth.credentials);
     return {
       message: translate[language].hoursBalanceDetail,
       data: { hoursBalanceDetail: detail },
@@ -51,7 +51,7 @@ const getHoursBalanceDetails = async (req) => {
 
 const getHoursToWork = async (req) => {
   try {
-    const hoursToWork = await getHoursToWorkBySector(req.query, req.auth.credentials);
+    const hoursToWork = await PayHelper.getHoursToWorkBySector(req.query, req.auth.credentials);
 
     return {
       message: translate[language].hoursToWorkFound,

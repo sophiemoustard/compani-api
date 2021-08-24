@@ -154,10 +154,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:read'] },
         validate: {
-          query: Joi.object().keys({
-            sector: objectIdOrArray.required(),
-            month: monthValidation.required(),
-          }),
+          query: Joi.object().keys({ sector: objectIdOrArray.required(), month: monthValidation.required() }),
         },
         pre: [{ method: authorizeEventGet }],
       },
@@ -274,10 +271,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:read'] },
         validate: {
-          query: Joi.object().keys({
-            sector: objectIdOrArray.required(),
-            month: monthValidation.required(),
-          }),
+          query: Joi.object().keys({ sector: objectIdOrArray.required(), month: monthValidation.required() }),
         },
         pre: [{ method: authorizeEventGet }],
       },

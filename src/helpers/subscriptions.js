@@ -23,7 +23,7 @@ exports.populateService = (service) => {
 };
 
 exports.populateSubscriptionsServices = (customer) => {
-  if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
+  if (!customer.subscriptions) return customer;
 
   return {
     ...customer,

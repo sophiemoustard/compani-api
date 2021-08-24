@@ -10,6 +10,7 @@ const {
 } = require('./seed/activityHistoriesSeed');
 const { getTokenByCredentials, getToken } = require('./seed/authenticationSeed');
 const { noRoleNoCompany } = require('../seed/userSeed');
+const ActivityHistory = require('../../src/models/ActivityHistory');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -33,18 +34,13 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
 
   beforeEach(populateDB);
 
-  it('should return a 401 if user is not connected', async () => {
-    const response = await app.inject({ method: 'POST', url: '/activityhistories', payload });
-
-    expect(response.statusCode).toBe(401);
-  });
-
   describe('Logged user', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
 
     it('should create activityHistory', async () => {
+      const activityHistoriesBefore = await ActivityHistory.countDocuments();
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
@@ -53,6 +49,8 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const activityHistoriesCount = await ActivityHistory.countDocuments();
+      expect(activityHistoriesCount).toEqual(activityHistoriesBefore + 1);
     });
 
     it('should create activityHistory without questionnaireAnswersList', async () => {
@@ -223,10 +221,10 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
 describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
   let authToken = null;
 
-  describe('CLIENT ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should return a list of activity histories', async () => {
@@ -237,6 +235,7 @@ describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.activityHistories.length).toEqual(1);
     });
 
     it('should return 400 as startDate is missing', async () => {
@@ -275,7 +274,6 @@ describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
       { name: 'planning_referent', expectedCode: 403 },
     ];
 

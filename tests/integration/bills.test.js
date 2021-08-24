@@ -1,5 +1,4 @@
 const expect = require('expect');
-const moment = require('moment');
 const qs = require('qs');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
@@ -17,7 +16,6 @@ const {
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
   fundingHistory,
-  billNumbers,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const BillHelper = require('../../src/helpers/bills');
@@ -27,6 +25,7 @@ const BillNumber = require('../../src/models/BillNumber');
 const CreditNote = require('../../src/models/CreditNote');
 const FundingHistory = require('../../src/models/FundingHistory');
 const Event = require('../../src/models/Event');
+const PdfHelper = require('../../src/helpers/pdf');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -38,8 +37,8 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
   let authToken = null;
   beforeEach(populateDB);
   const query = {
-    endDate: moment.utc().endOf('month').toDate(),
-    billingStartDate: moment.utc().startOf('month').toDate(),
+    endDate: new Date('2021-08-31T23:59:59.999Z'),
+    billingStartDate: new Date('2021-08-01T00:00:00.000Z'),
     billingPeriod: TWO_WEEKS,
   };
 
@@ -56,21 +55,9 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.draftBills).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          customer: expect.objectContaining({
-            _id: billCustomerList[0]._id,
-            identity: billCustomerList[0].identity,
-          }),
-          customerBills: expect.objectContaining({
-            bills: expect.any(Array),
-            total: expect.any(Number),
-          }),
-        }),
-      ]));
     });
 
-    it('should not return all draft bills if customer is not from the same company', async () => {
+    it('should return 404 if customer is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/bills/drafts?${qs.stringify(query)}&customer=${customerFromOtherCompany._id}`,
@@ -95,10 +82,10 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -326,8 +313,10 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
       const billCount = await Bill.countDocuments({ company: authCompany._id });
       expect(billCount).toBe(2 + authBillsList.length);
+
       const creditNote = await CreditNote.find({ customer: billCustomerList[0]._id, company: authCompany._id }).lean();
       expect(creditNote[0].isEditable).toBeFalsy();
     });
@@ -356,21 +345,24 @@ describe('BILL ROUTES - POST /bills', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(500);
+      expect(response.statusCode).toEqual(409);
       formatBillNumber.restore();
 
-      const billCountAfter = await Bill.countDocuments({});
+      const billCountAfter = await Bill.countDocuments();
       expect(billCountAfter).toEqual(authBillsList.length + billsList.length);
 
-      const billNumberAfter = await BillNumber.findOne({ prefix: '0519' }).lean();
-      expect(billNumberAfter.seq).toEqual(billNumbers.find(bn => bn.prefix === '0519').seq);
+      const billNumberAfter = await BillNumber.countDocuments({ prefix: '0519', seq: 2 });
+      expect(billNumberAfter).toEqual(1);
 
-      const fundingHistoryAfter = await FundingHistory.findOne({ fundingId: fundingHistory.fundingId }).lean();
-      expect(fundingHistoryAfter.amountTTC).toEqual(fundingHistory.amountTTC);
+      const fundingHistoryAfter = await FundingHistory.countDocuments({
+        fundingId: fundingHistory.fundingId,
+        amountTTC: fundingHistory.amountTTC,
+      });
+      expect(fundingHistoryAfter).toEqual(1);
 
-      const eventInBill = await Event.findOne({ _id: eventList[4]._id }).lean();
-      expect(eventInBill.isBilled).toBeFalsy();
-      expect(eventInBill.bills).toEqual({ surcharges: [] });
+      const eventInBill = await Event
+        .countDocuments({ _id: eventList[4]._id, bills: { surcharges: [] }, isBilled: false });
+      expect(eventInBill).toEqual(1);
     });
 
     it('should create new bill with vat 0 if service is not taxed', async () => {
@@ -443,79 +435,62 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find({ 'subscriptions.vat': 0, company: authCompany._id }).lean();
-      expect(bills.length).toBe(1);
+      const bills = await Bill.countDocuments({ 'subscriptions.vat': 0, company: authCompany._id });
+      expect(bills).toBe(1);
     });
 
     it('should create a new external bill', async () => {
       const fundingId = new ObjectID();
-      const draftBillPayload = [
-        {
-          customer: {
-            _id: billCustomerList[0]._id,
-            identity: billCustomerList[0].identity,
-          },
-          endDate: '2019-05-31T23:59:59.999Z',
-          customerBills: { bills: [], total: 0 },
-          thirdPartyPayerBills: [
-            {
-              bills: [
-                {
-                  _id: new ObjectID(),
-                  subscription: {
-                    _id: billCustomerList[0].subscriptions[0]._id,
-                    service: billServices[0],
-                    versions: [
-                      {
-                        _id: new ObjectID(),
-                        unitTTCRate: 12,
-                        estimatedWeeklyVolume: 12,
-                        evenings: 2,
-                        sundays: 1,
-                        startDate: '2019-04-03T08:33:55.370Z',
-                        createdAt: '2019-05-03T08:33:56.144Z',
-                      },
-                    ],
-                    createdAt: '2019-05-03T08:33:56.144Z',
-                  },
-                  discount: 0,
-                  startDate: '2019-05-01T00:00:00.000Z',
-                  endDate: '2019-05-31T23:59:59.999Z',
-                  unitExclTaxes: 10.714285714285714,
-                  unitInclTaxes: 12,
-                  vat: 12,
-                  exclTaxes: 21.428571428571427,
-                  inclTaxes: 24,
-                  hours: 2,
-                  eventsList: [
-                    {
-                      event: eventList[4]._id,
-                      auxiliary: new ObjectID(),
-                      startDate: '2019-05-02T08:00:00.000Z',
-                      endDate: '2019-05-02T10:00:00.000Z',
-                      inclTaxesTpp: 24,
-                      exclTaxesTpp: 21.428571428571427,
-                      thirdPartyPayer: billThirdPartyPayer._id,
-                      inclTaxesCustomer: 0,
-                      exclTaxesCustomer: 0,
-                      history: {
-                        amountTTC: 24,
-                        fundingId,
-                        nature: 'fixed',
-                      },
-                      fundingId,
-                      nature: 'fixed',
-                    },
-                  ],
-                  externalBilling: true,
-                  thirdPartyPayer: billThirdPartyPayer,
-                },
-              ],
-              total: 24,
+      const draftBillPayload = [{
+        customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
+        endDate: '2019-05-31T23:59:59.999Z',
+        customerBills: { bills: [], total: 0 },
+        thirdPartyPayerBills: [{
+          bills: [{
+            _id: new ObjectID(),
+            subscription: {
+              _id: billCustomerList[0].subscriptions[0]._id,
+              service: billServices[0],
+              versions: [{
+                _id: new ObjectID(),
+                unitTTCRate: 12,
+                estimatedWeeklyVolume: 12,
+                evenings: 2,
+                sundays: 1,
+                startDate: '2019-04-03T08:33:55.370Z',
+                createdAt: '2019-05-03T08:33:56.144Z',
+              }],
+              createdAt: '2019-05-03T08:33:56.144Z',
             },
-          ],
-        },
-      ];
+            discount: 0,
+            startDate: '2019-05-01T00:00:00.000Z',
+            endDate: '2019-05-31T23:59:59.999Z',
+            unitExclTaxes: 10.714285714285714,
+            unitInclTaxes: 12,
+            vat: 12,
+            exclTaxes: 21.428571428571427,
+            inclTaxes: 24,
+            hours: 2,
+            eventsList: [{
+              event: eventList[4]._id,
+              auxiliary: new ObjectID(),
+              startDate: '2019-05-02T08:00:00.000Z',
+              endDate: '2019-05-02T10:00:00.000Z',
+              inclTaxesTpp: 24,
+              exclTaxesTpp: 21.428571428571427,
+              thirdPartyPayer: billThirdPartyPayer._id,
+              inclTaxesCustomer: 0,
+              exclTaxesCustomer: 0,
+              history: { amountTTC: 24, fundingId, nature: 'fixed' },
+              fundingId,
+              nature: 'fixed',
+            }],
+            externalBilling: true,
+            thirdPartyPayer: billThirdPartyPayer,
+          }],
+          total: 24,
+        }],
+      }];
 
       const response = await app.inject({
         method: 'POST',
@@ -525,8 +500,10 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find({ company: authCompany._id }).lean();
+
+      const bills = await Bill.find({ company: authCompany._id }, { number: 1 }).lean();
       expect(bills.some(bill => !bill.number)).toBeTruthy();
+
       const draftBillsLength = draftBillPayload[0].thirdPartyPayerBills[0].bills.length;
       expect(bills.length).toBe(draftBillsLength + authBillsList.length);
     });
@@ -608,17 +585,15 @@ describe('BILL ROUTES - POST /bills', () => {
                 subscription: {
                   _id: billCustomerList[2].subscriptions[0]._id,
                   service: billServices[1],
-                  versions: [
-                    {
-                      _id: new ObjectID(),
-                      unitTTCRate: 12,
-                      estimatedWeeklyVolume: 12,
-                      evenings: 2,
-                      sundays: 1,
-                      startDate: '2019-04-03T08:33:55.370Z',
-                      createdAt: '2019-05-03T08:33:56.144Z',
-                    },
-                  ],
+                  versions: [{
+                    _id: new ObjectID(),
+                    unitTTCRate: 12,
+                    estimatedWeeklyVolume: 12,
+                    evenings: 2,
+                    sundays: 1,
+                    startDate: '2019-04-03T08:33:55.370Z',
+                    createdAt: '2019-05-03T08:33:56.144Z',
+                  }],
                   createdAt: '2019-05-03T08:33:56.144Z',
                 },
               }],
@@ -635,10 +610,10 @@ describe('BILL ROUTES - POST /bills', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403, erp: true },
-      { name: 'auxiliary', expectedCode: 403, erp: true },
-      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
+      { name: 'planning_referent', expectedCode: 403, erp: true },
       { name: 'coach', expectedCode: 403, erp: true },
       { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
@@ -661,9 +636,9 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get bill pdf', async () => {
@@ -688,9 +663,17 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
   });
 
   describe('Other roles', () => {
+    let generatePdf;
+    beforeEach(() => {
+      generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    });
+    afterEach(() => {
+      generatePdf.restore();
+    });
+
     it('should return customer bills pdf if I am its helper', async () => {
-      const helper = billUserList[0];
-      authToken = await getTokenByCredentials(helper.local);
+      generatePdf.returns('pdf');
+      authToken = await getTokenByCredentials(billUserList[0].local);
       const res = await app.inject({
         method: 'GET',
         url: `/bills/${authBillsList[0]._id}/pdfs`,
@@ -701,13 +684,12 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
-
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        generatePdf.returns('pdf');
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',

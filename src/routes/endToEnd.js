@@ -14,9 +14,7 @@ exports.plugin = {
       options: {
         auth: false,
         validate: {
-          params: Joi.object({
-            type: Joi.string().required().valid(PLANNING, AUTHENTICATION, BILLING),
-          }),
+          params: Joi.object({ type: Joi.string().required().valid(PLANNING, AUTHENTICATION, BILLING) }),
         },
         pre: [{ method: authorizeDatabaseSeed }],
       },

@@ -4,15 +4,9 @@ if (process.env.NODE_ENV !== 'test') {
     console: [{
       module: '@hapi/good-squeeze',
       name: 'Squeeze',
-      args: [{
-        log: '*',
-        response: '*',
-        request: '*',
-      }],
+      args: [{ log: '*', response: '*', request: '*' }],
     },
-    {
-      module: '@hapi/good-console',
-    },
+    { module: '@hapi/good-console' },
     'stdout',
     ],
   };

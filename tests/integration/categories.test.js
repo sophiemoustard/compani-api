@@ -18,9 +18,9 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create a category', async () => {
@@ -59,11 +59,8 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
@@ -88,9 +85,9 @@ describe('CATEGORIES ROUTES - GET /categories', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should get all categories', async () => {
@@ -108,11 +105,8 @@ describe('CATEGORIES ROUTES - GET /categories', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
@@ -136,9 +130,9 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should update category name', async () => {
@@ -150,10 +144,10 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
         payload: { name: 'nouveau nom' },
       });
 
-      const categoryUpdated = await Category.findById(categoryId).lean();
-
       expect(response.statusCode).toBe(200);
-      expect(categoryUpdated.name).toEqual('nouveau nom');
+
+      const categoryUpdated = await Category.countDocuments({ _id: categoryId, name: 'nouveau nom' });
+      expect(categoryUpdated).toEqual(1);
     });
 
     it('should return 404 if category does not exist', async () => {
@@ -178,27 +172,12 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
 
       expect(response.statusCode).toBe(409);
     });
-
-    it('should return 400 if payload has no name', async () => {
-      const categoryId = categoriesList[0]._id;
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/categories/${categoryId.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {},
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
   });
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
@@ -224,9 +203,9 @@ describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete category', async () => {
@@ -266,11 +245,8 @@ describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];

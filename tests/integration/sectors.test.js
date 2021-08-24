@@ -1,8 +1,8 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
+const Sector = require('../../src/models/Sector');
 const { populateDB, sectorsList, userFromOtherCompany } = require('./seed/sectorsSeed');
-const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -12,14 +12,16 @@ describe('NODE ENV', () => {
 
 describe('POST /sectors', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should create a new company sector', async () => {
-      const payload = { name: 'Test3' };
+    it('should create a new company sector if name doesn\'t exist in company', async () => {
+      authToken = await getTokenByCredentials(userFromOtherCompany.local);
+      const payload = { name: sectorsList[2].name };
       const response = await app.inject({
         method: 'POST',
         url: '/sectors',
@@ -28,7 +30,7 @@ describe('POST /sectors', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.sector.company).toEqual(authCompany._id);
+      expect(response.result.data.sector.company).toEqual(otherCompany._id);
     });
 
     it('should return a 400 error if \'name\' params is missing', async () => {
@@ -52,27 +54,14 @@ describe('POST /sectors', () => {
 
       expect(response.statusCode).toBe(409);
     });
-
-    it('should create company even if sector name already exists in other company', async () => {
-      authToken = await getTokenByCredentials(userFromOtherCompany.local);
-      const payload = { name: sectorsList[2].name };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/sectors',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -94,10 +83,11 @@ describe('POST /sectors', () => {
 
 describe('GET /sectors', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get sectors', async () => {
@@ -109,7 +99,7 @@ describe('GET /sectors', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.sectors.length).toEqual(3);
-      expect(response.result.data.sectors[0].hasAuxiliaries).toBeTruthy();
+      expect(response.result.data.sectors[0].hasAuxiliaries).toBeDefined();
     });
   });
 
@@ -118,7 +108,7 @@ describe('GET /sectors', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -138,16 +128,18 @@ describe('GET /sectors', () => {
 
 describe('PUT /sectors/:id', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should update a sector', async () => {
-      const sector = sectorsList[0];
+    it('should update a sector if sector name doesn\'t exist in company', async () => {
+      authToken = await getTokenByCredentials(userFromOtherCompany.local);
+      const sector = sectorsList[1];
 
-      const payload = { name: 'SuperTest' };
+      const payload = { name: sectorsList[2].name };
       const response = await app.inject({
         method: 'PUT',
         url: `/sectors/${sector._id.toHexString()}`,
@@ -159,11 +151,11 @@ describe('PUT /sectors/:id', () => {
       expect(response.result.data.updatedSector).toMatchObject(payload);
     });
 
-    it('should return a 404 error if sector does not exist', async () => {
+    it('should return a 404 error if sector does not exist in company', async () => {
       const payload = { name: 'SuperTest' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/sectors/${new ObjectID().toHexString()}`,
+        url: `/sectors/${sectorsList[1]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -183,28 +175,14 @@ describe('PUT /sectors/:id', () => {
 
       expect(response.statusCode).toBe(409);
     });
-
-    it('should update company even if sector name already exists in other company', async () => {
-      const sector = sectorsList[1];
-      authToken = await getTokenByCredentials(userFromOtherCompany.local);
-      const payload = { name: sectorsList[2].name };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/sectors/${sector._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -227,8 +205,9 @@ describe('PUT /sectors/:id', () => {
 
 describe('DELETE /sectors/:id', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -242,6 +221,8 @@ describe('DELETE /sectors/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
+      const sectorsCount = await Sector.countDocuments({ _id: sector._id });
+      expect(sectorsCount).toBe(0);
     });
 
     it('should return 403 if has auxiliaries', async () => {
@@ -255,21 +236,12 @@ describe('DELETE /sectors/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if not in same comapny', async () => {
+    it('should return 404 if not in same company', async () => {
       const sector = sectorsList[1];
 
       const response = await app.inject({
         method: 'DELETE',
         url: `/sectors/${sector._id.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 404 error if sector does not exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/sectors/${new ObjectID().toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(404);
@@ -279,9 +251,9 @@ describe('DELETE /sectors/:id', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

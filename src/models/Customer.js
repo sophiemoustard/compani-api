@@ -96,7 +96,11 @@ const CustomerSchema = mongoose.Schema({
     quoteNumber: String,
     subscriptions: [{
       ...subscriptionSchemaDefinition,
-      serviceName: String,
+      service: {
+        name: { type: String, required: true },
+        nature: { type: String, required: true },
+        surcharge: { evening: Number, sunday: Number },
+      },
     }],
     drive: driveResourceSchemaDefinition,
     createdAt: { type: Date, default: Date.now },

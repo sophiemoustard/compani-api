@@ -10,6 +10,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Role = require('../../src/models/Role');
 const UserCompany = require('../../src/models/UserCompany');
+const Helper = require('../../src/models/Helper');
 const SectorHistory = require('../../src/models/SectorHistory');
 const {
   HELPER,
@@ -853,7 +854,7 @@ describe('GET /users/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(404);
     });
   });
 
@@ -887,6 +888,18 @@ describe('GET /users/:id', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 403 if it is not me - no role no company', async () => {
+      authToken = await getTokenByCredentials(userList[11].local);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/users/${usersSeedList[9]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -906,7 +919,6 @@ describe('GET /users/:id', () => {
 
 describe('PUT /users/:id', () => {
   let authToken;
-  const updatePayload = { identity: { firstname: 'Riri' }, local: { email: 'riri@alenvi.io' } };
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -916,6 +928,7 @@ describe('PUT /users/:id', () => {
 
     it('should update the user', async () => {
       const userId = usersSeedList[0]._id.toHexString();
+      const updatePayload = { identity: { firstname: 'Riri' }, local: { email: 'riri@alenvi.io' } };
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userId}`,
@@ -1021,6 +1034,7 @@ describe('PUT /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(200);
+
       const histories = await SectorHistory.find({ auxiliary: usersSeedList[4]._id, company: authCompany }).lean();
       expect(histories.length).toEqual(1);
       expect(histories[0].sector).toEqual(userSectors[1]._id);
@@ -1028,19 +1042,19 @@ describe('PUT /users/:id', () => {
 
     it('should create sectorHistory if auxiliary does not have one', async () => {
       const role = await Role.find({ name: 'auxiliary' }).lean();
-      const previousHistories = await SectorHistory.find({ auxiliary: usersSeedList[7]._id, company: authCompany })
+      const previousHistories = await SectorHistory.find({ auxiliary: usersSeedList[8]._id, company: authCompany })
         .lean();
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${usersSeedList[7]._id}`,
+        url: `/users/${usersSeedList[8]._id}`,
         payload: { role: role._id, sector: userSectors[1]._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
       expect(previousHistories).toHaveLength(0);
-      const histories = await SectorHistory.find({ auxiliary: usersSeedList[7]._id, company: authCompany }).lean();
+      const histories = await SectorHistory.find({ auxiliary: usersSeedList[8]._id, company: authCompany }).lean();
       expect(histories.length).toEqual(1);
       expect(histories[0].sector).toEqual(userSectors[1]._id);
       expect(histories[0].startDate).toBeUndefined();
@@ -1122,11 +1136,11 @@ describe('PUT /users/:id', () => {
 
     it('should update a user who has no role, with auxiliary role', async () => {
       const roleAuxiliary = await Role.findOne({ name: AUXILIARY }).lean();
-      const userId = usersSeedList[6]._id;
+      const userId = usersSeedList[7]._id;
       const auxiliaryPayload = {
         identity: { title: 'mr', lastname: 'Auxiliary', firstname: 'test' },
         contact: { phone: '0600000001' },
-        local: { email: usersSeedList[6].local.email },
+        local: { email: usersSeedList[7].local.email },
         role: roleAuxiliary._id,
         sector: userSectors[0]._id,
         administrative: { transportInvoice: { transportType: 'public' } },
@@ -1165,7 +1179,7 @@ describe('PUT /users/:id', () => {
       });
 
       expect(response.statusCode).toBe(409);
-      expect(response.result.message).toBe('L\'utilisateur a déjà un role sur cette interface.');
+      expect(response.result.message).toBe('Ce compte a déjà un rôle sur cette interface.');
     });
 
     it('should return a 404 error if no user found', async () => {
@@ -1273,6 +1287,7 @@ describe('PUT /users/:id', () => {
     beforeEach(populateDB);
 
     it('should update user if it is me - no role no company', async () => {
+      const updatePayload = { identity: { firstname: 'Riri' }, local: { email: 'riri@alenvi.io' } };
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
       const response = await app.inject({
@@ -1342,7 +1357,7 @@ describe('PUT /users/:id', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/users/${userList[1]._id.toHexString()}`,
-          payload: updatePayload,
+          payload: { identity: { firstname: 'Riri' } },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -1360,25 +1375,45 @@ describe('DELETE /users/:id', () => {
       authToken = await getToken('coach');
     });
 
-    usersSeedList.forEach((user) => {
-      let message;
-      let statusCode;
-      const helperRoleId = rolesList.find(role => role.name === 'helper')._id;
-      if (get(user, 'role.client') === helperRoleId) {
-        message = 'should delete a helper by id';
-        statusCode = 200;
-      } else {
-        message = 'should return 403 as user is not helper';
-        statusCode = 403;
-      }
+    const usersToDelete = [
+      { clientRole: 'coach', expectedCode: 403 },
+      { clientRole: 'auxiliary', expectedCode: 403 },
+      { clientRole: 'planning_referent', expectedCode: 403 },
+      { clientRole: 'auxiliary_without_company', expectedCode: 403 },
+      { clientRole: '', expectedCode: 403 },
+      { clientRole: 'helper', expectedCode: 200 },
+    ];
+    usersToDelete.forEach((test) => {
+      it(`should return ${test.expectedCode} if deleting ${test.clientRole || 'user without role'}`, async () => {
+        const role = rolesList.find(r => r.name === test.clientRole);
+        const userToDelete = !test.clientRole
+          ? usersSeedList.find(u => !u.role)
+          : usersSeedList.find(u => UtilsHelper.areObjectIdsEquals(role._id, get(u, 'role.client')));
 
-      it(message, async () => {
+        let userCompanyExistBefore;
+        let helperExistBefore;
+        if (get(userToDelete, 'role.client') === rolesList[6]._id) {
+          userCompanyExistBefore = !!await UserCompany.countDocuments({ user: userToDelete._id });
+          helperExistBefore = !!await Helper.countDocuments({ user: userToDelete._id });
+        }
+
         const res = await app.inject({
           method: 'DELETE',
-          url: `/users/${user._id}`,
+          url: `/users/${userToDelete._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
-        expect(res.statusCode).toBe(statusCode);
+
+        expect(res.statusCode).toBe(test.expectedCode);
+
+        if (get(userToDelete, 'role.client') === rolesList[6]._id) {
+          const userCompanyExistAfter = !!await UserCompany.countDocuments({ user: userToDelete._id });
+          const helperExistAfter = !!await Helper.countDocuments({ user: userToDelete._id });
+
+          expect(userCompanyExistBefore).toBeTruthy();
+          expect(helperExistBefore).toBeTruthy();
+          expect(userCompanyExistAfter).toBeFalsy();
+          expect(helperExistAfter).toBeFalsy();
+        }
       });
     });
 
@@ -1388,6 +1423,7 @@ describe('DELETE /users/:id', () => {
         url: `/users/${(new ObjectID()).toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(404);
     });
 
@@ -1397,6 +1433,7 @@ describe('DELETE /users/:id', () => {
         url: `/users/${helperFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(res.statusCode).toBe(403);
     });
   });
@@ -1407,6 +1444,7 @@ describe('DELETE /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
     ];
     roles.forEach((role) => {

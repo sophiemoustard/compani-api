@@ -240,10 +240,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            identity: Joi.object().keys({
-              firstname: Joi.string(),
-              lastname: Joi.string(),
-            }).min(1),
+            identity: Joi.object().keys({ firstname: Joi.string(), lastname: Joi.string() }).min(1),
             local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
             contact: Joi.object().keys({ phone: phoneNumberValidation }),
             company: Joi.objectId(),

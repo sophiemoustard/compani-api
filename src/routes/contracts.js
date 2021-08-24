@@ -67,9 +67,7 @@ exports.plugin = {
                   name: Joi.string().required(),
                   email: Joi.string().required(),
                 })).required(),
-                meta: Joi.object({
-                  auxiliaryDriveId: Joi.string().required(),
-                }),
+                meta: Joi.object({ auxiliaryDriveId: Joi.string().required() }),
                 redirect: Joi.string().uri().required(),
                 redirectDecline: Joi.string().uri().required(),
               }),
@@ -95,10 +93,7 @@ exports.plugin = {
             endNotificationDate: Joi.date().required(),
           }),
         },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractUpdate },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }, { method: authorizeContractUpdate }],
       },
       handler: update,
     });
@@ -109,10 +104,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractUpdate },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }],
       },
       handler: exportDpae,
     });
@@ -137,9 +129,7 @@ exports.plugin = {
                 name: Joi.string().required(),
                 email: Joi.string().required(),
               })).required(),
-              meta: Joi.object({
-                auxiliaryDriveId: Joi.string().required(),
-              }),
+              meta: Joi.object({ auxiliaryDriveId: Joi.string().required() }),
               redirect: Joi.string().uri().required(),
               redirectDecline: Joi.string().uri().required(),
             }),
@@ -156,10 +146,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            versionId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), versionId: Joi.objectId().required() }),
           payload: Joi.object({
             startDate: Joi.date(),
             endDate: Joi.date(),
@@ -173,9 +160,7 @@ exports.plugin = {
                 name: Joi.string().required(),
                 email: Joi.string().required(),
               })).required(),
-              meta: Joi.object({
-                auxiliaryDriveId: Joi.string().required(),
-              }),
+              meta: Joi.object({ auxiliaryDriveId: Joi.string().required() }),
               redirect: Joi.string().uri().required(),
               redirectDecline: Joi.string().uri().required(),
             }),
@@ -192,15 +177,9 @@ exports.plugin = {
       options: {
         auth: { scope: ['contracts:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            versionId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), versionId: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractUpdate },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }, { method: authorizeContractUpdate }],
       },
       handler: removeContractVersion,
     });
@@ -213,10 +192,7 @@ exports.plugin = {
         auth: { scope: ['contracts:edit'] },
         payload: formDataPayload(),
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            driveId: Joi.string().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
           payload: Joi.object({
             fileName: Joi.string().required(),
             contractId: Joi.objectId().required(),
@@ -225,11 +201,7 @@ exports.plugin = {
             type: Joi.string().required().valid('signedContract'),
           }),
         },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeUpload },
-          { method: authorizeContractUpdate },
-        ],
+        pre: [{ method: getContract, assign: 'contract' }, { method: authorizeUpload }],
       },
     });
 

@@ -14,10 +14,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['pay:edit'] },
         validate: {
-          query: Joi.object({
-            endDate: Joi.date(),
-            startDate: Joi.date(),
-          }),
+          query: Joi.object({ endDate: Joi.date(), startDate: Joi.date() }),
         },
       },
       handler: draftFinalPayList,

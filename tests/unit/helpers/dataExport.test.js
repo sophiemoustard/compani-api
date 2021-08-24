@@ -46,8 +46,8 @@ describe('exportCustomers', () => {
       'Date de naissance',
       'Adresse',
       '1ère intervention',
-      'Id Auxiliaire référent',
-      'Auxiliaire référent',
+      'Id Auxiliaire référent(e)',
+      'Auxiliaire référent(e)',
       'Situation',
       'Environnement',
       'Objectifs',
@@ -413,9 +413,9 @@ describe('exportHelpers', () => {
     expect(result[0]).toMatchObject([
       'Email',
       'Téléphone',
-      'Id Aidant',
-      'Aidant - Nom',
-      'Aidant - Prénom',
+      'Id Aidant(e)',
+      'Aidant(e) - Nom',
+      'Aidant(e) - Prénom',
       'Id Bénéficiaire',
       'Bénéficiaire - Titre',
       'Bénéficiaire - Nom',
@@ -1020,7 +1020,7 @@ describe('exportFundings', () => {
       'Montant unitaire TTC',
       'Nombre d\'heures',
       'Jours',
-      'Participation du bénéficiaire',
+      'Participation du/de la bénéficiaire',
     ]);
   });
 

@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
+const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const { populateDBForAuthentication } = require('./authenticationSeed');
 const { userList } = require('../../seed/userSeed');
 
@@ -46,9 +47,10 @@ const coursesList = [
 ];
 
 const populateDB = async () => {
-  await Questionnaire.deleteMany({});
-  await Course.deleteMany({});
-  await Card.deleteMany({});
+  await Questionnaire.deleteMany();
+  await Course.deleteMany();
+  await Card.deleteMany();
+  await QuestionnaireHistory.deleteMany();
 
   await populateDBForAuthentication();
 

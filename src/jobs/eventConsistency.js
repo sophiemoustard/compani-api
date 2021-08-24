@@ -25,7 +25,7 @@ const getIssuesWithEvent = async (event, auxiliary, companyId) => {
 
   if (event.type === INTERVENTION) {
     if (!event.customer || !get(event, 'subscription._id')) {
-      issuesWithEvent.push('Il y a un soucis dans la souscription ou le bénéficiaire de l\'intervention');
+      issuesWithEvent.push('Il y a un soucis dans la souscription ou le/la bénéficiaire de l\'intervention');
     }
   }
 

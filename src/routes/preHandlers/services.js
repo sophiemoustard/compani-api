@@ -5,21 +5,19 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizeServiceEdit = async (service, credentials) => {
-  if (!credentials.company || !credentials.company._id) throw Boom.forbidden();
-  const companyId = credentials.company._id;
+const authorizeServiceEdit = async (req) => {
+  const serviceId = req.params._id;
+  const companyId = req.auth.credentials.company._id;
+  const service = await Service.findOne({ _id: serviceId, company: companyId, isArchived: false }).lean();
 
-  if (service.isArchived) throw Boom.forbidden();
-  if (service.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
-  return null;
+  if (!service) throw Boom.notFound(translate[language].serviceNotFound);
 };
 
 exports.authorizeServicesUpdate = async (req) => {
   try {
-    const service = await Service.findOne({ _id: req.params._id }).lean();
+    await authorizeServiceEdit(req);
 
-    if (!service) throw Boom.notFound(translate[language].serviceNotFound);
-    return exports.authorizeServiceEdit(service, req.auth.credentials);
+    return null;
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -28,13 +26,9 @@ exports.authorizeServicesUpdate = async (req) => {
 
 exports.authorizeServicesDeletion = async (req) => {
   try {
-    const serviceId = req.params._id;
-    const service = await Service.findOne({ _id: serviceId }).lean();
+    await authorizeServiceEdit(req);
 
-    if (!service) throw Boom.notFound(translate[language].serviceNotFound);
-    await exports.authorizeServiceEdit(service, req.auth.credentials);
-
-    const subscriptionsCount = await Customer.countDocuments({ 'subscriptions.service': serviceId });
+    const subscriptionsCount = await Customer.countDocuments({ 'subscriptions.service': req.params._id });
     if (subscriptionsCount) throw Boom.forbidden();
 
     return null;

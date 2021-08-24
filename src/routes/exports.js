@@ -49,10 +49,7 @@ exports.plugin = {
           params: Joi.object({
             type: Joi.string().required().valid(WORKING_EVENT, BILL, PAYMENT, ABSENCE, PAY, CONTRACT),
           }),
-          query: Joi.object({
-            startDate: Joi.date().required(),
-            endDate: Joi.date().required(),
-          }),
+          query: Joi.object({ startDate: Joi.date().required(), endDate: Joi.date().required() }),
         },
         auth: { scope: ['exports:read'] },
       },

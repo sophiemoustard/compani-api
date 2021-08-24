@@ -11,7 +11,7 @@ const {
   list,
   show,
 } = require('../controllers/companyController');
-const { TWO_WEEKS, DOCUMENT_TYPE_LIST } = require('../helpers/constants');
+const { DOCUMENT_TYPE_LIST } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES, TRADE_NAME_REGEX, APE_CODE_REGEX } = require('../models/Company');
 const { authorizeCompanyUpdate, companyExists } = require('./preHandlers/companies');
 const { addressValidation, formDataPayload } = require('./validations/utils');
@@ -32,9 +32,7 @@ exports.plugin = {
             name: Joi.string(),
             tradeName: tradeNameValidation.allow('', null),
             address: addressValidation,
-            subscriptions: Joi.object().keys({
-              erp: Joi.boolean(),
-            }).min(1),
+            subscriptions: Joi.object().keys({ erp: Joi.boolean() }).min(1),
             ics: Joi.string(),
             rcs: Joi.string(),
             rna: Joi.string(),
@@ -51,18 +49,12 @@ exports.plugin = {
               grossHourlyRate: Joi.number(),
               phoneFeeAmount: Joi.number(),
               amountPerKm: Joi.number(),
-              transportSubs: [Joi.array().items({
-                department: Joi.string(),
-                price: Joi.number(),
-              }), Joi.object().keys({
-                subId: Joi.objectId().required(),
-                price: Joi.number(),
-              })],
+              transportSubs: [
+                Joi.array().items({ department: Joi.string(), price: Joi.number() }),
+                Joi.object().keys({ subId: Joi.objectId().required(), price: Joi.number() }),
+              ],
               templates: Joi.object().keys({
-                contract: Joi.object().keys({
-                  driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null),
-                }),
+                contract: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
                 contractVersion: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
@@ -72,18 +64,9 @@ exports.plugin = {
             customersConfig: Joi.object().keys({
               billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS),
               templates: Joi.object().keys({
-                debitMandate: Joi.object().keys({
-                  driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null),
-                }),
-                quote: Joi.object().keys({
-                  driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null),
-                }),
-                gcs: Joi.object().keys({
-                  driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null),
-                }),
+                debitMandate: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
+                quote: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
+                gcs: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
               }),
             }),
           }),
@@ -126,24 +109,11 @@ exports.plugin = {
             name: Joi.string().required(),
             tradeName: tradeNameValidation,
             type: Joi.string().valid(...COMPANY_TYPES).required(),
-            rcs: Joi.string(),
-            rna: Joi.string(),
-            ics: Joi.string(),
-            iban: Joi.string(),
-            bic: Joi.string(),
-            billingAssistance: Joi.string().email(),
-            apeCode: Joi.string().regex(APE_CODE_REGEX),
             rhConfig: Joi.object().keys({
               grossHourlyRate: Joi.number(),
               phoneFeeAmount: Joi.number(),
               amountPerKm: Joi.number(),
-              transportSubs: Joi.array().items({
-                department: Joi.string(),
-                price: Joi.number(),
-              }).min(1),
-            }).min(1),
-            customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS).default(TWO_WEEKS),
+              transportSubs: Joi.array().items({ department: Joi.string(), price: Joi.number() }).min(1),
             }).min(1),
           }),
         },

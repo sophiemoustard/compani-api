@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
 
 describe('GET /roles', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
@@ -25,28 +25,42 @@ describe('GET /roles', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.roles.length).toBe(rolesList.length + authRolesList.length);
-      expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
-        name: expect.any(String),
-      }));
     });
 
-    it('should return a 400 error if query parameter does not exist', async () => {
+    it('should return a specific role', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/roles?toto=test',
+        url: '/roles?name=chef',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.roles.length).toBe(1);
+    });
+
+    it('should return an array of roles', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles?name=chef&name=general',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.roles.length).toBe(2);
+    });
+
+    it('should return 404 if role doesn\'t exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles?name=caporal',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(res.statusCode).toBe(404);
     });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'vendor_admin', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
