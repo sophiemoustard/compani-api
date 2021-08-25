@@ -14,7 +14,7 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Helper = require('../../../src/models/Helper');
 const { FIXED, ONCE, HOURLY, WEBAPP, DEATH } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 

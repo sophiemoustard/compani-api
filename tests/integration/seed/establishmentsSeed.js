@@ -6,7 +6,7 @@ const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { clientAdminRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const establishmentsList = [
   {

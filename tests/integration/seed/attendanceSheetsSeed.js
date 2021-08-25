@@ -5,7 +5,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const { vendorAdmin, coach } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 
 const traineeFromOtherCompany = {

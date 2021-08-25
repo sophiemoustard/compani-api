@@ -15,7 +15,7 @@ const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   vendorAdmin,
   noRoleNoCompany,

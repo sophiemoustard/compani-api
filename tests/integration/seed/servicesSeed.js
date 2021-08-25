@@ -3,7 +3,7 @@ const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
 const { HOURLY, FIXED } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const servicesList = [
   {

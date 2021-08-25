@@ -8,7 +8,7 @@ const Program = require('../../../src/models/Program');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { userList } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { TRANSITION, OPEN_QUESTION } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 

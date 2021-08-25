@@ -14,7 +14,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Helper = require('../../../src/models/Helper');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const app = require('../../../server');
 const {
   EVERY_WEEK,

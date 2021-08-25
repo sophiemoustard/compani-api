@@ -8,7 +8,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 
 const trainerList = [

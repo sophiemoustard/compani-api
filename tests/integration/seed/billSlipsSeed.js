@@ -4,7 +4,7 @@ const BillSlip = require('../../../src/models/BillSlip');
 const CreditNote = require('../../../src/models/CreditNote');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const tppList = [
   { _id: new ObjectID(), name: 'third party payer', company: authCompany._id, isApa: true, billingMode: 'direct' },

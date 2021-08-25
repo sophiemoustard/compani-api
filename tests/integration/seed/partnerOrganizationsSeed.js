@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 
 const partnerOrganizationsList = [

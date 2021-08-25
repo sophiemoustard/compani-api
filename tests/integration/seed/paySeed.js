@@ -11,7 +11,7 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, UNPAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
 const { coachRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 

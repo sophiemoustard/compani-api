@@ -4,7 +4,7 @@ const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { PAYSLIP, CERTIFICATE, OTHER, WEBAPP } = require('../../../src/helpers/constants');
 const { auxiliaryWithoutCompanyRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 

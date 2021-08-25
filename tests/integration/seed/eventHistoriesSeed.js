@@ -17,7 +17,7 @@ const {
   WEBAPP,
 } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const users = [

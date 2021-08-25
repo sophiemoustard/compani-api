@@ -8,7 +8,7 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const cards = [
   { _id: new ObjectID(), template: 'transition', title: 'skusku' },

@@ -10,7 +10,7 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Helper = require('../../../src/models/Helper');
 const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 

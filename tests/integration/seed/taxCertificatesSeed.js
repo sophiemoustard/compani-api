@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');

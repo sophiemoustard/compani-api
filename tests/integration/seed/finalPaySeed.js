@@ -10,7 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 

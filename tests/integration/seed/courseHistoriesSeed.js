@@ -4,7 +4,7 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { vendorAdmin, trainer } = require('../../seed/authUsersSeed');
 const { SLOT_CREATION } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [] }];
 

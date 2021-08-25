@@ -5,7 +5,7 @@ const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { authCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const auxiliary = {
   _id: new ObjectID(),

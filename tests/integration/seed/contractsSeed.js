@@ -10,7 +10,7 @@ const Event = require('../../../src/models/Event');
 const Establishment = require('../../../src/models/Establishment');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { clientAdminRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customer = {

@@ -7,7 +7,7 @@ const Card = require('../../../src/models/Card');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
 const { STRICTLY_E_LEARNING } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const activityHistoriesUsersList = [userList[6]._id, userList[5]._id];
 

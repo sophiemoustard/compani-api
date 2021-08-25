@@ -7,7 +7,7 @@ const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
-const { deleteNonAuthenticationSeeds } = require('../helpers/initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const tester = userList.find(user => user.local.email === 'norole@alenvi.io');
 
