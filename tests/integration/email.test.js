@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const { populateDB, emailUser, emailUserFromOtherCompany, trainerFromOtherCompany } = require('./seed/emailSeed');
-const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { getToken } = require('./helpers/authentication');
 const NodemailerHelper = require('../../src/helpers/nodemailer');
 
 describe('NODE ENV', () => {
@@ -24,119 +24,97 @@ describe('EMAIL ROUTES', () => {
     sendinBlueTransporter.restore();
   });
 
-  it('should send a welcoming email to newly registered helpers of a company (company A)', async () => {
-    const authToken = await getToken('client_admin');
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload,
+  describe('TRAINER', () => {
+    let authToken;
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
     });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.mailInfo).toEqual('emailSent');
-    sinon.assert.calledWithExactly(sendinBlueTransporter);
-  });
-
-  it('should send a welcoming email to newly registered helpers of a company (company B)', async () => {
-    const authToken = await getTokenByCredentials(emailUserFromOtherCompany.local);
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload: { ...payload, email: emailUserFromOtherCompany.local.email },
-    });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.result.data.mailInfo).toEqual('emailSent');
-    sinon.assert.calledWithExactly(sendinBlueTransporter);
-  });
-
-  it('should send a welcoming email from trainer to newly registered trainee ', async () => {
-    const authToken = await getToken('trainer');
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload: { type: 'trainee', email: emailUser.local.email },
-    });
-
-    expect(response.statusCode).toBe(200);
-  });
-
-  it('should not throw an error if trainer is from an other company and user is vendor', async () => {
-    const authToken = await getToken('vendor_admin');
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload: { type: 'trainer', email: trainerFromOtherCompany.local.email },
-    });
-
-    expect(response.statusCode).toBe(200);
-  });
-
-  it('should throw an error if email is from an other company', async () => {
-    const authToken = await getToken('client_admin');
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload: { ...payload, email: emailUserFromOtherCompany.local.email },
-    });
-
-    expect(response.statusCode).toBe(404);
-  });
-
-  it('should throw an error if email does not exist', async () => {
-    const authToken = await getToken('client_admin');
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload: { ...payload, email: 'qwertyuiop@asdfghjkl.fr' },
-    });
-
-    expect(response.statusCode).toBe(404);
-  });
-
-  it('should throw an error if type is not trainer, helper, coach or client_admin', async () => {
-    const authToken = await getToken('client_admin');
-    const response = await app.inject({
-      method: 'POST',
-      url: '/email/send-welcome',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload: { ...payload, type: 'poiuyt' },
-    });
-
-    expect(response.statusCode).toBe(400);
-  });
-
-  it('should not throw an error if type is trainee and vendor user is not from the same company as trainee',
-    async () => {
-      const authToken = await getToken('vendor_admin');
+    it('should send a welcoming email to a trainer from an other company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/email/send-welcome',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { email: emailUserFromOtherCompany.local.email, type: 'trainee' },
+        payload: { type: 'trainer', email: trainerFromOtherCompany.local.email },
       });
 
       expect(response.statusCode).toBe(200);
     });
 
-  const missingParams = ['type', 'email'];
-  missingParams.forEach((param) => {
-    it(`should return a 400 error if ${param} param is missing`, async () => {
+    it('should send a welcoming email to a trainee from an other company',
+      async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/email/send-welcome',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { email: emailUserFromOtherCompany.local.email, type: 'trainee' },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+    it('should throw an error if email does not exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, email: 'qwertyuiop@asdfghjkl.fr' },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should throw an error if type is not trainer, helper, coach, client_admin or trainee', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, type: 'poiuyt' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    const missingParams = ['type', 'email'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 error if ${param} param is missing`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/email/send-welcome',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: omit(payload, [param]),
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+  });
+
+  describe('other roles', () => {
+    it('should send a welcoming email to a newly registered helper in auth company', async () => {
+      const authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.mailInfo).toEqual('emailSent');
+      sinon.assert.calledWithExactly(sendinBlueTransporter);
+    });
+
+    it('should throw an error if sender has client role and receiver is from other company', async () => {
       const authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'POST',
         url: '/email/send-welcome',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: omit(payload, [param]),
+        payload: { ...payload, email: emailUserFromOtherCompany.local.email },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(404);
     });
   });
 });
