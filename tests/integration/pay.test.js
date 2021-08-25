@@ -9,7 +9,7 @@ const {
 } = require('./seed/paySeed');
 const app = require('../../server');
 const Pay = require('../../src/models/Pay');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -18,7 +18,7 @@ describe('NODE ENV', () => {
 });
 
 describe('PAY ROUTES - GET /pay/draft', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -34,7 +34,6 @@ describe('PAY ROUTES - GET /pay/draft', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.draftPay).toBeDefined();
       expect(response.result.data.draftPay.length).toEqual(2);
     });
   });
@@ -42,8 +41,9 @@ describe('PAY ROUTES - GET /pay/draft', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -112,6 +112,8 @@ describe('PAY ROUTES - POST /pay', () => {
     });
 
     it('should create a new pay', async () => {
+      const payListCountBefore = await Pay.countDocuments({});
+
       const response = await app.inject({
         method: 'POST',
         url: '/pay',
@@ -121,16 +123,16 @@ describe('PAY ROUTES - POST /pay', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const payList = await Pay.find({ company: authCompany._id }).lean();
-      expect(payList.length).toEqual(3);
+      const payListCountAfter = await Pay.countDocuments({});
+      expect(payListCountAfter).toEqual(payListCountBefore + 1);
     });
 
-    it('should not create a new pay if user is not from the same company', async () => {
+    it('should return 404 if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/pay',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: [{ ...payload[0], auxiliary: new ObjectID(auxiliaryFromOtherCompany._id) }],
+        payload: [{ ...payload[0], auxiliary: auxiliaryFromOtherCompany._id }],
       });
 
       expect(response.statusCode).toBe(404);
@@ -155,10 +157,10 @@ describe('PAY ROUTES - POST /pay', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403, erp: true },
-      { name: 'auxiliary', expectedCode: 403, erp: true },
-      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
+      { name: 'planning_referent', expectedCode: 403, erp: true },
       { name: 'coach', expectedCode: 403, erp: true },
       { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403, erp: true },
     ];
 
     roles.forEach((role) => {
@@ -178,12 +180,12 @@ describe('PAY ROUTES - POST /pay', () => {
 });
 
 describe('PAY ROUTES - GET /hours-balance-details', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get hours balance details', async () => {
@@ -194,7 +196,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursBalanceDetail).toBeDefined();
+      expect(response.result.data.hoursBalanceDetail.auxiliaryId).toEqual(auxiliaries[0]._id);
     });
 
     it('should get hours balance details for a sector', async () => {
@@ -205,7 +207,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursBalanceDetail).toBeDefined();
+      expect(response.result.data.hoursBalanceDetail.length).toEqual(1);
     });
 
     it('should get hours balance details for many sectors', async () => {
@@ -219,7 +221,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       expect(response.result.data.hoursBalanceDetail.length).toEqual(2);
     });
 
-    it('should not get hours balance details if user is not from the same company as auxiliary', async () => {
+    it('should return a 404 if user is not from the same company as auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2022`,
@@ -229,7 +231,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should not get hours balance details if user is not from the same company as sector', async () => {
+    it('should return a 404 if user is not from the same company as sector', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[2]._id}&month=10-2022`,
@@ -239,7 +241,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should not get hours balance details if there is both sector and auxiliary', async () => {
+    it('should return a 400 if there is both sector and auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-balance-details?sector=${sectors[0]._id}&auxiliary=${auxiliaries[0]._id}&month=10-2022`,
@@ -262,7 +264,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should return a 400 if missing month', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?sector=${sectors[0]._id}`,
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -280,12 +282,49 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     });
   });
 
+  describe('AUXILIARY', () => {
+    beforeEach(async () => {
+      authToken = await getToken('auxiliary');
+    });
+
+    it('should get hours balance details', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2022`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail.auxiliaryId).toEqual(auxiliaries[0]._id);
+    });
+
+    it('should get hours balance details by sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}&month=10-2022`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail.length).toEqual(1);
+    });
+
+    it('should return a 404 if user is not from the same company as auxiliary', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2022`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -304,12 +343,12 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
 });
 
 describe('PAY ROUTES - GET /hours-to-work', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get hours to work by sector', async () => {
@@ -320,7 +359,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursToWork).toBeDefined();
+      expect(response.result.data.hoursToWork.length).toEqual(1);
     });
 
     it('should get relevant hours to work by sector if an auxiliary has changed sector', async () => {
@@ -331,7 +370,6 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursToWork).toBeDefined();
       const oldSectorResult = response.result.data.hoursToWork
         .find(res => res.sector.toHexString() === sectors[0]._id.toHexString());
       const newSectorResult = response.result.data.hoursToWork
@@ -341,7 +379,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       expect(newSectorResult.hoursToWork).toEqual(26);
     });
 
-    it('should not get hours to work if user is not from the same company as sector', async () => {
+    it('should return a 404 if user is not from the same company as sector', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/pay/hours-to-work?sector=${sectorFromOtherCompany._id}&month=12-2021`,
@@ -355,16 +393,6 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/hours-to-work?&month=10-2022',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(400);
-    });
-
-    it('should return a 400 if missing month', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectors[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -385,8 +413,9 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -405,7 +434,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
 });
 
 describe('PAY ROUTES - GET /pays/export/{type}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -421,6 +450,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should export contract versions for pay', async () => {
@@ -431,6 +461,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should export absences for pay', async () => {
@@ -441,6 +472,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should export contract ends for pay', async () => {
@@ -451,6 +483,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should export hours for pay', async () => {
@@ -461,6 +494,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
     });
 
     it('should return 400 if invalid type', async () => {
@@ -493,7 +527,7 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if startDate after endDate', async () => {
+    it('should return 400 if startDate is after endDate', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/pay/export/identification?startDate=2022-12-01T00:00:00&endDate=2022-11-30T23:00:00',
@@ -507,9 +541,9 @@ describe('PAY ROUTES - GET /pays/export/{type}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

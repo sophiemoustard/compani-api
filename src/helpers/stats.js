@@ -5,6 +5,7 @@ const moment = require('../extensions/moment');
 const UtilsHelper = require('./utils');
 const StatRepository = require('../repositories/StatRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
+const CompanyRepository = require('../repositories/CompanyRepository');
 
 const isHoliday = day => moment(day).startOf('d').isHoliday();
 
@@ -24,6 +25,9 @@ const getMonthCareHours = (events, funding) => {
   }
   return monthCareHours;
 };
+
+exports.getCustomerFollowUp = async (customerId, credentials) =>
+  CompanyRepository.getCustomerFollowUp(customerId, credentials);
 
 exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   const fundingsDate = {

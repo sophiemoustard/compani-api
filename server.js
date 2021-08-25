@@ -37,7 +37,7 @@ const init = async () => {
   server.state('alenvi_token', {
     isHttpOnly: true,
     ttl: 24 * 60 * 60 * 1000,
-    isSecure: process.env.NODE_ENV !== 'development',
+    isSecure: !['test', 'development'].includes(process.env.NODE_ENV),
     isSameSite: 'Strict',
     path: '/',
     domain: process.env.TOKEN_DOMAIN,
@@ -46,7 +46,7 @@ const init = async () => {
   server.state('refresh_token', {
     isHttpOnly: true,
     ttl: 365 * 24 * 60 * 60 * 1000,
-    isSecure: process.env.NODE_ENV !== 'development',
+    isSecure: !['test', 'development'].includes(process.env.NODE_ENV),
     isSameSite: 'Strict',
     path: '/',
     domain: process.env.TOKEN_DOMAIN,

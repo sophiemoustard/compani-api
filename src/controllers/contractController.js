@@ -6,7 +6,6 @@ const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
 const ContractHelper = require('../helpers/contracts');
 const Identification123PayHelper = require('../helpers/123paie/identification');
-const ContractRepository = require('../repositories/ContractRepository');
 
 const { language } = translate;
 
@@ -149,7 +148,7 @@ const receiveSignatureEvents = async (req, h) => {
 const getStaffRegister = async (req) => {
   try {
     const { credentials } = req.auth;
-    const staffRegister = await ContractRepository.getStaffRegister(credentials.company._id);
+    const staffRegister = await ContractHelper.getStaffRegister(credentials.company._id);
 
     return {
       message: translate[language].staffRegisteredFound,

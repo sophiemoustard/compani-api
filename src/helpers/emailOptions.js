@@ -76,7 +76,7 @@ const completeEventRepScriptEmailBody = (nb, deletedRepetitions, repIds) => {
   }
 
   for (const repetition of deletedRepetitions) {
-    body = body.concat(`<p>Répétition supprimée : ${repetition._id}, pour le bénéficiaire : ${repetition.customer._id}</p>`);
+    body = body.concat(`<p>Répétition supprimée : ${repetition._id}, pour le/la bénéficiaire : ${repetition.customer._id}</p>`);
   }
 
   return body;

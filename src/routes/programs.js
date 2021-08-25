@@ -85,10 +85,7 @@ exports.plugin = {
             name: Joi.string(),
             description: Joi.string(),
             learningGoals: Joi.string(),
-            image: Joi.object().keys({
-              link: Joi.string().allow(null),
-              publicId: Joi.string().allow(null),
-            }),
+            image: Joi.object().keys({ link: Joi.string().allow(null), publicId: Joi.string().allow(null) }),
           }).min(1),
         },
         auth: { scope: ['programs:edit'] },
@@ -103,9 +100,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({
-            categoryId: Joi.objectId().required(),
-          }),
+          payload: Joi.object({ categoryId: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: checkProgramExists }, { method: checkCategoryExists }],
@@ -147,13 +142,8 @@ exports.plugin = {
       options: {
         payload: formDataPayload(),
         validate: {
-          payload: Joi.object({
-            fileName: Joi.string().required(),
-            file: Joi.any().required(),
-          }),
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          payload: Joi.object({ fileName: Joi.string().required(), file: Joi.any().required() }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: checkProgramExists }],
@@ -166,9 +156,7 @@ exports.plugin = {
       handler: deleteImage,
       options: {
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: getProgramImagePublicId, assign: 'publicId' }],

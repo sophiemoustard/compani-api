@@ -1,10 +1,11 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, partnerOrganizationsList } = require('./seed/partnerOrganizationsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const { authCompany } = require('../seed/companySeed');
 const { areObjectIdsEquals } = require('../../src/helpers/utils');
+const PartnerOrganization = require('../../src/models/PartnerOrganization');
+const Partner = require('../../src/models/Partner');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -22,6 +23,8 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
     });
 
     it('should add a partner organization', async () => {
+      const partnerOrganizationsCountBefore = await PartnerOrganization.countDocuments();
+
       const response = await app.inject({
         method: 'POST',
         url: '/partnerorganizations',
@@ -41,6 +44,8 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const partnerOrganizationsCount = await PartnerOrganization.countDocuments();
+      expect(partnerOrganizationsCount).toEqual(partnerOrganizationsCountBefore + 1);
     });
 
     it('should return 400 if missing name', async () => {
@@ -185,16 +190,7 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 404 if partner organization doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/partnerorganizations/${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
+      expect(response.result.data.partnerOrganization._id).toEqual(partnerOrganizationsList[0]._id);
     });
 
     it('should return 404 if partner organization isn\'t from auth company', async () => {
@@ -248,6 +244,9 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
       });
 
       expect(response.statusCode).toBe(200);
+      const partnerOrganizationUpdated = await PartnerOrganization
+        .countDocuments({ _id: partnerOrganizationsList[0]._id, name: 'skusku' });
+      expect(partnerOrganizationUpdated).toEqual(1);
     });
 
     it('should return 400 if name is not a string', async () => {
@@ -272,7 +271,7 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 400 if address is not a address', async () => {
+    it('should return 400 if address is not an address', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
@@ -292,17 +291,6 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
       });
 
       expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 404 if partner organization doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/partnerorganizations/${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'skusku' },
-      });
-
-      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 404 if partnerOrganization isn\'t from auth company', async () => {
@@ -353,14 +341,16 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
 
 describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partners', () => {
   let authToken;
-  beforeEach(populateDB);
 
   describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
 
     it('should create a partner', async () => {
+      const partnerCountBefore = await Partner.countDocuments();
+
       const response = await app.inject({
         method: 'POST',
         url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
@@ -368,7 +358,9 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, job: 'doctor' },
       });
 
+      const partnerCount = await Partner.countDocuments();
       expect(response.statusCode).toBe(200);
+      expect(partnerCount).toEqual(partnerCountBefore + 1);
     });
 
     it('should return a 400 if missing lastname', async () => {
@@ -426,17 +418,6 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 404 if partnerOrganization doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/partnerorganizations/${new ObjectID()}/partners`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' } },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
     it('should return a 404 if partnerOrganization isn\'t from auth company', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -450,6 +431,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
   });
 
   describe('Other roles', () => {
+    beforeEach(populateDB);
     const roles = [
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },

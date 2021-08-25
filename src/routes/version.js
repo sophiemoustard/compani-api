@@ -13,9 +13,7 @@ exports.plugin = {
       options: {
         auth: false,
         validate: {
-          query: Joi.object({
-            apiVersion: Joi.string(),
-          }).required(),
+          query: Joi.object({ apiVersion: Joi.string() }).required(),
         },
       },
       handler: shouldUpdate,

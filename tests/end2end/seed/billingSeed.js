@@ -1,4 +1,3 @@
-const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
@@ -8,13 +7,14 @@ const Customer = require('../../../src/models/Customer');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Contract = require('../../../src/models/Contract');
 const Event = require('../../../src/models/Event');
+const Helper = require('../../../src/models/Helper');
 const User = require('../../../src/models/User');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const Service = require('../../../src/models/Service');
 const { populateAuthentication } = require('./authenticationSeed');
 const { authCompany, otherCompany } = require('../../seed/companySeed');
 const { authCustomer } = require('../../seed/customerSeed');
-const { userList } = require('../../seed/userSeed');
+const { userList, helper } = require('../../seed/userSeed');
 const { rolesList } = require('../../seed/roleSeed');
 const {
   PAYMENT,
@@ -63,11 +63,7 @@ const thirdPartyPayer = {
 const billAuthcustomer = {
   ...authCustomer,
   email: 'fake@test.com',
-  identity: {
-    title: 'mr',
-    firstname: 'Romain',
-    lastname: 'Bardet',
-  },
+  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
       fullAddress: '12 rue de ponthieu 75008 Paris',
@@ -105,7 +101,6 @@ const billAuthcustomer = {
         endDate: new Date('2020-02-01'),
         effectiveDate: new Date('2019-10-01'),
         amountTTC: 1200,
-        customerParticipationRate: 66,
         careDays: [0, 1, 2, 3, 4, 5, 6],
       },
       {
@@ -113,8 +108,7 @@ const billAuthcustomer = {
         startDate: new Date('2020-02-02'),
         createdAt: new Date('2020-02-02'),
         effectiveDate: new Date('2020-02-02'),
-        amountTTC: 1600,
-        customerParticipationRate: 66,
+        amountTTC: 160,
         careDays: [0, 1, 2, 3, 4, 5],
       }],
     },
@@ -140,7 +134,7 @@ const customerList = [
       bankAccountOwner: 'Thierry Omeyer',
       iban: 'FR3514508000505917721779B43',
       bic: 'BNMDHISOBD',
-      mandates: [{ rum: 'R09876543456765443', _id: new ObjectID(), signedAt: moment().toDate() }],
+      mandates: [{ rum: 'R09876543456765443', _id: new ObjectID(), signedAt: '2021-07-13T00:00:00' }],
     },
     subscriptions: [{
       _id: new ObjectID(),
@@ -244,26 +238,20 @@ const customerList = [
   },
 ];
 
-const customerTaxCertificateList = [
-  {
-    _id: new ObjectID(),
-    company: authCompany._id,
-    customer: billAuthcustomer._id,
-    year: '2019',
-    date: moment().subtract(1, 'y').endOf('y').toDate(),
-  },
-];
-
-const previousYear = moment().subtract(1, 'y').date(3);
-const previousMonth = moment().subtract(1, 'M').date(5);
-const twoMonthBefore = moment().subtract(2, 'M');
+const customerTaxCertificateList = [{
+  _id: new ObjectID(),
+  company: authCompany._id,
+  customer: billAuthcustomer._id,
+  year: '2019',
+  date: '2020-05-31T00:00:00',
+}];
 
 const customerPaymentList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `REG-101${previousYear.format('MMYY')}00101`,
-    date: previousYear.startOf('d').toDate(),
+    number: 'REG-101081900101',
+    date: '2019-08-21T00:00:00',
     customer: billAuthcustomer._id,
     netInclTaxes: 10,
     nature: PAYMENT,
@@ -272,8 +260,8 @@ const customerPaymentList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `REG-101${previousMonth.format('MMYY')}00201`,
-    date: previousMonth.startOf('d').toDate(),
+    number: 'REG-101072000201',
+    date: '2020-07-23T00:00:00',
     customer: billAuthcustomer._id,
     netInclTaxes: 10,
     nature: PAYMENT,
@@ -282,8 +270,8 @@ const customerPaymentList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `REMB-101${previousMonth.format('MMYY')}00201`,
-    date: previousMonth.startOf('d').toDate(),
+    number: 'REMB-101072000201',
+    date: '2020-07-23T00:00:00',
     customer: billAuthcustomer._id,
     netInclTaxes: 5,
     nature: REFUND,
@@ -292,8 +280,8 @@ const customerPaymentList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `REG-101${previousMonth.format('MMYY')}00202`,
-    date: previousMonth.startOf('d').toDate(),
+    number: 'REG-101072000202',
+    date: '2020-07-23T00:00:00',
     customer: billAuthcustomer._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 20,
@@ -303,8 +291,8 @@ const customerPaymentList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `REG-101${previousMonth.format('MMYY')}00205`,
-    date: previousMonth.startOf('d').toDate(),
+    number: 'REG-101072000205',
+    date: '2020-07-23T00:00:00',
     customer: customerList[1]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 22,
@@ -344,15 +332,13 @@ const contracts = [
     startDate: '2018-12-03T23:00:00.000Z',
     _id: billUserList[0].contracts[0],
     company: authCompany._id,
-    versions: [
-      {
-        createdAt: '2018-12-04T16:34:04.144Z',
-        grossHourlyRate: 10.28,
-        startDate: '2018-12-03T23:00:00.000Z',
-        weeklyHours: 9,
-        _id: new ObjectID(),
-      },
-    ],
+    versions: [{
+      createdAt: '2018-12-04T16:34:04.144Z',
+      grossHourlyRate: 10.28,
+      startDate: '2018-12-03T23:00:00.000Z',
+      weeklyHours: 9,
+      _id: new ObjectID(),
+    }],
   },
   {
     createdAt: '2018-12-04T16:34:04.144Z',
@@ -361,15 +347,13 @@ const contracts = [
     startDate: '2018-12-03T23:00:00.000Z',
     _id: billUserList[1].contracts[0],
     company: otherCompany._id,
-    versions: [
-      {
-        createdAt: '2018-12-04T16:34:04.144Z',
-        grossHourlyRate: 10.28,
-        startDate: '2018-12-03T23:00:00.000Z',
-        weeklyHours: 9,
-        _id: new ObjectID(),
-      },
-    ],
+    versions: [{
+      createdAt: '2018-12-04T16:34:04.144Z',
+      grossHourlyRate: 10.28,
+      startDate: '2018-12-03T23:00:00.000Z',
+      weeklyHours: 9,
+      _id: new ObjectID(),
+    }],
   },
 ];
 
@@ -379,8 +363,8 @@ const authBillList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `FACT-101${twoMonthBefore.format('MMYY')}00001`,
-    date: twoMonthBefore.endOf('M').toDate(),
+    number: 'FACT-101062000001',
+    date: '2020-06-30T00:00:00',
     customer: billAuthcustomer._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 20,
@@ -391,17 +375,15 @@ const authBillList = [
         subscription: billAuthcustomer.subscriptions[0]._id,
         service: billService,
         vat: 12,
-        events: [
-          {
-            eventId,
-            fundingId: billAuthcustomer.fundings[0]._id,
-            startDate: twoMonthBefore.set({ hours: 10, minutes: 0 }),
-            endDate: twoMonthBefore.set({ hours: 12, minutes: 30 }),
-            auxiliary: userList[2]._id,
-            inclTaxesTpp: 20,
-            exclTaxesTpp: 17.86,
-          },
-        ],
+        events: [{
+          eventId,
+          fundingId: billAuthcustomer.fundings[0]._id,
+          startDate: '2020-06-24T10:00:00',
+          endDate: '2020-06-24T12:30:00',
+          auxiliary: userList[2]._id,
+          inclTaxesTpp: 20,
+          exclTaxesTpp: 17.86,
+        }],
         hours: 2.5,
         unitInclTaxes: 12,
         exclTaxes: 17.86,
@@ -413,66 +395,58 @@ const authBillList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `FACT-101${previousYear.format('MMYY')}00004`,
-    date: previousYear.endOf('M').toDate(),
+    number: 'FACT-101081900004',
+    date: '2019-08-31T00:00:00',
     customer: billAuthcustomer._id,
     netInclTaxes: 10,
-    subscriptions: [
-      {
-        startDate: new Date('2019-05-29'),
-        endDate: new Date('2019-11-29'),
-        subscription: billAuthcustomer.subscriptions[0]._id,
-        vat: 12,
-        events: [
-          {
-            eventId,
-            startDate: previousYear.set({ hours: 10, minutes: 0 }),
-            endDate: previousYear.set({ hours: 12, minutes: 30 }),
-            auxiliary: userList[2]._id,
-            inclTaxesCustomer: 10,
-            exclTaxesCustomer: 8.93,
-          },
-        ],
-        service: billService,
-        hours: 2.5,
-        unitInclTaxes: 12,
-        exclTaxes: 8.93,
-        inclTaxes: 10,
-        discount: 0,
-      },
-    ],
+    subscriptions: [{
+      startDate: new Date('2019-05-29'),
+      endDate: new Date('2019-11-29'),
+      subscription: billAuthcustomer.subscriptions[0]._id,
+      vat: 12,
+      events: [{
+        eventId,
+        startDate: '2019-08-24T10:00:00',
+        endDate: '2019-08-24T12:30:00',
+        auxiliary: userList[2]._id,
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8.93,
+      }],
+      service: billService,
+      hours: 2.5,
+      unitInclTaxes: 12,
+      exclTaxes: 8.93,
+      inclTaxes: 10,
+      discount: 0,
+    }],
   },
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: `FACT-101${twoMonthBefore.format('MMYY')}00002`,
-    date: twoMonthBefore.endOf('M').toDate(),
+    number: 'FACT-101062000002',
+    date: '2020-06-30T00:00:00',
     customer: billAuthcustomer._id,
     netInclTaxes: 10,
-    subscriptions: [
-      {
-        startDate: new Date('2019-05-29'),
-        endDate: new Date('2019-11-29'),
-        subscription: billAuthcustomer.subscriptions[0]._id,
-        vat: 12,
-        events: [
-          {
-            eventId,
-            startDate: twoMonthBefore.set({ hours: 10, minutes: 0 }),
-            endDate: twoMonthBefore.set({ hours: 12, minutes: 30 }),
-            auxiliary: userList[2]._id,
-            inclTaxesCustomer: 10,
-            exclTaxesCustomer: 8.93,
-          },
-        ],
-        service: billService,
-        hours: 2.5,
-        unitInclTaxes: 12,
-        exclTaxes: 8.93,
-        inclTaxes: 10,
-        discount: 0,
-      },
-    ],
+    subscriptions: [{
+      startDate: new Date('2019-05-29'),
+      endDate: new Date('2019-11-29'),
+      subscription: billAuthcustomer.subscriptions[0]._id,
+      vat: 12,
+      events: [{
+        eventId,
+        startDate: '2020-06-24T10:00:00',
+        endDate: '2020-06-24T12:30:00',
+        auxiliary: userList[2]._id,
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8.93,
+      }],
+      service: billService,
+      hours: 2.5,
+      unitInclTaxes: 12,
+      exclTaxes: 8.93,
+      inclTaxes: 10,
+      discount: 0,
+    }],
   },
 ];
 
@@ -563,17 +537,20 @@ const fundingHistory = {
   company: authCompany._id,
 };
 
+const helperList = [{ user: helper._id, customer: billAuthcustomer._id, company: authCompany._id, referent: false }];
+
 const populateBilling = async () => {
-  await TaxCertificate.deleteMany({});
-  await Payment.deleteMany({});
-  await Bill.deleteMany({});
-  await Customer.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Service.deleteMany({});
-  await Event.deleteMany({});
-  await User.deleteMany({});
-  await FundingHistory.deleteMany({});
-  await Contract.deleteMany({});
+  await TaxCertificate.deleteMany();
+  await Payment.deleteMany();
+  await Bill.deleteMany();
+  await Customer.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Service.deleteMany();
+  await Event.deleteMany();
+  await User.deleteMany();
+  await FundingHistory.deleteMany();
+  await Contract.deleteMany();
+  await Helper.deleteMany();
 
   await populateAuthentication();
 
@@ -587,6 +564,7 @@ const populateBilling = async () => {
   await Contract.create(contracts);
   await Event.insertMany(eventList);
   await FundingHistory.create(fundingHistory);
+  await Helper.create(helperList);
 };
 
 module.exports = { populateBilling };

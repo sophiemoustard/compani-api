@@ -3,16 +3,14 @@ const InternalHour = require('../../models/InternalHour');
 const Event = require('../../models/Event');
 const translate = require('../../helpers/translate');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../../helpers/constants');
-const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
 exports.getInternalHour = async (req) => {
   try {
     const { credentials } = req.auth;
-    const internalHour = await InternalHour.findOne({ _id: req.params._id }).lean();
+    const internalHour = await InternalHour.findOne({ _id: req.params._id, company: credentials.company._id }).lean();
     if (!internalHour) throw Boom.notFound(translate[language].companyInternalHourNotFound);
-    if (!UtilsHelper.areObjectIdsEquals(internalHour.company, credentials.company._id)) return Boom.forbidden();
 
     return internalHour;
   } catch (e) {

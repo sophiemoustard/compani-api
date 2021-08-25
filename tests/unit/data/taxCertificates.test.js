@@ -54,7 +54,7 @@ describe('getPdfContent', () => {
     const tableBody = [
       [
         { text: 'Matricule', bold: true },
-        { text: 'Intervenant', bold: true },
+        { text: 'Intervenant(e)', bold: true },
         { text: 'Mois', bold: true },
         { text: 'Heures', bold: true },
         { text: 'Prestation', bold: true },

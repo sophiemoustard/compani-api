@@ -2,7 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const { getToken, populateDBForAuthentication, authCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 const { smsUser, smsUserFromOtherCompany, populateDB } = require('./seed/smsSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const { COURSE_SMS, HR_SMS } = require('../../src/helpers/constants');
@@ -13,15 +13,13 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('SMS ROUTES', () => {
+describe('POST /sms', () => {
   let authToken;
   let SmsHelperStub;
-  beforeEach(populateDBForAuthentication);
-  beforeEach(populateDB);
-
-  describe('POST /sms', () => {
+  describe('COACH', () => {
+    beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
       SmsHelperStub = sinon.stub(SmsHelper, 'sendFromCompany').returns('SMS SENT !');
     });
     afterEach(() => {
@@ -59,16 +57,14 @@ describe('SMS ROUTES', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
-    it('should throw error if phone does not exist', async () => {
-      const payload = { recipient: '+33676543243', content: 'Ceci est un test', tag: HR_SMS };
+    it('should return a 400 error if tag is invalid', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/sms',
-        payload,
+        payload: { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: 'test' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(400);
       sinon.assert.notCalled(SmsHelperStub);
     });
 
@@ -87,25 +83,26 @@ describe('SMS ROUTES', () => {
       });
     });
 
-    const roles = [
-      { name: 'coach', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'helper', expectedCode: 403 },
-    ];
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'planning_referent', expectedCode: 403 },
+        { name: 'helper', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
+      ];
 
-    roles.forEach((role) => {
-      const payload = { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: COURSE_SMS };
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'POST',
-          url: '/sms',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload,
+      roles.forEach((role) => {
+        const payload = { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: COURSE_SMS };
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: '/sms',
+            headers: { Cookie: `alenvi_token=${authToken}` },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
         });
-
-        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });

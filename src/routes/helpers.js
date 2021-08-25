@@ -26,9 +26,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({
-            referent: Joi.boolean().valid(true),
-          }),
+          payload: Joi.object({ referent: Joi.boolean().valid(true) }),
         },
         auth: { scope: ['helpers:edit'] },
       },

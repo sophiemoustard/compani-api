@@ -5,6 +5,44 @@ const moment = require('../../../src/extensions/moment');
 const StatsHelper = require('../../../src/helpers/stats');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const StatRepository = require('../../../src/repositories/StatRepository');
+const CompanyRepository = require('../../../src/repositories/CompanyRepository');
+
+describe('getCustomerFollowUp', () => {
+  let getCustomerFollowUpStub;
+  beforeEach(() => {
+    getCustomerFollowUpStub = sinon.stub(CompanyRepository, 'getCustomerFollowUp');
+  });
+  afterEach(() => {
+    getCustomerFollowUpStub.restore();
+  });
+
+  it('should get customer follow up ', async () => {
+    const customerId = new ObjectID();
+    const credentials = { company: { _id: new ObjectID() } };
+
+    const customerFollowUp = {
+      followUp: [
+        {
+          _id: new ObjectID(),
+          contracts: [{ _id: new ObjectID() }],
+          inactivityDate: null,
+          identity: { firstname: 'Auxiliary', lastname: 'White' },
+          role: { client: { name: 'auxiliary' } },
+          createdAt: new Date(),
+          lastEvent: { startDate: new Date() },
+          totalHours: 5,
+          sector: { name: 'Neptune' },
+        },
+      ],
+    };
+
+    getCustomerFollowUpStub.returns(customerFollowUp);
+
+    const result = await StatsHelper.getCustomerFollowUp(customerId, credentials);
+    expect(result).toEqual(customerFollowUp);
+    sinon.assert.calledWithExactly(getCustomerFollowUpStub, customerId, credentials);
+  });
+});
 
 describe('getCustomerFundingsMonitoring', () => {
   const fundingsDate = {

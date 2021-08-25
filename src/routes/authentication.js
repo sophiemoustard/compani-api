@@ -42,9 +42,7 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            email: Joi.string().email().required(),
-          }),
+          payload: Joi.object().keys({ email: Joi.string().email().required() }),
         },
         pre: [
           { method: getUser, assign: 'user' },

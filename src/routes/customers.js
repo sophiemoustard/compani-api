@@ -60,9 +60,7 @@ exports.plugin = {
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string().required(),
             }).required(),
-            contact: Joi.object().keys({
-              primaryAddress: addressValidation.required(),
-            }).required(),
+            contact: Joi.object().keys({ primaryAddress: addressValidation.required() }).required(),
           }),
         },
       },
@@ -146,11 +144,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:read'] },
         validate: {
-          query: Joi.object().keys({
-            sector: objectIdOrArray,
-            startDate: Joi.date(),
-            endDate: Joi.date(),
-          }),
+          query: Joi.object().keys({ sector: objectIdOrArray, startDate: Joi.date(), endDate: Joi.date() }),
         },
         pre: [{ method: authorizeCustomerGetBySector }],
       },
@@ -242,10 +236,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            subscriptionId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), subscriptionId: Joi.objectId().required() }),
           payload: Joi.object({
             unitTTCRate: Joi.number().required(),
             estimatedWeeklyVolume: Joi.number().required(),
@@ -264,10 +255,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            subscriptionId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), subscriptionId: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeSubscriptionDeletion }],
       },
@@ -293,10 +281,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            mandateId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), mandateId: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
@@ -309,10 +294,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customer-{params._id}'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            mandateId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), mandateId: Joi.objectId().required() }),
           payload: Joi.object({
             fileId: Joi.string().required(),
             customer: Joi.object().keys({
@@ -351,7 +333,11 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             subscriptions: Joi.array().items(Joi.object().keys({
-              serviceName: Joi.string(),
+              service: Joi.object().keys({
+                name: Joi.string().required(),
+                nature: Joi.string().required(),
+                surcharge: Joi.object().keys({ evening: Joi.number(), sunday: Joi.number() }),
+              }).required(),
               unitTTCRate: Joi.number(),
               estimatedWeeklyVolume: Joi.number(),
               evenings: Joi.number(),
@@ -372,18 +358,12 @@ exports.plugin = {
         auth: { scope: ['customers:administrative:edit', 'customer-{params._id}'] },
         payload: formDataPayload(),
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            driveId: Joi.string().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), driveId: Joi.string().required() }),
           payload: Joi.object({
             fileName: Joi.string().required(),
             file: Joi.any().required(),
             type: Joi.string().valid('signedQuote', 'signedMandate', 'financialCertificates').required(),
-            quoteId: Joi.string().when(
-              'type',
-              { is: 'signedQuote', then: Joi.required(), otherwise: Joi.forbidden() }
-            ),
+            quoteId: Joi.string().when('type', { is: 'signedQuote', then: Joi.required(), otherwise: Joi.forbidden() }),
             mandateId: Joi.string().when(
               'type',
               { is: 'signedMandate', then: Joi.required(), otherwise: Joi.forbidden() }
@@ -401,9 +381,7 @@ exports.plugin = {
         auth: { scope: ['customers:administrative:edit', 'customer-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            driveId: Joi.string().required(),
-          }),
+          payload: Joi.object().keys({ driveId: Joi.string().required() }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
@@ -416,10 +394,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customer-{params._id}'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            mandateId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), mandateId: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
@@ -482,10 +457,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            fundingId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), fundingId: Joi.objectId().required() }),
           payload: Joi.object().keys({
             subscription: Joi.objectId().required(),
             ...fundingValidation,
@@ -503,10 +475,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:administrative:edit'] },
         validate: {
-          params: Joi.object({
-            _id: Joi.objectId().required(),
-            fundingId: Joi.objectId().required(),
-          }),
+          params: Joi.object({ _id: Joi.objectId().required(), fundingId: Joi.objectId().required() }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },

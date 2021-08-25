@@ -33,6 +33,8 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments();
+      expect(questionnairesCount).toBe(3);
     });
 
     it('should return 400 if no name', async () => {
@@ -157,16 +159,6 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
       expect(response.result.data.questionnaire._id).toEqual(questionnairesList[0]._id);
     });
 
-    it('should return 400 if invalid _id', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/questionnaires/blabla',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
     it('should return 404 if questionnaire does not exist', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -236,22 +228,13 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.questionnaires.length).toBe(1);
     });
 
     it('should return 400 if query is empty', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/questionnaires/user',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if query has invalid type', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/questionnaires/user?course=skusku',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -290,30 +273,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 400 if questionnaire has invalid type', async () => {
-      const courseId = coursesList[0]._id;
-
-      const response = await app.inject({
-        method: 'GET',
-        url: `/questionnaires/test/follow-up?course=${courseId.toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if course has invalid type', async () => {
-      const questionnaireId = questionnairesList[0]._id;
-
-      const response = await app.inject({
-        method: 'GET',
-        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=test`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
+      expect(response.result.data.followUp.followUp.length).toBe(1);
     });
 
     it('should return 404 if questionnaire doesn\'t exist', async () => {
@@ -383,7 +343,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -412,6 +372,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.followUp.followUp.length).toBe(1);
     });
   });
 });
@@ -435,6 +396,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments({ _id: questionnairesList[0]._id, ...payload });
+      expect(questionnairesCount).toBe(1);
     });
 
     it('should update questionnaire name even if questionnaire is published', async () => {
@@ -447,6 +410,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments({ _id: questionnairesList[1]._id, ...payload });
+      expect(questionnairesCount).toBe(1);
     });
 
     it('should update cards order', async () => {
@@ -459,6 +424,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments({ _id: questionnairesList[0]._id, ...payload });
+      expect(questionnairesCount).toBe(1);
     });
 
     it('should update questionnaire status', async () => {
@@ -473,6 +440,8 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const questionnairesCount = await Questionnaire.countDocuments({ _id: questionnairesList[0]._id, ...payload });
+      expect(questionnairesCount).toBe(1);
     });
 
     it('should return 400 if questionnaire status is not PUBLISHED', async () => {
@@ -515,18 +484,6 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
 
     it('should return 400 if name is empty', async () => {
       const payload = { name: '' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/questionnaires/${questionnairesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if try to update another field', async () => {
-      const payload = { type: 'new_type' };
       const response = await app.inject({
         method: 'PUT',
         url: `/questionnaires/${questionnairesList[0]._id}`,
@@ -607,9 +564,9 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
   beforeEach(populateDB);
   const payload = { template: SURVEY };
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create card', async () => {
@@ -678,7 +635,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -704,9 +661,9 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
   const draftQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'draft');
   const publishedQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'published');
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete questionnaire card', async () => {
@@ -751,7 +708,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 

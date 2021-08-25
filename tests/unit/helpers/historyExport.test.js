@@ -340,7 +340,7 @@ describe('exportWorkingEventsHistory', () => {
         'Oui', 'Non', '', ''],
       ['Heure interne', 'Formation', '', '20/05/2019 10:00:00', '', '', '', '20/05/2019 12:00:00', '', '', '',
         '2,00', '', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'M.', 'HORSEMAN', 'Bojack', 'brbr',
-        'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant'],
+        'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant(e)'],
     ]);
   });
 });
