@@ -24,34 +24,22 @@ describe('EMAIL ROUTES', () => {
     sendinBlueTransporter.restore();
   });
 
-  describe('TRAINER', () => {
+  describe('VENDOR_ADMIN', () => {
     let authToken;
     beforeEach(async () => {
-      authToken = await getToken('trainer');
+      authToken = await getToken('vendor_admin');
     });
 
-    it('should send a welcoming email to a trainer from an other company', async () => {
+    it('should send a welcoming email to a client_admin from an other company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/email/send-welcome',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { type: 'trainer', email: trainerFromOtherCompany.local.email },
+        payload: { type: 'client_admin', email: emailUserFromOtherCompany.local.email },
       });
 
       expect(response.statusCode).toBe(200);
     });
-
-    it('should send a welcoming email to a trainee from an other company',
-      async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/email/send-welcome',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { email: emailUserFromOtherCompany.local.email, type: 'trainee' },
-        });
-
-        expect(response.statusCode).toBe(200);
-      });
 
     it('should throw an error if email does not exist', async () => {
       const response = await app.inject({
@@ -91,6 +79,30 @@ describe('EMAIL ROUTES', () => {
   });
 
   describe('other roles', () => {
+    it('should send a welcoming email to a trainer from an other company', async () => {
+      const authToken = await getToken('training_organisation_manager');
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { email: trainerFromOtherCompany.local.email, type: 'trainer' },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should send a welcoming email to a trainee from an other company', async () => {
+      const authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { email: emailUserFromOtherCompany.local.email, type: 'trainee' },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should send a welcoming email to a newly registered helper in auth company', async () => {
       const authToken = await getToken('coach');
       const response = await app.inject({
