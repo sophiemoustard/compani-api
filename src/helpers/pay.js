@@ -165,13 +165,13 @@ exports.getHoursToWorkBySector = async (query, credentials) => {
   const hoursToWorkBySector = [];
   const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
 
-  const contractsAndEventsBySector = await SectorHistoryRepository.getContractsAndAbsencesBySector(
+  const contractsAndAbsencesBySector = await SectorHistoryRepository.getContractsAndAbsencesBySector(
     query.month,
     sectors,
     get(credentials, 'company._id', null)
   );
 
-  for (const sector of contractsAndEventsBySector) {
+  for (const sector of contractsAndAbsencesBySector) {
     hoursToWorkBySector.push({
       sector: sector._id,
       hoursToWork: exports.computeHoursToWork(query.month, sector.contracts),
