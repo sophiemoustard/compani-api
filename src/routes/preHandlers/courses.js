@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
 const UserCompany = require('../../models/UserCompany');
+const Company = require('../../models/Company');
 const {
   TRAINER,
   INTRA,
@@ -255,6 +256,9 @@ exports.authorizeAccessRuleAddition = async (req) => {
 
   const accessRuleAlreadyExist = UtilsHelper.doesArrayIncludeId(course.accessRules, req.payload.company);
   if (accessRuleAlreadyExist) throw Boom.conflict();
+
+  const companyExists = await Company.countDocuments({ _id: req.payload.company });
+  if (!companyExists) throw Boom.badRequest();
 
   return null;
 };
