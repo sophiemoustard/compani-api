@@ -7,11 +7,12 @@ const { WEBAPP } = require('../../../src/helpers/constants');
 const { vendorAdmin, coach } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
+const User = require('../../../src/models/User');
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
-  local: { email: 'traineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+  local: { email: 'traineeFromINTERB2B@alenvi.io' },
   origin: WEBAPP,
 };
 
@@ -78,10 +79,13 @@ const slotsList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await AttendanceSheet.insertMany(attendanceSheetsList);
-  await Course.insertMany(coursesList);
-  await CourseSlot.insertMany(slotsList);
-  await UserCompany.create(userCompany);
+  await Promise.all([
+    AttendanceSheet.create(attendanceSheetsList),
+    Course.create(coursesList),
+    CourseSlot.create(slotsList),
+    UserCompany.create(userCompany),
+    User.create(traineeFromOtherCompany),
+  ]);
 };
 
 module.exports = {

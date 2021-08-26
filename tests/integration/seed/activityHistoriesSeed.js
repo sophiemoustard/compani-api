@@ -21,10 +21,12 @@ const cardsList = [
 ];
 
 const activitiesList = [
-  { _id: new ObjectID(),
+  {
+    _id: new ObjectID(),
     name: 'bouger',
     type: 'lesson',
-    cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id, cardsList[4]._id, cardsList[5]._id] },
+    cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id, cardsList[4]._id, cardsList[5]._id],
+  },
 ];
 
 const stepsList = [{
@@ -34,9 +36,7 @@ const stepsList = [{
   activities: [activitiesList[0]._id],
 }];
 
-const subProgramsList = [
-  { _id: new ObjectID(), name: 'sous-programme A', steps: [stepsList[0]._id] },
-];
+const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [stepsList[0]._id] }];
 
 const coursesList = [
   {
@@ -63,12 +63,14 @@ const activityHistories = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Activity.insertMany(activitiesList);
-  await Step.insertMany(stepsList);
-  await SubProgram.insertMany(subProgramsList);
-  await Course.insertMany(coursesList);
-  await Card.insertMany(cardsList);
-  await ActivityHistory.insertMany(activityHistories);
+  await Promise.all([
+    Activity.create(activitiesList),
+    ActivityHistory.create(activityHistories),
+    Card.create(cardsList),
+    Course.create(coursesList),
+    Step.create(stepsList),
+    SubProgram.create(subProgramsList),
+  ]);
 };
 
 module.exports = {

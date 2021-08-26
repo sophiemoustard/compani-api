@@ -2,12 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const {
-  populateDB,
-  activitiesList,
-  activityHistoriesUsersList,
-  cardsList,
-} = require('./seed/activityHistoriesSeed');
+const { populateDB, activitiesList, activityHistoriesUsersList, cardsList } = require('./seed/activityHistoriesSeed');
 const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const ActivityHistory = require('../../src/models/ActivityHistory');

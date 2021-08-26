@@ -77,12 +77,14 @@ const activityHistoriesList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Program.insertMany(programsList);
-  await SubProgram.insertMany(subProgramsList);
-  await Step.insertMany(stepsList);
-  await Activity.insertMany(activitiesList);
-  await Card.insertMany(cardsList);
-  await ActivityHistory.insertMany(activityHistoriesList);
+  await Promise.all([
+    Activity.create(activitiesList),
+    ActivityHistory.create(activityHistoriesList),
+    Card.create(cardsList),
+    Program.create(programsList),
+    Step.create(stepsList),
+    SubProgram.create(subProgramsList),
+  ]);
 };
 
 module.exports = {

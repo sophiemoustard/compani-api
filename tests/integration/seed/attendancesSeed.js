@@ -126,31 +126,31 @@ const companyTraineesList = [
   {
     _id: coursesList[0].trainees[1],
     identity: { firstname: 'Trainee', lastname: 'withCompany' },
-    local: { email: 'traineeWithCompany@alenvi.io', password: '123456!eR' },
+    local: { email: 'traineeWithCompany@alenvi.io' },
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Player', lastname: 'withoutCompany' },
-    local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
+    local: { email: 'traineeWithoutCompany@alenvi.io' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[3].trainees[0],
     identity: { firstname: 'traineeFromINTERB2B', lastname: 'otherCompany' },
-    local: { email: 'traineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    local: { email: 'traineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[3].trainees[1],
     identity: { firstname: 'traineeFromINTERB2B', lastname: 'authCompany' },
-    local: { email: 'authTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    local: { email: 'authTraineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[4].trainees[0],
     identity: { firstname: 'interB2Btrainee', lastname: 'withOtherCompany' },
-    local: { email: 'otherTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    local: { email: 'otherTraineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
 ];
@@ -165,11 +165,13 @@ const userCompanyList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Attendance.insertMany(attendancesList);
-  await Course.insertMany(coursesList);
-  await CourseSlot.insertMany(slotsList);
-  await User.create([...trainerList, ...companyTraineesList]);
-  await UserCompany.insertMany(userCompanyList);
+  await Promise.all([
+    Attendance.create(attendancesList),
+    Course.create(coursesList),
+    CourseSlot.create(slotsList),
+    User.create([...trainerList, ...companyTraineesList]),
+    UserCompany.create(userCompanyList),
+  ]);
 };
 
 module.exports = {
