@@ -24,10 +24,10 @@ describe('POST emails/send-welcome', () => {
     sendinBlueTransporter.restore();
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINER', () => {
     let authToken;
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('trainer');
     });
 
     const receivers = [
