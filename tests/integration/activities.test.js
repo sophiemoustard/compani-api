@@ -4,8 +4,8 @@ const app = require('../../server');
 const Activity = require('../../src/models/Activity');
 const Card = require('../../src/models/Card');
 const { populateDB, activitiesList, cardsList } = require('./seed/activitiesSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
-const { noRoleNoCompany } = require('../seed/userSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {

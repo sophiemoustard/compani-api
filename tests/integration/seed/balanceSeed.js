@@ -8,9 +8,10 @@ const Bill = require('../../../src/models/Bill');
 const Helper = require('../../../src/models/Helper');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
 const UserCompany = require('../../../src/models/UserCompany');
+const { helperRoleId } = require('../../seed/authRolesSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
@@ -201,7 +202,7 @@ const balanceUserList = [{
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_balance@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   origin: WEBAPP,
 }];
 

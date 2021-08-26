@@ -12,9 +12,9 @@ const User = require('../../../src/models/User');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const Service = require('../../../src/models/Service');
 const { populateAuthentication } = require('./authenticationSeed');
-const { authCompany, otherCompany } = require('../../seed/companySeed');
-const { userList, helper } = require('../../seed/userSeed');
-const { rolesList } = require('../../seed/roleSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { userList, helper } = require('../../seed/authUsersSeed');
+const { rolesList } = require('../../seed/authRolesSeed');
 const {
   PAYMENT,
   REFUND,

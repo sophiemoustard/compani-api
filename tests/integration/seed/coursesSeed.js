@@ -14,8 +14,8 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   vendorAdmin,
   noRoleNoCompany,
@@ -27,14 +27,15 @@ const {
   coach,
   trainer,
   trainerAndCoach,
-} = require('../../seed/userSeed');
+} = require('../../seed/authUsersSeed');
 const { VIDEO, WEBAPP } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Fred', lastname: 'Astaire' },
   local: { email: 'traineeOtherCompany@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
   origin: WEBAPP,
@@ -44,7 +45,7 @@ const traineeFromAuthCompanyWithFormationExpoToken = {
   _id: new ObjectID(),
   identity: { firstname: 'Trainee', lastname: 'WithExpoToken' },
   local: { email: 'traineeWithExpoToken@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
   origin: WEBAPP,
@@ -55,7 +56,7 @@ const traineeWithoutCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Salut', lastname: 'Toi' },
   local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
-  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  role: { vendor: trainerRoleId },
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };

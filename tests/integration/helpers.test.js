@@ -2,7 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const { populateDB, customer, customerFromOtherCompany, helpersList } = require('./seed/helpersSeed');
 const app = require('../../server');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

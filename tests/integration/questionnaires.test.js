@@ -5,8 +5,8 @@ const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
 const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
-const { noRoleNoCompany } = require('../seed/userSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { SURVEY, PUBLISHED, DRAFT } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {

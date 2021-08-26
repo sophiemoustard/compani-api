@@ -9,9 +9,9 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Event = require('../../../src/models/Event');
 const Establishment = require('../../../src/models/Establishment');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList } = require('./authenticationSeed');
-const { authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { clientAdminRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customer = {
   _id: new ObjectID(),
@@ -47,7 +47,7 @@ const otherContractUser = {
   identity: { firstname: 'OCCU', lastname: 'OCCU' },
   local: { email: 'other-company-contract-user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList[0]._id },
+  role: { client: clientAdminRoleId },
   contracts: [new ObjectID()],
   prefixNumber: 103,
   origin: WEBAPP,
@@ -87,7 +87,7 @@ const contractUsers = [
     },
     local: { email: 'test7@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     contact: {
       address: {
@@ -114,7 +114,7 @@ const contractUsers = [
     establishment: new ObjectID(),
     local: { email: 'tototest@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     contact: {
       address: {
@@ -141,7 +141,7 @@ const contractUsers = [
     establishment: new ObjectID(),
     local: { email: 'ok@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contact: {
       address: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -159,7 +159,7 @@ const contractUsers = [
     identity: { firstname: 'contract', lastname: 'Titi' },
     local: { email: 'contract@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     sector: sector._id,
     origin: WEBAPP,
@@ -169,7 +169,7 @@ const contractUsers = [
     identity: { firstname: 'contract', lastname: 'Uelle' },
     local: { email: 'dfghjkscs@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     sector: sector._id,
     origin: WEBAPP,
@@ -179,7 +179,7 @@ const contractUsers = [
     identity: { firstname: 'contract', lastname: 'ant' },
     local: { email: 'iuytr@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     sector: sector._id,
     origin: WEBAPP,
@@ -206,7 +206,7 @@ const contractUsers = [
     },
     local: { email: 'dfghjk@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
     sector: sector._id,
     origin: WEBAPP,
@@ -273,7 +273,7 @@ const userFromOtherCompany = {
   identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test@othercompany.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList[0]._id },
+  role: { client: clientAdminRoleId },
   contracts: [new ObjectID()],
   origin: WEBAPP,
 };

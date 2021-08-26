@@ -14,7 +14,7 @@ const {
   categoriesList,
   vendorAdmin,
 } = require('./seed/programsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {

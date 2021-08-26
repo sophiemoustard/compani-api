@@ -20,7 +20,8 @@ const {
   thirdPartyPayerFromOtherCompany,
   eventFromOtherCompany,
 } = require('./seed/eventsSeed');
-const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const { creditNotesList } = require('./seed/creditNotesSeed');
 const app = require('../../server');
 const {

@@ -13,12 +13,11 @@ const {
   RUP,
   REFERENT,
 } = require('../../src/helpers/constants');
-const { getToken, userList } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const {
   paymentsList,
   populateDB,
   customersList,
-  customer,
   user,
   billsList,
   creditNotesList,
@@ -26,8 +25,9 @@ const {
   establishment,
   thirdPartyPayer,
 } = require('./seed/exportsSeed');
-const { helper } = require('../seed/userSeed');
+const { helper, userList } = require('../seed/authUsersSeed');
 const { formatPrice } = require('../../src/helpers/utils');
+const { authCustomer } = require('../seed/authCustomers');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -54,9 +54,9 @@ describe('GET /exports/working_event/history', () => {
       const rows = response.result.split('\r\n');
       expect(rows).toEqual([
         '\ufeff"Type";"Heure interne";"Service";"Début planifié";"Début horodaté";"Type d\'horodatage";"Motif";"Fin planifiée";"Fin horodatée";"Type d\'horodatage";"Motif";"Durée";"Répétition";"Équipe";"Id Auxiliaire";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"',
-        `"Intervention";;"Service 1";"17/01/2019 15:30:19";"17/01/2019 15:35:19";"Manuel";"QR Code manquant";"17/01/2019 17:30:19";"17/01/2019 17:35:19";"QR Code";;"2,00";"Tous les jours";"Etoile";;;;;"Oui";${customer._id.toHexString()};"M.";"BARDET";"Romain";;"Non";"Non";;`,
+        `"Intervention";;"Service 1";"17/01/2019 15:30:19";"17/01/2019 15:35:19";"Manuel";"QR Code manquant";"17/01/2019 17:30:19";"17/01/2019 17:35:19";"QR Code";;"2,00";"Tous les jours";"Etoile";;;;;"Oui";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";;"Non";"Non";;`,
         `"Heure interne";"planning";;"17/01/2019 15:30:19";;;;"17/01/2019 17:30:19";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";;;;;;"Non";"Non";;`,
-        `"Intervention";;"Service 1";"16/01/2019 10:30:19";;;;"16/01/2019 12:30:21";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";${customer._id.toHexString()};"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative de l'intervenant(e)"`,
+        `"Intervention";;"Service 1";"16/01/2019 10:30:19";;;;"16/01/2019 12:30:21";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative de l'intervenant(e)"`,
       ]);
     });
   });
@@ -289,7 +289,7 @@ const exportTypes = [
     exportType: AUXILIARY,
     expectedRows: [
       '\ufeff"Email";"Équipe";"Id Auxiliaire";"Titre";"Nom";"Prénom";"Date de naissance";"Pays de naissance";"Departement de naissance";"Ville de naissance";"Nationalité";"N° de sécurité sociale";"Addresse";"Téléphone";"Nombre de contracts";"Établissement";"Date de début de contrat prestataire";"Date de fin de contrat prestataire";"Date d\'inactivité";"Date de création"',
-      `"auxiliary@alenvi.io";"Test";${userList[2]._id};"M.";"TEST";"Auxiliary";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
+      `"auxiliary@alenvi.io";"Test";${userList[2]._id};"M.";"OLAIT";"Auxiliary";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
       `"auxiliary-without-company@alenvi.io";;${userList[3]._id};;"TEST";"Auxiliary without company";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
       `"planning-referent@alenvi.io";"Test";${userList[4]._id};"Mme";"TEST";"PlanningReferent";;;;;;;;;0;;;;;"${moment().format('DD/MM/YYYY')}"`,
       `"export_auxiliary_1@alenvi.io";"Etoile";${auxiliaryList[0]._id};"M.";"UIUI";"Lulu";"01/01/1992";"France";"75";"Paris";"Française";12345678912345;"37 rue de ponthieu 75008 Paris";"0123456789";2;"${establishment.name}";"01/01/2018";"01/01/2020";;"${moment().format('DD/MM/YYYY')}"`,
@@ -301,7 +301,7 @@ const exportTypes = [
     exportType: HELPER,
     expectedRows: [
       '\ufeff"Email";"Téléphone";"Id Aidant(e)";"Aidant(e) - Nom";"Aidant(e) - Prénom";"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Bénéficiaire - Rue";"Bénéficiaire - Code postal";"Bénéficiaire - Ville";"Date de création"',
-      `"helper@alenvi.io";;${helper._id.toHexString()};"TEST";"Helper";${customer._id.toHexString()};"M.";"BARDET";"Romain";"37 rue de Ponthieu";"75008";"Paris";"${moment().format('DD/MM/YYYY')}"`,
+      `"helper@alenvi.io";;${helper._id.toHexString()};"TEST";"Helper";${authCustomer._id.toHexString()};"M.";"LACORDÉE";"vian";"37 rue de Ponthieu";"75008";"Paris";"${moment().format('DD/MM/YYYY')}"`,
       `"toto@alenvi.io";"+33123456789";${user._id.toHexString()};"TOTO";"test";${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"37 rue de Ponthieu";"75008";"Paris";"${moment().format('DD/MM/YYYY')}"`,
     ],
   },
@@ -309,35 +309,36 @@ const exportTypes = [
     exportType: CUSTOMER,
     expectedRows: [
       '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Id Auxiliaire référent(e)";"Auxiliaire référent(e)";"Situation";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création"',
-      `${customer._id.toHexString()};"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";"11/01/2019";;;"Non renseigné";"ne va pas bien";"preparer le dejeuner + balade";"code porte: 1234";"David gaudu";;;"R012345678903456789";;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}"`,
+      `${authCustomer._id.toHexString()};"M.";"LACORDÉE";"vian";;"37 rue de ponthieu 75008 Paris";;;;"Non renseigné";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}"`,
       `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";${auxiliaryList[0]._id};"Lulu Uiui";"Domicile";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1`,
       ` Service 2";1;"${moment().format('DD/MM/YYYY')}"`,
       `${customersList[1]._id.toHexString()};"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;${auxiliaryList[0]._id};"Lulu Uiui";"EHPAD";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}"`,
       `${customersList[2]._id.toHexString()};"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;;"Domicile";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}"`,
+      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";"11/01/2019";;;"Non renseigné";;;;;;;;;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}"`,
     ],
   },
   {
     exportType: FUNDING,
     expectedRows: [
       '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Nature";"Service";"Date de début";"Date de fin";"Numéro de dossier";"Fréquence";"Montant TTC";"Montant unitaire TTC";"Nombre d\'heures";"Jours";"Participation du/de la bénéficiaire"',
-      `${customer._id.toHexString()};"M.";"BARDET";"Romain";${billsList[0].thirdPartyPayer.toHexString()};"Toto";"Forfaitaire";"Service 1";"02/02/2020";;"D123456";"Une seule fois";"1600,00";;;"Lundi Mardi Mercredi Jeudi Vendredi Samedi";"66,00"`,
       `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";${billsList[0].thirdPartyPayer.toHexString()};"Toto";"Forfaitaire";"Service 1";"03/02/2018";;"12345";"Mensuelle";"21,00";"10,00";"9,00";"Lundi Mardi Mercredi";"12,00"`,
+      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";${billsList[0].thirdPartyPayer.toHexString()};"Toto";"Forfaitaire";"Service 1";"02/02/2020";;"D123456";"Une seule fois";"1600,00";;;"Lundi Mardi Mercredi Jeudi Vendredi Samedi";"66,00"`,
     ],
   },
   {
     exportType: SUBSCRIPTION,
     expectedRows: [
       '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
-      `${customer._id.toHexString()};"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";2;1`,
       `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"Service 1";"12,00";"30,00";1;2`,
       `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"Service 2";;;;`,
+      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";2;1`,
     ],
   },
   {
     exportType: SECTOR,
     expectedRows: [
       '\ufeff"Equipe";"Id Auxiliaire";"Nom";"Prénom";"Date d\'arrivée dans l\'équipe";"Date de départ de l\'équipe"',
-      `"Test";${userList[2]._id};"Test";"Auxiliary";"10/12/2020";`,
+      `"Test";${userList[2]._id};"Olait";"Auxiliary";"10/12/2020";`,
       `"Test";${userList[4]._id};"Test";"PlanningReferent";"10/12/2018";`,
       `"Etoile";${auxiliaryList[0]._id};"Uiui";"Lulu";"10/12/2018";`,
     ],

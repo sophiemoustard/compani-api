@@ -5,7 +5,8 @@ const omit = require('lodash/omit');
 const { thirdPartyPayersList, populateDB, thirdPartyPayerFromOtherCompany } = require('./seed/thirdPartyPayersSeed');
 const ThirdPartyPayer = require('../../src/models/ThirdPartyPayer');
 const app = require('../../server');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

@@ -8,7 +8,8 @@ const {
   establishmentFromOtherCompany,
   userFromOtherCompany,
 } = require('./seed/establishmentsSeed');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const Establishment = require('../../src/models/Establishment');
 
 describe('NODE ENV', () => {

@@ -5,7 +5,7 @@ const app = require('../../server');
 const Step = require('../../src/models/Step');
 const { populateDB, stepsList, activitiesList, cardsList } = require('./seed/stepsSeed');
 const Activity = require('../../src/models/Activity');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const UtilsHelper = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {

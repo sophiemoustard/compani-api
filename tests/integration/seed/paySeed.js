@@ -10,9 +10,10 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, UNPAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
+const { coachRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const contractId1 = new ObjectID();
 const contractId2 = new ObjectID();
@@ -33,7 +34,7 @@ const user = {
   local: { email: 'test4@alenvi.io', password: '123456!eR' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'coach')._id },
+  role: { client: coachRoleId },
   origin: WEBAPP,
 };
 
@@ -42,7 +43,7 @@ const auxiliaries = [{
   identity: { firstname: 'Test7', lastname: 'auxiliary' },
   local: { email: 'test7@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contracts: [contractId1],
   origin: WEBAPP,
 }, {
@@ -50,7 +51,7 @@ const auxiliaries = [{
   identity: { firstname: 'OtherTest', lastname: 'Test8' },
   local: { email: 'test8@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contracts: [contractId2],
   origin: WEBAPP,
 }];
@@ -60,7 +61,7 @@ const auxiliaryFromOtherCompany = {
   identity: { firstname: 'otherCompany', lastname: 'Chloe' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contracts: [contractId2],
   sector: sectorFromOtherCompany._id,
   origin: WEBAPP,

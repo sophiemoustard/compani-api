@@ -8,7 +8,8 @@ const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
 const { company, populateDB, companyClientAdmin } = require('./seed/companiesSeed');
-const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {

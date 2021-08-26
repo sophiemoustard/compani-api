@@ -1,3 +1,7 @@
+const memoize = require('lodash/memoize');
+const app = require('../../../server');
+const UtilsHelper = require('../../../src/helpers/utils');
+const { VENDOR_ROLES } = require('../../../src/helpers/constants');
 const Activity = require('../../../src/models/Activity');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const AdministrativeDocument = require('../../../src/models/AdministrativeDocument');
@@ -55,30 +59,45 @@ const TaxCertificate = require('../../../src/models/TaxCertificate');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
-const { otherCompany, sector, sectorHistories } = require('./authenticationSeed');
-const { authCompany, companyWithoutSubscription } = require('../../seed/companySeed');
-const { rolesList } = require('../../seed/roleSeed');
-const { userList, userCompaniesList } = require('../../seed/userSeed');
+const { rolesList } = require('../../seed/authRolesSeed');
+const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
+const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
+const { sector, sectorHistories } = require('../../seed/authSectorsSeed');
+const { authCustomer, helperCustomer } = require('../../seed/authCustomers');
 
-before(async () => {
-  await Promise.all([
-    Role.deleteMany(),
-    User.deleteMany(),
-    Company.deleteMany(),
-    Sector.deleteMany(),
-    SectorHistory.deleteMany(),
-    UserCompany.deleteMany(),
-  ]);
+const getUser = (roleName, erp = true) => {
+  const role = rolesList.find(r => r.name === roleName);
 
-  await Promise.all([
-    Company.create([authCompany, otherCompany, companyWithoutSubscription]),
-    Sector.create(sector),
-    SectorHistory.insertMany(sectorHistories),
-    Role.insertMany(rolesList),
-    UserCompany.insertMany(userCompaniesList),
-    User.create(userList),
-  ]);
-});
+  if (!VENDOR_ROLES.includes(roleName)) {
+    const company = [authCompany, companyWithoutSubscription].find(c => c.subscriptions.erp === erp);
+    const filteredUserCompanies = userCompaniesList.filter(u => UtilsHelper.areObjectIdsEquals(u.company, company._id));
+
+    return userList.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id) &&
+      filteredUserCompanies.some(uc => UtilsHelper.areObjectIdsEquals(uc.user, u._id)));
+  }
+
+  return userList.find(u => UtilsHelper.areObjectIdsEquals(u.role[role.interface], role._id));
+};
+
+const getTokenByCredentials = memoize(
+  async (credentials) => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload: credentials,
+    });
+
+    return response.result.data.token;
+  },
+  // do not stringify the 'credentials' object, because the order of the props can't be predicted
+  credentials => JSON.stringify([credentials.email, credentials.password])
+);
+
+const getToken = async (roleName, erp) => {
+  const user = getUser(roleName, erp);
+
+  return getTokenByCredentials(user.local);
+};
 
 const deleteNonAuthenticationSeeds = async () => {
   await Promise.all([
@@ -105,14 +124,14 @@ const deleteNonAuthenticationSeeds = async () => {
     CustomerNoteHistory.deleteMany(),
     CustomerNote.deleteMany(),
     CustomerPartner.deleteMany(),
-    Customer.deleteMany(),
+    Customer.deleteMany({ _id: { $nin: [authCustomer._id] } }),
     DistanceMatrix.deleteMany(),
     Establishment.deleteMany(),
     EventHistory.deleteMany(),
     Event.deleteMany(),
     FinalPay.deleteMany(),
     FundingHistory.deleteMany(),
-    Helper.deleteMany(),
+    Helper.deleteMany({ _id: { $nin: [helperCustomer._id] } }),
     IdentityVerification.deleteMany(),
     InternalHour.deleteMany(),
     PartnerOrganization.deleteMany(),
@@ -141,4 +160,5 @@ const deleteNonAuthenticationSeeds = async () => {
     User.deleteMany({ _id: { $nin: userList.map(user => user._id) } }),
   ]);
 };
-module.exports = { deleteNonAuthenticationSeeds };
+
+module.exports = { getToken, getTokenByCredentials, deleteNonAuthenticationSeeds };

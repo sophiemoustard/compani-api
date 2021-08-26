@@ -15,7 +15,8 @@ const { PAYMENT } = require('../../src/helpers/constants');
 const Payment = require('../../src/models/Payment');
 const Drive = require('../../src/models/Google/Drive');
 const PaymentHelper = require('../../src/helpers/payments');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

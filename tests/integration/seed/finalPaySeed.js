@@ -9,9 +9,10 @@ const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, authCompany, otherCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
@@ -25,7 +26,7 @@ const user = {
   local: { email: 'test4@alenvi.io', password: '123456!eR' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'coach')._id },
+  role: { client: coachRoleId },
   inactivityDate: '2018-11-01T12:52:27.461Z',
   origin: WEBAPP,
 };
@@ -36,7 +37,7 @@ const auxiliary = {
   local: { email: 'test7@alenvi.io', password: '123456!eR' },
   inactivityDate: '2019-06-01T00:00:00',
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contracts: contractId,
   origin: WEBAPP,
 };
@@ -46,7 +47,7 @@ const auxiliaryFromOtherCompany = {
   identity: { firstname: 'Cricri', lastname: 'test' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contracts: contractId,
   origin: WEBAPP,
 };

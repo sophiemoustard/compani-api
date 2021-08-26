@@ -2,10 +2,10 @@ const { ObjectID } = require('mongodb');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
-const { vendorAdmin, coach } = require('../../seed/userSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { vendorAdmin, coach } = require('../../seed/authUsersSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 
 const traineeFromOtherCompany = {

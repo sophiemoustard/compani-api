@@ -5,12 +5,11 @@ const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList } = require('../../seed/roleSeed');
-const { otherCompany } = require('../../seed/companySeed');
-const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
-const { vendorAdmin } = require('../../seed/userSeed');
-const { authCompany } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
+const { WEBAPP } = require('../../../src/helpers/constants');
+const { vendorAdmin } = require('../../seed/authUsersSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { trainerRoleId } = require('../../seed/authRolesSeed');
 
 const trainerList = [
   {
@@ -18,7 +17,7 @@ const trainerList = [
     identity: { firstname: 'course', lastname: 'Trainer' },
     refreshToken: uuidv4(),
     local: { email: 'trainerWithCourse@alenvi.io', password: '123456!eR' },
-    role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
+    role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
   {
@@ -26,7 +25,7 @@ const trainerList = [
     identity: { firstname: 'trainer', lastname: 'noCourse' },
     refreshToken: uuidv4(),
     local: { email: 'trainerNoCourse@alenvi.io', password: '123456!eR' },
-    role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
+    role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
 ];

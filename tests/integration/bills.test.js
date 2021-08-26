@@ -19,7 +19,8 @@ const {
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const BillHelper = require('../../src/helpers/bills');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const Bill = require('../../src/models/Bill');
 const BillNumber = require('../../src/models/BillNumber');
 const CreditNote = require('../../src/models/CreditNote');

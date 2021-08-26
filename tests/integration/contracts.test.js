@@ -25,9 +25,10 @@ const {
   contractUserCompanies,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const EsignHelper = require('../../src/helpers/eSign');
-const { auxiliaryWithoutCompany } = require('../seed/userSeed');
+const { auxiliaryWithoutCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

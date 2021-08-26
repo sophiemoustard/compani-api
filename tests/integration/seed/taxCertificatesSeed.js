@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
-const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -9,6 +9,7 @@ const Payment = require('../../../src/models/Payment');
 const Helper = require('../../../src/models/Helper');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
+const { helperRoleId } = require('../../seed/authRolesSeed');
 
 const customersList = [
   {
@@ -45,7 +46,7 @@ const helper = {
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_taxcertificates@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   origin: WEBAPP,
 };
 

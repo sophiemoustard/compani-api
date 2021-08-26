@@ -5,9 +5,9 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
-const { userList, vendorAdmin } = require('../../seed/userSeed');
+const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
 const { STRICTLY_E_LEARNING } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const activityHistoriesUsersList = [userList[6]._id, userList[5]._id];
 

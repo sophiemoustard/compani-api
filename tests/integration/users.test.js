@@ -33,14 +33,10 @@ const {
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
 } = require('./seed/usersSeed');
-const {
-  getToken,
-  getTokenByCredentials,
-  otherCompany,
-  authCompany,
-  rolesList,
-} = require('./seed/authenticationSeed');
-const { trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/userSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
+const { trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/authUsersSeed');
+const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../src/helpers/utils');
@@ -101,7 +97,7 @@ describe('POST /users', () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
-        role: rolesList.find(role => role.name === AUXILIARY)._id,
+        role: auxiliaryRoleId,
         sector: userSectors[0]._id,
         origin: WEBAPP,
       };
@@ -290,7 +286,7 @@ describe('POST /users', () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
-        role: rolesList.find(role => role.name === COACH)._id,
+        role: coachRoleId,
         sector: userSectors[0]._id,
         origin: WEBAPP,
         company: otherCompany._id,
@@ -312,7 +308,7 @@ describe('POST /users', () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
-        role: rolesList.find(role => role.name === TRAINER)._id,
+        role: trainerRoleId,
         origin: WEBAPP,
       };
 
@@ -1392,7 +1388,7 @@ describe('DELETE /users/:id', () => {
 
         let userCompanyExistBefore;
         let helperExistBefore;
-        if (get(userToDelete, 'role.client') === rolesList[6]._id) {
+        if (get(userToDelete, 'role.client') === helperRoleId) {
           userCompanyExistBefore = !!await UserCompany.countDocuments({ user: userToDelete._id });
           helperExistBefore = !!await Helper.countDocuments({ user: userToDelete._id });
         }
@@ -1405,7 +1401,7 @@ describe('DELETE /users/:id', () => {
 
         expect(res.statusCode).toBe(test.expectedCode);
 
-        if (get(userToDelete, 'role.client') === rolesList[6]._id) {
+        if (get(userToDelete, 'role.client') === helperRoleId) {
           const userCompanyExistAfter = !!await UserCompany.countDocuments({ user: userToDelete._id });
           const helperExistAfter = !!await Helper.countDocuments({ user: userToDelete._id });
 

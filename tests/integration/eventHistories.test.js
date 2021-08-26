@@ -8,7 +8,7 @@ const {
   sectorFromOtherCompany,
   sectors,
 } = require('./seed/eventHistoriesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const UtilsHelper = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {

@@ -9,7 +9,7 @@ const {
 } = require('./seed/paySeed');
 const app = require('../../server');
 const Pay = require('../../src/models/Pay');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

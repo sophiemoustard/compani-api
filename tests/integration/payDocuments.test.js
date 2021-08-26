@@ -14,7 +14,8 @@ const {
   payDocumentUserCompanies,
   userFromOtherCompany,
 } = require('./seed/payDocumentsSeed');
-const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
 const { generateFormData } = require('./utils');

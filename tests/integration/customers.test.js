@@ -25,7 +25,8 @@ const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const Helper = require('../../src/models/Helper');
 const { MONTHLY, FIXED, HOURLY, DEATH } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 const FileHelper = require('../../src/helpers/file');
 const DocxHelper = require('../../src/helpers/docx');
 

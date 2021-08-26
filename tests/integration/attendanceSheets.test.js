@@ -7,7 +7,7 @@ const { ObjectID } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
 const { populateDB, coursesList, attendanceSheetsList } = require('./seed/attendanceSheetsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
 

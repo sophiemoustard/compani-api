@@ -8,17 +8,18 @@ const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
-const { authCompany, otherCompany, rolesList } = require('./authenticationSeed');
-const { vendorAdmin } = require('../../seed/userSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
-const { deleteNonAuthenticationSeeds } = require('./initializeDB');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { trainerRoleId } = require('../../seed/authRolesSeed');
 
 const trainer = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'trainer' },
   refreshToken: uuidv4(),
   local: { email: 'course_slot_trainer@alenvi.io', password: '123456!eR' },
-  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  role: { vendor: trainerRoleId },
   origin: WEBAPP,
 };
 

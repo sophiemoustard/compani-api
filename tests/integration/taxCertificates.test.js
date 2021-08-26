@@ -10,7 +10,8 @@ const TaxCertificate = require('../../src/models/TaxCertificate');
 const Gdrive = require('../../src/models/Google/Drive');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { populateDB, customersList, taxCertificatesList, helper } = require('./seed/taxCertificatesSeed');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {

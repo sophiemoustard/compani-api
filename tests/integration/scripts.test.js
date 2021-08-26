@@ -2,7 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const app = require('../../server');
 const { populateDB } = require('./seed/scriptsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const EmailHelper = require('../../src/helpers/email');
 
 describe('NODE ENV', () => {

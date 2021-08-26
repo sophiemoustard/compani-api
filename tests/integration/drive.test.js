@@ -10,7 +10,7 @@ const DriveHelper = require('../../src/helpers/drive');
 const DocxHelper = require('../../src/helpers/docx');
 const Drive = require('../../src/models/Google/Drive');
 const { generateFormData } = require('./utils');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const { auxiliary, populateDB } = require('./seed/driveSeed');
 const app = require('../../server');
 

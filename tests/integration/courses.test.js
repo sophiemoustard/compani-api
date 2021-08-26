@@ -22,7 +22,8 @@ const {
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
 } = require('./seed/coursesSeed');
-const { getToken, authCompany, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
 const {
   noRoleNoCompany,
   coach,
@@ -31,7 +32,7 @@ const {
   clientAdmin,
   vendorAdmin,
   trainerAndCoach,
-} = require('../seed/userSeed');
+} = require('../seed/authUsersSeed');
 const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
