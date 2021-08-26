@@ -13,9 +13,9 @@ const {
   categoriesList,
   course,
 } = require('./seed/programsSeed');
-const { getToken } = require('./helpers/authentication');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
-const { trainerOrganisationManager } = require('../seed/userSeed');
+const { trainerOrganisationManager, noRoleNoCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -33,8 +33,6 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
     });
 
     it('should create program', async () => {
-      const programCountBefore = await Program.countDocuments();
-
       const categoryId = categoriesList[0]._id;
       const response = await app.inject({
         method: 'POST',
@@ -45,7 +43,7 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
 
       const programCountAfter = await Program.countDocuments();
       expect(response.statusCode).toBe(200);
-      expect(programCountAfter).toEqual(programCountBefore + 1);
+      expect(programCountAfter).toEqual(programsList.length + 1);
     });
 
     it('should return 404 if wrong category id', async () => {
@@ -133,9 +131,9 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('TRAINER', () => {
+  describe('LOGGED_USER', () => {
     beforeEach(async () => {
-      authToken = await getToken('trainer');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
 
     it('should get all e-learning programs', async () => {
@@ -147,37 +145,6 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.programs._id).toEqual(course.id);
-    });
-
-    it('should return 401 if user is not connected', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/programs/e-learning',
-        headers: { 'x-access-token': '' },
-      });
-
-      expect(response.statusCode).toBe(401);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 200 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/programs/e-learning',
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
     });
   });
 });
@@ -855,7 +822,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId} #tag', () => {
+describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
   let authToken;
   beforeEach(populateDB);
 
