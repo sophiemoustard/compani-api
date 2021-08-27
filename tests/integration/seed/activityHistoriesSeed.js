@@ -19,7 +19,7 @@ const userList = [
     identity: { firstname: 'sales', lastname: 'representative' },
     refreshToken: uuidv4(),
     local: { email: 'salesrep@compani.fr' },
-    role: { client: vendorAdminRoleId },
+    role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
   {

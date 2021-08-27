@@ -122,7 +122,11 @@ historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
     });
 
     describe('Other roles', () => {
-      const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
+      ];
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
@@ -256,7 +260,11 @@ dataExportTypes.forEach(({ exportType, expectedRows }) => {
     });
 
     describe('Other roles', () => {
-      const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
+      ];
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
