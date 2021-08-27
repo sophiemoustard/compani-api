@@ -1,15 +1,40 @@
 const { ObjectID } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const Activity = require('../../../src/models/Activity');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
-const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
-const { STRICTLY_E_LEARNING } = require('../../../src/helpers/constants');
+const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
+const { STRICTLY_E_LEARNING, WEBAPP } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
+const { authCompany } = require('../../seed/authCompaniesSeed');
 
-const activityHistoriesUsersList = [userList[6]._id, userList[5]._id];
+const userList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'sales', lastname: 'representative' },
+    refreshToken: uuidv4(),
+    local: { email: 'salesrep@compani.fr' },
+    role: { client: vendorAdminRoleId },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'learner', lastname: 'nocompany' },
+    refreshToken: uuidv4(),
+    local: { email: 'learner@compani.fr', password: '123456!eR' },
+    origin: WEBAPP,
+  },
+];
+
+const userCompaniesList = [
+  { user: userList[0]._id, company: authCompany._id },
+  { user: userList[1]._id, company: authCompany._id },
+];
 
 const cardsList = [
   { _id: new ObjectID(), template: 'survey', question: 'test?' },
@@ -46,15 +71,16 @@ const coursesList = [
     misc: 'first session',
     type: 'intra',
     trainer: new ObjectID(),
-    trainees: [userList[6]._id],
-    salesRepresentative: vendorAdmin._id,
+    trainees: [userList[1]._id],
+    salesRepresentative: userList[0]._id,
     format: STRICTLY_E_LEARNING,
-  }];
+  },
+];
 
 const activityHistories = [
   {
     _id: new ObjectID(),
-    user: userList[6]._id,
+    user: userList[1]._id,
     activity: activitiesList[0]._id,
     date: new Date('2020-12-15T23:00:00'),
   },
@@ -70,16 +96,15 @@ const populateDB = async () => {
     Course.create(coursesList),
     Step.create(stepsList),
     SubProgram.create(subProgramsList),
+    User.create(userList),
+    UserCompany.create(userCompaniesList),
   ]);
 };
 
 module.exports = {
   populateDB,
   activitiesList,
-  stepsList,
-  subProgramsList,
-  coursesList,
-  activityHistoriesUsersList,
-  cardsList,
   activityHistories,
+  cardsList,
+  userList,
 };

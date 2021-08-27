@@ -5,8 +5,6 @@ const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
 const { TRANSITION, FLASHCARD, TITLE_TEXT, TITLE_TEXT_MEDIA } = require('../../../src/helpers/constants');
-const ActivityHistory = require('../../../src/models/ActivityHistory');
-const { userList } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const cardsList = [
@@ -57,29 +55,11 @@ const subProgramsList = [{ _id: new ObjectID(), name: '2_7_4124', steps: [stepsL
 
 const programsList = [{ _id: new ObjectID(), name: 'au programme télévisé', subPrograms: [subProgramsList[0]._id] }];
 
-const activityHistoriesList = [
-  { user: userList[0]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-  { user: userList[1]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-  { user: userList[2]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-  { user: userList[3]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-  { user: userList[4]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-  { user: userList[5]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-  {
-    user: userList[6]._id,
-    activity: activitiesList[0]._id,
-    questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: ['skusku'] }],
-  },
-  { user: userList[7]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-  { user: userList[8]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-  { user: userList[9]._id, activity: activitiesList[0]._id, questionnaireAnswersList: [] },
-];
-
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
     Activity.create(activitiesList),
-    ActivityHistory.create(activityHistoriesList),
     Card.create(cardsList),
     Program.create(programsList),
     Step.create(stepsList),
@@ -91,8 +71,4 @@ module.exports = {
   populateDB,
   cardsList,
   activitiesList,
-  stepsList,
-  subProgramsList,
-  programsList,
-  activityHistoriesList,
 };

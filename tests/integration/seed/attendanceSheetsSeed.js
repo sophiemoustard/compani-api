@@ -1,22 +1,44 @@
 const { ObjectID } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
-const { vendorAdmin, coach } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
+const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
 
-const traineeFromOtherCompany = {
-  _id: new ObjectID(),
-  identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
-  local: { email: 'traineeFromINTERB2B@alenvi.io' },
-  origin: WEBAPP,
-};
+const userList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'sales', lastname: 'representative' },
+    refreshToken: uuidv4(),
+    local: { email: 'salesrep@compani.fr' },
+    role: { client: vendorAdminRoleId },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'learner', lastname: 'nocompany' },
+    refreshToken: uuidv4(),
+    local: { email: 'learner@compani.fr', password: '123456!eR' },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
+    local: { email: 'traineeFromINTERB2B@alenvi.io' },
+    origin: WEBAPP,
+  },
+];
 
-const userCompany = { _id: new ObjectID(), user: traineeFromOtherCompany._id, company: otherCompany._id };
+const userCompaniesList = [
+  { _id: new ObjectID(), user: userList[0]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userList[1]._id, company: authCompany._id },
+  { _id: new ObjectID(), user: userList[2]._id, company: otherCompany._id },
+];
 
 const coursesList = [
   {
@@ -24,24 +46,24 @@ const coursesList = [
     subProgram: new ObjectID(),
     company: authCompany._id,
     type: 'intra',
-    trainees: [coach._id],
-    salesRepresentative: vendorAdmin._id,
+    trainees: [userList[1]._id],
+    salesRepresentative: userList[0]._id,
   },
   {
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
     type: 'inter_b2b',
-    trainees: [coach._id],
-    salesRepresentative: vendorAdmin._id,
+    trainees: [userList[1]._id],
+    salesRepresentative: userList[0]._id,
   },
   {
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     type: 'intra',
     company: otherCompany._id,
-    trainees: [coach._id],
-    salesRepresentative: vendorAdmin._id,
+    trainees: [userList[1]._id],
+    salesRepresentative: userList[0]._id,
   },
 ];
 
@@ -56,19 +78,19 @@ const attendanceSheetsList = [
     _id: new ObjectID(),
     course: coursesList[0],
     file: { publicId: 'mon upload', link: 'www.test.com' },
-    trainee: coach._id,
+    trainee: userList[1]._id,
   },
   {
     _id: new ObjectID(),
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
-    trainee: coach._id,
+    trainee: userList[1]._id,
   },
   {
     _id: new ObjectID(),
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
-    trainee: traineeFromOtherCompany._id,
+    trainee: userList[2]._id,
   },
 ];
 
@@ -83,8 +105,8 @@ const populateDB = async () => {
     AttendanceSheet.create(attendanceSheetsList),
     Course.create(coursesList),
     CourseSlot.create(slotsList),
-    UserCompany.create(userCompany),
-    User.create(traineeFromOtherCompany),
+    User.create(userList),
+    UserCompany.create(userCompaniesList),
   ]);
 };
 

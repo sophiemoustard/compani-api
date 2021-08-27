@@ -14,7 +14,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
+describe('ACTIVITIES ROUTES - GET /activity/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const activityId = activitiesList[0]._id;
@@ -37,7 +37,7 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
   });
 });
 
-describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
+describe('ACTIVITIES ROUTES - PUT /activity/{_id}', () => {
   let authToken = null;
   beforeEach(populateDB);
   const activityId = activitiesList[0]._id;

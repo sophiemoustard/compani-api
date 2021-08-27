@@ -7,11 +7,10 @@ const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
-const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { trainerRoleId } = require('../../seed/authRolesSeed');
+const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed');
 
-const trainerList = [
+const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'course', lastname: 'Trainer' },
@@ -28,6 +27,14 @@ const trainerList = [
     role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'salesrep', lastname: 'noCourse' },
+    refreshToken: uuidv4(),
+    local: { email: 'salerep@compani.fr' },
+    role: { vendor: vendorAdminRoleId },
+    origin: WEBAPP,
+  },
 ];
 
 const coursesList = [
@@ -37,8 +44,8 @@ const coursesList = [
     company: authCompany._id,
     type: 'intra',
     trainees: [new ObjectID(), new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
   {
     _id: new ObjectID(),
@@ -46,8 +53,8 @@ const coursesList = [
     company: authCompany._id,
     type: 'intra',
     trainees: [new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
   {
     _id: new ObjectID(),
@@ -55,8 +62,8 @@ const coursesList = [
     company: otherCompany._id,
     type: 'intra',
     trainees: [new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
   { // interb2b
     _id: new ObjectID(),
@@ -64,8 +71,8 @@ const coursesList = [
     company: authCompany._id,
     type: 'inter_b2b',
     trainees: [new ObjectID(), new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
   { // interb2b with only trainees from otherCompany
     _id: new ObjectID(),
@@ -73,8 +80,8 @@ const coursesList = [
     company: authCompany._id,
     type: 'inter_b2b',
     trainees: [new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
 ];
 
@@ -169,7 +176,7 @@ const populateDB = async () => {
     Attendance.create(attendancesList),
     Course.create(coursesList),
     CourseSlot.create(slotsList),
-    User.create([...trainerList, ...companyTraineesList]),
+    User.create([...userList, ...companyTraineesList]),
     UserCompany.create(userCompanyList),
   ]);
 };
@@ -179,7 +186,7 @@ module.exports = {
   attendancesList,
   coursesList,
   slotsList,
-  trainerList,
+  userList,
   companyTraineesList,
   userCompanyList,
 };
