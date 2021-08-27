@@ -7,7 +7,7 @@ const Category = require('../../../src/models/Category');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
-const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
+const { userList, vendorAdmin, trainerOrganisationManager } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const cards = [
@@ -57,7 +57,18 @@ const programsList = [
     image: { link: 'bonjour', publicId: 'au revoir' },
     categories: [categoriesList[0]._id],
   },
-  { _id: new ObjectID(), name: 'training program', subPrograms: [subProgramsList[2]._id], testers: [vendorAdmin._id] },
+  {
+    _id: new ObjectID(),
+    name: 'training program',
+    subPrograms: [subProgramsList[2]._id],
+    testers: [trainerOrganisationManager._id],
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Je suis un programme eLearning',
+    description: 'Vous apprendrez plein de choses',
+    subPrograms: [subProgramsList[2]._id],
+  },
   { _id: new ObjectID(), name: 'non valid program', subPrograms: [subProgramsList[1]._id] },
 ];
 
