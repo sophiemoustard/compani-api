@@ -2,7 +2,14 @@ const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const { populateDB, emailUser, emailUserFromOtherCompany, trainerFromOtherCompany } = require('./seed/emailSeed');
+const {
+  populateDB,
+  emailUser,
+  emailUserFromOtherCompany,
+  trainerFromOtherCompany,
+  coachFromOtherCompany,
+  helperFromOtherCompany,
+} = require('./seed/emailSeed');
 const { getToken } = require('./helpers/authentication');
 const NodemailerHelper = require('../../src/helpers/nodemailer');
 
@@ -32,6 +39,7 @@ describe('POST emails/send-welcome', () => {
 
     const receivers = [
       { type: 'client_admin', email: emailUserFromOtherCompany.local.email },
+      { type: 'coach', email: coachFromOtherCompany.local.email },
       { type: 'trainer', email: trainerFromOtherCompany.local.email },
       { type: 'trainee', email: emailUserFromOtherCompany.local.email },
     ];
@@ -48,6 +56,17 @@ describe('POST emails/send-welcome', () => {
         expect(response.result.data.mailInfo).toEqual('emailSent');
         sinon.assert.calledWithExactly(sendinBlueTransporter);
       });
+    });
+
+    it('should throw an error if sending to other company helper', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/email/send-welcome',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { email: helperFromOtherCompany.local.email, type: 'helper' },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should throw an error if email does not exist', async () => {
@@ -72,14 +91,13 @@ describe('POST emails/send-welcome', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const missingParams = ['type', 'email'];
-    missingParams.forEach((param) => {
-      it(`should return a 400 error if ${param} param is missing`, async () => {
+    ['type', 'email'].forEach((missingParam) => {
+      it(`should return a 400 error if ${missingParam} param is missing`, async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/email/send-welcome',
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: omit(payload, [param]),
+          payload: omit(payload, [missingParam]),
         });
 
         expect(response.statusCode).toBe(400);

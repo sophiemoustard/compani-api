@@ -21,10 +21,10 @@ exports.authorizeSendEmail = async (req) => {
 
   const receiverIsTrainer = get(receiver, 'role.vendor.name') === TRAINER;
   const receiverIsCoachOrAdmin = [COACH, CLIENT_ADMIN].includes(get(receiver, 'role.client.name'));
-  const userIsSendingToAuthorizedType = isVendorUser &&
+  const vendorIsSendingToAuthorizedType = isVendorUser &&
     (receiverIsTrainer || req.payload.type === TRAINEE || receiverIsCoachOrAdmin);
   const sameCompany = areObjectIdsEquals(receiver.company, companyId);
-  if (!userIsSendingToAuthorizedType && !sameCompany) throw Boom.notFound();
+  if (!vendorIsSendingToAuthorizedType && !sameCompany) throw Boom.notFound();
 
   return null;
 };
