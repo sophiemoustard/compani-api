@@ -4,7 +4,7 @@ const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
-const { clientAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
+const { clientAdminRoleId, trainerRoleId, helperRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const emailUser = {
@@ -25,6 +25,15 @@ const emailUserFromOtherCompany = {
   origin: WEBAPP,
 };
 
+const coachFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'coach', lastname: 'Test' },
+  local: { email: 'coach_email_user@alenvi.io', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  role: { client: coachRoleId },
+  origin: WEBAPP,
+};
+
 const trainerFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'Test' },
@@ -33,6 +42,23 @@ const trainerFromOtherCompany = {
   role: { vendor: trainerRoleId },
   origin: WEBAPP,
 };
+
+const helperFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'helper', lastname: 'Test' },
+  local: { email: 'helper_email_user@alenvi.io', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  role: { client: helperRoleId },
+  origin: WEBAPP,
+};
+
+const emailUsers = [
+  emailUser,
+  emailUserFromOtherCompany,
+  trainerFromOtherCompany,
+  helperFromOtherCompany,
+  coachFromOtherCompany,
+];
 
 const userCompanies = [
   { _id: new ObjectID(), user: emailUser._id, company: authCompany._id },
@@ -43,8 +69,15 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create(emailUser, emailUserFromOtherCompany, trainerFromOtherCompany);
+  await User.create(emailUsers);
   await UserCompany.insertMany(userCompanies);
 };
 
-module.exports = { populateDB, emailUser, emailUserFromOtherCompany, trainerFromOtherCompany };
+module.exports = {
+  populateDB,
+  emailUser,
+  emailUserFromOtherCompany,
+  trainerFromOtherCompany,
+  helperFromOtherCompany,
+  coachFromOtherCompany,
+};

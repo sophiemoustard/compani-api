@@ -17,7 +17,7 @@ const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'client_admin', lastname: 'Chef' },
+    identity: { firstname: 'client_admin', lastname: 'Boss' },
     refreshToken: uuidv4(),
     local: { email: 'client-admin@alenvi.io', password: '123456!eR' },
     role: { client: clientAdminRoleId },
@@ -44,7 +44,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Auxiliary without company', lastname: 'Test' },
+    identity: { firstname: 'Auxiliary without company', lastname: 'créole' },
     local: { email: 'auxiliary-without-company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryWithoutCompanyRoleId },
