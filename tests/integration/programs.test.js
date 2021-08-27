@@ -32,12 +32,11 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
     });
 
     it('should create program', async () => {
-      const categoryId = categoriesList[0]._id;
       const response = await app.inject({
         method: 'POST',
         url: '/programs',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'program', categories: [categoryId] },
+        payload: { name: 'program', categories: [categoriesList[0]._id] },
       });
 
       const programCountAfter = await Program.countDocuments();
@@ -54,6 +53,17 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 400 if name is missing', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/programs',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { categories: [categoriesList[0]._id] },
+      });
+
+      expect(response.statusCode).toEqual(400);
     });
   });
 
@@ -168,7 +178,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program._id).toEqual(programsList[0]._id);
     });
 
-    it('should return 404 if program does not exists', async () => {
+    it('should return 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/programs/${new ObjectID()}`,
@@ -176,17 +186,6 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
-    });
-
-    it('should get a program even if activities and steps are non valid', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/programs/${programsList[2]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.program._id).toEqual(programsList[2]._id);
     });
   });
 
@@ -504,6 +503,17 @@ describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
       expect(imageExistsBeforeUpdate).toBeTruthy();
       expect(isPictureDeleted).toBeTruthy();
     });
+
+    it('should return a 404 if program doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/programs/${new ObjectID()}/upload`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+      sinon.assert.notCalled(deleteProgramMediaStub);
+    });
   });
 
   describe('Other roles', () => {
@@ -634,7 +644,7 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 404 if program does not contain category', async () => {
+    it('should return a 404 if category doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/programs/${programsList[0]._id}/categories/${new ObjectID()}`,
