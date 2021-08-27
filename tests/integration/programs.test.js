@@ -11,7 +11,6 @@ const {
   populateDB,
   programsList,
   categoriesList,
-  course,
 } = require('./seed/programsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
@@ -144,7 +143,7 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.programs._id).toEqual(course.id);
+      expect(response.result.data.programs.length).toEqual(2);
     });
   });
 });
@@ -205,7 +204,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
         const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'GET',
-          url: `/programs/${programId.toHexString()}`,
+          url: `/programs/${programId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -257,7 +256,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       const programId = programsList[0]._id;
       const response = await app.inject({
         method: 'PUT',
-        url: `/programs/${programId.toHexString()}`,
+        url: `/programs/${programId}`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -295,7 +294,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload: { learningGoals: 'On apprend des trucs\nc\'est chouette' },
-          url: `/programs/${programId.toHexString()}`,
+          url: `/programs/${programId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -345,7 +344,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
       const programId = programsList[0]._id;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programId.toHexString()}/subprograms`,
+        url: `/programs/${programId}/subprograms`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -369,7 +368,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
         const response = await app.inject({
           method: 'POST',
           payload,
-          url: `/programs/${programId.toHexString()}/subprograms`,
+          url: `/programs/${programId}/subprograms`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -543,7 +542,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
       const categoryLengthBefore = programsList[0].categories.length;
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${programsList[0]._id.toHexString()}/categories`,
+        url: `/programs/${programsList[0]._id}/categories`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -660,7 +659,7 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
         const programId = programsList[0]._id;
         const response = await app.inject({
           method: 'DELETE',
-          url: `/programs/${programId.toHexString()}/categories/${programsList[0].categories[0]._id}`,
+          url: `/programs/${programId}/categories/${programsList[0].categories[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -811,7 +810,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/programs/${programsList[0]._id.toHexString()}/testers`,
+          url: `/programs/${programsList[0]._id}/testers`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });

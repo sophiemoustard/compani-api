@@ -63,6 +63,12 @@ const programsList = [
     subPrograms: [subProgramsList[2]._id],
     testers: [trainerOrganisationManager._id],
   },
+  {
+    _id: new ObjectID(),
+    name: 'Je suis un programme eLearning',
+    description: 'Vous apprendrez plein de choses',
+    subPrograms: [subProgramsList[2]._id],
+  },
   { _id: new ObjectID(), name: 'non valid program', subPrograms: [subProgramsList[1]._id] },
 ];
 
