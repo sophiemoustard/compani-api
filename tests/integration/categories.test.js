@@ -2,10 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Category = require('../../src/models/Category');
 const app = require('../../server');
-const {
-  populateDB,
-  categoriesList,
-} = require('./seed/categoriesSeed');
+const { populateDB, categoriesList } = require('./seed/categoriesSeed');
 const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {

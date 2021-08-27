@@ -11,7 +11,7 @@ const Establishment = require('../../../src/models/Establishment');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { clientAdminRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
+const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customer = {
   _id: new ObjectID(),
@@ -45,9 +45,9 @@ const customer = {
 const otherContractUser = {
   _id: new ObjectID(),
   identity: { firstname: 'OCCU', lastname: 'OCCU' },
-  local: { email: 'other-company-contract-user@alenvi.io', password: '123456!eR' },
+  local: { email: 'other-company-contract-user@alenvi.io' },
   refreshToken: uuidv4(),
-  role: { client: clientAdminRoleId },
+  role: { client: auxiliaryRoleId },
   contracts: [new ObjectID()],
   prefixNumber: 103,
   origin: WEBAPP,
@@ -85,7 +85,7 @@ const contractUsers = [
       birthCity: 'Paris',
       birthState: 75,
     },
-    local: { email: 'test7@alenvi.io', password: '123456!eR' },
+    local: { email: 'test7@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -112,7 +112,7 @@ const contractUsers = [
       birthState: 75,
     },
     establishment: new ObjectID(),
-    local: { email: 'tototest@alenvi.io', password: '123456!eR' },
+    local: { email: 'tototest@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -139,7 +139,7 @@ const contractUsers = [
       birthState: 75,
     },
     establishment: new ObjectID(),
-    local: { email: 'ok@alenvi.io', password: '123456!eR' },
+    local: { email: 'ok@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contact: {
@@ -157,7 +157,7 @@ const contractUsers = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'contract', lastname: 'Titi' },
-    local: { email: 'contract@alenvi.io', password: '123456!eR' },
+    local: { email: 'contract@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -167,7 +167,7 @@ const contractUsers = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'contract', lastname: 'Uelle' },
-    local: { email: 'dfghjkscs@alenvi.io', password: '123456!eR' },
+    local: { email: 'dfghjkscs@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -177,7 +177,7 @@ const contractUsers = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'contract', lastname: 'ant' },
-    local: { email: 'iuytr@alenvi.io', password: '123456!eR' },
+    local: { email: 'iuytr@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -204,7 +204,7 @@ const contractUsers = [
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     },
-    local: { email: 'dfghjk@alenvi.io', password: '123456!eR' },
+    local: { email: 'dfghjk@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -268,16 +268,6 @@ const otherContract = {
   versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectID() }],
 };
 
-const userFromOtherCompany = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Test7', lastname: 'Test7' },
-  local: { email: 'test@othercompany.io', password: '123456!eR' },
-  refreshToken: uuidv4(),
-  role: { client: clientAdminRoleId },
-  contracts: [new ObjectID()],
-  origin: WEBAPP,
-};
-
 const contractUserCompanies = [
   { _id: new ObjectID(), user: contractUsers[0]._id, company: authCompany._id },
   { _id: new ObjectID(), user: contractUsers[1]._id, company: authCompany._id },
@@ -287,7 +277,6 @@ const contractUserCompanies = [
   { _id: new ObjectID(), user: contractUsers[5]._id, company: authCompany._id },
   { _id: new ObjectID(), user: contractUsers[6]._id, company: authCompany._id },
   { _id: new ObjectID(), user: otherContractUser._id, company: otherCompany._id },
-  { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const contractsList = [
@@ -457,24 +446,24 @@ const contractEvents = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.insertMany([...contractUsers, otherContractUser, userFromOtherCompany]);
-  await Sector.create(sector);
-  await Establishment.create(establishment);
-  await Customer.create(customer);
-  await Contract.insertMany([...contractsList, otherContract]);
-  await Event.insertMany(contractEvents);
-  await SectorHistory.insertMany(sectorHistories);
-  await UserCompany.insertMany(contractUserCompanies);
+  await Promise.all([
+    Contract.create([...contractsList, otherContract]),
+    Customer.create(customer),
+    Establishment.create(establishment),
+    Event.create(contractEvents),
+    Sector.create(sector),
+    SectorHistory.create(sectorHistories),
+    UserCompany.create(contractUserCompanies),
+    User.create([...contractUsers, otherContractUser]),
+  ]);
 };
 
 module.exports = {
   contractsList,
   populateDB,
   contractUsers,
-  customer,
   contractEvents,
   otherContract,
   otherContractUser,
-  userFromOtherCompany,
   contractUserCompanies,
 };

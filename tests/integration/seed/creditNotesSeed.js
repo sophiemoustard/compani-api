@@ -8,10 +8,10 @@ const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Helper = require('../../../src/models/Helper');
+const UserCompany = require('../../../src/models/UserCompany');
 const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const UserCompany = require('../../../src/models/UserCompany');
 const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const creditNoteThirdPartyPayer = {
@@ -82,7 +82,7 @@ const creditNoteUserList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
-    local: { email: 'toto@alenvi.io', password: '123456!eR' },
+    local: { email: 'toto@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
@@ -336,14 +336,16 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Event.create([creditNoteEvent, otherCompanyEvent]);
-  await Customer.create([creditNoteCustomer, otherCompanyCustomer]);
-  await Service.create([creditNoteService, otherCompanyService]);
-  await ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]);
-  await CreditNote.insertMany([...creditNotesList, otherCompanyCreditNote]);
-  await User.create([...creditNoteUserList, otherCompanyUser]);
-  await Helper.insertMany(helpersList);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([
+    CreditNote.create([...creditNotesList, otherCompanyCreditNote]),
+    Customer.create([creditNoteCustomer, otherCompanyCustomer]),
+    Event.create([creditNoteEvent, otherCompanyEvent]),
+    Helper.create(helpersList),
+    Service.create([creditNoteService, otherCompanyService]),
+    ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]),
+    User.create([...creditNoteUserList, otherCompanyUser]),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

@@ -10,7 +10,6 @@ const cloneDeep = require('lodash/cloneDeep');
 const GetStream = require('get-stream');
 const fs = require('fs');
 const { generateFormData } = require('./utils');
-
 const app = require('../../server');
 const {
   populateDB,
@@ -920,8 +919,7 @@ describe('CUSTOMERS ROUTES', () => {
 
     describe('Other roles', () => {
       it('should get QR code if I am its helper ', async () => {
-        const helper = userList[0];
-        authToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(userList[0].local);
         const res = await app.inject({
           method: 'GET',
           url: `/customers/${customersList[0]._id}/qrcode`,
@@ -1474,8 +1472,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     const mandateId = customersList[1].payment.mandates[0]._id.toHexString();
 
     it('should create a mandate signature request if I am its helper', async () => {
-      const helper = userList[1];
-      authToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(userList[1].local);
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${customerId}/mandates/${mandateId}/esign`,
@@ -1496,8 +1493,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     });
 
     it('should return 403 if user is not from the same company', async () => {
-      const helper = userList[2];
-      authToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(userList[2].local);
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${otherCompanyCustomer._id}/mandates/${mandateId}/esign`,

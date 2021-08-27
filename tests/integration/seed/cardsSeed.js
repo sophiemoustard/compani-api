@@ -91,10 +91,7 @@ const cardsList = [
   {
     _id: new ObjectID(),
     template: ORDER_THE_SEQUENCE,
-    orderedAnswers: [
-      { _id: new ObjectID(), text: 'rien' },
-      { _id: new ObjectID(), text: 'des trucs' },
-    ],
+    orderedAnswers: [{ _id: new ObjectID(), text: 'rien' }, { _id: new ObjectID(), text: 'des trucs' }],
   },
   {
     _id: new ObjectID(),
@@ -149,14 +146,14 @@ const questionnairesList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Card.insertMany(cardsList);
-  await Activity.create(activitiesList);
-  await Questionnaire.create(questionnairesList);
+  await Promise.all([
+    Card.create(cardsList),
+    Activity.create(activitiesList),
+    Questionnaire.create(questionnairesList),
+  ]);
 };
 
 module.exports = {
   populateDB,
   cardsList,
-  activitiesList,
-  questionnairesList,
 };

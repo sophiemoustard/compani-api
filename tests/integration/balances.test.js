@@ -53,7 +53,6 @@ describe('BALANCES ROUTES - GET /', () => {
 
 describe('BALANCES ROUTES - GET /details', () => {
   let authToken = null;
-  const helper = balanceUserList[0];
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -91,7 +90,7 @@ describe('BALANCES ROUTES - GET /details', () => {
 
   describe('Other roles', () => {
     it('should return customer balance if I am its helper', async () => {
-      authToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(balanceUserList[0].local);
       const res = await app.inject({
         method: 'GET',
         url: `/balances/details?customer=${balanceCustomerList[0]._id}&startDate=2019-10-10&endDate=2019-11-10`,

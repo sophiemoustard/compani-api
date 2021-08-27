@@ -1,7 +1,7 @@
 const expect = require('expect');
 const moment = require('moment');
 const app = require('../../server');
-const { populateDB, coursesList, courseHistoriesList } = require('./seed/courseHistoriesSeed');
+const { populateDB, coursesList, courseHistoriesList, userList } = require('./seed/courseHistoriesSeed');
 const { trainerAndCoach } = require('../seed/authUsersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 
@@ -13,7 +13,6 @@ describe('NODE ENV', () => {
 
 describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
   let authToken = null;
-
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -62,7 +61,7 @@ describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
 
   describe('Other roles', () => {
     it('should return 200 as user is course trainer', async () => {
-      authToken = await getToken('trainer');
+      authToken = await getTokenByCredentials(userList[0].local);
       const response = await app.inject({
         method: 'GET',
         url: `/coursehistories?course=${coursesList[0]._id}`,

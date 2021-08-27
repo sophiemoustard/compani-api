@@ -369,8 +369,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
 
   describe('Other roles', () => {
     it('should return customer creditnotes pdfs if I am its helper', async () => {
-      const helper = creditNoteUserList[0];
-      authToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(creditNoteUserList[0].local);
       const res = await app.inject({
         method: 'GET',
         url: `/creditNotes/${creditNotesList[0]._id}/pdfs`,

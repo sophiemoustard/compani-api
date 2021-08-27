@@ -72,7 +72,7 @@ const userFromOtherCompany = {
 const user = {
   _id: new ObjectID(),
   identity: { firstname: 'User', lastname: 'Test' },
-  local: { email: 'auxiliary_establishment@alenvi.io', password: '123456!eR' },
+  local: { email: 'auxiliary_establishment@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: auxiliaryRoleId },
   establishment: establishmentsList[1]._id,
@@ -87,9 +87,11 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create([userFromOtherCompany, user]);
-  await Establishment.insertMany([...establishmentsList, establishmentFromOtherCompany]);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([
+    Establishment.create([...establishmentsList, establishmentFromOtherCompany]),
+    User.create([userFromOtherCompany, user]),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

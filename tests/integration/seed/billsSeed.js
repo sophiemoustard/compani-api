@@ -177,13 +177,12 @@ const billUserList = [
     local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
-    customers: [billCustomerList[0]._id],
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Youpi', lastname: 'Toto' },
-    local: { email: 'toto@alenvi.io', password: '123456!eR' },
+    local: { email: 'toto@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -192,7 +191,7 @@ const billUserList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Bravo', lastname: 'Toto' },
-    local: { email: 'tutu@alenvi.io', password: '123456!eR' },
+    local: { email: 'tutu@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -201,7 +200,7 @@ const billUserList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
-    local: { email: 'toto2@alenvi.io', password: '123456!eR' },
+    local: { email: 'toto2@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [new ObjectID()],
@@ -545,18 +544,20 @@ const helpersList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await ThirdPartyPayer.create(billThirdPartyPayer);
-  await Service.insertMany(billServices);
-  await Customer.insertMany(billCustomerList.concat(customerFromOtherCompany));
-  await Bill.insertMany([...authBillsList, ...billsList]);
-  await Event.insertMany(eventList);
-  await Helper.insertMany(helpersList);
-  await User.create(billUserList);
-  await CreditNote.create(creditNote);
-  await FundingHistory.create(fundingHistory);
-  await BillNumber.create(billNumbers);
-  await Contract.create(contracts);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([
+    Bill.create([...authBillsList, ...billsList]),
+    BillNumber.create(billNumbers),
+    Contract.create(contracts),
+    CreditNote.create(creditNote),
+    Customer.create(billCustomerList.concat(customerFromOtherCompany)),
+    Event.create(eventList),
+    FundingHistory.create(fundingHistory),
+    Helper.create(helpersList),
+    Service.create(billServices),
+    ThirdPartyPayer.create(billThirdPartyPayer),
+    User.create(billUserList),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {
@@ -571,5 +572,4 @@ module.exports = {
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
   fundingHistory,
-  billNumbers,
 };

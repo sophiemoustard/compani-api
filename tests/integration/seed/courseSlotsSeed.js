@@ -106,11 +106,11 @@ const attendance = { _id: new ObjectID(), trainee: new ObjectID(), courseSlot: c
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await SubProgram.insertMany(subProgramsList);
-  await Program.insertMany(programsList);
-  await Course.insertMany(coursesList);
-  await CourseSlot.insertMany(courseSlotsList);
-  await Step.insertMany(stepsList);
+  await SubProgram.create(subProgramsList);
+  await Program.create(programsList);
+  await Course.create(coursesList);
+  await CourseSlot.create(courseSlotsList);
+  await Step.create(stepsList);
   await User.create(trainer);
   await Attendance.create(attendance);
   await UserCompany.create(userCompanies);

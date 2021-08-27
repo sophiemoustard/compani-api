@@ -21,7 +21,6 @@ const {
   contractEvents,
   otherContract,
   otherContractUser,
-  userFromOtherCompany,
   contractUserCompanies,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
@@ -62,7 +61,7 @@ describe('GET /contracts', () => {
     it('should not return the contracts if user is not from the company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/contracts?user=${userFromOtherCompany._id}`,
+        url: `/contracts?user=${otherContractUser._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -92,11 +91,10 @@ describe('GET /contracts', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const userId = contractsList[0].user;
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/contracts?user=${userId}`,
+          url: `/contracts?user=${contractsList[0].user}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
