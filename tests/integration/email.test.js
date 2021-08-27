@@ -132,5 +132,23 @@ describe('POST emails/send-welcome', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/email/send-welcome',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
   });
 });

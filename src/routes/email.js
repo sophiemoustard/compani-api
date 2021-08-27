@@ -14,6 +14,7 @@ exports.plugin = {
       method: 'POST',
       path: '/send-welcome',
       options: {
+        auth: { scope: ['email:send'] },
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
