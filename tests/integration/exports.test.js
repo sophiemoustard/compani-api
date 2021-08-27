@@ -12,6 +12,11 @@ const {
   SECTOR,
   RUP,
   REFERENT,
+  PAY,
+  PAYMENT,
+  BILL,
+  ABSENCE,
+  WORKING_EVENT,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -35,248 +40,106 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GET /exports/working_event/history', () => {
-  let authToken;
-  describe('COACH', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-    it('should get working events', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-20',
-        headers: { Cookie: `alenvi_token=${authToken}` },
+const historyExportTypes = [
+  {
+    exportType: WORKING_EVENT,
+    expectedRows: [
+      '\ufeff"Type";"Heure interne";"Service";"Début planifié";"Début horodaté";"Type d\'horodatage";"Motif";"Fin planifiée";"Fin horodatée";"Type d\'horodatage";"Motif";"Durée";"Répétition";"Équipe";"Id Auxiliaire";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"',
+      `"Intervention";;"Service 1";"17/01/2019 15:30:19";"17/01/2019 15:35:19";"Manuel";"QR Code manquant";"17/01/2019 17:30:19";"17/01/2019 17:35:19";"QR Code";;"2,00";"Tous les jours";"Etoile";;;;;"Oui";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";;"Non";"Non";;`,
+      `"Heure interne";"planning";;"17/01/2019 15:30:19";;;;"17/01/2019 17:30:19";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";;;;;;"Non";"Non";;`,
+      `"Intervention";;"Service 1";"16/01/2019 10:30:19";;;;"16/01/2019 12:30:21";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative de l'intervenant(e)"`,
+    ],
+    query: 'startDate=2019-01-15&endDate=2019-01-20',
+  },
+  {
+    exportType: ABSENCE,
+    expectedRows: [
+      '\ufeff"Id Auxiliaire";"Auxiliaire - Prénom";"Auxiliaire - Nom";"Auxiliaire - Titre";"Équipe";"Type";"Nature";"Début";"Fin";"Equivalent heures contrat";"Prolongation";"Absence d\'origine";"Divers"',
+      `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Absence injustifiée";"Horaire";"19/01/2019 14:00";"19/01/2019 16:00";"2,00";"non";;"test absence"`,
+      `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Congé";"Journalière";"19/01/2019";"21/01/2019";"4,00";"non";;`,
+    ],
+    query: 'startDate=2019-01-15&endDate=2019-01-21',
+  },
+  {
+    exportType: BILL,
+    expectedRows: [
+      '\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Montant HT en €";"Montant TTC en €";"Nombre d\'heures";"Services";"Date de création"',
+      `"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"M.";"BARDET";"Romain";"${billsList[0].thirdPartyPayer.toHexString()}";"Toto";"72,00";"75,96";"8,00";"Temps de qualité - autonomie - 8,00h - ${formatPrice(billsList[0].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`,
+      `"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"M.";"BARDET";"Romain";;;"96,00";"101,28";"4,00";"Temps de qualité - autonomie - 4,00h - ${formatPrice(billsList[1].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`,
+      `"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"M.";"BARDET";"Romain";"${thirdPartyPayer._id}";"Toto";"110,00";"202,00";;"toto";"${moment().format('DD/MM/YYYY')}"`,
+    ],
+    query: 'startDate=2019-05-25&endDate=2019-05-29',
+  },
+  {
+    exportType: PAYMENT,
+    expectedRows: [
+      '\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Moyen de paiement";"Montant TTC en €"',
+      `"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"220,00"`,
+      `"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"190,00"`,
+    ],
+    query: 'startDate=2019-05-25&endDate=2019-05-31',
+  },
+  {
+    exportType: PAY,
+    expectedRows: [
+      '\ufeff"Id Auxiliaire";"Titre";"Prénom";"Nom";"Equipe";"Date d\'embauche";"Début";"Date de notif";"Motif";"Fin";"Heures contrat";"Heures absences";"Heures à travailler";"Heures travaillées";"Dont exo non majo";"Dont exo et majo";"Détails des majo exo";"Dont non exo et non majo";"Dont non exo et majo";"Détails des majo non exo";"Heures transports";"Solde heures";"Dont diff mois précédent";"Compteur";"Heures sup à payer";"Heures comp à payer";"Mutuelle";"Remboursement transport";"Frais téléphoniques";"Prime";"Indemnité"',
+      `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";;;"31/01/2019";"151,00";"10,00";"30,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"0,00"`,
+      `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";;;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"0,00"`,
+      `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/01/2019";;"31/01/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"10,00"`,
+      `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/02/2019";;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"10,00"`,
+    ],
+    query: 'startDate=2019-01-01&endDate=2019-05-31',
+  },
+];
+
+historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
+  describe(`GET /exports/${exportType}/data`, () => {
+    let authToken;
+    before(populateDB);
+
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result).toBeDefined();
-      const rows = response.result.split('\r\n');
-      expect(rows).toEqual([
-        '\ufeff"Type";"Heure interne";"Service";"Début planifié";"Début horodaté";"Type d\'horodatage";"Motif";"Fin planifiée";"Fin horodatée";"Type d\'horodatage";"Motif";"Durée";"Répétition";"Équipe";"Id Auxiliaire";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"',
-        `"Intervention";;"Service 1";"17/01/2019 15:30:19";"17/01/2019 15:35:19";"Manuel";"QR Code manquant";"17/01/2019 17:30:19";"17/01/2019 17:35:19";"QR Code";;"2,00";"Tous les jours";"Etoile";;;;;"Oui";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";;"Non";"Non";;`,
-        `"Heure interne";"planning";;"17/01/2019 15:30:19";;;;"17/01/2019 17:30:19";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";;;;;;"Non";"Non";;`,
-        `"Intervention";;"Service 1";"16/01/2019 10:30:19";;;;"16/01/2019 12:30:21";;;;"2,00";;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative de l'intervenant(e)"`,
-      ]);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should get ${exportType}`, async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-17',
+          url: `/exports/${exportType}/history?${query}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(role.expectedCode);
+        expect(response.statusCode).toBe(200);
+        expect(response.result).toBeDefined();
+
+        const rows = response.result.split('\r\n');
+        expect(rows.length).toBe(expectedRows.length);
+
+        for (let i = 0; i < rows.length; i++) {
+          expect(expectedRows.some(er => er === rows[i])).toBeTruthy();
+        }
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'auxiliary', expectedCode: 403 }];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/exports/${exportType}/data`,
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
     });
   });
 });
 
-describe('GET /exports/absence/history', () => {
-  let authToken;
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('client_admin');
-    });
-    it('should get absences', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/exports/absence/history?startDate=2019-01-15&endDate=2019-01-21',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result).toBeDefined();
-      const rows = response.result.split('\r\n');
-      expect(rows).toEqual([
-        '\ufeff"Id Auxiliaire";"Auxiliaire - Prénom";"Auxiliaire - Nom";"Auxiliaire - Titre";"Équipe";"Type";"Nature";"Début";"Fin";"Equivalent heures contrat";"Prolongation";"Absence d\'origine";"Divers"',
-        `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Absence injustifiée";"Horaire";"19/01/2019 14:00";"19/01/2019 16:00";"2,00";"non";;"test absence"`,
-        `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Congé";"Journalière";"19/01/2019";"21/01/2019";"4,00";"non";;`,
-      ]);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/exports/absence/history?startDate=2019-01-15&endDate=2019-01-17',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('GET /exports/bill/history', () => {
-  let authToken;
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('client_admin');
-    });
-    it('should get bills and credit notes', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/exports/bill/history?startDate=2019-05-25&endDate=2019-05-29',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result).toBeDefined();
-      const rows = response.result.split('\r\n');
-      expect(rows).toEqual([
-        '\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Montant HT en €";"Montant TTC en €";"Nombre d\'heures";"Services";"Date de création"',
-        `"Facture";"FACT-1905002";"29/05/2019";"${billsList[0].customer.toHexString()}";"M.";"BARDET";"Romain";"${billsList[0].thirdPartyPayer.toHexString()}";"Toto";"72,00";"75,96";"8,00";"Temps de qualité - autonomie - 8,00h - ${formatPrice(billsList[0].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`,
-        `"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"M.";"BARDET";"Romain";;;"96,00";"101,28";"4,00";"Temps de qualité - autonomie - 4,00h - ${formatPrice(billsList[1].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`,
-        `"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"M.";"BARDET";"Romain";"${thirdPartyPayer._id}";"Toto";"110,00";"202,00";;"toto";"${moment().format('DD/MM/YYYY')}"`,
-      ]);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/exports/bill/history?startDate=2019-05-26&endDate=2019-05-29',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('GET /exports/payment/history', () => {
-  let authToken;
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('client_admin');
-    });
-    it('should get payments', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/exports/payment/history?startDate=2019-05-25&endDate=2019-05-31',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result).toBeDefined();
-      const rows = response.result.split('\r\n');
-      expect(rows.length).toBe(3);
-      expect(rows).toEqual([
-        '\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Moyen de paiement";"Montant TTC en €"',
-        `"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"220,00"`,
-        `"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"190,00"`,
-      ]);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/exports/payment/history?startDate=2019-05-25&endDate=2019-05-31',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('GET /exports/pay/history', () => {
-  let authToken;
-  describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('client_admin');
-    });
-    it('should get pay', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/exports/pay/history?startDate=2019-01-01&endDate=2019-05-31',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result).toBeDefined();
-      const rows = response.result.split('\r\n');
-
-      expect(rows.length).toBe(5);
-      expect(rows).toEqual([
-        '\ufeff"Id Auxiliaire";"Titre";"Prénom";"Nom";"Equipe";"Date d\'embauche";"Début";"Date de notif";"Motif";"Fin";"Heures contrat";"Heures absences";"Heures à travailler";"Heures travaillées";"Dont exo non majo";"Dont exo et majo";"Détails des majo exo";"Dont non exo et non majo";"Dont non exo et majo";"Détails des majo non exo";"Heures transports";"Solde heures";"Dont diff mois précédent";"Compteur";"Heures sup à payer";"Heures comp à payer";"Mutuelle";"Remboursement transport";"Frais téléphoniques";"Prime";"Indemnité"',
-        `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";;;"31/01/2019";"151,00";"10,00";"30,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"0,00"`,
-        `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";;;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"0,00"`,
-        `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/01/2019";;"31/01/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"10,00"`,
-        `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/02/2019";;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"0,00";"0,00";"10,00"`,
-      ]);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/exports/pay/history?startDate=2019-01-01&endDate=2019-05-31',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-const exportTypes = [
+const dataExportTypes = [
   {
     exportType: SERVICE,
     expectedRows: [
@@ -363,7 +226,7 @@ const exportTypes = [
   },
 ];
 
-exportTypes.forEach(({ exportType, expectedRows }) => {
+dataExportTypes.forEach(({ exportType, expectedRows }) => {
   describe(`GET /exports/${exportType}/data`, () => {
     let authToken;
     before(populateDB);
@@ -382,11 +245,12 @@ exportTypes.forEach(({ exportType, expectedRows }) => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
+
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
 
         for (let i = 0; i < rows.length; i++) {
-          expect(rows[i]).toEqual(expectedRows[i]);
+          expect(expectedRows.some(er => er === rows[i])).toBeTruthy();
         }
       });
     });
