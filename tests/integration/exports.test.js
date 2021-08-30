@@ -116,7 +116,7 @@ historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
         expect(rows.length).toBe(expectedRows.length);
 
         for (let i = 0; i < expectedRows.length; i++) {
-          expect(rows.some(er => er === expectedRows[i])).toBeTruthy();
+          expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
         }
       });
     });
@@ -254,7 +254,7 @@ dataExportTypes.forEach(({ exportType, expectedRows }) => {
         expect(rows.length).toBe(expectedRows.length);
 
         for (let i = 0; i < expectedRows.length; i++) {
-          expect(rows.some(er => er === expectedRows[i])).toBeTruthy();
+          expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
         }
       });
     });

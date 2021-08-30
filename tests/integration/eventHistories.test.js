@@ -37,7 +37,7 @@ describe('GET /eventhistories', () => {
   });
 
   it('should return a list of event histories from auxiliaries ids', async () => {
-    const auxiliaryIds = [auxiliaries[0]._id.toHexString(), auxiliaries[1]._id.toHexString()];
+    const auxiliaryIds = [auxiliaries[0]._id, auxiliaries[1]._id];
     const response = await app.inject({
       method: 'GET',
       url: `/eventhistories?auxiliaries=${auxiliaryIds[0]}&auxiliaries=${auxiliaryIds[1]}`,
@@ -47,12 +47,12 @@ describe('GET /eventhistories', () => {
     expect(response.statusCode).toEqual(200);
     expect(response.result.data.eventHistories).toBeDefined();
     response.result.data.eventHistories.forEach((history) => {
-      expect(history.auxiliaries.every(aux => auxiliaryIds.includes(aux._id.toHexString()))).toBeTruthy();
+      expect(history.auxiliaries.every(aux => UtilsHelper.doesArrayIncludeId(auxiliaryIds, aux._id))).toBeTruthy();
     });
   });
 
   it('should return a list of event histories from sectors ids', async () => {
-    const sectorIds = sectors.map(s => s._id.toHexString());
+    const sectorIds = sectors.map(s => s._id);
     const response = await app.inject({
       method: 'GET',
       url: `/eventhistories?sectors=${sectorIds[0]}&sectors=${sectorIds[1]}`,
@@ -62,7 +62,7 @@ describe('GET /eventhistories', () => {
     expect(response.statusCode).toEqual(200);
     expect(response.result.data.eventHistories).toBeDefined();
     response.result.data.eventHistories.forEach((history) => {
-      expect(history.sectors.every(sectorId => sectorIds.includes(sectorId.toHexString()))).toBeTruthy();
+      expect(history.sectors.every(sectorId => UtilsHelper.doesArrayIncludeId(sectorIds, sectorId))).toBeTruthy();
     });
   });
 
@@ -84,7 +84,7 @@ describe('GET /eventhistories', () => {
   it('should return a 400 if invalid query', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: `/eventhistories?auxiliary=${auxiliaries[0]._id.toHexString()}`,
+      url: `/eventhistories?auxiliary=${auxiliaries[0]._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
@@ -94,7 +94,7 @@ describe('GET /eventhistories', () => {
   it('should return a 403 if at least one auxiliary is not from the same company', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: `/eventhistories?auxiliaries=${auxiliaryFromOtherCompany._id.toHexString()}`,
+      url: `/eventhistories?auxiliaries=${auxiliaryFromOtherCompany._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
@@ -104,7 +104,7 @@ describe('GET /eventhistories', () => {
   it('should return a 403 if at least one sector is not from the same company', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: `/eventhistories?sectors=${sectorFromOtherCompany._id.toHexString()}`,
+      url: `/eventhistories?sectors=${sectorFromOtherCompany._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 

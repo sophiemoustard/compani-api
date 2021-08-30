@@ -46,7 +46,6 @@ describe('GET /contracts', () => {
 
     it('should return list of contracts', async () => {
       const userId = contractUserCompanies[0].user;
-
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${userId}`,
@@ -695,10 +694,9 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
     });
 
     it('should return a 403 error if versionId is not the last version', async () => {
-      const invalidId = new ObjectID().toHexString();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/contracts/${contractsList[0]._id}/versions/${invalidId}`,
+        url: `/contracts/${contractsList[0]._id}/versions/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -809,8 +807,8 @@ describe('GET /{_id}/gdrive/{driveId}/upload', () => {
         fileName: 'contrat_signe',
         file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedContract',
-        contractId: contractsList[0]._id.toHexString(),
-        versionId: contractsList[0].versions[0]._id.toHexString(),
+        contractId: contractsList[0]._id,
+        versionId: contractsList[0].versions[0]._id,
       };
       const form = generateFormData(payload);
 
@@ -843,8 +841,8 @@ describe('GET /{_id}/gdrive/{driveId}/upload', () => {
           fileName: 'contrat_signe',
           file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
           type: 'signedContract',
-          contractId: contractsList[0]._id.toHexString(),
-          versionId: contractsList[0].versions[0]._id.toHexString(),
+          contractId: contractsList[0]._id,
+          versionId: contractsList[0].versions[0]._id,
         };
         const form = generateFormData(payload);
         const response = await app.inject({

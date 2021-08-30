@@ -30,7 +30,7 @@ describe('PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi', rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id.toHexString()}`,
+        url: `/companies/${company._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -40,11 +40,10 @@ describe('PUT /companies/:id', () => {
     });
 
     it('should return 404 if not found', async () => {
-      const invalidId = new ObjectID();
       const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${invalidId}`,
+        url: `/companies/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -63,7 +62,7 @@ describe('PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi', rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id.toHexString()}`,
+        url: `/companies/${company._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -73,11 +72,10 @@ describe('PUT /companies/:id', () => {
     });
 
     it('should return 403 if not its company', async () => {
-      const invalidId = otherCompany._id.toHexString();
       const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${invalidId}`,
+        url: `/companies/${otherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -98,7 +96,7 @@ describe('PUT /companies/:id', () => {
       it(`should return a 400 error if ${assertion.case}`, async () => {
         const response = await app.inject({
           method: 'PUT',
-          url: `/companies/${company._id.toHexString()}`,
+          url: `/companies/${company._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: assertion.payload,
         });
@@ -121,7 +119,7 @@ describe('PUT /companies/:id', () => {
         const payload = { name: 'SuperTest' };
         const response = await app.inject({
           method: 'PUT',
-          url: `/companies/${company._id.toHexString()}`,
+          url: `/companies/${company._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });

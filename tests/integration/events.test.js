@@ -1414,13 +1414,12 @@ describe('PUT /events/{_id}', () => {
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-02-23T12:00:00.000Z',
-        sector: sectors[0]._id.toHexString(),
+        sector: sectors[0]._id,
       };
-      const invalidId = new ObjectID();
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/events/${invalidId.toHexString()}`,
+        url: `/events/${new ObjectID()}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1696,11 +1695,9 @@ describe('DELETE /events/{_id}', () => {
     });
 
     it('should return a 404 error as event is not found', async () => {
-      const invalidId = new ObjectID();
-
       const response = await app.inject({
         method: 'DELETE',
-        url: `/events/${invalidId.toHexString()}`,
+        url: `/events/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

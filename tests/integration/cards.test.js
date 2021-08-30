@@ -108,7 +108,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
       it(`should update a ${card.template} card`, async () => {
         const response = await app.inject({
           method: 'PUT',
-          url: `/cards/${card.id.toHexString()}`,
+          url: `/cards/${card.id}`,
           payload: card.payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -123,7 +123,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     it('should return a 400 if title is equal to \'\' on transition card', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${transitionId.toHexString()}`,
+        url: `/cards/${transitionId}`,
         payload: { name: '' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -134,7 +134,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     it('should return a 403 when provide a useless canSwitchAnswers field on a non-FillTheGap card', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${transitionId.toHexString()}`,
+        url: `/cards/${transitionId}`,
         payload: { canSwitchAnswers: false },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -145,7 +145,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
     it('should return a 403 when provide a useless isMandatory field on a non-Questionnaire card', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${transitionId.toHexString()}`,
+        url: `/cards/${transitionId}`,
         payload: { isMandatory: false },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -170,7 +170,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         it(`should return a ${request.code} if ${request.msg}`, async () => {
           const response = await app.inject({
             method: 'PUT',
-            url: `/cards/${fillTheGapId.toHexString()}`,
+            url: `/cards/${fillTheGapId}`,
             payload: request.payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -196,7 +196,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         it(`should return a ${request.code} if ${request.msg}`, async () => {
           const response = await app.inject({
             method: 'PUT',
-            url: `/cards/${orderTheSequenceId.toHexString()}`,
+            url: `/cards/${orderTheSequenceId}`,
             payload: request.payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -223,7 +223,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         it(`should return a ${request.code} if ${request.msg}`, async () => {
           const response = await app.inject({
             method: 'PUT',
-            url: `/cards/${singleChoiceQuestionId.toHexString()}`,
+            url: `/cards/${singleChoiceQuestionId}`,
             payload: request.payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -245,7 +245,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         it(`should return a ${request.code} if ${request.msg}`, async () => {
           const response = await app.inject({
             method: 'PUT',
-            url: `/cards/${surveyId.toHexString()}`,
+            url: `/cards/${surveyId}`,
             payload: request.payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -271,7 +271,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         it(`should return a ${request.code} if ${request.msg}`, async () => {
           const response = await app.inject({
             method: 'PUT',
-            url: `/cards/${flashCardId.toHexString()}`,
+            url: `/cards/${flashCardId}`,
             payload: request.payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -296,7 +296,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload,
-          url: `/cards/${transitionId.toHexString()}`,
+          url: `/cards/${transitionId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -316,52 +316,49 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
     });
 
     it('should add a qcAnswer', async () => {
-      const card = cardsList[11];
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
+        url: `/cards/${cardsList[11]._id}/answers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
 
       const cardUpdated = await Card.countDocuments({
-        _id: card._id,
-        qcAnswers: { $size: card.qcAnswers.length + 1 },
+        _id: cardsList[11]._id,
+        qcAnswers: { $size: cardsList[11].qcAnswers.length + 1 },
       });
       expect(cardUpdated).toEqual(1);
     });
 
     it('should add an ordered answer', async () => {
-      const card = cardsList[16];
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
+        url: `/cards/${cardsList[16]._id}/answers`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
 
       const cardUpdated = await Card.countDocuments({
-        _id: card._id,
-        orderedAnswers: { $size: card.orderedAnswers.length + 1 },
+        _id: cardsList[16]._id,
+        orderedAnswers: { $size: cardsList[16].orderedAnswers.length + 1 },
       });
       expect(cardUpdated).toEqual(1);
     });
 
     it('should add an falsy gap answer', async () => {
-      const card = cardsList[5];
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
+        url: `/cards/${cardsList[5]._id}/answers`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
 
       const cardUpdated = await Card.countDocuments({
-        _id: card._id,
-        falsyGapAnswers: { $size: card.falsyGapAnswers.length + 1 },
+        _id: cardsList[5]._id,
+        falsyGapAnswers: { $size: cardsList[5].falsyGapAnswers.length + 1 },
       });
       expect(cardUpdated).toEqual(1);
     });
@@ -369,7 +366,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
     it('should return 404 if invalid card id', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${(new ObjectID()).toHexString()}/answers`,
+        url: `/cards/${(new ObjectID())}/answers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -387,7 +384,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
       it(`should return 403 if ${template.name} with already max answers`, async () => {
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${template.card._id.toHexString()}/answers`,
+          url: `/cards/${template.card._id}/answers`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -396,10 +393,9 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
     });
 
     it('should return 403 if card activity is published', async () => {
-      const card = cardsList[13];
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
+        url: `/cards/${cardsList[13]._id}/answers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -407,10 +403,9 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
     });
 
     it('should return 403 if card questionnaire is published', async () => {
-      const card = cardsList[6];
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${card._id.toHexString()}/answers`,
+        url: `/cards/${cardsList[6]._id}/answers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -430,7 +425,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${cardsList[11]._id.toHexString()}/answers`,
+          url: `/cards/${cardsList[11]._id}/answers`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -455,7 +450,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         payload: { text: 'je suis un texte' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -475,7 +470,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         payload: { text: 'je suis un texte' },
         headers: { 'x-access-token': authToken },
       });
@@ -495,7 +490,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         payload: { text: '', correct: true },
         headers: { 'x-access-token': authToken },
       });
@@ -509,7 +504,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         payload: { text: 'Je suis un text vraiment vraiment vraiment tres tres tres tres tres long', correct: true },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -523,7 +518,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         payload: { correct: null, text: 'Avery' },
         headers: { 'x-access-token': authToken },
       });
@@ -537,7 +532,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -551,7 +546,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${(new ObjectID()).toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${(new ObjectID())}/answers/${answer._id}`,
         payload: { text: 'je suis un texte' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -565,7 +560,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${otherQACard.qcAnswers[0]._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${otherQACard.qcAnswers[0]._id}`,
         payload: { text: 'je suis un texte' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -579,7 +574,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         payload: { correct: false },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -593,7 +588,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         payload: { text: 'invalid char: c\'est tout' },
         headers: { 'x-access-token': authToken },
       });
@@ -618,7 +613,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload: { text: 'je suis un texte' },
-          url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+          url: `/cards/${card._id}/answers/${answer._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -643,7 +638,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -660,7 +655,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -677,7 +672,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${card._id}/answers/${answer._id}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -700,7 +695,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${null}/answers/${answer._id.toHexString()}`,
+        url: `/cards/${null}/answers/${answer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -712,7 +707,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${card._id.toHexString()}/answers/${null}`,
+        url: `/cards/${card._id}/answers/${null}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -723,7 +718,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const publishedCard = cardsList[13];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.qcAnswers[0]._id.toHexString()}`,
+        url: `/cards/${publishedCard._id}/answers/${publishedCard.qcAnswers[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -734,7 +729,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const publishedCard = cardsList[6];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${publishedCard._id.toHexString()}/answers/${publishedCard.qcAnswers[0]._id.toHexString()}`,
+        url: `/cards/${publishedCard._id}/answers/${publishedCard.qcAnswers[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -753,7 +748,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
         const answers = template.card[`${template.key}`];
         const response = await app.inject({
           method: 'DELETE',
-          url: `/cards/${template.card._id.toHexString()}/answers/${answers[0]._id.toHexString()}`,
+          url: `/cards/${template.card._id}/answers/${answers[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -765,8 +760,8 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
       const oneQuestionCard = cardsList[11];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${oneQuestionCard._id.toHexString()}
-          /answers/${oneQuestionCard.qcAnswers[0]._id.toHexString()}`,
+        url: `/cards/${oneQuestionCard._id}
+          /answers/${oneQuestionCard.qcAnswers[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -789,7 +784,7 @@ describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/cards/${card._id.toHexString()}/answers/${answer._id.toHexString()}`,
+          url: `/cards/${card._id}/answers/${answer._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -819,7 +814,6 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
     });
 
     it('should add a card media', async () => {
-      const card = cardsList[0];
       const form = generateFormData({ fileName: 'title_text_media', file: 'true' });
       momentFormat.returns('20200625054512');
       uploadProgramMediaStub.returns({ link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' });
@@ -827,7 +821,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
       const payload = await GetStream(form);
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${card._id}/upload`,
+        url: `/cards/${cardsList[0]._id}/upload`,
         payload,
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -835,7 +829,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
       expect(response.statusCode).toBe(200);
 
       const cardUpdated = await Card
-        .countDocuments({ _id: card._id, media: { link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' } });
+        .countDocuments({ _id: cardsList[0]._id, media: { link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' } });
       expect(cardUpdated).toEqual(1);
       sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'title_text_media', file: 'true' });
     });
@@ -843,11 +837,10 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
     const wrongParams = ['file', 'fileName'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
-        const card = cardsList[0];
         const invalidForm = generateFormData(omit({ fileName: 'title_text_media', file: 'true' }, param));
         const response = await app.inject({
           method: 'POST',
-          url: `/cards/${card._id}/upload`,
+          url: `/cards/${cardsList[0]._id}/upload`,
           payload: await GetStream(invalidForm),
           headers: { ...invalidForm.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
@@ -900,20 +893,20 @@ describe('CARDS ROUTES - DELETE /cards/:id/upload', () => {
     });
 
     it('should delete a card media', async () => {
-      const card = cardsList[1];
       const imageExistsBeforeUpdate = await Card
-        .countDocuments({ _id: card._id, 'media.publicId': { $exists: true } });
+        .countDocuments({ _id: cardsList[1]._id, 'media.publicId': { $exists: true } });
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/cards/${card._id}/upload`,
+        url: `/cards/${cardsList[1]._id}/upload`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnceWithExactly(deleteProgramMediaStub, 'publicId');
 
-      const isPictureDeleted = await Card.countDocuments({ _id: card._id, 'media.publicId': { $exists: false } });
+      const isPictureDeleted = await Card
+        .countDocuments({ _id: cardsList[1]._id, 'media.publicId': { $exists: false } });
       expect(imageExistsBeforeUpdate).toBeTruthy();
       expect(isPictureDeleted).toBeTruthy();
     });

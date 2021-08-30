@@ -420,7 +420,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     it('should update a credit note', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -433,7 +433,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     it('should return a 404 error if credit note does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${new ObjectID().toHexString()}`,
+        url: `/creditNotes/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -444,7 +444,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     it('should return a 403 error if credit not origin is not Compani', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${creditNotesList[1]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -457,7 +457,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -470,7 +470,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -495,7 +495,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -508,17 +508,13 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         customer: creditNoteCustomer._id,
         subscription: {
           _id: otherCompanyCustomer.subscriptions[0]._id,
-          service: {
-            serviceId: new ObjectID(),
-            nature: FIXED,
-            name: 'titi',
-          },
+          service: { serviceId: new ObjectID(), nature: FIXED, name: 'titi' },
           vat: 5.5,
         },
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -537,7 +533,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${creditNotesList[2]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -559,7 +555,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
-          url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+          url: `/creditNotes/${creditNotesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
@@ -582,7 +578,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
     it('should delete a credit note', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
@@ -591,7 +587,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
     it('should return a 404 error if credit does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/creditNotes/${new ObjectID().toHexString()}`,
+        url: `/creditNotes/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(404);
@@ -602,7 +598,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(404);
@@ -611,7 +607,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
     it('should return a 403 error if credit note origin is not COMPANI', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/creditNotes/${creditNotesList[1]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(403);
@@ -620,7 +616,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
     it('should return a 403 error if credit note is not editable', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/creditNotes/${creditNotesList[2]._id.toHexString()}`,
+        url: `/creditNotes/${creditNotesList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(403);
@@ -640,7 +636,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+          url: `/creditNotes/${creditNotesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

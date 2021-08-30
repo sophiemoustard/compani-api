@@ -310,10 +310,9 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
 
     it('should return a 404 if step does not exist', async () => {
       const payload = { name: 'new activity', type: 'video' };
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${invalidId}/activities`,
+        url: `/steps/${new ObjectID()}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -505,10 +504,9 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
     });
 
     it('should return a 404 if step doesn\'t exist', async () => {
-      const unknownStepId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/steps/${unknownStepId.toHexString()}/activities/${activityId.toHexString()}`,
+        url: `/steps/${new ObjectID()}/activities/${activityId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

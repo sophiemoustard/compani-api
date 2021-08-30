@@ -359,10 +359,9 @@ describe('TAX CERTIFICATES - DELETE /', () => {
     });
 
     it('should throw an error if tax certificate does not exist', async () => {
-      const taxCertificateId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/taxcertificates/${taxCertificateId}`,
+        url: `/taxcertificates/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

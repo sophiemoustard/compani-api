@@ -27,9 +27,7 @@ const administrativeDocumentsList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([
-    AdministrativeDocument.create(administrativeDocumentsList),
-  ]);
+  await Promise.all([AdministrativeDocument.create(administrativeDocumentsList)]);
 };
 
 module.exports = {

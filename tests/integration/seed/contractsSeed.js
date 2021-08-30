@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
-const { DAILY, PAID_LEAVE, INTERNAL_HOUR, ABSENCE, INTERVENTION, WEBAPP } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -9,8 +8,9 @@ const SectorHistory = require('../../../src/models/SectorHistory');
 const Event = require('../../../src/models/Event');
 const Establishment = require('../../../src/models/Establishment');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { DAILY, PAID_LEAVE, INTERNAL_HOUR, ABSENCE, INTERVENTION, WEBAPP } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customer = {

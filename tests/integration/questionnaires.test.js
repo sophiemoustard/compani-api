@@ -608,10 +608,9 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
     });
 
     it('should return a 404 if questionnaire does not exist', async () => {
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/questionnaires/${invalidId}/cards`,
+        url: `/questionnaires/${new ObjectID()}/cards`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });

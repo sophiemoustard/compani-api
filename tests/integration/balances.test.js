@@ -2,6 +2,7 @@ const expect = require('expect');
 const { populateDB, balanceCustomerList, balanceUserList, customerFromOtherCompany } = require('./seed/balanceSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const app = require('../../server');
+const UtilsHelper = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -71,7 +72,7 @@ describe('BALANCES ROUTES - GET /details', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.balances).toBeDefined();
       expect(response.result.data.balances
-        .every(b => b.customer._id.toHexString() === customerId.toHexString())).toBeTruthy();
+        .every(b => UtilsHelper.areObjectIdsEquals(b.customer._id, customerId))).toBeTruthy();
       expect(response.result.data.bills).toBeDefined();
       expect(response.result.data.payments).toBeDefined();
       expect(response.result.data.creditNotes).toBeDefined();
