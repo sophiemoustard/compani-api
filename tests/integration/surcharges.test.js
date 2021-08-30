@@ -13,7 +13,7 @@ describe('NODE ENV', () => {
 });
 
 describe('POST /surcharges', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -146,7 +146,7 @@ describe('POST /surcharges', () => {
 });
 
 describe('GET /surcharges', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -187,7 +187,7 @@ describe('GET /surcharges', () => {
 });
 
 describe('PUT /surcharges/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -268,7 +268,7 @@ describe('PUT /surcharges/:id', () => {
 });
 
 describe('DELETE /surcharges/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');

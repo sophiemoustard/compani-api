@@ -12,7 +12,7 @@ const {
 const { getToken } = require('./helpers/authentication');
 
 describe('GET /stats/customer-follow-up', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -78,7 +78,7 @@ describe('GET /stats/customer-follow-up', () => {
 });
 
 describe('GET /stats/customer-fundings-monitoring', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -135,7 +135,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
 });
 
 describe('GET /stats/all-customers-fundings-monitoring', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -189,7 +189,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
 });
 
 describe('GET /stats/paid-intervention-stats', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -314,7 +314,7 @@ describe('GET /stats/paid-intervention-stats', () => {
 });
 
 describe('GET /stats/customer-duration/sector', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -445,7 +445,7 @@ describe('GET /stats/customer-duration/sector', () => {
 });
 
 describe('GET /stats/internal-billed-hours', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);

@@ -183,7 +183,7 @@ describe('COURSES ROUTES - POST /courses', () => {
 });
 
 describe('COURSES ROUTES - GET /courses', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -310,7 +310,7 @@ describe('COURSES ROUTES - GET /courses', () => {
 });
 
 describe('COURSES ROUTES - GET /courses/{_id}', () => {
-  let authToken = null;
+  let authToken;
   const courseFromAuthCompanyIntra = coursesList[0];
   const courseFromAuthCompanyInterB2b = coursesList[4];
   beforeEach(populateDB);
@@ -437,7 +437,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 });
 
 describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
-  let authToken = null;
+  let authToken;
   const courseFromAuthCompanyIntra = coursesList[0];
   beforeEach(populateDB);
 
@@ -552,7 +552,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/follow-up', () => {
 });
 
 describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINER', () => {
@@ -595,7 +595,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/activities', () => {
 });
 
 describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINER', () => {
@@ -668,7 +668,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
 });
 
 describe('COURSES ROUTES - GET /courses/user', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   it('should return 200 as user is logged in', async () => {
@@ -1607,7 +1607,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
 });
 
 describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
-  let authToken = null;
+  let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
   const traineeId = coach._id;
@@ -1694,7 +1694,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
 });
 
 describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
-  let authToken = null;
+  let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
   beforeEach(populateDB);
@@ -1781,7 +1781,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
 });
 
 describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
-  let authToken = null;
+  let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
 
@@ -1899,7 +1899,7 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
 });
 
 describe('COURSES ROUTES - POST /:_id/accessrules', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -1978,7 +1978,7 @@ describe('COURSES ROUTES - POST /:_id/accessrules', () => {
 });
 
 describe('COURSES ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {

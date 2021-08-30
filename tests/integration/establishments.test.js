@@ -19,7 +19,7 @@ describe('NODE ENV', () => {
 });
 
 describe('ESTABLISHMENTS ROUTES', () => {
-  let authToken = null;
+  let authToken;
   describe('POST /estblishments', () => {
     const payload = {
       name: 'Titi',

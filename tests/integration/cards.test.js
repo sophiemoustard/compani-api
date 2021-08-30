@@ -18,7 +18,7 @@ describe('NODE ENV', () => {
 });
 
 describe('CARDS ROUTES - PUT /cards/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const transitionId = cardsList[0]._id;
   const flashCardId = cardsList[4]._id;
@@ -307,7 +307,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}', () => {
 });
 
 describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -436,7 +436,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
 });
 
 describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -624,7 +624,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 });
 
 describe('CARDS ROUTES - DELETE /cards/{_id}/answers/{answerId}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {

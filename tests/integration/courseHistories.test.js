@@ -12,7 +12,7 @@ describe('NODE ENV', () => {
 });
 
 describe('COURSE HISTORIES ROUTES - GET /coursehistories', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {

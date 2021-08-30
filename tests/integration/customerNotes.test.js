@@ -132,7 +132,7 @@ describe('CUSTOMER NOTES ROUTES - POST /customernotes', () => {
 });
 
 describe('CUSTOMER NOTES ROUTES - GET /customernotes', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('AUXILIARY', () => {

@@ -144,7 +144,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
 });
 
 describe('ATTENDANCES ROUTES - GET /attendances', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -300,7 +300,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
 });
 
 describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {

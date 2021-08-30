@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const blendedSubProgramId = subProgramsList[0]._id;
   const eLearningSubProgramId = subProgramsList[1]._id;
@@ -315,7 +315,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const payload = { name: 'new step', type: 'e_learning' };
 
@@ -408,7 +408,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -502,7 +502,7 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -562,7 +562,7 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {

@@ -18,7 +18,7 @@ describe('NODE ENV', () => {
 });
 
 describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
-  let authToken = null;
+  let authToken;
   let uploadCourseFile;
   describe('TRAINER', () => {
     beforeEach(populateDB);
@@ -194,7 +194,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
 });
 
 describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
-  let authToken = null;
+  let authToken;
 
   describe('TRAINER', () => {
     beforeEach(populateDB);
@@ -276,7 +276,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
 });
 
 describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
-  let authToken = null;
+  let authToken;
   let deleteCourseFile;
 
   describe('TRAINER', () => {

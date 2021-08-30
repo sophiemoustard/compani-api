@@ -15,7 +15,7 @@ describe('NODE ENV', () => {
 });
 
 describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -104,7 +104,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
 });
 
 describe('FINAL PAY ROUTES - POST /finalpay', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const payload = [{
     auxiliary: auxiliary._id,

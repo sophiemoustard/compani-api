@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
 });
 
 describe('BALANCES ROUTES - GET /', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -53,7 +53,7 @@ describe('BALANCES ROUTES - GET /', () => {
 });
 
 describe('BALANCES ROUTES - GET /details', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {

@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
 });
 
 describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -61,7 +61,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
 });
 
 describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -141,7 +141,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
 });
 
 describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {

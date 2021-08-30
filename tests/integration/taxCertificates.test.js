@@ -156,7 +156,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
 });
 
 describe('TAX CERTIFICATES - POST /', () => {
-  let authToken = null;
+  let authToken;
   describe('CLIENT_ADMIN', () => {
     let addStub;
     let addFileStub;
@@ -337,7 +337,7 @@ describe('TAX CERTIFICATES - POST /', () => {
 });
 
 describe('TAX CERTIFICATES - DELETE /', () => {
-  let authToken = null;
+  let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {

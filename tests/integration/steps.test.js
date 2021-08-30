@@ -15,7 +15,7 @@ describe('NODE ENV', () => {
 });
 
 describe('STEPS ROUTES - PUT /steps/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const stepId = stepsList[0]._id;
 
@@ -167,7 +167,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 });
 
 describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const step = stepsList[0];
 
@@ -359,7 +359,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
 });
 
 describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const stepId = stepsList[0]._id;
 
@@ -477,7 +477,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
 });
 
 describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
-  let authToken = null;
+  let authToken;
   const step = stepsList[1];
   const activityId = activitiesList[0]._id;
   beforeEach(populateDB);

@@ -62,7 +62,7 @@ describe('PAY ROUTES - GET /pay/draft', () => {
 });
 
 describe('PAY ROUTES - POST /pay', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const payload = [{
     auxiliary: auxiliaries[0]._id,

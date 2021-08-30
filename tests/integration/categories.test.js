@@ -79,7 +79,7 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
 });
 
 describe('CATEGORIES ROUTES - GET /categories', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -124,7 +124,7 @@ describe('CATEGORIES ROUTES - GET /categories', () => {
 });
 
 describe('CATEGORIES ROUTES - PUT /categories/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -194,7 +194,7 @@ describe('CATEGORIES ROUTES - PUT /categories/{_id}', () => {
 });
 
 describe('CATEGORIES ROUTES - DELETE /categories/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {

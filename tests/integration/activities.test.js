@@ -15,7 +15,7 @@ describe('NODE ENV', () => {
 });
 
 describe('ACTIVITIES ROUTES - GET /activity/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const activityId = activitiesList[0]._id;
 
@@ -38,7 +38,7 @@ describe('ACTIVITIES ROUTES - GET /activity/{_id}', () => {
 });
 
 describe('ACTIVITIES ROUTES - PUT /activity/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -157,7 +157,7 @@ describe('ACTIVITIES ROUTES - PUT /activity/{_id}', () => {
 });
 
 describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const payload = { template: TITLE_TEXT_MEDIA };
 
@@ -250,7 +250,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
 });
 
 describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const draftActivity = activitiesList.find(activity => activity.status === 'draft');
   const publishedActivity = activitiesList.find(activity => activity.status === 'published');

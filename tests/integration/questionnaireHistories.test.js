@@ -20,7 +20,7 @@ describe('NODE ENV', () => {
 });
 
 describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('Logged user', () => {

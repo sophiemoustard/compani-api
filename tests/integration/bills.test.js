@@ -35,7 +35,7 @@ describe('NODE ENV', () => {
 });
 
 describe('BILL ROUTES - GET /bills/drafts', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const query = {
     endDate: new Date('2021-08-31T23:59:59.999Z'),
@@ -105,7 +105,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
 });
 
 describe('BILL ROUTES - POST /bills', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const payload = [
     {
@@ -634,7 +634,7 @@ describe('BILL ROUTES - POST /bills', () => {
 });
 
 describe('BILL ROUTES - GET /bills/pdfs', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {

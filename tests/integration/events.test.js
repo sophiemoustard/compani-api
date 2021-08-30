@@ -52,7 +52,7 @@ describe('NODE ENV', () => {
 });
 
 describe('GET /events', () => {
-  let authToken = null;
+  let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -220,7 +220,7 @@ describe('GET /events', () => {
 });
 
 describe('GET /events/credit-notes', () => {
-  let authToken = null;
+  let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -353,7 +353,7 @@ describe('GET /events/credit-notes', () => {
 });
 
 describe('GET /events/working-stats', () => {
-  let authToken = null;
+  let authToken;
   const startDate = moment('2019-01-17').toDate();
   const endDate = moment('2019-01-20').toDate();
   describe('AUXILIARY', () => {
@@ -423,7 +423,7 @@ describe('GET /events/working-stats', () => {
 });
 
 describe('GET /events/paid-transport', () => {
-  let authToken = null;
+  let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -514,7 +514,7 @@ describe('GET /events/paid-transport', () => {
 });
 
 describe('GET /events/unassigned-hours', () => {
-  let authToken = null;
+  let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -616,7 +616,7 @@ describe('GET /events/unassigned-hours', () => {
 });
 
 describe('POST /events', () => {
-  let authToken = null;
+  let authToken;
   let DatesHelperDayDiff;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
@@ -1224,7 +1224,7 @@ describe('POST /events', () => {
 });
 
 describe('PUT /events/{_id}', () => {
-  let authToken = null;
+  let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -1676,7 +1676,7 @@ describe('PUT /events/{_id}', () => {
 });
 
 describe('DELETE /events/{_id}', () => {
-  let authToken = null;
+  let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -1746,7 +1746,7 @@ describe('DELETE /events/{_id}', () => {
 });
 
 describe('DELETE /events', () => {
-  let authToken = null;
+  let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -1846,7 +1846,7 @@ describe('DELETE /events', () => {
 });
 
 describe('DELETE /{_id}/repetition', () => {
-  let authToken = null;
+  let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {

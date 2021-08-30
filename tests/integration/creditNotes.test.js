@@ -27,7 +27,7 @@ describe('NODE ENV', () => {
 });
 
 describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   const payloadWithEvents = {
@@ -270,7 +270,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 });
 
 describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -328,7 +328,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
 });
 
 describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -401,7 +401,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
 });
 
 describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   let payload = {
@@ -567,7 +567,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 });
 
 describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {

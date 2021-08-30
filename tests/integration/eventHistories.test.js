@@ -18,7 +18,7 @@ describe('NODE ENV', () => {
 });
 
 describe('GET /eventhistories', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('coach');

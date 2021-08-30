@@ -36,7 +36,7 @@ describe('NODE ENV', () => {
 });
 
 describe('GET /contracts', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -104,7 +104,7 @@ describe('GET /contracts', () => {
 });
 
 describe('POST /contracts', () => {
-  let authToken = null;
+  let authToken;
   let generateSignatureRequestStub;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -245,7 +245,7 @@ describe('POST /contracts', () => {
 });
 
 describe('PUT contract/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -368,7 +368,7 @@ describe('PUT contract/:id', () => {
 });
 
 describe('GET contract/:id/dpae', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   describe('COACH', () => {
     beforeEach(async () => {
@@ -418,7 +418,7 @@ describe('GET contract/:id/dpae', () => {
 });
 
 describe('POST contract/:id/versions', () => {
-  let authToken = null;
+  let authToken;
   let generateSignatureRequest;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -535,7 +535,7 @@ describe('POST contract/:id/versions', () => {
 });
 
 describe('PUT contract/:id/versions/:versionId', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -658,7 +658,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
 });
 
 describe('DELETE contracts/:id/versions/:versionId', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -727,7 +727,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
 });
 
 describe('GET contracts/staff-register', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -784,7 +784,7 @@ describe('GET /{_id}/gdrive/{driveId}/upload', () => {
   const fakeDriveId = 'fakeDriveId';
   let addStub;
   let getFileByIdStub;
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     addStub = sinon.stub(Drive, 'add');
@@ -807,8 +807,8 @@ describe('GET /{_id}/gdrive/{driveId}/upload', () => {
         fileName: 'contrat_signe',
         file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedContract',
-        contractId: contractsList[0]._id,
-        versionId: contractsList[0].versions[0]._id,
+        contractId: contractsList[0]._id.toHexString(),
+        versionId: contractsList[0].versions[0]._id.toHexString(),
       };
       const form = generateFormData(payload);
 
@@ -841,8 +841,8 @@ describe('GET /{_id}/gdrive/{driveId}/upload', () => {
           fileName: 'contrat_signe',
           file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
           type: 'signedContract',
-          contractId: contractsList[0]._id,
-          versionId: contractsList[0].versions[0]._id,
+          contractId: contractsList[0]._id.toHexString(),
+          versionId: contractsList[0].versions[0]._id.toHexString(),
         };
         const form = generateFormData(payload);
         const response = await app.inject({
