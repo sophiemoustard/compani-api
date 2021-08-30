@@ -18,10 +18,7 @@ const programsList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([
-    Category.create(categoriesList),
-    Program.create(programsList),
-  ]);
+  await Promise.all([Category.create(categoriesList), Program.create(programsList)]);
 };
 
 module.exports = {

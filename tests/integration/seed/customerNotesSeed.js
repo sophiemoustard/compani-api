@@ -55,10 +55,7 @@ const customerNotesList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([
-    Customer.create(customersList),
-    CustomerNote.create(customerNotesList),
-  ]);
+  await Promise.all([Customer.create(customersList), CustomerNote.create(customerNotesList)]);
 };
 
 module.exports = {

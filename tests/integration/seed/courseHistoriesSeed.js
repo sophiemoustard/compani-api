@@ -130,11 +130,7 @@ const courseHistoriesList = [{
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([
-    Course.create(coursesList),
-    CourseHistory.create(courseHistoriesList),
-    User.create(userList),
-  ]);
+  await Promise.all([Course.create(coursesList), CourseHistory.create(courseHistoriesList), User.create(userList)]);
 };
 
 module.exports = {

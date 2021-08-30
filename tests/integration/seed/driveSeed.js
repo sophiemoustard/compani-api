@@ -25,10 +25,7 @@ const userCompany = { _id: new ObjectID(), user: auxiliary._id, company: authCom
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([
-    User.create(auxiliary),
-    UserCompany.create(userCompany),
-  ]);
+  await Promise.all([User.create(auxiliary), UserCompany.create(userCompany)]);
 };
 
 module.exports = { populateDB, auxiliary };

@@ -69,10 +69,7 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([
-    User.create(emailUsers),
-    UserCompany.create(userCompanies),
-  ]);
+  await Promise.all([User.create(emailUsers), UserCompany.create(userCompanies)]);
 };
 
 module.exports = {
