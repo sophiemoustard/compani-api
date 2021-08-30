@@ -184,10 +184,10 @@ const populateDB = async () => {
 
   await Promise.all([
     Customer.create(customer),
-    Event.insertMany(events),
-    EventHistory.insertMany(eventHistoryList),
+    Event.create(events),
+    EventHistory.create(eventHistoryList),
     Sector.create([...sectors, sectorFromOtherCompany]),
-    UserCompany.insertMany(userCompanies),
+    UserCompany.create(userCompanies),
     User.create(users),
   ]);
 };
