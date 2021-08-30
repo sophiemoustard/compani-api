@@ -10,7 +10,7 @@ describe('NODE ENV', () => {
 });
 
 describe('BILL SLIP ROUTES - GET /', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -54,7 +54,7 @@ describe('BILL SLIP ROUTES - GET /', () => {
 });
 
 describe('BILL SLIP ROUTES - GET /:_id/docx', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {

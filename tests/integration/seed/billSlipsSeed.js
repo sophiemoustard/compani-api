@@ -117,15 +117,16 @@ const billSlipFromAnotherCompany = {
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await ThirdPartyPayer.insertMany(tppList);
-  await BillSlip.insertMany([...billSlipList, billSlipFromAnotherCompany]);
-  await Bill.insertMany(billList);
-  await CreditNote.insertMany(creditNotesList);
+  await Promise.all([
+    Bill.create(billList),
+    BillSlip.create([...billSlipList, billSlipFromAnotherCompany]),
+    CreditNote.create(creditNotesList),
+    ThirdPartyPayer.create(tppList),
+  ]);
 };
 
 module.exports = {
   populateDB,
-  tppList,
   billSlipList,
   billSlipFromAnotherCompany,
 };

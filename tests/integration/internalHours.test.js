@@ -18,7 +18,7 @@ describe('NODE ENV', () => {
 });
 
 describe('POST /internalhours', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -92,7 +92,7 @@ describe('POST /internalhours', () => {
 });
 
 describe('GET /internalhours', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -148,7 +148,7 @@ describe('GET /internalhours', () => {
 });
 
 describe('DELETE /internalhours/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {

@@ -151,7 +151,7 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
 });
 
 describe('CUSTOMER PARTNERS ROUTES - GET /customerpartners', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('AUXILIARY', () => {
@@ -223,7 +223,7 @@ describe('CUSTOMER PARTNERS ROUTES - GET /customerpartners', () => {
 });
 
 describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('AUXILIARY', () => {
@@ -315,7 +315,7 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
 });
 
 describe('CUSTOMER PARTNERS ROUTES - DELETE /customerpartners/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('AUXILIARY', () => {

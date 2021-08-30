@@ -3,11 +3,11 @@ const { v4: uuidv4 } = require('uuid');
 const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { INTERVENTION, MOBILE } = require('../../../src/helpers/constants');
-const UserCompany = require('../../../src/models/UserCompany');
 const { clientAdminRoleId } = require('../../seed/authRolesSeed');
+const { INTERVENTION, MOBILE } = require('../../../src/helpers/constants');
 
 const company = {
   _id: new ObjectID(),
@@ -58,10 +58,12 @@ const userCompany = { _id: new ObjectID(), user: companyClientAdmin._id, company
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Company.create(company);
-  await Event.create(event);
-  await User.create(companyClientAdmin);
-  await UserCompany.create(userCompany);
+  await Promise.all([
+    Company.create(company),
+    Event.create(event),
+    User.create(companyClientAdmin),
+    UserCompany.create(userCompany),
+  ]);
 };
 
 module.exports = { company, companyClientAdmin, populateDB };

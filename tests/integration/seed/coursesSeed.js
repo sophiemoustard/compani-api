@@ -293,19 +293,21 @@ const slots = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await SubProgram.insertMany(subProgramsList);
-  await Program.insertMany(programsList);
-  await Course.insertMany(coursesList);
-  await CourseSlot.insertMany(slots);
-  await User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]);
-  await CourseSmsHistory.create(courseSmsHistory);
-  await Step.create(step);
-  await Activity.insertMany(activitiesList);
-  await Card.insertMany(cardsList);
-  await ActivityHistory.insertMany(activitiesHistory);
-  await UserCompany.insertMany(userCompanies);
-  await Questionnaire.create(questionnaire);
-  await QuestionnaireHistory.create(questionnaireHistory);
+  await Promise.all([
+    Activity.create(activitiesList),
+    ActivityHistory.create(activitiesHistory),
+    Card.create(cardsList),
+    Course.create(coursesList),
+    CourseSlot.create(slots),
+    CourseSmsHistory.create(courseSmsHistory),
+    Program.create(programsList),
+    Questionnaire.create(questionnaire),
+    QuestionnaireHistory.create(questionnaireHistory),
+    Step.create(step),
+    SubProgram.create(subProgramsList),
+    User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

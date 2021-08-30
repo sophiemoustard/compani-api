@@ -13,7 +13,7 @@ describe('NODE ENV', () => {
 });
 
 describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
-  let authToken = null;
+  let authToken;
   const payload = {
     user: userList[1]._id,
     activity: activitiesList[0]._id,
@@ -213,7 +213,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
 });
 
 describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);

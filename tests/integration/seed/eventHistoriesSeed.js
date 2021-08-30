@@ -24,7 +24,7 @@ const users = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Mimi', lastname: 'Mita' },
-    local: { email: 'lili@alenvi.io', password: '123456!eR' },
+    local: { email: 'lili@alenvi.io' },
     role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -32,7 +32,7 @@ const users = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Joséphine', lastname: 'Mita' },
-    local: { email: 'lili2@alenvi.io', password: '123456!eR' },
+    local: { email: 'lili2@alenvi.io' },
     role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -40,7 +40,7 @@ const users = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Bob', lastname: 'Marley' },
-    local: { email: 'lala@alenvi.io', password: '123456!eR' },
+    local: { email: 'lala@alenvi.io' },
     role: { client: clientAdminRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -48,7 +48,7 @@ const users = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'test', lastname: 'Mita' },
-    local: { email: 'otherCompany@alenvi.io', password: '123456!eR' },
+    local: { email: 'otherCompany@alenvi.io' },
     role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -182,12 +182,14 @@ const eventHistoryList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await EventHistory.insertMany(eventHistoryList);
-  await UserCompany.insertMany(userCompanies);
-  await User.create(users);
-  await Customer.create(customer);
-  await Sector.create([...sectors, sectorFromOtherCompany]);
-  await Event.insertMany(events);
+  await Promise.all([
+    Customer.create(customer),
+    Event.create(events),
+    EventHistory.create(eventHistoryList),
+    Sector.create([...sectors, sectorFromOtherCompany]),
+    UserCompany.create(userCompanies),
+    User.create(users),
+  ]);
 };
 
 module.exports = {

@@ -14,7 +14,7 @@ describe('NODE ENV', () => {
 });
 
 describe('POST /services', () => {
-  let authToken = null;
+  let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -104,7 +104,7 @@ describe('POST /services', () => {
 });
 
 describe('GET /services', () => {
-  let authToken = null;
+  let authToken;
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -158,7 +158,7 @@ describe('GET /services', () => {
 });
 
 describe('PUT /services/:id', () => {
-  let authToken = null;
+  let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -272,7 +272,7 @@ describe('PUT /services/:id', () => {
 });
 
 describe('DELETE /services/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');

@@ -18,12 +18,10 @@ const programsList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Category.insertMany(categoriesList);
-  await Program.insertMany(programsList);
+  await Promise.all([Category.create(categoriesList), Program.create(programsList)]);
 };
 
 module.exports = {
   populateDB,
   categoriesList,
-  programsList,
 };

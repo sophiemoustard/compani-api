@@ -21,7 +21,6 @@ const {
   contractEvents,
   otherContract,
   otherContractUser,
-  userFromOtherCompany,
   contractUserCompanies,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
@@ -37,7 +36,7 @@ describe('NODE ENV', () => {
 });
 
 describe('GET /contracts', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -47,7 +46,6 @@ describe('GET /contracts', () => {
 
     it('should return list of contracts', async () => {
       const userId = contractUserCompanies[0].user;
-
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${userId}`,
@@ -62,7 +60,7 @@ describe('GET /contracts', () => {
     it('should not return the contracts if user is not from the company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/contracts?user=${userFromOtherCompany._id}`,
+        url: `/contracts?user=${otherContractUser._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -92,11 +90,10 @@ describe('GET /contracts', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const userId = contractsList[0].user;
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/contracts?user=${userId}`,
+          url: `/contracts?user=${contractsList[0].user}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -107,7 +104,7 @@ describe('GET /contracts', () => {
 });
 
 describe('POST /contracts', () => {
-  let authToken = null;
+  let authToken;
   let generateSignatureRequestStub;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -248,7 +245,7 @@ describe('POST /contracts', () => {
 });
 
 describe('PUT contract/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -371,7 +368,7 @@ describe('PUT contract/:id', () => {
 });
 
 describe('GET contract/:id/dpae', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   describe('COACH', () => {
     beforeEach(async () => {
@@ -421,7 +418,7 @@ describe('GET contract/:id/dpae', () => {
 });
 
 describe('POST contract/:id/versions', () => {
-  let authToken = null;
+  let authToken;
   let generateSignatureRequest;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -538,7 +535,7 @@ describe('POST contract/:id/versions', () => {
 });
 
 describe('PUT contract/:id/versions/:versionId', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -661,7 +658,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
 });
 
 describe('DELETE contracts/:id/versions/:versionId', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -697,10 +694,9 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
     });
 
     it('should return a 403 error if versionId is not the last version', async () => {
-      const invalidId = new ObjectID().toHexString();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/contracts/${contractsList[0]._id}/versions/${invalidId}`,
+        url: `/contracts/${contractsList[0]._id}/versions/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -731,7 +727,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
 });
 
 describe('GET contracts/staff-register', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -788,7 +784,7 @@ describe('GET /{_id}/gdrive/{driveId}/upload', () => {
   const fakeDriveId = 'fakeDriveId';
   let addStub;
   let getFileByIdStub;
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     addStub = sinon.stub(Drive, 'add');

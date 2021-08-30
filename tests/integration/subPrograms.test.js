@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const blendedSubProgramId = subProgramsList[0]._id;
   const eLearningSubProgramId = subProgramsList[1]._id;
@@ -315,7 +315,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const payload = { name: 'new step', type: 'e_learning' };
 
@@ -357,10 +357,9 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
     });
 
     it('should return a 400 if program does not exist', async () => {
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/subprograms/${invalidId}/steps`,
+        url: `/subprograms/${new ObjectID()}/steps`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -409,7 +408,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('VENDOR_ADMIN', () => {
@@ -435,10 +434,9 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
     });
 
     it('should return a 404 if subprogram does not exist', async () => {
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/subprograms/${invalidId}/steps/${subProgramsList[0].steps[0]._id}`,
+        url: `/subprograms/${new ObjectID()}/steps/${subProgramsList[0].steps[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -446,10 +444,9 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
     });
 
     it('should return a 404 if subprogram does not contain step', async () => {
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/subprograms/${subProgramsList[0]._id}/steps/${invalidId}`,
+        url: `/subprograms/${subProgramsList[0]._id}/steps/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -505,7 +502,7 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -565,7 +562,7 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
 });
 
 describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {

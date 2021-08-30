@@ -129,11 +129,7 @@ const balanceCustomerList = [
   },
 ];
 
-const authBillService = {
-  serviceId: new ObjectID(),
-  name: 'Temps de qualité - autonomie',
-  nature: 'hourly',
-};
+const authBillService = { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'hourly' };
 
 const balanceBillList = [
   {
@@ -234,20 +230,20 @@ const customerFromOtherCompany = {
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await ThirdPartyPayer.create(balanceThirdPartyPayer);
-  await Service.insertMany(customerServiceList);
-  await Customer.insertMany(balanceCustomerList.concat(customerFromOtherCompany));
-  await Bill.insertMany(balanceBillList);
-  await Helper.insertMany(helpersList);
-  await UserCompany.insertMany(balanceUserCompanies);
-  await User.create(balanceUserList);
+  await Promise.all([
+    Bill.create(balanceBillList),
+    Customer.create(balanceCustomerList.concat(customerFromOtherCompany)),
+    Helper.create(helpersList),
+    Service.create(customerServiceList),
+    ThirdPartyPayer.create(balanceThirdPartyPayer),
+    User.create(balanceUserList),
+    UserCompany.create(balanceUserCompanies),
+  ]);
 };
 
 module.exports = {
   populateDB,
   balanceCustomerList,
-  balanceBillList,
-  balanceThirdPartyPayer,
   balanceUserList,
   customerFromOtherCompany,
 };

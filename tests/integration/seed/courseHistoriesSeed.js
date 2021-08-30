@@ -1,10 +1,31 @@
 const { ObjectID } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
+const User = require('../../../src/models/User');
 const { authCompany } = require('../../seed/authCompaniesSeed');
-const { vendorAdmin, trainer } = require('../../seed/authUsersSeed');
-const { SLOT_CREATION } = require('../../../src/helpers/constants');
+const { SLOT_CREATION, WEBAPP } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
+
+const userList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'course', lastname: 'Trainer' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainerCourseHistories@alenvi.io', password: '123456!eR' },
+    role: { vendor: trainerRoleId },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'salesrep', lastname: 'noCourse' },
+    refreshToken: uuidv4(),
+    local: { email: 'salerep@compani.fr' },
+    role: { vendor: vendorAdminRoleId },
+    origin: WEBAPP,
+  },
+];
 
 const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [] }];
 
@@ -14,9 +35,9 @@ const coursesList = [{
   company: authCompany._id,
   misc: 'first session',
   type: 'intra',
-  trainer: trainer._id,
+  trainer: userList[0]._id,
   trainees: [],
-  salesRepresentative: vendorAdmin._id,
+  salesRepresentative: userList[1]._id,
 },
 {
   _id: new ObjectID(),
@@ -26,7 +47,7 @@ const coursesList = [{
   type: 'intra',
   trainer: new ObjectID(),
   trainees: [],
-  salesRepresentative: vendorAdmin._id,
+  salesRepresentative: userList[1]._id,
 },
 {
   _id: new ObjectID(),
@@ -34,9 +55,9 @@ const coursesList = [{
   misc: 'inter b2b session',
   type: 'inter_b2b',
   format: 'blended',
-  trainer: trainer._id,
+  trainer: userList[0]._id,
   trainees: [],
-  salesRepresentative: vendorAdmin._id,
+  salesRepresentative: userList[1]._id,
 }];
 
 const courseHistoriesList = [{
@@ -109,12 +130,12 @@ const courseHistoriesList = [{
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Course.insertMany(coursesList);
-  await CourseHistory.insertMany(courseHistoriesList);
+  await Promise.all([Course.create(coursesList), CourseHistory.create(courseHistoriesList), User.create(userList)]);
 };
 
 module.exports = {
   populateDB,
   coursesList,
   courseHistoriesList,
+  userList,
 };

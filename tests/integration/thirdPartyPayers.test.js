@@ -15,7 +15,7 @@ describe('NODE ENV', () => {
 });
 
 describe('THIRD PARTY PAYERS ROUTES', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');

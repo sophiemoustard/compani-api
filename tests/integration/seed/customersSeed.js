@@ -12,10 +12,10 @@ const Payment = require('../../../src/models/Payment');
 const CreditNote = require('../../../src/models/CreditNote');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Helper = require('../../../src/models/Helper');
+const UserCompany = require('../../../src/models/UserCompany');
 const { FIXED, ONCE, HOURLY, WEBAPP, DEATH } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const UserCompany = require('../../../src/models/UserCompany');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const subId = new ObjectID();
@@ -27,7 +27,7 @@ const referentList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
-    local: { email: 'auxiliaryreferent@alenvi.io', password: '123456!eR' },
+    local: { email: 'auxiliaryreferent@alenvi.io' },
     contact: { phone: '0987654321' },
     picture: { publicId: '1234', link: 'test' },
     refreshToken: uuidv4(),
@@ -37,7 +37,7 @@ const referentList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'SuperReferent', lastname: 'Test', title: 'mr' },
-    local: { email: 'auxiliaryreferent2@alenvi.io', password: '123456!eR' },
+    local: { email: 'auxiliaryreferent2@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
@@ -659,7 +659,7 @@ const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Caragua' },
-    local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456!eR' },
+    local: { email: 'helper_for_customer_other_company@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
     origin: WEBAPP,
@@ -792,18 +792,20 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await ThirdPartyPayer.insertMany(customerThirdPartyPayers);
-  await Service.insertMany(customerServiceList);
-  await Customer.insertMany([...customersList, otherCompanyCustomer]);
-  await Event.insertMany(eventList);
-  await ReferentHistory.insertMany(referentHistories);
-  await Helper.insertMany(helpersList);
-  await UserCompany.insertMany(userCompanies);
-  await User.create([...userList, ...referentList]);
-  await Bill.create(bill);
-  await Payment.create(payment);
-  await CreditNote.create(creditNote);
-  await TaxCertificate.create(taxCertificate);
+  await Promise.all([
+    ThirdPartyPayer.create(customerThirdPartyPayers),
+    Service.create(customerServiceList),
+    Customer.create([...customersList, otherCompanyCustomer]),
+    Event.create(eventList),
+    ReferentHistory.create(referentHistories),
+    Helper.create(helpersList),
+    UserCompany.create(userCompanies),
+    User.create([...userList, ...referentList]),
+    Bill.create(bill),
+    Payment.create(payment),
+    CreditNote.create(creditNote),
+    TaxCertificate.create(taxCertificate),
+  ]);
 };
 
 module.exports = {

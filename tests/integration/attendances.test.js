@@ -144,7 +144,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
 });
 
 describe('ATTENDANCES ROUTES - GET /attendances', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -299,8 +299,8 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
   });
 });
 
-describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
-  let authToken = null;
+describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -309,11 +309,10 @@ describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
     });
 
     it('should delete an attendance', async () => {
-      const attendanceId = attendancesList[0]._id;
       const attendanceCount = await Attendance.countDocuments();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${attendanceId.toHexString()}`,
+        url: `/attendances/${attendancesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -324,7 +323,7 @@ describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
     it('should return a 404 if attendance does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${new ObjectID().toHexString()}`,
+        url: `/attendances/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -335,10 +334,9 @@ describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
   describe('Other roles', () => {
     it('should return 200 if courseSlot is from trainer\'s courses', async () => {
       authToken = await getTokenByCredentials(userList[0].local);
-      const attendanceId = attendancesList[0]._id;
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${attendanceId.toHexString()}`,
+        url: `/attendances/${attendancesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -347,10 +345,9 @@ describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
 
     it('should return 403 if courseSlot is not from trainer\'s courses', async () => {
       authToken = await getTokenByCredentials(userList[1].local);
-      const attendanceId = attendancesList[0]._id;
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${attendanceId.toHexString()}`,
+        url: `/attendances/${attendancesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -365,10 +362,9 @@ describe('ATTENDANCE ROUTES - DELETE /attendances/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const attendanceId = attendancesList[0]._id;
         const response = await app.inject({
           method: 'DELETE',
-          url: `/attendances/${attendanceId.toHexString()}`,
+          url: `/attendances/${attendancesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

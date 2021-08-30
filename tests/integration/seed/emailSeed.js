@@ -10,7 +10,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const emailUser = {
   _id: new ObjectID(),
   identity: { firstname: 'emailUser', lastname: 'Test' },
-  local: { email: 'email_user@alenvi.io', password: '123456!eR' },
+  local: { email: 'email_user@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: clientAdminRoleId },
   origin: WEBAPP,
@@ -37,7 +37,7 @@ const coachFromOtherCompany = {
 const trainerFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'Test' },
-  local: { email: 'trainer_email_other_company@alenvi.io', password: '123456!eR' },
+  local: { email: 'trainer_email_other_company@alenvi.io' },
   refreshToken: uuidv4(),
   role: { vendor: trainerRoleId },
   origin: WEBAPP,
@@ -69,8 +69,7 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create(emailUsers);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([User.create(emailUsers), UserCompany.create(userCompanies)]);
 };
 
 module.exports = {

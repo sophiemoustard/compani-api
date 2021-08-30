@@ -26,8 +26,7 @@ describe('POST /gdrive/:id/upload', () => {
   let addFileStub;
   let uploadFileSpy;
   beforeEach(() => {
-    addFileStub = sinon
-      .stub(GDriveStorageHelper, 'addFile')
+    addFileStub = sinon.stub(GDriveStorageHelper, 'addFile')
       .returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
     uploadFileSpy = sinon.spy(DriveHelper, 'uploadFile');
   });
@@ -36,6 +35,7 @@ describe('POST /gdrive/:id/upload', () => {
     addFileStub.restore();
     uploadFileSpy.restore();
   });
+
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {

@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
 });
 
 describe('GET /helpers', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('AUXILIARY', () => {
@@ -79,7 +79,7 @@ describe('GET /helpers', () => {
 });
 
 describe('PUT /helpers/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {

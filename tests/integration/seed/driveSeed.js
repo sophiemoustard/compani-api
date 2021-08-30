@@ -10,7 +10,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const auxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Harry', lastname: 'Potter' },
-  local: { email: 'h@p.com', password: '123456!eR' },
+  local: { email: 'h@p.com' },
   administrative: {
     driveFolder: { driveId: '1234567890' },
     passport: { driveId: '1234567890', link: 'https://test.com/1234567890' },
@@ -25,8 +25,7 @@ const userCompany = { _id: new ObjectID(), user: auxiliary._id, company: authCom
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create(auxiliary);
-  await UserCompany.create(userCompany);
+  await Promise.all([User.create(auxiliary), UserCompany.create(userCompany)]);
 };
 
 module.exports = { populateDB, auxiliary };

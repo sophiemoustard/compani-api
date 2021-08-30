@@ -81,11 +81,13 @@ const userCompanies = [{ _id: new ObjectID(), user: auxiliaryFromOtherCompany._i
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create(auxiliaryFromOtherCompany);
-  await UserCompany.insertMany(userCompanies);
-  await Customer.insertMany(customersList);
-  await Partner.insertMany(partnersList);
-  await CustomerPartner.insertMany(customerPartnersList);
+  await Promise.all([
+    Customer.create(customersList),
+    CustomerPartner.create(customerPartnersList),
+    Partner.create(partnersList),
+    User.create(auxiliaryFromOtherCompany),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

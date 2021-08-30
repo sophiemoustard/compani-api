@@ -833,10 +833,9 @@ describe('GET /users/:id', () => {
     });
 
     it('should return a 404 error if no user found', async () => {
-      const id = new ObjectID();
       const res = await app.inject({
         method: 'GET',
-        url: `/users/${id.toHexString()}`,
+        url: `/users/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1179,10 +1178,9 @@ describe('PUT /users/:id', () => {
     });
 
     it('should return a 404 error if no user found', async () => {
-      const id = new ObjectID().toHexString();
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${id}`,
+        url: `/users/${new ObjectID()}`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1769,10 +1767,9 @@ describe('DELETE /users/:id/upload', () => {
     });
 
     it('should return 404 if invalid user id', async () => {
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${invalidId.toHexString()}/upload`,
+        url: `/users/${new ObjectID()}/upload`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
