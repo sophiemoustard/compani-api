@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const BillingItem = require('../../../src/models/BillingItem');
-const BillingItemHelper = require('../../../src/helpers/billingItems');
+const BillingItemsHelper = require('../../../src/helpers/billingItems');
 
 describe('create', () => {
   let create;
@@ -13,16 +13,17 @@ describe('create', () => {
   });
 
   it('should create a billing item', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const newBillingItem = { name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, vat: 2 };
 
     create.returns(newBillingItem);
 
-    await BillingItemHelper.create(newBillingItem, credentials);
+    await BillingItemsHelper.create(newBillingItem, credentials);
 
     sinon.assert.calledOnceWithExactly(
       create,
-      { name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, vat: 2, company: credentials.company._id }
+      { name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, vat: 2, company: companyId }
     );
   });
 });
@@ -37,12 +38,13 @@ describe('list', () => {
   });
 
   it('should every billing items from user\'s company', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
-    find.returns([{ name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, company: credentials.company._id }]);
+    find.returns([{ name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, company: companyId }]);
 
-    await BillingItemHelper.list(credentials);
+    await BillingItemsHelper.list(credentials);
 
-    sinon.assert.calledOnceWithExactly(find, { company: credentials.company._id });
+    sinon.assert.calledOnceWithExactly(find, { company: companyId });
   });
 });

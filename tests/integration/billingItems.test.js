@@ -4,6 +4,7 @@ const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
 const { populateDB } = require('./seed/billingItemsSeed');
 const BillingItem = require('../../src/models/BillingItem');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -30,13 +31,13 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const createdBillingItem = await BillingItem.countDocuments({ name: 'Billing Jean' });
+      const createdBillingItem = await BillingItem.countDocuments({ name: 'Billing Jean', company: authCompany._id });
       expect(createdBillingItem).toBe(1);
     });
 
     const missingParams = ['name', 'type', 'defaultUnitAmount'];
     missingParams.forEach((param) => {
-      it(`should return a 400 error if '${param}' payload is missing`, async () => {
+      it(`should return a 400 error if '${param}' is missing in payload`, async () => {
         const payload = omit({ name: 'Billing Elliot', type: 'manual', defaultUnitAmount: 25, vat: 2 }, [param]);
 
         const response = await app.inject({
@@ -48,6 +49,17 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
 
         expect(response.statusCode).toBe(400);
       });
+    });
+
+    it('should return a 400 if type is invalid', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/billingitems',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'Billing Murray', type: 'skusku', defaultUnitAmount: 25, vat: 2 },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 409 if a billing item with same name exist for company', async () => {
@@ -103,7 +115,7 @@ describe('BILLING ITEMS ROUTES - GET /billingitems', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data).toHaveLength(1);
+      expect(response.result.data.billingItems).toHaveLength(1);
     });
   });
 
