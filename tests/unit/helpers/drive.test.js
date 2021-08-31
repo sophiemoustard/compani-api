@@ -31,7 +31,7 @@ describe('downloadFile', () => {
     const date = new Date('2020-01-06');
     const fakeDate = sinon.useFakeTimers(date);
     const downloadFileByIdStub = sinon.stub(Drive, 'downloadFileById');
-    downloadFileByIdStub.returns('image/png');
+    downloadFileByIdStub.returns({ type: 'image/png' });
     const filePath = path.join(os.tmpdir(), `download-${date.getTime()}`);
     const driveId = '1234567890';
 
