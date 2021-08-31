@@ -75,8 +75,9 @@ const generateDocxFromDrive = async (req, h) => {
 
 const downloadFile = async (req, h) => {
   try {
-    const filePath = await DriveHelper.downloadFile(req.params.id);
-    return h.file(filePath, { confine: false });
+    const { filePath, type } = await DriveHelper.downloadFile(req.params.id);
+
+    return h.file(filePath, { confine: false, mode: 'attachment' }).type(type);
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
