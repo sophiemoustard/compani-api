@@ -326,6 +326,7 @@ module.exports = {
     /* BillingItems */
     billingItemCreated: 'Billing item created.',
     billingItemsFound: 'Billing items found.',
+    billingItemsConflict: 'This billing item already exists.',
   },
   'fr-FR': {
     /* Global errors */
@@ -653,5 +654,6 @@ module.exports = {
     /* BillingItems */
     billingItemCreated: 'Article de facturation créé.',
     billingItemsFound: 'Articles de facturation trouvés.',
+    billingItemsConflict: 'Cet article de facturation existe déjà.',
   },
 };

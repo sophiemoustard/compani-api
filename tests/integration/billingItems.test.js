@@ -50,7 +50,7 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
       });
     });
 
-    it('should return a 403 if a billing item with same name exist for company', async () => {
+    it('should return a 409 if a billing item with same name exist for company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/billingitems',
@@ -58,7 +58,7 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
         payload: { name: 'An existing billing', type: 'manual', defaultUnitAmount: 25, vat: 2 },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(409);
     });
   });
 

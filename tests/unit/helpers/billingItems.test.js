@@ -13,21 +13,16 @@ describe('create', () => {
   });
 
   it('should create a billing item', async () => {
-    const newBillingItem = {
-      name: 'name',
-      type: 'intra',
-      defaultUnitAmount: 20,
-      vat: 2,
-      company: new ObjectID(),
-    };
+    const credentials = { company: { _id: new ObjectID() } };
+    const newBillingItem = { name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, vat: 2 };
 
     create.returns(newBillingItem);
 
-    await BillingItemHelper.create(newBillingItem);
+    await BillingItemHelper.create(newBillingItem, credentials);
 
     sinon.assert.calledOnceWithExactly(
       create,
-      { name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, vat: 2, company: newBillingItem.company }
+      { name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, vat: 2, company: credentials.company._id }
     );
   });
 });
@@ -41,7 +36,7 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should create a billing item', async () => {
+  it('should every billing items from user\'s company', async () => {
     const credentials = { company: { _id: new ObjectID() } };
 
     find.returns([{ name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, company: credentials.company._id }]);
