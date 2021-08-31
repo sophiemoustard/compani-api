@@ -17,6 +17,6 @@ exports.uploadFile = async (driveId, docPayload) => {
 exports.downloadFile = async (driveId) => {
   const now = new Date();
   const filePath = path.join(os.tmpdir(), `download-${now.getTime()}`);
-  const type = await drive.downloadFileById({ fileId: driveId, tmpFilePath: filePath });
+  const { type } = await drive.downloadFileById({ fileId: driveId, tmpFilePath: filePath });
   return { filePath, type };
 };
