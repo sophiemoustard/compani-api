@@ -419,6 +419,7 @@ const eventList = [
       street: '37 rue de Ponthieu',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
+    transportMode: 'public',
   },
   {
     _id: new ObjectID(),

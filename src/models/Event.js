@@ -30,7 +30,7 @@ const {
   NOT_INVOICED_AND_NOT_PAID,
   PRIVATE_TRANSPORT,
   COMPANY_TRANSPORT,
-  PUBLIC_TRANSPORT
+  PUBLIC_TRANSPORT,
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
