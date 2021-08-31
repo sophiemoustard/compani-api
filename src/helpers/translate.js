@@ -323,6 +323,8 @@ module.exports = {
     customerPartnerAlreadyExists: 'Customer partner already exists.',
     customerPartnerUpdated: 'Customer partner updated.',
     customerPartnerRemoved: 'Customer partner removed.',
+    /* BillingItems */
+    billingItemCreated: 'Billing item created.',
   },
   'fr-FR': {
     /* Global errors */
@@ -453,7 +455,7 @@ module.exports = {
     eventsNotFound: 'Evènements non trouvés.',
     eventNotFound: 'Evènement non trouvé.',
     eventsFound: 'Evènement trouvé.',
-    eventCreated: 'Evènement crée.',
+    eventCreated: 'Evènement créé.',
     eventUpdated: 'Evènement mis à jour.',
     eventDeleted: 'Evènement supprimé.',
     eventsDeleted: 'Evènements supprimé.',
@@ -495,7 +497,7 @@ module.exports = {
     thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
     /* Bills */
-    billsCreated: 'Factures crées.',
+    billsCreated: 'Factures créées.',
     draftBillsCreated: 'Brouillons de facture générés.',
     billsFound: 'Factures trouvés.',
     billsNotFound: 'Factures non trouvés.',
@@ -627,7 +629,7 @@ module.exports = {
     questionnaireUpdated: 'Questionnaire mis à jour.',
     questionnaireHistoryCreated: 'Historique de questionnaire créé.',
     /* PartnerOrganization */
-    partnerOrganizationCreated: 'Structure partenaire créee.',
+    partnerOrganizationCreated: 'Structure partenaire créée.',
     partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',
     partnerOrganizationsFound: 'Liste des structures partenaires trouvées.',
     partnerOrganizationFound: 'Structure partenaire trouvée.',
@@ -647,5 +649,7 @@ module.exports = {
     customerPartnerAlreadyExists: 'Le/la partenaire existe déjà.',
     customerPartnerUpdated: 'Partenaire mis(e) à jour.',
     customerPartnerRemoved: 'Partenaire supprimé(e).',
+    /* BillingItems */
+    billingItemCreated: 'Article de facturation créé.',
   },
 };

@@ -7,8 +7,9 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const AdministrativeDocument = require('../../../src/models/AdministrativeDocument');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
-const BillNumber = require('../../../src/models/BillNumber');
 const Bill = require('../../../src/models/Bill');
+const BillingItem = require('../../../src/models/BillingItem');
+const BillNumber = require('../../../src/models/BillNumber');
 const BillSlipNumber = require('../../../src/models/BillSlipNumber');
 const BillSlip = require('../../../src/models/BillSlip');
 const Card = require('../../../src/models/Card');
@@ -106,8 +107,9 @@ const deleteNonAuthenticationSeeds = async () => {
     AdministrativeDocument.deleteMany(),
     Attendance.deleteMany(),
     AttendanceSheet.deleteMany(),
-    BillNumber.deleteMany(),
     Bill.deleteMany(),
+    BillingItem.deleteMany(),
+    BillNumber.deleteMany(),
     BillSlipNumber.deleteMany(),
     BillSlip.deleteMany(),
     Card.deleteMany(),

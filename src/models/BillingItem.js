@@ -12,3 +12,4 @@ const BillingItemSchema = mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('BillingItem', BillingItemSchema);
+module.exports.BILLING_ITEM_TYPES = BILLING_ITEM_TYPES;
