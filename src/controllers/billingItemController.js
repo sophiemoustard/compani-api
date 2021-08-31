@@ -15,4 +15,15 @@ const create = async (req) => {
   }
 };
 
-module.exports = { create };
+const list = async (req) => {
+  try {
+    const billingItems = await BillingItemHelper.list(req.auth.credentials);
+
+    return { data: billingItems, message: translate[language].billingItemsFound };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list };

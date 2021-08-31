@@ -325,6 +325,7 @@ module.exports = {
     customerPartnerRemoved: 'Customer partner removed.',
     /* BillingItems */
     billingItemCreated: 'Billing item created.',
+    billingItemsFound: 'Billing items found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -651,5 +652,6 @@ module.exports = {
     customerPartnerRemoved: 'Partenaire supprimé(e).',
     /* BillingItems */
     billingItemCreated: 'Article de facturation créé.',
+    billingItemsFound: 'Articles de facturation trouvés.',
   },
 };

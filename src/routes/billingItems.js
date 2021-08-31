@@ -1,7 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
-const { create } = require('../controllers/billingItemController');
+const { create, list } = require('../controllers/billingItemController');
 const { BILLING_ITEM_TYPES } = require('../models/BillingItem');
 const { authorizeBillingItemCreation } = require('./preHandlers/billingItems');
 
@@ -24,6 +24,15 @@ exports.plugin = {
         pre: [{ method: authorizeBillingItemCreation }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        auth: { scope: ['config:read'] },
+      },
+      handler: list,
     });
   },
 };

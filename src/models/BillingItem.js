@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { MANUAL, PER_INTERVENTION } = require('../helpers/constants');
+const { validateQuery } = require('./preHooks/validate');
 
 const BILLING_ITEM_TYPES = [MANUAL, PER_INTERVENTION];
 
@@ -10,6 +11,8 @@ const BillingItemSchema = mongoose.Schema({
   vat: { type: Number, default: 0 },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
+
+BillingItemSchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('BillingItem', BillingItemSchema);
 module.exports.BILLING_ITEM_TYPES = BILLING_ITEM_TYPES;
