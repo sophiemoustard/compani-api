@@ -228,8 +228,16 @@ module.exports = {
   // TRANSPORT
   PUBLIC_TRANSPORT: 'public',
   PRIVATE_TRANSPORT: 'private',
+  COMPANY_TRANSPORT: 'company_transport',
   TRANSIT: 'transit',
   DRIVING: 'driving',
+  get EVENT_TRANSPORT_MODE_LIST() {
+    return {
+      [this.PUBLIC_TRANSPORT]: 'Transports en commun / À pied',
+      [this.PRIVATE_TRANSPORT]: 'Véhicule personnel',
+      [this.COMPANY_TRANSPORT]: 'Véhicule d\'entreprise',
+    };
+  },
   // PAY
   PAY: 'pay',
   // CONTRACTS
