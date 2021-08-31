@@ -10,6 +10,7 @@ const {
 const app = require('../../server');
 const Pay = require('../../src/models/Pay');
 const { getToken } = require('./helpers/authentication');
+const Utils = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -207,7 +208,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursBalanceDetail.length).toEqual(1);
+      expect(response.result.data.hoursBalanceDetail.length).toEqual(2);
     });
 
     it('should get hours balance details for many sectors', async () => {
@@ -264,7 +265,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should return a 400 if missing month', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectors[0]._id}`,
+        url: `/pay/hours-balance-details?sector=${sectors[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -306,7 +307,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.hoursBalanceDetail.length).toEqual(1);
+      expect(response.result.data.hoursBalanceDetail.length).toEqual(2);
     });
 
     it('should return a 404 if user is not from the same company as auxiliary', async () => {
@@ -360,6 +361,9 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.hoursToWork.length).toEqual(1);
+      expect(response.result.data.hoursToWork.every(htw => Utils.areObjectIdsEquals(htw.sector, sectors[0]._id)))
+        .toBeTruthy();
+      expect(Math.floor(response.result.data.hoursToWork[0].hoursToWork)).toEqual(83);
     });
 
     it('should get relevant hours to work by sector if an auxiliary has changed sector', async () => {
@@ -375,8 +379,8 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
       const newSectorResult = response.result.data.hoursToWork
         .find(res => res.sector.toHexString() === sectors[1]._id.toHexString());
 
-      expect(oldSectorResult.hoursToWork).toEqual(13);
-      expect(newSectorResult.hoursToWork).toEqual(26);
+      expect(Math.floor(oldSectorResult.hoursToWork)).toEqual(56);
+      expect(Math.floor(newSectorResult.hoursToWork)).toEqual(101);
     });
 
     it('should return a 404 if user is not from the same company as sector', async () => {
