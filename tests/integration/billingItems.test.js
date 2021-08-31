@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('BILLING ITEMS ROUTES - POST /billingitems #tag', () => {
+describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -34,7 +34,8 @@ describe('BILLING ITEMS ROUTES - POST /billingitems #tag', () => {
       expect(createdBillingItem).toBe(1);
     });
 
-    ['name', 'type', 'defaultUnitAmount'].forEach((param) => {
+    const missingParams = ['name', 'type', 'defaultUnitAmount'];
+    missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' payload is missing`, async () => {
         const payload = omit({ name: 'Billing Elliot', type: 'manual', defaultUnitAmount: 25, vat: 2 }, [param]);
 
@@ -47,6 +48,17 @@ describe('BILLING ITEMS ROUTES - POST /billingitems #tag', () => {
 
         expect(response.statusCode).toBe(400);
       });
+    });
+
+    it('should return a 403 if a billing item with same name exist for company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/billingitems',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'An existing billing', type: 'manual', defaultUnitAmount: 25, vat: 2 },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

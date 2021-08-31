@@ -3,6 +3,7 @@
 const Joi = require('joi');
 const { create } = require('../controllers/billingItemController');
 const { BILLING_ITEM_TYPES } = require('../models/BillingItem');
+const { authorizeBillingItemCreation } = require('./preHandlers/billingItems');
 
 exports.plugin = {
   name: 'routes-billing-items',
@@ -20,6 +21,7 @@ exports.plugin = {
             vat: Joi.number(),
           }).required(),
         },
+        pre: [{ method: authorizeBillingItemCreation }],
       },
       handler: create,
     });
