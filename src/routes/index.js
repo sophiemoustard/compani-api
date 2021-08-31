@@ -215,4 +215,8 @@ exports.routes = [
     plugin: require('./billingItems'),
     routes: { prefix: '/billingitems' },
   },
+  {
+    plugin: require('./companyLinkRequests'),
+    routes: { prefix: '/companylinkrequests' },
+  },
 ];

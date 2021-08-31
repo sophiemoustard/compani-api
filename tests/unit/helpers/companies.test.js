@@ -75,15 +75,15 @@ describe('list', () => {
   });
 
   it('should return companies', async () => {
-    const companyList = [{ _id: new ObjectID() }];
+    const companyList = [{ _id: new ObjectID(), name: 'Alenvi' }];
     find.returns(SinonMongoose.stubChainedQueries([companyList], ['lean']));
 
-    const result = await CompanyHelper.list({ toto: 'qwerty' });
+    const result = await CompanyHelper.list();
 
     expect(result).toEqual(companyList);
     SinonMongoose.calledWithExactly(
       find,
-      [{ query: 'find', args: [{ toto: 'qwerty' }] }, { query: 'lean', args: [] }]
+      [{ query: 'find', args: [{}, { _id: 1, name: 1 }] }, { query: 'lean', args: [] }]
     );
   });
 });
