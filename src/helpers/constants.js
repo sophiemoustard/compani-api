@@ -225,6 +225,9 @@ module.exports = {
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;
   },
+  // BILING ITEMS
+  MANUAL: 'manual',
+  PER_INTERVENTION: 'per_intervention',
   // TRANSPORT
   PUBLIC_TRANSPORT: 'public',
   PRIVATE_TRANSPORT: 'private',

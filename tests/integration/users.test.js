@@ -240,7 +240,7 @@ describe('POST /users', () => {
 
     const missingParams = ['local.email', 'identity.lastname', 'origin'];
     missingParams.forEach((param) => {
-      it(`should return a 400 error if '${param}' payload is missing`, async () => {
+      it(`should return a 400 error if '${param}' is missing in payload`, async () => {
         const payload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
           local: { email: 'kirk@alenvi.io' },

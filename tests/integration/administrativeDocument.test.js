@@ -100,7 +100,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
     });
 
     ['name', 'file', 'mimeType'].forEach((param) => {
-      it(`should return a 400 error if '${param}' payload is missing`, async () => {
+      it(`should return a 400 error if '${param}' is missing in payload`, async () => {
         const form = generateFormData(omit(payload, [param]));
 
         const response = await app.inject({
