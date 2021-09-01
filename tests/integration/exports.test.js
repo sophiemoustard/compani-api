@@ -93,7 +93,7 @@ const historyExportTypes = [
 ];
 
 historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
-  describe(`GET /exports/${exportType}/data #tag`, () => {
+  describe(`GET /exports/${exportType}/data`, () => {
     let authToken;
     before(populateDB);
 
