@@ -221,6 +221,8 @@ module.exports = {
       [this.CREDIT_NOTE]: 'Avoir',
     };
   },
+  AUTOMATIC: 'automatic',
+  MANUAL: 'manual',
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;

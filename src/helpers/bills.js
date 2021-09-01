@@ -11,7 +11,7 @@ const BillSlipHelper = require('./billSlips');
 const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI } = require('./constants');
+const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC } = require('./constants');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -48,6 +48,7 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
     shouldBeSent: customerBills.shouldBeSent,
+    type: AUTOMATIC,
     company: company._id,
   };
 
@@ -73,6 +74,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
       subscriptions: [],
       netInclTaxes: UtilsHelper.getFixedNumber(tpp.total, 2),
       date: tpp.bills[0].endDate,
+      type: AUTOMATIC,
       company: company._id,
     };
     if (!tpp.bills[0].externalBilling) {
