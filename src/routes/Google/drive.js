@@ -47,15 +47,13 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/file/{id}/download',
-      handler: downloadFile,
       options: {
         validate: {
           params: Joi.object({ id: Joi.string() }),
         },
-        auth: {
-          strategy: 'jwt',
-        },
+        auth: { strategy: 'jwt', mode: 'required' },
       },
+      handler: downloadFile,
     });
 
     server.route({
