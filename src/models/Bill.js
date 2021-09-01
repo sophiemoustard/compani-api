@@ -48,6 +48,17 @@ const BillSchema = mongoose.Schema({
   sentAt: Date,
   shouldBeSent: { type: Boolean, default: false },
   type: { type: String, enum: BILL_TYPES },
+  billingItemList: [{
+    billingItem: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BillingItem',
+      required() { return this.type === MANUAL; },
+    },
+    unitInclTaxes: { type: Number, required() { return this.type === MANUAL; } },
+    count: { type: Number, required() { return this.type === MANUAL; } },
+    inclTaxes: { type: Number, required() { return this.type === MANUAL; } },
+    exclTaxes: { type: Number, required() { return this.type === MANUAL; } },
+  }], // Est-ce suffisant pour rendre la liste obligatoire ?
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 

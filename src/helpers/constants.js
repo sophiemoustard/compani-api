@@ -222,7 +222,6 @@ module.exports = {
     };
   },
   AUTOMATIC: 'automatic',
-  MANUAL: 'manual',
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;
