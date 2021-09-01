@@ -18,7 +18,7 @@ exports.plugin = {
             name: Joi.string().required(),
             type: Joi.string().required().valid(...BILLING_ITEM_TYPES),
             defaultUnitAmount: Joi.number().required(),
-            vat: Joi.number(),
+            vat: Joi.number().required(),
           }).required(),
         },
         pre: [{ method: authorizeBillingItemCreation }],

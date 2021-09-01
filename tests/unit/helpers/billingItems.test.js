@@ -41,7 +41,7 @@ describe('list', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    find.returns([{ name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, company: companyId }]);
+    find.returns([{ name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, company: companyId, vat: 2 }]);
 
     await BillingItemsHelper.list(credentials);
 

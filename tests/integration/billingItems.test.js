@@ -35,7 +35,7 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
       expect(createdBillingItem).toBe(1);
     });
 
-    const missingParams = ['name', 'type', 'defaultUnitAmount'];
+    const missingParams = ['name', 'type', 'defaultUnitAmount', 'vat'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' is missing in payload`, async () => {
         const payload = omit({ name: 'Billing Elliot', type: 'manual', defaultUnitAmount: 25, vat: 2 }, [param]);
