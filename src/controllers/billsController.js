@@ -23,9 +23,9 @@ const draftBillsList = async (req) => {
   }
 };
 
-const createBills = async (req) => {
+const createBillList = async (req) => {
   try {
-    await BillHelper.formatAndCreateBills(req.payload.bills, req.auth.credentials);
+    await BillHelper.formatAndCreateBillList(req.payload.bills, req.auth.credentials);
 
     return { message: translate[language].billsCreated };
   } catch (e) {
@@ -48,4 +48,4 @@ const generateBillPdf = async (req, h) => {
   }
 };
 
-module.exports = { draftBillsList, createBills, generateBillPdf };
+module.exports = { draftBillsList, createBillList, generateBillPdf, createBill };

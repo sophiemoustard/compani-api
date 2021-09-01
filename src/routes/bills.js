@@ -57,7 +57,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/',
+      path: '/list',
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {

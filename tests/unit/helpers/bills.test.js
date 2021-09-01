@@ -1059,7 +1059,7 @@ describe('getBillNumber', () => {
   });
 });
 
-describe('formatAndCreateBills', () => {
+describe('formatAndCreateBillList', () => {
   let updateOneBillNumber;
   let updateManyCreditNote;
   let insertManyBill;
@@ -1161,7 +1161,7 @@ describe('formatAndCreateBills', () => {
     formatCustomerBillsStub.returns(customerBillingInfo);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
 
-    await BillHelper.formatAndCreateBills(billsData, credentials);
+    await BillHelper.formatAndCreateBillList(billsData, credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1238,7 +1238,7 @@ describe('formatAndCreateBills', () => {
     getBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
 
-    await BillHelper.formatAndCreateBills([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
+    await BillHelper.formatAndCreateBillList([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1306,7 +1306,7 @@ describe('formatAndCreateBills', () => {
     getBillNumberStub.returns(number);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
 
-    await BillHelper.formatAndCreateBills([{ ...billsData[0], customerBills: {} }], credentials);
+    await BillHelper.formatAndCreateBillList([{ ...billsData[0], customerBills: {} }], credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1408,7 +1408,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         insertManyBill.throws('insertManyError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateBillList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('insertManyError');
       } finally {
@@ -1428,7 +1428,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateEventsStub.throws('updateEventError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateBillList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateEventError');
       } finally {
@@ -1448,7 +1448,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateFundingHistoriesStub.throws('updateFundingHistoriesError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateBillList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateFundingHistoriesError');
       } finally {
@@ -1468,7 +1468,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateOneBillNumber.throws('updateOneError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateBillList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateOneError');
       } finally {
@@ -1491,7 +1491,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         createBillSlips.throws('createBillSlipsError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateBillList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('createBillSlipsError');
       } finally {

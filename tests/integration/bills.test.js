@@ -104,7 +104,7 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
   });
 });
 
-describe('BILL ROUTES - POST /bills', () => {
+describe('BILL ROUTES - POST /bills/list', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = [
@@ -308,7 +308,7 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should create new bills', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: { bills: payload },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -325,7 +325,7 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should create new bills (2 subscriptions)', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: { bills: payloadWithTwoSubscriptions },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -341,7 +341,7 @@ describe('BILL ROUTES - POST /bills', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: { bills: payload },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -430,7 +430,7 @@ describe('BILL ROUTES - POST /bills', () => {
       ];
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: { bills: draftBillPayload },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -495,7 +495,7 @@ describe('BILL ROUTES - POST /bills', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: { bills: draftBillPayload },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -512,7 +512,7 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should return a 403 error if customer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: { bills: [{ ...payload[0], customer: { ...payload[0].customer, _id: billCustomerList[2]._id } }] },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -523,7 +523,7 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should return a 403 error if third party payer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: {
           bills: [{
             ...payload[0],
@@ -545,7 +545,7 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should return a 403 error if at least one event is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: {
           bills: [{
             ...payload[0],
@@ -575,7 +575,7 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should return a 403 error if at least one bill subscription is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/bills',
+        url: '/bills/list',
         payload: {
           bills: [{
             ...payload[0],
@@ -622,7 +622,7 @@ describe('BILL ROUTES - POST /bills', () => {
         authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'POST',
-          url: '/bills',
+          url: '/bills/list',
           payload: { bills: payload },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });

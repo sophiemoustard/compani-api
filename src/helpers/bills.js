@@ -151,7 +151,7 @@ exports.getBillNumber = async (endDate, companyId) => {
     .lean();
 };
 
-exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
+exports.formatAndCreateBillList = async (groupByCustomerBills, credentials) => {
   const billList = [];
   let eventsToUpdate = {};
   let fundingHistories = {};
