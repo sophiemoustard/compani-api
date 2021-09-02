@@ -239,7 +239,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ trainee: Joi.objectId() }),
+          payload: Joi.object({ trainee: Joi.objectId().required() }),
         },
         pre: [{ method: getCourseTrainee }, { method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
