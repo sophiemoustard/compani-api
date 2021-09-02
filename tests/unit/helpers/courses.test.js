@@ -7,20 +7,19 @@ const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
 const moment = require('moment');
 const Course = require('../../../src/models/Course');
+const User = require('../../../src/models/User');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Drive = require('../../../src/models/Google/Drive');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const CourseHelper = require('../../../src/helpers/courses');
 const SmsHelper = require('../../../src/helpers/sms');
-const UsersHelper = require('../../../src/helpers/users');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
-const EmailHelper = require('../../../src/helpers/email');
 const NotificationHelper = require('../../../src/helpers/notifications');
-const { COURSE_SMS, BLENDED, DRAFT, TRAINEE, E_LEARNING, ON_SITE, WEBAPP } = require('../../../src/helpers/constants');
+const { COURSE_SMS, BLENDED, DRAFT, E_LEARNING, ON_SITE } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
@@ -1242,85 +1241,49 @@ describe('getSMSHistory', () => {
 
 describe('addCourseTrainee', () => {
   let courseUpdateOne;
-  let createUserStub;
-  let updateUserStub;
+  let userFindOne;
   let createHistoryOnTraineeAddition;
   let sendBlendedCourseRegistrationNotification;
-  let sendWelcome;
   beforeEach(() => {
     courseUpdateOne = sinon.stub(Course, 'updateOne');
-    createUserStub = sinon.stub(UsersHelper, 'createUser');
-    updateUserStub = sinon.stub(UsersHelper, 'updateUser');
+    userFindOne = sinon.stub(User, 'findOne');
     createHistoryOnTraineeAddition = sinon.stub(CourseHistoriesHelper, 'createHistoryOnTraineeAddition');
     sendBlendedCourseRegistrationNotification = sinon.stub(
       NotificationHelper,
       'sendBlendedCourseRegistrationNotification'
     );
-    sendWelcome = sinon.stub(EmailHelper, 'sendWelcome');
   });
   afterEach(() => {
     courseUpdateOne.restore();
-    createUserStub.restore();
-    updateUserStub.restore();
+    userFindOne.restore();
     createHistoryOnTraineeAddition.restore();
     sendBlendedCourseRegistrationNotification.restore();
-    sendWelcome.restore();
   });
 
   it('should add a course trainee using existing user', async () => {
-    const user = { _id: new ObjectID(), company: new ObjectID() };
+    const user = { _id: new ObjectID(), formationExpoTokenList: 'ExponentPushToken[bla]' };
     const course = { _id: new ObjectID(), misc: 'Test' };
-    const payload = { local: { email: 'toto@toto.com' } };
+    const payload = { trainee: user._id };
     const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
 
-    await CourseHelper.addCourseTrainee(course._id, payload, user, credentials);
+    userFindOne.returns(user);
+    userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
 
-    sinon.assert.notCalled(createUserStub);
-    sinon.assert.notCalled(updateUserStub);
-    sinon.assert.notCalled(sendWelcome);
+    await CourseHelper.addCourseTrainee(course._id, payload, credentials);
+
     sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainees: user._id } });
+    SinonMongoose.calledWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: user._id }, { formationExpoTokenList: 1 }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(
       createHistoryOnTraineeAddition,
       { course: course._id, traineeId: user._id },
       credentials._id
     );
-    sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, user, course._id);
-  });
-
-  it('should add a course trainee creating new user without role', async () => {
-    const user = { _id: new ObjectID() };
-    const course = { _id: new ObjectID(), misc: 'Test' };
-    const payload = { local: { email: 'toto@toto.com' } };
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
-
-    createUserStub.returns(user);
-
-    await CourseHelper.addCourseTrainee(course._id, payload, null, credentials);
-
-    sinon.assert.notCalled(updateUserStub);
-    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainees: user._id } });
-    sinon.assert.calledOnceWithExactly(
-      createHistoryOnTraineeAddition,
-      { course: course._id, traineeId: user._id },
-      credentials._id
-    );
-    sinon.assert.calledWithExactly(createUserStub, { ...payload, origin: WEBAPP }, credentials);
-    sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, null, course._id);
-    sinon.assert.calledOnceWithExactly(sendWelcome, TRAINEE, payload.local.email);
-  });
-
-  it('should add a course trainee, and update it by adding his company', async () => {
-    const user = { _id: new ObjectID() };
-    const course = { _id: new ObjectID(), misc: 'Test' };
-    const payload = { local: { email: 'toto@toto.com' }, company: new ObjectID() };
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
-
-    await CourseHelper.addCourseTrainee(course._id, payload, user, credentials);
-
-    sinon.assert.notCalled(createUserStub);
-    sinon.assert.notCalled(sendWelcome);
-    sinon.assert.calledWithExactly(updateUserStub, user._id, { company: payload.company }, null);
-    sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainees: user._id } });
     sinon.assert.calledOnceWithExactly(sendBlendedCourseRegistrationNotification, user, course._id);
   });
 });

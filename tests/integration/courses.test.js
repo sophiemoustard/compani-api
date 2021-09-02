@@ -6,7 +6,6 @@ const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const app = require('../../server');
-const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
 const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
@@ -27,7 +26,6 @@ const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
 const {
   noRoleNoCompany,
   coach,
-  auxiliary,
   trainer,
   clientAdmin,
   vendorAdmin,
@@ -37,7 +35,6 @@ const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
-const NodemailerHelper = require('../../src/helpers/nodemailer');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
