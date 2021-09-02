@@ -12,9 +12,7 @@ const userWithAlreadyCompanyLinkRequest = {
   refreshToken: uuidv4(),
   local: { email: 'norolenocompany@alenvi.io', password: 'fdsf5P56D' },
   contact: { phone: '0798640728' },
-  picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
   origin: MOBILE,
-  formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
 };
 
 const companyLinkRequest = {

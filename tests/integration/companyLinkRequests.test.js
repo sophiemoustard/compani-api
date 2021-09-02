@@ -15,10 +15,9 @@ describe('NODE ENV', () => {
 
 describe('POST /companylinkrequests', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('LOGGED USER', () => {
-    beforeEach(populateDB);
-
     it('should create a company link request', async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
 

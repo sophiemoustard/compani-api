@@ -468,6 +468,10 @@ describe('getUser', () => {
             },
           }],
         },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
+        },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -509,6 +513,10 @@ describe('getUser', () => {
             options: { isVendorUser: true, requestingOwnInfos: false },
           }],
         },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
+        },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -549,6 +557,55 @@ describe('getUser', () => {
             match: { company: credentials.company._id },
             options: { isVendorUser: false, requestingOwnInfos: true },
           }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+  });
+
+  it('should return user populating companyLinkRequest', async () => {
+    const userId = new ObjectID();
+    const user = { _id: userId, companyLinkRequest: { company: { _id: new ObjectID(), name: 'Alenvi' } } };
+    const credentials = { _id: userId };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    await UsersHelper.getUser(userId, credentials);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: null },
+            options: { isVendorUser: false, requestingOwnInfos: true },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            select: '-__v -createdAt -updatedAt',
+            match: { company: null },
+            options: { isVendorUser: false, requestingOwnInfos: true },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
@@ -596,6 +653,10 @@ describe('getUser', () => {
               match: { company: credentials.company._id },
               options: { isVendorUser: true, requestingOwnInfos: false },
             }],
+          },
+          {
+            query: 'populate',
+            args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
           },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
         ]
