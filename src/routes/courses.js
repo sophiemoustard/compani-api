@@ -234,7 +234,7 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'POST',
+      method: 'PUT',
       path: '/{_id}/trainees',
       options: {
         validate: {
