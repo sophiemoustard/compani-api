@@ -8,7 +8,7 @@ const DatesHelper = require('./dates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
-exports.list = async () => Questionnaire.find().lean();
+exports.list = async () => Questionnaire.find().populate({ path: 'historiesCount' }).lean();
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })
   .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
