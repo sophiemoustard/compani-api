@@ -6,7 +6,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { MOBILE } = require('../../../src/helpers/constants');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 
-const userWithAlreadyCompanyLinkRequest = {
+const userWithCompanyLinkRequest = {
   _id: new ObjectID(),
   identity: { firstname: 'norole', lastname: 'nocompany' },
   refreshToken: uuidv4(),
@@ -15,19 +15,15 @@ const userWithAlreadyCompanyLinkRequest = {
   origin: MOBILE,
 };
 
-const companyLinkRequest = {
-  _id: new ObjectID(),
-  user: userWithAlreadyCompanyLinkRequest._id,
-  company: authCompany._id,
-};
+const companyLinkRequest = { _id: new ObjectID(), user: userWithCompanyLinkRequest._id, company: authCompany._id };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    User.create(userWithAlreadyCompanyLinkRequest),
+    User.create(userWithCompanyLinkRequest),
     CompanyLinkRequest.create(companyLinkRequest),
   ]);
 };
 
-module.exports = { userWithAlreadyCompanyLinkRequest, populateDB };
+module.exports = { userWithCompanyLinkRequest, populateDB };

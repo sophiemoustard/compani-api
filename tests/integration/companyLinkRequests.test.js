@@ -1,7 +1,7 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { populateDB, userWithAlreadyCompanyLinkRequest } = require('./seed/companyLinkRequestsSeed');
+const { populateDB, userWithCompanyLinkRequest } = require('./seed/companyLinkRequestsSeed');
 const { getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany, noRole } = require('../seed/authUsersSeed');
 const { authCompany } = require('../seed/authCompaniesSeed');
@@ -60,7 +60,7 @@ describe('POST /companylinkrequests', () => {
     });
 
     it('should not create a company link request if user already has a company link request', async () => {
-      authToken = await getTokenByCredentials(userWithAlreadyCompanyLinkRequest.local);
+      authToken = await getTokenByCredentials(userWithCompanyLinkRequest.local);
 
       const response = await app.inject({
         method: 'POST',

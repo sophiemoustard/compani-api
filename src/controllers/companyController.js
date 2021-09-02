@@ -56,7 +56,7 @@ const list = async (req) => {
     const companies = await CompanyHelper.list();
 
     return {
-      message: translate[language].companyCreated,
+      message: translate[language].companiesFound,
       data: { companies },
     };
   } catch (e) {

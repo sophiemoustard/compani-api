@@ -16,9 +16,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({ company: Joi.string().required() }),
         },
-        pre: [
-          { method: authorizeCompanyLinkRequestCreation },
-        ],
+        pre: [{ method: authorizeCompanyLinkRequestCreation }],
       },
       handler: create,
     });

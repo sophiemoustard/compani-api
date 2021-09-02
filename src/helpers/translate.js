@@ -59,6 +59,8 @@ module.exports = {
     uploadNotAllowed: 'Upload not allowed.',
     /* Company */
     companyCreated: 'Company created.',
+    companiesFound: 'Companies found.',
+    companyFound: 'Company found.',
     companyNotFound: 'Company not found.',
     companyExists: 'Company already exists.',
     companyLinkRequestCreated: 'Company link request created.',
@@ -386,6 +388,8 @@ module.exports = {
     uploadNotAllowed: 'Téléchargement non autorisé.',
     /* Company */
     companyCreated: 'Entreprise créée.',
+    companiesFound: 'Entreprises trouvées.',
+    companyFound: 'Entreprise trouvée.',
     companyNotFound: 'Entreprise non trouvée.',
     companyExists: 'Entreprise déjà existante.',
     companyLinkRequestCreated: 'Demande de rattachement à une structure créée.',
