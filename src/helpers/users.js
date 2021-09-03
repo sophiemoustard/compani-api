@@ -133,6 +133,7 @@ exports.getUser = async (userId, credentials) => {
         requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
       },
     })
+    .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
     .lean({ autopopulate: true, virtuals: true });
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
