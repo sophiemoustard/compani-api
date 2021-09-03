@@ -38,12 +38,15 @@ describe('list', () => {
   it('should return questionnaires', async () => {
     const questionnairesList = [{ name: 'test' }, { name: 'test2' }];
 
-    find.returns(SinonMongoose.stubChainedQueries([questionnairesList], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([questionnairesList]));
 
     const result = await QuestionnaireHelper.list();
 
     expect(result).toMatchObject(questionnairesList);
-    SinonMongoose.calledWithExactly(find, [{ query: 'find' }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find' }, { query: 'populate', args: [{ path: 'historiesCount' }] }, { query: 'lean' }]
+    );
   });
 });
 
