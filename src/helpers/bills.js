@@ -204,16 +204,20 @@ exports.formatAndCreateBill = async (payload, credentials) => {
   for (const bi of billingItemList) {
     const bddBillingItem = await BillingItem.findOne({ _id: bi.billingItem }, { vat: 1 }).lean();
     const vat = bddBillingItem.vat * 0.01;
+    const priceWithTaxes = bi.unitInclTaxes * bi.count;
+    const priceWithoutTaxes = (bi.unitInclTaxes / (1 - vat)) * bi.count;
     const billBillingItem = {
       billingItem: bi.billingItem,
       unitInclTaxes: bi.unitInclTaxes,
       count: bi.count,
-      inclTaxes: bi.unitInclTaxes * bi.count,
-      exclTaxes: (bi.unitInclTaxes / (1 - vat)) * bi.count,
+      inclTaxes: parseFloat(priceWithTaxes.toFixed(2)),
+      exclTaxes: parseFloat(priceWithoutTaxes.toFixed(2)),
     };
 
     billBillingItemList.push(billBillingItem);
   }
+
+  // calcul Somme des inclTaxes === netInclTaxes ?
 
   const bill = {
     number,

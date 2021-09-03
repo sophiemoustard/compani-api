@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const Bill = require('../../models/Bill');
+const BillingItem = require('../../models/BillingItem');
 const Customer = require('../../models/Customer');
 const Event = require('../../models/Event');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
@@ -89,6 +90,21 @@ exports.authorizeBillsCreation = async (req) => {
 
   const tppCount = await ThirdPartyPayer.countDocuments({ _id: { $in: [...ids.tppIds] }, company: companyId });
   if (tppCount !== ids.tppIds.size) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeBillCreation = async (req) => {
+  const { credentials } = req.auth;
+  const companyId = credentials.company._id;
+
+  const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
+  if (!customer) throw Boom.forbidden();
+
+  for (const bi of req.payload.billingItemList) {
+    const billingItem = await BillingItem.countDocuments({ _id: bi.billingItem, company: companyId });
+    if (!billingItem) throw Boom.forbidden();
+  }
 
   return null;
 };

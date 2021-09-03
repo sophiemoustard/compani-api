@@ -9,7 +9,13 @@ const {
   createBill,
   generateBillPdf,
 } = require('../controllers/billsController');
-const { getBill, authorizeGetBill, authorizeGetBillPdf, authorizeBillsCreation } = require('./preHandlers/bills');
+const {
+  getBill,
+  authorizeGetBill,
+  authorizeGetBillPdf,
+  authorizeBillsCreation,
+  authorizeBillCreation,
+} = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
@@ -159,6 +165,7 @@ exports.plugin = {
             netInclTaxes: Joi.number().required(),
           }),
         },
+        pre: [{ method: authorizeBillCreation }],
       },
       handler: createBill,
     });
