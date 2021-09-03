@@ -37,6 +37,7 @@ const {
   EVENT_CANCELLATION_REASONS,
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
+  EVENT_TRANSPORT_MODE,
 } = require('../models/Event');
 const {
   getEvent,
@@ -209,6 +210,7 @@ exports.plugin = {
             }),
             isBilled: Joi.boolean(),
             bills: Joi.object(),
+            transportMode: Joi.string().valid(...EVENT_TRANSPORT_MODE),
           })
             .and('startDate', 'endDate')
             .xor('auxiliary', 'sector'),
