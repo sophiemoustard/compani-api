@@ -10,6 +10,7 @@ const BillNumber = require('../../../src/models/BillNumber');
 const CreditNote = require('../../../src/models/CreditNote');
 const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
+const BillingItem = require('../../../src/models/BillingItem');
 const Company = require('../../../src/models/Company');
 const BillHelper = require('../../../src/helpers/bills');
 const BillSlipsHelper = require('../../../src/helpers/billSlips');
@@ -1511,6 +1512,96 @@ describe('formatAndCreateBillList', () => {
         );
       }
     });
+  });
+});
+
+describe('formatAndCreateBill', () => {
+  let getBillNumber;
+  let formatBillNumber;
+  let findOneBillingItem;
+  let updateOneBillNumber;
+  let create;
+  beforeEach(() => {
+    getBillNumber = sinon.stub(BillHelper, 'getBillNumber');
+    formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
+    findOneBillingItem = sinon.stub(BillingItem, 'findOne');
+    updateOneBillNumber = sinon.stub(BillNumber, 'updateOne');
+    create = sinon.stub(Bill, 'create');
+  });
+
+  afterEach(() => {
+    getBillNumber.restore();
+    formatBillNumber.restore();
+    findOneBillingItem.restore();
+    updateOneBillNumber.restore();
+    create.restore();
+  });
+
+  it('should format and create a bill', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId, prefixNumber: '101' } };
+    const billingItemId1 = new ObjectID();
+    const billingItemId2 = new ObjectID();
+    const payload = {
+      customer: new ObjectID(),
+      date: '2021-09-01',
+      billingItemList: [
+        { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
+        { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+      ],
+      netInclTaxes: 50,
+    };
+
+    getBillNumber.returns({ prefix: 'FACT-101', seq: 1 });
+    formatBillNumber.returns('FACT-101092100001');
+    findOneBillingItem.onCall(0).returns(SinonMongoose.stubChainedQueries([{ vat: 10 }], ['lean']));
+    findOneBillingItem.onCall(1).returns(SinonMongoose.stubChainedQueries([{ vat: 25 }], ['lean']));
+
+    await BillHelper.formatAndCreateBill(payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(getBillNumber, '2021-09-01', companyId);
+    sinon.assert.calledOnceWithExactly(formatBillNumber, '101', 'FACT-101', 2);
+    SinonMongoose.calledWithExactly(
+      findOneBillingItem,
+      [{ query: 'findOne', args: [{ _id: billingItemId1 }, { vat: 1 }] }, { query: 'lean' }],
+      0
+    );
+    SinonMongoose.calledWithExactly(
+      findOneBillingItem,
+      [{ query: 'findOne', args: [{ _id: billingItemId2 }, { vat: 1 }] }, { query: 'lean' }],
+      1
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOneBillNumber,
+      { prefix: 'FACT-101', company: companyId }, { $set: { seq: 2 } }
+    );
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        number: 'FACT-101092100001',
+        date: '2021-09-01',
+        customer: payload.customer,
+        netInclTaxes: 50,
+        type: 'manual',
+        billingItemList: [
+          {
+            billingItem: billingItemId1,
+            unitInclTaxes: 10,
+            count: 2,
+            inclTaxes: 10 * 2,
+            exclTaxes: (10 / (1 - 0.1)) * 2,
+          },
+          {
+            billingItem: billingItemId2,
+            unitInclTaxes: 30,
+            count: 1,
+            inclTaxes: 30,
+            exclTaxes: 30 / (1 - 0.25),
+          },
+        ],
+        company: companyId,
+      }
+    );
   });
 });
 
