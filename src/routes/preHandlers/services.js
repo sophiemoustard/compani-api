@@ -1,16 +1,20 @@
 const Boom = require('@hapi/boom');
-const Service = require('../../models/Service');
+const BillingItem = require('../../models/BillingItem');
 const Customer = require('../../models/Customer');
-const translate = require('../../helpers/translate');
-
-const { language } = translate;
+const Service = require('../../models/Service');
 
 const authorizeServiceEdit = async (req) => {
   const serviceId = req.params._id;
   const companyId = req.auth.credentials.company._id;
   const service = await Service.findOne({ _id: serviceId, company: companyId, isArchived: false }).lean();
+  if (!service) throw Boom.forbidden();
 
-  if (!service) throw Boom.notFound(translate[language].serviceNotFound);
+  if (req.payload && req.payload.billingItems) {
+    for (const bi of req.payload.billingItems) {
+      const billingItem = await BillingItem.countDocuments({ _id: bi, company: companyId });
+      if (!billingItem) throw Boom.forbidden();
+    }
+  }
 };
 
 exports.authorizeServicesUpdate = async (req) => {

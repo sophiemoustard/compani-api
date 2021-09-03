@@ -1,6 +1,6 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
-const { servicesList, serviceFromOtherCompany, populateDB } = require('./seed/servicesSeed');
+const { servicesList, serviceFromOtherCompany, populateDB, billingItemList } = require('./seed/servicesSeed');
 const Service = require('../../src/models/Service');
 const app = require('../../server');
 const { HOURLY } = require('../../src/helpers/constants');
@@ -166,7 +166,13 @@ describe('PUT /services/:id', () => {
     });
 
     it('should update service', async () => {
-      const payload = { defaultUnitAmount: 15, name: 'Service bis', startDate: '2019-01-16 17:58:15.519', vat: 12 };
+      const payload = {
+        defaultUnitAmount: 15,
+        name: 'Service bis',
+        startDate: '2019-01-16 17:58:15.519',
+        vat: 12,
+        billingItems: [billingItemList[0]._id],
+      };
       const response = await app.inject({
         method: 'PUT',
         url: `/services/${servicesList[0]._id.toHexString()}`,
@@ -221,7 +227,7 @@ describe('PUT /services/:id', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 404 if service isArchived', async () => {
+    it('should return 403 if service isArchived', async () => {
       const payload = { defaultUnitAmount: 15, startDate: '2019-01-16 17:58:15.519', vat: 12 };
       const response = await app.inject({
         method: 'PUT',
@@ -230,10 +236,10 @@ describe('PUT /services/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 404 error if user is not from the same company', async () => {
+    it('should return a 403 error if user is not from the same company', async () => {
       const payload = { defaultUnitAmount: 15, name: 'Service bis', startDate: '2019-01-16 17:58:15.519', vat: 12 };
       const response = await app.inject({
         method: 'PUT',
@@ -242,7 +248,25 @@ describe('PUT /services/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error some billingItem doesn\'t exists in company', async () => {
+      const payload = {
+        defaultUnitAmount: 15,
+        name: 'Service bis',
+        startDate: '2019-01-16 17:58:15.519',
+        vat: 12,
+        billingItems: [billingItemList[0]._id, billingItemList[1]._id],
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -291,24 +315,24 @@ describe('DELETE /services/:id', () => {
     expect(serviceCount).toBe(3);
   });
 
-  it('should return a 404 error if user is not from the same company', async () => {
+  it('should return a 403 error if user is not from the same company', async () => {
     const response = await app.inject({
       method: 'DELETE',
       url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
-    expect(response.statusCode).toBe(404);
+    expect(response.statusCode).toBe(403);
   });
 
-  it('should return a 404 error if service is archived', async () => {
+  it('should return a 403 error if service is archived', async () => {
     const response = await app.inject({
       method: 'DELETE',
       url: `/services/${servicesList[3]._id.toHexString()}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
-    expect(response.statusCode).toBe(404);
+    expect(response.statusCode).toBe(403);
   });
 
   it('should return a 403 error if service has subscriptions linked', async () => {

@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
+const BillingItem = require('../../../src/models/BillingItem');
 const { HOURLY, FIXED } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -92,11 +93,17 @@ const customer = {
   },
 };
 
+const billingItemList = [
+  { _id: new ObjectID(), name: 'Kill Billing', type: 'manual', defaultUnitAmount: 2, company: authCompany._id, vat: 2 },
+  { _id: new ObjectID(), name: 'Bill', type: 'manual', defaultUnitAmount: 25, company: otherCompany._id, vat: 2 },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Service.insertMany([...servicesList, serviceFromOtherCompany]);
   await Customer.create(customer);
+  await BillingItem.create(billingItemList);
 };
 
-module.exports = { servicesList, populateDB, serviceFromOtherCompany };
+module.exports = { servicesList, populateDB, serviceFromOtherCompany, billingItemList };
