@@ -334,16 +334,16 @@ describe('exportWorkingEventsHistory', () => {
     expect(exportArray).toEqual([
       header,
       ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
-        '20/05/2019 12:00:00', '', '', '', '2,00', 'Une fois par semaine', 'public', 'Girafes - 75',
-        expect.any(ObjectID), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
-        'Oui', 'Non', '', ''],
+        '20/05/2019 12:00:00', '', '', '', '2,00', 'Une fois par semaine', 'Transports en commun / À pied',
+        'Girafes - 75', expect.any(ObjectID), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme',
+        'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
       ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
         '20/05/2019 12:00:00', '20/05/2019 12:03:24', 'Manuel', 'Problème de caméra', '2,00', 'Une fois par semaine',
         '', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
         'Oui', 'Non', '', ''],
       ['Heure interne', 'Formation', '', '20/05/2019 10:00:00', '', '', '', '20/05/2019 12:00:00', '', '', '',
-        '2,00', '', 'company_transport', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'M.', 'HORSEMAN',
-        'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant(e)'],
+        '2,00', '', 'Véhicule d\'entreprise', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'M.',
+        'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant(e)'],
     ]);
   });
 });
