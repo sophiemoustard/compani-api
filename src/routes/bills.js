@@ -5,7 +5,8 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   draftBillsList,
-  createBills,
+  createBillList,
+  createBill,
   generateBillPdf,
 } = require('../controllers/billsController');
 const { getBill, authorizeGetBill, authorizeGetBillPdf, authorizeBillsCreation } = require('./preHandlers/bills');
@@ -138,7 +139,28 @@ exports.plugin = {
         },
         pre: [{ method: authorizeBillsCreation }],
       },
-      handler: createBills,
+      handler: createBillList,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/',
+      options: {
+        auth: { scope: ['bills:edit'] },
+        validate: {
+          payload: Joi.object({
+            customer: Joi.objectId().required(),
+            date: Joi.date().required(),
+            billingItemList: Joi.array().items(Joi.object({
+              billingItem: Joi.objectId().required(),
+              unitInclTaxes: Joi.number().required(),
+              count: Joi.number().required(),
+            })),
+            netInclTaxes: Joi.number().required(),
+          }),
+        },
+      },
+      handler: createBill,
     });
   },
 };

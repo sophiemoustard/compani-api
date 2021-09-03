@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
+const BillingItem = require('../models/BillingItem');
 const Company = require('../models/Company');
 const BillNumber = require('../models/BillNumber');
 const CreditNote = require('../models/CreditNote');
@@ -11,7 +12,7 @@ const BillSlipHelper = require('./billSlips');
 const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC } = require('./constants');
+const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL } = require('./constants');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -189,6 +190,43 @@ exports.formatAndCreateBillList = async (groupByCustomerBills, credentials) => {
     { events: { $elemMatch: { eventId: { $in: Object.keys(eventsToUpdate) } } } },
     { isEditable: false }
   );
+};
+
+exports.formatAndCreateBill = async (payload, credentials) => {
+  const { customer, date, billingItemList, netInclTaxes } = payload;
+  const { company } = credentials;
+
+  const billNumber = await exports.getBillNumber(date, company._id);
+  billNumber.seq += 1;
+  const number = exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq);
+
+  const billBillingItemList = [];
+  for (const bi of billingItemList) {
+    const bddBillingItem = await BillingItem.findOne({ _id: bi.billingItem }, { vat: 1 }).lean();
+    const vat = bddBillingItem.vat * 0.01;
+    const billBillingItem = {
+      billingItem: bi.billingItem,
+      unitInclTaxes: bi.unitInclTaxes,
+      count: bi.count,
+      inclTaxes: bi.unitInclTaxes * bi.count,
+      exclTaxes: (bi.unitInclTaxes / (1 - vat)) * bi.count,
+    };
+
+    billBillingItemList.push(billBillingItem);
+  }
+
+  const bill = {
+    number,
+    date,
+    customer,
+    netInclTaxes,
+    type: MANUAL,
+    billingItemList: billBillingItemList,
+    company: company._id,
+  };
+
+  await BillNumber.updateOne({ prefix: billNumber.prefix, company: company._id }, { $set: { seq: billNumber.seq } });
+  await Bill.create(bill);
 };
 
 exports.getBills = async (query, credentials) => {

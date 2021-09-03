@@ -11,6 +11,7 @@ const {
   WEBAPP,
 } = require('../../../src/helpers/constants');
 const Bill = require('../../../src/models/Bill');
+const BillingItem = require('../../../src/models/BillingItem');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
@@ -541,11 +542,21 @@ const helpersList = [
   { customer: billCustomerList[0]._id, user: billUserList[0]._id, company: authCompany._id, referent: true },
 ];
 
+const billingItemList = [{
+  _id: new ObjectID(),
+  name: 'Billing Joel',
+  type: 'manual',
+  defaultUnitAmount: 12,
+  vat: 15,
+  company: authCompany._id,
+}];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
     Bill.create([...authBillsList, ...billsList]),
+    BillingItem.create(billingItemList),
     BillNumber.create(billNumbers),
     Contract.create(contracts),
     CreditNote.create(creditNote),
@@ -572,4 +583,5 @@ module.exports = {
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
   fundingHistory,
+  billingItemList,
 };

@@ -176,6 +176,7 @@ module.exports = {
     thirdPartyPayerDeleted: 'Company third party payer deleted.',
     /* Bills */
     billsCreated: 'Bills created.',
+    billCreated: 'Bill created.',
     draftBillsCreated: 'Draft bills created.',
     billsFound: 'Bills found.',
     billsNotFound: 'Bills not found.',
@@ -508,6 +509,7 @@ module.exports = {
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
     /* Bills */
     billsCreated: 'Factures créées.',
+    billCreated: 'Facture créée.',
     draftBillsCreated: 'Brouillons de facture générés.',
     billsFound: 'Factures trouvés.',
     billsNotFound: 'Factures non trouvés.',

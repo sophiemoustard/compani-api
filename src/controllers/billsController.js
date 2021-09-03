@@ -30,7 +30,18 @@ const createBillList = async (req) => {
     return { message: translate[language].billsCreated };
   } catch (e) {
     req.log('error', e);
-    if (e.code === 11000) return Boom.conflict();
+    if (e.code === 11000) return Boom.conflict(); // conflit de bill number ?
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const createBill = async (req) => {
+  try {
+    await BillHelper.formatAndCreateBill(req.payload, req.auth.credentials);
+
+    return { message: translate[language].billCreated };
+  } catch (e) {
+    req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };

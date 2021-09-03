@@ -16,6 +16,7 @@ const {
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
   fundingHistory,
+  billingItemList,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const BillHelper = require('../../src/helpers/bills');
@@ -624,6 +625,74 @@ describe('BILL ROUTES - POST /bills/list', () => {
           method: 'POST',
           url: '/bills/list',
           payload: { bills: payload },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('BILL ROUTES - POST /bills', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should create a new bill', async () => {
+      const payload = {
+        customer: billCustomerList[0]._id,
+        date: new Date('2021-09-02T20:00:00Z'),
+        billingItemList: [{
+          billingItem: billingItemList[0]._id,
+          unitExclTaxes: 15,
+          count: 2,
+        }],
+        netInclTaxes: 34.5,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403, erp: true },
+      { name: 'planning_referent', expectedCode: 403, erp: true },
+      { name: 'coach', expectedCode: 403, erp: true },
+      { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403, erp: false },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
+
+        const payload = {
+          customer: new ObjectID(),
+          date: '2021-09-02T20:00:00T',
+          billingItemList: [{
+            billingItem: billingItemList[0]._id,
+            unitExclTaxes: 15,
+            count: 2,
+          }],
+          netInclTaxes: 30,
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/bills',
+          payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
