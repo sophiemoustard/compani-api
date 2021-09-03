@@ -1,7 +1,9 @@
 const sinon = require('sinon');
+const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const CompanyLinkRequestsHelper = require('../../../src/helpers/companyLinkRequests');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('create', () => {
   let create;
@@ -19,5 +21,42 @@ describe('create', () => {
     await CompanyLinkRequestsHelper.create(payload, credentials);
 
     sinon.assert.calledOnceWithExactly(create, { user: credentials._id, company: payload.company });
+  });
+});
+
+describe('list', () => {
+  let find;
+  beforeEach(() => {
+    find = sinon.stub(CompanyLinkRequest, 'find');
+  });
+  afterEach(() => {
+    find.restore();
+  });
+
+  it('should get all company link requests', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const companyLinkRequestList = [
+      { user: new ObjectID(), company: companyId },
+      { user: new ObjectID(), company: companyId },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries([companyLinkRequestList]));
+
+    const result = await CompanyLinkRequestsHelper.list(credentials);
+
+    expect(result).toEqual(companyLinkRequestList);
+
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'user', select: 'identity.lastname identity.firstname local.email picture' }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });

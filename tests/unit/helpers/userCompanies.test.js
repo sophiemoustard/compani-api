@@ -5,19 +5,23 @@ const sinon = require('sinon');
 const UserCompany = require('../../../src/models/UserCompany');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const SinonMongoose = require('../sinonMongoose');
+const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 
 describe('create', () => {
   let findOne;
   let create;
+  let deleteManyCompanyLinkRequest;
 
   beforeEach(() => {
     create = sinon.stub(UserCompany, 'create');
     findOne = sinon.stub(UserCompany, 'findOne');
+    deleteManyCompanyLinkRequest = sinon.stub(CompanyLinkRequest, 'deleteMany');
   });
 
   afterEach(() => {
     create.restore();
     findOne.restore();
+    deleteManyCompanyLinkRequest.restore();
   });
 
   it('should create UserCompany', async () => {
@@ -29,6 +33,7 @@ describe('create', () => {
     await UserCompaniesHelper.create(userId, companyId);
 
     sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId });
+    sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
     SinonMongoose.calledWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
@@ -44,6 +49,7 @@ describe('create', () => {
     await UserCompaniesHelper.create(userId, companyId);
 
     sinon.assert.notCalled(create);
+    sinon.assert.notCalled(deleteManyCompanyLinkRequest);
     SinonMongoose.calledWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
@@ -63,6 +69,7 @@ describe('create', () => {
     } catch (e) {
       expect(e).toEqual(Boom.conflict());
       sinon.assert.notCalled(create);
+      sinon.assert.notCalled(deleteManyCompanyLinkRequest);
       SinonMongoose.calledWithExactly(
         findOne,
         [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]

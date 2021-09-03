@@ -229,7 +229,7 @@ exports.createUser = async (userPayload, credentials) => {
 };
 
 const formatUpdatePayload = async (updatedUser) => {
-  const payload = omit(updatedUser, ['role', 'customer']);
+  const payload = omit(updatedUser, ['role', 'customer', 'sector', 'company']);
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
@@ -249,7 +249,7 @@ exports.updateUser = async (userId, userPayload, credentials) => {
   if (userPayload.company) await UserCompaniesHelper.create(userId, userPayload.company);
 
   if (userPayload.sector) {
-    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
 
   await User.updateOne({ _id: userId }, { $set: flat(payload) });

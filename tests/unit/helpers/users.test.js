@@ -1224,7 +1224,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(omit(payload, 'sector')) });
     sinon.assert.notCalled(createHelper);
     sinon.assert.calledOnceWithExactly(
       updateHistoryOnSectorUpdateStub,
@@ -1262,7 +1262,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(omit(payload, 'company')) });
     sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, payload.company);
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);

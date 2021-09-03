@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 
-const { create } = require('../controllers/companyLinkRequestController');
+const { create, list } = require('../controllers/companyLinkRequestController');
 const { authorizeCompanyLinkRequestCreation } = require('./preHandlers/companyLinkRequests');
 
 exports.plugin = {
@@ -19,6 +19,15 @@ exports.plugin = {
         pre: [{ method: authorizeCompanyLinkRequestCreation }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        auth: { scope: ['companylinkrequests:edit'] },
+      },
+      handler: list,
     });
   },
 };
