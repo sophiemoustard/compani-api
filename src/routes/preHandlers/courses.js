@@ -111,7 +111,7 @@ exports.getCourseTrainee = async (req) => {
 
     const userCompanyQuery = { user: payload.trainee, ...(course.type === INTRA && { company: course.company }) };
     const userCompanyExists = await UserCompany.countDocuments(userCompanyQuery);
-    if (!userCompanyExists) throw Boom.forbidden();
+    if (!userCompanyExists) throw Boom.notFound();
 
     const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
     if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);

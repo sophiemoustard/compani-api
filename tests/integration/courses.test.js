@@ -1309,7 +1309,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 409 if user is already registered to course ', async () => {
@@ -1359,7 +1359,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -1392,7 +1392,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 200 as user is course trainer', async () => {
@@ -1416,7 +1416,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 });
