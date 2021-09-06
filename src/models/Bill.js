@@ -47,7 +47,7 @@ const BillSchema = mongoose.Schema({
   driveFile: driveResourceSchemaDefinition,
   sentAt: Date,
   shouldBeSent: { type: Boolean, default: false },
-  type: { type: String, enum: BILL_TYPES },
+  type: { type: String, enum: BILL_TYPES, required: true, immutable: true },
   billingItemList: [{
     billingItem: {
       type: mongoose.Schema.Types.ObjectId,

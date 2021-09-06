@@ -1061,7 +1061,7 @@ describe('getBillNumber', () => {
   });
 });
 
-describe('formatAndCreateBillList', () => {
+describe('formatAndCreateList', () => {
   let updateOneBillNumber;
   let updateManyCreditNote;
   let insertManyBill;
@@ -1163,7 +1163,7 @@ describe('formatAndCreateBillList', () => {
     formatCustomerBillsStub.returns(customerBillingInfo);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
 
-    await BillHelper.formatAndCreateBillList(billsData, credentials);
+    await BillHelper.formatAndCreateList(billsData, credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1240,7 +1240,7 @@ describe('formatAndCreateBillList', () => {
     getBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
 
-    await BillHelper.formatAndCreateBillList([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
+    await BillHelper.formatAndCreateList([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1308,7 +1308,7 @@ describe('formatAndCreateBillList', () => {
     getBillNumberStub.returns(number);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
 
-    await BillHelper.formatAndCreateBillList([{ ...billsData[0], customerBills: {} }], credentials);
+    await BillHelper.formatAndCreateList([{ ...billsData[0], customerBills: {} }], credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1410,7 +1410,7 @@ describe('formatAndCreateBillList', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         insertManyBill.throws('insertManyError');
 
-        await BillHelper.formatAndCreateBillList(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('insertManyError');
       } finally {
@@ -1430,7 +1430,7 @@ describe('formatAndCreateBillList', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateEventsStub.throws('updateEventError');
 
-        await BillHelper.formatAndCreateBillList(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateEventError');
       } finally {
@@ -1450,7 +1450,7 @@ describe('formatAndCreateBillList', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateFundingHistoriesStub.throws('updateFundingHistoriesError');
 
-        await BillHelper.formatAndCreateBillList(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateFundingHistoriesError');
       } finally {
@@ -1470,7 +1470,7 @@ describe('formatAndCreateBillList', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateOneBillNumber.throws('updateOneError');
 
-        await BillHelper.formatAndCreateBillList(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateOneError');
       } finally {
@@ -1493,7 +1493,7 @@ describe('formatAndCreateBillList', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         createBillSlips.throws('createBillSlipsError');
 
-        await BillHelper.formatAndCreateBillList(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('createBillSlipsError');
       } finally {
@@ -1519,13 +1519,13 @@ describe('formatAndCreateBillList', () => {
 describe('formatAndCreateBill', () => {
   let getBillNumber;
   let formatBillNumber;
-  let findOneBillingItem;
+  let findBillingItem;
   let updateOneBillNumber;
   let create;
   beforeEach(() => {
     getBillNumber = sinon.stub(BillHelper, 'getBillNumber');
     formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
-    findOneBillingItem = sinon.stub(BillingItem, 'findOne');
+    findBillingItem = sinon.stub(BillingItem, 'find');
     updateOneBillNumber = sinon.stub(BillNumber, 'updateOne');
     create = sinon.stub(Bill, 'create');
   });
@@ -1533,7 +1533,7 @@ describe('formatAndCreateBill', () => {
   afterEach(() => {
     getBillNumber.restore();
     formatBillNumber.restore();
-    findOneBillingItem.restore();
+    findBillingItem.restore();
     updateOneBillNumber.restore();
     create.restore();
   });
@@ -1555,22 +1555,17 @@ describe('formatAndCreateBill', () => {
 
     getBillNumber.returns({ prefix: 'FACT-101', seq: 1 });
     formatBillNumber.returns('FACT-101092100001');
-    findOneBillingItem.onCall(0).returns(SinonMongoose.stubChainedQueries([{ vat: 10 }], ['lean']));
-    findOneBillingItem.onCall(1).returns(SinonMongoose.stubChainedQueries([{ vat: 25 }], ['lean']));
+    findBillingItem.returns(
+      SinonMongoose.stubChainedQueries([[{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]], ['lean'])
+    );
 
     await BillHelper.formatAndCreateBill(payload, credentials);
 
     sinon.assert.calledOnceWithExactly(getBillNumber, '2021-09-01', companyId);
     sinon.assert.calledOnceWithExactly(formatBillNumber, '101', 'FACT-101', 2);
     SinonMongoose.calledWithExactly(
-      findOneBillingItem,
-      [{ query: 'findOne', args: [{ _id: billingItemId1 }, { vat: 1 }] }, { query: 'lean' }],
-      0
-    );
-    SinonMongoose.calledWithExactly(
-      findOneBillingItem,
-      [{ query: 'findOne', args: [{ _id: billingItemId2 }, { vat: 1 }] }, { query: 'lean' }],
-      1
+      findBillingItem,
+      [{ query: 'find', args: [{ _id: { $in: [billingItemId1, billingItemId2] } }, { vat: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       updateOneBillNumber,
@@ -1590,14 +1585,14 @@ describe('formatAndCreateBill', () => {
             unitInclTaxes: 10,
             count: 2,
             inclTaxes: 10 * 2,
-            exclTaxes: 22.22,
+            exclTaxes: 18.18181818181818,
           },
           {
             billingItem: billingItemId2,
             unitInclTaxes: 30,
             count: 1,
             inclTaxes: 30,
-            exclTaxes: 40,
+            exclTaxes: 24,
           },
         ],
         company: companyId,

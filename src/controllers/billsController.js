@@ -25,12 +25,12 @@ const draftBillsList = async (req) => {
 
 const createBillList = async (req) => {
   try {
-    await BillHelper.formatAndCreateBillList(req.payload.bills, req.auth.credentials);
+    await BillHelper.formatAndCreateList(req.payload.bills, req.auth.credentials);
 
     return { message: translate[language].billsCreated };
   } catch (e) {
     req.log('error', e);
-    if (e.code === 11000) return Boom.conflict(); // conflit de bill number ?
+    if (e.code === 11000) return Boom.conflict();
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
@@ -42,6 +42,7 @@ const createBill = async (req) => {
     return { message: translate[language].billCreated };
   } catch (e) {
     req.log('error', e);
+    if (e.code === 11000) return Boom.conflict();
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };

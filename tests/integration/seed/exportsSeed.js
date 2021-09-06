@@ -493,6 +493,7 @@ const eventHistoriesList = [
 const billsList = [
   {
     _id: new ObjectID(),
+    type: 'automatic',
     date: '2019-05-29',
     number: 'FACT-1905002',
     company: authCompany._id,
@@ -523,6 +524,7 @@ const billsList = [
   },
   {
     _id: new ObjectID(),
+    type: 'automatic',
     date: '2019-05-25',
     number: 'FACT-1905003',
     company: authCompany._id,

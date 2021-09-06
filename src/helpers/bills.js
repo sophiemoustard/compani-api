@@ -152,7 +152,7 @@ exports.getBillNumber = async (endDate, companyId) => {
     .lean();
 };
 
-exports.formatAndCreateBillList = async (groupByCustomerBills, credentials) => {
+exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
   const billList = [];
   let eventsToUpdate = {};
   let fundingHistories = {};
@@ -197,27 +197,27 @@ exports.formatAndCreateBill = async (payload, credentials) => {
   const { company } = credentials;
 
   const billNumber = await exports.getBillNumber(date, company._id);
-  billNumber.seq += 1;
-  const number = exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq);
+  const seq = billNumber.seq + 1;
+  const number = exports.formatBillNumber(company.prefixNumber, billNumber.prefix, seq);
 
-  const billBillingItemList = [];
-  for (const bi of billingItemList) {
-    const bddBillingItem = await BillingItem.findOne({ _id: bi.billingItem }, { vat: 1 }).lean();
-    const vat = bddBillingItem.vat * 0.01;
+  const bddBillingItemList = await BillingItem.find(
+    { _id: { $in: billingItemList.map(bi => bi.billingItem) } },
+    { vat: 1 }
+  ).lean();
+  const formattedBillingItemList = billingItemList.map((bi) => {
+    const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
+    const vat = bddBillingItem.vat / 100;
     const priceWithTaxes = bi.unitInclTaxes * bi.count;
-    const priceWithoutTaxes = (bi.unitInclTaxes / (1 - vat)) * bi.count;
-    const billBillingItem = {
+    const priceWithoutTaxes = (bi.unitInclTaxes / (1 + vat)) * bi.count;
+
+    return {
       billingItem: bi.billingItem,
       unitInclTaxes: bi.unitInclTaxes,
       count: bi.count,
-      inclTaxes: parseFloat(priceWithTaxes.toFixed(2)),
-      exclTaxes: parseFloat(priceWithoutTaxes.toFixed(2)),
+      inclTaxes: priceWithTaxes,
+      exclTaxes: priceWithoutTaxes,
     };
-
-    billBillingItemList.push(billBillingItem);
-  }
-
-  // calcul Somme des inclTaxes === netInclTaxes ?
+  });
 
   const bill = {
     number,
@@ -225,11 +225,11 @@ exports.formatAndCreateBill = async (payload, credentials) => {
     customer,
     netInclTaxes,
     type: MANUAL,
-    billingItemList: billBillingItemList,
+    billingItemList: formattedBillingItemList,
     company: company._id,
   };
 
-  await BillNumber.updateOne({ prefix: billNumber.prefix, company: company._id }, { $set: { seq: billNumber.seq } });
+  await BillNumber.updateOne({ prefix: billNumber.prefix, company: company._id }, { $set: { seq } });
   await Bill.create(bill);
 };
 

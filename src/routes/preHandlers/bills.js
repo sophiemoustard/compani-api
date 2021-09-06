@@ -8,6 +8,7 @@ const Event = require('../../models/Event');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const translate = require('../../helpers/translate');
 const CustomerRepository = require('../../repositories/CustomerRepository');
+const { MANUAL } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -101,10 +102,16 @@ exports.authorizeBillCreation = async (req) => {
   const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
   if (!customer) throw Boom.forbidden();
 
-  for (const bi of req.payload.billingItemList) {
-    const billingItem = await BillingItem.countDocuments({ _id: bi.billingItem, company: companyId });
-    if (!billingItem) throw Boom.forbidden();
-  }
+  const billingItems = await BillingItem.find({
+    _id: { $in: req.payload.billingItemList.map(bi => bi.billingItem) },
+    company: companyId,
+  });
+  if (billingItems.length !== req.payload.billingItemList.length) throw Boom.forbidden();
+  if (billingItems.some(bi => bi.type !== MANUAL)) throw Boom.forbidden();
+
+  const totalInclTaxes = req.payload.billingItemList
+    .reduce((acc, current) => acc + current.unitInclTaxes * current.count, 0);
+  if (totalInclTaxes !== req.payload.netInclTaxes) throw Boom.forbidden();
 
   return null;
 };
