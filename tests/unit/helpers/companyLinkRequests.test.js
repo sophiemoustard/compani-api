@@ -60,3 +60,23 @@ describe('list', () => {
     );
   });
 });
+
+describe('removeCompanyLinkRequest', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(CompanyLinkRequest, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should remove a company link request', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const userId = new ObjectID();
+
+    await CompanyLinkRequestsHelper.removeCompanyLinkRequest(userId, credentials);
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { user: userId, company: companyId });
+  });
+});

@@ -6,3 +6,6 @@ exports.create = async (payload, credentials) => CompanyLinkRequest
 exports.list = async credentials => CompanyLinkRequest.find({ company: credentials.company._id })
   .populate({ path: 'user', select: 'identity.lastname identity.firstname local.email picture' })
   .lean();
+
+exports.removeCompanyLinkRequest = async (userId, credentials) => CompanyLinkRequest
+  .deleteOne({ user: userId, company: credentials.company._id });

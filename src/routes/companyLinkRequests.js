@@ -2,8 +2,11 @@
 
 const Joi = require('joi');
 
-const { create, list } = require('../controllers/companyLinkRequestController');
-const { authorizeCompanyLinkRequestCreation } = require('./preHandlers/companyLinkRequests');
+const { create, list, remove } = require('../controllers/companyLinkRequestController');
+const {
+  authorizeCompanyLinkRequestCreation,
+  authorizeCompanyLinkRequestDeletion,
+} = require('./preHandlers/companyLinkRequests');
 
 exports.plugin = {
   name: 'routes-company-link-requests',
@@ -28,6 +31,19 @@ exports.plugin = {
         auth: { scope: ['companylinkrequests:edit'] },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['companylinkrequests:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeCompanyLinkRequestDeletion }],
+      },
+      handler: remove,
     });
   },
 };
