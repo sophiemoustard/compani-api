@@ -7,7 +7,6 @@ const Company = require('../../models/Company');
 const {
   TRAINER,
   INTRA,
-  INTER_B2B,
   VENDOR_ADMIN,
   CLIENT_ADMIN,
   COACH,
@@ -107,27 +106,17 @@ exports.getCourseTrainee = async (req) => {
     const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1 }).lean();
     if (!course) throw Boom.notFound();
 
-    const trainee = await User.findOne({ 'local.email': payload.local.email }).populate({ path: 'company' }).lean();
-    if (trainee) {
-      if (course.type === INTRA) {
-        const conflictBetweenCompanies = !UtilsHelper.areObjectIdsEquals(course.company._id, trainee.company);
-        if (trainee.company && conflictBetweenCompanies) {
-          throw Boom.conflict(translate[language].courseTraineeNotFromCourseCompany);
-        }
-      } else if (course.type === INTER_B2B) {
-        const missingPayloadCompany = !trainee.company && !payload.company;
-        if (missingPayloadCompany) throw Boom.badRequest();
-      }
+    const traineeExist = await User.countDocuments({ _id: payload.trainee });
+    if (!traineeExist) throw Boom.forbidden();
 
-      const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, trainee._id));
-      if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
-    } else {
-      const missingFields = ['company', 'local.email', 'identity.lastname', 'contact.phone']
-        .some(key => !get(payload, key));
-      if (missingFields) throw Boom.badRequest();
-    }
+    const userCompanyQuery = { user: payload.trainee, ...(course.type === INTRA && { company: course.company }) };
+    const userCompanyExists = await UserCompany.countDocuments(userCompanyQuery);
+    if (!userCompanyExists) throw Boom.notFound();
 
-    return trainee;
+    const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
+    if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
+
+    return null;
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

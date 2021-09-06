@@ -151,7 +151,7 @@ const getSMSHistory = async (req) => {
 
 const addTrainee = async (req) => {
   try {
-    await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.pre.trainee, req.auth.credentials);
+    await CoursesHelper.addCourseTrainee(req.params._id, req.payload, req.auth.credentials);
 
     return { message: translate[language].courseTraineeAdded };
   } catch (e) {
