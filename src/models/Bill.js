@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const ServiceSchema = require('./Service').schema;
+const { billingSchemaDefinition, billingItemSchemaDefinition } = require('./schemaDefinitions/billing');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { COMPANI, THIRD_PARTY, OGUST, AUTOMATIC, MANUAL } = require('../helpers/constants');
-const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { COMPANI, THIRD_PARTY, OGUST, AUTOMATIC, MANUAL } = require('../helpers/constants');
+const { minLength } = require('./validations/utils');
 
 const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
 const BILL_TYPES = [AUTOMATIC, MANUAL];
@@ -28,7 +29,7 @@ const BillSchema = mongoose.Schema({
       auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required() { return this.type === AUTOMATIC; } },
       startDate: { type: Date, required() { return this.type === AUTOMATIC; } },
       endDate: { type: Date, required() { return this.type === AUTOMATIC; } },
-      surcharges: billEventSurchargesSchemaDefinition,
+      surcharges: billingSchemaDefinition,
       fundingId: { type: mongoose.Schema.Types.ObjectId },
       exclTaxesCustomer: { type: Number, required() { return !this.fundingId; } },
       inclTaxesCustomer: { type: Number, required() { return !this.fundingId; } },
@@ -48,17 +49,12 @@ const BillSchema = mongoose.Schema({
   sentAt: Date,
   shouldBeSent: { type: Boolean, default: false },
   type: { type: String, enum: BILL_TYPES, required: true, immutable: true },
-  billingItemList: [{
-    billingItem: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'BillingItem',
-      required() { return this.type === MANUAL; },
-    },
-    unitInclTaxes: { type: Number, required() { return this.type === MANUAL; } },
-    count: { type: Number, required() { return this.type === MANUAL; } },
-    inclTaxes: { type: Number, required() { return this.type === MANUAL; } },
-    exclTaxes: { type: Number, required() { return this.type === MANUAL; } },
-  }], // Est-ce suffisant pour rendre la liste obligatoire ?
+  billingItemList: {
+    type: [billingItemSchemaDefinition],
+    required() { return this.type === MANUAL; },
+    default: undefined,
+    validate(val) { return this.type !== MANUAL || minLength(val, 1); },
+  },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 
