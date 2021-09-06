@@ -186,7 +186,7 @@ describe('updateEvent', () => {
   let unassignConflictInterventions;
   let populateEventSubscription;
   let isUpdateAllowed;
-  let isMiscOnlyUpdated;
+  let shouldDetachFromRepetition;
   let isRepetition;
 
   beforeEach(() => {
@@ -202,7 +202,7 @@ describe('updateEvent', () => {
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
     formatEditionPayload = sinon.stub(EventHelper, 'formatEditionPayload');
     isUpdateAllowed = sinon.stub(EventsValidationHelper, 'isUpdateAllowed');
-    isMiscOnlyUpdated = sinon.stub(EventHelper, 'isMiscOnlyUpdated');
+    shouldDetachFromRepetition = sinon.stub(EventHelper, 'shouldDetachFromRepetition');
     isRepetition = sinon.stub(EventHelper, 'isRepetition');
   });
   afterEach(() => {
@@ -215,7 +215,7 @@ describe('updateEvent', () => {
     unassignConflictInterventions.restore();
     formatEditionPayload.restore();
     isUpdateAllowed.restore();
-    isMiscOnlyUpdated.restore();
+    shouldDetachFromRepetition.restore();
     isRepetition.restore();
   });
 
@@ -273,7 +273,6 @@ describe('updateEvent', () => {
     };
 
     isUpdateAllowed.returns(true);
-    isMiscOnlyUpdated.returns(false);
     isRepetition.returns(false);
     formatEditionPayload.returns({ $set: {}, unset: {} });
     findOne.returns(SinonMongoose.stubChainedQueries([{ ...event, updated: 1 }]));
@@ -302,13 +301,13 @@ describe('updateEvent', () => {
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
     sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
     sinon.assert.calledOnceWithExactly(isRepetition, event);
-    sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
     sinon.assert.notCalled(deleteConflictInternalHoursAndUnavailabilities);
     sinon.assert.notCalled(unassignConflictInterventions);
     sinon.assert.notCalled(updateRepetition);
+    sinon.assert.notCalled(shouldDetachFromRepetition);
   });
 
-  it('should update event when misc is updated among other fields and event is a repetition', async () => {
+  it('should update event and detach from repetition', async () => {
     const companyId = new ObjectID();
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();
@@ -317,7 +316,7 @@ describe('updateEvent', () => {
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString(), misc: '123' };
 
     isUpdateAllowed.returns(true);
-    isMiscOnlyUpdated.returns(false);
+    shouldDetachFromRepetition.returns(true);
     isRepetition.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
     findOne.returns(SinonMongoose.stubChainedQueries([event]));
@@ -342,46 +341,8 @@ describe('updateEvent', () => {
       ]
     );
     sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
-    sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
+    sinon.assert.calledOnceWithExactly(shouldDetachFromRepetition, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, true);
-  });
-
-  it('should update event when misc is updated among other fields and event is not a repetition', async () => {
-    const companyId = new ObjectID();
-    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
-    const eventId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
-    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString(), misc: '123' };
-
-    isUpdateAllowed.returns(true);
-    isMiscOnlyUpdated.returns(false);
-    isRepetition.returns(false);
-    formatEditionPayload.returns({ $set: {}, unset: {} });
-    findOne.returns(SinonMongoose.stubChainedQueries([event]));
-
-    await EventHelper.updateEvent(event, payload, credentials);
-
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: {}, unset: {} });
-    SinonMongoose.calledWithExactly(
-      findOne,
-      [
-        { query: 'findOne', args: [{ _id: event._id }] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'auxiliary',
-            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
-          }],
-        },
-        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
-        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
-        { query: 'lean' },
-      ]
-    );
-    sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
-    sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
   });
 
   it('should update event when only misc is updated', async () => {
@@ -393,7 +354,7 @@ describe('updateEvent', () => {
     const payload = { misc: '123' };
 
     isUpdateAllowed.returns(true);
-    isMiscOnlyUpdated.returns(true);
+    shouldDetachFromRepetition.returns(false);
     isRepetition.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
     findOne.returns(SinonMongoose.stubChainedQueries([event]));
@@ -418,7 +379,7 @@ describe('updateEvent', () => {
         { query: 'lean' },
       ]
     );
-    sinon.assert.calledOnceWithExactly(isMiscOnlyUpdated, event, payload);
+    sinon.assert.calledOnceWithExactly(shouldDetachFromRepetition, event, payload);
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
   });
 
@@ -437,7 +398,6 @@ describe('updateEvent', () => {
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
     isUpdateAllowed.returns(true);
-    isMiscOnlyUpdated.returns(true);
     formatEditionPayload.returns({ $set: {}, unset: {} });
     findOne.returns(SinonMongoose.stubChainedQueries([event]));
 
@@ -474,7 +434,7 @@ describe('updateEvent', () => {
       credentials
     );
     sinon.assert.calledWithExactly(deleteConflictInternalHoursAndUnavailabilities, event, event.auxiliary, credentials);
-    sinon.assert.notCalled(isMiscOnlyUpdated);
+    sinon.assert.notCalled(shouldDetachFromRepetition);
   });
 
   it('should not update as event is scheduled on several days', async () => {
@@ -499,7 +459,7 @@ describe('updateEvent', () => {
       sinon.assert.notCalled(isUpdateAllowed);
       sinon.assert.notCalled(updateRepetition);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
-      sinon.assert.notCalled(isMiscOnlyUpdated);
+      sinon.assert.notCalled(shouldDetachFromRepetition);
     }
   });
 });
@@ -1650,8 +1610,8 @@ describe('deleteEventsAndRepetition', () => {
   });
 });
 
-describe('isMiscOnlyUpdated', () => {
-  it('should return true if event misc field is the only one being updated (assigned intervention)', () => {
+describe('shouldDetachFromRepetition', () => {
+  it('should return false if main fields are not updated', () => {
     const event = {
       type: INTERVENTION,
       sector: new ObjectID(),
@@ -1669,52 +1629,12 @@ describe('isMiscOnlyUpdated', () => {
       misc: 'Test',
     };
 
-    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+    expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeFalsy();
   });
 
-  it('should return true if event misc field is the only one being updated (unassigned intervention)', () => {
+  const idKeys = ['sector', 'auxiliary', 'subscription'];
+  idKeys.map(key => it(`should return true if ${key} is updated `, () => {
     const event = {
-      type: INTERVENTION,
-      sector: new ObjectID(),
-      subscription: new ObjectID(),
-      startDate: '2019-01-21T09:30:00',
-      endDate: '2019-01-21T11:30:00',
-      isCancelled: false,
-      misc: 'Test',
-    };
-    const updatedEventPayload = {
-      ...event,
-      sector: event.sector.toHexString(),
-      subscription: event.subscription.toHexString(),
-      misc: '',
-    };
-
-    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
-  });
-
-  it('should return true if event misc field is the only one being updated (unavailability)', () => {
-    const event = {
-      type: UNAVAILABILITY,
-      sector: new ObjectID(),
-      auxiliary: new ObjectID(),
-      startDate: '2019-01-21T09:30:00',
-      endDate: '2019-01-21T11:30:00',
-      isCancelled: false,
-      misc: '',
-    };
-    const updatedEventPayload = {
-      ...event,
-      sector: event.sector.toHexString(),
-      auxiliary: event.auxiliary.toHexString(),
-      misc: 'Test',
-    };
-
-    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
-  });
-
-  it('should return false if event misc field is not the only one being updated (assigned intervention)', () => {
-    const event = {
-      type: INTERVENTION,
       sector: new ObjectID(),
       auxiliary: new ObjectID(),
       subscription: new ObjectID(),
@@ -1722,57 +1642,68 @@ describe('isMiscOnlyUpdated', () => {
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
     };
-    const updatedEventPayload = {
-      ...event,
-      sector: event.sector.toHexString(),
-      auxiliary: new ObjectID().toHexString(),
-      subscription: event.subscription.toHexString(),
-      misc: 'Test',
-    };
+    const updatedEventPayload = { ...event, [key]: new ObjectID().toHexString() };
 
-    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
-  });
+    expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
+  }));
 
-  it('should return false if event misc field is not the only one being updated (unassigned intervention)', () => {
+  const dateKeys = ['startDate', 'endDate'];
+  dateKeys.map(key => it(`should return true if ${key} is updated `, () => {
     const event = {
-      type: INTERVENTION,
       sector: new ObjectID(),
+      auxiliary: new ObjectID(),
       subscription: new ObjectID(),
       startDate: '2019-01-21T09:30:00',
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
-      misc: 'Test',
     };
-    const updatedEventPayload = {
-      ...event,
-      sector: new ObjectID().toHexString(),
-      subscription: event.subscription.toHexString(),
-      misc: '',
-    };
+    const updatedEventPayload = { ...event, [key]: new Date() };
 
-    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
-  });
+    expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
+  }));
 
-  it('should return false if event misc field is not the only one being updated (unavailability)', () => {
+  it('should return true if isCancelled is updated ', () => {
     const event = {
-      type: UNAVAILABILITY,
       sector: new ObjectID(),
       auxiliary: new ObjectID(),
+      subscription: new ObjectID(),
       startDate: '2019-01-21T09:30:00',
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
-      misc: '',
     };
-    const updatedEventPayload = {
-      ...event,
-      startDate: '2019-01-22T09:30:00',
-      endDate: '2019-01-22T11:30:00',
-      sector: event.sector.toHexString(),
-      auxiliary: event.auxiliary.toHexString(),
-      misc: 'Test',
-    };
+    const updatedEventPayload = { ...event, isCancelled: true };
 
-    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+    expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
+  });
+
+  it('should return true if internalHour is updated ', () => {
+    const event = {
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      internalHour: { name: 'Gouter' },
+    };
+    const updatedEventPayload = { ...event, internalHour: { name: 'Diner' } };
+
+    expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
+  });
+
+  it('should return true if isCancelled is updated ', () => {
+    const event = {
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      address: { fullAddress: 'le paradis' },
+    };
+    const updatedEventPayload = { ...event, address: { fullAddress: 'l\'enfer' } };
+
+    expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
   });
 });
 

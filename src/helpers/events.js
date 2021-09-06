@@ -203,31 +203,10 @@ exports.populateEvents = async (events) => {
   return populatedEvents;
 };
 
-exports.isMiscOnlyUpdated = (event, payload) => {
-  const mainEventInfo = pick(
-    event,
-    ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress']
-  );
-  if (event.auxiliary) mainEventInfo.auxiliary = event.auxiliary.toHexString();
-  if (event.sector) mainEventInfo.sector = event.sector.toHexString();
-  if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
-
-  const mainPayloadInfo = pick(
-    payload,
-    ['isCancelled', 'startDate', 'endDate', 'sector', 'auxiliary',
-      'subscription', 'internalHour.name', 'address.fullAddress']
-  );
-  if (!mainPayloadInfo.isCancelled) mainPayloadInfo.isCancelled = false;
-
-  return (payload.misc !== event.misc && isEqual(mainEventInfo, mainPayloadInfo));
-};
-
 exports.formatEditionPayload = (event, payload, detachFromRepetition) => {
   let unset = null;
   let set = payload;
-  if (!payload.isCancelled && event.isCancelled) {
-    unset = { cancel: '' };
-  }
+  if (!payload.isCancelled && event.isCancelled) unset = { cancel: '' };
 
   if (detachFromRepetition) set = { ...set, 'repetition.frequency': NEVER };
 
@@ -240,6 +219,25 @@ exports.formatEditionPayload = (event, payload, detachFromRepetition) => {
   }
 
   return unset ? { $set: set, $unset: unset } : { $set: set };
+};
+
+exports.shouldDetachFromRepetition = (event, payload) => {
+  const mainEventInfo = pick(
+    event,
+    ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress']
+  );
+  if (event.auxiliary) mainEventInfo.auxiliary = event.auxiliary.toHexString();
+  if (event.sector) mainEventInfo.sector = event.sector.toHexString();
+  if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
+
+  const mainPayloadInfo = pick(
+    payload,
+    ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress',
+      'sector', 'auxiliary', 'subscription']
+  );
+  if (!mainPayloadInfo.isCancelled) mainPayloadInfo.isCancelled = false;
+
+  return !isEqual(mainEventInfo, mainPayloadInfo);
 };
 
 /**
@@ -261,8 +259,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   if (eventPayload.shouldUpdateRepetition) {
     await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   } else {
-    const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
-    const detachFromRepetition = exports.isRepetition(event) && !miscUpdatedOnly;
+    const detachFromRepetition = exports.isRepetition(event) && exports.shouldDetachFromRepetition(event, eventPayload);
     const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
     await Event.updateOne({ _id: event._id }, { ...payload });
   }
