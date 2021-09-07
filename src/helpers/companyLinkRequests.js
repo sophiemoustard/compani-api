@@ -7,4 +7,4 @@ exports.list = async credentials => CompanyLinkRequest.find({ company: credentia
   .populate({ path: 'user', select: 'identity.lastname identity.firstname local.email picture' })
   .lean();
 
-exports.removeCompanyLinkRequest = async _id => CompanyLinkRequest.deleteOne({ _id });
+exports.removeCompanyLinkRequest = async id => CompanyLinkRequest.deleteOne({ _id: id });

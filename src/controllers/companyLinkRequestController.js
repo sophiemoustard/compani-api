@@ -30,7 +30,7 @@ const remove = async (req) => {
   try {
     await CompanyLinkRequestsHelper.removeCompanyLinkRequest(req.params._id);
 
-    return { message: translate[language].companyLinkRequestRemoved };
+    return { message: translate[language].companyLinkRequestDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
