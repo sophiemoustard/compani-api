@@ -1,8 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { populateDB, userWithCompanyLinkRequest } = require('./seed/companyLinkRequestsSeed');
-const { getTokenByCredentials } = require('./helpers/authentication');
+const { populateDB, userWithCompanyLinkRequestList } = require('./seed/companyLinkRequestsSeed');
+const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const { noRoleNoCompany, noRole } = require('../seed/authUsersSeed');
 const { authCompany } = require('../seed/authCompaniesSeed');
 const CompanyLinkRequest = require('../../src/models/CompanyLinkRequest');
@@ -60,7 +60,7 @@ describe('POST /companylinkrequests', () => {
     });
 
     it('should not create a company link request if user already has a company link request', async () => {
-      authToken = await getTokenByCredentials(userWithCompanyLinkRequest.local);
+      authToken = await getTokenByCredentials(userWithCompanyLinkRequestList[0].local);
 
       const response = await app.inject({
         method: 'POST',
@@ -70,6 +70,48 @@ describe('POST /companylinkrequests', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+});
+
+describe('GET /companylinkrequests', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+    it('should get all company link requests for company A', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/companylinkrequests',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.companyLinkRequests.length).toEqual(1);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/companylinkrequests',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });
