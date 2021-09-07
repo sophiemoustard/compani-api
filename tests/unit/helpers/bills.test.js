@@ -1700,24 +1700,24 @@ describe('getUnitInclTaxes', () => {
     sinon.assert.notCalled(getLastVersion);
   });
 
-  it('should return incl taxes amount for FIXED funding', () => {
+  it('should return subscription unitInclTaxes for FIXED funding', () => {
     const tppId = new ObjectID();
     const bill = {
       thirdPartyPayer: { _id: tppId },
       customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] },
     };
-    const subscription = { vat: 20 };
+    const subscription = { vat: 20, unitInclTaxes: 12 };
 
     getLastVersion.returns({ amountTTC: 14.4 });
 
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
-    expect(result).toBe(14.4);
-    sinon.assert.called(getLastVersion);
+    expect(result).toBe(12);
+    sinon.assert.calledOnceWithExactly(getLastVersion, [{ amountTTC: 14.4 }], 'createdAt');
   });
 
-  it('should return unit incl taxes from funding if HOURLY fudning', () => {
+  it('should return unit incl taxes from funding if HOURLY funding', () => {
     const tppId = new ObjectID();
     const bill = {
       thirdPartyPayer: { _id: tppId },
