@@ -175,7 +175,7 @@ describe('PUT /services/:id', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/services/${servicesList[0]._id.toHexString()}`,
+        url: `/services/${servicesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -188,7 +188,7 @@ describe('PUT /services/:id', () => {
     it('should archive service', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/services/${servicesList[0]._id.toHexString()}`,
+        url: `/services/${servicesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { isArchived: true },
       });
@@ -202,7 +202,7 @@ describe('PUT /services/:id', () => {
       const payload = { vat: 12 };
       const response = await app.inject({
         method: 'PUT',
-        url: `/services/${servicesList[0]._id.toHexString()}`,
+        url: `/services/${servicesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -219,7 +219,7 @@ describe('PUT /services/:id', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/services/${servicesList[0]._id.toHexString()}`,
+        url: `/services/${servicesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -231,7 +231,7 @@ describe('PUT /services/:id', () => {
       const payload = { defaultUnitAmount: 15, startDate: '2019-01-16 17:58:15.519', vat: 12 };
       const response = await app.inject({
         method: 'PUT',
-        url: `/services/${servicesList[3]._id.toHexString()}`,
+        url: `/services/${servicesList[3]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -243,7 +243,7 @@ describe('PUT /services/:id', () => {
       const payload = { defaultUnitAmount: 15, name: 'Service bis', startDate: '2019-01-16 17:58:15.519', vat: 12 };
       const response = await app.inject({
         method: 'PUT',
-        url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
+        url: `/services/${serviceFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -251,7 +251,7 @@ describe('PUT /services/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 error some billingItem doesn\'t exists in company', async () => {
+    it('should return a 403 error if some billingItem doesn\'t exists in company', async () => {
       const payload = {
         defaultUnitAmount: 15,
         name: 'Service bis',
@@ -261,7 +261,25 @@ describe('PUT /services/:id', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
+        url: `/services/${servicesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if some billingItem are manual type', async () => {
+      const payload = {
+        defaultUnitAmount: 15,
+        name: 'Service bis',
+        startDate: '2019-01-16 17:58:15.519',
+        vat: 12,
+        billingItems: [billingItemList[0]._id, billingItemList[2]._id],
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/services/${servicesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -284,7 +302,7 @@ describe('PUT /services/:id', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
-          url: `/services/${servicesList[0]._id.toHexString()}`,
+          url: `/services/${servicesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
@@ -305,7 +323,7 @@ describe('DELETE /services/:id', () => {
   it('should delete service', async () => {
     const response = await app.inject({
       method: 'DELETE',
-      url: `/services/${servicesList[0]._id.toHexString()}`,
+      url: `/services/${servicesList[0]._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
@@ -318,7 +336,7 @@ describe('DELETE /services/:id', () => {
   it('should return a 403 error if user is not from the same company', async () => {
     const response = await app.inject({
       method: 'DELETE',
-      url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
+      url: `/services/${serviceFromOtherCompany._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
@@ -328,7 +346,7 @@ describe('DELETE /services/:id', () => {
   it('should return a 403 error if service is archived', async () => {
     const response = await app.inject({
       method: 'DELETE',
-      url: `/services/${servicesList[3]._id.toHexString()}`,
+      url: `/services/${servicesList[3]._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
@@ -338,7 +356,7 @@ describe('DELETE /services/:id', () => {
   it('should return a 403 error if service has subscriptions linked', async () => {
     const response = await app.inject({
       method: 'DELETE',
-      url: `/services/${servicesList[2]._id.toHexString()}`,
+      url: `/services/${servicesList[2]._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
@@ -358,7 +376,7 @@ describe('DELETE /services/:id', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/services/${servicesList[0]._id.toHexString()}`,
+          url: `/services/${servicesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

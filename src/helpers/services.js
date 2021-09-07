@@ -5,7 +5,6 @@ exports.list = async (credentials, query) => {
   const companyId = get(credentials, 'company._id') || '';
   return Service.find({ ...query, company: companyId })
     .populate({ path: 'versions.surcharge', match: { company: companyId } })
-    .populate({ path: 'versions.billingItems', select: 'name', match: { company: companyId } })
     .lean();
 };
 
@@ -17,6 +16,7 @@ exports.create = async (companyId, payload) => {
 
 exports.update = async (id, payload) => {
   if (payload.isArchived) return Service.updateOne({ _id: id }, payload);
+
   return Service.updateOne({ _id: id }, { $push: { versions: payload } });
 };
 

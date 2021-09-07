@@ -94,8 +94,16 @@ const customer = {
 };
 
 const billingItemList = [
-  { _id: new ObjectID(), name: 'Kill Billing', type: 'manual', defaultUnitAmount: 2, company: authCompany._id, vat: 2 },
+  {
+    _id: new ObjectID(),
+    name: 'Kill Billing',
+    type: 'per_intervention',
+    defaultUnitAmount: 2,
+    company: authCompany._id,
+    vat: 2,
+  },
   { _id: new ObjectID(), name: 'Bill', type: 'manual', defaultUnitAmount: 25, company: otherCompany._id, vat: 2 },
+  { _id: new ObjectID(), name: 'bil', type: 'manual', defaultUnitAmount: 25, company: authCompany._id, vat: 2 },
 ];
 
 const populateDB = async () => {

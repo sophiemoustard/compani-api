@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const { PER_INTERVENTION } = require('../../helpers/constants');
 const BillingItem = require('../../models/BillingItem');
 const Customer = require('../../models/Customer');
 const Service = require('../../models/Service');
@@ -10,10 +11,11 @@ const authorizeServiceEdit = async (req) => {
   if (!service) throw Boom.forbidden();
 
   if (req.payload && req.payload.billingItems) {
-    for (const bi of req.payload.billingItems) {
-      const billingItem = await BillingItem.countDocuments({ _id: bi, company: companyId });
-      if (!billingItem) throw Boom.forbidden();
-    }
+    const billingItems = await BillingItem
+      .find({ _id: { $in: req.payload.billingItems }, company: companyId, type: PER_INTERVENTION })
+      .lean();
+    if (!billingItems) throw Boom.forbidden();
+    if (billingItems.length !== req.payload.billingItems.length) throw Boom.forbidden();
   }
 };
 
