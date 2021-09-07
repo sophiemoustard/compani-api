@@ -5,6 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const { list } = require('../controllers/eventHistoryController');
 const { EVENTS_HISTORY_ACTIONS } = require('../models/EventHistory');
 const { authorizeEventsHistoriesGet } = require('./preHandlers/eventHistories');
+const { objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-event-history',
@@ -16,8 +17,8 @@ exports.plugin = {
         auth: { scope: ['events:edit'] },
         validate: {
           query: Joi.object({
-            auxiliaries: [Joi.array().items(Joi.objectId()), Joi.objectId()],
-            sectors: [Joi.array().items(Joi.objectId()), Joi.objectId()],
+            auxiliaries: objectIdOrArray,
+            sectors: objectIdOrArray,
             createdAt: Joi.date(),
             eventId: Joi.objectId(),
             action: Joi.array().items(Joi.string().valid(...EVENTS_HISTORY_ACTIONS)),
