@@ -10,6 +10,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const customerId = new ObjectID();
 const bill = {
   _id: new ObjectID(),
+  type: 'automatic',
   shouldBeSent: true,
   customer: customerId,
   netInclTaxes: 880,

@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
+const BillingItem = require('../models/BillingItem');
 const Company = require('../models/Company');
 const BillNumber = require('../models/BillNumber');
 const CreditNote = require('../models/CreditNote');
@@ -11,7 +12,7 @@ const BillSlipHelper = require('./billSlips');
 const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI } = require('./constants');
+const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL } = require('./constants');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -48,6 +49,7 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
     shouldBeSent: customerBills.shouldBeSent,
+    type: AUTOMATIC,
     company: company._id,
   };
 
@@ -73,6 +75,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
       subscriptions: [],
       netInclTaxes: UtilsHelper.getFixedNumber(tpp.total, 2),
       date: tpp.bills[0].endDate,
+      type: AUTOMATIC,
       company: company._id,
     };
     if (!tpp.bills[0].externalBilling) {
@@ -149,7 +152,7 @@ exports.getBillNumber = async (endDate, companyId) => {
     .lean();
 };
 
-exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
+exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
   const billList = [];
   let eventsToUpdate = {};
   let fundingHistories = {};
@@ -187,6 +190,44 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
     { events: { $elemMatch: { eventId: { $in: Object.keys(eventsToUpdate) } } } },
     { isEditable: false }
   );
+};
+
+exports.formatAndCreateBill = async (payload, credentials) => {
+  const { customer, date, billingItemList, netInclTaxes } = payload;
+  const { company } = credentials;
+
+  const billNumber = await exports.getBillNumber(date, company._id);
+  const seq = billNumber.seq + 1;
+  const number = exports.formatBillNumber(company.prefixNumber, billNumber.prefix, seq);
+
+  const bddBillingItemList = await BillingItem
+    .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1 })
+    .lean();
+  const formattedBillingItemList = billingItemList.map((bi) => {
+    const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
+    const vat = bddBillingItem.vat / 100;
+
+    return {
+      billingItem: bi.billingItem,
+      unitInclTaxes: bi.unitInclTaxes,
+      count: bi.count,
+      inclTaxes: bi.unitInclTaxes * bi.count,
+      exclTaxes: (bi.unitInclTaxes / (1 + vat)) * bi.count,
+    };
+  });
+
+  const bill = {
+    number,
+    date,
+    customer,
+    netInclTaxes,
+    type: MANUAL,
+    billingItemList: formattedBillingItemList,
+    company: company._id,
+  };
+
+  await BillNumber.updateOne({ prefix: billNumber.prefix, company: company._id }, { $set: { seq } });
+  await Bill.create(bill);
 };
 
 exports.getBills = async (query, credentials) => {

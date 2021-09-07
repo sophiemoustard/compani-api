@@ -34,7 +34,7 @@ const {
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
+const { billEventSurchargesSchemaDefinition } = require('./schemaDefinitions/billing');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 const { TIME_STAMPING_ACTIONS } = require('./EventHistory');
 

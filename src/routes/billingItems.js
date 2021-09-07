@@ -31,6 +31,11 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['config:read'] },
+        validate: {
+          query: Joi.object({
+            type: Joi.string().valid(...BILLING_ITEM_TYPES),
+          }),
+        },
       },
       handler: list,
     });

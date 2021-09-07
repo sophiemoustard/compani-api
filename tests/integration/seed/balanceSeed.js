@@ -134,6 +134,7 @@ const authBillService = { serviceId: new ObjectID(), name: 'Temps de qualité - 
 const balanceBillList = [
   {
     _id: new ObjectID(),
+    type: 'automatic',
     date: '2019-05-25',
     number: 'FACT-1905001',
     company: authCompany._id,
@@ -163,6 +164,7 @@ const balanceBillList = [
   },
   {
     _id: new ObjectID(),
+    type: 'automatic',
     date: '2019-05-29',
     number: 'FACT-1905002',
     company: authCompany._id,

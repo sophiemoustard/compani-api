@@ -447,6 +447,7 @@ const customersList = [
 
 const bill = {
   _id: new ObjectID(),
+  type: 'automatic',
   company: customersList[4].company,
   number: 'FACT-1901001',
   date: '2019-05-29',

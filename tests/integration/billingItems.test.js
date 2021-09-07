@@ -115,7 +115,28 @@ describe('BILLING ITEMS ROUTES - GET /billingitems', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.billingItems).toHaveLength(2);
+    });
+
+    it('should return manual billing items', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/billingitems?type=manual',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
       expect(response.result.data.billingItems).toHaveLength(1);
+    });
+
+    it('should return 400 if type is invalid', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/billingitems?type=skusku',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 

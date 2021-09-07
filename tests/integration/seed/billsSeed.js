@@ -11,6 +11,7 @@ const {
   WEBAPP,
 } = require('../../../src/helpers/constants');
 const Bill = require('../../../src/models/Bill');
+const BillingItem = require('../../../src/models/BillingItem');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
@@ -276,6 +277,7 @@ const authBillsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    type: 'automatic',
     number: 'FACT-1807001',
     date: '2019-05-29',
     customer: billCustomerList[0]._id,
@@ -306,6 +308,7 @@ const authBillsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    type: 'automatic',
     number: 'FACT-1807002',
     date: '2019-05-25',
     customer: billCustomerList[1]._id,
@@ -338,6 +341,7 @@ const billsList = [
   {
     _id: new ObjectID(),
     company: otherCompany._id,
+    type: 'automatic',
     number: 'FACT-1901001',
     date: '2019-05-29',
     customer: billCustomerList[2]._id,
@@ -541,11 +545,31 @@ const helpersList = [
   { customer: billCustomerList[0]._id, user: billUserList[0]._id, company: authCompany._id, referent: true },
 ];
 
+const billingItemList = [
+  {
+    _id: new ObjectID(),
+    name: 'Billing Joel',
+    type: 'manual',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Boule et Billing',
+    type: 'per_intervention',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: authCompany._id,
+  },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
     Bill.create([...authBillsList, ...billsList]),
+    BillingItem.create(billingItemList),
     BillNumber.create(billNumbers),
     Contract.create(contracts),
     CreditNote.create(creditNote),
@@ -572,4 +596,5 @@ module.exports = {
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
   fundingHistory,
+  billingItemList,
 };

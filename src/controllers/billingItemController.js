@@ -17,7 +17,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const billingItems = await BillingItemsHelper.list(req.auth.credentials);
+    const billingItems = await BillingItemsHelper.list(req.auth.credentials, req.query);
 
     return { data: { billingItems }, message: translate[language].billingItemsFound };
   } catch (e) {
