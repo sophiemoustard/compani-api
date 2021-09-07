@@ -71,12 +71,10 @@ describe('removeCompanyLinkRequest', () => {
   });
 
   it('should remove a company link request', async () => {
-    const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-    const userId = new ObjectID();
+    const companyLinkRequestId = new ObjectID();
 
-    await CompanyLinkRequestsHelper.removeCompanyLinkRequest(userId, credentials);
+    await CompanyLinkRequestsHelper.removeCompanyLinkRequest(companyLinkRequestId);
 
-    sinon.assert.calledOnceWithExactly(deleteOne, { user: userId, company: companyId });
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: companyLinkRequestId });
   });
 });

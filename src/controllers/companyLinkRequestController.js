@@ -28,7 +28,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    await CompanyLinkRequestsHelper.removeCompanyLinkRequest(req.params._id, req.auth.credentials);
+    await CompanyLinkRequestsHelper.removeCompanyLinkRequest(req.params._id);
 
     return { message: translate[language].companyLinkRequestRemoved };
   } catch (e) {

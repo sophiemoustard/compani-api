@@ -1,7 +1,11 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { populateDB, userWithCompanyLinkRequestList } = require('./seed/companyLinkRequestsSeed');
+const {
+  populateDB,
+  userWithCompanyLinkRequestList,
+  companyLinkRequestList,
+} = require('./seed/companyLinkRequestsSeed');
 const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const { noRoleNoCompany, noRole } = require('../seed/authUsersSeed');
 const { authCompany } = require('../seed/authCompaniesSeed');
@@ -127,20 +131,19 @@ describe('DELETE /companylinkrequests', () => {
     it('should remove company link request', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/companylinkrequests/${userWithCompanyLinkRequestList[0]._id}`,
+        url: `/companylinkrequests/${companyLinkRequestList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const companyLinkRequest = await CompanyLinkRequest
-        .countDocuments({ user: userWithCompanyLinkRequestList[0]._id, company: authCompany });
+      const companyLinkRequest = await CompanyLinkRequest.countDocuments({ _id: companyLinkRequestList[0]._id });
       expect(companyLinkRequest).toEqual(0);
     });
 
     it('should return 404 if company link request is for another company', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/companylinkrequests/${userWithCompanyLinkRequestList[1]._id}`,
+        url: `/companylinkrequests/${companyLinkRequestList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

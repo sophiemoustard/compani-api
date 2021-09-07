@@ -47,4 +47,4 @@ const populateDB = async () => {
   ]);
 };
 
-module.exports = { userWithCompanyLinkRequestList, populateDB };
+module.exports = { userWithCompanyLinkRequestList, companyLinkRequestList, populateDB };
