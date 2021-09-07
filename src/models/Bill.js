@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const ServiceSchema = require('./Service').schema;
-const { billingSchemaDefinition, billingItemSchemaDefinition } = require('./schemaDefinitions/billing');
+const { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition } = require('./schemaDefinitions/billing');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 const { COMPANI, THIRD_PARTY, OGUST, AUTOMATIC, MANUAL } = require('../helpers/constants');
@@ -29,7 +29,7 @@ const BillSchema = mongoose.Schema({
       auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required() { return this.type === AUTOMATIC; } },
       startDate: { type: Date, required() { return this.type === AUTOMATIC; } },
       endDate: { type: Date, required() { return this.type === AUTOMATIC; } },
-      surcharges: billingSchemaDefinition,
+      surcharges: billEventSurchargesSchemaDefinition,
       fundingId: { type: mongoose.Schema.Types.ObjectId },
       exclTaxesCustomer: { type: Number, required() { return !this.fundingId; } },
       inclTaxesCustomer: { type: Number, required() { return !this.fundingId; } },

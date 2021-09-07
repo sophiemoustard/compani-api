@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const billingSchemaDefinition = [{
+const billEventSurchargesSchemaDefinition = [{
   percentage: { type: Number, required: true },
   name: { type: String, required: true },
   startHour: Date,
@@ -15,4 +15,4 @@ const billingItemSchemaDefinition = {
   exclTaxes: { type: Number, required: true },
 };
 
-module.exports = { billingSchemaDefinition, billingItemSchemaDefinition };
+module.exports = { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition };

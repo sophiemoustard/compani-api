@@ -200,22 +200,19 @@ exports.formatAndCreateBill = async (payload, credentials) => {
   const seq = billNumber.seq + 1;
   const number = exports.formatBillNumber(company.prefixNumber, billNumber.prefix, seq);
 
-  const bddBillingItemList = await BillingItem.find(
-    { _id: { $in: billingItemList.map(bi => bi.billingItem) } },
-    { vat: 1 }
-  ).lean();
+  const bddBillingItemList = await BillingItem
+    .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1 })
+    .lean();
   const formattedBillingItemList = billingItemList.map((bi) => {
     const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
     const vat = bddBillingItem.vat / 100;
-    const priceWithTaxes = bi.unitInclTaxes * bi.count;
-    const priceWithoutTaxes = (bi.unitInclTaxes / (1 + vat)) * bi.count;
 
     return {
       billingItem: bi.billingItem,
       unitInclTaxes: bi.unitInclTaxes,
       count: bi.count,
-      inclTaxes: priceWithTaxes,
-      exclTaxes: priceWithoutTaxes,
+      inclTaxes: bi.unitInclTaxes * bi.count,
+      exclTaxes: (bi.unitInclTaxes / (1 + vat)) * bi.count,
     };
   });
 

@@ -741,7 +741,7 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if netInclTaxes is invalid', async () => {
+    it('should return 403 if netInclTaxes has incorrect amount', async () => {
       const payload = {
         customer: billCustomerList[0]._id,
         date: new Date('2021-09-02T20:00:00'),

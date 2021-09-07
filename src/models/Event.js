@@ -34,7 +34,7 @@ const {
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const { billingSchemaDefinition } = require('./schemaDefinitions/billing');
+const { billEventSurchargesSchemaDefinition } = require('./schemaDefinitions/billing');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 const { TIME_STAMPING_ACTIONS } = require('./EventHistory');
 
@@ -111,7 +111,7 @@ const EventSchema = mongoose.Schema(
       fundingId: { type: mongoose.Schema.Types.ObjectId },
       nature: String,
       careHours: Number,
-      surcharges: billingSchemaDefinition,
+      surcharges: billEventSurchargesSchemaDefinition,
     },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
     transportMode: { type: String, enum: EVENT_TRANSPORT_MODE },

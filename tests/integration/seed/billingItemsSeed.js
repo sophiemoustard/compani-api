@@ -4,6 +4,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 
 const billingItemList = [
   { name: 'An existing billing', type: 'manual', defaultUnitAmount: 25, company: authCompany._id, vat: 2 },
+  { name: 'Another billing', type: 'per_intervention', defaultUnitAmount: 25, company: authCompany._id, vat: 2 },
   { name: 'An existing billing', type: 'per_intervention', defaultUnitAmount: 25, company: otherCompany._id, vat: 2 },
 ];
 
