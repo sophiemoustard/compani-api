@@ -18,3 +18,11 @@ exports.authorizeCompanyLinkRequestCreation = async (req) => {
 
   return null;
 };
+
+exports.authorizeCompanyLinkRequestDeletion = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id');
+  const hasCompanyLinkRequest = await CompanyLinkRequest.countDocuments({ _id: req.params._id, company: companyId });
+  if (!hasCompanyLinkRequest) throw Boom.notFound();
+
+  return null;
+};
