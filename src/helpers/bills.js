@@ -248,7 +248,7 @@ exports.getUnitInclTaxes = (bill, subscription) => {
 
   return funding.nature === HOURLY
     ? (version.unitTTCRate * (1 - (version.customerParticipationRate / 100)))
-    : version.amountTTC;
+    : subscription.unitInclTaxes;
 };
 
 exports.formatBillSubscriptionsForPdf = (bill) => {
