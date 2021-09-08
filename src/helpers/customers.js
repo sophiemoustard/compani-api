@@ -6,6 +6,7 @@ const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
 const omit = require('lodash/omit');
+const uniqBy = require('lodash/uniqBy');
 const QRCode = require('qrcode');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
@@ -17,6 +18,7 @@ const Repetition = require('../models/Repetition');
 const CustomerPartner = require('../models/CustomerPartner');
 const Rum = require('../models/Rum');
 const User = require('../models/User');
+const SectorHistory = require('../models/SectorHistory');
 const UserCompany = require('../models/UserCompany');
 const EventRepository = require('../repositories/EventRepository');
 const CustomerRepository = require('../repositories/CustomerRepository');
@@ -34,9 +36,38 @@ const CustomerQRCode = require('../data/pdf/customerQRCode/customerQRCode');
 const { language } = translate;
 
 exports.getCustomersBySector = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id');
+  const sectorHistoryQuery = {
+    sector: { $in: UtilsHelper.formatObjectIdsArray(query.sector) },
+    startDate: { $lte: query.endDate },
+    $or: [{ endDate: { $exists: false } }, { endDate: { $gte: query.startDate } }],
+    company: companyId,
+  };
+  const sectorHistories = await SectorHistory.find(sectorHistoryQuery, { auxiliary: 1 }).lean();
 
-  return EventRepository.getCustomersFromEvent(query, companyId);
+  const eventQuery = {
+    type: INTERVENTION,
+    $or: [
+      { auxiliary: { $in: UtilsHelper.formatObjectIdsArray(sectorHistories.map(sh => sh.auxiliary)) } },
+      { sector: { $in: UtilsHelper.formatObjectIdsArray(query.sector) } },
+    ],
+    startDate: { $lte: query.endDate },
+    endDate: { $gte: query.startDate },
+    company: companyId,
+  };
+  const events = await Event
+    .find(eventQuery, { customer: 1 })
+    .populate({
+      path: 'customer',
+      select: 'subscriptions identity contact',
+      populate: [
+        { path: 'referentHistories', populate: { path: 'auxiliary' }, match: { company: companyId } },
+        { path: 'subscriptions.service' },
+      ],
+    })
+    .lean();
+
+  return uniqBy(events.map(ev => ev.customer), '_id');
 };
 
 exports.getCustomersWithBilledEvents = async (credentials) => {
