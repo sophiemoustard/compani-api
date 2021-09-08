@@ -363,6 +363,7 @@ describe('CUSTOMERS ROUTES', () => {
 
     describe('Other roles', () => {
       const roles = [
+        { name: 'vendor_admin', expectedCode: 403 },
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
@@ -397,7 +398,6 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.customers).toBeDefined();
         expect(res.result.data.customers.map(c => c._id)).toEqual([customersList[0]._id, customersList[1]._id]);
       });
     });
@@ -445,6 +445,7 @@ describe('CUSTOMERS ROUTES', () => {
 
     describe('Other roles', () => {
       const roles = [
+        { name: 'vendor_admin', expectedCode: 403 },
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
