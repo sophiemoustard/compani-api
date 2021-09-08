@@ -94,7 +94,7 @@ exports.getLearnerList = async (query, credentials) => {
   }
 
   const learnerList = await User
-    .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
+    .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
     .populate({ path: 'company', populate: { path: 'company' }, select: 'name' })
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })

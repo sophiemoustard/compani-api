@@ -297,7 +297,10 @@ describe('getLearnerList', () => {
     SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{}, 'identity.firstname identity.lastname picture', { autopopulate: false }] },
+        {
+          query: 'find',
+          args: [{}, 'identity.firstname identity.lastname picture local.email', { autopopulate: false }],
+        },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' }, select: 'name' }] },
         { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
         { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
@@ -352,7 +355,7 @@ describe('getLearnerList', () => {
           query: 'find',
           args: [
             { _id: { $in: [users[0]._id, users[1]._id] }, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
-            'identity.firstname identity.lastname picture',
+            'identity.firstname identity.lastname picture local.email',
             { autopopulate: false },
           ],
         },
@@ -402,7 +405,7 @@ describe('getLearnerList', () => {
           query: 'find',
           args: [
             { _id: { $in: [users[0]._id, users[1]._id] } },
-            'identity.firstname identity.lastname picture',
+            'identity.firstname identity.lastname picture local.email',
             { autopopulate: false },
           ],
         },
