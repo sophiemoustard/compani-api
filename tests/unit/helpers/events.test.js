@@ -345,7 +345,7 @@ describe('updateEvent', () => {
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, true);
   });
 
-  it('should update event when only misc is updated', async () => {
+  it('should update event and not detach it from repetition if main fields are not updated', async () => {
     const companyId = new ObjectID();
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();
