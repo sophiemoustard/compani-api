@@ -18,6 +18,7 @@ const {
   userList,
   customerServiceList,
   customerThirdPartyPayers,
+  sectorsList,
 } = require('./seed/customersSeed');
 const Customer = require('../../src/models/Customer');
 const ESign = require('../../src/models/ESign');
@@ -382,6 +383,47 @@ describe('CUSTOMERS ROUTES', () => {
     });
   });
 
+  describe('GET /customers/sectors #tag', () => {
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
+      });
+
+      it('should get only customers with events in sector', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers/sectors?sector=${sectorsList[0]._id}&startDate=2019-01-02&endDate=2019-01-31`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customers).toBeDefined();
+        expect(res.result.data.customers.map(c => c._id)).toEqual([customersList[0]._id, customersList[1]._id]);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/customers/sectors?sector=${sectorsList[0]._id}&startDate=2019-01-02&endDate=2019-01-31`,
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
   describe('GET /customer/with-intervention', () => {
     describe('COACH', () => {
       beforeEach(async () => {
@@ -397,7 +439,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers).toBeDefined();
-        expect(res.result.data.customers).toHaveLength(1);
+        expect(res.result.data.customers).toHaveLength(3);
       });
     });
 
