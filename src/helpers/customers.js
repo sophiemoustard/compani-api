@@ -67,7 +67,8 @@ exports.getCustomersBySector = async (query, credentials) => {
     })
     .lean();
 
-  return uniqBy(events.map(ev => ev.customer), '_id');
+  return uniqBy(events.map(ev => ev.customer), '_id')
+    .map(cus => SubscriptionsHelper.populateSubscriptionsServices(cus));
 };
 
 exports.getCustomersWithBilledEvents = async (credentials) => {

@@ -383,7 +383,7 @@ describe('CUSTOMERS ROUTES', () => {
     });
   });
 
-  describe('GET /customers/sectors #tag', () => {
+  describe('GET /customers/sectors', () => {
     describe('COACH', () => {
       beforeEach(async () => {
         authToken = await getToken('coach');

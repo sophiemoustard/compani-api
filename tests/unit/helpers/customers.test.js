@@ -31,16 +31,19 @@ const SinonMongoose = require('../sinonMongoose');
 describe('getCustomersBySector', () => {
   let findSectorHistories;
   let findEvents;
+  let populateSubscriptionsServices;
   beforeEach(() => {
     findSectorHistories = sinon.stub(SectorHistory, 'find');
     findEvents = sinon.stub(Event, 'find');
+    populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
   });
   afterEach(() => {
     findSectorHistories.restore();
     findEvents.restore();
+    populateSubscriptionsServices.restore();
   });
 
-  it('should return customer by sector #tag', async () => {
+  it('should return customer by sector', async () => {
     const sectorId = new ObjectID();
     const query = { startDate: '2019-04-14T09:00:00', endDate: '2019-05-14T09:00:00', sector: sectorId.toHexString() };
     const companyId = new ObjectID();
@@ -60,10 +63,15 @@ describe('getCustomersBySector', () => {
       ]],
       ['populate', 'lean']
     ));
+    populateSubscriptionsServices.onCall(0).returns({ _id: customerIds[0], identity: {} });
+    populateSubscriptionsServices.onCall(1).returns({ _id: customerIds[1], identity: {} });
 
     const result = await CustomerHelper.getCustomersBySector(query, credentials);
 
-    expect(result).toEqual([{ _id: customerIds[0] }, { _id: customerIds[1] }]);
+    expect(result).toEqual([{ _id: customerIds[0], identity: {} }, { _id: customerIds[1], identity: {} }]);
+
+    sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(0), { _id: customerIds[0] });
+    sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(1), { _id: customerIds[1] });
     SinonMongoose.calledWithExactly(
       findSectorHistories,
       [
