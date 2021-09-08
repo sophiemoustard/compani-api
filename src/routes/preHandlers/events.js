@@ -27,7 +27,7 @@ const {
 const { language } = translate;
 
 exports.getEvent = async (req) => {
-  const event = await Event.findById(req.params._id)
+  const event = await Event.findOne({ _id: req.params._id, company: get(req, 'auth.credentials.company._id') })
     .populate('startDateTimeStampedCount')
     .populate('endDateTimeStampedCount')
     .lean();
@@ -133,11 +133,8 @@ exports.authorizeEventUpdate = async (req) => {
 };
 
 exports.checkEventCreationOrUpdate = async (req) => {
-  const { credentials } = req.auth;
   const event = req.pre.event || req.payload;
-  const companyId = get(credentials, 'company._id', null);
-
-  if (req.pre.event && !UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
+  const companyId = get(req, 'auth.credentials.company._id');
 
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
