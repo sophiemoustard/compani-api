@@ -211,6 +211,7 @@ exports.plugin = {
             isBilled: Joi.boolean(),
             bills: Joi.object(),
             transportMode: Joi.string().valid(...EVENT_TRANSPORT_MODE),
+            kmDuringEvent: Joi.number().min(0),
           })
             .and('startDate', 'endDate')
             .xor('auxiliary', 'sector'),

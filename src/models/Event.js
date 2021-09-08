@@ -115,6 +115,7 @@ const EventSchema = mongoose.Schema(
     },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
     transportMode: { type: String, enum: EVENT_TRANSPORT_MODE },
+    kmDuringEvent: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
