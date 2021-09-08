@@ -222,20 +222,18 @@ exports.formatEditionPayload = (event, payload, detachFromRepetition) => {
 };
 
 exports.shouldDetachFromRepetition = (event, payload) => {
-  const mainEventInfo = pick(
-    event,
-    ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress']
-  );
-  if (event.auxiliary) mainEventInfo.auxiliary = event.auxiliary.toHexString();
-  if (event.sector) mainEventInfo.sector = event.sector.toHexString();
-  if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
+  const keys = ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress'];
+  const mainEventInfo = {
+    ...pick(event, keys),
+    ...(event.auxiliary && { auxiliary: event.auxiliary.toHexString() }),
+    ...(event.sector && { sector: event.sector.toHexString() }),
+    ...(event.subscription && { subscription: event.subscription.toHexString() }),
+  };
 
-  const mainPayloadInfo = pick(
-    payload,
-    ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress',
-      'sector', 'auxiliary', 'subscription']
-  );
-  if (!mainPayloadInfo.isCancelled) mainPayloadInfo.isCancelled = false;
+  const mainPayloadInfo = {
+    ...pick(payload, [...keys, 'sector', 'auxiliary', 'subscription']),
+    ...(!payload.isCancelled && { isCancelled: false }),
+  };
 
   return !isEqual(mainEventInfo, mainPayloadInfo);
 };
