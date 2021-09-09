@@ -132,7 +132,6 @@ exports.getTransportInfo = async (distances, origins, destinations, mode, compan
   if (!origins || !destinations || !mode) return { distance: 0, duration: 0 };
   let distanceMatrix = distances.find(dm => dm.origins === origins && dm.destinations === destinations &&
     dm.mode === mode);
-
   if (!distanceMatrix) {
     const query = { origins, destinations, mode };
     distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query, companyId);
@@ -153,23 +152,36 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     const destinations = get(event, 'address.fullAddress', null);
     let transportMode = null;
     if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
-      transportMode = event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT
-        ? TRANSIT
-        : DRIVING;
+      transportMode = exports.getTransportMode(event);
     }
 
     if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, distance: paidKm };
-
-    const transport = await exports.getTransportInfo(dm, origins, destinations, transportMode, event.company);
+    const transport = await exports.getTransportInfo(
+      dm,
+      origins,
+      destinations,
+      transportMode.specific || transportMode.default,
+      event.company
+    );
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
     const pickTransportDuration = breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
-    paidKm = transport.distance;
+    paidKm = transportMode.default === DRIVING &&
+      (!transportMode.specific || transportMode.specific === PRIVATE_TRANSPORT)
+      ? transport.distance
+      : 0;
   }
 
   return { duration: paidTransportDuration, distance: paidKm };
 };
 
+exports.getTransportMode = event =>
+  ({
+    default: event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT
+      ? TRANSIT
+      : DRIVING,
+    ...(event.transportMode && { specific: event.transportMode }),
+  });
 exports.getEventHours = async (event, prevEvent, service, details, dm) => {
   const paidTransport = await exports.getPaidTransportInfo(event, prevEvent, dm);
 

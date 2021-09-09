@@ -234,6 +234,7 @@ module.exports = {
   PRIVATE_TRANSPORT: 'private',
   COMPANY_TRANSPORT: 'company_transport',
   TRANSIT: 'transit',
+  WALKING: 'walking',
   DRIVING: 'driving',
   get EVENT_TRANSPORT_MODE_LIST() {
     return {
