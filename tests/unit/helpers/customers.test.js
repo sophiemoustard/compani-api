@@ -7,16 +7,17 @@ const moment = require('moment');
 const QRCode = require('qrcode');
 const CustomerQRCode = require('../../../src/data/pdf/customerQRCode/customerQRCode');
 const Customer = require('../../../src/models/Customer');
-const UserCompany = require('../../../src/models/UserCompany');
+const CustomerPartner = require('../../../src/models/CustomerPartner');
 const Event = require('../../../src/models/Event');
-const Rum = require('../../../src/models/Rum');
+const EventHistory = require('../../../src/models/EventHistory');
 const Drive = require('../../../src/models/Google/Drive');
 const Helper = require('../../../src/models/Helper');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
-const EventHistory = require('../../../src/models/EventHistory');
 const Repetition = require('../../../src/models/Repetition');
-const CustomerPartner = require('../../../src/models/CustomerPartner');
+const Rum = require('../../../src/models/Rum');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
 const CustomerHelper = require('../../../src/helpers/customers');
 const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories');
 const FundingsHelper = require('../../../src/helpers/fundings');
@@ -28,22 +29,97 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('getCustomersBySector', () => {
-  let getCustomersFromEvent;
+  let findSectorHistories;
+  let findEvents;
+  let populateSubscriptionsServices;
   beforeEach(() => {
-    getCustomersFromEvent = sinon.stub(EventRepository, 'getCustomersFromEvent');
+    findSectorHistories = sinon.stub(SectorHistory, 'find');
+    findEvents = sinon.stub(Event, 'find');
+    populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
   });
   afterEach(() => {
-    getCustomersFromEvent.restore();
+    findSectorHistories.restore();
+    findEvents.restore();
+    populateSubscriptionsServices.restore();
   });
 
   it('should return customer by sector', async () => {
-    const query = { startDate: '2019-04-14T09:00:00', endDate: '2019-05-14T09:00:00', sector: 'sector' };
+    const sectorId = new ObjectID();
+    const query = { startDate: '2019-04-14T09:00:00', endDate: '2019-05-14T09:00:00', sector: sectorId.toHexString() };
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
+    const auxiliaryIds = [new ObjectID(), new ObjectID()];
+    const customerIds = [new ObjectID(), new ObjectID()];
 
-    await CustomerHelper.getCustomersBySector(query, credentials);
+    findSectorHistories.returns(SinonMongoose.stubChainedQueries(
+      [[{ auxiliary: auxiliaryIds[1] }, { auxiliary: auxiliaryIds[0] }]],
+      ['lean']
+    ));
+    findEvents.returns(SinonMongoose.stubChainedQueries(
+      [[
+        { customer: { _id: customerIds[0] } },
+        { customer: { _id: customerIds[0] } },
+        { customer: { _id: customerIds[1] } },
+      ]],
+      ['populate', 'lean']
+    ));
+    populateSubscriptionsServices.onCall(0).returns({ _id: customerIds[0], identity: {} });
+    populateSubscriptionsServices.onCall(1).returns({ _id: customerIds[1], identity: {} });
 
-    sinon.assert.calledWithExactly(getCustomersFromEvent, query, companyId);
+    const result = await CustomerHelper.getCustomersBySector(query, credentials);
+
+    expect(result).toEqual([{ _id: customerIds[0], identity: {} }, { _id: customerIds[1], identity: {} }]);
+
+    sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(0), { _id: customerIds[0] });
+    sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(1), { _id: customerIds[1] });
+    SinonMongoose.calledWithExactly(
+      findSectorHistories,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              sector: { $in: [sectorId] },
+              startDate: { $lte: '2019-05-14T09:00:00' },
+              $or: [{ endDate: { $exists: false } }, { endDate: { $gte: '2019-04-14T09:00:00' } }],
+              company: companyId,
+            },
+            { auxiliary: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      findEvents,
+      [
+        {
+          query: 'find',
+          args: [
+            {
+              type: 'intervention',
+              $or: [{ auxiliary: { $in: [auxiliaryIds[1], auxiliaryIds[0]] } }, { sector: { $in: [sectorId] } }],
+              startDate: { $lte: '2019-05-14T09:00:00' },
+              endDate: { $gte: '2019-04-14T09:00:00' },
+              company: companyId,
+            },
+            { customer: 1 },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'subscriptions identity contact',
+            populate: [
+              { path: 'referentHistories', populate: { path: 'auxiliary' }, match: { company: companyId } },
+              { path: 'subscriptions.service' },
+            ],
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

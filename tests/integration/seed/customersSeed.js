@@ -13,6 +13,8 @@ const CreditNote = require('../../../src/models/CreditNote');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
+const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const { FIXED, ONCE, HOURLY, WEBAPP, DEATH } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -465,8 +467,8 @@ const bill = {
     vat: 5.5,
     events: [{
       eventId: new ObjectID(),
-      startDate: '2019-01-16T09:30:19.543Z',
-      endDate: '2019-01-16T11:30:21.653Z',
+      startDate: '2019-01-16T09:30:19',
+      endDate: '2019-01-16T11:30:21',
       auxiliary: referentList[0]._id,
       inclTaxesCustomer: 12,
       exclTaxesCustomer: 10,
@@ -673,6 +675,32 @@ const userList = [
     role: { client: clientAdminRoleId },
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary', lastname: 'Devo' },
+    local: { email: 'auxforevent@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: auxiliaryRoleId },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary', lastname: 'Vé' },
+    local: { email: 'auxforcustomer@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: auxiliaryRoleId },
+    origin: WEBAPP,
+  },
+];
+
+const sectorsList = [
+  { _id: new ObjectID(), name: 'Super Equipe', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Equipe Genial', company: authCompany._id },
+];
+
+const sectorHistoriesList = [
+  { sector: sectorsList[0]._id, auxiliary: userList[5], company: authCompany._id, startDate: '2019-01-01T00:00:00' },
+  { sector: sectorsList[1]._id, auxiliary: userList[6], company: authCompany._id, startDate: '2019-01-01T00:00:00' },
 ];
 
 const eventList = [
@@ -682,11 +710,10 @@ const eventList = [
     isBilled: true,
     customer: customersList[0]._id,
     type: 'intervention',
-    bills: {},
-    sector: new ObjectID(),
+    sector: sectorsList[0]._id,
     subscription: subId,
-    startDate: '2019-01-16T14:30:19.543Z',
-    endDate: '2019-01-16T15:30:21.653Z',
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -701,11 +728,10 @@ const eventList = [
     company: authCompany._id,
     customer: customersList[0]._id,
     type: 'intervention',
-    bills: {},
     sector: new ObjectID(),
     subscription: subId,
-    startDate: '2019-01-17T14:30:19.543Z',
-    endDate: '2019-01-17T15:30:21.653Z',
+    startDate: '2019-01-17T14:30:19',
+    endDate: '2019-01-17T15:30:21',
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -719,8 +745,8 @@ const eventList = [
     sector: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    startDate: '2019-01-16T09:30:19.543Z',
-    endDate: '2019-01-16T11:30:21.653Z',
+    startDate: '2019-01-16T09:30:19',
+    endDate: '2019-01-16T11:30:21',
     customer: customersList[0]._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: subId,
@@ -759,10 +785,44 @@ const eventList = [
       nature: 'hourly',
       careHours: 2,
     },
-    sector: new ObjectID(),
+    sector: sectorsList[1]._id,
     subscription: new ObjectID(),
-    startDate: '2019-01-16T14:30:19.543Z',
-    endDate: '2019-01-16T15:30:21.653Z',
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: customersList[1]._id,
+    auxiliary: userList[5]._id,
+    type: 'intervention',
+    subscription: new ObjectID(),
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: customersList[2]._id,
+    auxiliary: userList[6]._id,
+    type: 'intervention',
+    subscription: new ObjectID(),
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -794,18 +854,20 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    ThirdPartyPayer.create(customerThirdPartyPayers),
-    Service.create(customerServiceList),
+    Bill.create(bill),
+    CreditNote.create(creditNote),
     Customer.create([...customersList, otherCompanyCustomer]),
     Event.create(eventList),
-    ReferentHistory.create(referentHistories),
     Helper.create(helpersList),
-    UserCompany.create(userCompanies),
-    User.create([...userList, ...referentList]),
-    Bill.create(bill),
     Payment.create(payment),
-    CreditNote.create(creditNote),
+    ReferentHistory.create(referentHistories),
+    Sector.create(sectorsList),
+    SectorHistory.create(sectorHistoriesList),
+    Service.create(customerServiceList),
     TaxCertificate.create(taxCertificate),
+    ThirdPartyPayer.create(customerThirdPartyPayers),
+    User.create([...userList, ...referentList]),
+    UserCompany.create(userCompanies),
   ]);
 };
 
@@ -816,4 +878,5 @@ module.exports = {
   customerServiceList,
   customerThirdPartyPayers,
   otherCompanyCustomer,
+  sectorsList,
 };
