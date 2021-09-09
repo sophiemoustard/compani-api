@@ -583,6 +583,56 @@ describe('getPaidTransportInfo', () => {
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
+  it('should compute specific transport mode if exist', async () => {
+    const event = {
+      hasFixedService: false,
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      address: { fullAddress: 'jébobolà' },
+      company: new ObjectID(),
+      transportMode: 'public',
+    };
+    const prevEvent = {
+      hasFixedService: false,
+      type: 'intervention',
+      startDate: '2019-01-18T15:46:30.636Z',
+      address: { fullAddress: 'tamalou' },
+    };
+    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'public', event.company);
+  });
+
+  it('should not paid transport if transportMode is not personal car', async () => {
+    const event = {
+      hasFixedService: false,
+      startDate: '2019-01-18T18:00:00',
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      address: { fullAddress: 'jébobolà' },
+      transportMode: 'public',
+
+    };
+    const prevEvent = {
+      hasFixedService: false,
+      type: 'intervention',
+      endDate: '2019-01-18T15:00:00',
+      address: { fullAddress: 'tamalou' },
+    };
+    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 40 });
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'public', event.company);
+  });
+
   it('should compute transit transport', async () => {
     const event = {
       hasFixedService: false,

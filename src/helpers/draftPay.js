@@ -132,6 +132,7 @@ exports.getTransportInfo = async (distances, origins, destinations, mode, compan
   if (!origins || !destinations || !mode) return { distance: 0, duration: 0 };
   let distanceMatrix = distances.find(dm => dm.origins === origins && dm.destinations === destinations &&
     dm.mode === mode);
+
   if (!distanceMatrix) {
     const query = { origins, destinations, mode };
     distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query, companyId);
