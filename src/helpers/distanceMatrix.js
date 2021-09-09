@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const maps = require('../models/Google/Maps');
-const { TRANSIT, WALKING, PUBLIC_TRANSPORT } = require('./constants');
+const { TRANSIT, WALKING } = require('./constants');
 
 exports.getDistanceMatrices = async credentials =>
   DistanceMatrix.find({ company: get(credentials, 'company._id') }).lean();
@@ -17,9 +17,9 @@ const isDistanceMatrixDefine = (res) => {
 
 exports.getOrCreateDistanceMatrix = async (params, companyId) => {
   let res = null;
-  if (params.mode === TRANSIT || params.mode === PUBLIC_TRANSPORT) {
-    const queryWithTransit = { ...params, mode: TRANSIT, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
-    const resWithTransit = await maps.getDistanceMatrix(queryWithTransit);
+  const query = { ...params, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
+  if (params.mode === TRANSIT) {
+    const resWithTransit = await maps.getDistanceMatrix(query);
     const queryWithWalking = { ...params, mode: WALKING, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
     const resWithWalking = await maps.getDistanceMatrix(queryWithWalking);
 
@@ -29,7 +29,6 @@ exports.getOrCreateDistanceMatrix = async (params, companyId) => {
     const walkingDistance = resWithWalking.data.rows[0].elements[0].distance.value;
     res = transitDistance < walkingDistance ? resWithTransit : resWithWalking;
   } else {
-    const query = { ...params, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
     res = await maps.getDistanceMatrix(query);
   }
 

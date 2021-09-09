@@ -144,6 +144,14 @@ exports.getTransportInfo = async (distances, origins, destinations, mode, compan
     : { duration: distanceMatrix.duration / 60, distance: distanceMatrix.distance / 1000 };
 };
 
+exports.getTransportMode = event =>
+  ({
+    default: event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT
+      ? TRANSIT
+      : DRIVING,
+    ...(event.transportMode && { specific: event.transportMode === PUBLIC_TRANSPORT ? TRANSIT : DRIVING }),
+  });
+
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
   let paidTransportDuration = 0;
   let paidKm = 0;
@@ -176,13 +184,6 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
   return { duration: paidTransportDuration, distance: paidKm };
 };
 
-exports.getTransportMode = event =>
-  ({
-    default: event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT
-      ? TRANSIT
-      : DRIVING,
-    ...(event.transportMode && { specific: event.transportMode }),
-  });
 exports.getEventHours = async (event, prevEvent, service, details, dm) => {
   const paidTransport = await exports.getPaidTransportInfo(event, prevEvent, dm);
 
