@@ -1516,15 +1516,39 @@ describe('formatAndCreateList', () => {
   });
 });
 
+describe('formatBillingItem', () => {
+  it('should format billing item', () => {
+    const billingItemId = new ObjectID();
+    const billingItem = { billingItem: billingItemId, count: 3, unitInclTaxes: 60 };
+    const list = [
+      { _id: billingItemId, name: 'bonjour', vat: 20 },
+      { _id: new ObjectID(), name: 'au revoir', vat: 40 },
+    ];
+
+    const result = BillHelper.formatBillingItem(billingItem, list);
+
+    expect(result).toEqual({
+      billingItem: billingItemId,
+      name: 'bonjour',
+      unitInclTaxes: 60,
+      count: 3,
+      inclTaxes: 180,
+      exclTaxes: 150,
+    });
+  });
+});
+
 describe('formatAndCreateBill', () => {
   let getBillNumber;
   let formatBillNumber;
+  let formatBillingItem;
   let findBillingItem;
   let updateOneBillNumber;
   let create;
   beforeEach(() => {
     getBillNumber = sinon.stub(BillHelper, 'getBillNumber');
     formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
+    formatBillingItem = sinon.stub(BillHelper, 'formatBillingItem');
     findBillingItem = sinon.stub(BillingItem, 'find');
     updateOneBillNumber = sinon.stub(BillNumber, 'updateOne');
     create = sinon.stub(Bill, 'create');
@@ -1533,6 +1557,7 @@ describe('formatAndCreateBill', () => {
   afterEach(() => {
     getBillNumber.restore();
     formatBillNumber.restore();
+    formatBillingItem.restore();
     findBillingItem.restore();
     updateOneBillNumber.restore();
     create.restore();
@@ -1558,6 +1583,8 @@ describe('formatAndCreateBill', () => {
     findBillingItem.returns(
       SinonMongoose.stubChainedQueries([[{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]], ['lean'])
     );
+    formatBillingItem.onCall(0).returns({ inclTaxes: 180 });
+    formatBillingItem.onCall(1).returns({ inclTaxes: 150 });
 
     await BillHelper.formatAndCreateBill(payload, credentials);
 
@@ -1565,11 +1592,25 @@ describe('formatAndCreateBill', () => {
     sinon.assert.calledOnceWithExactly(formatBillNumber, '101', 'FACT-101', 2);
     SinonMongoose.calledWithExactly(
       findBillingItem,
-      [{ query: 'find', args: [{ _id: { $in: [billingItemId1, billingItemId2] } }, { vat: 1 }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ _id: { $in: [billingItemId1, billingItemId2] } }, { vat: 1, name: 1 }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.calledOnceWithExactly(
       updateOneBillNumber,
-      { prefix: 'FACT-101', company: companyId }, { $set: { seq: 2 } }
+      { prefix: 'FACT-101', company: companyId },
+      { $set: { seq: 2 } }
+    );
+    sinon.assert.calledWithExactly(
+      formatBillingItem.getCall(0),
+      { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
+      [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
+    );
+    sinon.assert.calledWithExactly(
+      formatBillingItem.getCall(1),
+      { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+      [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
     );
     sinon.assert.calledOnceWithExactly(
       create,
@@ -1579,22 +1620,7 @@ describe('formatAndCreateBill', () => {
         customer: payload.customer,
         netInclTaxes: 50,
         type: 'manual',
-        billingItemList: [
-          {
-            billingItem: billingItemId1,
-            unitInclTaxes: 10,
-            count: 2,
-            inclTaxes: 10 * 2,
-            exclTaxes: 18.18181818181818,
-          },
-          {
-            billingItem: billingItemId2,
-            unitInclTaxes: 30,
-            count: 1,
-            inclTaxes: 30,
-            exclTaxes: 24,
-          },
-        ],
+        billingItemList: [{ inclTaxes: 180 }, { inclTaxes: 150 }],
         company: companyId,
       }
     );
