@@ -10,6 +10,7 @@ const billEventSurchargesSchemaDefinition = [{
 const billingItemSchemaDefinition = {
   billingItem: { type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem', required: true },
   unitInclTaxes: { type: Number, required: true },
+  name: { type: String, required: true },
   count: { type: Number, required: true },
   inclTaxes: { type: Number, required: true },
   exclTaxes: { type: Number, required: true },
