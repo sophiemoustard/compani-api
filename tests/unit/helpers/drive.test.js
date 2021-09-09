@@ -31,12 +31,13 @@ describe('downloadFile', () => {
     const date = new Date('2020-01-06');
     const fakeDate = sinon.useFakeTimers(date);
     const downloadFileByIdStub = sinon.stub(Drive, 'downloadFileById');
+    downloadFileByIdStub.returns({ type: 'image/png' });
     const filePath = path.join(os.tmpdir(), `download-${date.getTime()}`);
     const driveId = '1234567890';
 
     const result = await DriveHelper.downloadFile(driveId);
 
-    expect(result).toEqual(filePath);
+    expect(result).toEqual({ filePath, type: 'image/png' });
     sinon.assert.calledWithExactly(downloadFileByIdStub, { fileId: driveId, tmpFilePath: filePath });
     fakeDate.restore();
     downloadFileByIdStub.restore();

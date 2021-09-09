@@ -281,9 +281,9 @@ describe('POST /gdrive/file/:id/download', () => {
       downloadFileStub.restore();
     });
 
-    it('should generate a docx document from google drive', async () => {
+    it('should download a doc from drive', async () => {
       const fileDriveId = '1234567890';
-      downloadFileStub.returns(path.join(__dirname, './assets/signature_request.docx'));
+      downloadFileStub.returns({ filePath: path.join(__dirname, './assets/test_upload.png'), type: 'image/png' });
 
       const response = await app.inject({
         method: 'GET',
