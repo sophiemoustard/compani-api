@@ -109,9 +109,11 @@ const billingItemList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Service.insertMany([...servicesList, serviceFromOtherCompany]);
-  await Customer.create(customer);
-  await BillingItem.create(billingItemList);
+  Promise.all([
+    await Service.create([...servicesList, serviceFromOtherCompany]),
+    await Customer.create(customer),
+    await BillingItem.create(billingItemList),
+  ]);
 };
 
 module.exports = { servicesList, populateDB, serviceFromOtherCompany, billingItemList };

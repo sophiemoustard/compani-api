@@ -161,6 +161,7 @@ module.exports = {
     serviceCreated: 'Service created.',
     serviceDeleted: 'Service deleted.',
     servicesNotFound: 'Services not found.',
+    serviceNotFound: 'Service not found.',
     servicesUpdated: 'Services updated.',
     /* Surcharges */
     surchargesFound: 'Surcharges found.',
@@ -494,6 +495,7 @@ module.exports = {
     serviceCreated: 'Service créé.',
     serviceDeleted: 'Service supprimé.',
     servicesNotFound: 'Services non trouvés.',
+    serviceNotFound: 'Service non trouvé.',
     servicesUpdated: 'Service modifié.',
     /* Surcharges */
     surchargesFound: 'Plans de majorations trouvés.',
