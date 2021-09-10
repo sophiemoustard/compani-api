@@ -6,21 +6,18 @@ const { TRANSIT, WALKING } = require('./constants');
 exports.getDistanceMatrices = async credentials =>
   DistanceMatrix.find({ company: get(credentials, 'company._id') }).lean();
 
-const isDistanceMatrixDefine = (res) => {
-  if (res.status !== 200 || !res.data.rows[0] || !res.data.rows[0].elements ||
-    !res.data.rows[0].elements[0].duration || !res.data.rows[0].elements[0].distance) {
-    return false;
-  }
-
-  return true;
-};
+const isDistanceMatrixDefine = res => (res.status === 200 && get(res, 'data.rows[0].elements[0].distance') &&
+  get(res, 'data.rows[0].elements[0].duration'));
 
 exports.getOrCreateDistanceMatrix = async (params, companyId) => {
+  const distanceMatrix = await DistanceMatrix.findOne(params).lean();
+  if (distanceMatrix) return distanceMatrix;
+
   let res = null;
   const query = { ...params, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
   if (params.mode === TRANSIT) {
     const resWithTransit = await maps.getDistanceMatrix(query);
-    const queryWithWalking = { ...params, mode: WALKING, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
+    const queryWithWalking = { ...query, mode: WALKING };
     const resWithWalking = await maps.getDistanceMatrix(queryWithWalking);
 
     if (!isDistanceMatrixDefine(resWithTransit) || !isDistanceMatrixDefine(resWithWalking)) return null;

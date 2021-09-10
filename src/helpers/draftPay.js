@@ -165,6 +165,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     }
 
     if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, distance: paidKm };
+
     const transport = await exports.getTransportInfo(
       dm,
       origins,

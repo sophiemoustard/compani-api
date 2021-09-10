@@ -55,23 +55,27 @@ describe('getOrCreateDistanceMatrix', () => {
   const companyId = new ObjectID();
   let save;
   let getDistanceMatrix;
+  let findOne;
 
   beforeEach(() => {
     save = sinon.stub(DistanceMatrix.prototype, 'save').returnsThis();
     getDistanceMatrix = sinon.stub(maps, 'getDistanceMatrix').returns(distanceMatrixResult);
+    findOne = sinon.stub(DistanceMatrix, 'findOne');
   });
 
   afterEach(() => {
     save.restore();
-    getDistanceMatrix.restore();
+    findOne.restore();
   });
 
   it('should return a new DistanceMatrix', async () => {
     getDistanceMatrix.returns(distanceMatrixResult);
+    findOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
     const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, companyId);
 
     sinon.assert.calledOnce(save);
+    SinonMongoose.calledWithExactly(findOne, [{ query: 'findOne', args: [distanceMatrixRequest] }, { query: 'lean' }]);
     expect(result).toEqual(expect.objectContaining({
       company: companyId,
       _id: expect.any(Object),
