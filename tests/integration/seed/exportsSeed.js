@@ -420,6 +420,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     transportMode: 'public',
+    kmDuringEvent: 23,
   },
   {
     _id: new ObjectID(),
