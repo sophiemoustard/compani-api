@@ -37,7 +37,7 @@ const createBillList = async (req) => {
 
 const billsList = async (req) => {
   try {
-    const bills = await BillHelper.getBillsList(req.query, req.auth.credentials);
+    const bills = await BillHelper.list(req.query, req.auth.credentials);
 
     return { message: translate[language].billsFound, data: { bills } };
   } catch (e) {

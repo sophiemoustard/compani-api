@@ -192,7 +192,12 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
   );
 };
 
-<<<<<<< HEAD
+exports.list = async (query, credentials) => Bill
+  .find({ type: query.type, company: credentials.company })
+  .populate({ path: 'customer', select: 'identity' })
+  .populate({ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } })
+  .lean();
+
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
 
@@ -205,11 +210,6 @@ exports.formatBillingItem = (bi, bddBillingItemList) => {
     exclTaxes: (bi.unitInclTaxes / (1 + bddBillingItem.vat / 100)) * bi.count,
   };
 };
-=======
-exports.getBillsList = async (query, credentials) => Bill
-  .find({ type: query.type, company: credentials.company })
-  .lean();
->>>>>>> ef7b77d9 (COM-2298-get new route GET bills/list)
 
 exports.formatAndCreateBill = async (payload, credentials) => {
   const { date, billingItemList } = payload;
