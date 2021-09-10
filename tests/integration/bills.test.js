@@ -634,6 +634,62 @@ describe('BILL ROUTES - POST /bills/list', () => {
   });
 });
 
+describe('BILL ROUTES - GET /bills/list', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should return all draft bills from authCompany', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/bills/list?type=manual',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.bills.length).toBe(1);
+    });
+
+    it('should return 400 if wrong query', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/bills/list?type=wrongType',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403, erp: true },
+      { name: 'planning_referent', expectedCode: 403, erp: true },
+      { name: 'coach', expectedCode: 403, erp: true },
+      { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403, erp: false },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: '/bills/list?type=manual',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('BILL ROUTES - POST /bills', () => {
   let authToken;
   beforeEach(populateDB);
