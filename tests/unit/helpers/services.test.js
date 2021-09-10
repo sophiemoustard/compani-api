@@ -27,6 +27,7 @@ describe('list', () => {
     SinonMongoose.calledWithExactly(find, [
       { query: 'find', args: [{ company: companyId, isArchived: true }] },
       { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: companyId } }] },
+      { query: 'populate', args: [{ path: 'versions.billingItems', select: 'name' }] },
       { query: 'lean' },
     ]);
   });

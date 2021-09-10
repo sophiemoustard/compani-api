@@ -3,8 +3,10 @@ const Service = require('../models/Service');
 
 exports.list = async (credentials, query) => {
   const companyId = get(credentials, 'company._id') || '';
+
   return Service.find({ ...query, company: companyId })
     .populate({ path: 'versions.surcharge', match: { company: companyId } })
+    .populate({ path: 'versions.billingItems', select: 'name' })
     .lean();
 };
 
