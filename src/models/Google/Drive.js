@@ -91,7 +91,7 @@ exports.list = async (params) => {
   return new Promise((resolve, reject) => {
     const query = {
       auth,
-      fields: 'nextPageToken, files(name, webViewLink, createdTime)',
+      fields: 'nextPageToken, files(name, id, createdTime)',
       pageToken: params.nextPageToken || '',
     };
     if (params.folderId) {
