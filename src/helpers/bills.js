@@ -192,37 +192,35 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
   );
 };
 
+exports.formatBillingItem = (bi, bddBillingItemList) => {
+  const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
+
+  return {
+    billingItem: bi.billingItem,
+    name: bddBillingItem.name,
+    unitInclTaxes: bi.unitInclTaxes,
+    count: bi.count,
+    inclTaxes: bi.unitInclTaxes * bi.count,
+    exclTaxes: (bi.unitInclTaxes / (1 + bddBillingItem.vat / 100)) * bi.count,
+  };
+};
+
 exports.formatAndCreateBill = async (payload, credentials) => {
-  const { customer, date, billingItemList, netInclTaxes } = payload;
+  const { date, billingItemList } = payload;
   const { company } = credentials;
 
   const billNumber = await exports.getBillNumber(date, company._id);
   const seq = billNumber.seq + 1;
-  const number = exports.formatBillNumber(company.prefixNumber, billNumber.prefix, seq);
 
   const bddBillingItemList = await BillingItem
-    .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1 })
+    .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1, name: 1 })
     .lean();
-  const formattedBillingItemList = billingItemList.map((bi) => {
-    const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
-    const vat = bddBillingItem.vat / 100;
-
-    return {
-      billingItem: bi.billingItem,
-      unitInclTaxes: bi.unitInclTaxes,
-      count: bi.count,
-      inclTaxes: bi.unitInclTaxes * bi.count,
-      exclTaxes: (bi.unitInclTaxes / (1 + vat)) * bi.count,
-    };
-  });
 
   const bill = {
-    number,
-    date,
-    customer,
-    netInclTaxes,
+    ...pick(payload, ['date', 'customer', 'netInclTaxes']),
     type: MANUAL,
-    billingItemList: formattedBillingItemList,
+    number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, seq),
+    billingItemList: billingItemList.map(bi => exports.formatBillingItem(bi, bddBillingItemList)),
     company: company._id,
   };
 

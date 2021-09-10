@@ -102,10 +102,10 @@ exports.authorizeBillCreation = async (req) => {
   const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
   if (!customer) throw Boom.forbidden();
 
+  const billingItemIds = [...new Set(req.payload.billingItemList.map(bi => bi.billingItem))];
   const billingItems = await BillingItem
-    .find({ _id: { $in: req.payload.billingItemList.map(bi => bi.billingItem) }, company: companyId, type: MANUAL })
-    .lean();
-  if (billingItems.length !== req.payload.billingItemList.length) throw Boom.forbidden();
+    .countDocuments({ _id: { $in: billingItemIds }, company: companyId, type: MANUAL });
+  if (billingItems !== billingItemIds.length) throw Boom.forbidden();
 
   const totalInclTaxes = req.payload.billingItemList
     .reduce((acc, current) => acc + current.unitInclTaxes * current.count, 0);
