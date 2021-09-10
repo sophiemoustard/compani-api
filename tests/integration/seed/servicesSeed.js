@@ -109,10 +109,10 @@ const billingItemList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  Promise.all([
-    await Service.create([...servicesList, serviceFromOtherCompany]),
-    await Customer.create(customer),
-    await BillingItem.create(billingItemList),
+  await Promise.all([
+    Service.create([...servicesList, serviceFromOtherCompany]),
+    Customer.create(customer),
+    BillingItem.create(billingItemList),
   ]);
 };
 
