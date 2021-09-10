@@ -8,6 +8,7 @@ const {
   createBillList,
   createBill,
   generateBillPdf,
+  billsList,
 } = require('../controllers/billsController');
 const {
   getBill,
@@ -17,6 +18,7 @@ const {
   authorizeBillCreation,
 } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
+const { BILL_TYPES } = require('../models/Bill');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -146,6 +148,18 @@ exports.plugin = {
         pre: [{ method: authorizeBillsCreation }],
       },
       handler: createBillList,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/list',
+      options: {
+        auth: { scope: ['bills:edit'] },
+        validate: {
+          query: Joi.object({ type: Joi.string().valid(...BILL_TYPES).required() }),
+        },
+      },
+      handler: billsList,
     });
 
     server.route({
