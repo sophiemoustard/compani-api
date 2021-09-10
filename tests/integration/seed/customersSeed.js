@@ -4,7 +4,6 @@ const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
-const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const User = require('../../../src/models/User');
@@ -13,16 +12,13 @@ const Payment = require('../../../src/models/Payment');
 const CreditNote = require('../../../src/models/CreditNote');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Helper = require('../../../src/models/Helper');
-const {
-  FIXED,
-  ONCE,
-  HOURLY,
-  AUXILIARY,
-  WEBAPP,
-  DEATH,
-} = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 const UserCompany = require('../../../src/models/UserCompany');
+const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
+const { FIXED, ONCE, HOURLY, WEBAPP, DEATH } = require('../../../src/helpers/constants');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const subId = new ObjectID();
 const subId2 = new ObjectID();
@@ -33,19 +29,19 @@ const referentList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
-    local: { email: 'auxiliaryreferent@alenvi.io', password: '123456!eR' },
+    local: { email: 'auxiliaryreferent@alenvi.io' },
     contact: { phone: '0987654321' },
     picture: { publicId: '1234', link: 'test' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+    role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'SuperReferent', lastname: 'Test', title: 'mr' },
-    local: { email: 'auxiliaryreferent2@alenvi.io', password: '123456!eR' },
+    local: { email: 'auxiliaryreferent2@alenvi.io' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+    role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
 ];
@@ -453,6 +449,7 @@ const customersList = [
 
 const bill = {
   _id: new ObjectID(),
+  type: 'automatic',
   company: customersList[4].company,
   number: 'FACT-1901001',
   date: '2019-05-29',
@@ -470,8 +467,8 @@ const bill = {
     vat: 5.5,
     events: [{
       eventId: new ObjectID(),
-      startDate: '2019-01-16T09:30:19.543Z',
-      endDate: '2019-01-16T11:30:21.653Z',
+      startDate: '2019-01-16T09:30:19',
+      endDate: '2019-01-16T11:30:21',
       auxiliary: referentList[0]._id,
       inclTaxesCustomer: 12,
       exclTaxesCustomer: 10,
@@ -640,34 +637,34 @@ const otherCompanyCustomer = {
 const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    identity: { firstname: 'HelperForCustomer', lastname: 'TheEtMoselle' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer2', lastname: 'Test' },
+    identity: { firstname: 'HelperForCustomer2', lastname: 'Rtre' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer4', lastname: 'Test' },
+    identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Test' },
-    local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456!eR' },
+    identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Caragua' },
+    local: { email: 'helper_for_customer_other_company@alenvi.io' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
@@ -675,9 +672,35 @@ const userList = [
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+    role: { client: clientAdminRoleId },
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary', lastname: 'Devo' },
+    local: { email: 'auxforevent@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: auxiliaryRoleId },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary', lastname: 'Vé' },
+    local: { email: 'auxforcustomer@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: auxiliaryRoleId },
+    origin: WEBAPP,
+  },
+];
+
+const sectorsList = [
+  { _id: new ObjectID(), name: 'Super Equipe', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Equipe Genial', company: authCompany._id },
+];
+
+const sectorHistoriesList = [
+  { sector: sectorsList[0]._id, auxiliary: userList[5], company: authCompany._id, startDate: '2019-01-01T00:00:00' },
+  { sector: sectorsList[1]._id, auxiliary: userList[6], company: authCompany._id, startDate: '2019-01-01T00:00:00' },
 ];
 
 const eventList = [
@@ -687,11 +710,10 @@ const eventList = [
     isBilled: true,
     customer: customersList[0]._id,
     type: 'intervention',
-    bills: {},
-    sector: new ObjectID(),
+    sector: sectorsList[0]._id,
     subscription: subId,
-    startDate: '2019-01-16T14:30:19.543Z',
-    endDate: '2019-01-16T15:30:21.653Z',
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -706,11 +728,10 @@ const eventList = [
     company: authCompany._id,
     customer: customersList[0]._id,
     type: 'intervention',
-    bills: {},
     sector: new ObjectID(),
     subscription: subId,
-    startDate: '2019-01-17T14:30:19.543Z',
-    endDate: '2019-01-17T15:30:21.653Z',
+    startDate: '2019-01-17T14:30:19',
+    endDate: '2019-01-17T15:30:21',
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -724,8 +745,8 @@ const eventList = [
     sector: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    startDate: '2019-01-16T09:30:19.543Z',
-    endDate: '2019-01-16T11:30:21.653Z',
+    startDate: '2019-01-16T09:30:19',
+    endDate: '2019-01-16T11:30:21',
     customer: customersList[0]._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: subId,
@@ -764,10 +785,44 @@ const eventList = [
       nature: 'hourly',
       careHours: 2,
     },
-    sector: new ObjectID(),
+    sector: sectorsList[1]._id,
     subscription: new ObjectID(),
-    startDate: '2019-01-16T14:30:19.543Z',
-    endDate: '2019-01-16T15:30:21.653Z',
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: customersList[1]._id,
+    auxiliary: userList[5]._id,
+    type: 'intervention',
+    subscription: new ObjectID(),
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: customersList[2]._id,
+    auxiliary: userList[6]._id,
+    type: 'intervention',
+    subscription: new ObjectID(),
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -796,39 +851,24 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await Service.deleteMany();
-  await Customer.deleteMany();
-  await Event.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await QuoteNumber.deleteMany();
-  await User.deleteMany();
-  await ReferentHistory.deleteMany();
-  await Bill.deleteMany();
-  await Payment.deleteMany();
-  await CreditNote.deleteMany();
-  await TaxCertificate.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await ThirdPartyPayer.insertMany(customerThirdPartyPayers);
-  await Service.insertMany(customerServiceList);
-  await Customer.insertMany([...customersList, otherCompanyCustomer]);
-  await Event.insertMany(eventList);
-  await ReferentHistory.insertMany(referentHistories);
-  await Helper.insertMany(helpersList);
-  await UserCompany.insertMany(userCompanies);
-  for (const user of userList) {
-    await (new User(user).save());
-  }
-  for (const user of referentList) {
-    await (new User(user).save());
-  }
-  await (new Bill(bill).save());
-  await (new Payment(payment).save());
-  await (new CreditNote(creditNote).save());
-  await (new TaxCertificate(taxCertificate).save());
+  await Promise.all([
+    Bill.create(bill),
+    CreditNote.create(creditNote),
+    Customer.create([...customersList, otherCompanyCustomer]),
+    Event.create(eventList),
+    Helper.create(helpersList),
+    Payment.create(payment),
+    ReferentHistory.create(referentHistories),
+    Sector.create(sectorsList),
+    SectorHistory.create(sectorHistoriesList),
+    Service.create(customerServiceList),
+    TaxCertificate.create(taxCertificate),
+    ThirdPartyPayer.create(customerThirdPartyPayers),
+    User.create([...userList, ...referentList]),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {
@@ -838,4 +878,5 @@ module.exports = {
   customerServiceList,
   customerThirdPartyPayers,
   otherCompanyCustomer,
+  sectorsList,
 };

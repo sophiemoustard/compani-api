@@ -79,35 +79,35 @@ function save(next) {
   if (this.isNew) {
     switch (this.template) {
       case FILL_THE_GAPS:
-        this.falsyGapAnswers = [{ text: '' }, { text: '' }];
-        this.canSwitchAnswers = false;
+        if (!this.falsyGapAnswers) this.falsyGapAnswers = [{ text: '' }, { text: '' }];
+        if (!this.canSwitchAnswers) this.canSwitchAnswers = false;
         break;
       case SINGLE_CHOICE_QUESTION:
-        this.qcAnswers = [{ text: '' }];
+        if (!this.qcAnswers) this.qcAnswers = [{ text: '' }];
         break;
       case QUESTION_ANSWER:
-        this.qcAnswers = [{ text: '' }, { text: '' }];
-        this.isQuestionAnswerMultipleChoiced = false;
-        this.isMandatory = false;
+        if (!this.qcAnswers) this.qcAnswers = [{ text: '' }, { text: '' }];
+        if (!this.isQuestionAnswerMultipleChoiced) this.isQuestionAnswerMultipleChoiced = false;
+        if (!this.isMandatory) this.isMandatory = false;
         break;
       case ORDER_THE_SEQUENCE:
-        this.orderedAnswers = [{ text: '' }, { text: '' }];
+        if (!this.orderedAnswers) this.orderedAnswers = [{ text: '' }, { text: '' }];
         break;
       case MULTIPLE_CHOICE_QUESTION:
-        this.qcAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
+        if (!this.qcAnswers) this.qcAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
         break;
       case SURVEY:
-        this.label = {};
-        this.isMandatory = false;
+        if (!this.label) this.label = {};
+        if (!this.isMandatory) this.isMandatory = false;
         break;
       case TEXT_MEDIA:
-        this.media = { type: UPLOAD_IMAGE };
+        if (!this.media) this.media = { type: UPLOAD_IMAGE };
         break;
       case TITLE_TEXT_MEDIA:
-        this.media = { type: UPLOAD_IMAGE };
+        if (!this.media) this.media = { type: UPLOAD_IMAGE };
         break;
       case OPEN_QUESTION:
-        this.isMandatory = false;
+        if (!this.isMandatory) this.isMandatory = false;
         break;
     }
   }

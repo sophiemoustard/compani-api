@@ -2,7 +2,6 @@ const { ObjectID } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const Questionnaire = require('../../../src/models/Questionnaire');
-const { populateDBForAuthentication } = require('./authenticationSeed');
 const {
   TRANSITION,
   TITLE_TEXT_MEDIA,
@@ -17,6 +16,7 @@ const {
   OPEN_QUESTION,
   QUESTION_ANSWER,
 } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const cardsList = [
   { _id: new ObjectID(), template: TRANSITION, title: 'Lala' },
@@ -91,10 +91,7 @@ const cardsList = [
   {
     _id: new ObjectID(),
     template: ORDER_THE_SEQUENCE,
-    orderedAnswers: [
-      { _id: new ObjectID(), text: 'rien' },
-      { _id: new ObjectID(), text: 'des trucs' },
-    ],
+    orderedAnswers: [{ _id: new ObjectID(), text: 'rien' }, { _id: new ObjectID(), text: 'des trucs' }],
   },
   {
     _id: new ObjectID(),
@@ -147,20 +144,16 @@ const questionnairesList = [
 ];
 
 const populateDB = async () => {
-  await Card.deleteMany({});
-  await Activity.deleteMany({});
-  await Questionnaire.deleteMany({});
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await Card.insertMany(cardsList);
-  await Activity.create(activitiesList);
-  await Questionnaire.create(questionnairesList);
+  await Promise.all([
+    Card.create(cardsList),
+    Activity.create(activitiesList),
+    Questionnaire.create(questionnairesList),
+  ]);
 };
 
 module.exports = {
   populateDB,
   cardsList,
-  activitiesList,
-  questionnairesList,
 };

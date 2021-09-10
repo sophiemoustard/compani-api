@@ -1,8 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateDB, authCustomer, customerFromOtherCompany, helpersList } = require('./seed/helpersSeed');
+const { populateDB, customer, customerFromOtherCompany, helpersList } = require('./seed/helpersSeed');
 const app = require('../../server');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
 });
 
 describe('GET /helpers', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('AUXILIARY', () => {
@@ -20,7 +20,7 @@ describe('GET /helpers', () => {
     });
 
     it('should return list of helpers', async () => {
-      const customerId = authCustomer._id.toHexString();
+      const customerId = customer._id.toHexString();
       const response = await app.inject({
         method: 'GET',
         url: `/helpers?customer=${customerId}`,
@@ -65,7 +65,7 @@ describe('GET /helpers', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const customerId = authCustomer._id.toHexString();
+        const customerId = customer._id.toHexString();
         const response = await app.inject({
           method: 'GET',
           url: `/helpers?customer=${customerId}`,
@@ -79,7 +79,7 @@ describe('GET /helpers', () => {
 });
 
 describe('PUT /helpers/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {

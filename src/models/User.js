@@ -331,6 +331,11 @@ UserSchema.virtual(
   }
 );
 
+UserSchema.virtual(
+  'companyLinkRequest',
+  { ref: 'CompanyLinkRequest', localField: '_id', foreignField: 'user', justOne: true }
+);
+
 UserSchema.virtual('activityHistories', { ref: 'ActivityHistory', localField: '_id', foreignField: 'user' });
 
 UserSchema.virtual('company', { ref: 'UserCompany', localField: '_id', foreignField: 'user', justOne: true });

@@ -53,10 +53,10 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const companies = await CompanyHelper.list(req.payload, req.auth.credentials);
+    const companies = await CompanyHelper.list();
 
     return {
-      message: translate[language].companyCreated,
+      message: translate[language].companiesFound,
       data: { companies },
     };
   } catch (e) {

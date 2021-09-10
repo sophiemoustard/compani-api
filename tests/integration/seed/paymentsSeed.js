@@ -7,9 +7,11 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND, WEBAPP } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const Helper = require('../../../src/models/Helper');
+const { helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const paymentTppList = [
   { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true, billingMode: 'direct' },
@@ -128,7 +130,7 @@ const paymentUser = {
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_payment@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   company: authCompany._id,
   origin: WEBAPP,
 };
@@ -145,7 +147,7 @@ const userFromOtherCompany = {
   company: otherCompany._id,
   refreshToken: uuidv4(),
   identity: { firstname: 'toto', lastname: 'toto' },
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+  role: { client: clientAdminRoleId },
   local: { email: 'test_other_company@alenvi.io', password: '123456!eR' },
   origin: WEBAPP,
 };
@@ -180,15 +182,7 @@ const tppFromOtherCompany = {
 };
 
 const populateDB = async () => {
-  await PaymentNumber.deleteMany();
-  await Payment.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Customer.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-  await Helper.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
@@ -196,10 +190,9 @@ const populateDB = async () => {
   await PaymentNumber.insertMany(paymentNumberList);
   await UserCompany.insertMany(userCompanies);
   await Helper.insertMany(helpersList);
-  await (new User(paymentUser).save());
-  await (new User(userFromOtherCompany).save());
-  await (new Customer(customerFromOtherCompany).save());
-  await (new ThirdPartyPayer(tppFromOtherCompany).save());
+  await User.create(paymentUser, userFromOtherCompany);
+  await Customer.create(customerFromOtherCompany);
+  await ThirdPartyPayer.create(tppFromOtherCompany);
 };
 
 module.exports = {

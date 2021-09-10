@@ -5,20 +5,18 @@ const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList } = require('../../seed/roleSeed');
-const { otherCompany } = require('../../seed/companySeed');
-const { TRAINER, WEBAPP } = require('../../../src/helpers/constants');
-const { vendorAdmin } = require('../../seed/userSeed');
+const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
+const { WEBAPP } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed');
 
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-
-const trainerList = [
+const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'trainer', lastname: 'withCourse' },
+    identity: { firstname: 'course', lastname: 'Trainer' },
     refreshToken: uuidv4(),
     local: { email: 'trainerWithCourse@alenvi.io', password: '123456!eR' },
-    role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
+    role: { vendor: trainerRoleId },
     origin: WEBAPP,
   },
   {
@@ -26,7 +24,15 @@ const trainerList = [
     identity: { firstname: 'trainer', lastname: 'noCourse' },
     refreshToken: uuidv4(),
     local: { email: 'trainerNoCourse@alenvi.io', password: '123456!eR' },
-    role: { vendor: rolesList.find(role => role.name === TRAINER)._id },
+    role: { vendor: trainerRoleId },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'salesrep', lastname: 'noCourse' },
+    refreshToken: uuidv4(),
+    local: { email: 'salerep@compani.fr' },
+    role: { vendor: vendorAdminRoleId },
     origin: WEBAPP,
   },
 ];
@@ -38,8 +44,8 @@ const coursesList = [
     company: authCompany._id,
     type: 'intra',
     trainees: [new ObjectID(), new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
   {
     _id: new ObjectID(),
@@ -47,8 +53,8 @@ const coursesList = [
     company: authCompany._id,
     type: 'intra',
     trainees: [new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
   {
     _id: new ObjectID(),
@@ -56,8 +62,8 @@ const coursesList = [
     company: otherCompany._id,
     type: 'intra',
     trainees: [new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
   { // interb2b
     _id: new ObjectID(),
@@ -65,8 +71,8 @@ const coursesList = [
     company: authCompany._id,
     type: 'inter_b2b',
     trainees: [new ObjectID(), new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
   { // interb2b with only trainees from otherCompany
     _id: new ObjectID(),
@@ -74,8 +80,8 @@ const coursesList = [
     company: authCompany._id,
     type: 'inter_b2b',
     trainees: [new ObjectID()],
-    trainer: trainerList[0]._id,
-    salesRepresentative: vendorAdmin._id,
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
   },
 ];
 
@@ -126,32 +132,32 @@ const attendancesList = [
 const companyTraineesList = [
   {
     _id: coursesList[0].trainees[1],
-    identity: { firstname: 'trainee', lastname: 'withCompany' },
-    local: { email: 'traineeWithCompany@alenvi.io', password: '123456!eR' },
+    identity: { firstname: 'Trainee', lastname: 'withCompany' },
+    local: { email: 'traineeWithCompany@alenvi.io' },
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'trainee', lastname: 'withoutCompany' },
-    local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
+    identity: { firstname: 'Player', lastname: 'withoutCompany' },
+    local: { email: 'traineeWithoutCompany@alenvi.io' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[3].trainees[0],
-    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
-    local: { email: 'traineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'otherCompany' },
+    local: { email: 'traineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[3].trainees[1],
-    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withAuthCompany' },
-    local: { email: 'authTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'authCompany' },
+    local: { email: 'authTraineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
   {
     _id: coursesList[4].trainees[0],
-    identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
-    local: { email: 'otherTraineeFromINTERB2B@alenvi.io', password: '123456!eR' },
+    identity: { firstname: 'interB2Btrainee', lastname: 'withOtherCompany' },
+    local: { email: 'otherTraineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
   },
 ];
@@ -164,24 +170,15 @@ const userCompanyList = [
 ];
 
 const populateDB = async () => {
-  await Attendance.deleteMany();
-  await Course.deleteMany();
-  await CourseSlot.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await Attendance.insertMany(attendancesList);
-  await Course.insertMany(coursesList);
-  await CourseSlot.insertMany(slotsList);
-  for (const user of trainerList) {
-    await (new User(user)).save();
-  }
-  for (const user of companyTraineesList) {
-    await (new User(user)).save();
-  }
-  await UserCompany.insertMany(userCompanyList);
+  await Promise.all([
+    Attendance.create(attendancesList),
+    Course.create(coursesList),
+    CourseSlot.create(slotsList),
+    User.create([...userList, ...companyTraineesList]),
+    UserCompany.create(userCompanyList),
+  ]);
 };
 
 module.exports = {
@@ -189,7 +186,7 @@ module.exports = {
   attendancesList,
   coursesList,
   slotsList,
-  trainerList,
+  userList,
   companyTraineesList,
   userCompanyList,
 };

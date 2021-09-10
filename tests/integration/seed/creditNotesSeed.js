@@ -7,11 +7,12 @@ const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
-const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const Helper = require('../../../src/models/Helper');
-const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 const UserCompany = require('../../../src/models/UserCompany');
+const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -75,15 +76,15 @@ const creditNoteUserList = [
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
     local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'helper')._id },
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
-    local: { email: 'toto@alenvi.io', password: '123456!eR' },
+    local: { email: 'toto@alenvi.io' },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
 ];
@@ -258,7 +259,7 @@ const otherCompanyUser = {
   identity: { firstname: 'Renégat', lastname: 'Toto' },
   local: { email: 'other_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 };
 
@@ -333,25 +334,18 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await CreditNote.deleteMany();
-  await Event.deleteMany();
-  await Customer.deleteMany();
-  await Service.deleteMany();
-  await CreditNoteNumber.deleteMany();
-  await User.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-  await Event.create([creditNoteEvent, otherCompanyEvent]);
-  await Customer.create([creditNoteCustomer, otherCompanyCustomer]);
-  await Service.create([creditNoteService, otherCompanyService]);
-  await ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]);
-  await CreditNote.insertMany([...creditNotesList, otherCompanyCreditNote]);
-  await User.create([...creditNoteUserList, otherCompanyUser]);
-  await Helper.insertMany(helpersList);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([
+    CreditNote.create([...creditNotesList, otherCompanyCreditNote]),
+    Customer.create([creditNoteCustomer, otherCompanyCustomer]),
+    Event.create([creditNoteEvent, otherCompanyEvent]),
+    Helper.create(helpersList),
+    Service.create([creditNoteService, otherCompanyService]),
+    ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]),
+    User.create([...creditNoteUserList, otherCompanyUser]),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

@@ -8,7 +8,9 @@ const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
 const { company, populateDB, companyClientAdmin } = require('./seed/companiesSeed');
-const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -29,7 +31,7 @@ describe('PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi', rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id.toHexString()}`,
+        url: `/companies/${company._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -39,11 +41,10 @@ describe('PUT /companies/:id', () => {
     });
 
     it('should return 404 if not found', async () => {
-      const invalidId = new ObjectID();
       const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${invalidId}`,
+        url: `/companies/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -62,7 +63,7 @@ describe('PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi', rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id.toHexString()}`,
+        url: `/companies/${company._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -72,11 +73,10 @@ describe('PUT /companies/:id', () => {
     });
 
     it('should return 403 if not its company', async () => {
-      const invalidId = otherCompany._id.toHexString();
       const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${invalidId}`,
+        url: `/companies/${otherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -97,7 +97,7 @@ describe('PUT /companies/:id', () => {
       it(`should return a 400 error if ${assertion.case}`, async () => {
         const response = await app.inject({
           method: 'PUT',
-          url: `/companies/${company._id.toHexString()}`,
+          url: `/companies/${company._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: assertion.payload,
         });
@@ -120,7 +120,7 @@ describe('PUT /companies/:id', () => {
         const payload = { name: 'SuperTest' };
         const response = await app.inject({
           method: 'PUT',
-          url: `/companies/${company._id.toHexString()}`,
+          url: `/companies/${company._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });
@@ -375,11 +375,11 @@ describe('GET /companies/first-intervention', () => {
 
 describe('GET /companies', () => {
   let authToken;
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
+  describe('LOGGED USER', () => {
     beforeEach(populateDB);
 
     it('should list companies', async () => {
-      authToken = await getToken('training_organisation_manager');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       const response = await app.inject({
         method: 'GET',
         url: '/companies',
@@ -388,27 +388,6 @@ describe('GET /companies', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.companies.length).toEqual(4);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/companies',
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
     });
   });
 });

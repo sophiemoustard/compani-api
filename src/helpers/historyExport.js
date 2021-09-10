@@ -20,6 +20,7 @@ const {
   MANUAL_TIME_STAMPING,
   TIMESTAMPING_ACTION_TYPE_LIST,
   MANUAL_TIME_STAMPING_REASONS,
+  EVENT_TRANSPORT_MODE_LIST,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const UtilsHelper = require('./utils');
@@ -49,6 +50,8 @@ const workingEventExportHeader = [
   'Motif',
   'Durée',
   'Répétition',
+  'Déplacement véhiculé avec bénéficiaire',
+  'Mode de transport spécifique',
   'Équipe',
   'Id Auxiliaire',
   'Auxiliaire - Titre',
@@ -148,6 +151,8 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
+      event.kmDuringEvent ? event.kmDuringEvent.toString() : '',
+      EVENT_TRANSPORT_MODE_LIST[get(event, 'transportMode')] || '',
       get(event, 'sector.name') || get(auxiliarySector, 'sector.name') || '',
       get(auxiliary, '_id') || '',
       CIVILITY_LIST[get(auxiliary, 'identity.title')] || '',

@@ -2,14 +2,8 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const {
-  populateDB,
-  activitiesList,
-  activityHistoriesUsersList,
-  cardsList,
-} = require('./seed/activityHistoriesSeed');
-const { getTokenByCredentials, getToken } = require('./seed/authenticationSeed');
-const { noRoleNoCompany } = require('../seed/userSeed');
+const { populateDB, activitiesList, userList, cardsList, activityHistories } = require('./seed/activityHistoriesSeed');
+const { getTokenByCredentials, getToken } = require('./helpers/authentication');
 const ActivityHistory = require('../../src/models/ActivityHistory');
 
 describe('NODE ENV', () => {
@@ -19,9 +13,9 @@ describe('NODE ENV', () => {
 });
 
 describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
-  let authToken = null;
+  let authToken;
   const payload = {
-    user: activityHistoriesUsersList[0],
+    user: userList[1]._id,
     activity: activitiesList[0]._id,
     questionnaireAnswersList: [
       { card: cardsList[0]._id, answerList: ['blabla'] },
@@ -36,11 +30,10 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
 
   describe('Logged user', () => {
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      authToken = await getTokenByCredentials(userList[1].local);
     });
 
     it('should create activityHistory', async () => {
-      const activityHistoriesBefore = await ActivityHistory.countDocuments();
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
@@ -49,8 +42,9 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
       const activityHistoriesCount = await ActivityHistory.countDocuments();
-      expect(activityHistoriesCount).toEqual(activityHistoriesBefore + 1);
+      expect(activityHistoriesCount).toEqual(activityHistories.length + 1);
     });
 
     it('should create activityHistory without questionnaireAnswersList', async () => {
@@ -90,7 +84,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { user: activityHistoriesUsersList[1], activity: activitiesList[0]._id, score: 9 },
+        payload: { user: userList[0]._id, activity: activitiesList[0]._id, score: 9 },
         headers: { 'x-access-token': authToken },
       });
 
@@ -219,7 +213,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
 });
 
 describe('ACTIVITY HISTORIES ROUTES - GET /activityhistories', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);

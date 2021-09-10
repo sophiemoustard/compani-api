@@ -23,11 +23,23 @@ const draftBillsList = async (req) => {
   }
 };
 
-const createBills = async (req) => {
+const createBillList = async (req) => {
   try {
-    await BillHelper.formatAndCreateBills(req.payload.bills, req.auth.credentials);
+    await BillHelper.formatAndCreateList(req.payload.bills, req.auth.credentials);
 
     return { message: translate[language].billsCreated };
+  } catch (e) {
+    req.log('error', e);
+    if (e.code === 11000) return Boom.conflict();
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const createBill = async (req) => {
+  try {
+    await BillHelper.formatAndCreateBill(req.payload, req.auth.credentials);
+
+    return { message: translate[language].billCreated };
   } catch (e) {
     req.log('error', e);
     if (e.code === 11000) return Boom.conflict();
@@ -48,4 +60,4 @@ const generateBillPdf = async (req, h) => {
   }
 };
 
-module.exports = { draftBillsList, createBills, generateBillPdf };
+module.exports = { draftBillsList, createBillList, generateBillPdf, createBill };

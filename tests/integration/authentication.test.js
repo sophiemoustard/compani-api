@@ -4,8 +4,8 @@ const sinon = require('sinon');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const { usersSeedList, populateDB, auxiliaryFromOtherCompany } = require('./seed/usersSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
-const { userList, noRoleNoCompany } = require('../seed/userSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { userList, noRoleNoCompany } = require('../seed/authUsersSeed');
 const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
 const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
@@ -97,7 +97,7 @@ describe('POST /users/:id/passwordtoken', () => {
     it('should create password token', async () => {
       const res = await app.inject({
         method: 'POST',
-        url: `/users/${usersSeedList[0]._id.toHexString()}/passwordtoken`,
+        url: `/users/${usersSeedList[0]._id}/passwordtoken`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -108,7 +108,7 @@ describe('POST /users/:id/passwordtoken', () => {
     it('should not create password token if user is from an other company', async () => {
       const res = await app.inject({
         method: 'POST',
-        url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/passwordtoken`,
+        url: `/users/${auxiliaryFromOtherCompany._id}/passwordtoken`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -131,7 +131,7 @@ describe('POST /users/:id/passwordtoken', () => {
 
         const response = await app.inject({
           method: 'POST',
-          url: `/users/${userList[1]._id.toHexString()}/passwordtoken`,
+          url: `/users/${userList[1]._id}/passwordtoken`,
           payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -155,7 +155,7 @@ describe('PUT /users/:id/password', () => {
     it('should update user password if it is me', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${noRoleNoCompany._id.toHexString()}/password`,
+        url: `/users/${noRoleNoCompany._id}/password`,
         payload: updatePayload,
         headers: { 'x-access-token': authToken },
       });
@@ -165,7 +165,7 @@ describe('PUT /users/:id/password', () => {
     it('should return a 400 error if password too short', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${noRoleNoCompany._id.toHexString()}/password`,
+        url: `/users/${noRoleNoCompany._id}/password`,
         payload: { local: { password: '12345' } },
         headers: { 'x-access-token': authToken },
       });
@@ -189,7 +189,7 @@ describe('PUT /users/:id/password', () => {
 
         const response = await app.inject({
           method: 'PUT',
-          url: `/users/${usersSeedList[0]._id.toHexString()}/password`,
+          url: `/users/${usersSeedList[0]._id}/password`,
           payload: updatePayload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });

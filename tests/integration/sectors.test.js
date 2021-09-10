@@ -2,7 +2,8 @@ const expect = require('expect');
 const app = require('../../server');
 const Sector = require('../../src/models/Sector');
 const { populateDB, sectorsList, userFromOtherCompany } = require('./seed/sectorsSeed');
-const { getToken, authCompany, otherCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {

@@ -3,7 +3,8 @@ const { ObjectID } = require('mongodb');
 const { surchargesList, populateDB, surchargeFromOtherCompany } = require('./seed/surchargesSeed');
 const Surcharge = require('../../src/models/Surcharge');
 const app = require('../../server');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -12,7 +13,7 @@ describe('NODE ENV', () => {
 });
 
 describe('POST /surcharges', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -145,7 +146,7 @@ describe('POST /surcharges', () => {
 });
 
 describe('GET /surcharges', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -186,7 +187,7 @@ describe('GET /surcharges', () => {
 });
 
 describe('PUT /surcharges/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -219,10 +220,9 @@ describe('PUT /surcharges/:id', () => {
   });
 
   it('should return 404 if no surcharge', async () => {
-    const invalidId = new ObjectID().toHexString();
     const response = await app.inject({
       method: 'PUT',
-      url: `/surcharges/${invalidId}`,
+      url: `/surcharges/${new ObjectID()}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
       payload: { name: 'Chasser sans son chien' },
     });
@@ -268,7 +268,7 @@ describe('PUT /surcharges/:id', () => {
 });
 
 describe('DELETE /surcharges/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');

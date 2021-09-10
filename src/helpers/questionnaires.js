@@ -8,7 +8,7 @@ const DatesHelper = require('./dates');
 
 exports.create = async payload => Questionnaire.create(payload);
 
-exports.list = async () => Questionnaire.find().lean();
+exports.list = async () => Questionnaire.find().populate({ path: 'historiesCount' }).lean();
 
 exports.getQuestionnaire = async id => Questionnaire.findOne({ _id: id })
   .populate({ path: 'cards', select: '-__v -createdAt -updatedAt' })
@@ -83,7 +83,10 @@ exports.getFollowUp = async (id, courseId) => {
     .populate({
       path: 'histories',
       match: courseId ? { course: courseId } : null,
-      populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+      populate: [
+        { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+        { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+      ],
     })
     .lean();
 
@@ -94,7 +97,7 @@ exports.getFollowUp = async (id, courseId) => {
       if (answerList.length === 1 && !answerList[0].trim()) continue;
 
       if (!followUp[answer.card._id]) followUp[answer.card._id] = { ...answer.card, answers: [] };
-      followUp[answer.card._id].answers.push(...answerList);
+      followUp[answer.card._id].answers.push(...answerList.map(a => ({ answer: a, course: history.course })));
     }
   }
 

@@ -134,7 +134,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { scope: ['companies:read'] },
+        auth: { mode: 'required' },
       },
     });
 

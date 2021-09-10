@@ -1,6 +1,5 @@
 const path = require('path');
 const get = require('lodash/get');
-const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const fs = require('fs');
@@ -8,19 +7,18 @@ const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
 const Course = require('../models/Course');
+const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseRepository = require('../repositories/CourseRepository');
-const UsersHelper = require('./users');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
-const EmailHelper = require('./email');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, WEBAPP, STRICTLY_E_LEARNING, DRAFT, TRAINEE } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
@@ -341,24 +339,18 @@ exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: course
   .populate({ path: 'missingPhones', select: 'identity.firstname identity.lastname' })
   .lean();
 
-exports.addCourseTrainee = async (courseId, payload, trainee, credentials) => {
-  const addedTrainee = trainee || await UsersHelper.createUser({ ...payload, origin: WEBAPP }, credentials);
+exports.addCourseTrainee = async (courseId, payload, credentials) => {
+  await Course.updateOne({ _id: courseId }, { $addToSet: { trainees: payload.trainee } });
 
-  if (trainee && !trainee.company) await UsersHelper.updateUser(trainee._id, pick(payload, 'company'), null);
+  const trainee = await User.findOne({ _id: payload.trainee }, { formationExpoTokenList: 1 }).lean();
 
-  await Course.updateOne({ _id: courseId }, { $addToSet: { trainees: addedTrainee._id } });
-
-  const promises = [
+  await Promise.all([
     CourseHistoriesHelper.createHistoryOnTraineeAddition(
-      { course: courseId, traineeId: addedTrainee._id },
+      { course: courseId, traineeId: trainee._id },
       credentials._id
     ),
     NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId),
-  ];
-
-  if (!trainee) promises.push(EmailHelper.sendWelcome(TRAINEE, payload.local.email));
-
-  await Promise.all(promises);
+  ]);
 };
 
 exports.registerToELearningCourse = async (courseId, credentials) =>

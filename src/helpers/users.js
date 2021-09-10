@@ -94,7 +94,7 @@ exports.getLearnerList = async (query, credentials) => {
   }
 
   const learnerList = await User
-    .find(userQuery, 'identity.firstname identity.lastname picture', { autopopulate: false })
+    .find(userQuery, 'identity.firstname identity.lastname picture local.email', { autopopulate: false })
     .populate({ path: 'company', populate: { path: 'company' }, select: 'name' })
     .populate({ path: 'blendedCoursesCount' })
     .populate({ path: 'eLearningCoursesCount' })
@@ -133,6 +133,7 @@ exports.getUser = async (userId, credentials) => {
         requestingOwnInfos: UtilsHelper.areObjectIdsEquals(userId, credentials._id),
       },
     })
+    .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
     .lean({ autopopulate: true, virtuals: true });
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
@@ -228,7 +229,7 @@ exports.createUser = async (userPayload, credentials) => {
 };
 
 const formatUpdatePayload = async (updatedUser) => {
-  const payload = omit(updatedUser, ['role', 'customer']);
+  const payload = omit(updatedUser, ['role', 'customer', 'sector', 'company']);
 
   if (updatedUser.role) {
     const role = await Role.findById(updatedUser.role, { name: 1, interface: 1 }).lean();
@@ -248,7 +249,7 @@ exports.updateUser = async (userId, userPayload, credentials) => {
   if (userPayload.company) await UserCompaniesHelper.create(userId, userPayload.company);
 
   if (userPayload.sector) {
-    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, payload.sector, companyId);
+    await SectorHistoriesHelper.updateHistoryOnSectorUpdate(userId, userPayload.sector, companyId);
   }
 
   await User.updateOne({ _id: userId }, { $set: flat(payload) });

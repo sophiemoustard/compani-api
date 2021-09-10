@@ -297,7 +297,10 @@ describe('getLearnerList', () => {
     SinonMongoose.calledWithExactly(
       findUser,
       [
-        { query: 'find', args: [{}, 'identity.firstname identity.lastname picture', { autopopulate: false }] },
+        {
+          query: 'find',
+          args: [{}, 'identity.firstname identity.lastname picture local.email', { autopopulate: false }],
+        },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' }, select: 'name' }] },
         { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
         { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
@@ -352,7 +355,7 @@ describe('getLearnerList', () => {
           query: 'find',
           args: [
             { _id: { $in: [users[0]._id, users[1]._id] }, 'role.client': { $not: { $in: [roleId1, roleId2] } } },
-            'identity.firstname identity.lastname picture',
+            'identity.firstname identity.lastname picture local.email',
             { autopopulate: false },
           ],
         },
@@ -402,7 +405,7 @@ describe('getLearnerList', () => {
           query: 'find',
           args: [
             { _id: { $in: [users[0]._id, users[1]._id] } },
-            'identity.firstname identity.lastname picture',
+            'identity.firstname identity.lastname picture local.email',
             { autopopulate: false },
           ],
         },
@@ -468,6 +471,10 @@ describe('getUser', () => {
             },
           }],
         },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
+        },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -509,6 +516,10 @@ describe('getUser', () => {
             options: { isVendorUser: true, requestingOwnInfos: false },
           }],
         },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
+        },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -549,6 +560,55 @@ describe('getUser', () => {
             match: { company: credentials.company._id },
             options: { isVendorUser: false, requestingOwnInfos: true },
           }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+  });
+
+  it('should return user populating companyLinkRequest', async () => {
+    const userId = new ObjectID();
+    const user = { _id: userId, companyLinkRequest: { company: { _id: new ObjectID(), name: 'Alenvi' } } };
+    const credentials = { _id: userId };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+
+    await UsersHelper.getUser(userId, credentials);
+
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'company', populate: { path: 'company' }, select: '-__v -createdAt -updatedAt' }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: '-__v -createdAt -updatedAt' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: null },
+            options: { isVendorUser: false, requestingOwnInfos: true },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customers',
+            select: '-__v -createdAt -updatedAt',
+            match: { company: null },
+            options: { isVendorUser: false, requestingOwnInfos: true },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
@@ -596,6 +656,10 @@ describe('getUser', () => {
               match: { company: credentials.company._id },
               options: { isVendorUser: true, requestingOwnInfos: false },
             }],
+          },
+          {
+            query: 'populate',
+            args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
           },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
         ]
@@ -1163,7 +1227,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(omit(payload, 'sector')) });
     sinon.assert.notCalled(createHelper);
     sinon.assert.calledOnceWithExactly(
       updateHistoryOnSectorUpdateStub,
@@ -1201,7 +1265,7 @@ describe('updateUser', () => {
 
     await UsersHelper.updateUser(userId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(payload) });
+    sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: flat(omit(payload, 'company')) });
     sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, payload.company);
     sinon.assert.notCalled(createHelper);
     sinon.assert.notCalled(roleFindById);

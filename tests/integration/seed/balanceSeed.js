@@ -8,8 +8,10 @@ const Bill = require('../../../src/models/Bill');
 const Helper = require('../../../src/models/Helper');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 const UserCompany = require('../../../src/models/UserCompany');
+const { helperRoleId } = require('../../seed/authRolesSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
@@ -127,15 +129,12 @@ const balanceCustomerList = [
   },
 ];
 
-const authBillService = {
-  serviceId: new ObjectID(),
-  name: 'Temps de qualité - autonomie',
-  nature: 'hourly',
-};
+const authBillService = { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'hourly' };
 
 const balanceBillList = [
   {
     _id: new ObjectID(),
+    type: 'automatic',
     date: '2019-05-25',
     number: 'FACT-1905001',
     company: authCompany._id,
@@ -165,6 +164,7 @@ const balanceBillList = [
   },
   {
     _id: new ObjectID(),
+    type: 'automatic',
     date: '2019-05-29',
     number: 'FACT-1905002',
     company: authCompany._id,
@@ -200,7 +200,7 @@ const balanceUserList = [{
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_balance@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   origin: WEBAPP,
 }];
 
@@ -230,32 +230,22 @@ const customerFromOtherCompany = {
 };
 
 const populateDB = async () => {
-  await Service.deleteMany();
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Bill.deleteMany();
-  await User.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await (new ThirdPartyPayer(balanceThirdPartyPayer)).save();
-  await Service.insertMany(customerServiceList);
-  await Customer.insertMany(balanceCustomerList.concat(customerFromOtherCompany));
-  await Bill.insertMany(balanceBillList);
-  await Helper.insertMany(helpersList);
-  await UserCompany.insertMany(balanceUserCompanies);
-  for (const user of balanceUserList) {
-    await (new User(user).save());
-  }
+  await Promise.all([
+    Bill.create(balanceBillList),
+    Customer.create(balanceCustomerList.concat(customerFromOtherCompany)),
+    Helper.create(helpersList),
+    Service.create(customerServiceList),
+    ThirdPartyPayer.create(balanceThirdPartyPayer),
+    User.create(balanceUserList),
+    UserCompany.create(balanceUserCompanies),
+  ]);
 };
 
 module.exports = {
   populateDB,
   balanceCustomerList,
-  balanceBillList,
-  balanceThirdPartyPayer,
   balanceUserList,
   customerFromOtherCompany,
 };

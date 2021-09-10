@@ -3,7 +3,8 @@ const Bill = require('../../../src/models/Bill');
 const BillSlip = require('../../../src/models/BillSlip');
 const CreditNote = require('../../../src/models/CreditNote');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const tppList = [
   { _id: new ObjectID(), name: 'third party payer', company: authCompany._id, isApa: true, billingMode: 'direct' },
@@ -44,6 +45,7 @@ const billSlipList = [
 const billList = [
   {
     thirdPartyPayer: tppList[0]._id,
+    type: 'automatic',
     date: '2019-12-12T09:00:00',
     netInclTaxes: 100,
     company: authCompany._id,
@@ -52,6 +54,7 @@ const billList = [
   },
   {
     thirdPartyPayer: tppList[0]._id,
+    type: 'automatic',
     date: '2019-12-12T09:00:00',
     netInclTaxes: 20,
     company: authCompany._id,
@@ -60,6 +63,7 @@ const billList = [
   },
   {
     thirdPartyPayer: tppList[0]._id,
+    type: 'automatic',
     date: '2019-11-12T09:00:00',
     netInclTaxes: 50,
     company: authCompany._id,
@@ -68,6 +72,7 @@ const billList = [
   },
   {
     thirdPartyPayer: tppList[1]._id,
+    type: 'automatic',
     date: '2019-12-12T09:00:00',
     netInclTaxes: 70,
     company: authCompany._id,
@@ -76,6 +81,7 @@ const billList = [
   },
   {
     thirdPartyPayer: tppList[1]._id,
+    type: 'automatic',
     date: '2019-11-12T09:00:00',
     netInclTaxes: 100,
     company: authCompany._id,
@@ -114,22 +120,18 @@ const billSlipFromAnotherCompany = {
 };
 
 const populateDB = async () => {
-  await Bill.deleteMany();
-  await BillSlip.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await CreditNote.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await ThirdPartyPayer.insertMany(tppList);
-  await BillSlip.insertMany([...billSlipList, billSlipFromAnotherCompany]);
-  await Bill.insertMany(billList);
-  await CreditNote.insertMany(creditNotesList);
+  await Promise.all([
+    Bill.create(billList),
+    BillSlip.create([...billSlipList, billSlipFromAnotherCompany]),
+    CreditNote.create(creditNotesList),
+    ThirdPartyPayer.create(tppList),
+  ]);
 };
 
 module.exports = {
   populateDB,
-  tppList,
   billSlipList,
   billSlipFromAnotherCompany,
 };

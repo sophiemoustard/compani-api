@@ -12,7 +12,8 @@ const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   HOURLY,
   MONTHLY,
@@ -25,23 +26,12 @@ const {
   INTERVENTION,
   WEBAPP,
 } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const sectorList = [
-  {
-    _id: new ObjectID(),
-    name: 'Vénus',
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Neptune',
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Mars',
-    company: otherCompany._id,
-  },
+  { _id: new ObjectID(), name: 'Vénus', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Neptune', company: authCompany._id },
+  { _id: new ObjectID(), name: 'Mars', company: otherCompany._id },
 ];
 
 const internalHoursList = [
@@ -55,11 +45,7 @@ const contractList = [{
   user: new ObjectID(),
   company: authCompany._id,
   startDate: '2010-09-03T00:00:00',
-  versions: [{
-    startDate: '2010-09-03T00:00:00',
-    grossHourlyRate: 10.43,
-    weeklyHours: 12,
-  }],
+  versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
 }];
 
 const userList = [
@@ -67,7 +53,7 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [contractList[0]._id],
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -76,7 +62,7 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
     local: { email: 'black@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     inactivityDate: '2019-01-01T23:59:59',
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -85,7 +71,7 @@ const userList = [
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'Red' },
     local: { email: 'blue@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     inactivityDate: '2019-01-01T23:59:59',
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -643,21 +629,9 @@ const populateDBWithEventsForFundingsMonitoring = async () => {
 };
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Service.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Contract.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await ReferentHistory.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  for (const user of userList) {
-    await new User(user).save();
-  }
+  await User.create(userList);
   await Customer.insertMany(customerList.concat(customerFromOtherCompany));
   await Service.insertMany(serviceList);
   await Sector.insertMany(sectorList);

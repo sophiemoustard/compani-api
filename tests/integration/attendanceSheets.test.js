@@ -7,7 +7,7 @@ const { ObjectID } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
 const { populateDB, coursesList, attendanceSheetsList } = require('./seed/attendanceSheetsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
 
@@ -17,8 +17,8 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
-  let authToken = null;
+describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
+  let authToken;
   let uploadCourseFile;
   describe('TRAINER', () => {
     beforeEach(populateDB);
@@ -194,7 +194,7 @@ describe('ATTENDANCESHEETS ROUTES - POST /attendancesheets', () => {
 });
 
 describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
-  let authToken = null;
+  let authToken;
 
   describe('TRAINER', () => {
     beforeEach(populateDB);
@@ -276,7 +276,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
 });
 
 describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
-  let authToken = null;
+  let authToken;
   let deleteCourseFile;
 
   describe('TRAINER', () => {
@@ -294,7 +294,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
       const attendanceSheetsLength = await AttendanceSheet.countDocuments();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendancesheets/${attendanceSheetId.toHexString()}`,
+        url: `/attendancesheets/${attendanceSheetId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -306,7 +306,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     it('should return a 404 if attendance sheet does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendancesheets/${new ObjectID().toHexString()}`,
+        url: `/attendancesheets/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -336,7 +336,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
         const attendanceSheetId = attendanceSheetsList[0]._id;
         const response = await app.inject({
           method: 'DELETE',
-          url: `/attendancesheets/${attendanceSheetId.toHexString()}`,
+          url: `/attendancesheets/${attendanceSheetId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

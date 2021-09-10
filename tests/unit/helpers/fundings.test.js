@@ -4,6 +4,7 @@ const Boom = require('@hapi/boom');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const FundingsHelper = require('../../../src/helpers/fundings');
+const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const Customer = require('../../../src/models/Customer');
 const SinonMongoose = require('../sinonMongoose');
 
@@ -220,6 +221,59 @@ describe('checkSubscriptionFunding', () => {
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
+  });
+});
+
+describe('populateFunding', () => {
+  let populateService;
+  beforeEach(() => {
+    populateService = sinon.stub(SubscriptionsHelper, 'populateService');
+  });
+  afterEach(() => {
+    populateService.restore();
+  });
+
+  it('should return null if no funding', () => {
+    const funding = null;
+    const subscriptions = [{ _id: new ObjectID() }];
+
+    const result = FundingsHelper.populateFunding(funding, subscriptions);
+
+    expect(result).toBeNull();
+    sinon.assert.notCalled(populateService);
+  });
+
+  it('should return funding with corresponding subscription and service populated', () => {
+    const subId = new ObjectID();
+    const fundingId = new ObjectID();
+    const funding = { _id: fundingId, subscription: subId };
+    const subscriptions = [
+      { _id: subId, service: { versions: [{ name: 'Version 1' }] } },
+      { _id: new ObjectID(), service: { versions: [{ name: 'Version 2' }] } },
+    ];
+
+    populateService.returns({ name: 'Version 1' });
+
+    const result = FundingsHelper.populateFunding(funding, subscriptions);
+
+    expect(result).toEqual({ _id: fundingId, subscription: { _id: subId, service: { name: 'Version 1' } } });
+    sinon.assert.calledOnceWithExactly(populateService, { versions: [{ name: 'Version 1' }] });
+  });
+
+  it('should return funding with corresponding subscription if no service versions', () => {
+    const subId = new ObjectID();
+    const fundingId = new ObjectID();
+    const serviceId = new ObjectID();
+    const funding = { _id: fundingId, subscription: subId };
+    const subscriptions = [
+      { _id: subId, service: { _id: serviceId } },
+      { _id: new ObjectID(), service: { versions: [{ name: 'Version 2' }] } },
+    ];
+
+    const result = FundingsHelper.populateFunding(funding, subscriptions);
+
+    expect(result).toEqual({ _id: fundingId, subscription: { _id: subId, service: { _id: serviceId } } });
+    sinon.assert.notCalled(populateService);
   });
 });
 

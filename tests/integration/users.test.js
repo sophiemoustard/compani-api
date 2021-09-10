@@ -24,6 +24,7 @@ const {
 const {
   usersSeedList,
   populateDB,
+  customer,
   customerFromOtherCompany,
   helperFromOtherCompany,
   userSectors,
@@ -31,16 +32,11 @@ const {
   establishmentList,
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
-  authCustomer,
 } = require('./seed/usersSeed');
-const {
-  getToken,
-  getTokenByCredentials,
-  otherCompany,
-  authCompany,
-  rolesList,
-} = require('./seed/authenticationSeed');
-const { trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/userSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
+const { trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/authUsersSeed');
+const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const UtilsHelper = require('../../src/helpers/utils');
@@ -101,7 +97,7 @@ describe('POST /users', () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
-        role: rolesList.find(role => role.name === AUXILIARY)._id,
+        role: auxiliaryRoleId,
         sector: userSectors[0]._id,
         origin: WEBAPP,
       };
@@ -244,7 +240,7 @@ describe('POST /users', () => {
 
     const missingParams = ['local.email', 'identity.lastname', 'origin'];
     missingParams.forEach((param) => {
-      it(`should return a 400 error if '${param}' payload is missing`, async () => {
+      it(`should return a 400 error if '${param}' is missing in payload`, async () => {
         const payload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
           local: { email: 'kirk@alenvi.io' },
@@ -290,7 +286,7 @@ describe('POST /users', () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
-        role: rolesList.find(role => role.name === COACH)._id,
+        role: coachRoleId,
         sector: userSectors[0]._id,
         origin: WEBAPP,
         company: otherCompany._id,
@@ -312,7 +308,7 @@ describe('POST /users', () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
-        role: rolesList.find(role => role.name === TRAINER)._id,
+        role: trainerRoleId,
         origin: WEBAPP,
       };
 
@@ -391,7 +387,7 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(2);
+      expect(res.result.data.users.length).toBe(3);
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
@@ -837,10 +833,9 @@ describe('GET /users/:id', () => {
     });
 
     it('should return a 404 error if no user found', async () => {
-      const id = new ObjectID();
       const res = await app.inject({
         method: 'GET',
-        url: `/users/${id.toHexString()}`,
+        url: `/users/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1065,7 +1060,7 @@ describe('PUT /users/:id', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[6]._id}`,
-        payload: { customer: authCustomer._id, role: role._id },
+        payload: { customer: customer._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1079,7 +1074,7 @@ describe('PUT /users/:id', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userList[8]._id}`,
-        payload: { customer: authCustomer._id, role: role._id, company: authCompany._id },
+        payload: { customer: customer._id, role: role._id, company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1183,10 +1178,9 @@ describe('PUT /users/:id', () => {
     });
 
     it('should return a 404 error if no user found', async () => {
-      const id = new ObjectID().toHexString();
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${id}`,
+        url: `/users/${new ObjectID()}`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1392,7 +1386,7 @@ describe('DELETE /users/:id', () => {
 
         let userCompanyExistBefore;
         let helperExistBefore;
-        if (get(userToDelete, 'role.client') === rolesList[6]._id) {
+        if (get(userToDelete, 'role.client') === helperRoleId) {
           userCompanyExistBefore = !!await UserCompany.countDocuments({ user: userToDelete._id });
           helperExistBefore = !!await Helper.countDocuments({ user: userToDelete._id });
         }
@@ -1405,7 +1399,7 @@ describe('DELETE /users/:id', () => {
 
         expect(res.statusCode).toBe(test.expectedCode);
 
-        if (get(userToDelete, 'role.client') === rolesList[6]._id) {
+        if (get(userToDelete, 'role.client') === helperRoleId) {
           const userCompanyExistAfter = !!await UserCompany.countDocuments({ user: userToDelete._id });
           const helperExistAfter = !!await Helper.countDocuments({ user: userToDelete._id });
 
@@ -1773,10 +1767,9 @@ describe('DELETE /users/:id/upload', () => {
     });
 
     it('should return 404 if invalid user id', async () => {
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${invalidId.toHexString()}/upload`,
+        url: `/users/${new ObjectID()}/upload`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

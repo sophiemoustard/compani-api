@@ -14,7 +14,8 @@ const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   vendorAdmin,
   noRoleNoCompany,
@@ -25,14 +26,16 @@ const {
   trainerOrganisationManager,
   coach,
   trainer,
-} = require('../../seed/userSeed');
-const { COACH, VIDEO, WEBAPP, TRAINER } = require('../../../src/helpers/constants');
+  trainerAndCoach,
+} = require('../../seed/authUsersSeed');
+const { VIDEO, WEBAPP } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 
 const traineeFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Fred', lastname: 'Astaire' },
   local: { email: 'traineeOtherCompany@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
   origin: WEBAPP,
@@ -42,7 +45,7 @@ const traineeFromAuthCompanyWithFormationExpoToken = {
   _id: new ObjectID(),
   identity: { firstname: 'Trainee', lastname: 'WithExpoToken' },
   local: { email: 'traineeWithExpoToken@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
   origin: WEBAPP,
@@ -53,27 +56,14 @@ const traineeWithoutCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Salut', lastname: 'Toi' },
   local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
-  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  role: { vendor: trainerRoleId },
   refreshToken: uuidv4(),
-  origin: WEBAPP,
-};
-
-const trainerAndCoach = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
-  refreshToken: uuidv4(),
-  local: { email: 'simonDu12@alenvi.io', password: '123456!eR' },
-  role: {
-    client: rolesList.find(role => role.name === COACH)._id,
-    vendor: rolesList.find(role => role.name === TRAINER)._id,
-  },
   origin: WEBAPP,
 };
 
 const userCompanies = [
   { _id: new ObjectID(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectID(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
-  { _id: new ObjectID(), user: trainerAndCoach._id, company: authCompany._id },
 ];
 
 const cardsList = [
@@ -147,7 +137,14 @@ const coursesList = [
     misc: 'second session',
     trainer: trainer._id,
     type: 'intra',
-    trainees: [coach._id, helper._id, trainerOrganisationManager._id, clientAdmin._id, auxiliary._id],
+    trainees: [
+      coach._id,
+      helper._id,
+      trainerOrganisationManager._id,
+      clientAdmin._id,
+      auxiliary._id,
+      traineeFromAuthCompanyWithFormationExpoToken._id,
+    ],
     salesRepresentative: vendorAdmin._id,
   },
   {
@@ -165,7 +162,7 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
-    trainees: [traineeFromOtherCompany._id, coach._id, traineeFromAuthCompanyWithFormationExpoToken._id],
+    trainees: [traineeFromOtherCompany._id, coach._id],
     format: 'strictly_e_learning',
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
@@ -301,36 +298,23 @@ const slots = [
 ];
 
 const populateDB = async () => {
-  await Course.deleteMany();
-  await SubProgram.deleteMany();
-  await Program.deleteMany();
-  await User.deleteMany();
-  await CourseSlot.deleteMany();
-  await CourseSmsHistory.deleteMany();
-  await Step.deleteMany();
-  await Activity.deleteMany();
-  await Card.deleteMany();
-  await ActivityHistory.deleteMany();
-  await UserCompany.deleteMany();
-  await Questionnaire.deleteMany();
-  await QuestionnaireHistory.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await SubProgram.insertMany(subProgramsList);
-  await Program.insertMany(programsList);
-  await Course.insertMany(coursesList);
-  await CourseSlot.insertMany(slots);
-  await User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]);
-  await new User(trainerAndCoach).save();
-  await CourseSmsHistory.create(courseSmsHistory);
-  await Step.create(step);
-  await Activity.insertMany(activitiesList);
-  await Card.insertMany(cardsList);
-  await ActivityHistory.insertMany(activitiesHistory);
-  await UserCompany.insertMany(userCompanies);
-  await Questionnaire.create(questionnaire);
-  await QuestionnaireHistory.create(questionnaireHistory);
+  await Promise.all([
+    Activity.create(activitiesList),
+    ActivityHistory.create(activitiesHistory),
+    Card.create(cardsList),
+    Course.create(coursesList),
+    CourseSlot.create(slots),
+    CourseSmsHistory.create(courseSmsHistory),
+    Program.create(programsList),
+    Questionnaire.create(questionnaire),
+    QuestionnaireHistory.create(questionnaireHistory),
+    Step.create(step),
+    SubProgram.create(subProgramsList),
+    User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {
@@ -346,5 +330,4 @@ module.exports = {
   slots,
   traineeFromAuthCompanyWithFormationExpoToken,
   userCompanies,
-  trainerAndCoach,
 };

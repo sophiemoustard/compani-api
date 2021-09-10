@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
-const { authCompany, otherCompany, populateDBForAuthentication, rolesList } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -8,6 +9,7 @@ const Payment = require('../../../src/models/Payment');
 const Helper = require('../../../src/models/Helper');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
+const { helperRoleId } = require('../../seed/authRolesSeed');
 
 const customersList = [
   {
@@ -44,7 +46,7 @@ const helper = {
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_taxcertificates@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   origin: WEBAPP,
 };
 
@@ -102,14 +104,8 @@ const paymentList = [
 const helpersList = [{ customer: customersList[0]._id, user: helper._id, company: authCompany._id, referent: true }];
 
 const populateDB = async () => {
-  await TaxCertificate.deleteMany();
-  await Customer.deleteMany();
-  await User.deleteMany();
-  await Payment.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Customer.insertMany(customersList);
   await TaxCertificate.insertMany(taxCertificatesList);
   await User.create(helper);

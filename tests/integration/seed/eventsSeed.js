@@ -13,7 +13,8 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Helper = require('../../../src/models/Helper');
-const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const app = require('../../../server');
 const {
   EVERY_WEEK,
@@ -29,6 +30,7 @@ const {
   AUXILIARY_INITIATIVE,
 } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
+const { auxiliaryRoleId, clientAdminRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
 const auxiliariesIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
 
@@ -80,7 +82,7 @@ const auxiliaries = [
     local: { email: 't@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [contracts[0]._id],
     origin: WEBAPP,
   },
@@ -90,7 +92,7 @@ const auxiliaries = [
     local: { email: 'm@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [contracts[1]._id],
     origin: WEBAPP,
   },
@@ -100,7 +102,7 @@ const auxiliaries = [
     local: { email: 'p@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [contracts[2]._id],
     origin: WEBAPP,
   },
@@ -110,7 +112,7 @@ const auxiliaries = [
     local: { email: 'qwerty@p.com', password: '123456!eR' },
     administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
     refreshToken: uuidv4(),
-    role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+    role: { client: auxiliaryRoleId },
     contracts: [contracts[2]._id],
     origin: WEBAPP,
   },
@@ -129,7 +131,7 @@ const auxiliaryFromOtherCompany = {
   local: { email: 'j@m.com', password: '123456!eR' },
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
-  role: { client: rolesList[1]._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 };
 
@@ -278,7 +280,7 @@ const helpersCustomer = {
   local: { email: 'tt@tt.com', password: '123456!eR' },
   refreshToken: uuidv4(),
   customers: [customerAuxiliaries[0]._id],
-  role: { client: rolesList[4]._id },
+  role: { client: helperRoleId },
   origin: WEBAPP,
 };
 
@@ -879,33 +881,14 @@ const eventHistoriesList = [
 ];
 
 const populateDB = async () => {
-  await Event.deleteMany();
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await Contract.deleteMany();
-  await Service.deleteMany();
-  await EventHistory.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Repetition.deleteMany();
-  await InternalHour.deleteMany();
-  await DistanceMatrix.deleteMany();
-  await Helper.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Event.insertMany([...eventsList, eventFromOtherCompany]);
   await Repetition.insertMany(repetitions);
   await Sector.insertMany(sectors);
   await SectorHistory.insertMany([...sectorHistories, sectorHistoryFromOtherCompany]);
   await DistanceMatrix.insertMany(distanceMatrixList);
-  await (new User(auxiliaries[0])).save();
-  await (new User(auxiliaries[1])).save();
-  await (new User(auxiliaries[2])).save();
-  await (new User(auxiliaries[3])).save();
-  await (new User(helpersCustomer)).save();
-  await (new User(auxiliaryFromOtherCompany)).save();
+  await User.create([...auxiliaries, helpersCustomer, auxiliaryFromOtherCompany]);
   await Contract.insertMany(contracts);
   await Customer.insertMany([...customerAuxiliaries, customerFromOtherCompany]);
   await ThirdPartyPayer.insertMany([thirdPartyPayer, thirdPartyPayerFromOtherCompany]);

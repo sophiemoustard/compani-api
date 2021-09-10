@@ -5,8 +5,10 @@ const Partner = require('../../../src/models/Partner');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customersList = [
   {
@@ -69,7 +71,7 @@ const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Philou', lastname: 'toto' },
   local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   refreshToken: uuidv4(),
   origin: WEBAPP,
 };
@@ -77,19 +79,15 @@ const auxiliaryFromOtherCompany = {
 const userCompanies = [{ _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id }];
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Partner.deleteMany();
-  await CustomerPartner.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await User.create(auxiliaryFromOtherCompany);
-  await UserCompany.insertMany(userCompanies);
-  await Customer.insertMany(customersList);
-  await Partner.insertMany(partnersList);
-  await CustomerPartner.insertMany(customerPartnersList);
+  await Promise.all([
+    Customer.create(customersList),
+    CustomerPartner.create(customerPartnersList),
+    Partner.create(partnersList),
+    User.create(auxiliaryFromOtherCompany),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

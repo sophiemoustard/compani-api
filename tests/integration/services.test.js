@@ -4,7 +4,8 @@ const { servicesList, serviceFromOtherCompany, populateDB } = require('./seed/se
 const Service = require('../../src/models/Service');
 const app = require('../../server');
 const { HOURLY } = require('../../src/helpers/constants');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -13,7 +14,7 @@ describe('NODE ENV', () => {
 });
 
 describe('POST /services', () => {
-  let authToken = null;
+  let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -103,7 +104,7 @@ describe('POST /services', () => {
 });
 
 describe('GET /services', () => {
-  let authToken = null;
+  let authToken;
   describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -118,7 +119,7 @@ describe('GET /services', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.services).toHaveLength(5);
+      expect(response.result.data.services).toHaveLength(4);
     });
 
     it('should return archived services', async () => {
@@ -132,6 +133,7 @@ describe('GET /services', () => {
       expect(response.result.data.services.every(service => service.isArchived)).toBeTruthy();
     });
   });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
@@ -156,7 +158,7 @@ describe('GET /services', () => {
 });
 
 describe('PUT /services/:id', () => {
-  let authToken = null;
+  let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -270,7 +272,7 @@ describe('PUT /services/:id', () => {
 });
 
 describe('DELETE /services/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -284,8 +286,9 @@ describe('DELETE /services/:id', () => {
     });
 
     expect(response.statusCode).toBe(200);
+
     const serviceCount = await Service.countDocuments({ company: authCompany._id });
-    expect(serviceCount).toBe(4);
+    expect(serviceCount).toBe(3);
   });
 
   it('should return a 404 error if user is not from the same company', async () => {

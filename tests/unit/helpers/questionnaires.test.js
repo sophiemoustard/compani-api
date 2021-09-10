@@ -38,12 +38,15 @@ describe('list', () => {
   it('should return questionnaires', async () => {
     const questionnairesList = [{ name: 'test' }, { name: 'test2' }];
 
-    find.returns(SinonMongoose.stubChainedQueries([questionnairesList], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([questionnairesList]));
 
     const result = await QuestionnaireHelper.list();
 
     expect(result).toMatchObject(questionnairesList);
-    SinonMongoose.calledWithExactly(find, [{ query: 'find' }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(
+      find,
+      [{ query: 'find' }, { query: 'populate', args: [{ path: 'historiesCount' }] }, { query: 'lean' }]
+    );
   });
 });
 
@@ -622,13 +625,13 @@ describe('getFollowUp', () => {
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [
         {
-          answers: ['blabla', 'test test'],
+          answers: [{ answer: 'blabla', course: course._id }, { answer: 'test test', course: course._id }],
           isMandatory: true,
           question: 'aimez-vous ce test ?',
           template: 'open_question',
         },
         {
-          answers: ['3', '2'],
+          answers: [{ answer: '3', course: course._id }, { answer: '2', course: course._id }],
           isMandatory: true,
           question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
           template: 'survey',
@@ -659,7 +662,10 @@ describe('getFollowUp', () => {
           args: [{
             path: 'histories',
             match: { course: courseId },
-            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            populate: [
+              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+            ],
           }],
         },
         { query: 'lean' },
@@ -748,13 +754,13 @@ describe('getFollowUp', () => {
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [
         {
-          answers: ['blabla', 'test test'],
+          answers: [{ answer: 'blabla', course: course._id }, { answer: 'test test', course: course._id }],
           isMandatory: true,
           question: 'aimez-vous ce test ?',
           template: 'open_question',
         },
         {
-          answers: ['3', '2'],
+          answers: [{ answer: '3', course: course._id }, { answer: '2', course: course._id }],
           isMandatory: true,
           question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
           template: 'survey',
@@ -785,7 +791,10 @@ describe('getFollowUp', () => {
           args: [{
             path: 'histories',
             match: { course: courseId },
-            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            populate: [
+              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+            ],
           }],
         },
         { query: 'lean' },
@@ -862,13 +871,19 @@ describe('getFollowUp', () => {
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [
         {
-          answers: ['blabla', 'test test'],
+          answers: [
+            { answer: 'blabla', course: questionnaire.histories[0].course },
+            { answer: 'test test', course: questionnaire.histories[1].course },
+          ],
           isMandatory: true,
           question: 'aimez-vous ce test ?',
           template: 'open_question',
         },
         {
-          answers: ['3', '2'],
+          answers: [
+            { answer: '3', course: questionnaire.histories[0].course },
+            { answer: '2', course: questionnaire.histories[1].course },
+          ],
           isMandatory: true,
           question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
           template: 'survey',
@@ -886,7 +901,10 @@ describe('getFollowUp', () => {
           args: [{
             path: 'histories',
             match: null,
-            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            populate: [
+              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+            ],
           }],
         },
         { query: 'lean' },
@@ -954,7 +972,10 @@ describe('getFollowUp', () => {
           args: [{
             path: 'histories',
             match: { course: courseId },
-            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            populate: [
+              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+            ],
           }],
         },
         { query: 'lean' },
@@ -1015,7 +1036,10 @@ describe('getFollowUp', () => {
           args: [{
             path: 'histories',
             match: { course: courseId },
-            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            populate: [
+              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+            ],
           }],
         },
         { query: 'lean' },
@@ -1080,7 +1104,10 @@ describe('getFollowUp', () => {
           args: [{
             path: 'histories',
             match: { course: courseId },
-            populate: { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+            populate: [
+              { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
+              { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+            ],
           }],
         },
         { query: 'lean' },

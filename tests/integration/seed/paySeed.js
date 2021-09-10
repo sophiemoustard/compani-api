@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
@@ -10,13 +9,15 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
-const { WEBAPP, UNPAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { WEBAPP, UNPAID_LEAVE, PAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
+const { coachRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
+const contractId0 = new ObjectID();
 const contractId1 = new ObjectID();
-const contractId2 = new ObjectID();
+const auxiliaryId0 = new ObjectID();
 const auxiliaryId1 = new ObjectID();
-const auxiliaryId2 = new ObjectID();
 const customerId = new ObjectID();
 const subscriptionId = new ObjectID();
 const serviceId = new ObjectID();
@@ -32,110 +33,116 @@ const user = {
   local: { email: 'test4@alenvi.io', password: '123456!eR' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'coach')._id },
+  role: { client: coachRoleId },
   origin: WEBAPP,
 };
 
-const auxiliaries = [{
-  _id: auxiliaryId1,
-  identity: { firstname: 'Test7', lastname: 'auxiliary' },
-  local: { email: 'test7@alenvi.io', password: '123456!eR' },
-  refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: [contractId1],
-  origin: WEBAPP,
-}, {
-  _id: auxiliaryId2,
-  identity: { firstname: 'OtherTest', lastname: 'Test8' },
-  local: { email: 'test8@alenvi.io', password: '123456!eR' },
-  refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: [contractId2],
-  origin: WEBAPP,
-}];
+const auxiliaries = [
+  {
+    _id: auxiliaryId0,
+    identity: { firstname: 'Test7', lastname: 'auxiliary' },
+    local: { email: 'test7@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: auxiliaryRoleId },
+    contracts: [contractId0],
+    origin: WEBAPP,
+  },
+  {
+    _id: auxiliaryId1,
+    identity: { firstname: 'OtherTest', lastname: 'Test8' },
+    local: { email: 'test8@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: auxiliaryRoleId },
+    contracts: [contractId1],
+    origin: WEBAPP,
+  },
+];
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'otherCompany', lastname: 'Chloe' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
-  contracts: [contractId2],
+  role: { client: auxiliaryRoleId },
+  contracts: [contractId1],
   sector: sectorFromOtherCompany._id,
   origin: WEBAPP,
 };
 
 const userCompanyList = [
+  { _id: new ObjectID(), user: auxiliaryId0, company: authCompany },
   { _id: new ObjectID(), user: auxiliaryId1, company: authCompany },
-  { _id: new ObjectID(), user: auxiliaryId2, company: authCompany },
   { _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany },
   { _id: new ObjectID(), user: user._id, company: authCompany._id },
 ];
 
-const contracts = [{
-  createdAt: '2021-12-04T16:34:04',
-  serialNumber: 'sdfgdgfdgvc',
-  user: auxiliaryId1,
-  startDate: '2021-12-03T23:00:00.000Z',
-  _id: contractId1,
-  company: authCompany._id,
-  versions: [
-    {
-      createdAt: '2021-12-03T16:34:04',
-      endDate: null,
-      grossHourlyRate: 10.28,
-      startDate: '2021-12-03T23:00:00.000Z',
-      weeklyHours: 9,
-      _id: new ObjectID(),
-    },
-  ],
-}, {
-  createdAt: '2021-12-04T16:34:04',
-  user: auxiliaryId2,
-  serialNumber: 'dskfajdsfcbnnsdal',
-  company: authCompany._id,
-  startDate: '2021-12-03T23:00:00',
-  _id: contractId2,
-  endDate: '2022-11-03T23:00:00',
-  endNotificationDate: '2022-03-03T23:00:00',
-  endReason: 'resignation',
-  versions: [
-    {
-      createdAt: '2021-12-04T16:34:04',
-      endDate: '2022-03-03T23:00:00',
-      grossHourlyRate: 10.28,
-      startDate: '2021-12-03T23:00:00',
-      weeklyHours: 7,
-      _id: new ObjectID(),
-    },
-    {
-      createdAt: '2021-12-04T16:34:04',
-      endDate: '2022-10-01T23:00:00',
-      grossHourlyRate: 10.28,
-      startDate: '2021-12-03T23:00:00',
-      weeklyHours: 7,
-      _id: new ObjectID(),
-    },
-    {
-      createdAt: '2021-12-04T16:34:04',
-      endDate: '2022-11-03T23:00:00',
-      grossHourlyRate: 10.28,
-      startDate: '2022-10-01T23:00:01',
-      weeklyHours: 7,
-      _id: new ObjectID(),
-    },
-  ],
-}];
+const contracts = [
+  {
+    createdAt: '2021-12-04T16:34:04.000Z',
+    serialNumber: 'sdfgdgfdgvc',
+    user: auxiliaryId0,
+    startDate: '2021-12-10T08:00:00.000Z',
+    _id: contractId0,
+    company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2021-12-04T16:34:04.000Z',
+        endDate: null,
+        grossHourlyRate: 10.28,
+        startDate: '2021-12-10T08:00:00.000Z',
+        weeklyHours: 35,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2021-12-04T16:34:04.000Z',
+    user: auxiliaryId1,
+    serialNumber: 'dskfajdsfcbnnsdal',
+    company: authCompany._id,
+    startDate: '2021-12-03T23:00:00.000Z',
+    _id: contractId1,
+    endDate: '2022-11-03T23:00:00',
+    endNotificationDate: '2022-03-03T23:00:00.000Z',
+    endReason: 'resignation',
+    versions: [
+      {
+        createdAt: '2021-12-04T16:34:04.000Z',
+        endDate: '2022-03-03T23:00:00.000Z',
+        grossHourlyRate: 10.28,
+        startDate: '2021-12-03T23:00:00.000Z',
+        weeklyHours: 7,
+        _id: new ObjectID(),
+      },
+      {
+        createdAt: '2021-12-04T16:34:04.000Z',
+        endDate: '2022-10-01T23:00:00.000Z',
+        grossHourlyRate: 10.28,
+        startDate: '2021-12-03T23:00:00.000Z',
+        weeklyHours: 7,
+        _id: new ObjectID(),
+      },
+      {
+        createdAt: '2021-12-04T16:34:04.000Z',
+        endDate: '2022-11-03T23:00:00.000Z',
+        grossHourlyRate: 10.28,
+        startDate: '2022-10-01T23:00:01.000Z',
+        weeklyHours: 7,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+];
 
 const event = {
   _id: new ObjectID(),
   company: authCompany._id,
   type: 'intervention',
-  startDate: '2022-05-12T09:00:00',
-  endDate: '2022-05-12T11:00:00',
+  startDate: '2022-05-12T09:00:00.000Z',
+  endDate: '2022-05-12T11:00:00.000Z',
   auxiliary: auxiliaries[0],
   customer: customerId,
-  createdAt: '2022-05-01T09:00:00',
+  createdAt: '2022-05-01T09:00:00.000Z',
   sector: new ObjectID(),
   subscription: subscriptionId,
   address: {
@@ -147,16 +154,28 @@ const event = {
   },
 };
 
-const absence = {
-  _id: new ObjectID(),
-  type: ABSENCE,
-  company: authCompany._id,
-  auxiliary: auxiliaries[0],
-  absence: UNPAID_LEAVE,
-  absenceNature: DAILY,
-  startDate: '2022-11-12T09:00:00',
-  endDate: '2022-11-16T21:29:29',
-};
+const absences = [
+  {
+    _id: new ObjectID(),
+    type: ABSENCE,
+    company: authCompany._id,
+    auxiliary: auxiliaryId0,
+    absence: UNPAID_LEAVE,
+    absenceNature: DAILY,
+    startDate: '2022-11-12T09:00:00.000Z',
+    endDate: '2022-11-16T21:29:29.000Z',
+  },
+  {
+    _id: new ObjectID(),
+    type: ABSENCE,
+    company: authCompany._id,
+    auxiliary: auxiliaryId0,
+    absence: PAID_LEAVE,
+    absenceNature: DAILY,
+    startDate: '2021-12-12T00:00:00.000Z',
+    endDate: '2021-12-15T21:59:00.000Z',
+  },
+];
 
 const customer = {
   _id: customerId,
@@ -194,7 +213,7 @@ const service = {
     defaultUnitAmount: 12,
     name: 'Service 1',
     exemptFromCharges: false,
-    startDate: '2022-01-16 17:58:15.519',
+    startDate: '2022-01-16 17:58:15.000Z',
     vat: 12,
   }],
   nature: 'hourly',
@@ -202,23 +221,31 @@ const service = {
 
 const sectorHistories = [
   {
-    auxiliary: auxiliaries[0]._id,
+    auxiliary: auxiliaryId0,
     sector: sectors[0]._id,
     company: authCompany._id,
-    startDate: moment('2021-12-10').startOf('day').toDate(),
-    endDate: moment('2022-12-11').endOf('day').toDate(),
+    startDate: '2021-12-01T00:00:00.000Z',
+    endDate: '2022-12-11T23:59:59.999Z',
   },
   {
-    auxiliary: auxiliaries[0]._id,
+    auxiliary: auxiliaryId0,
     sector: sectors[1]._id,
     company: authCompany._id,
-    startDate: moment('2022-12-12').startOf('day').toDate(),
+    startDate: '2022-12-12T00:00:00.000Z',
   },
   {
-    auxiliary: auxiliaries[1]._id,
+    auxiliary: auxiliaryId1,
     sector: sectors[1]._id,
     company: authCompany._id,
-    startDate: moment('2021-12-10').startOf('day').toDate(),
+    startDate: '2021-12-10T00:00:00.000Z',
+    endDate: '2022-05-10T23:59:59.999Z',
+  },
+  {
+    auxiliary: auxiliaryId1,
+    sector: sectors[0]._id,
+    company: authCompany._id,
+    startDate: '2022-05-11T00:00:00.000Z',
+    endDate: '2022-11-03T23:59:59.999Z',
   },
 ];
 
@@ -243,7 +270,7 @@ const payList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2022-11-31T14:00:18',
+    endDate: '2022-11-31T14:00:18.000Z',
     hoursBalance: -8,
     hoursCounter: -20,
     hoursToWork: 30,
@@ -258,7 +285,7 @@ const payList = [
     mutual: false,
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2022-11-01T14:00:18',
+    startDate: '2022-11-01T14:00:18.000Z',
     transport: 10,
     workedHours: 143,
     paidTransportHours: 3,
@@ -285,7 +312,7 @@ const payList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2022-11-28T14:00:18',
+    endDate: '2022-11-28T14:00:18.000Z',
     holidaysHours: 12,
     hoursBalance: -8,
     hoursCounter: -20,
@@ -300,7 +327,7 @@ const payList = [
     surchargedAndNotExemptDetails: [],
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2022-11-01T14:00:18',
+    startDate: '2022-11-01T14:00:18.000Z',
     transport: 10,
     workedHours: 143,
     paidTransportHours: 3,
@@ -310,23 +337,14 @@ const payList = [
 ];
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await Customer.deleteMany();
-  await Service.deleteMany();
-  await Contract.deleteMany();
-  await Event.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Pay.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
   await Sector.create([...sectors, sectorFromOtherCompany]);
   await SectorHistory.create(sectorHistories);
   await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
-  await (new Customer(customer)).save();
-  await (new Service(service)).save();
-  await Event.create([event, absence]);
+  await Customer.create(customer);
+  await Service.create(service);
+  await Event.create([event, ...absences]);
   await Contract.insertMany(contracts);
   await Pay.insertMany(payList);
   await UserCompany.insertMany(userCompanyList);

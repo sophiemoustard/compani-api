@@ -10,7 +10,8 @@ const TaxCertificate = require('../../src/models/TaxCertificate');
 const Gdrive = require('../../src/models/Google/Drive');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const { populateDB, customersList, taxCertificatesList, helper } = require('./seed/taxCertificatesSeed');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -155,7 +156,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
 });
 
 describe('TAX CERTIFICATES - POST /', () => {
-  let authToken = null;
+  let authToken;
   describe('CLIENT_ADMIN', () => {
     let addStub;
     let addFileStub;
@@ -336,7 +337,7 @@ describe('TAX CERTIFICATES - POST /', () => {
 });
 
 describe('TAX CERTIFICATES - DELETE /', () => {
-  let authToken = null;
+  let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -358,10 +359,9 @@ describe('TAX CERTIFICATES - DELETE /', () => {
     });
 
     it('should throw an error if tax certificate does not exist', async () => {
-      const taxCertificateId = new ObjectID();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/taxcertificates/${taxCertificateId}`,
+        url: `/taxcertificates/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

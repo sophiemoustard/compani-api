@@ -3,7 +3,7 @@ const moment = require('moment');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
 const Customer = require('../models/Customer');
-const { populateService } = require('./subscriptions');
+const SubscriptionsHelper = require('./subscriptions');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
 
@@ -45,11 +45,11 @@ exports.populateFundingsList = (customer) => {
 };
 
 exports.populateFunding = (funding, subscriptions) => {
-  if (!funding) return false;
+  if (!funding) return null;
 
   const sub = subscriptions.find(sb => UtilsHelper.areObjectIdsEquals(sb._id, funding.subscription));
   if (has(sub, 'service.versions')) {
-    return { ...funding, subscription: { ...sub, service: populateService(sub.service) } };
+    return { ...funding, subscription: { ...sub, service: SubscriptionsHelper.populateService(sub.service) } };
   }
 
   return { ...funding, subscription: { ...sub } };

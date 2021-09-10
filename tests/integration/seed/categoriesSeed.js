@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const Category = require('../../../src/models/Category');
 const Program = require('../../../src/models/Program');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const categoriesList = [
   { _id: new ObjectID(), name: 'ma première catégorie' },
@@ -16,17 +16,12 @@ const programsList = [
 ];
 
 const populateDB = async () => {
-  await Category.deleteMany({});
-  await Program.deleteMany({});
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await Category.insertMany(categoriesList);
-  await Program.insertMany(programsList);
+  await Promise.all([Category.create(categoriesList), Program.create(programsList)]);
 };
 
 module.exports = {
   populateDB,
   categoriesList,
-  programsList,
 };

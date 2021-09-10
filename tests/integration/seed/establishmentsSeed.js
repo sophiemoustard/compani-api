@@ -4,12 +4,9 @@ const { WEBAPP } = require('../../../src/helpers/constants');
 const Establishment = require('../../../src/models/Establishment');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const {
-  populateDBForAuthentication,
-  authCompany,
-  otherCompany,
-  rolesList,
-} = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { clientAdminRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const establishmentsList = [
   {
@@ -68,16 +65,16 @@ const userFromOtherCompany = {
   identity: { firstname: 'Admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
   local: { email: 'other_admin@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 };
 
 const user = {
   _id: new ObjectID(),
   identity: { firstname: 'User', lastname: 'Test' },
-  local: { email: 'auxiliary_establishment@alenvi.io', password: '123456!eR' },
+  local: { email: 'auxiliary_establishment@alenvi.io' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   establishment: establishmentsList[1]._id,
   origin: WEBAPP,
 };
@@ -88,15 +85,13 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await Establishment.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await User.create([userFromOtherCompany, user]);
-  await Establishment.insertMany([...establishmentsList, establishmentFromOtherCompany]);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([
+    Establishment.create([...establishmentsList, establishmentFromOtherCompany]),
+    User.create([userFromOtherCompany, user]),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

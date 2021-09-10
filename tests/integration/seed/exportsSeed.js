@@ -20,9 +20,8 @@ const Establishment = require('../../../src/models/Establishment');
 const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
-const { authCustomer } = require('../../seed/customerSeed');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-const { helper } = require('../../seed/userSeed');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   PAYMENT,
   REFUND,
@@ -36,7 +35,6 @@ const {
   ABSENCE,
   UNJUSTIFIED,
   AUXILIARY_INITIATIVE,
-  AUXILIARY,
   EVERY_DAY,
   MISTER,
   MONTHLY,
@@ -46,6 +44,7 @@ const {
   QRCODE_MISSING,
   QR_CODE_TIME_STAMPING,
 } = require('../../../src/helpers/constants');
+const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
 const sector = { _id: new ObjectID(), name: 'Etoile', company: authCompany._id };
 
@@ -126,7 +125,7 @@ const auxiliaryList = [{
     },
     phone: '0123456789',
   },
-  role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+  role: { client: auxiliaryRoleId },
   local: { email: 'export_auxiliary_1@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   contracts: [contract1Id, contract2Id],
@@ -155,7 +154,7 @@ const auxiliaryList = [{
     },
     phone: '0123456789',
   },
-  role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
+  role: { client: auxiliaryRoleId },
   local: { email: 'export_auxiliary_2@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
   contracts: [contract3Id],
@@ -206,6 +205,7 @@ const thirdPartyPayer = {
   billingMode: 'direct',
 };
 
+const customerSubscriptionId = new ObjectID();
 const customersList = [
   {
     _id: new ObjectID(),
@@ -280,6 +280,57 @@ const customersList = [
     },
     followUp: { situation: 'home' },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0123456789',
+    },
+    subscriptions: [{
+      _id: customerSubscriptionId,
+      service: serviceList[0]._id,
+      versions: [
+        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
+        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+      ],
+    }],
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: thirdPartyPayer._id,
+        subscription: customerSubscriptionId,
+        frequency: ONCE,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: new Date('2019-10-01'),
+          createdAt: new Date('2019-10-01'),
+          endDate: new Date('2020-02-01'),
+          effectiveDate: new Date('2019-10-01'),
+          amountTTC: 1200,
+          customerParticipationRate: 66,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        },
+        {
+          folderNumber: 'D123456',
+          startDate: new Date('2020-02-02'),
+          createdAt: new Date('2020-02-02'),
+          effectiveDate: new Date('2020-02-02'),
+          amountTTC: 1600,
+          customerParticipationRate: 66,
+          careDays: [0, 1, 2, 3, 4, 5],
+        }],
+      },
+    ],
+  },
 ];
 
 const referentList = [
@@ -303,66 +354,6 @@ const referentList = [
     startDate: '2019-06-23T00:00:00',
   },
 ];
-
-const customerSubscriptionId = new ObjectID();
-const customer = {
-  ...authCustomer,
-  identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-    },
-    phone: '0123456789',
-    accessCodes: 'porte c3po',
-  },
-  followUp: {
-    environment: 'ne va pas bien',
-    objectives: 'preparer le dejeuner + balade',
-    misc: 'code porte: 1234',
-  },
-  subscriptions: [{
-    _id: customerSubscriptionId,
-    service: serviceList[0]._id,
-    versions: [
-      { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
-      { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
-    ],
-  }],
-  subscriptionsHistory: [],
-  payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
-  fundings: [
-    {
-      _id: new ObjectID(),
-      nature: FIXED,
-      thirdPartyPayer: thirdPartyPayer._id,
-      subscription: customerSubscriptionId,
-      frequency: ONCE,
-      versions: [{
-        folderNumber: 'D123456',
-        startDate: new Date('2019-10-01'),
-        createdAt: new Date('2019-10-01'),
-        endDate: new Date('2020-02-01'),
-        effectiveDate: new Date('2019-10-01'),
-        amountTTC: 1200,
-        customerParticipationRate: 66,
-        careDays: [0, 1, 2, 3, 4, 5, 6],
-      },
-      {
-        folderNumber: 'D123456',
-        startDate: new Date('2020-02-02'),
-        createdAt: new Date('2020-02-02'),
-        effectiveDate: new Date('2020-02-02'),
-        amountTTC: 1600,
-        customerParticipationRate: 66,
-        careDays: [0, 1, 2, 3, 4, 5],
-      }],
-    },
-  ],
-};
 
 const eventList = [
   {
@@ -396,12 +387,12 @@ const eventList = [
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: auxiliaryList[0]._id,
-    customer: customer._id,
+    customer: customersList[3]._id,
     isCancelled: true,
     misc: 'test',
     cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
     createdAt: '2019-01-15T11:33:14.343Z',
-    subscription: customer.subscriptions[0]._id,
+    subscription: customersList[3].subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -417,9 +408,9 @@ const eventList = [
     type: INTERVENTION,
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
-    customer: customer._id,
+    customer: customersList[3]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customer.subscriptions[0]._id,
+    subscription: customersList[3].subscriptions[0]._id,
     repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -428,6 +419,8 @@ const eventList = [
       street: '37 rue de Ponthieu',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
+    transportMode: 'public',
+    kmDuringEvent: 23,
   },
   {
     _id: new ObjectID(),
@@ -438,7 +431,7 @@ const eventList = [
     endDate: '2020-01-17T16:30:19.543Z',
     customer: customersList[0]._id,
     createdAt: '2020-01-16T14:30:19.543Z',
-    subscription: customer.subscriptions[0]._id,
+    subscription: customersList[3].subscriptions[0]._id,
     repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -467,9 +460,9 @@ const eventList = [
     startDate: '2019-01-11T09:30:19.543Z',
     endDate: '2019-01-11T11:30:21.653Z',
     auxiliary: auxiliaryList[0]._id,
-    customer: customer._id,
+    customer: customersList[3]._id,
     createdAt: '2019-01-09T11:33:14.343Z',
-    subscription: customer.subscriptions[0]._id,
+    subscription: customersList[3].subscriptions[0]._id,
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -501,16 +494,17 @@ const eventHistoriesList = [
 const billsList = [
   {
     _id: new ObjectID(),
+    type: 'automatic',
     date: '2019-05-29',
     number: 'FACT-1905002',
     company: authCompany._id,
-    customer: customer._id,
+    customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 75.96,
     subscriptions: [{
       startDate: '2019-05-29',
       endDate: '2019-11-29',
-      subscription: customer.subscriptions[0]._id,
+      subscription: customersList[3].subscriptions[0]._id,
       vat: 5.5,
       service: authBillService,
       events: [{
@@ -531,15 +525,16 @@ const billsList = [
   },
   {
     _id: new ObjectID(),
+    type: 'automatic',
     date: '2019-05-25',
     number: 'FACT-1905003',
     company: authCompany._id,
-    customer: customer._id,
+    customer: customersList[3]._id,
     netInclTaxes: 101.28,
     subscriptions: [{
       startDate: '2019-05-25',
       endDate: '2019-11-25',
-      subscription: customer.subscriptions[0]._id,
+      subscription: customersList[3].subscriptions[0]._id,
       vat: 5.5,
       events: [{
         eventId: new ObjectID(),
@@ -566,7 +561,7 @@ const paymentsList = [
     company: authCompany._id,
     number: 'REG-1903201',
     date: '2019-05-26T19:47:42',
-    customer: customer._id,
+    customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 190,
     nature: PAYMENT,
@@ -577,7 +572,7 @@ const paymentsList = [
     company: authCompany._id,
     number: 'REG-1903202',
     date: '2019-05-24T15:47:42',
-    customer: customer._id,
+    customer: customersList[3]._id,
     netInclTaxes: 390,
     nature: PAYMENT,
     type: 'check',
@@ -587,7 +582,7 @@ const paymentsList = [
     company: authCompany._id,
     number: 'REG-1903203',
     date: '2019-05-27T09:10:20',
-    customer: customer._id,
+    customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 220,
     nature: REFUND,
@@ -782,7 +777,7 @@ const creditNotesList = [
     date: '2019-05-28',
     startDate: '2019-05-27',
     endDate: '2019-11-25',
-    customer: customer._id,
+    customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     exclTaxesCustomer: 100,
     inclTaxesCustomer: 112,
@@ -801,7 +796,7 @@ const creditNotesList = [
     }],
     origin: 'compani',
     subscription: {
-      _id: customer.subscriptions[0]._id,
+      _id: customersList[3].subscriptions[0]._id,
       service: {
         serviceId: new ObjectID(),
         nature: 'fixed',
@@ -818,12 +813,11 @@ const user = {
   identity: { firstname: 'test', lastname: 'Toto' },
   local: { email: 'toto@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'helper')._id },
+  role: { client: helperRoleId },
   origin: WEBAPP,
 };
 
 const helpersList = [
-  { customer: customer._id, user: helper._id, company: authCompany._id, referent: true },
   { customer: customersList[0]._id, user: user._id, company: authCompany._id, referent: true },
 ];
 
@@ -834,32 +828,12 @@ const userCompanies = [
 ];
 
 const populateDB = async () => {
-  await Bill.deleteMany();
-  await Contract.deleteMany();
-  await CreditNote.deleteMany();
-  await Customer.deleteMany();
-  await Establishment.deleteMany();
-  await Event.deleteMany();
-  await EventHistory.deleteMany();
-  await FinalPay.deleteMany();
-  await Helper.deleteMany();
-  await InternalHour.deleteMany();
-  await Pay.deleteMany();
-  await Payment.deleteMany();
-  await ReferentHistory.deleteMany();
-  await Sector.deleteMany();
-  await SectorHistory.deleteMany();
-  await Service.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-  await User.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Bill.insertMany(billsList);
   await Contract.insertMany(contractList);
   await CreditNote.insertMany(creditNotesList);
-  await Customer.insertMany([customer, ...customersList]);
+  await Customer.insertMany(customersList);
   await Establishment.create(establishment);
   await Event.insertMany(eventList);
   await EventHistory.insertMany(eventHistoriesList);
@@ -873,7 +847,7 @@ const populateDB = async () => {
   await SectorHistory.insertMany(sectorHistories);
   await Service.insertMany(serviceList);
   await ThirdPartyPayer.create(thirdPartyPayer);
-  await (new User(user)).save();
+  await User.create(user);
   await User.insertMany(auxiliaryList);
   await UserCompany.insertMany(userCompanies);
 };
@@ -882,7 +856,6 @@ module.exports = {
   populateDB,
   paymentsList,
   customersList,
-  customer,
   user,
   billsList,
   creditNotesList,
