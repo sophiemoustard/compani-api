@@ -35,7 +35,7 @@ const createBillList = async (req) => {
   }
 };
 
-const billsList = async (req) => {
+const list = async (req) => {
   try {
     const bills = await BillHelper.list(req.query, req.auth.credentials);
 
@@ -72,4 +72,4 @@ const generateBillPdf = async (req, h) => {
   }
 };
 
-module.exports = { draftBillsList, createBillList, generateBillPdf, createBill, billsList };
+module.exports = { draftBillsList, createBillList, generateBillPdf, createBill, list };

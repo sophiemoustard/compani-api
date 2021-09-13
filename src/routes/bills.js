@@ -8,7 +8,7 @@ const {
   createBillList,
   createBill,
   generateBillPdf,
-  billsList,
+  list,
 } = require('../controllers/billsController');
 const {
   getBill,
@@ -152,14 +152,14 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/list',
+      path: '/',
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
           query: Joi.object({ type: Joi.string().valid(...BILL_TYPES).required() }),
         },
       },
-      handler: billsList,
+      handler: list,
     });
 
     server.route({

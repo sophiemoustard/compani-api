@@ -634,7 +634,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
   });
 });
 
-describe('BILL ROUTES - GET /bills/list', () => {
+describe('BILL ROUTES - GET /bills/', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -646,7 +646,7 @@ describe('BILL ROUTES - GET /bills/list', () => {
     it('should return all draft bills from authCompany', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/bills/list?type=manual',
+        url: '/bills?type=manual',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -657,7 +657,7 @@ describe('BILL ROUTES - GET /bills/list', () => {
     it('should return 400 if wrong query', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/bills/list?type=wrongType',
+        url: '/bills?type=wrongType',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -680,7 +680,7 @@ describe('BILL ROUTES - GET /bills/list', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: '/bills/list?type=manual',
+          url: '/bills?type=manual',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
