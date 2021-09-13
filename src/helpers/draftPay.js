@@ -135,7 +135,7 @@ exports.getTransportInfo = async (distances, origins, destinations, mode, compan
 
   if (!distanceMatrix) {
     const query = { origins, destinations, mode };
-    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query, companyId);
+    distanceMatrix = await DistanceMatrixHelper.createDistanceMatrix(query, companyId);
     distances.push(distanceMatrix || { ...query, distance: 0, duration: 0 });
   }
 
@@ -143,6 +143,14 @@ exports.getTransportInfo = async (distances, origins, destinations, mode, compan
     ? { distance: 0, duration: 0 }
     : { duration: distanceMatrix.duration / 60, distance: distanceMatrix.distance / 1000 };
 };
+
+exports.getTransportMode = event =>
+  ({
+    default: event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT
+      ? TRANSIT
+      : DRIVING,
+    ...(event.transportMode && { specific: event.transportMode === PUBLIC_TRANSPORT ? TRANSIT : DRIVING }),
+  });
 
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
   let paidTransportDuration = 0;
@@ -153,18 +161,24 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     const destinations = get(event, 'address.fullAddress', null);
     let transportMode = null;
     if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
-      transportMode = event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT
-        ? TRANSIT
-        : DRIVING;
+      transportMode = exports.getTransportMode(event);
     }
 
     if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, distance: paidKm };
 
-    const transport = await exports.getTransportInfo(dm, origins, destinations, transportMode, event.company);
+    const transport = await exports.getTransportInfo(
+      dm,
+      origins,
+      destinations,
+      transportMode.specific || transportMode.default,
+      event.company
+    );
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
     const pickTransportDuration = breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
-    paidKm = transport.distance;
+    const isTransportModePersonalCar = transportMode.default === DRIVING &&
+      (!transportMode.specific || transportMode.specific === PRIVATE_TRANSPORT);
+    paidKm = isTransportModePersonalCar ? transport.distance : 0;
   }
 
   return { duration: paidTransportDuration, distance: paidKm };
