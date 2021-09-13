@@ -607,7 +607,7 @@ describe('getPaidTransportInfo', () => {
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
   });
 
-  it('should not paid transport if transportMode is not personal car', async () => {
+  it('should not paid transport if specific transport is not personal car', async () => {
     const event = {
       hasFixedService: false,
       startDate: '2019-01-18T18:00:00',
@@ -631,6 +631,32 @@ describe('getPaidTransportInfo', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({ distance: 0, duration: 40 });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
+  });
+
+  it('should not paid transport if default transport is not personal car', async () => {
+    const event = {
+      hasFixedService: false,
+      startDate: '2019-01-18T18:00:00',
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'public' } },
+      },
+      address: { fullAddress: 'jébobolà' },
+      transportMode: 'private',
+
+    };
+    const prevEvent = {
+      hasFixedService: false,
+      type: 'intervention',
+      endDate: '2019-01-18T15:00:00',
+      address: { fullAddress: 'tamalou' },
+    };
+    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 40 });
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
   it('should compute transit transport', async () => {
