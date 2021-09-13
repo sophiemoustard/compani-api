@@ -404,12 +404,12 @@ describe('getSurchargeSplit', () => {
 
 describe('getTransportInfo', () => {
   const companyId = new ObjectID();
-  let getOrCreateDistanceMatrix;
+  let createDistanceMatrix;
   beforeEach(() => {
-    getOrCreateDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'getOrCreateDistanceMatrix');
+    createDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'createDistanceMatrix');
   });
   afterEach(() => {
-    getOrCreateDistanceMatrix.restore();
+    createDistanceMatrix.restore();
   });
 
   it('should return 0 if no origins', async () => {
@@ -452,7 +452,7 @@ describe('getTransportInfo', () => {
 
   it('should call google maps api as no data found in database', async () => {
     const distances = [{ origins: 'lilili', destinations: 'enfer', mode: 'boulot', duration: 120 }];
-    getOrCreateDistanceMatrix.resolves({ duration: 120, distance: 3000 });
+    createDistanceMatrix.resolves({ duration: 120, distance: 3000 });
     const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'paradis', 'repos', companyId);
 
     expect(result).toBeDefined();
@@ -461,7 +461,7 @@ describe('getTransportInfo', () => {
       destinations: 'paradis',
       mode: 'repos',
     };
-    sinon.assert.calledOnceWithExactly(getOrCreateDistanceMatrix, query, companyId);
+    sinon.assert.calledOnceWithExactly(createDistanceMatrix, query, companyId);
     expect(result).toEqual({ duration: 2, distance: 3 });
   });
 });
@@ -604,7 +604,7 @@ describe('getPaidTransportInfo', () => {
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
     expect(result).toBeDefined();
-    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'public', event.company);
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
   });
 
   it('should not paid transport if transportMode is not personal car', async () => {
@@ -630,7 +630,7 @@ describe('getPaidTransportInfo', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual({ distance: 0, duration: 40 });
-    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'public', event.company);
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
   });
 
   it('should compute transit transport', async () => {
@@ -679,7 +679,7 @@ describe('getPaidTransportInfo', () => {
     expect(result).toEqual({ distance: 10, duration: 70 });
   });
 
-  it('should return transport duration', async () => {
+  it('should return transport duration if transport duration is shorter than break duration', async () => {
     const event = {
       startDate: '2019-01-18T18:00:00',
       type: 'intervention',

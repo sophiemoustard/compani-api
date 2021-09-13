@@ -9,22 +9,19 @@ exports.getDistanceMatrices = async credentials =>
 const isDistanceMatrixDefine = res => (res.status === 200 && get(res, 'data.rows[0].elements[0].distance') &&
   get(res, 'data.rows[0].elements[0].duration'));
 
-exports.getOrCreateDistanceMatrix = async (params, companyId) => {
-  const distanceMatrix = await DistanceMatrix.findOne(params).lean();
-  if (distanceMatrix) return distanceMatrix;
-
+exports.createDistanceMatrix = async (params, companyId) => {
   let res = null;
   const query = { ...params, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
   if (params.mode === TRANSIT) {
-    const resWithTransit = await maps.getDistanceMatrix(query);
+    const transitRes = await maps.getDistanceMatrix(query);
     const queryWithWalking = { ...query, mode: WALKING };
-    const resWithWalking = await maps.getDistanceMatrix(queryWithWalking);
+    const walkingRes = await maps.getDistanceMatrix(queryWithWalking);
 
-    if (!isDistanceMatrixDefine(resWithTransit) || !isDistanceMatrixDefine(resWithWalking)) return null;
+    if (!isDistanceMatrixDefine(transitRes) || !isDistanceMatrixDefine(walkingRes)) return null;
 
-    const transitDistance = resWithTransit.data.rows[0].elements[0].distance.value;
-    const walkingDistance = resWithWalking.data.rows[0].elements[0].distance.value;
-    res = transitDistance < walkingDistance ? resWithTransit : resWithWalking;
+    const transitDistance = transitRes.data.rows[0].elements[0].distance.value;
+    const walkingDistance = walkingRes.data.rows[0].elements[0].distance.value;
+    res = transitDistance < walkingDistance ? transitRes : walkingRes;
   } else {
     res = await maps.getDistanceMatrix(query);
   }

@@ -35,11 +35,16 @@ describe('getDistanceMatrices', () => {
   });
 });
 
-describe('getOrCreateDistanceMatrix', () => {
+describe('createDistanceMatrix', () => {
   const distanceMatrixRequest = {
     origins: 'Washington, DC',
     destinations: 'New York City, NY',
-    mode: 'DRIVING',
+    mode: 'driving',
+  };
+  const distanceMatrixTransitRequest = {
+    origins: 'Washington, DC',
+    destinations: 'New York City, NY',
+    mode: 'transit',
   };
   const distanceMatrixResult = {
     data: {
@@ -52,30 +57,41 @@ describe('getOrCreateDistanceMatrix', () => {
     },
     status: 200,
   };
+  const distanceMatrixWalkingResult = {
+    data: {
+      rows: [{
+        elements: [{
+          distance: { value: 363970 },
+          duration: { value: 14790 },
+        }],
+      }],
+    },
+    status: 200,
+  };
   const companyId = new ObjectID();
   let save;
   let getDistanceMatrix;
-  let findOne;
 
   beforeEach(() => {
     save = sinon.stub(DistanceMatrix.prototype, 'save').returnsThis();
-    getDistanceMatrix = sinon.stub(maps, 'getDistanceMatrix').returns(distanceMatrixResult);
-    findOne = sinon.stub(DistanceMatrix, 'findOne');
+    getDistanceMatrix = sinon.stub(maps, 'getDistanceMatrix');
   });
 
   afterEach(() => {
     save.restore();
-    findOne.restore();
+    getDistanceMatrix.restore();
   });
 
   it('should return a new DistanceMatrix', async () => {
     getDistanceMatrix.returns(distanceMatrixResult);
-    findOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
-    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, companyId);
+    const result = await DistanceMatrixHelper.createDistanceMatrix(distanceMatrixRequest, companyId);
 
     sinon.assert.calledOnce(save);
-    SinonMongoose.calledWithExactly(findOne, [{ query: 'findOne', args: [distanceMatrixRequest] }, { query: 'lean' }]);
+    sinon.assert.calledOnceWithExactly(
+      getDistanceMatrix,
+      { ...distanceMatrixRequest, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY }
+    );
     expect(result).toEqual(expect.objectContaining({
       company: companyId,
       _id: expect.any(Object),
@@ -83,7 +99,46 @@ describe('getOrCreateDistanceMatrix', () => {
       distance: 363998,
       duration: 13790,
       origins: 'Washington, DC',
-      mode: 'DRIVING',
+      mode: 'driving',
     }));
+  });
+
+  it('should return minimum distance between walking and transit', async () => {
+    getDistanceMatrix.onCall(0).returns(distanceMatrixResult);
+    getDistanceMatrix.onCall(1).returns(distanceMatrixWalkingResult);
+
+    const result = await DistanceMatrixHelper.createDistanceMatrix(distanceMatrixTransitRequest, companyId);
+
+    sinon.assert.calledOnce(save);
+    sinon.assert.calledWithExactly(
+      getDistanceMatrix.getCall(0),
+      { ...distanceMatrixTransitRequest, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY }
+    );
+    sinon.assert.calledWithExactly(
+      getDistanceMatrix.getCall(1),
+      { ...distanceMatrixTransitRequest, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY, mode: 'walking' }
+    );
+    expect(result).toEqual(expect.objectContaining({
+      company: companyId,
+      _id: expect.any(Object),
+      destinations: 'New York City, NY',
+      distance: 363970,
+      duration: 14790,
+      origins: 'Washington, DC',
+      mode: 'transit',
+    }));
+  });
+
+  it('should return null if distance or duration is not defined', async () => {
+    getDistanceMatrix.returns({ data: { rows: [{ elements: [{ duration: { value: 13790 } }] }] }, status: 200 });
+
+    const result = await DistanceMatrixHelper.createDistanceMatrix(distanceMatrixRequest, companyId);
+
+    sinon.assert.notCalled(save);
+    sinon.assert.calledOnceWithExactly(
+      getDistanceMatrix,
+      { ...distanceMatrixRequest, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY }
+    );
+    expect(result).toEqual(null);
   });
 });

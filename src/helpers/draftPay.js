@@ -135,7 +135,7 @@ exports.getTransportInfo = async (distances, origins, destinations, mode, compan
 
   if (!distanceMatrix) {
     const query = { origins, destinations, mode };
-    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query, companyId);
+    distanceMatrix = await DistanceMatrixHelper.createDistanceMatrix(query, companyId);
     distances.push(distanceMatrix || { ...query, distance: 0, duration: 0 });
   }
 
@@ -176,10 +176,9 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
     const pickTransportDuration = breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
-    paidKm = transportMode.default === DRIVING &&
-      (!transportMode.specific || transportMode.specific === PRIVATE_TRANSPORT)
-      ? transport.distance
-      : 0;
+    const isTransportModePersonalCar = transportMode.default === DRIVING &&
+      (!transportMode.specific || transportMode.specific === PRIVATE_TRANSPORT);
+    paidKm = isTransportModePersonalCar ? transport.distance : 0;
   }
 
   return { duration: paidTransportDuration, distance: paidKm };
