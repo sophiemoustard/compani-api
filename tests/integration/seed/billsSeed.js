@@ -273,6 +273,25 @@ const contracts = [
   },
 ];
 
+const billingItemList = [
+  {
+    _id: new ObjectID(),
+    name: 'Billing Joel',
+    type: 'manual',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Boule et Billing',
+    type: 'per_intervention',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: authCompany._id,
+  },
+];
+
 const authBillsList = [
   {
     _id: new ObjectID(),
@@ -335,6 +354,23 @@ const authBillsList = [
       discount: 0,
     }],
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'manual',
+    number: 'FACT-1901002',
+    date: '2019-06-01',
+    customer: billCustomerList[1]._id,
+    netInclTaxes: 100,
+    billingItemList: [{
+      billingItem: billingItemList[0],
+      unitInclTaxes: 1000,
+      name: 'article de factu',
+      count: 2,
+      inclTaxes: 2000,
+      exclTaxes: 200,
+    }],
+  },
 ];
 
 const billsList = [
@@ -366,6 +402,23 @@ const billsList = [
       exclTaxes: 72,
       inclTaxes: 75.96,
       discount: 0,
+    }],
+  },
+  {
+    _id: new ObjectID(),
+    company: otherCompany._id,
+    type: 'manual',
+    number: 'FACT-1901003',
+    date: '2019-06-01',
+    customer: billCustomerList[2]._id,
+    netInclTaxes: 100,
+    billingItemList: [{
+      billingItem: billingItemList[0],
+      unitInclTaxes: 645,
+      name: 'arctic',
+      count: 2,
+      inclTaxes: 2,
+      exclTaxes: 4,
     }],
   },
 ];
@@ -543,25 +596,6 @@ const fundingHistory = {
 
 const helpersList = [
   { customer: billCustomerList[0]._id, user: billUserList[0]._id, company: authCompany._id, referent: true },
-];
-
-const billingItemList = [
-  {
-    _id: new ObjectID(),
-    name: 'Billing Joel',
-    type: 'manual',
-    defaultUnitAmount: 12,
-    vat: 15,
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Boule et Billing',
-    type: 'per_intervention',
-    defaultUnitAmount: 12,
-    vat: 15,
-    company: authCompany._id,
-  },
 ];
 
 const populateDB = async () => {

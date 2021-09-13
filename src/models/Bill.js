@@ -63,3 +63,4 @@ BillSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Bill', BillSchema);
 module.exports.BILL_ORIGINS = BILL_ORIGINS;
+module.exports.BILL_TYPES = BILL_TYPES;

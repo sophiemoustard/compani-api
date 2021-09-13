@@ -1516,6 +1516,40 @@ describe('formatAndCreateList', () => {
   });
 });
 
+describe('list', () => {
+  let findBill;
+  beforeEach(() => {
+    findBill = sinon.stub(Bill, 'find');
+  });
+  afterEach(() => {
+    findBill.restore();
+  });
+
+  it('should get a list of manual bills', async () => {
+    const authCompanyId = new ObjectID();
+    const query = { type: 'manual' };
+    const credentials = { company: authCompanyId };
+    const bills = [
+      { _id: new ObjectID(), type: 'manual', billingItemList: [] },
+      { _id: new ObjectID(), type: 'manual', billingItemList: [] },
+    ];
+
+    findBill.returns(SinonMongoose.stubChainedQueries([bills]));
+
+    await BillHelper.list(query, credentials);
+
+    SinonMongoose.calledWithExactly(
+      findBill,
+      [
+        { query: 'find', args: [{ type: 'manual', company: authCompanyId }] },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
 describe('formatBillingItem', () => {
   it('should format billing item', () => {
     const billingItemId = new ObjectID();
