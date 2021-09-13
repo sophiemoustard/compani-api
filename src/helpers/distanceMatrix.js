@@ -14,14 +14,17 @@ exports.createDistanceMatrix = async (params, companyId) => {
   const query = { ...params, key: process.env.GOOGLE_CLOUD_PLATFORM_API_KEY };
   if (params.mode === TRANSIT) {
     const transitRes = await maps.getDistanceMatrix(query);
-    const queryWithWalking = { ...query, mode: WALKING };
-    const walkingRes = await maps.getDistanceMatrix(queryWithWalking);
+    const walkingRes = await maps.getDistanceMatrix({ ...query, mode: WALKING });
 
-    if (!isDistanceMatrixDefine(transitRes) || !isDistanceMatrixDefine(walkingRes)) return null;
+    if (!isDistanceMatrixDefine(transitRes) && !isDistanceMatrixDefine(walkingRes)) return null;
 
-    const transitDistance = transitRes.data.rows[0].elements[0].distance.value;
-    const walkingDistance = walkingRes.data.rows[0].elements[0].distance.value;
-    res = transitDistance < walkingDistance ? transitRes : walkingRes;
+    if (!isDistanceMatrixDefine(transitRes)) res = walkingRes;
+    else if (!isDistanceMatrixDefine(walkingRes)) res = transitRes;
+    else {
+      const transitDistance = transitRes.data.rows[0].elements[0].distance.value;
+      const walkingDistance = walkingRes.data.rows[0].elements[0].distance.value;
+      res = transitDistance < walkingDistance ? transitRes : walkingRes;
+    }
   } else {
     res = await maps.getDistanceMatrix(query);
   }
