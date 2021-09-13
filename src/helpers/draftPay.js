@@ -152,9 +152,9 @@ exports.getTransportMode = (event) => {
   let specificMode;
   if (event.transportMode) specificMode = event.transportMode === PUBLIC_TRANSPORT ? TRANSIT : DRIVING;
 
-  const shouldPayKm = defaultMode === DRIVING && (!specificMode || specificMode === PRIVATE_TRANSPORT);
+  const shouldPayKm = defaultMode === DRIVING && (!specificMode || event.transportMode === PRIVATE_TRANSPORT);
 
-  return { defalut: defaultMode, specific: specificMode, shouldPayKm };
+  return { default: defaultMode, specific: specificMode, shouldPayKm };
 };
 
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
