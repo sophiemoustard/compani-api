@@ -17,6 +17,7 @@ const ServiceSchema = mongoose.Schema({
     startDate: { type: Date, required: true },
     createdAt: { type: Date, default: Date.now },
     exemptFromCharges: { type: Boolean, required: true },
+    billingItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem' }],
   }],
   isArchived: { type: Boolean, default: false },
 }, { timestamps: true });
