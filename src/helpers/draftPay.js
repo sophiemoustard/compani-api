@@ -144,13 +144,18 @@ exports.getTransportInfo = async (distances, origins, destinations, mode, compan
     : { duration: distanceMatrix.duration / 60, distance: distanceMatrix.distance / 1000 };
 };
 
-exports.getTransportMode = event =>
-  ({
-    default: event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT
-      ? TRANSIT
-      : DRIVING,
-    ...(event.transportMode && { specific: event.transportMode === PUBLIC_TRANSPORT ? TRANSIT : event.transportMode }),
-  });
+exports.getTransportMode = (event) => {
+  const defaultMode = get(event, 'auxiliary.administrative.transportInvoice.transportType') === PUBLIC_TRANSPORT
+    ? TRANSIT
+    : DRIVING;
+
+  let specificMode;
+  if (event.transportMode) specificMode = event.transportMode === PUBLIC_TRANSPORT ? TRANSIT : DRIVING;
+
+  const shouldPayKm = defaultMode === DRIVING && (!specificMode || specificMode === PRIVATE_TRANSPORT);
+
+  return { defalut: defaultMode, specific: specificMode, shouldPayKm };
+};
 
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
   let paidTransportDuration = 0;
@@ -176,9 +181,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
     const pickTransportDuration = breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
-    const isTransportModePersonalCar = transportMode.default === DRIVING &&
-      (!transportMode.specific || transportMode.specific === PRIVATE_TRANSPORT);
-    paidKm = isTransportModePersonalCar ? transport.distance : 0;
+    paidKm = transportMode.shouldPayKm ? transport.distance : 0;
   }
 
   return { duration: paidTransportDuration, distance: paidKm };

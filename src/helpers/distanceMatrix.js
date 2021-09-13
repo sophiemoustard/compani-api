@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const maps = require('../models/Google/Maps');
-const { TRANSIT, WALKING, DRIVING } = require('./constants');
+const { TRANSIT, WALKING } = require('./constants');
 
 exports.getDistanceMatrices = async credentials =>
   DistanceMatrix.find({ company: get(credentials, 'company._id') }).lean();
@@ -26,7 +26,7 @@ exports.createDistanceMatrix = async (params, companyId) => {
       res = transitDuration < walkingDuration ? transitRes : walkingRes;
     }
   } else {
-    res = await maps.getDistanceMatrix({ ...query, mode: DRIVING });
+    res = await maps.getDistanceMatrix(query);
   }
 
   if (!isDistanceMatrixDefine(res)) return null;
