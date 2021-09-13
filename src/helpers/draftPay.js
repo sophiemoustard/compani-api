@@ -149,7 +149,7 @@ exports.getTransportMode = event =>
     default: event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT
       ? TRANSIT
       : DRIVING,
-    ...(event.transportMode && { specific: event.transportMode === PUBLIC_TRANSPORT ? TRANSIT : DRIVING }),
+    ...(event.transportMode && { specific: event.transportMode === PUBLIC_TRANSPORT ? TRANSIT : event.transportMode }),
   });
 
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {

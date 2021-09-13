@@ -62,7 +62,7 @@ describe('createDistanceMatrix', () => {
       rows: [{
         elements: [{
           distance: { value: 363970 },
-          duration: { value: 14790 },
+          duration: { value: 12790 },
         }],
       }],
     },
@@ -103,7 +103,7 @@ describe('createDistanceMatrix', () => {
     }));
   });
 
-  it('should return minimum distance between walking and transit', async () => {
+  it('should return minimum duration between walking and transit', async () => {
     getDistanceMatrix.onCall(0).returns(distanceMatrixResult);
     getDistanceMatrix.onCall(1).returns(distanceMatrixWalkingResult);
 
@@ -123,7 +123,7 @@ describe('createDistanceMatrix', () => {
       _id: expect.any(Object),
       destinations: 'New York City, NY',
       distance: 363970,
-      duration: 14790,
+      duration: 12790,
       origins: 'Washington, DC',
       mode: 'transit',
     }));
