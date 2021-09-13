@@ -21,9 +21,9 @@ exports.createDistanceMatrix = async (params, companyId) => {
     if (!isDistanceMatrixDefine(transitRes)) res = walkingRes;
     else if (!isDistanceMatrixDefine(walkingRes)) res = transitRes;
     else {
-      const transitDistance = transitRes.data.rows[0].elements[0].distance.value;
-      const walkingDistance = walkingRes.data.rows[0].elements[0].distance.value;
-      res = transitDistance < walkingDistance ? transitRes : walkingRes;
+      const transitDuration = transitRes.data.rows[0].elements[0].duration.value;
+      const walkingDuration = walkingRes.data.rows[0].elements[0].duration.value;
+      res = transitDuration < walkingDuration ? transitRes : walkingRes;
     }
   } else {
     res = await maps.getDistanceMatrix(query);
