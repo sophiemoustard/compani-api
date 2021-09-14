@@ -404,12 +404,12 @@ describe('getSurchargeSplit', () => {
 
 describe('getTransportInfo', () => {
   const companyId = new ObjectID();
-  let getOrCreateDistanceMatrix;
+  let createDistanceMatrix;
   beforeEach(() => {
-    getOrCreateDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'getOrCreateDistanceMatrix');
+    createDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'createDistanceMatrix');
   });
   afterEach(() => {
-    getOrCreateDistanceMatrix.restore();
+    createDistanceMatrix.restore();
   });
 
   it('should return 0 if no origins', async () => {
@@ -452,7 +452,7 @@ describe('getTransportInfo', () => {
 
   it('should call google maps api as no data found in database', async () => {
     const distances = [{ origins: 'lilili', destinations: 'enfer', mode: 'boulot', duration: 120 }];
-    getOrCreateDistanceMatrix.resolves({ duration: 120, distance: 3000 });
+    createDistanceMatrix.resolves({ duration: 120, distance: 3000 });
     const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'paradis', 'repos', companyId);
 
     expect(result).toBeDefined();
@@ -461,7 +461,7 @@ describe('getTransportInfo', () => {
       destinations: 'paradis',
       mode: 'repos',
     };
-    sinon.assert.calledOnceWithExactly(getOrCreateDistanceMatrix, query, companyId);
+    sinon.assert.calledOnceWithExactly(createDistanceMatrix, query, companyId);
     expect(result).toEqual({ duration: 2, distance: 3 });
   });
 });
@@ -583,6 +583,82 @@ describe('getPaidTransportInfo', () => {
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
+  it('should compute specific transport mode if exist', async () => {
+    const event = {
+      hasFixedService: false,
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      address: { fullAddress: 'jébobolà' },
+      company: new ObjectID(),
+      transportMode: 'public',
+    };
+    const prevEvent = {
+      hasFixedService: false,
+      type: 'intervention',
+      startDate: '2019-01-18T15:46:30.636Z',
+      address: { fullAddress: 'tamalou' },
+    };
+    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
+  });
+
+  it('should not paid transport if specific transport is not personal car', async () => {
+    const event = {
+      hasFixedService: false,
+      startDate: '2019-01-18T18:00:00',
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      address: { fullAddress: 'jébobolà' },
+      transportMode: 'public',
+
+    };
+    const prevEvent = {
+      hasFixedService: false,
+      type: 'intervention',
+      endDate: '2019-01-18T15:00:00',
+      address: { fullAddress: 'tamalou' },
+    };
+    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 40 });
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
+  });
+
+  it('should not paid transport if default transport is not personal car', async () => {
+    const event = {
+      hasFixedService: false,
+      startDate: '2019-01-18T18:00:00',
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'public' } },
+      },
+      address: { fullAddress: 'jébobolà' },
+      transportMode: 'private',
+
+    };
+    const prevEvent = {
+      hasFixedService: false,
+      type: 'intervention',
+      endDate: '2019-01-18T15:00:00',
+      address: { fullAddress: 'tamalou' },
+    };
+    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 40 });
+    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
+  });
+
   it('should compute transit transport', async () => {
     const event = {
       hasFixedService: false,
@@ -629,7 +705,7 @@ describe('getPaidTransportInfo', () => {
     expect(result).toEqual({ distance: 10, duration: 70 });
   });
 
-  it('should return transport duration', async () => {
+  it('should return transport duration if transport duration is shorter than break duration', async () => {
     const event = {
       startDate: '2019-01-18T18:00:00',
       type: 'intervention',

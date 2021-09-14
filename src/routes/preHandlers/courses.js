@@ -177,7 +177,8 @@ exports.authorizeGetCourse = async (req) => {
 
     if (!userClientRole || ![COACH, CLIENT_ADMIN].includes(userClientRole)) throw Boom.forbidden();
 
-    const companyHasAccess = !course.accessRules.length || course.accessRules.includes(userCompany);
+    const companyHasAccess = !course.accessRules.length ||
+      UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.type === INTRA) {
