@@ -216,7 +216,6 @@ exports.formatAndCreateBill = async (payload, credentials) => {
   const { company } = credentials;
 
   const billNumber = await exports.getBillNumber(date, company._id);
-  const seq = billNumber.seq + 1;
 
   const bddBillingItemList = await BillingItem
     .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1, name: 1 })
@@ -225,12 +224,15 @@ exports.formatAndCreateBill = async (payload, credentials) => {
   const bill = {
     ...pick(payload, ['date', 'customer', 'netInclTaxes']),
     type: MANUAL,
-    number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, seq),
+    number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq),
     billingItemList: billingItemList.map(bi => exports.formatBillingItem(bi, bddBillingItemList)),
     company: company._id,
   };
 
-  await BillNumber.updateOne({ prefix: billNumber.prefix, company: company._id }, { $set: { seq } });
+  await BillNumber.updateOne(
+    { prefix: billNumber.prefix, company: company._id },
+    { $set: { seq: billNumber.seq + 1 } }
+  );
   await Bill.create(bill);
 };
 
