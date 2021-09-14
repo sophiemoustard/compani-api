@@ -260,23 +260,38 @@ exports.getUnitInclTaxes = (bill, subscription) => {
 exports.formatBillSubscriptionsForPdf = (bill) => {
   let totalExclTaxes = 0;
   let totalVAT = 0;
+  let formattedVolume;
+  let formattedUnitPrice;
+
+  const formatVolume = volume => parseFloat(volume.replace(' h', '').replace(',', '.'), 10);
+  const formatUnitPrice = price => parseFloat(price.replace(',', '.').substring(0, 5), 10);
+  const formatTotalTTC = total => total.toFixed(2).toString().replace('.', ',');
+
   const formattedSubs = [];
 
   for (const sub of bill.subscriptions) {
     totalExclTaxes += sub.exclTaxes;
     totalVAT += sub.inclTaxes - sub.exclTaxes;
+
     const formattedSub = {
       unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
-      inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
       vat: sub.vat ? sub.vat.toString().replace(/\./g, ',') : 0,
-      service: sub.service.name,
+      name: sub.service.name,
     };
+
     if (sub.service.nature === HOURLY) {
       const formattedHours = UtilsHelper.formatFloatForExport(sub.hours);
       formattedSub.volume = formattedHours === '' ? '' : `${formattedHours} h`;
     } else {
       formattedSub.volume = sub.events.length;
     }
+
+    if (typeof formattedSub.volume === 'string') formattedVolume = formatVolume(formattedSub.volume);
+    else formattedVolume = formattedSub.volume;
+    formattedUnitPrice = formatUnitPrice(formattedSub.unitInclTaxes);
+
+    formattedSub.total = formattedVolume * formattedUnitPrice;
+    formattedSub.total = formatTotalTTC(formattedSub.total);
     formattedSubs.push(formattedSub);
   }
 

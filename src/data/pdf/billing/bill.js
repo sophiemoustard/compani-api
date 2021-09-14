@@ -7,27 +7,30 @@ exports.getPdfContent = async (data) => {
 
   const serviceTableBody = [
     [
-      { text: 'Service', bold: true },
+      { text: 'Intitulé', bold: true },
       { text: 'Prix unitaire TTC', bold: true },
       { text: 'Volume', bold: true },
-      { text: 'Total TTC*', bold: true },
+      { text: 'Total TTC', bold: true },
     ],
   ];
-  bill.formattedSubs.forEach(sub => serviceTableBody.push(
-    [
-      { text: `${sub.service} (TVA ${sub.vat} %)` },
-      { text: sub.unitInclTaxes },
-      { text: sub.volume },
-      { text: sub.inclTaxes },
-    ]
-  ));
+
+  bill.formattedSubs.forEach((sub) => {
+    serviceTableBody.push(
+      [
+        { text: `${sub.name} (TVA ${sub.vat ? sub.vat.toString().replace(/\./g, ',') : 0} %)` },
+        { text: sub.unitInclTaxes || '-' },
+        { text: sub.volume || '-' },
+        { text: `${sub.total} €` },
+      ]
+    );
+  });
+
   const serviceTable = [
     {
       table: { body: serviceTableBody, widths: ['*', 'auto', 'auto', 'auto'] },
       margin: [0, 40, 0, 8],
       layout: { vLineWidth: () => 0.5, hLineWidth: () => 0.5 },
     },
-    { text: '*ce total intègre les financements, majorations et éventuelles remises.' },
   ];
 
   const priceTable = UtilsPdfHelper.getPriceTable(bill);
