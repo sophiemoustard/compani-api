@@ -320,7 +320,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     it('should get intra course', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseFromAuthCompanyIntra._id.toHexString()}`,
+        url: `/courses/${courseFromAuthCompanyIntra._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -331,7 +331,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     it('should get inter b2b course with all trainees', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+        url: `/courses/${courseFromAuthCompanyInterB2b._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -348,7 +348,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     it('should get inter b2b course', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+        url: `/courses/${courseFromAuthCompanyInterB2b._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -356,11 +356,22 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyInterB2b._id.toHexString());
     });
 
-    it('should return 403 if course is eLearning and has accessRules that doesn\'t contain user company ',
+    it('should return course if course is eLearning and has accessRules that contain user company',
       async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${coursesList[11]._id.toHexString()}`,
+          url: `/courses/${coursesList[8]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+    it('should return 403 if course is eLearning and has accessRules that doesn\'t contain user company',
+      async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[11]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -370,7 +381,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     it('should return 403 if course is intra and user company is not course company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[1]._id.toHexString()}`,
+        url: `/courses/${coursesList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -380,7 +391,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     it('should return 403 if course is inter_b2b and no trainee is from user company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[10]._id.toHexString()}`,
+        url: `/courses/${coursesList[10]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -396,7 +407,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     it('should return 200 if user is trainer and is course\'s trainer', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+        url: `/courses/${courseFromAuthCompanyInterB2b._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -406,7 +417,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
     it('should return 403 if user is trainer and isn\'t course\'s trainer', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[10]._id.toHexString()}`,
+        url: `/courses/${coursesList[10]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -423,7 +434,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
 
         const response = await app.inject({
           method: 'GET',
-          url: `/courses/${courseFromAuthCompanyInterB2b._id.toHexString()}`,
+          url: `/courses/${courseFromAuthCompanyInterB2b._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
