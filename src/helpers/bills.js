@@ -257,10 +257,28 @@ exports.getUnitInclTaxes = (bill, subscription) => {
     : subscription.unitInclTaxes;
 };
 
+exports.computeSurcharge = (subscription) => {
+  let totalSurcharge = 0;
+  for (const event of subscription.events) {
+    if (!event.surcharges || event.surcharges.length === 0) continue;
+
+    for (const surcharge of event.surcharges) {
+      const duration = surcharge.startHour
+        ? moment(surcharge.endHour).diff(surcharge.startHour, 'm') / 60
+        : moment(event.endDate).diff(event.startDate, 'm') / 60;
+
+      totalSurcharge += duration * subscription.unitInclTaxes * (surcharge.percentage / 100);
+    }
+  }
+
+  return totalSurcharge;
+};
+
 exports.formatBillSubscriptionsForPdf = (bill) => {
   let totalExclTaxes = 0;
   let totalVAT = 0;
   let totalDiscount = 0;
+  let totalSurcharge = 0;
 
   const formattedSubs = [];
 
@@ -278,9 +296,11 @@ exports.formatBillSubscriptionsForPdf = (bill) => {
       volume,
       total: volume * unitInclTaxes,
     });
+    totalSurcharge += exports.computeSurcharge(sub);
   }
 
-  if (totalDiscount) formattedSubs.push({ name: 'Remises', total: UtilsHelper.formatPrice(totalDiscount) });
+  if (totalDiscount) formattedSubs.push({ name: 'Remises', total: totalDiscount });
+  if (totalSurcharge) formattedSubs.push({ name: 'Majorations', total: totalSurcharge });
   totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
   totalVAT = UtilsHelper.formatPrice(totalVAT);
 

@@ -1,5 +1,6 @@
 const { BILL } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
+const UtilsHelper = require('../../../helpers/utils');
 
 exports.getPdfContent = async (data) => {
   const { bill } = data;
@@ -17,7 +18,7 @@ exports.getPdfContent = async (data) => {
   bill.formattedSubs.forEach((sub) => {
     serviceTableBody.push(
       [
-        { text: `${sub.name} (TVA ${sub.vat ? sub.vat.toString().replace(/\./g, ',') : 0} %)` },
+        { text: `${sub.name} ${sub.vat ? `(TVA ${UtilsHelper.formatPercentage(sub.vat / 100)})` : ''}` },
         { text: sub.unitInclTaxes || '-' },
         { text: sub.volume || '-' },
         { text: `${sub.total}` },
