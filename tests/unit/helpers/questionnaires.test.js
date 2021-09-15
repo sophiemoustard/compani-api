@@ -546,6 +546,7 @@ describe('getFollowUp', () => {
   it('should return follow up for intra course', async () => {
     const questionnaireId = new ObjectID();
     const courseId = new ObjectID();
+    const companyId = new ObjectID();
     const course = {
       _id: courseId,
       company: { name: 'company' },
@@ -561,6 +562,7 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectID(),
           course: course._id,
+          user: { company: companyId },
           questionnaireAnswersList: [
             {
               card: {
@@ -586,6 +588,7 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectID(),
           course: course._id,
+          user: { company: companyId },
           questionnaireAnswersList: [
             {
               card: {
@@ -625,13 +628,19 @@ describe('getFollowUp', () => {
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [
         {
-          answers: [{ answer: 'blabla', course: course._id }, { answer: 'test test', course: course._id }],
+          answers: [
+            { answer: 'blabla', course: course._id, traineeCompany: companyId },
+            { answer: 'test test', course: course._id, traineeCompany: companyId },
+          ],
           isMandatory: true,
           question: 'aimez-vous ce test ?',
           template: 'open_question',
         },
         {
-          answers: [{ answer: '3', course: course._id }, { answer: '2', course: course._id }],
+          answers: [
+            { answer: '3', course: course._id, traineeCompany: companyId },
+            { answer: '2', course: course._id, traineeCompany: companyId },
+          ],
           isMandatory: true,
           question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
           template: 'survey',
@@ -665,6 +674,7 @@ describe('getFollowUp', () => {
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+              { path: 'user', select: 'company', populate: { path: 'company' } },
             ],
           }],
         },
@@ -676,6 +686,8 @@ describe('getFollowUp', () => {
   it('should return follow up for inter b2b course', async () => {
     const questionnaireId = new ObjectID();
     const courseId = new ObjectID();
+    const companyAId = new ObjectID();
+    const companyBId = new ObjectID();
     const course = {
       _id: courseId,
       subProgram: { program: { name: 'test' } },
@@ -690,6 +702,7 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectID(),
           course: course._id,
+          user: { company: companyAId },
           questionnaireAnswersList: [
             {
               card: {
@@ -715,6 +728,7 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectID(),
           course: course._id,
+          user: { company: companyBId },
           questionnaireAnswersList: [
             {
               card: {
@@ -754,13 +768,19 @@ describe('getFollowUp', () => {
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [
         {
-          answers: [{ answer: 'blabla', course: course._id }, { answer: 'test test', course: course._id }],
+          answers: [
+            { answer: 'blabla', course: course._id, traineeCompany: companyAId },
+            { answer: 'test test', course: course._id, traineeCompany: companyBId },
+          ],
           isMandatory: true,
           question: 'aimez-vous ce test ?',
           template: 'open_question',
         },
         {
-          answers: [{ answer: '3', course: course._id }, { answer: '2', course: course._id }],
+          answers: [
+            { answer: '3', course: course._id, traineeCompany: companyAId },
+            { answer: '2', course: course._id, traineeCompany: companyBId },
+          ],
           isMandatory: true,
           question: 'combien aimez vous ce test sur une échelle de 1 à 5 ?',
           template: 'survey',
@@ -794,6 +814,7 @@ describe('getFollowUp', () => {
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+              { path: 'user', select: 'company', populate: { path: 'company' } },
             ],
           }],
         },
@@ -805,6 +826,7 @@ describe('getFollowUp', () => {
   it('should return follow up for a questionnaire', async () => {
     const questionnaireId = new ObjectID();
     const cardsIds = [new ObjectID(), new ObjectID()];
+    const companyId = ObjectID();
     const questionnaire = {
       _id: questionnaireId,
       type: EXPECTATIONS,
@@ -813,6 +835,7 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectID(),
           course: new ObjectID(),
+          user: { company: companyId },
           questionnaireAnswersList: [
             {
               card: {
@@ -838,6 +861,7 @@ describe('getFollowUp', () => {
         {
           _id: new ObjectID(),
           course: new ObjectID(),
+          user: { company: companyId },
           questionnaireAnswersList: [
             {
               card: {
@@ -904,6 +928,7 @@ describe('getFollowUp', () => {
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+              { path: 'user', select: 'company', populate: { path: 'company' } },
             ],
           }],
         },
@@ -915,6 +940,7 @@ describe('getFollowUp', () => {
   it('should return an empty array for followUp if answerList is empty', async () => {
     const questionnaireId = new ObjectID();
     const courseId = new ObjectID();
+    const companyId = new ObjectID();
     const course = {
       _id: courseId,
       company: { name: 'company' },
@@ -928,6 +954,7 @@ describe('getFollowUp', () => {
       histories: [{
         _id: new ObjectID(),
         course: course._id,
+        user: { company: companyId },
         questionnaireAnswersList: [{
           card: { _id: new ObjectID(), template: 'open_question', isMandatory: true, question: 'aimez-vous ce test ?' },
           answerList: [''],
@@ -975,6 +1002,7 @@ describe('getFollowUp', () => {
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+              { path: 'user', select: 'company', populate: { path: 'company' } },
             ],
           }],
         },
@@ -1039,6 +1067,7 @@ describe('getFollowUp', () => {
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+              { path: 'user', select: 'company', populate: { path: 'company' } },
             ],
           }],
         },
@@ -1050,6 +1079,7 @@ describe('getFollowUp', () => {
   it('should return an empty array for followUp if questionnaireAnswersList is empty', async () => {
     const questionnaireId = new ObjectID();
     const courseId = new ObjectID();
+    const companyId = new ObjectID();
     const course = {
       _id: courseId,
       company: { name: 'company' },
@@ -1063,6 +1093,7 @@ describe('getFollowUp', () => {
       histories: [{
         _id: new ObjectID(),
         course: course._id,
+        user: { company: companyId },
         questionnaireAnswersList: [],
       }],
     };
@@ -1107,6 +1138,7 @@ describe('getFollowUp', () => {
             populate: [
               { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
               { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+              { path: 'user', select: 'company', populate: { path: 'company' } },
             ],
           }],
         },
