@@ -2,6 +2,7 @@ const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
+const BillingItem = require('../models/BillingItem');
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
@@ -9,23 +10,22 @@ const { HOURLY, MONTHLY, ONCE, FIXED, BILLING_DIRECT } = require('./constants');
 const UtilsHelper = require('./utils');
 const SurchargesHelper = require('./surcharges');
 
-exports.populateSurcharge = async (subscription, companyId) => {
-  const surcharges = await Surcharge.find({ company: companyId }).lean();
-
-  return {
-    ...subscription,
-    versions: [...subscription.versions].sort((a, b) => b.startDate - a.startDate),
-    service: {
-      ...subscription.service,
-      versions: subscription.service.versions
-        .map(v => (v.surcharge
-          ? { ...v, surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }
-          : v
-        ))
-        .sort((a, b) => b.startDate - a.startDate),
-    },
-  };
-};
+exports.populateSurchargeAndBillingItem = async (subscription, surcharges, billingItems) => ({
+  ...subscription,
+  versions: [...subscription.versions].sort((a, b) => new Date(b.startDate) - new Date(a.startDate)),
+  service: {
+    ...subscription.service,
+    versions: subscription.service.versions
+      .map(v => ({
+        ...v,
+        ...(v.surcharge && { surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }),
+        billingItems: v.billingItems.map(bi =>
+          billingItems.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi))),
+      }))
+      .sort((a, b) => new Date(b.startDate) - new Date(a.startDate)), // bug étrange temps de qualité de vie,
+    // 1ère version est un string et pas une date
+  },
+});
 
 /**
  * 2 cases :
@@ -340,13 +340,19 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
   const companyId = get(credentials, 'company._id', null);
   const eventsToBill = await EventRepository.getEventsToBill(dates, customerId, companyId);
   const thirdPartyPayersList = await ThirdPartyPayer.find({ company: companyId }).lean();
+  const surcharges = await Surcharge.find({ company: companyId }).lean();
+  const billingItems = await BillingItem.find({ company: companyId }).lean();
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const customerDraftBills = [];
     const thirdPartyPayerBills = {};
     const { customer, eventsBySubscriptions } = eventsToBill[i];
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
-      const subscription = await exports.populateSurcharge(eventsBySubscriptions[k].subscription, companyId);
+      const subscription = await exports.populateSurchargeAndBillingItem(
+        eventsBySubscriptions[k].subscription,
+        surcharges,
+        billingItems
+      );
       let { fundings } = eventsBySubscriptions[k];
       fundings = fundings
         ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList, companyId)

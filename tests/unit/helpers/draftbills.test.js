@@ -4,6 +4,7 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const SinonMongoose = require('../sinonMongoose');
+const BillingItem = require('../../../src/models/BillingItem');
 const Surcharge = require('../../../src/models/Surcharge');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const FundingHistory = require('../../../src/models/FundingHistory');
@@ -13,19 +14,16 @@ const SurchargesHelper = require('../../../src/helpers/surcharges');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../../../src/helpers/constants');
 
-describe('populateSurcharge', () => {
-  let findSurcharge;
-  beforeEach(() => {
-    findSurcharge = sinon.stub(Surcharge, 'find');
-  });
-  afterEach(() => {
-    findSurcharge.restore();
-  });
-
+describe('populateSurchargeAndBillingItem', () => {
   it('should populate surcharge and order versions', async () => {
     const surchargeId = new ObjectID();
-    const companyId = new ObjectID();
-    const returnedSurcharge = { _id: surchargeId, sundaySurcharge: 10 };
+    const bddSurcharges = [{ _id: surchargeId, sundaySurcharge: 10 }];
+    const billingItemId1 = new ObjectID();
+    const billingItemId2 = new ObjectID();
+    const bddBillingItems = [
+      { _id: billingItemId1, defaultUnitAmount: 2 },
+      { _id: billingItemId2, defaultUnitAmount: 3 },
+    ];
     const subscription = {
       _id: 'abc',
       versions: [
@@ -34,29 +32,54 @@ describe('populateSurcharge', () => {
       ],
       service: {
         versions: [
-          { startDate: new Date('2019-02-24'), _id: 1 },
-          { surcharge: surchargeId, startDate: new Date('2019-03-20'), _id: 2 },
-          { surcharge: surchargeId, startDate: new Date('2019-02-29'), _id: 3 },
+          { billingItems: [], startDate: new Date('2019-02-24'), _id: 1 },
+          { billingItems: [], surcharge: surchargeId, startDate: new Date('2019-03-20'), _id: 2 },
+          { billingItems: [], surcharge: surchargeId, startDate: new Date('2019-02-29'), _id: 3 },
+          {
+            billingItems: [billingItemId1, billingItemId2],
+            surcharge: surchargeId,
+            startDate: new Date('2019-02-25'),
+            _id: 4,
+          },
         ],
       },
     };
-    findSurcharge.returns(SinonMongoose.stubChainedQueries([[returnedSurcharge]], ['lean']));
 
-    const result = await DraftBillsHelper.populateSurcharge(subscription, companyId);
+    const result = await DraftBillsHelper.populateSurchargeAndBillingItem(subscription, bddSurcharges, bddBillingItems);
 
-    expect(result._id).toEqual('abc');
-    expect(result.versions.length).toEqual(2);
-    expect(result.versions[0]._id).toEqual(4);
-    expect(result.service.versions.length).toEqual(3);
-    expect(result.service.versions[0]._id).toEqual(2);
-    expect(result.service.versions[0]).toEqual(expect.objectContaining({
-      ...subscription.service.versions[1],
-      surcharge: returnedSurcharge,
+    expect(result).toEqual(expect.objectContaining({
+      _id: 'abc',
+      versions: [
+        { unitTTCRate: 15, startDate: new Date('2019-02-24'), _id: 4 },
+        { unitTTCRate: 13, startDate: new Date('2019-01-20'), _id: 5 },
+      ],
+      service: {
+        versions: [
+          {
+            billingItems: [],
+            surcharge: { _id: surchargeId, sundaySurcharge: 10 },
+            startDate: new Date('2019-03-20T00:00:00.000Z'),
+            _id: 2,
+          },
+          {
+            billingItems: [],
+            surcharge: { _id: surchargeId, sundaySurcharge: 10 },
+            startDate: new Date('2019-03-01T00:00:00.000Z'),
+            _id: 3,
+          },
+          {
+            billingItems: [
+              { _id: billingItemId1, defaultUnitAmount: 2 },
+              { _id: billingItemId2, defaultUnitAmount: 3 },
+            ],
+            surcharge: { _id: surchargeId, sundaySurcharge: 10 },
+            startDate: new Date('2019-02-25T00:00:00.000Z'),
+            _id: 4,
+          },
+          { billingItems: [], startDate: new Date('2019-02-24T00:00:00.000Z'), _id: 1 },
+        ],
+      },
     }));
-    SinonMongoose.calledWithExactly(findSurcharge, [
-      { query: 'find', args: [{ company: companyId }] },
-      { query: 'lean' },
-    ]);
   });
 });
 
@@ -1065,45 +1088,73 @@ describe('getDraftBillsList', () => {
   const billingStartDate = '2019-12-31T07:00:00';
   let findThirdPartyPayer;
   let getEventsToBill;
-  let populateSurcharge;
+  let populateSurchargeAndBillingItem;
   let populateFundings;
   let getDraftBillsPerSubscription;
+  let findSurcharge;
+  let findBillingItem;
+
   beforeEach(() => {
     findThirdPartyPayer = sinon.stub(ThirdPartyPayer, 'find');
     getEventsToBill = sinon.stub(EventRepository, 'getEventsToBill');
-    populateSurcharge = sinon.stub(DraftBillsHelper, 'populateSurcharge');
+    populateSurchargeAndBillingItem = sinon.stub(DraftBillsHelper, 'populateSurchargeAndBillingItem');
     populateFundings = sinon.stub(DraftBillsHelper, 'populateFundings');
     getDraftBillsPerSubscription = sinon.stub(DraftBillsHelper, 'getDraftBillsPerSubscription');
+    findSurcharge = sinon.stub(Surcharge, 'find');
+    findBillingItem = sinon.stub(BillingItem, 'find');
   });
   afterEach(() => {
     findThirdPartyPayer.restore();
     getEventsToBill.restore();
-    populateSurcharge.restore();
+    populateSurchargeAndBillingItem.restore();
     populateFundings.restore();
     getDraftBillsPerSubscription.restore();
+    findSurcharge.restore();
+    findBillingItem.restore();
   });
 
   it('should return empty array if not event to bill', async () => {
-    getEventsToBill.returns([]);
-
     const companyId = new ObjectID();
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
-
     const credentials = { company: { _id: companyId } };
+    const bddSurcharges = [{ _id: new ObjectID(), sundaySurcharge: 10 }];
+    const bddBillingItems = [{ _id: new ObjectID(), defaultUnitAmount: 2 }];
+
+    getEventsToBill.returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    findSurcharge.returns(SinonMongoose.stubChainedQueries([bddSurcharges], ['lean']));
+    findBillingItem.returns(SinonMongoose.stubChainedQueries([bddBillingItems], ['lean']));
+
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
     expect(result).toEqual([]);
-    SinonMongoose.calledWithExactly(findThirdPartyPayer, [
-      { query: 'find', args: [{ company: companyId }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findSurcharge,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findBillingItem,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
-    sinon.assert.notCalled(populateSurcharge);
+    sinon.assert.notCalled(populateSurchargeAndBillingItem);
     sinon.assert.notCalled(populateFundings);
     sinon.assert.notCalled(getDraftBillsPerSubscription);
   });
 
   it('should return customer and tpp draft bills', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const thirdPartyPayersList = [{ id: new ObjectID() }];
+    const bddSurcharges = [{ _id: new ObjectID(), sundaySurcharge: 10 }];
+    const bddBillingItems = [{ _id: new ObjectID(), defaultUnitAmount: 2 }];
+
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([thirdPartyPayersList], ['lean']));
+    findSurcharge.returns(SinonMongoose.stubChainedQueries([bddSurcharges], ['lean']));
+    findBillingItem.returns(SinonMongoose.stubChainedQueries([bddBillingItems], ['lean']));
     getEventsToBill.returns([
       {
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
@@ -1121,7 +1172,7 @@ describe('getDraftBillsList', () => {
         ],
       },
     ]);
-    populateSurcharge.returnsArg(0);
+    populateSurchargeAndBillingItem.returnsArg(0);
     populateFundings.returnsArg(0);
     getDraftBillsPerSubscription.onCall(0).returns({
       customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 },
@@ -1136,11 +1187,6 @@ describe('getDraftBillsList', () => {
       },
     });
 
-    const companyId = new ObjectID();
-    const thirdPartyPayersList = [{ id: new ObjectID() }];
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([thirdPartyPayersList], ['lean']));
-
-    const credentials = { company: { _id: companyId } };
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
     expect(result).toEqual([
@@ -1164,8 +1210,18 @@ describe('getDraftBillsList', () => {
       },
     ]);
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
-    sinon.assert.calledWithExactly(populateSurcharge.firstCall, { _id: '1234567890' }, companyId);
-    sinon.assert.calledWithExactly(populateSurcharge.secondCall, { _id: '0987654321' }, companyId);
+    sinon.assert.calledWithExactly(
+      populateSurchargeAndBillingItem.firstCall,
+      { _id: '1234567890' },
+      bddSurcharges,
+      bddBillingItems
+    );
+    sinon.assert.calledWithExactly(
+      populateSurchargeAndBillingItem.secondCall,
+      { _id: '0987654321' },
+      bddSurcharges,
+      bddBillingItems
+    );
     sinon.assert.calledWithExactly(
       populateFundings.firstCall,
       [{ nature: 'hourly' }],
@@ -1196,13 +1252,29 @@ describe('getDraftBillsList', () => {
       billingStartDate,
       '2019-12-25T07:00:00'
     );
-    SinonMongoose.calledWithExactly(findThirdPartyPayer, [
-      { query: 'find', args: [{ company: companyId }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findSurcharge,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findBillingItem,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 
   it('should return customer draft bills', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const bddSurcharges = [{ _id: new ObjectID(), sundaySurcharge: 10 }];
+    const bddBillingItems = [{ _id: new ObjectID(), defaultUnitAmount: 2 }];
+
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    findSurcharge.returns(SinonMongoose.stubChainedQueries([bddSurcharges], ['lean']));
+    findBillingItem.returns(SinonMongoose.stubChainedQueries([bddBillingItems], ['lean']));
     getEventsToBill.returns([
       {
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
@@ -1218,15 +1290,11 @@ describe('getDraftBillsList', () => {
         ],
       },
     ]);
-    populateSurcharge.returnsArg(0);
+    populateSurchargeAndBillingItem.returnsArg(0);
     getDraftBillsPerSubscription.onCall(0).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 } });
     getDraftBillsPerSubscription.onCall(1).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 } });
     getDraftBillsPerSubscription.onCall(2).returns({ customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 } });
 
-    const companyId = new ObjectID();
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
-
-    const credentials = { company: { _id: companyId } };
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
     expect(result).toEqual([
@@ -1253,9 +1321,24 @@ describe('getDraftBillsList', () => {
       },
     ]);
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
-    sinon.assert.calledWithExactly(populateSurcharge.firstCall, { _id: '1234567890' }, companyId);
-    sinon.assert.calledWithExactly(populateSurcharge.secondCall, { _id: '0987654321' }, companyId);
-    sinon.assert.calledWithExactly(populateSurcharge.thirdCall, { _id: 'qwertyuiop' }, companyId);
+    sinon.assert.calledWithExactly(
+      populateSurchargeAndBillingItem.firstCall,
+      { _id: '1234567890' },
+      bddSurcharges,
+      bddBillingItems
+    );
+    sinon.assert.calledWithExactly(
+      populateSurchargeAndBillingItem.secondCall,
+      { _id: '0987654321' },
+      bddSurcharges,
+      bddBillingItems
+    );
+    sinon.assert.calledWithExactly(
+      populateSurchargeAndBillingItem.thirdCall,
+      { _id: 'qwertyuiop' },
+      bddSurcharges,
+      bddBillingItems
+    );
     sinon.assert.notCalled(populateFundings);
     sinon.assert.calledWithExactly(
       getDraftBillsPerSubscription.firstCall,
@@ -1281,10 +1364,18 @@ describe('getDraftBillsList', () => {
       billingStartDate,
       '2019-12-25T07:00:00'
     );
-    SinonMongoose.calledWithExactly(findThirdPartyPayer, [
-      { query: 'find', args: [{ company: companyId }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findSurcharge,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findBillingItem,
+      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+    );
   });
 });
 
