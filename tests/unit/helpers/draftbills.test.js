@@ -798,11 +798,14 @@ describe('computeBillingInfoForEvents', () => {
 
   it('should compute info with fundings', () => {
     const events = [
-      { startDate: '2021-03-04T12:00:00.000Z' },
-      { startDate: '2021-03-05T10:00:00.000Z' },
-      { startDate: '2021-03-06T10:00:00.000Z' },
+      { _id: new ObjectID(), startDate: '2021-03-04T12:00:00.000Z' },
+      { _id: new ObjectID(), startDate: '2021-03-05T10:00:00.000Z' },
+      { _id: new ObjectID(), startDate: '2021-03-06T10:00:00.000Z' },
     ];
-    const service = { _id: new ObjectID(), billingItems: [{ _id: new ObjectID(), name: 'skusku' }] };
+    const service = {
+      _id: new ObjectID(),
+      billingItems: [{ _id: new ObjectID('d00000000000000000000000'), name: 'skusku' }],
+    };
     const matchingService = { ...service, name: 'test' };
     const fundings = [{ _id: new ObjectID() }];
     const matchingFunding = { ...fundings[0], thirdPartyPayer: 'tpp' };
@@ -840,7 +843,9 @@ describe('computeBillingInfoForEvents', () => {
         },
         startDate,
       },
-      billingItems: {},
+      billingItems: {
+        d00000000000000000000000: [events[0]._id, events[1]._id, events[2]._id],
+      },
     });
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), events[0].startDate, service, 'startDate');
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(1), events[1].startDate, service, 'startDate');
@@ -1121,6 +1126,63 @@ describe('getDraftBillsPerSubscription', () => {
   });
 });
 
+describe('formatBillingItemsDraftBills', () => {
+  let findOne;
+
+  beforeEach(() => {
+    findOne = sinon.stub(BillingItem, 'findOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+  });
+
+  it('should return formatted billing items', async () => {
+    const eventsGroupedByBillingItemList = [
+      { billingItemId1: ['eventId1', 'eventId2'], billingItemId2: ['eventId1, eventId2'] },
+      { billingItemId1: ['eventId3'] },
+    ];
+    const endDate = '2019-12-25T07:00:00';
+    const billingStartDate = '2019-12-31T07:00:00';
+    const billingItem1 = { _id: 'billingItemId1', name: 'FI', type: 'per_intervention', defaultUnitAmount: 1, vat: 10 };
+    const billingItem2 = { _id: 'billingItemId1', name: 'FI', type: 'per_intervention', defaultUnitAmount: 5, vat: 10 };
+
+    findOne.returns(SinonMongoose.stubChainedQueries([billingItem1, billingItem2, billingItem1], ['lean']));
+
+    const result = await DraftBillsHelper.formatBillingItemsDraftBills(
+      eventsGroupedByBillingItemList,
+      billingStartDate,
+      endDate
+    );
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        billingItem: { _id: 'billingItemId1', name: 'FI' },
+        discount: 0,
+        unitExclTaxes: 0.9090909090909091,
+        unitInclTaxes: 1,
+        vat: 10,
+        eventsList: ['eventId1', 'eventId2', 'eventId3'],
+        exclTaxes: 2.727272727272727,
+        inclTaxes: 3,
+        startDate: '2019-12-31T07:00:00',
+        endDate: '2019-12-25T07:00:00',
+      }),
+      expect.objectContaining({
+        billingItem: { _id: 'billingItemId2', name: 'FI' },
+        discount: 0,
+        unitExclTaxes: 4.545454545454545,
+        unitInclTaxes: 5,
+        vat: 10,
+        eventsList: ['eventId1, eventId2'],
+        exclTaxes: 4.545454545454545,
+        inclTaxes: 5,
+        startDate: '2019-12-31T07:00:00',
+        endDate: '2019-12-25T07:00:00',
+      }),
+    ]);
+  });
+});
+
 describe('getDraftBillsList', () => {
   const dates = { endDate: '2019-12-25T07:00:00' };
   const billingStartDate = '2019-12-31T07:00:00';
@@ -1131,6 +1193,7 @@ describe('getDraftBillsList', () => {
   let getDraftBillsPerSubscription;
   let findSurcharge;
   let findBillingItem;
+  let formatBillingItemsDraftBills;
 
   beforeEach(() => {
     findThirdPartyPayer = sinon.stub(ThirdPartyPayer, 'find');
@@ -1140,6 +1203,7 @@ describe('getDraftBillsList', () => {
     getDraftBillsPerSubscription = sinon.stub(DraftBillsHelper, 'getDraftBillsPerSubscription');
     findSurcharge = sinon.stub(Surcharge, 'find');
     findBillingItem = sinon.stub(BillingItem, 'find');
+    formatBillingItemsDraftBills = sinon.stub(DraftBillsHelper, 'formatBillingItemsDraftBills');
   });
   afterEach(() => {
     findThirdPartyPayer.restore();
@@ -1149,6 +1213,7 @@ describe('getDraftBillsList', () => {
     getDraftBillsPerSubscription.restore();
     findSurcharge.restore();
     findBillingItem.restore();
+    formatBillingItemsDraftBills.restore();
   });
 
   it('should return empty array if not event to bill', async () => {
@@ -1161,6 +1226,7 @@ describe('getDraftBillsList', () => {
     findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     findSurcharge.returns(SinonMongoose.stubChainedQueries([bddSurcharges], ['lean']));
     findBillingItem.returns(SinonMongoose.stubChainedQueries([bddBillingItems], ['lean']));
+    formatBillingItemsDraftBills.returns([]);
 
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
@@ -1217,13 +1283,16 @@ describe('getDraftBillsList', () => {
       thirdPartyPayer: {
         tpp: { inclTaxes: 13 },
       },
+      billingItems: [],
     });
     getDraftBillsPerSubscription.onCall(1).returns({
       customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 },
       thirdPartyPayer: {
         tpp: { inclTaxes: 24 },
       },
+      billingItems: [],
     });
+    formatBillingItemsDraftBills.returns([]);
 
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
@@ -1317,8 +1386,14 @@ describe('getDraftBillsList', () => {
       {
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
         eventsBySubscriptions: [
-          { subscription: { _id: '1234567890' }, events: [{ type: 'intervention', _id: '1234' }] },
-          { subscription: { _id: '0987654321' }, events: [{ type: 'intervention', _id: '5678' }] },
+          {
+            subscription: { _id: '1234567890', service: { versions: [{ billingItems: ['biId1'] }] } },
+            events: [{ type: 'intervention', _id: 'eventId1' }],
+          },
+          {
+            subscription: { _id: '0987654321', service: { versions: [{ billingItems: ['biId2'] }] } },
+            events: [{ type: 'intervention', _id: 'eventId2' }],
+          },
         ],
       },
       {
@@ -1329,9 +1404,23 @@ describe('getDraftBillsList', () => {
       },
     ]);
     populateSurchargeAndBillingItem.returnsArg(0);
-    getDraftBillsPerSubscription.onCall(0).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 } });
-    getDraftBillsPerSubscription.onCall(1).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 } });
-    getDraftBillsPerSubscription.onCall(2).returns({ customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 } });
+    getDraftBillsPerSubscription.onCall(0).returns({
+      customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 },
+      billingItems: { biId1: ['eventId1'] },
+    });
+    getDraftBillsPerSubscription.onCall(1).returns({
+      customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 },
+      billingItems: { biId2: ['eventId2'] },
+    });
+    getDraftBillsPerSubscription.onCall(2).returns({
+      customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 },
+      billingItems: [],
+    });
+    formatBillingItemsDraftBills.onCall(0).returns([
+      { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: ['eventId1'], inclTaxes: 200 },
+      { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: ['eventId2'], inclTaxes: 100 },
+    ]);
+    formatBillingItemsDraftBills.onCall(1).returns([]);
 
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
@@ -1343,8 +1432,10 @@ describe('getDraftBillsList', () => {
           bills: [
             { identity: { firstname: 'Toto' }, inclTaxes: 20 },
             { identity: { firstname: 'Toto' }, inclTaxes: 21 },
+            { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: ['eventId1'], inclTaxes: 200 },
+            { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: ['eventId2'], inclTaxes: 100 },
           ],
-          total: 41,
+          total: 341,
         },
       },
       {
@@ -1361,13 +1452,13 @@ describe('getDraftBillsList', () => {
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
     sinon.assert.calledWithExactly(
       populateSurchargeAndBillingItem.firstCall,
-      { _id: '1234567890' },
+      { _id: '1234567890', service: { versions: [{ billingItems: ['biId1'] }] } },
       bddSurcharges,
       bddBillingItems
     );
     sinon.assert.calledWithExactly(
       populateSurchargeAndBillingItem.secondCall,
-      { _id: '0987654321' },
+      { _id: '0987654321', service: { versions: [{ billingItems: ['biId2'] }] } },
       bddSurcharges,
       bddBillingItems
     );
@@ -1380,16 +1471,16 @@ describe('getDraftBillsList', () => {
     sinon.assert.notCalled(populateFundings);
     sinon.assert.calledWithExactly(
       getDraftBillsPerSubscription.firstCall,
-      [{ type: 'intervention', _id: '1234' }],
-      { _id: '1234567890' },
+      [{ type: 'intervention', _id: 'eventId1' }],
+      { _id: '1234567890', service: { versions: [{ billingItems: ['biId1'] }] } },
       null,
       billingStartDate,
       '2019-12-25T07:00:00'
     );
     sinon.assert.calledWithExactly(
       getDraftBillsPerSubscription.secondCall,
-      [{ type: 'intervention', _id: '5678' }],
-      { _id: '0987654321' },
+      [{ type: 'intervention', _id: 'eventId2' }],
+      { _id: '0987654321', service: { versions: [{ billingItems: ['biId2'] }] } },
       null,
       billingStartDate,
       '2019-12-25T07:00:00'
