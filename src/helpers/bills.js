@@ -274,13 +274,13 @@ exports.computeSurcharge = (subscription) => {
   return totalSurcharge;
 };
 
-exports.formatBillSubscriptionsForPdf = (bill) => {
+exports.formatBillDetailsForPdf = (bill) => {
   let totalExclTaxes = 0;
   let totalVAT = 0;
   let totalDiscount = 0;
   let totalSurcharge = 0;
 
-  const formattedSubs = [];
+  const formattedDetails = [];
 
   for (const sub of bill.subscriptions) {
     totalExclTaxes += sub.exclTaxes;
@@ -289,7 +289,7 @@ exports.formatBillSubscriptionsForPdf = (bill) => {
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
 
-    formattedSubs.push({
+    formattedDetails.push({
       unitInclTaxes,
       vat: sub.vat ? sub.vat : 0,
       name: sub.service.name,
@@ -299,12 +299,12 @@ exports.formatBillSubscriptionsForPdf = (bill) => {
     totalSurcharge += exports.computeSurcharge(sub);
   }
 
-  if (totalDiscount) formattedSubs.push({ name: 'Remises', total: totalDiscount });
-  if (totalSurcharge) formattedSubs.push({ name: 'Majorations', total: totalSurcharge });
+  if (totalDiscount) formattedDetails.push({ name: 'Remises', total: totalDiscount });
+  if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
   totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
   totalVAT = UtilsHelper.formatPrice(totalVAT);
 
-  return { totalExclTaxes, totalVAT, formattedSubs };
+  return { totalExclTaxes, totalVAT, formattedDetails };
 };
 
 exports.formatEventsForPdf = (events, service) => {
@@ -342,7 +342,7 @@ exports.formatPdf = (bill, company) => {
         : UtilsHelper.formatIdentity(bill.customer.identity, 'TFL'),
     },
     forTpp: !!bill.thirdPartyPayer,
-    ...exports.formatBillSubscriptionsForPdf(bill),
+    ...exports.formatBillDetailsForPdf(bill),
   };
 
   for (const sub of bill.subscriptions) {

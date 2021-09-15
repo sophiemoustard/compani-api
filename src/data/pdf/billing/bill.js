@@ -15,7 +15,7 @@ exports.getPdfContent = async (data) => {
     ],
   ];
 
-  bill.formattedSubs.forEach((sub) => {
+  bill.formattedDetails.forEach((sub) => {
     serviceTableBody.push(
       [
         { text: `${sub.name} ${sub.vat ? `(TVA ${UtilsHelper.formatPercentage(sub.vat / 100)})` : ''}` },
