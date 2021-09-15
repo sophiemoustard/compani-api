@@ -80,6 +80,7 @@ exports.plugin = {
               vat: Joi.number(),
               surcharge: Joi.objectId(),
               exemptFromCharges: Joi.boolean(),
+              billingItems: Joi.array().items(Joi.objectId()),
             }),
             Joi.object().keys({ isArchived: Joi.boolean().required() })
           ),

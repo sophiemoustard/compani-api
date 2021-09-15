@@ -10,6 +10,7 @@ const BillNumber = require('../../../src/models/BillNumber');
 const CreditNote = require('../../../src/models/CreditNote');
 const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
+const BillingItem = require('../../../src/models/BillingItem');
 const Company = require('../../../src/models/Company');
 const BillHelper = require('../../../src/helpers/bills');
 const BillSlipsHelper = require('../../../src/helpers/billSlips');
@@ -429,6 +430,7 @@ describe('formatCustomerBills', () => {
       number: 'FACT-1234Picsou00077',
       shouldBeSent: true,
       subscriptions: [{ subscriptions: 'subscriptions' }],
+      type: 'automatic',
       netInclTaxes: 14.40,
       date: '2019-09-19T00:00:00',
     });
@@ -1059,7 +1061,7 @@ describe('getBillNumber', () => {
   });
 });
 
-describe('formatAndCreateBills', () => {
+describe('formatAndCreateList', () => {
   let updateOneBillNumber;
   let updateManyCreditNote;
   let insertManyBill;
@@ -1161,7 +1163,7 @@ describe('formatAndCreateBills', () => {
     formatCustomerBillsStub.returns(customerBillingInfo);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
 
-    await BillHelper.formatAndCreateBills(billsData, credentials);
+    await BillHelper.formatAndCreateList(billsData, credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1238,7 +1240,7 @@ describe('formatAndCreateBills', () => {
     getBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
 
-    await BillHelper.formatAndCreateBills([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
+    await BillHelper.formatAndCreateList([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1306,7 +1308,7 @@ describe('formatAndCreateBills', () => {
     getBillNumberStub.returns(number);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
 
-    await BillHelper.formatAndCreateBills([{ ...billsData[0], customerBills: {} }], credentials);
+    await BillHelper.formatAndCreateList([{ ...billsData[0], customerBills: {} }], credentials);
 
     sinon.assert.calledWithExactly(
       createBillSlips,
@@ -1408,7 +1410,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         insertManyBill.throws('insertManyError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('insertManyError');
       } finally {
@@ -1428,7 +1430,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateEventsStub.throws('updateEventError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateEventError');
       } finally {
@@ -1448,7 +1450,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateFundingHistoriesStub.throws('updateFundingHistoriesError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateFundingHistoriesError');
       } finally {
@@ -1468,7 +1470,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         updateOneBillNumber.throws('updateOneError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('updateOneError');
       } finally {
@@ -1491,7 +1493,7 @@ describe('formatAndCreateBills', () => {
         formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
         createBillSlips.throws('createBillSlipsError');
 
-        await BillHelper.formatAndCreateBills(billsData, credentials);
+        await BillHelper.formatAndCreateList(billsData, credentials);
       } catch (e) {
         expect(e.name).toEqual('createBillSlipsError');
       } finally {
@@ -1511,6 +1513,151 @@ describe('formatAndCreateBills', () => {
         );
       }
     });
+  });
+});
+
+describe('list', () => {
+  let findBill;
+  beforeEach(() => {
+    findBill = sinon.stub(Bill, 'find');
+  });
+  afterEach(() => {
+    findBill.restore();
+  });
+
+  it('should get a list of manual bills', async () => {
+    const authCompanyId = new ObjectID();
+    const query = { type: 'manual' };
+    const credentials = { company: authCompanyId };
+    const bills = [
+      { _id: new ObjectID(), type: 'manual', billingItemList: [] },
+      { _id: new ObjectID(), type: 'manual', billingItemList: [] },
+    ];
+
+    findBill.returns(SinonMongoose.stubChainedQueries([bills]));
+
+    await BillHelper.list(query, credentials);
+
+    SinonMongoose.calledWithExactly(
+      findBill,
+      [
+        { query: 'find', args: [{ type: 'manual', company: authCompanyId }] },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('formatBillingItem', () => {
+  it('should format billing item', () => {
+    const billingItemId = new ObjectID();
+    const billingItem = { billingItem: billingItemId, count: 3, unitInclTaxes: 60 };
+    const list = [
+      { _id: billingItemId, name: 'bonjour', vat: 20 },
+      { _id: new ObjectID(), name: 'au revoir', vat: 40 },
+    ];
+
+    const result = BillHelper.formatBillingItem(billingItem, list);
+
+    expect(result).toEqual({
+      billingItem: billingItemId,
+      name: 'bonjour',
+      unitInclTaxes: 60,
+      count: 3,
+      inclTaxes: 180,
+      exclTaxes: 150,
+    });
+  });
+});
+
+describe('formatAndCreateBill', () => {
+  let getBillNumber;
+  let formatBillNumber;
+  let formatBillingItem;
+  let findBillingItem;
+  let updateOneBillNumber;
+  let create;
+  beforeEach(() => {
+    getBillNumber = sinon.stub(BillHelper, 'getBillNumber');
+    formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
+    formatBillingItem = sinon.stub(BillHelper, 'formatBillingItem');
+    findBillingItem = sinon.stub(BillingItem, 'find');
+    updateOneBillNumber = sinon.stub(BillNumber, 'updateOne');
+    create = sinon.stub(Bill, 'create');
+  });
+
+  afterEach(() => {
+    getBillNumber.restore();
+    formatBillNumber.restore();
+    formatBillingItem.restore();
+    findBillingItem.restore();
+    updateOneBillNumber.restore();
+    create.restore();
+  });
+
+  it('should format and create a bill', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId, prefixNumber: '101' } };
+    const billingItemId1 = new ObjectID();
+    const billingItemId2 = new ObjectID();
+    const payload = {
+      customer: new ObjectID(),
+      date: '2021-09-01',
+      billingItemList: [
+        { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
+        { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+      ],
+      netInclTaxes: 50,
+    };
+
+    getBillNumber.returns({ prefix: 'FACT-101', seq: 1 });
+    formatBillNumber.returns('FACT-101092100001');
+    findBillingItem.returns(
+      SinonMongoose.stubChainedQueries([[{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]], ['lean'])
+    );
+    formatBillingItem.onCall(0).returns({ inclTaxes: 180 });
+    formatBillingItem.onCall(1).returns({ inclTaxes: 150 });
+
+    await BillHelper.formatAndCreateBill(payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(getBillNumber, '2021-09-01', companyId);
+    sinon.assert.calledOnceWithExactly(formatBillNumber, '101', 'FACT-101', 1);
+    SinonMongoose.calledWithExactly(
+      findBillingItem,
+      [
+        { query: 'find', args: [{ _id: { $in: [billingItemId1, billingItemId2] } }, { vat: 1, name: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOneBillNumber,
+      { prefix: 'FACT-101', company: companyId },
+      { $set: { seq: 2 } }
+    );
+    sinon.assert.calledWithExactly(
+      formatBillingItem.getCall(0),
+      { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
+      [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
+    );
+    sinon.assert.calledWithExactly(
+      formatBillingItem.getCall(1),
+      { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+      [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        number: 'FACT-101092100001',
+        date: '2021-09-01',
+        customer: payload.customer,
+        netInclTaxes: 50,
+        type: 'manual',
+        billingItemList: [{ inclTaxes: 180 }, { inclTaxes: 150 }],
+        company: companyId,
+      }
+    );
   });
 });
 
@@ -1613,24 +1760,24 @@ describe('getUnitInclTaxes', () => {
     sinon.assert.notCalled(getLastVersion);
   });
 
-  it('should return incl taxes amount for FIXED funding', () => {
+  it('should return subscription unitInclTaxes for FIXED funding', () => {
     const tppId = new ObjectID();
     const bill = {
       thirdPartyPayer: { _id: tppId },
       customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] },
     };
-    const subscription = { vat: 20 };
+    const subscription = { vat: 20, unitInclTaxes: 12 };
 
     getLastVersion.returns({ amountTTC: 14.4 });
 
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
-    expect(result).toBe(14.4);
-    sinon.assert.called(getLastVersion);
+    expect(result).toBe(12);
+    sinon.assert.calledOnceWithExactly(getLastVersion, [{ amountTTC: 14.4 }], 'createdAt');
   });
 
-  it('should return unit incl taxes from funding if HOURLY fudning', () => {
+  it('should return unit incl taxes from funding if HOURLY funding', () => {
     const tppId = new ObjectID();
     const bill = {
       thirdPartyPayer: { _id: tppId },

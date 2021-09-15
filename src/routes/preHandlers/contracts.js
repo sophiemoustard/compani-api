@@ -53,5 +53,6 @@ exports.authorizeUpload = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
   if (req.payload.customer && !customer) throw Boom.forbidden();
+
   return null;
 };

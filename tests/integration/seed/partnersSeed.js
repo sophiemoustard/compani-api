@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
-const { authCompany, otherCompany } = require('../../seed/companySeed');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const Partner = require('../../../src/models/Partner');
 
 const partnersList = [
@@ -21,9 +21,7 @@ const partnersList = [
 ];
 
 const populateDB = async () => {
-  await Partner.deleteMany({});
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Partner.insertMany(partnersList);
 };

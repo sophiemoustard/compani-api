@@ -2,11 +2,13 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const Bill = require('../../models/Bill');
+const BillingItem = require('../../models/BillingItem');
 const Customer = require('../../models/Customer');
 const Event = require('../../models/Event');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const translate = require('../../helpers/translate');
 const CustomerRepository = require('../../repositories/CustomerRepository');
+const { MANUAL } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -89,6 +91,25 @@ exports.authorizeBillsCreation = async (req) => {
 
   const tppCount = await ThirdPartyPayer.countDocuments({ _id: { $in: [...ids.tppIds] }, company: companyId });
   if (tppCount !== ids.tppIds.size) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeBillCreation = async (req) => {
+  const { credentials } = req.auth;
+  const companyId = credentials.company._id;
+
+  const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
+  if (!customer) throw Boom.forbidden();
+
+  const billingItemIds = [...new Set(req.payload.billingItemList.map(bi => bi.billingItem))];
+  const billingItems = await BillingItem
+    .countDocuments({ _id: { $in: billingItemIds }, company: companyId, type: MANUAL });
+  if (billingItems !== billingItemIds.length) throw Boom.forbidden();
+
+  const totalInclTaxes = req.payload.billingItemList
+    .reduce((acc, current) => acc + current.unitInclTaxes * current.count, 0);
+  if (totalInclTaxes !== req.payload.netInclTaxes) throw Boom.forbidden();
 
   return null;
 };

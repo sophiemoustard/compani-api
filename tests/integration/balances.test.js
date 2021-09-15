@@ -1,7 +1,8 @@
 const expect = require('expect');
 const { populateDB, balanceCustomerList, balanceUserList, customerFromOtherCompany } = require('./seed/balanceSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const app = require('../../server');
+const UtilsHelper = require('../../src/helpers/utils');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -10,7 +11,7 @@ describe('NODE ENV', () => {
 });
 
 describe('BALANCES ROUTES - GET /', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -52,8 +53,7 @@ describe('BALANCES ROUTES - GET /', () => {
 });
 
 describe('BALANCES ROUTES - GET /details', () => {
-  let authToken = null;
-  const helper = balanceUserList[0];
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -72,7 +72,7 @@ describe('BALANCES ROUTES - GET /details', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.balances).toBeDefined();
       expect(response.result.data.balances
-        .every(b => b.customer._id.toHexString() === customerId.toHexString())).toBeTruthy();
+        .every(b => UtilsHelper.areObjectIdsEquals(b.customer._id, customerId))).toBeTruthy();
       expect(response.result.data.bills).toBeDefined();
       expect(response.result.data.payments).toBeDefined();
       expect(response.result.data.creditNotes).toBeDefined();
@@ -91,7 +91,7 @@ describe('BALANCES ROUTES - GET /details', () => {
 
   describe('Other roles', () => {
     it('should return customer balance if I am its helper', async () => {
-      authToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(balanceUserList[0].local);
       const res = await app.inject({
         method: 'GET',
         url: `/balances/details?customer=${balanceCustomerList[0]._id}&startDate=2019-10-10&endDate=2019-11-10`,

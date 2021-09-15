@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 const ServiceSchema = require('./Service').schema;
+const { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition } = require('./schemaDefinitions/billing');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
-const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { COMPANI, THIRD_PARTY, OGUST, AUTOMATIC, MANUAL } = require('../helpers/constants');
+const { minLength } = require('./validations/utils');
 
 const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
+const BILL_TYPES = [AUTOMATIC, MANUAL];
 
 const BillSchema = mongoose.Schema({
   number: { type: String, unique: true, partialFilterExpression: { number: { $exists: true, $type: 2 } } },
@@ -13,20 +15,20 @@ const BillSchema = mongoose.Schema({
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
   subscriptions: [{
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    subscription: { type: mongoose.Schema.Types.ObjectId, required: true },
+    startDate: { type: Date, required() { return this.type === AUTOMATIC; } },
+    endDate: { type: Date, required() { return this.type === AUTOMATIC; } },
+    subscription: { type: mongoose.Schema.Types.ObjectId, required() { return this.type === AUTOMATIC; } },
     service: {
-      serviceId: { type: mongoose.Schema.Types.ObjectId, required: true },
+      serviceId: { type: mongoose.Schema.Types.ObjectId, required() { return this.type === AUTOMATIC; } },
       name: String,
       nature: ServiceSchema.path('nature'),
     },
     vat: { type: Number, default: 0 },
     events: [{
-      eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
-      auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-      startDate: { type: Date, required: true },
-      endDate: { type: Date, required: true },
+      eventId: { type: mongoose.Schema.Types.ObjectId, required() { return this.type === AUTOMATIC; } },
+      auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required() { return this.type === AUTOMATIC; } },
+      startDate: { type: Date, required() { return this.type === AUTOMATIC; } },
+      endDate: { type: Date, required() { return this.type === AUTOMATIC; } },
       surcharges: billEventSurchargesSchemaDefinition,
       fundingId: { type: mongoose.Schema.Types.ObjectId },
       exclTaxesCustomer: { type: Number, required() { return !this.fundingId; } },
@@ -35,10 +37,10 @@ const BillSchema = mongoose.Schema({
       inclTaxesTpp: { type: Number, required() { return this.fundingId; } },
       careHours: { type: Number },
     }],
-    hours: { type: Number, required: true },
-    unitInclTaxes: { type: Number, required: true },
-    exclTaxes: { type: Number, required: true },
-    inclTaxes: { type: Number, required: true },
+    hours: { type: Number, required() { return this.type === AUTOMATIC; } },
+    unitInclTaxes: { type: Number, required() { return this.type === AUTOMATIC; } },
+    exclTaxes: { type: Number, required() { return this.type === AUTOMATIC; } },
+    inclTaxes: { type: Number, required() { return this.type === AUTOMATIC; } },
     discount: Number,
   }],
   origin: { type: String, enum: BILL_ORIGINS, default: COMPANI },
@@ -46,6 +48,13 @@ const BillSchema = mongoose.Schema({
   driveFile: driveResourceSchemaDefinition,
   sentAt: Date,
   shouldBeSent: { type: Boolean, default: false },
+  type: { type: String, enum: BILL_TYPES, required: true, immutable: true },
+  billingItemList: {
+    type: [billingItemSchemaDefinition],
+    required() { return this.type === MANUAL; },
+    default: undefined,
+    validate(val) { return this.type !== MANUAL || minLength(val, 1); },
+  },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 
@@ -54,3 +63,4 @@ BillSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Bill', BillSchema);
 module.exports.BILL_ORIGINS = BILL_ORIGINS;
+module.exports.BILL_TYPES = BILL_TYPES;

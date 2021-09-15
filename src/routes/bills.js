@@ -5,11 +5,20 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   draftBillsList,
-  createBills,
+  createBillList,
+  createBill,
   generateBillPdf,
+  list,
 } = require('../controllers/billsController');
-const { getBill, authorizeGetBill, authorizeGetBillPdf, authorizeBillsCreation } = require('./preHandlers/bills');
+const {
+  getBill,
+  authorizeGetBill,
+  authorizeGetBillPdf,
+  authorizeBillsCreation,
+  authorizeBillCreation,
+} = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
+const { BILL_TYPES } = require('../models/Bill');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -57,7 +66,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/',
+      path: '/list',
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
@@ -138,7 +147,41 @@ exports.plugin = {
         },
         pre: [{ method: authorizeBillsCreation }],
       },
-      handler: createBills,
+      handler: createBillList,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        auth: { scope: ['bills:edit'] },
+        validate: {
+          query: Joi.object({ type: Joi.string().valid(...BILL_TYPES).required() }),
+        },
+      },
+      handler: list,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/',
+      options: {
+        auth: { scope: ['bills:edit'] },
+        validate: {
+          payload: Joi.object({
+            customer: Joi.objectId().required(),
+            date: Joi.date().required(),
+            billingItemList: Joi.array().items(Joi.object({
+              billingItem: Joi.objectId().required(),
+              unitInclTaxes: Joi.number().required(),
+              count: Joi.number().required(),
+            })),
+            netInclTaxes: Joi.number().required(),
+          }),
+        },
+        pre: [{ method: authorizeBillCreation }],
+      },
+      handler: createBill,
     });
   },
 };

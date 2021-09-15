@@ -59,8 +59,13 @@ module.exports = {
     uploadNotAllowed: 'Upload not allowed.',
     /* Company */
     companyCreated: 'Company created.',
+    companiesFound: 'Companies found.',
+    companyFound: 'Company found.',
     companyNotFound: 'Company not found.',
     companyExists: 'Company already exists.',
+    companyLinkRequestCreated: 'Company link request created.',
+    companyLinkRequestsFound: 'Company link requests found.',
+    companyLinkRequestDeleted: 'Company link request deleted.',
     companyInternalHourCreated: 'Company internal hour created.',
     companyInternalHourNotFound: 'Company internal hour not found.',
     companyInternalHoursNotFound: 'Company internal hours not found.',
@@ -172,9 +177,9 @@ module.exports = {
     thirdPartyPayerDeleted: 'Company third party payer deleted.',
     /* Bills */
     billsCreated: 'Bills created.',
+    billCreated: 'Bill created.',
     draftBillsCreated: 'Draft bills created.',
     billsFound: 'Bills found.',
-    billsNotFound: 'Bills not found.',
     billNotCompani: 'Bill\'s origin must be \'Compani\'.',
     /* Credit Notes */
     creditNotesFound: 'Credit notes found.',
@@ -323,6 +328,10 @@ module.exports = {
     customerPartnerAlreadyExists: 'Customer partner already exists.',
     customerPartnerUpdated: 'Customer partner updated.',
     customerPartnerRemoved: 'Customer partner removed.',
+    /* BillingItems */
+    billingItemCreated: 'Billing item created.',
+    billingItemsFound: 'Billing items found.',
+    billingItemsConflict: 'This billing item already exists.',
   },
   'fr-FR': {
     /* Global errors */
@@ -381,8 +390,13 @@ module.exports = {
     uploadNotAllowed: 'Téléchargement non autorisé.',
     /* Company */
     companyCreated: 'Entreprise créée.',
+    companiesFound: 'Entreprises trouvées.',
+    companyFound: 'Entreprise trouvée.',
     companyNotFound: 'Entreprise non trouvée.',
     companyExists: 'Entreprise déjà existante.',
+    companyLinkRequestCreated: 'Demande de rattachement à une structure créée.',
+    companyLinkRequestsFound: 'Demandes de rattachement à la structure trouvées.',
+    companyLinkRequestDeleted: 'Demande de rattachement à la structure supprimée.',
     companyInternalHourCreated: 'Heure interne de l\'entreprise créée.',
     companyInternalHourNotFound: 'Heure interne de l\'entreprise non trouvée.',
     companyInternalHoursNotFound: 'Heures internes de l\'entreprise non trouvées.',
@@ -453,7 +467,7 @@ module.exports = {
     eventsNotFound: 'Evènements non trouvés.',
     eventNotFound: 'Evènement non trouvé.',
     eventsFound: 'Evènement trouvé.',
-    eventCreated: 'Evènement crée.',
+    eventCreated: 'Evènement créé.',
     eventUpdated: 'Evènement mis à jour.',
     eventDeleted: 'Evènement supprimé.',
     eventsDeleted: 'Evènements supprimé.',
@@ -495,10 +509,10 @@ module.exports = {
     thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
     /* Bills */
-    billsCreated: 'Factures crées.',
+    billsCreated: 'Factures créées.',
+    billCreated: 'Facture créée.',
     draftBillsCreated: 'Brouillons de facture générés.',
     billsFound: 'Factures trouvés.',
-    billsNotFound: 'Factures non trouvés.',
     billNotCompani: 'L\'origine de la facture doit être \'Compani\'.',
     /* Credit Notes */
     creditNotesFound: 'Avoirs trouvés.',
@@ -627,7 +641,7 @@ module.exports = {
     questionnaireUpdated: 'Questionnaire mis à jour.',
     questionnaireHistoryCreated: 'Historique de questionnaire créé.',
     /* PartnerOrganization */
-    partnerOrganizationCreated: 'Structure partenaire créee.',
+    partnerOrganizationCreated: 'Structure partenaire créée.',
     partnerOrganizationAlreadyExists: 'Structure partenaire déjà existante.',
     partnerOrganizationsFound: 'Liste des structures partenaires trouvées.',
     partnerOrganizationFound: 'Structure partenaire trouvée.',
@@ -647,5 +661,9 @@ module.exports = {
     customerPartnerAlreadyExists: 'Le/la partenaire existe déjà.',
     customerPartnerUpdated: 'Partenaire mis(e) à jour.',
     customerPartnerRemoved: 'Partenaire supprimé(e).',
+    /* BillingItems */
+    billingItemCreated: 'Article de facturation créé.',
+    billingItemsFound: 'Articles de facturation trouvés.',
+    billingItemsConflict: 'Cet article de facturation existe déjà.',
   },
 };

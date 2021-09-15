@@ -12,10 +12,9 @@ const User = require('../../../src/models/User');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const Service = require('../../../src/models/Service');
 const { populateAuthentication } = require('./authenticationSeed');
-const { authCompany, otherCompany } = require('../../seed/companySeed');
-const { authCustomer } = require('../../seed/customerSeed');
-const { userList, helper } = require('../../seed/userSeed');
-const { rolesList } = require('../../seed/roleSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { userList, helper } = require('../../seed/authUsersSeed');
+const { rolesList } = require('../../seed/authRolesSeed');
 const {
   PAYMENT,
   REFUND,
@@ -61,7 +60,8 @@ const thirdPartyPayer = {
 };
 
 const billAuthcustomer = {
-  ...authCustomer,
+  _id: new ObjectID(),
+  company: authCompany._id,
   email: 'fake@test.com',
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
@@ -362,6 +362,7 @@ const billService = { serviceId: services[0]._id, name: services[0].versions[0].
 const authBillList = [
   {
     _id: new ObjectID(),
+    type: 'automatic',
     company: authCompany._id,
     number: 'FACT-101062000001',
     date: '2020-06-30T00:00:00',
@@ -394,6 +395,7 @@ const authBillList = [
   },
   {
     _id: new ObjectID(),
+    type: 'automatic',
     company: authCompany._id,
     number: 'FACT-101081900004',
     date: '2019-08-31T00:00:00',
@@ -423,6 +425,7 @@ const authBillList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    type: 'automatic',
     number: 'FACT-101062000002',
     date: '2020-06-30T00:00:00',
     customer: billAuthcustomer._id,

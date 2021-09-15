@@ -9,8 +9,8 @@ const {
   cardsList,
   coursesList,
 } = require('./seed/questionnaireHistoriesSeed');
-const { getTokenByCredentials } = require('./seed/authenticationSeed');
-const { noRoleNoCompany } = require('../seed/userSeed');
+const { getTokenByCredentials } = require('./helpers/authentication');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const QuestionnaireHistory = require('../../src/models/QuestionnaireHistory');
 
 describe('NODE ENV', () => {
@@ -20,7 +20,7 @@ describe('NODE ENV', () => {
 });
 
 describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('Logged user', () => {

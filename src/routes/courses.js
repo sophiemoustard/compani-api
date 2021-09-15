@@ -234,19 +234,14 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'POST',
+      method: 'PUT',
       path: '/{_id}/trainees',
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({
-            identity: Joi.object().keys({ firstname: Joi.string(), lastname: Joi.string() }).min(1),
-            local: Joi.object().keys({ email: Joi.string().email().required() }).required(),
-            contact: Joi.object().keys({ phone: phoneNumberValidation }),
-            company: Joi.objectId(),
-          }),
+          payload: Joi.object({ trainee: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourseTrainee, assign: 'trainee' }, { method: authorizeCourseEdit }],
+        pre: [{ method: getCourseTrainee }, { method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,

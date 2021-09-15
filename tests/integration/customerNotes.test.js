@@ -1,6 +1,6 @@
 const expect = require('expect');
 const app = require('../../server');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 const { customersList, populateDB, customerNotesList } = require('./seed/customerNotesSeed');
 
 describe('NODE ENV', () => {
@@ -132,7 +132,7 @@ describe('CUSTOMER NOTES ROUTES - POST /customernotes', () => {
 });
 
 describe('CUSTOMER NOTES ROUTES - GET /customernotes', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('AUXILIARY', () => {

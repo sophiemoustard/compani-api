@@ -21,13 +21,13 @@ const {
   contractEvents,
   otherContract,
   otherContractUser,
-  userFromOtherCompany,
   contractUserCompanies,
 } = require('./seed/contractsSeed');
 const { generateFormData } = require('./utils');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const EsignHelper = require('../../src/helpers/eSign');
-const { auxiliaryWithoutCompany } = require('../seed/userSeed');
+const { auxiliaryWithoutCompany } = require('../seed/authUsersSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -36,7 +36,7 @@ describe('NODE ENV', () => {
 });
 
 describe('GET /contracts', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -46,7 +46,6 @@ describe('GET /contracts', () => {
 
     it('should return list of contracts', async () => {
       const userId = contractUserCompanies[0].user;
-
       const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${userId}`,
@@ -61,7 +60,7 @@ describe('GET /contracts', () => {
     it('should not return the contracts if user is not from the company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/contracts?user=${userFromOtherCompany._id}`,
+        url: `/contracts?user=${otherContractUser._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -91,11 +90,10 @@ describe('GET /contracts', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const userId = contractsList[0].user;
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/contracts?user=${userId}`,
+          url: `/contracts?user=${contractsList[0].user}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -106,7 +104,7 @@ describe('GET /contracts', () => {
 });
 
 describe('POST /contracts', () => {
-  let authToken = null;
+  let authToken;
   let generateSignatureRequestStub;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -157,9 +155,9 @@ describe('POST /contracts', () => {
 
     it('should create new sectorhistory if auxiliary does not have sectorhistory without a startDate', async () => {
       const payload = {
-        startDate: '2019-09-01T00:00:00',
+        startDate: '2020-09-01T00:00:00',
         versions: [{ weeklyHours: 24, grossHourlyRate: 10.43, startDate: '2019-09-01T00:00:00' }],
-        user: contractUsers[2]._id,
+        user: contractUsers[6]._id,
       };
       const response = await app.inject({
         method: 'POST',
@@ -171,10 +169,10 @@ describe('POST /contracts', () => {
       expect(response.statusCode).toBe(200);
 
       const sectorHistories = await SectorHistory
-        .find({ auxiliary: contractUsers[2]._id, company: authCompany._id })
+        .find({ auxiliary: contractUsers[6]._id, company: authCompany._id })
         .lean();
-      expect(sectorHistories.length).toBe(3);
-      expect(sectorHistories[2].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
+      expect(sectorHistories.length).toBe(2);
+      expect(sectorHistories[1].startDate).toEqual(moment(payload.startDate).startOf('day').toDate());
     });
 
     it('should not create a contract if user is not from the same company', async () => {
@@ -247,7 +245,7 @@ describe('POST /contracts', () => {
 });
 
 describe('PUT contract/:id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -332,7 +330,7 @@ describe('PUT contract/:id', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[4]._id}`,
+        url: `/contracts/${contractsList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -370,7 +368,7 @@ describe('PUT contract/:id', () => {
 });
 
 describe('GET contract/:id/dpae', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   describe('COACH', () => {
     beforeEach(async () => {
@@ -420,7 +418,7 @@ describe('GET contract/:id/dpae', () => {
 });
 
 describe('POST contract/:id/versions', () => {
-  let authToken = null;
+  let authToken;
   let generateSignatureRequest;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -479,7 +477,7 @@ describe('POST contract/:id/versions', () => {
       const payload = { grossHourlyRate: 10.12, startDate: '2020-10-15T00:00:00', weeklyHours: 24 };
       const response = await app.inject({
         method: 'POST',
-        url: `/contracts/${contractsList[3]._id}/versions`,
+        url: `/contracts/${contractsList[1]._id}/versions`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -537,7 +535,7 @@ describe('POST contract/:id/versions', () => {
 });
 
 describe('PUT contract/:id/versions/:versionId', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -549,14 +547,14 @@ describe('PUT contract/:id/versions/:versionId', () => {
       const payload = { grossHourlyRate: 8, startDate: '2020-11-28T00:00:00' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[2]._id}/versions/${contractsList[2].versions[0]._id}`,
+        url: `/contracts/${contractsList[3]._id}/versions/${contractsList[3].versions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
       const contract = await Contract.countDocuments({
-        _id: contractsList[2]._id,
+        _id: contractsList[3]._id,
         startDate: {
           $gte: moment(payload.startDate).startOf('d').toDate(),
           $lte: moment(payload.startDate).endOf('d').toDate(),
@@ -565,7 +563,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
       expect(contract).toEqual(1);
 
       const sectorHistory = await SectorHistory.countDocuments({
-        auxiliary: contractsList[2].user,
+        auxiliary: contractsList[3].user,
         startDate: {
           $gte: moment(payload.startDate).startOf('d').toDate(),
           $lte: moment(payload.startDate).endOf('d').toDate(),
@@ -604,7 +602,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
       const payload = { startDate: '2020-02-01' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[7]._id}/versions/${contractsList[7].versions[0]._id}`,
+        url: `/contracts/${contractsList[4]._id}/versions/${contractsList[4].versions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -628,7 +626,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
       const payload = { startDate: '2020-02-01' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[3]._id}/versions/${contractsList[3].versions[0]._id}`,
+        url: `/contracts/${contractsList[1]._id}/versions/${contractsList[1].versions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -660,7 +658,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
 });
 
 describe('DELETE contracts/:id/versions/:versionId', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -681,7 +679,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
       expect(response.statusCode).toBe(200);
 
       const sectorHistories = await SectorHistory
-        .countDocuments({ company: authCompany._id, auxiliary: contractsList[5].user, startDtae: { $exists: false } });
+        .countDocuments({ company: authCompany._id, auxiliary: contractsList[5].user, startDate: { $exists: false } });
       expect(sectorHistories).toEqual(1);
     });
 
@@ -696,10 +694,9 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
     });
 
     it('should return a 403 error if versionId is not the last version', async () => {
-      const invalidId = new ObjectID().toHexString();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/contracts/${contractsList[0]._id}/versions/${invalidId}`,
+        url: `/contracts/${contractsList[0]._id}/versions/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -730,7 +727,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
 });
 
 describe('GET contracts/staff-register', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('client_admin');
@@ -787,7 +784,7 @@ describe('GET /{_id}/gdrive/{driveId}/upload', () => {
   const fakeDriveId = 'fakeDriveId';
   let addStub;
   let getFileByIdStub;
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
     addStub = sinon.stub(Drive, 'add');

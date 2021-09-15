@@ -7,7 +7,7 @@ const EventHistoryHelper = require('../../../src/helpers/eventHistories');
 const EventHistoryRepository = require('../../../src/repositories/EventHistoryRepository');
 const EventHistory = require('../../../src/models/EventHistory');
 const User = require('../../../src/models/User');
-const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
+const { INTERNAL_HOUR, INTERVENTION, EVENT_CREATION, EVENT_DELETION } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('getEventHistories', () => {
@@ -67,50 +67,61 @@ describe('getListQuery', () => {
   });
 
   it('should return at least company if no query', () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const result = EventHistoryHelper.getListQuery({}, credentials);
 
-    expect(result).toEqual({ company: credentials.company._id });
+    expect(result).toEqual({ company: companyId });
   });
 
   it('should format query with sectors', () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const query = { sectors: ['toto', 'tata'] };
     formatArrayOrStringQueryParam.returns([{ sectors: 'toto' }, { sectors: 'tata' }]);
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({ company: credentials.company._id, $or: [{ sectors: 'toto' }, { sectors: 'tata' }] });
+    expect(result).toEqual({ company: companyId, $or: [{ sectors: 'toto' }, { sectors: 'tata' }] });
   });
 
   it('should format query with auxiliaries', () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const query = { auxiliaries: ['toto', 'tata'] };
     formatArrayOrStringQueryParam.returns([{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }]);
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({
-      company: credentials.company._id,
-      $or: [{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }],
-    });
+    expect(result).toEqual({ company: companyId, $or: [{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }] });
   });
 
   it('should format query with createdAt', () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const query = { createdAt: '2019-10-11' };
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({ company: credentials.company._id, createdAt: { $lt: '2019-10-11' } });
+    expect(result).toEqual({ company: companyId, createdAt: { $lt: '2019-10-11' } });
+  });
+
+  it('should format query with action', () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const query = { action: [EVENT_CREATION, EVENT_DELETION] };
+    const result = EventHistoryHelper.getListQuery(query, credentials);
+
+    expect(result).toEqual({ company: companyId, action: { $in: [EVENT_CREATION, EVENT_DELETION] } });
   });
 
   it('should format query with sectors and auxiliaries and createdAt', () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const query = { sectors: ['toto', 'tata'], auxiliaries: ['toto', 'tata'], createdAt: '2019-10-11' };
     formatArrayOrStringQueryParam.onCall(0).returns([{ sectors: 'toto' }, { sectors: 'tata' }]);
     formatArrayOrStringQueryParam.onCall(1).returns([{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }]);
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
     expect(result).toEqual({
-      company: credentials.company._id,
+      company: companyId,
       createdAt: { $lt: '2019-10-11' },
       $or: [{ sectors: 'toto' }, { sectors: 'tata' }, { auxiliaries: 'toto' }, { auxiliaries: 'tata' }],
     });

@@ -9,10 +9,10 @@ const {
   userList,
   customerFromOtherCompany,
 } = require('./seed/statsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('GET /stats/customer-follow-up', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -30,19 +30,17 @@ describe('GET /stats/customer-follow-up', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data).toEqual(expect.objectContaining({
-        followUp: [
-          {
-            _id: userList[0]._id,
-            contracts: expect.any(Array),
-            inactivityDate: null,
-            identity: { firstname: 'Auxiliary', lastname: 'White' },
-            role: { client: { name: 'auxiliary' } },
-            createdAt: expect.any(Date),
-            lastEvent: expect.objectContaining({ startDate: expect.any(Date) }),
-            totalHours: 5,
-            sector: { name: 'Neptune' },
-          },
-        ],
+        followUp: [{
+          _id: userList[0]._id,
+          contracts: expect.any(Array),
+          inactivityDate: null,
+          identity: { firstname: 'Auxiliary', lastname: 'White' },
+          role: { client: { name: 'auxiliary' } },
+          createdAt: expect.any(Date),
+          lastEvent: expect.objectContaining({ startDate: expect.any(Date) }),
+          totalHours: 5,
+          sector: { name: 'Neptune' },
+        }],
       }));
     });
 
@@ -80,7 +78,7 @@ describe('GET /stats/customer-follow-up', () => {
 });
 
 describe('GET /stats/customer-fundings-monitoring', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -137,7 +135,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
 });
 
 describe('GET /stats/all-customers-fundings-monitoring', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -191,7 +189,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
 });
 
 describe('GET /stats/paid-intervention-stats', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -316,7 +314,7 @@ describe('GET /stats/paid-intervention-stats', () => {
 });
 
 describe('GET /stats/customer-duration/sector', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -447,7 +445,7 @@ describe('GET /stats/customer-duration/sector', () => {
 });
 
 describe('GET /stats/internal-billed-hours', () => {
-  let authToken = null;
+  let authToken;
 
   describe('COACH', () => {
     beforeEach(populateDB);

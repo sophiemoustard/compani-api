@@ -21,9 +21,10 @@ exports.getEventHistories = async (query, credentials) => {
 };
 
 exports.getListQuery = (query, credentials) => {
-  const { sectors, auxiliaries, createdAt } = query;
+  const { sectors, auxiliaries, createdAt, action } = query;
   const listQuery = { company: get(credentials, 'company._id', null) };
   if (createdAt) listQuery.createdAt = { $lt: createdAt };
+  if (action) listQuery.action = { $in: action };
 
   const orRules = [];
   if (sectors) orRules.push(...UtilsHelper.formatArrayOrStringQueryParam(sectors, 'sectors'));
@@ -31,6 +32,7 @@ exports.getListQuery = (query, credentials) => {
 
   if (orRules.length === 0) return listQuery;
   if (orRules.length === 1) return { ...listQuery, ...orRules[0] };
+
   return { ...listQuery, $or: orRules };
 };
 

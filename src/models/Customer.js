@@ -212,6 +212,11 @@ CustomerSchema.virtual(
   }
 );
 
+CustomerSchema.virtual(
+  'referentHistories',
+  { ref: 'ReferentHistory', localField: '_id', foreignField: 'customer', options: { sort: { startDate: -1 } } }
+);
+
 CustomerSchema.virtual('helpers', { ref: 'Helper', localField: '_id', foreignField: 'customer' });
 
 CustomerSchema.pre('aggregate', validateAggregation);

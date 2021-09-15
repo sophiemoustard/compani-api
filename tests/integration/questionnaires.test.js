@@ -5,8 +5,8 @@ const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
 const { populateDB, questionnairesList, cardsList, coursesList } = require('./seed/questionnairesSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
-const { noRoleNoCompany } = require('../seed/userSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { SURVEY, PUBLISHED, DRAFT } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
@@ -96,7 +96,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires', () => {
 });
 
 describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -140,7 +140,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires', () => {
 });
 
 describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -204,7 +204,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
 });
 
 describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
-  let authToken = null;
+  let authToken;
   let nowStub;
   beforeEach(populateDB);
 
@@ -254,7 +254,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
 });
 
 describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINER', () => {
@@ -378,7 +378,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 });
 
 describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -559,7 +559,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
 });
 
 describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
-  let authToken = null;
+  let authToken;
   const questionnaireId = questionnairesList[0]._id;
   beforeEach(populateDB);
   const payload = { template: SURVEY };
@@ -608,10 +608,9 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
     });
 
     it('should return a 404 if questionnaire does not exist', async () => {
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/questionnaires/${invalidId}/cards`,
+        url: `/questionnaires/${new ObjectID()}/cards`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -656,7 +655,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
 });
 
 describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const draftQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'draft');
   const publishedQuestionnaire = questionnairesList.find(questionnaire => questionnaire.status === 'published');

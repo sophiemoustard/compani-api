@@ -3,31 +3,29 @@ const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { clientAdminRoleId } = require('../../seed/authRolesSeed');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const auxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Harry', lastname: 'Potter' },
-  local: { email: 'h@p.com', password: '123456!eR' },
+  local: { email: 'h@p.com' },
   administrative: {
     driveFolder: { driveId: '1234567890' },
     passport: { driveId: '1234567890', link: 'https://test.com/1234567890' },
   },
   refreshToken: uuidv4(),
-  role: { client: rolesList[1]._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 };
 
 const userCompany = { _id: new ObjectID(), user: auxiliary._id, company: authCompany._id };
 
 const populateDB = async () => {
-  await User.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await (new User(auxiliary)).save();
-  await UserCompany.create(userCompany);
+  await Promise.all([User.create(auxiliary), UserCompany.create(userCompany)]);
 };
 
 module.exports = { populateDB, auxiliary };

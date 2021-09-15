@@ -10,7 +10,6 @@ const cloneDeep = require('lodash/cloneDeep');
 const GetStream = require('get-stream');
 const fs = require('fs');
 const { generateFormData } = require('./utils');
-
 const app = require('../../server');
 const {
   populateDB,
@@ -19,14 +18,17 @@ const {
   userList,
   customerServiceList,
   customerThirdPartyPayers,
+  sectorsList,
 } = require('./seed/customersSeed');
 const Customer = require('../../src/models/Customer');
 const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const Helper = require('../../src/models/Helper');
 const { MONTHLY, FIXED, HOURLY, DEATH } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 const FileHelper = require('../../src/helpers/file');
+const UtilsHelper = require('../../src/helpers/utils');
 const DocxHelper = require('../../src/helpers/docx');
 
 describe('NODE ENV', () => {
@@ -162,7 +164,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         const areAllCustomersFromCompany = res.result.data.customers
-          .every(customer => customer.company.toHexString() === authCompany._id.toHexString());
+          .every(c => UtilsHelper.areObjectIdsEquals(c.company, authCompany._id));
         expect(areAllCustomersFromCompany).toBe(true);
         const customers = await Customer.find({ company: authCompany._id }).lean();
         expect(res.result.data.customers).toHaveLength(customers.length);
@@ -200,7 +202,7 @@ describe('CUSTOMERS ROUTES', () => {
 
       expect(res.statusCode).toBe(200);
       const areAllCustomersFromCompany = res.result.data.customers
-        .every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+        .every(c => UtilsHelper.areObjectIdsEquals(c.company._id, otherCompany._id));
       expect(areAllCustomersFromCompany).toBe(true);
       expect(res.result.data.customers).toHaveLength(1);
     });
@@ -335,7 +337,7 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.result.data.customers.length).toEqual(7);
         expect(res.result.data.customers[0].contact).toBeDefined();
         const customer = res.result.data.customers
-          .find(cus => cus._id.toHexString() === customersList[0]._id.toHexString());
+          .find(cus => UtilsHelper.areObjectIdsEquals(cus._id, customersList[0]._id));
         expect(customer.subscriptions.length).toEqual(2);
         expect(customer.referentHistories.length).toEqual(2);
       });
@@ -353,9 +355,50 @@ describe('CUSTOMERS ROUTES', () => {
         const areAllCustomersFromCompany = res.result.data.customers
           .every(async (cus) => {
             const customer = await Customer.findOne({ _id: cus._id }).lean();
-            return customer.company.toHexString() === otherCompany._id.toHexString();
+            return UtilsHelper.areObjectIdsEquals(customer.company, otherCompany._id);
           });
         expect(areAllCustomersFromCompany).toBe(true);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'vendor_admin', expectedCode: 403 },
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary_without_company', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers/subscriptions',
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /customers/sectors', () => {
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
+      });
+
+      it('should get only customers with events in sector', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers/sectors?sector=${sectorsList[0]._id}&startDate=2019-01-02&endDate=2019-01-31`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customers.map(c => c._id)).toEqual([customersList[0]._id, customersList[1]._id]);
       });
     });
 
@@ -371,7 +414,7 @@ describe('CUSTOMERS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/customers/subscriptions',
+            url: `/customers/sectors?sector=${sectorsList[0]._id}&startDate=2019-01-02&endDate=2019-01-31`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
@@ -396,12 +439,13 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers).toBeDefined();
-        expect(res.result.data.customers).toHaveLength(1);
+        expect(res.result.data.customers).toHaveLength(3);
       });
     });
 
     describe('Other roles', () => {
       const roles = [
+        { name: 'vendor_admin', expectedCode: 403 },
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'auxiliary_without_company', expectedCode: 403 },
@@ -432,7 +476,7 @@ describe('CUSTOMERS ROUTES', () => {
         const customerId = customersList[0]._id;
         const res = await app.inject({
           method: 'GET',
-          url: `/customers/${customerId.toHexString()}`,
+          url: `/customers/${customerId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -471,10 +515,9 @@ describe('CUSTOMERS ROUTES', () => {
       });
 
       it('should return a 404 error if customer is not found', async () => {
-        const id = new ObjectID().toHexString();
         const res = await app.inject({
           method: 'GET',
-          url: `/customers/${id}`,
+          url: `/customers/${new ObjectID()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -514,7 +557,7 @@ describe('CUSTOMERS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/customers/${customersList[0]._id.toHexString()}`,
+            url: `/customers/${customersList[0]._id}`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
@@ -534,7 +577,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should update a customer', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${customersList[0]._id.toHexString()}`,
+          url: `/customers/${customersList[0]._id}`,
           payload: updatePayload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -641,7 +684,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 404 error if no customer found', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${new ObjectID().toHexString()}`,
+          url: `/customers/${new ObjectID()}`,
           payload: updatePayload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -750,7 +793,7 @@ describe('CUSTOMERS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
-            url: `/customers/${customersList[0]._id.toHexString()}`,
+            url: `/customers/${customersList[0]._id}`,
             payload: updatePayload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -779,7 +822,7 @@ describe('CUSTOMERS ROUTES', () => {
         const customersBefore = await Customer.countDocuments({ company: authCompany._id });
         const res = await app.inject({
           method: 'DELETE',
-          url: `/customers/${customersList[3]._id.toHexString()}`,
+          url: `/customers/${customersList[3]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -796,7 +839,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 404 error if no customer found', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/customers/${new ObjectID().toHexString()}`,
+          url: `/customers/${new ObjectID()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -816,7 +859,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 403 error if customer has interventions', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/customers/${customersList[0]._id.toHexString()}`,
+          url: `/customers/${customersList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -826,7 +869,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 403 error if customer has bills', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/customers/${customersList[4]._id.toHexString()}`,
+          url: `/customers/${customersList[4]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -836,7 +879,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 403 error if customer has payments', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/customers/${customersList[5]._id.toHexString()}`,
+          url: `/customers/${customersList[5]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -846,7 +889,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 403 error if customer has creditnotes', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/customers/${customersList[6]._id.toHexString()}`,
+          url: `/customers/${customersList[6]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -856,7 +899,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 403 error if customer has taxcertificates', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/customers/${customersList[7]._id.toHexString()}`,
+          url: `/customers/${customersList[7]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -871,7 +914,7 @@ describe('CUSTOMERS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
-            url: `/customers/${customersList[3]._id.toHexString()}`,
+            url: `/customers/${customersList[3]._id}`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
@@ -919,8 +962,7 @@ describe('CUSTOMERS ROUTES', () => {
 
     describe('Other roles', () => {
       it('should get QR code if I am its helper ', async () => {
-        const helper = userList[0];
-        authToken = await getTokenByCredentials(helper.local);
+        authToken = await getTokenByCredentials(userList[0].local);
         const res = await app.inject({
           method: 'GET',
           url: `/customers/${customersList[0]._id}/qrcode`,
@@ -975,7 +1017,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       const result = await app.inject({
         method: 'POST',
-        url: `/customers/${customer._id.toHexString()}/subscriptions`,
+        url: `/customers/${customer._id}/subscriptions`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1001,7 +1043,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       const result = await app.inject({
         method: 'POST',
-        url: `/customers/${customer._id.toHexString()}/subscriptions`,
+        url: `/customers/${customer._id}/subscriptions`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1023,7 +1065,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       const result = await app.inject({
         method: 'POST',
-        url: `/customers/${customer._id.toHexString()}/subscriptions`,
+        url: `/customers/${customer._id}/subscriptions`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1076,7 +1118,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
-            url: `/customers/${customersList[1]._id.toHexString()}/subscriptions`,
+            url: `/customers/${customersList[1]._id}/subscriptions`,
             headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
@@ -1100,7 +1142,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1118,7 +1160,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1127,13 +1169,9 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
 
     it('should return 404 as customer not found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const customer = customersList[0];
-      const subscription = customer.subscriptions[0];
-
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${invalidId}/subscriptions/${subscription._id.toHexString()}`,
+        url: `/customers/${new ObjectID()}/subscriptions/${customersList[0].subscriptions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1142,12 +1180,9 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
 
     it('should return 404 as subscription not found', async () => {
-      const customer = customersList[0];
-      const invalidId = new ObjectID().toHexString();
-
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/subscriptions/${invalidId}`,
+        url: `/customers/${customersList[0]._id}/subscriptions/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1182,7 +1217,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
-            url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+            url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
             headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
@@ -1195,12 +1230,9 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
   describe('DELETE /customers/{id}/subscriptions/{subscriptionId}', () => {
     it('should delete customer subscription', async () => {
-      const customer = customersList[0];
-      const subscription = customer.subscriptions[1];
-
       const result = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+        url: `/customers/${customersList[0]._id}/subscriptions/${customersList[0].subscriptions[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1208,10 +1240,9 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
 
     it('should not delete customer subscription if customer not from same company', async () => {
-      const subscriptionId = otherCompanyCustomer.subscriptions[0]._id;
       const result = await app.inject({
         method: 'DELETE',
-        url: `/customers/${otherCompanyCustomer._id}/subscriptions/${subscriptionId}`,
+        url: `/customers/${otherCompanyCustomer._id}/subscriptions/${otherCompanyCustomer.subscriptions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1219,12 +1250,9 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
 
     it('should not delete customer subscription if events linked', async () => {
-      const customer = customersList[0];
-      const subscription = customer.subscriptions[0];
-
       const result = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+        url: `/customers/${customersList[0]._id}/subscriptions/${customersList[0].subscriptions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1246,7 +1274,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
-            url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+            url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
@@ -1266,23 +1294,21 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
   describe('GET /customers/{_id}/mandates', () => {
     it('should return customer mandates', async () => {
-      const customer = customersList[1];
       const result = await app.inject({
         method: 'GET',
-        url: `/customers/${customer._id}/mandates`,
+        url: `/customers/${customersList[1]._id}/mandates`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(result.statusCode).toBe(200);
       expect(result.result.data.customer.payment.mandates).toBeDefined();
-      expect(result.result.data.customer.payment.mandates.length).toEqual(customer.payment.mandates.length);
+      expect(result.result.data.customer.payment.mandates.length).toEqual(customersList[1].payment.mandates.length);
     });
 
     it('should return 404 if customer not found', async () => {
-      const invalidId = new ObjectID().toHexString();
       const result = await app.inject({
         method: 'GET',
-        url: `/customers/${invalidId}/mandates`,
+        url: `/customers/${new ObjectID()}/mandates`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1300,7 +1326,6 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      const customer = customersList[1];
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
@@ -1313,7 +1338,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/customers/${customer._id}/mandates`,
+            url: `/customers/${customersList[1]._id}/mandates`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
@@ -1325,13 +1350,11 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
   describe('PUT /customers/{_id}/mandates/{mandateId}', () => {
     it('should update customer mandate', async () => {
-      const customer = customersList[1];
-      const mandate = customer.payment.mandates[0];
       const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
+        url: `/customers/${customersList[1]._id}/mandates/${customersList[1].payment.mandates[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1342,13 +1365,11 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     });
 
     it('should return 404 if customer not found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const mandate = customersList[1].payment.mandates[0];
       const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${invalidId}/mandates/${mandate._id.toHexString()}`,
+        url: `/customers/${new ObjectID()}/mandates/${customersList[1].payment.mandates[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1357,13 +1378,11 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     });
 
     it('should return 404 if mandate not found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const customer = customersList[1];
       const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/mandates/${invalidId}`,
+        url: `/customers/${customersList[1]._id}/mandates/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1373,11 +1392,10 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     it('should return 403 if user not from same company', async () => {
       const payload = { signedAt: '2019-09-09T00:00:00' };
-      const mandateId = otherCompanyCustomer.payment.mandates[0]._id;
 
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${otherCompanyCustomer._id}/mandates/${mandateId}`,
+        url: `/customers/${otherCompanyCustomer._id}/mandates/${otherCompanyCustomer.payment.mandates[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1386,11 +1404,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      const customer = customersList[1];
-      const mandate = customer.payment.mandates[0];
-      const payload = {
-        signedAt: '2019-01-18T10:00:00.000Z',
-      };
+      const payload = { signedAt: '2019-01-18T10:00:00.000Z' };
 
       const roles = [
         { name: 'helper', expectedCode: 403 },
@@ -1404,7 +1418,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
-            url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
+            url: `/customers/${customersList[1]._id}/mandates/${customersList[1].payment.mandates[0]._id}`,
             headers: { Cookie: `alenvi_token=${authToken}` },
             payload,
           });
@@ -1469,37 +1483,35 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         initialContractStartDate: '16/12/2018',
       },
     };
-    const customerId = customersList[1]._id.toHexString();
-    const mandateId = customersList[1].payment.mandates[0]._id.toHexString();
 
     it('should create a mandate signature request if I am its helper', async () => {
-      const helper = userList[1];
-      authToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(userList[1].local);
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customerId}/mandates/${mandateId}/esign`,
+        url: `/customers/${customersList[1]._id}/mandates/${customersList[1].payment.mandates[0]._id}/esign`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(res.statusCode).toBe(200);
-      sinon.assert.calledOnce(createDocumentStub);
-      sinon.assert.calledOnce(generateDocxStub);
-      sinon.assert.calledOnce(fileToBase64Stub);
       expect(res.statusCode).toBe(200);
       expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
         embeddedUrl: expect.any(String),
       }));
-      const customer = await Customer.findById(customerId);
+
+      const customer = await Customer.findById(customersList[1]._id).lean();
       expect(customer.payment.mandates[0].everSignId).toBeDefined();
+
+      sinon.assert.calledOnce(createDocumentStub);
+      sinon.assert.calledOnce(generateDocxStub);
+      sinon.assert.calledOnce(fileToBase64Stub);
     });
 
     it('should return 403 if user is not from the same company', async () => {
-      const helper = userList[2];
-      authToken = await getTokenByCredentials(helper.local);
+      authToken = await getTokenByCredentials(userList[2].local);
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${otherCompanyCustomer._id}/mandates/${mandateId}/esign`,
+        url: `/customers/${otherCompanyCustomer._id}/mandates/${customersList[1].payment.mandates[0]._id}/esign`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1519,7 +1531,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/customers/${customerId}/mandates/${mandateId}/esign`,
+          url: `/customers/${customersList[1]._id}/mandates/${customersList[1].payment.mandates[0]._id}/esign`,
           payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -1541,7 +1553,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     it('should return customer quotes', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
+        url: `/customers/${customersList[0]._id}/quotes`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1553,10 +1565,9 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       expect(res.result.data.customer._id).toEqual(customersList[0]._id);
     });
     it('should return 404 error if no user found', async () => {
-      const invalidId = new ObjectID().toHexString();
       const res = await app.inject({
         method: 'GET',
-        url: `/customers/${invalidId}/quotes`,
+        url: `/customers/${new ObjectID()}/quotes`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1586,7 +1597,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
+            url: `/customers/${customersList[0]._id}/quotes`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
@@ -1607,7 +1618,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+        url: `/customers/${customersList[1]._id}/quotes`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1626,7 +1637,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     it('should return a 400 error if \'subscriptions\' array is missing from payload', async () => {
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+        url: `/customers/${customersList[1]._id}/quotes`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1639,7 +1650,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+        url: `/customers/${customersList[1]._id}/quotes`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1657,7 +1668,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
         const res = await app.inject({
           method: 'POST',
-          url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+          url: `/customers/${customersList[1]._id}/quotes`,
           payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -1668,15 +1679,10 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
     it('should not create a customer quote if from other company', async () => {
       const payload = {
-        subscriptions: [{
-          service: { name: 'TestTest', nature: 'hourly' },
-          unitTTCRate: 23,
-          estimatedWeeklyVolume: 3,
-        }, {
-          service: { name: 'TestTest2', nature: 'hourly' },
-          unitTTCRate: 30,
-          estimatedWeeklyVolume: 10,
-        }],
+        subscriptions: [
+          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+          { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        ],
       };
       const res = await app.inject({
         method: 'POST',
@@ -1690,15 +1696,10 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
     describe('Other roles', () => {
       const payload = {
-        subscriptions: [{
-          service: { name: 'TestTest', nature: 'hourly' },
-          unitTTCRate: 23,
-          estimatedWeeklyVolume: 3,
-        }, {
-          service: { name: 'TestTest2', nature: 'hourly' },
-          unitTTCRate: 30,
-          estimatedWeeklyVolume: 10,
-        }],
+        subscriptions: [
+          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
+          { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        ],
       };
 
       const roles = [
@@ -1713,7 +1714,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
-            url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+            url: `/customers/${customersList[1]._id}/quotes`,
             payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -1744,7 +1745,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1765,7 +1766,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       const payload = { helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' } };
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1777,12 +1778,13 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       const payload = {
         subscriptions: [
           { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 }],
+          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        ],
       };
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
+        url: `/customers/${customersList[0]._id}/subscriptionshistory`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1817,18 +1819,18 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         ],
         helper: { firstname: 'Lana', lastname: 'Wachowski', title: 'mrs' },
       };
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
       ];
-
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
-            url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
+            url: `/customers/${customersList[0]._id}/subscriptionshistory`,
             payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -1867,7 +1869,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customer._id.toHexString()}/fundings`,
+        url: `/customers/${customer._id}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1894,7 +1896,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customer._id.toHexString()}/fundings`,
+        url: `/customers/${customer._id}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1919,7 +1921,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        url: `/customers/${customersList[0]._id}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1945,7 +1947,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        url: `/customers/${customersList[0]._id}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1970,7 +1972,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        url: `/customers/${customersList[0]._id}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1979,7 +1981,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
 
     it('should return a 404 error if customer does not exist', async () => {
-      const invalidId = new ObjectID().toHexString();
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
         nature: FIXED,
@@ -1997,7 +1998,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${invalidId}/fundings`,
+        url: `/customers/${new ObjectID()}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2049,7 +2050,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        url: `/customers/${customersList[0]._id}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2076,7 +2077,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        url: `/customers/${customersList[0]._id}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2103,7 +2104,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        url: `/customers/${customersList[0]._id}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2137,7 +2138,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
-            url: `/customers/${customer._id.toHexString()}/fundings`,
+            url: `/customers/${customer._id}/fundings`,
             payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -2163,7 +2164,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+        url: `/customers/${customer._id}/fundings/${customer.fundings[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2176,9 +2177,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
 
     it('should return 400 if endDate is before startDate', async () => {
-      const customer = customersList[0];
       const payload = {
-        subscription: customer.subscriptions[0]._id,
+        subscription: customersList[0].subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
         startDate: '2021-01-01T00:00:00',
@@ -2188,7 +2188,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+        url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2197,9 +2197,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
 
     it('should return a 400 if fundingPlanId is empty and tpp has teletransmissionId', async () => {
-      const customer = customersList[0];
       const payload = {
-        subscription: customer.subscriptions[0]._id,
+        subscription: customersList[0].subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
         startDate: '2021-01-01T00:00:00',
@@ -2210,7 +2209,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+        url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2219,9 +2218,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
 
     it('should return a 400 if fundingPlanId is not a string', async () => {
-      const customer = customersList[0];
       const payload = {
-        subscription: customer.subscriptions[0]._id,
+        subscription: customersList[0].subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
         startDate: '2021-01-01T00:00:00',
@@ -2232,7 +2230,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+        url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2241,7 +2239,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
 
     it('should return a 404 error if customer does not exist', async () => {
-      const invalidId = new ObjectID().toHexString();
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
         amountTTC: 90,
@@ -2253,7 +2250,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${invalidId}/fundings/${customersList[0].fundings[0]._id.toHexString()}`,
+        url: `/customers/${new ObjectID()}/fundings/${customersList[0].fundings[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2273,7 +2270,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${otherCompanyCustomer._id}/fundings/${otherCompanyCustomer.fundings[0]._id.toHexString()}`,
+        url: `/customers/${otherCompanyCustomer._id}/fundings/${otherCompanyCustomer.fundings[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2282,9 +2279,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
 
     it('should return 403 if payload has fundingPlanId but thirdpartypayer has no teletransmissionId', async () => {
-      const customer = customersList[1];
       const payload = {
-        subscription: customer.subscriptions[0]._id,
+        subscription: customersList[1].subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
         startDate: '2021-01-01T00:00:00',
@@ -2295,7 +2291,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+        url: `/customers/${customersList[1]._id}/fundings/${customersList[1].fundings[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2304,9 +2300,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      const customer = customersList[0];
       const payload = {
-        subscription: customer.subscriptions[0]._id,
+        subscription: customersList[0].subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
         startDate: '2021-01-01T00:00:00',
@@ -2324,7 +2319,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'PUT',
-            url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+            url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[0]._id}`,
             payload,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
@@ -2337,12 +2332,9 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
   describe('DELETE /customers/{id}/fundings/{fundingId}', () => {
     it('should delete customer funding', async () => {
-      const customer = customersList[0];
-      const funding = customer.fundings[0];
-
       const result = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
+        url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2360,8 +2352,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      const customer = customersList[0];
-      const funding = customer.fundings[0];
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
@@ -2372,7 +2362,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
-            url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
+            url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[0]._id}`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 
@@ -2409,18 +2399,17 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       addStub.returns({ id: 'fakeFileDriveId' });
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
 
-      const customer = customersList[1];
       const payload = {
         fileName: 'mandat_signe',
         file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedMandate',
-        mandateId: customer.payment.mandates[0]._id.toHexString(),
+        mandateId: customersList[1].payment.mandates[0]._id.toHexString(),
       };
       const form = generateFormData(payload);
 
       const response = await app.inject({
         method: 'POST',
-        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        url: `/customers/${customersList[1]._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -2467,7 +2456,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        url: `/customers/${customer._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -2503,7 +2492,6 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       addStub.returns({ id: 'fakeFileDriveId' });
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
 
-      const customer = customersList[0];
       const payload = {
         file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'financialCertificates',
@@ -2513,7 +2501,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        url: `/customers/${customersList[0]._id}/gdrive/${fakeDriveId}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -2558,7 +2546,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
         const res = await app.inject({
           method: 'POST',
-          url: `/customers/${customersList[0]._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+          url: `/customers/${customersList[0]._id}/gdrive/${fakeDriveId}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
         });
@@ -2572,7 +2560,6 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
         { name: 'auxiliary', expectedCode: 403, callCount: 0 },
         { name: 'coach', expectedCode: 200, callCount: 1 },
       ];
-
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           const payload = {
@@ -2587,7 +2574,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'POST',
-            url: `/customers/${customersList[0]._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+            url: `/customers/${customersList[0]._id}/gdrive/${fakeDriveId}/upload`,
             payload: await GetStream(form),
             headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
           });

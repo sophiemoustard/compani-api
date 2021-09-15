@@ -8,16 +8,18 @@ const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
-const { populateDBForAuthentication, authCompany, otherCompany, rolesList } = require('./authenticationSeed');
-const { vendorAdmin } = require('../../seed/userSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { trainerRoleId } = require('../../seed/authRolesSeed');
 
 const trainer = {
   _id: new ObjectID(),
   identity: { firstname: 'trainer', lastname: 'trainer' },
   refreshToken: uuidv4(),
   local: { email: 'course_slot_trainer@alenvi.io', password: '123456!eR' },
-  role: { vendor: rolesList.find(role => role.name === 'trainer')._id },
+  role: { vendor: trainerRoleId },
   origin: WEBAPP,
 };
 
@@ -99,32 +101,21 @@ const courseSlotsList = [
   },
 ];
 
-const attendance = {
-  _id: new ObjectID(),
-  trainee: new ObjectID(),
-  courseSlot: courseSlotsList[4]._id,
-};
+const attendance = { _id: new ObjectID(), trainee: new ObjectID(), courseSlot: courseSlotsList[4]._id };
 
 const populateDB = async () => {
-  await Course.deleteMany();
-  await SubProgram.deleteMany();
-  await CourseSlot.deleteMany();
-  await Program.deleteMany();
-  await User.deleteMany();
-  await Step.deleteMany();
-  await Attendance.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await SubProgram.insertMany(subProgramsList);
-  await Program.insertMany(programsList);
-  await Course.insertMany(coursesList);
-  await CourseSlot.insertMany(courseSlotsList);
-  await Step.insertMany(stepsList);
-  await User.create(trainer);
-  await Attendance.create(attendance);
-  await UserCompany.create(userCompanies);
+  await Promise.all([
+    SubProgram.create(subProgramsList),
+    Program.create(programsList),
+    Course.create(coursesList),
+    CourseSlot.create(courseSlotsList),
+    Step.create(stepsList),
+    User.create(trainer),
+    Attendance.create(attendance),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

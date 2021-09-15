@@ -15,7 +15,8 @@ const { PAYMENT } = require('../../src/helpers/constants');
 const Payment = require('../../src/models/Payment');
 const Drive = require('../../src/models/Google/Drive');
 const PaymentHelper = require('../../src/helpers/payments');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -259,7 +260,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 });
 
 describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -339,7 +340,7 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
 });
 
 describe('PAYMENTS ROUTES - DELETE /payments/_id', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {

@@ -1,8 +1,10 @@
 const { ObjectID } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
+const BillingItem = require('../../../src/models/BillingItem');
 const { HOURLY, FIXED } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const servicesList = [
   {
@@ -11,7 +13,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
-      startDate: '2019-01-16T17:58:15.519',
+      startDate: '2019-01-16T00:00:00',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -23,7 +25,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
-      startDate: '2019-01-18T19:58:15.519',
+      startDate: '2019-01-18T00:00:00',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -35,7 +37,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 150,
       name: 'Service 3',
-      startDate: '2019-01-16T17:58:15.519',
+      startDate: '2019-01-16T00:00:00',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -47,7 +49,7 @@ const servicesList = [
     versions: [{
       defaultUnitAmount: 150,
       name: 'Service 3',
-      startDate: '2019-01-16T17:58:15.519',
+      startDate: '2019-01-16T00:00:00',
       vat: 12,
       exemptFromCharges: false,
     }],
@@ -62,7 +64,7 @@ const serviceFromOtherCompany = {
   versions: [{
     defaultUnitAmount: 150,
     name: 'Service 3',
-    startDate: '2019-01-16T17:58:15.519',
+    startDate: '2019-01-16T00:00:00',
     vat: 12,
     exemptFromCharges: false,
   }],
@@ -91,15 +93,27 @@ const customer = {
   },
 };
 
+const billingItemList = [
+  {
+    _id: new ObjectID(),
+    name: 'Kill Billing',
+    type: 'per_intervention',
+    defaultUnitAmount: 2,
+    company: authCompany._id,
+    vat: 2,
+  },
+  { _id: new ObjectID(), name: 'Bill', type: 'manual', defaultUnitAmount: 25, company: otherCompany._id, vat: 2 },
+  { _id: new ObjectID(), name: 'bil', type: 'manual', defaultUnitAmount: 25, company: authCompany._id, vat: 2 },
+];
+
 const populateDB = async () => {
-  await Service.deleteMany({});
-  await Customer.deleteMany({});
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await Service.insertMany(servicesList);
-  await Service.insertMany([serviceFromOtherCompany]);
-  await (new Customer(customer)).save();
+  await Promise.all([
+    Service.create([...servicesList, serviceFromOtherCompany]),
+    Customer.create(customer),
+    BillingItem.create(billingItemList),
+  ]);
 };
 
-module.exports = { servicesList, populateDB, serviceFromOtherCompany };
+module.exports = { servicesList, populateDB, serviceFromOtherCompany, billingItemList };

@@ -4,8 +4,8 @@ const app = require('../../server');
 const Activity = require('../../src/models/Activity');
 const Card = require('../../src/models/Card');
 const { populateDB, activitiesList, cardsList } = require('./seed/activitiesSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
-const { noRoleNoCompany } = require('../seed/userSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
@@ -14,8 +14,8 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
-  let authToken = null;
+describe('ACTIVITIES ROUTES - GET /activity/{_id}', () => {
+  let authToken;
   beforeEach(populateDB);
   const activityId = activitiesList[0]._id;
 
@@ -27,7 +27,7 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
     it('should get activity', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/activities/${activityId.toHexString()}`,
+        url: `/activities/${activityId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -37,10 +37,9 @@ describe('ACTIVITY ROUTES - GET /activity/{_id}', () => {
   });
 });
 
-describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
-  let authToken = null;
+describe('ACTIVITIES ROUTES - PUT /activity/{_id}', () => {
+  let authToken;
   beforeEach(populateDB);
-  const activityId = activitiesList[0]._id;
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
@@ -51,7 +50,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       const payload = { name: 'rigoler' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/activities/${activitiesList[3]._id.toHexString()}`,
+        url: `/activities/${activitiesList[3]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -73,12 +72,12 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/activities/${activityId.toHexString()}`,
+        url: `/activities/${activitiesList[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const activityUpdated = await Activity.countDocuments({ _id: activityId, cards: payload.cards });
+      const activityUpdated = await Activity.countDocuments({ _id: activitiesList[0]._id, cards: payload.cards });
 
       expect(response.statusCode).toBe(200);
       expect(activityUpdated).toEqual(1);
@@ -87,7 +86,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
     it('should return a 400 if name is equal to \'\' ', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/activities/${activityId.toHexString()}`,
+        url: `/activities/${activitiesList[0]._id}`,
         payload: { name: '' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -99,7 +98,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       const payload = { cards: [activitiesList[0].cards[1]] };
       const response = await app.inject({
         method: 'PUT',
-        url: `/activities/${activityId.toHexString()}`,
+        url: `/activities/${activitiesList[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -111,7 +110,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       const payload = { cards: [activitiesList[0].cards[1], new ObjectID()] };
       const response = await app.inject({
         method: 'PUT',
-        url: `/activities/${activityId.toHexString()}`,
+        url: `/activities/${activitiesList[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -123,7 +122,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
       const payload = { type: 'quiz' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/activities/${activitiesList[3]._id.toHexString()}`,
+        url: `/activities/${activitiesList[3]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -147,7 +146,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           payload,
-          url: `/activities/${activityId.toHexString()}`,
+          url: `/activities/${activitiesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -158,8 +157,7 @@ describe('ACTIVITY ROUTES - PUT /activity/{_id}', () => {
 });
 
 describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
-  let authToken = null;
-  const activityId = activitiesList[0]._id;
+  let authToken;
   beforeEach(populateDB);
   const payload = { template: TITLE_TEXT_MEDIA };
 
@@ -171,12 +169,12 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should create card', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/cards`,
+        url: `/activities/${activitiesList[0]._id}/cards`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const activityUpdated = await Activity.findById(activityId).lean();
+      const activityUpdated = await Activity.findById(activitiesList[0]._id).lean();
 
       expect(response.statusCode).toBe(200);
       expect(activityUpdated.cards.length).toEqual(5);
@@ -185,7 +183,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should return a 400 if invalid template', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/cards`,
+        url: `/activities/${activitiesList[0]._id}/cards`,
         payload: { template: 'invalid template' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -196,7 +194,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should return a 400 if missing template', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activityId.toHexString()}/cards`,
+        url: `/activities/${activitiesList[0]._id}/cards`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -205,10 +203,9 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     });
 
     it('should return a 404 if activity does not exist', async () => {
-      const invalidId = new ObjectID();
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${invalidId}/cards`,
+        url: `/activities/${new ObjectID()}/cards`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -219,7 +216,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should return a 403 if activity is published', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${activitiesList[3]._id.toHexString()}/cards`,
+        url: `/activities/${activitiesList[3]._id}/cards`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -242,7 +239,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
         const response = await app.inject({
           method: 'POST',
           payload: { template: 'transition' },
-          url: `/activities/${activityId.toHexString()}/cards`,
+          url: `/activities/${activitiesList[0]._id}/cards`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -253,7 +250,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
 });
 
 describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const draftActivity = activitiesList.find(activity => activity.status === 'draft');
   const publishedActivity = activitiesList.find(activity => activity.status === 'published');
@@ -266,7 +263,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
     it('should delete activity card', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/activities/cards/${draftActivity.cards[0].toHexString()}`,
+        url: `/activities/cards/${draftActivity.cards[0]}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -283,7 +280,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
     it('should return 404 if card not found', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/activities/cards/${(new ObjectID()).toHexString()}`,
+        url: `/activities/cards/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -293,7 +290,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
     it('should return 403 if activity is published', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/activities/cards/${publishedActivity.cards[0].toHexString()}`,
+        url: `/activities/cards/${publishedActivity.cards[0]}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -314,7 +311,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/activities/cards/${draftActivity.cards[0].toHexString()}`,
+          url: `/activities/cards/${draftActivity.cards[0]}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

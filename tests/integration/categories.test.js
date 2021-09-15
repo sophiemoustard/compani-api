@@ -2,11 +2,8 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Category = require('../../src/models/Category');
 const app = require('../../server');
-const {
-  populateDB,
-  categoriesList,
-} = require('./seed/categoriesSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { populateDB, categoriesList } = require('./seed/categoriesSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -82,7 +79,7 @@ describe('CATEGORIES ROUTES - POST /categories', () => {
 });
 
 describe('CATEGORIES ROUTES - GET /categories', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -126,8 +123,8 @@ describe('CATEGORIES ROUTES - GET /categories', () => {
   });
 });
 
-describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
-  let authToken = null;
+describe('CATEGORIES ROUTES - PUT /categories/{_id}', () => {
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -136,17 +133,16 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
     });
 
     it('should update category name', async () => {
-      const categoryId = categoriesList[0]._id;
       const response = await app.inject({
         method: 'PUT',
-        url: `/categories/${categoryId.toHexString()}`,
+        url: `/categories/${categoriesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'nouveau nom' },
       });
 
       expect(response.statusCode).toBe(200);
 
-      const categoryUpdated = await Category.countDocuments({ _id: categoryId, name: 'nouveau nom' });
+      const categoryUpdated = await Category.countDocuments({ _id: categoriesList[0]._id, name: 'nouveau nom' });
       expect(categoryUpdated).toEqual(1);
     });
 
@@ -162,10 +158,9 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
     });
 
     it('should return 409 if new name is already taken', async () => {
-      const categoryId = categoriesList[0]._id;
       const response = await app.inject({
         method: 'PUT',
-        url: `/categories/${categoryId.toHexString()}`,
+        url: `/categories/${categoriesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'ce nom de catégorie est déja pris!' },
       });
@@ -185,11 +180,10 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const categoryId = categoriesList[0]._id;
         const response = await app.inject({
           method: 'PUT',
           payload: { name: `mon nouveau nom de catégorie en tant que ${role.name}` },
-          url: `/categories/${categoryId.toHexString()}`,
+          url: `/categories/${categoriesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -199,8 +193,8 @@ describe('CATEGORY ROUTES - PUT /categories/{_id}', () => {
   });
 });
 
-describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
-  let authToken = null;
+describe('CATEGORIES ROUTES - DELETE /categories/{_id}', () => {
+  let authToken;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -209,11 +203,10 @@ describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
     });
 
     it('should delete category', async () => {
-      const categoryId = categoriesList[0]._id;
       const categoriesCount = await Category.countDocuments();
       const response = await app.inject({
         method: 'DELETE',
-        url: `/categories/${categoryId.toHexString()}`,
+        url: `/categories/${categoriesList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -222,10 +215,9 @@ describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
     });
 
     it('should return a 403 if category is used', async () => {
-      const categoryId = categoriesList[4]._id;
       const response = await app.inject({
         method: 'DELETE',
-        url: `/categories/${categoryId.toHexString()}`,
+        url: `/categories/${categoriesList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -235,7 +227,7 @@ describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
     it('should return a 404 if category does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/categories/${new ObjectID().toHexString()}`,
+        url: `/categories/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -254,10 +246,9 @@ describe('CATEGORY ROUTES - DELETE /categories/{_id}', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const categoryId = categoriesList[0]._id;
         const response = await app.inject({
           method: 'DELETE',
-          url: `/categories/${categoryId.toHexString()}`,
+          url: `/categories/${categoriesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

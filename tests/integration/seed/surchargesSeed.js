@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const Surcharge = require('../../../src/models/Surcharge');
-const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const surchargesList = [
   {
@@ -58,11 +59,9 @@ const surchargeFromOtherCompany = {
 };
 
 const populateDB = async () => {
-  await Surcharge.deleteMany({});
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-  await Surcharge.insertMany(surchargesList);
-  await Surcharge.insertMany([surchargeFromOtherCompany]);
+  await Surcharge.insertMany([...surchargesList, surchargeFromOtherCompany]);
 };
 
 module.exports = { surchargesList, populateDB, surchargeFromOtherCompany };

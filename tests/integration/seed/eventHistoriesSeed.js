@@ -16,38 +16,40 @@ const {
   EVENT_CREATION,
   WEBAPP,
 } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const users = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Mimi', lastname: 'Mita' },
-    local: { email: 'lili@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[2]._id },
+    local: { email: 'lili@alenvi.io' },
+    role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Joséphine', lastname: 'Mita' },
-    local: { email: 'lili2@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[2]._id },
+    local: { email: 'lili2@alenvi.io' },
+    role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Bob', lastname: 'Marley' },
-    local: { email: 'lala@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[1]._id },
+    local: { email: 'lala@alenvi.io' },
+    role: { client: clientAdminRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'test', lastname: 'Mita' },
-    local: { email: 'otherCompany@alenvi.io', password: '123456!eR' },
-    role: { client: rolesList[2]._id },
+    local: { email: 'otherCompany@alenvi.io' },
+    role: { client: coachRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
@@ -178,24 +180,16 @@ const eventHistoryList = [
 ];
 
 const populateDB = async () => {
-  await Customer.deleteMany();
-  await User.deleteMany();
-  await Sector.deleteMany();
-  await EventHistory.deleteMany();
-  await Event.deleteMany();
-  await UserCompany.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await EventHistory.insertMany(eventHistoryList);
-  await UserCompany.insertMany(userCompanies);
-  for (const u of users) {
-    await (new User(u)).save();
-  }
-  await (new Customer(customer)).save();
-  await Sector.create(sectors);
-  await (new Sector(sectorFromOtherCompany)).save();
-  await Event.insertMany(events);
+  await Promise.all([
+    Customer.create(customer),
+    Event.create(events),
+    EventHistory.create(eventHistoryList),
+    Sector.create([...sectors, sectorFromOtherCompany]),
+    UserCompany.create(userCompanies),
+    User.create(users),
+  ]);
 };
 
 module.exports = {

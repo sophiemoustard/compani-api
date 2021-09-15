@@ -3,24 +3,26 @@ const { v4: uuidv4 } = require('uuid');
 const InternalHour = require('../../../src/models/InternalHour');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
-const { populateDBForAuthentication, authCompany, rolesList, otherCompany } = require('./authenticationSeed');
-const { userList } = require('../../seed/userSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { userList } = require('../../seed/authUsersSeed');
 const { INTERNAL_HOUR, WEBAPP } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
+const { clientAdminRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const internalHourUsers = [{
   _id: new ObjectID(),
   identity: { firstname: 'Admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
   local: { email: 'admin_internal_hour@alenvi.io', password: '123456!eR' },
-  role: { client: rolesList.find(role => role.name === 'client_admin')._id },
+  role: { client: clientAdminRoleId },
   origin: WEBAPP,
 }, {
   _id: new ObjectID(),
   identity: { firstname: 'internal', lastname: 'Test' },
   local: { email: 'auxiliary_internal_hour@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
-  role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
+  role: { client: auxiliaryRoleId },
   origin: WEBAPP,
 }];
 
@@ -69,11 +71,7 @@ const eventList = [
 ];
 
 const populateDB = async () => {
-  await InternalHour.deleteMany();
-  await Event.deleteMany();
-  await UserCompany.deleteMany();
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Event.insertMany(eventList);
   await InternalHour.insertMany([...internalHoursList, ...authInternalHoursList]);

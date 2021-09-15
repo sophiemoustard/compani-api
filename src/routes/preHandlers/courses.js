@@ -3,10 +3,10 @@ const get = require('lodash/get');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
 const UserCompany = require('../../models/UserCompany');
+const Company = require('../../models/Company');
 const {
   TRAINER,
   INTRA,
-  INTER_B2B,
   VENDOR_ADMIN,
   CLIENT_ADMIN,
   COACH,
@@ -106,27 +106,17 @@ exports.getCourseTrainee = async (req) => {
     const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1 }).lean();
     if (!course) throw Boom.notFound();
 
-    const trainee = await User.findOne({ 'local.email': payload.local.email }).populate({ path: 'company' }).lean();
-    if (trainee) {
-      if (course.type === INTRA) {
-        const conflictBetweenCompanies = !UtilsHelper.areObjectIdsEquals(course.company._id, trainee.company);
-        if (trainee.company && conflictBetweenCompanies) {
-          throw Boom.conflict(translate[language].courseTraineeNotFromCourseCompany);
-        }
-      } else if (course.type === INTER_B2B) {
-        const missingPayloadCompany = !trainee.company && !payload.company;
-        if (missingPayloadCompany) throw Boom.badRequest();
-      }
+    const traineeExist = await User.countDocuments({ _id: payload.trainee });
+    if (!traineeExist) throw Boom.forbidden();
 
-      const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, trainee._id));
-      if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
-    } else {
-      const missingFields = ['company', 'local.email', 'identity.lastname', 'contact.phone']
-        .some(key => !get(payload, key));
-      if (missingFields) throw Boom.badRequest();
-    }
+    const userCompanyQuery = { user: payload.trainee, ...(course.type === INTRA && { company: course.company }) };
+    const userCompanyExists = await UserCompany.countDocuments(userCompanyQuery);
+    if (!userCompanyExists) throw Boom.notFound();
 
-    return trainee;
+    const traineeAlreadyRegistered = course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, payload.trainee));
+    if (traineeAlreadyRegistered) throw Boom.conflict(translate[language].courseTraineeAlreadyExists);
+
+    return null;
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -187,7 +177,8 @@ exports.authorizeGetCourse = async (req) => {
 
     if (!userClientRole || ![COACH, CLIENT_ADMIN].includes(userClientRole)) throw Boom.forbidden();
 
-    const companyHasAccess = !course.accessRules.length || course.accessRules.includes(userCompany);
+    const companyHasAccess = !course.accessRules.length ||
+      UtilsHelper.doesArrayIncludeId(course.accessRules, userCompany);
     if (course.format === STRICTLY_E_LEARNING && !companyHasAccess) throw Boom.forbidden();
 
     if (course.type === INTRA) {
@@ -255,6 +246,9 @@ exports.authorizeAccessRuleAddition = async (req) => {
 
   const accessRuleAlreadyExist = UtilsHelper.doesArrayIncludeId(course.accessRules, req.payload.company);
   if (accessRuleAlreadyExist) throw Boom.conflict();
+
+  const companyExists = await Company.countDocuments({ _id: req.payload.company });
+  if (!companyExists) throw Boom.badRequest();
 
   return null;
 };

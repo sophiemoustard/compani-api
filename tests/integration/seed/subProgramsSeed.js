@@ -6,8 +6,8 @@ const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { populateDBForAuthentication } = require('./authenticationSeed');
-const { userList, vendorAdmin } = require('../../seed/userSeed');
+const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const tester = userList.find(user => user.local.email === 'norole@alenvi.io');
 
@@ -83,15 +83,7 @@ const courseSlotsList = [
 ];
 
 const populateDB = async () => {
-  await Program.deleteMany({});
-  await SubProgram.deleteMany({});
-  await Step.deleteMany({});
-  await Activity.deleteMany({});
-  await Course.deleteMany({});
-  await Card.deleteMany({});
-  await CourseSlot.deleteMany({});
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await Program.insertMany(programsList);
   await SubProgram.insertMany(subProgramsList);

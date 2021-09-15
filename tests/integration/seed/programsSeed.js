@@ -7,8 +7,8 @@ const Category = require('../../../src/models/Category');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
-const { populateDBForAuthentication } = require('./authenticationSeed');
-const { userList, vendorAdmin } = require('../../seed/userSeed');
+const { userList, vendorAdmin, trainerOrganisationManager } = require('../../seed/authUsersSeed');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const cards = [
   { _id: new ObjectID(), template: 'transition', title: 'skusku' },
@@ -57,7 +57,18 @@ const programsList = [
     image: { link: 'bonjour', publicId: 'au revoir' },
     categories: [categoriesList[0]._id],
   },
-  { _id: new ObjectID(), name: 'training program', subPrograms: [subProgramsList[2]._id], testers: [vendorAdmin._id] },
+  {
+    _id: new ObjectID(),
+    name: 'training program',
+    subPrograms: [subProgramsList[2]._id],
+    testers: [trainerOrganisationManager._id],
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Je suis un programme eLearning',
+    description: 'Vous apprendrez plein de choses',
+    subPrograms: [subProgramsList[2]._id],
+  },
   { _id: new ObjectID(), name: 'non valid program', subPrograms: [subProgramsList[1]._id] },
 ];
 
@@ -73,16 +84,7 @@ const course = {
 };
 
 const populateDB = async () => {
-  await Program.deleteMany({});
-  await SubProgram.deleteMany({});
-  await Step.deleteMany({});
-  await Activity.deleteMany({});
-  await Category.deleteMany({});
-  await ActivityHistory.deleteMany({});
-  await Card.deleteMany({});
-  await Course.deleteMany({});
-
-  await populateDBForAuthentication();
+  await deleteNonAuthenticationSeeds();
 
   await SubProgram.insertMany(subProgramsList);
   await Program.insertMany(programsList);
@@ -91,7 +93,7 @@ const populateDB = async () => {
   await Category.insertMany(categoriesList);
   await ActivityHistory.insertMany(activityHistoriesList);
   await Card.insertMany(cards);
-  await new Course(course).save();
+  await Course.create(course);
 };
 
 module.exports = {

@@ -6,7 +6,8 @@ const AdministrativeDocument = require('../../src/models/AdministrativeDocument'
 const app = require('../../server');
 const Drive = require('../../src/models/Google/Drive');
 const { populateDB, administrativeDocumentsList } = require('./seed/administrativeDocumentSeed');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
@@ -16,7 +17,7 @@ describe('NODE ENV', () => {
 });
 
 describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
@@ -60,7 +61,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - GET /administrativedocuments', () => 
 });
 
 describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -99,7 +100,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
     });
 
     ['name', 'file', 'mimeType'].forEach((param) => {
-      it(`should return a 400 error if '${param}' payload is missing`, async () => {
+      it(`should return a 400 error if '${param}' is missing in payload`, async () => {
         const form = generateFormData(omit(payload, [param]));
 
         const response = await app.inject({
@@ -140,7 +141,7 @@ describe('ADMINISTRATIVE DOCUMENT ROUTES - POST /administrativedocuments', () =>
 });
 
 describe('ADMINISTRATIVE DOCUMENT ROUTES - DELETE /administrativedocuments', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {

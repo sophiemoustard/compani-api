@@ -2,28 +2,32 @@ const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
-const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
-const { authCompany } = require('../../seed/companySeed');
-const { vendorAdmin, trainer } = require('../../seed/userSeed');
-const { SLOT_CREATION, WEBAPP, TRAINER, COACH } = require('../../../src/helpers/constants');
+const { authCompany } = require('../../seed/authCompaniesSeed');
+const { SLOT_CREATION, WEBAPP } = require('../../../src/helpers/constants');
+const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
+
+const userList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'course', lastname: 'Trainer' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainerCourseHistories@alenvi.io', password: '123456!eR' },
+    role: { vendor: trainerRoleId },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'salesrep', lastname: 'noCourse' },
+    refreshToken: uuidv4(),
+    local: { email: 'salerep@compani.fr' },
+    role: { vendor: vendorAdminRoleId },
+    origin: WEBAPP,
+  },
+];
 
 const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [] }];
-
-const trainerAndCoach = {
-  _id: new ObjectID(),
-  identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
-  refreshToken: uuidv4(),
-  local: { email: 'simonDu77@alenvi.io', password: '123456!eR' },
-  role: {
-    client: rolesList.find(role => role.name === COACH)._id,
-    vendor: rolesList.find(role => role.name === TRAINER)._id,
-  },
-  origin: WEBAPP,
-};
-
-const userCompanies = [{ _id: new ObjectID(), user: trainerAndCoach._id, company: authCompany._id }];
 
 const coursesList = [{
   _id: new ObjectID(),
@@ -31,9 +35,9 @@ const coursesList = [{
   company: authCompany._id,
   misc: 'first session',
   type: 'intra',
-  trainer: trainer._id,
+  trainer: userList[0]._id,
   trainees: [],
-  salesRepresentative: vendorAdmin._id,
+  salesRepresentative: userList[1]._id,
 },
 {
   _id: new ObjectID(),
@@ -43,7 +47,7 @@ const coursesList = [{
   type: 'intra',
   trainer: new ObjectID(),
   trainees: [],
-  salesRepresentative: vendorAdmin._id,
+  salesRepresentative: userList[1]._id,
 },
 {
   _id: new ObjectID(),
@@ -51,9 +55,9 @@ const coursesList = [{
   misc: 'inter b2b session',
   type: 'inter_b2b',
   format: 'blended',
-  trainer: trainer._id,
+  trainer: userList[0]._id,
   trainees: [],
-  salesRepresentative: vendorAdmin._id,
+  salesRepresentative: userList[1]._id,
 }];
 
 const courseHistoriesList = [{
@@ -124,22 +128,14 @@ const courseHistoriesList = [{
 }];
 
 const populateDB = async () => {
-  await Course.deleteMany();
-  await CourseHistory.deleteMany();
-  await UserCompany.deleteMany();
-  await User.deleteMany();
+  await deleteNonAuthenticationSeeds();
 
-  await populateDBForAuthentication();
-
-  await Course.insertMany(coursesList);
-  await CourseHistory.insertMany(courseHistoriesList);
-  await UserCompany.insertMany(userCompanies);
-  await new User(trainerAndCoach).save();
+  await Promise.all([Course.create(coursesList), CourseHistory.create(courseHistoriesList), User.create(userList)]);
 };
 
 module.exports = {
   populateDB,
   coursesList,
   courseHistoriesList,
-  trainerAndCoach,
+  userList,
 };

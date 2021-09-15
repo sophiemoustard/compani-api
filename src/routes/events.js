@@ -37,6 +37,7 @@ const {
   EVENT_CANCELLATION_REASONS,
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
+  EVENT_TRANSPORT_MODE,
 } = require('../models/Event');
 const {
   getEvent,
@@ -190,7 +191,7 @@ exports.plugin = {
               driveId: Joi.string(),
               link: Joi.string(),
             }).when('absence', { is: Joi.exist().valid(ILLNESS, WORK_ACCIDENT), then: Joi.required() }),
-            misc: Joi.string().allow(null, '').default('')
+            misc: Joi.string().allow(null, '')
               .when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() })
               .when('isCancelled', { is: Joi.exist().valid(true), then: Joi.required() }),
             repetition: Joi.object().keys({
@@ -209,6 +210,8 @@ exports.plugin = {
             }),
             isBilled: Joi.boolean(),
             bills: Joi.object(),
+            transportMode: Joi.string().valid(...EVENT_TRANSPORT_MODE),
+            kmDuringEvent: Joi.number().min(0),
           })
             .and('startDate', 'endDate')
             .xor('auxiliary', 'sector'),

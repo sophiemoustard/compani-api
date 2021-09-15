@@ -28,10 +28,13 @@ const {
   EVERY_WEEK,
   EVERY_TWO_WEEKS,
   NOT_INVOICED_AND_NOT_PAID,
+  PRIVATE_TRANSPORT,
+  COMPANY_TRANSPORT,
+  PUBLIC_TRANSPORT,
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
+const { billEventSurchargesSchemaDefinition } = require('./schemaDefinitions/billing');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 const { TIME_STAMPING_ACTIONS } = require('./EventHistory');
 
@@ -54,6 +57,7 @@ const ABSENCE_TYPES = [
 const EVENT_CANCELLATION_REASONS = [AUXILIARY_INITIATIVE, CUSTOMER_INITIATIVE];
 const EVENT_CANCELLATION_CONDITIONS = [INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, NOT_INVOICED_AND_NOT_PAID];
 const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK, EVERY_TWO_WEEKS];
+const EVENT_TRANSPORT_MODE = [PUBLIC_TRANSPORT, PRIVATE_TRANSPORT, COMPANY_TRANSPORT, ''];
 
 const EventSchema = mongoose.Schema(
   {
@@ -110,6 +114,8 @@ const EventSchema = mongoose.Schema(
       surcharges: billEventSurchargesSchemaDefinition,
     },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+    transportMode: { type: String, enum: EVENT_TRANSPORT_MODE },
+    kmDuringEvent: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
@@ -160,3 +166,4 @@ module.exports.EVENT_CANCELLATION_CONDITIONS = EVENT_CANCELLATION_CONDITIONS;
 module.exports.EVENT_CANCELLATION_REASONS = EVENT_CANCELLATION_REASONS;
 module.exports.ABSENCE_TYPES = ABSENCE_TYPES;
 module.exports.REPETITION_FREQUENCIES = REPETITION_FREQUENCIES;
+module.exports.EVENT_TRANSPORT_MODE = EVENT_TRANSPORT_MODE;

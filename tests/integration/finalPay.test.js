@@ -5,7 +5,8 @@ const { ObjectID } = require('mongodb');
 const { populateDB, auxiliary, auxiliaryFromOtherCompany } = require('./seed/finalPaySeed');
 const app = require('../../server');
 const FinalPay = require('../../src/models/FinalPay');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -14,7 +15,7 @@ describe('NODE ENV', () => {
 });
 
 describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
 
   describe('CLIENT_ADMIN', () => {
@@ -103,7 +104,7 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
 });
 
 describe('FINAL PAY ROUTES - POST /finalpay', () => {
-  let authToken = null;
+  let authToken;
   beforeEach(populateDB);
   const payload = [{
     auxiliary: auxiliary._id,

@@ -20,7 +20,8 @@ const {
   thirdPartyPayerFromOtherCompany,
   eventFromOtherCompany,
 } = require('./seed/eventsSeed');
-const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const { creditNotesList } = require('./seed/creditNotesSeed');
 const app = require('../../server');
 const {
@@ -51,7 +52,7 @@ describe('NODE ENV', () => {
 });
 
 describe('GET /events', () => {
-  let authToken = null;
+  let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -219,7 +220,7 @@ describe('GET /events', () => {
 });
 
 describe('GET /events/credit-notes', () => {
-  let authToken = null;
+  let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -352,7 +353,7 @@ describe('GET /events/credit-notes', () => {
 });
 
 describe('GET /events/working-stats', () => {
-  let authToken = null;
+  let authToken;
   const startDate = moment('2019-01-17').toDate();
   const endDate = moment('2019-01-20').toDate();
   describe('AUXILIARY', () => {
@@ -422,7 +423,7 @@ describe('GET /events/working-stats', () => {
 });
 
 describe('GET /events/paid-transport', () => {
-  let authToken = null;
+  let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -513,7 +514,7 @@ describe('GET /events/paid-transport', () => {
 });
 
 describe('GET /events/unassigned-hours', () => {
-  let authToken = null;
+  let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -615,7 +616,7 @@ describe('GET /events/unassigned-hours', () => {
 });
 
 describe('POST /events', () => {
-  let authToken = null;
+  let authToken;
   let DatesHelperDayDiff;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
@@ -1223,7 +1224,8 @@ describe('POST /events', () => {
 });
 
 describe('PUT /events/{_id}', () => {
-  let authToken = null;
+  let authToken;
+
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -1272,24 +1274,6 @@ describe('PUT /events/{_id}', () => {
       expect(response.result.data.event._id).toEqual(event._id);
       expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
       expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
-    });
-
-    it('should update intervention with auxiliary', async () => {
-      const event = eventsList[2];
-      const payload = {
-        startDate: '2019-01-23T10:00:00.000Z',
-        endDate: '2019-01-23T12:00:00.000Z',
-        auxiliary: auxiliaries[1]._id.toHexString(),
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
     });
 
     it('should update intervention with other subscription', async () => {
@@ -1359,20 +1343,6 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 400 error as payload is invalid', async () => {
-      const payload = { beginDate: '2019-01-23T10:00:00.000Z', sector: new ObjectID() };
-      const event = eventsList[0];
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
     it('should return a 400 error as startDate and endDate are not on the same day', async () => {
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
@@ -1402,24 +1372,6 @@ describe('PUT /events/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return a 404 error as event is not found', async () => {
-      const payload = {
-        startDate: '2019-01-23T10:00:00.000Z',
-        endDate: '2019-02-23T12:00:00.000Z',
-        sector: sectors[0]._id.toHexString(),
-      };
-      const invalidId = new ObjectID();
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${invalidId.toHexString()}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1508,7 +1460,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return a 403 if event is not from the same company', async () => {
+    it('should return a 404 if event is not from the same company', async () => {
       const event = eventFromOtherCompany;
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
@@ -1523,7 +1475,7 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 403 if service is archived', async () => {
@@ -1653,12 +1605,11 @@ describe('PUT /events/{_id}', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
-
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
@@ -1676,7 +1627,7 @@ describe('PUT /events/{_id}', () => {
 });
 
 describe('DELETE /events/{_id}', () => {
-  let authToken = null;
+  let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -1695,18 +1646,16 @@ describe('DELETE /events/{_id}', () => {
     });
 
     it('should return a 404 error as event is not found', async () => {
-      const invalidId = new ObjectID();
-
       const response = await app.inject({
         method: 'DELETE',
-        url: `/events/${invalidId.toHexString()}`,
+        url: `/events/${new ObjectID()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 if event is not from the same company', async () => {
+    it('should return a 404 if event is not from the same company', async () => {
       const event = eventFromOtherCompany;
 
       const response = await app.inject({
@@ -1715,7 +1664,7 @@ describe('DELETE /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
   });
 
@@ -1748,7 +1697,7 @@ describe('DELETE /events/{_id}', () => {
 });
 
 describe('DELETE /events', () => {
-  let authToken = null;
+  let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -1848,7 +1797,7 @@ describe('DELETE /events', () => {
 });
 
 describe('DELETE /{_id}/repetition', () => {
-  let authToken = null;
+  let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
