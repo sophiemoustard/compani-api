@@ -1623,7 +1623,7 @@ describe('formatAndCreateBill', () => {
     await BillHelper.formatAndCreateBill(payload, credentials);
 
     sinon.assert.calledOnceWithExactly(getBillNumber, '2021-09-01', companyId);
-    sinon.assert.calledOnceWithExactly(formatBillNumber, '101', 'FACT-101', 2);
+    sinon.assert.calledOnceWithExactly(formatBillNumber, '101', 'FACT-101', 1);
     SinonMongoose.calledWithExactly(
       findBillingItem,
       [
