@@ -293,7 +293,7 @@ exports.formatBillSubscriptionsForPdf = (bill) => {
       unitInclTaxes,
       vat: sub.vat ? sub.vat : 0,
       name: sub.service.name,
-      volume,
+      volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
       total: volume * unitInclTaxes,
     });
     totalSurcharge += exports.computeSurcharge(sub);
