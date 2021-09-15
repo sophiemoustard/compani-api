@@ -19,9 +19,9 @@ exports.getPdfContent = async (data) => {
     serviceTableBody.push(
       [
         { text: `${sub.name} ${sub.vat ? `(TVA ${UtilsHelper.formatPercentage(sub.vat / 100)})` : ''}` },
-        { text: sub.unitInclTaxes || '-' },
+        { text: sub.unitInclTaxes ? UtilsHelper.formatPrice(sub.unitInclTaxes) : '-' },
         { text: sub.volume || '-' },
-        { text: `${sub.total}` },
+        { text: sub.total ? UtilsHelper.formatPrice(sub.total) : '-' },
       ]
     );
   });
