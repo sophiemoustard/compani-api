@@ -344,7 +344,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
     );
   }
 
-  return draftBillsPerSubscription;
+  return { ...draftBillsPerSubscription, billingItems };
 };
 
 exports.getDraftBillsList = async (dates, billingStartDate, credentials, customerId = null) => {

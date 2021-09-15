@@ -986,16 +986,23 @@ describe('getDraftBillsPerSubscription', () => {
     ];
     const subscription = {
       versions: [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
-      service: { versions: [{ startDate: new Date('2019/01/01'), vat: 20 }] },
+      service: {
+        versions: [
+          { startDate: new Date('2019/01/01'), vat: 20, billingItems: [new ObjectID('d00000000000000000000001')] },
+        ],
+      },
     };
 
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
     getExclTaxes.returns(70);
     computeBillingInfoForEvents.returns({
-      customerPrices: { exclTaxes: 35 },
-      thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
-      startDate: moment('2019/02/01', 'YY/MM/DD'),
+      prices: {
+        customerPrices: { exclTaxes: 35 },
+        thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
+        startDate: moment('2019/02/01', 'YY/MM/DD'),
+      },
+      billingItems: [{ d00000000000000000000001: [events[0]._id] }],
     });
 
     const result =
@@ -1005,6 +1012,7 @@ describe('getDraftBillsPerSubscription', () => {
     expect(result.customer.unitExclTaxes).toEqual(70);
     expect(result.customer.unitInclTaxes).toEqual(21);
     expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
+    expect(result.billingItems).toEqual([{ d00000000000000000000001: [events[0]._id] }]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
@@ -1035,8 +1043,11 @@ describe('getDraftBillsPerSubscription', () => {
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
     getExclTaxes.returns(70);
     computeBillingInfoForEvents.returns({
-      customerPrices: { exclTaxes: 35 },
-      startDate: moment('2019/02/01', 'YY/MM/DD'),
+      prices: {
+        customerPrices: { exclTaxes: 35 },
+        startDate: moment('2019/02/01', 'YY/MM/DD'),
+      },
+      billingItems: [],
     });
 
     const result =
@@ -1045,6 +1056,7 @@ describe('getDraftBillsPerSubscription', () => {
     expect(result.customer.exclTaxes).toEqual(35);
     expect(result.customer.unitExclTaxes).toEqual(70);
     expect(result.customer.unitInclTaxes).toEqual(21);
+    expect(result.billingItems).toEqual([]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
@@ -1077,9 +1089,12 @@ describe('getDraftBillsPerSubscription', () => {
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
     getExclTaxes.returns(70);
     computeBillingInfoForEvents.returns({
-      customerPrices: { exclTaxes: 0 },
-      thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
-      startDate: moment('2019/02/01', 'YY/MM/DD'),
+      prices: {
+        customerPrices: { exclTaxes: 0 },
+        thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
+        startDate: moment('2019/02/01', 'YY/MM/DD'),
+      },
+      billingItems: [],
     });
 
     const result =
@@ -1087,6 +1102,7 @@ describe('getDraftBillsPerSubscription', () => {
 
     expect(result.customer).toBeUndefined();
     expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
+    expect(result.billingItems).toEqual([]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
