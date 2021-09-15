@@ -86,7 +86,7 @@ exports.getFollowUp = async (id, courseId) => {
       populate: [
         { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
         { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
-        { path: 'user', select: 'company', populate: { path: 'company' } },
+        { path: 'user', select: '_id', populate: { path: 'company' } },
       ],
     })
     .lean();
