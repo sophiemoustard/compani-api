@@ -1,17 +1,24 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
+const UtilsHelper = require('../../../src/helpers/utils');
 const Bill = require('../../../src/data/pdf/billing/bill');
 
 describe('getPdfContent', () => {
   let downloadImages;
+  let formatPrice;
+  let formatPercentage;
 
   beforeEach(() => {
     downloadImages = sinon.stub(FileHelper, 'downloadImages');
+    formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
+    formatPercentage = sinon.stub(UtilsHelper, 'formatPercentage');
   });
 
   afterEach(() => {
     downloadImages.restore();
+    formatPrice.restore();
+    formatPercentage.restore();
   });
 
   it('it should format and return pdf content', async () => {
@@ -67,13 +74,17 @@ describe('getPdfContent', () => {
         forTpp: false,
         totalExclTaxes: '322,52 €',
         totalVAT: '17,74 €',
-        formattedSubs: [{
-          unitInclTaxes: '19,67 €',
-          inclTaxes: '1 160,53 €',
-          vat: '5,5',
-          service: 'Temps de qualité - autonomie',
-          volume: '55,50 h',
-        }],
+        formattedDetails: [
+          {
+            unitInclTaxes: 19.67,
+            vat: 5.5,
+            name: 'Temps de qualité - autonomie',
+            volume: '55,50 h',
+            total: 1091.685,
+          },
+          { name: 'Remises', total: 5 },
+          { name: 'Majorations', total: 12.24 },
+        ],
         company: {
           rcs: '814 998 779',
           address: {
@@ -117,16 +128,28 @@ describe('getPdfContent', () => {
           table: {
             body: [
               [
-                { text: 'Service', bold: true },
+                { text: 'Intitulé', bold: true },
                 { text: 'Prix unitaire TTC', bold: true },
                 { text: 'Volume', bold: true },
-                { text: 'Total TTC*', bold: true },
+                { text: 'Total TTC', bold: true },
               ],
               [
-                { text: 'Temps de qualité - autonomie (TVA 5,5 %)' },
-                { text: '19,67 €' },
+                { text: 'Temps de qualité - autonomie (TVA 5,50 %)' },
+                { text: '19,67 €' },
                 { text: '55,50 h' },
-                { text: '1 160,53 €' },
+                { text: '1091,69 €' },
+              ],
+              [
+                { text: 'Remises' },
+                { text: '-' },
+                { text: '-' },
+                { text: '5,00 €' },
+              ],
+              [
+                { text: 'Majorations' },
+                { text: '-' },
+                { text: '-' },
+                { text: '12,24 €' },
               ],
             ],
             widths: ['*', 'auto', 'auto', 'auto'],
@@ -134,7 +157,6 @@ describe('getPdfContent', () => {
           margin: [0, 40, 0, 8],
           layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
         },
-        { text: '*ce total intègre les financements, majorations et éventuelles remises.' },
         {
           columns: [
             { width: '*', text: '' },
@@ -198,6 +220,11 @@ describe('getPdfContent', () => {
     ];
 
     downloadImages.returns(paths);
+    formatPrice.onCall(0).returns('19,67 €');
+    formatPrice.onCall(1).returns('1091,69 €');
+    formatPrice.onCall(2).returns('5,00 €');
+    formatPrice.onCall(3).returns('12,24 €');
+    formatPercentage.onCall(0).returns('5,50 %');
 
     const result = await Bill.getPdfContent(data);
 
