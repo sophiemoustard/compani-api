@@ -260,41 +260,27 @@ exports.getUnitInclTaxes = (bill, subscription) => {
 exports.formatBillSubscriptionsForPdf = (bill) => {
   let totalExclTaxes = 0;
   let totalVAT = 0;
-  let formattedVolume;
-  let formattedUnitPrice;
-
-  const formatVolume = volume => parseFloat(volume.replace(' h', '').replace(',', '.'), 10);
-  const formatUnitPrice = price => parseFloat(price.replace(',', '.').substring(0, 5), 10);
-  const formatTotalTTC = total => total.toFixed(2).toString().replace('.', ',');
+  let totalDiscount = 0;
 
   const formattedSubs = [];
 
   for (const sub of bill.subscriptions) {
     totalExclTaxes += sub.exclTaxes;
     totalVAT += sub.inclTaxes - sub.exclTaxes;
+    totalDiscount += sub.discount;
+    const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
+    const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
 
-    const formattedSub = {
-      unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
-      vat: sub.vat ? sub.vat.toString().replace(/\./g, ',') : 0,
+    formattedSubs.push({
+      unitInclTaxes,
+      vat: sub.vat ? sub.vat : 0,
       name: sub.service.name,
-    };
-
-    if (sub.service.nature === HOURLY) {
-      const formattedHours = UtilsHelper.formatFloatForExport(sub.hours);
-      formattedSub.volume = formattedHours === '' ? '' : `${formattedHours} h`;
-    } else {
-      formattedSub.volume = sub.events.length;
-    }
-
-    if (typeof formattedSub.volume === 'string') formattedVolume = formatVolume(formattedSub.volume);
-    else formattedVolume = formattedSub.volume;
-    formattedUnitPrice = formatUnitPrice(formattedSub.unitInclTaxes);
-
-    formattedSub.total = formattedVolume * formattedUnitPrice;
-    formattedSub.total = formatTotalTTC(formattedSub.total);
-    formattedSubs.push(formattedSub);
+      volume,
+      total: volume * unitInclTaxes,
+    });
   }
 
+  if (totalDiscount) formattedSubs.push({ name: 'Remises', total: UtilsHelper.formatPrice(totalDiscount) });
   totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
   totalVAT = UtilsHelper.formatPrice(totalVAT);
 

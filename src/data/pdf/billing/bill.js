@@ -20,7 +20,7 @@ exports.getPdfContent = async (data) => {
         { text: `${sub.name} (TVA ${sub.vat ? sub.vat.toString().replace(/\./g, ',') : 0} %)` },
         { text: sub.unitInclTaxes || '-' },
         { text: sub.volume || '-' },
-        { text: `${sub.total} €` },
+        { text: `${sub.total}` },
       ]
     );
   });
