@@ -740,12 +740,21 @@ describe('computeBillingInfoForEvents', () => {
   });
 
   it('should compute info for each event', () => {
-    const events = [{ startDate: '2021-02-04T12:00:00.000Z' }, { startDate: '2021-03-05T10:00:00.000Z' }];
-    const service = { _id: new ObjectID() };
+    const events = [
+      { _id: new ObjectID(), startDate: '2021-02-04T12:00:00.000Z' },
+      { _id: new ObjectID(), startDate: '2021-03-05T10:00:00.000Z' },
+    ];
+    const service = {
+      _id: new ObjectID(),
+      billingItems: [
+        { _id: new ObjectID('d00000000000000000000000'), name: 'skusku' },
+        { _id: new ObjectID('d00000000000000000000001'), name: 'skusku 2' },
+      ],
+    };
     const fundings = [];
     const startDate = moment('2021/03/01', 'YYYY/MM/DD');
-
     const matchingService = { ...service, name: 'test' };
+
     getMatchingVersion.returns(matchingService);
     getEventBilling.onCall(0).returns({ customerPrice: 20 });
     getEventBilling.onCall(1).returns({ customerPrice: 15 });
@@ -755,9 +764,15 @@ describe('computeBillingInfoForEvents', () => {
     const result = DraftBillsHelper.computeBillingInfoForEvents(events, service, fundings, startDate, 12);
 
     expect(result).toEqual({
-      customerPrices: { exclTaxes: 45, inclTaxes: 50, hours: 6, eventsList: events },
-      thirdPartyPayerPrices: {},
-      startDate: moment('2021-02-04T12:00:00.000Z'),
+      prices: {
+        customerPrices: { exclTaxes: 45, inclTaxes: 50, hours: 6, eventsList: events },
+        thirdPartyPayerPrices: {},
+        startDate: moment('2021-02-04T12:00:00.000Z'),
+      },
+      billingItems: {
+        d00000000000000000000000: [events[0]._id, events[1]._id],
+        d00000000000000000000001: [events[0]._id, events[1]._id],
+      },
     });
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), events[0].startDate, service, 'startDate');
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(1), events[1].startDate, service, 'startDate');
@@ -787,13 +802,13 @@ describe('computeBillingInfoForEvents', () => {
       { startDate: '2021-03-05T10:00:00.000Z' },
       { startDate: '2021-03-06T10:00:00.000Z' },
     ];
-    const service = { _id: new ObjectID() };
+    const service = { _id: new ObjectID(), billingItems: [{ _id: new ObjectID(), name: 'skusku' }] };
+    const matchingService = { ...service, name: 'test' };
     const fundings = [{ _id: new ObjectID() }];
+    const matchingFunding = { ...fundings[0], thirdPartyPayer: 'tpp' };
     const startDate = moment('2021/03/01', 'YYYY/MM/DD');
 
-    const matchingService = { ...service, name: 'test' };
     getMatchingVersion.returns(matchingService);
-    const matchingFunding = { ...fundings[0], thirdPartyPayer: 'tpp' };
     getMatchingFunding.onCall(0).returns(null);
     getMatchingFunding.onCall(1).returns(matchingFunding);
     getMatchingFunding.onCall(2).returns(matchingFunding);
@@ -818,11 +833,14 @@ describe('computeBillingInfoForEvents', () => {
     const result = DraftBillsHelper.computeBillingInfoForEvents(events, service, fundings, startDate, 12);
 
     expect(result).toEqual({
-      customerPrices: { exclTaxes: 60, inclTaxes: 75, hours: 8, eventsList: events },
-      thirdPartyPayerPrices: {
-        [fundings[0]._id]: { exclTaxes: 42, inclTaxes: 46, hours: 4, eventsList: [events[1], events[2]] },
+      prices: {
+        customerPrices: { exclTaxes: 60, inclTaxes: 75, hours: 8, eventsList: events },
+        thirdPartyPayerPrices: {
+          [fundings[0]._id]: { exclTaxes: 42, inclTaxes: 46, hours: 4, eventsList: [events[1], events[2]] },
+        },
+        startDate,
       },
-      startDate,
+      billingItems: {},
     });
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), events[0].startDate, service, 'startDate');
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(1), events[1].startDate, service, 'startDate');
@@ -874,12 +892,16 @@ describe('computeBillingInfoForEvents', () => {
 
   it('should return empty infos if no event', () => {
     const startDate = moment('2021/01/01', 'YYYY/MM/DD');
+
     const result = DraftBillsHelper.computeBillingInfoForEvents([], { _id: new ObjectID() }, [], startDate, 0);
 
     expect(result).toEqual({
-      customerPrices: { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] },
-      thirdPartyPayerPrices: {},
-      startDate,
+      prices: {
+        customerPrices: { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] },
+        thirdPartyPayerPrices: {},
+        startDate,
+      },
+      billingItems: {},
     });
     sinon.assert.notCalled(getMatchingVersion);
     sinon.assert.notCalled(getMatchingFunding);

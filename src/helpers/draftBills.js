@@ -273,6 +273,7 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(billingStartDate);
+  const billingItems = {};
   for (const event of events) {
     const matchingService = UtilsHelper.getMatchingVersion(event.startDate, service, 'startDate');
     const matchingFunding = fundings && fundings.length > 0
@@ -292,15 +293,25 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
     }
 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
+
+    if (!fundings.length && get(matchingService, 'billingItems.length')) {
+      for (const billingItem of matchingService.billingItems) {
+        if (Object.keys(billingItems).includes(billingItem._id.toHexString())) {
+          billingItems[billingItem._id].push(event._id);
+        } else {
+          billingItems[`${billingItem._id}`] = [event._id];
+        }
+      }
+    }
   }
 
-  return { customerPrices, thirdPartyPayerPrices, startDate };
+  return { prices: { customerPrices, thirdPartyPayerPrices, startDate }, billingItems };
 };
 
 exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingStartDate, endDate) => {
   const { unitTTCRate } = UtilsHelper.getLastVersion(subscription.versions, 'createdAt');
   const serviceMatchingVersion = UtilsHelper.getMatchingVersion(endDate, subscription.service, 'startDate');
-  const { customerPrices, thirdPartyPayerPrices, startDate } =
+  const { prices: { customerPrices, thirdPartyPayerPrices, startDate }, billingItems } =
     exports.computeBillingInfoForEvents(events, subscription.service, fundings, billingStartDate, unitTTCRate);
 
   const draftBillInfo = {
