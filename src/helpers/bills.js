@@ -257,33 +257,54 @@ exports.getUnitInclTaxes = (bill, subscription) => {
     : subscription.unitInclTaxes;
 };
 
-exports.formatBillSubscriptionsForPdf = (bill) => {
+exports.computeSurcharge = (subscription) => {
+  let totalSurcharge = 0;
+  for (const event of subscription.events) {
+    if (!event.surcharges || event.surcharges.length === 0) continue;
+
+    for (const surcharge of event.surcharges) {
+      const duration = surcharge.startHour
+        ? moment(surcharge.endHour).diff(surcharge.startHour, 'm') / 60
+        : moment(event.endDate).diff(event.startDate, 'm') / 60;
+
+      totalSurcharge += duration * subscription.unitInclTaxes * (surcharge.percentage / 100);
+    }
+  }
+
+  return totalSurcharge;
+};
+
+exports.formatBillDetailsForPdf = (bill) => {
   let totalExclTaxes = 0;
   let totalVAT = 0;
-  const formattedSubs = [];
+  let totalDiscount = 0;
+  let totalSurcharge = 0;
+
+  const formattedDetails = [];
 
   for (const sub of bill.subscriptions) {
     totalExclTaxes += sub.exclTaxes;
     totalVAT += sub.inclTaxes - sub.exclTaxes;
-    const formattedSub = {
-      unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
-      inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
-      vat: sub.vat ? sub.vat.toString().replace(/\./g, ',') : 0,
-      service: sub.service.name,
-    };
-    if (sub.service.nature === HOURLY) {
-      const formattedHours = UtilsHelper.formatFloatForExport(sub.hours);
-      formattedSub.volume = formattedHours === '' ? '' : `${formattedHours} h`;
-    } else {
-      formattedSub.volume = sub.events.length;
-    }
-    formattedSubs.push(formattedSub);
+    totalDiscount += sub.discount;
+    const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
+    const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
+
+    formattedDetails.push({
+      unitInclTaxes,
+      vat: sub.vat || 0,
+      name: sub.service.name,
+      volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
+      total: volume * unitInclTaxes,
+    });
+    totalSurcharge += exports.computeSurcharge(sub);
   }
 
+  if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
+  if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
   totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
   totalVAT = UtilsHelper.formatPrice(totalVAT);
 
-  return { totalExclTaxes, totalVAT, formattedSubs };
+  return { totalExclTaxes, totalVAT, formattedDetails };
 };
 
 exports.formatEventsForPdf = (events, service) => {
@@ -321,7 +342,7 @@ exports.formatPdf = (bill, company) => {
         : UtilsHelper.formatIdentity(bill.customer.identity, 'TFL'),
     },
     forTpp: !!bill.thirdPartyPayer,
-    ...exports.formatBillSubscriptionsForPdf(bill),
+    ...exports.formatBillDetailsForPdf(bill),
   };
 
   for (const sub of bill.subscriptions) {
