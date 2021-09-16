@@ -303,6 +303,7 @@ describe('formatSubscriptionData', () => {
     sinon.assert.calledWithExactly(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
     sinon.assert.calledWithExactly(formatBilledEvents, bill);
   });
+
   it('should return formatted subscription data for tpp', () => {
     const bill = {
       subscription: {
@@ -354,6 +355,7 @@ describe('formatSubscriptionData', () => {
     formatBilledEvents.returns([{ event: 'event' }]);
 
     const result = BillHelper.formatSubscriptionData(bill);
+
     expect(result).toEqual(expect.objectContaining({
       subscription: 'asd',
       service: { serviceId: '1234567890', nature: 'test', name: 'service' },
@@ -422,6 +424,7 @@ describe('formatCustomerBills', () => {
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
+
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toEqual({
@@ -433,6 +436,7 @@ describe('formatCustomerBills', () => {
       type: 'automatic',
       netInclTaxes: 14.40,
       date: '2019-09-19T00:00:00',
+      billingItemList: [],
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
@@ -451,64 +455,67 @@ describe('formatCustomerBills', () => {
     const customerBills = {
       total: 14.4,
       shouldBeSent: false,
-      bills: [{
-        endDate: '2019-09-19T00:00:00',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
-        startDate: moment().add(1, 'd').toISOString(),
-        eventsList: [
-          {
-            event: '123',
-            startDate: '2019-05-28T10:00:55.374Z',
-            endDate: '2019-05-28T13:00:55.374Z',
-            auxiliary: '34567890',
-            inclTaxesTpp: 14.4,
-          },
-          {
-            event: '456',
-            startDate: '2019-05-29T08:00:55.374Z',
-            endDate: '2019-05-29T10:00:55.374Z',
-            auxiliary: '34567890',
-            inclTaxesTpp: 12,
-          },
-        ],
-      }, {
-        endDate: '2019-09-19T00:00:00',
-        subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 34,
-        exclTaxes: 15,
-        inclTaxes: 11,
-        hours: 5,
-        startDate: moment().add(1, 'd').toISOString(),
-        eventsList: [
-          {
-            event: '890',
-            startDate: '2019-05-29T10:00:55.374Z',
-            endDate: '2019-05-29T13:00:55.374Z',
-            auxiliary: '34567890',
-            inclTaxesTpp: 45,
-          },
-          {
-            event: '736',
-            startDate: '2019-05-30T08:00:55.374Z',
-            endDate: '2019-05-30T10:00:55.374Z',
-            auxiliary: '34567890',
-            inclTaxesTpp: 23,
-          },
-        ],
-      }],
+      bills: [
+        {
+          endDate: '2019-09-19T00:00:00',
+          subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
+          unitExclTaxes: 24.644549763033176,
+          exclTaxes: 13.649289099526067,
+          inclTaxes: 14.4,
+          hours: 1.5,
+          startDate: moment().add(1, 'd').toISOString(),
+          eventsList: [
+            {
+              event: '123',
+              startDate: '2019-05-28T10:00:55.374Z',
+              endDate: '2019-05-28T13:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 14.4,
+            },
+            {
+              event: '456',
+              startDate: '2019-05-29T08:00:55.374Z',
+              endDate: '2019-05-29T10:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 12,
+            },
+          ],
+        },
+        {
+          endDate: '2019-09-19T00:00:00',
+          subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString() }] } },
+          unitExclTaxes: 34,
+          exclTaxes: 15,
+          inclTaxes: 11,
+          hours: 5,
+          startDate: moment().add(1, 'd').toISOString(),
+          eventsList: [
+            {
+              event: '890',
+              startDate: '2019-05-29T10:00:55.374Z',
+              endDate: '2019-05-29T13:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 45,
+            },
+            {
+              event: '736',
+              startDate: '2019-05-30T08:00:55.374Z',
+              endDate: '2019-05-30T10:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 23,
+            },
+          ],
+        }],
     };
     formatBillNumber.returns('FACT-1234Picsou00077');
     getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
+
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
-    expect(result.bill).toMatchObject({
+    expect(result.bill).toEqual({
       company: company._id,
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
@@ -516,6 +523,8 @@ describe('formatCustomerBills', () => {
       date: '2019-09-19T00:00:00',
       netInclTaxes: 14.40,
       subscriptions: [{ subscriptions: 'subscriptions' }, { subscriptions: 'subscriptions' }],
+      billingItemList: [],
+      type: 'automatic',
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({

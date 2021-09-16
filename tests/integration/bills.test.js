@@ -510,6 +510,45 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(bills.length).toBe(draftBillsLength + authBillsList.length);
     });
 
+    it('should create a bill with billingItems', async () => {
+      const draftBillPayload = [{
+        customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
+        endDate: '2019-05-30T23:59:59.999Z',
+        customerBills: {
+          bills: [
+            payload[0].customerBills.bills[0],
+            {
+              _id: new ObjectID(),
+              discount: 0,
+              startDate: '2019-05-01T00:00:00.000Z',
+              endDate: '2019-05-31T23:59:59.999Z',
+              unitExclTaxes: 10.714285714285714,
+              unitInclTaxes: 12,
+              vat: 12,
+              eventsList: [eventList[4]._id],
+              hours: 2,
+              exclTaxes: 21.428571428571427,
+              inclTaxes: 24,
+              billingItem: { _id: billingItemList[0]._id, name: 'Billing Joel' },
+            },
+          ],
+          total: 48,
+        },
+      }];
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills/list',
+        payload: { bills: draftBillPayload },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const billCount = await Bill.countDocuments({ company: authCompany._id });
+      expect(billCount).toBe(1 + authBillsList.length);
+    });
+
     it('should return a 403 error if customer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -602,6 +641,41 @@ describe('BILL ROUTES - POST /bills/list', () => {
             },
           }],
         },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if a billingItem is not from same company', async () => {
+      const draftBillPayload = [{
+        customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
+        endDate: '2019-05-30T23:59:59.999Z',
+        customerBills: {
+          bills: [
+            {
+              _id: new ObjectID(),
+              discount: 0,
+              startDate: '2019-05-01T00:00:00.000Z',
+              endDate: '2019-05-31T23:59:59.999Z',
+              unitExclTaxes: 10.714285714285714,
+              unitInclTaxes: 12,
+              vat: 12,
+              eventsList: [eventList[4]._id],
+              hours: 2,
+              exclTaxes: 21.428571428571427,
+              inclTaxes: 24,
+              billingItem: { _id: billingItemList[2]._id, name: 'Billingbo Le Hobbit' },
+            },
+          ],
+          total: 48,
+        },
+      }];
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills/list',
+        payload: { bills: draftBillPayload },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

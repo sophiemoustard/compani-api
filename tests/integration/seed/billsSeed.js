@@ -42,6 +42,33 @@ const otherCompanyBillThirdPartyPayer = {
   billingMode: 'direct',
 };
 
+const billingItemList = [
+  {
+    _id: new ObjectID(),
+    name: 'Billing Joel',
+    type: 'manual',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Boule et Billing',
+    type: 'per_intervention',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Billingbo Le Hobbit',
+    type: 'per_intervention',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: otherCompany._id,
+  },
+];
+
 const billServices = [{
   _id: new ObjectID(),
   company: authCompany._id,
@@ -51,6 +78,7 @@ const billServices = [{
     startDate: '2019-01-16T17:58:15.519',
     vat: 12,
     exemptFromCharges: false,
+    billingItems: [billingItemList[0]._id],
   }],
   nature: HOURLY,
 }, {
@@ -270,25 +298,6 @@ const contracts = [
         _id: new ObjectID(),
       },
     ],
-  },
-];
-
-const billingItemList = [
-  {
-    _id: new ObjectID(),
-    name: 'Billing Joel',
-    type: 'manual',
-    defaultUnitAmount: 12,
-    vat: 15,
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Boule et Billing',
-    type: 'per_intervention',
-    defaultUnitAmount: 12,
-    vat: 15,
-    company: authCompany._id,
   },
 ];
 

@@ -49,12 +49,19 @@ exports.authorizeGetBillPdf = async (req) => {
 };
 
 const getUniqueIdsFromBills = (bills) => {
-  const ids = { subscriptionsIds: new Set(), eventsIds: new Set(), tppIds: new Set() };
+  const ids = { subscriptionsIds: new Set(), eventsIds: new Set(), tppIds: new Set(), billingItemsIds: new Set() };
 
   for (const bill of bills) {
     for (const customerBill of bill.customerBills.bills) {
-      ids.eventsIds.add(...customerBill.eventsList.map(ev => ev.event));
-      ids.subscriptionsIds.add(customerBill.subscription._id);
+      if (customerBill.subscription) {
+        ids.eventsIds.add(...customerBill.eventsList.map(ev => ev.event));
+        ids.subscriptionsIds.add(customerBill.subscription._id);
+      }
+
+      if (customerBill.billingItem) {
+        ids.eventsIds.add(...customerBill.eventsList);
+        ids.billingItemsIds.add(customerBill.billingItem._id);
+      }
     }
 
     if (bill.thirdPartyPayerBills && bill.thirdPartyPayerBills.length) {
@@ -88,6 +95,12 @@ exports.authorizeBillsCreation = async (req) => {
   const subscriptionIds = [...ids.subscriptionsIds].map(sub => new ObjectID(sub));
   const subscriptions = await CustomerRepository.getSubscriptions(subscriptionIds, companyId);
   if (subscriptions.length !== ids.subscriptionsIds.size) throw Boom.forbidden();
+
+  const billingItemsCount = await BillingItem.countDocuments({
+    _id: { $in: [...ids.billingItemsIds] },
+    company: companyId,
+  });
+  if (billingItemsCount !== ids.billingItemsIds.size) throw Boom.forbidden();
 
   const tppCount = await ThirdPartyPayer.countDocuments({ _id: { $in: [...ids.tppIds] }, company: companyId });
   if (tppCount !== ids.tppIds.size) throw Boom.forbidden();

@@ -40,6 +40,14 @@ exports.formatSubscriptionData = (bill) => {
   };
 };
 
+exports.formatBillingItemData = bill => ({
+  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'vat']),
+  billingItem: bill.billingItem._id,
+  events: bill.eventsList,
+  name: bill.billingItem.name,
+  count: bill.eventsList.length,
+});
+
 exports.formatCustomerBills = (customerBills, customer, number, company) => {
   const billedEvents = {};
   const bill = {
@@ -51,12 +59,17 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     shouldBeSent: customerBills.shouldBeSent,
     type: AUTOMATIC,
     company: company._id,
+    billingItemList: [],
   };
 
   for (const draftBill of customerBills.bills) {
-    bill.subscriptions.push(exports.formatSubscriptionData(draftBill));
-    for (const ev of draftBill.eventsList) {
-      billedEvents[ev.event] = { ...ev };
+    if (draftBill.subscription) {
+      bill.subscriptions.push(exports.formatSubscriptionData(draftBill));
+      for (const ev of draftBill.eventsList) {
+        billedEvents[ev.event] = { ...ev };
+      }
+    } else {
+      bill.billingItemList.push(exports.formatBillingItemData(draftBill));
     }
   }
 
