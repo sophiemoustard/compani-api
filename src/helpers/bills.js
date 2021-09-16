@@ -208,6 +208,7 @@ exports.formatBillingItem = (bi, bddBillingItemList) => {
     count: bi.count,
     inclTaxes: bi.unitInclTaxes * bi.count,
     exclTaxes: (bi.unitInclTaxes / (1 + bddBillingItem.vat / 100)) * bi.count,
+    vat: bddBillingItem.vat,
   };
 };
 

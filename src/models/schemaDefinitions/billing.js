@@ -14,6 +14,10 @@ const billingItemSchemaDefinition = {
   count: { type: Number, required: true },
   inclTaxes: { type: Number, required: true },
   exclTaxes: { type: Number, required: true },
+  vat: { type: Number, required: true },
+  startDate: Date,
+  endDate: Date,
+  events: Array,
 };
 
 module.exports = { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition };

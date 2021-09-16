@@ -369,6 +369,7 @@ const authBillsList = [
       count: 2,
       inclTaxes: 2000,
       exclTaxes: 200,
+      vat: 5,
     }],
   },
 ];
@@ -419,6 +420,7 @@ const billsList = [
       count: 2,
       inclTaxes: 2,
       exclTaxes: 4,
+      vat: 2,
     }],
   },
 ];

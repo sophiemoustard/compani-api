@@ -1568,6 +1568,7 @@ describe('formatBillingItem', () => {
       count: 3,
       inclTaxes: 180,
       exclTaxes: 150,
+      vat: 20,
     });
   });
 });
