@@ -299,8 +299,23 @@ exports.formatBillDetailsForPdf = (bill) => {
     totalSurcharge += exports.computeSurcharge(sub);
   }
 
-  if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
   if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
+
+  if (bill.billingItemList) {
+    for (const bi of bill.billingItemList) {
+      totalExclTaxes += bi.exclTaxes;
+      totalVAT += bi.inclTaxes - bi.exclTaxes;
+
+      formattedDetails.push({
+        name: bi.name,
+        unitInclTaxes: bi.unitInclTaxes,
+        volume: bi.count,
+        total: bi.inclTaxes,
+      });
+    }
+  }
+
+  if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
   totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
   totalVAT = UtilsHelper.formatPrice(totalVAT);
 
@@ -352,6 +367,7 @@ exports.formatPdf = (bill, company) => {
 
   return {
     bill: {
+      type: bill.type,
       number: bill.number,
       customer: {
         identity: { ...get(bill, 'customer.identity'), title: CIVILITY_LIST[get(bill, 'customer.identity.title')] },

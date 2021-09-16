@@ -37,7 +37,9 @@ exports.getPdfContent = async (data) => {
   const priceTable = UtilsPdfHelper.getPriceTable(bill);
   const eventsTable = UtilsPdfHelper.getEventsTable(bill, !bill.forTpp);
 
-  const content = [header, serviceTable, priceTable, eventsTable];
+  const content = bill.type === 'automatic'
+    ? [header, serviceTable, priceTable, eventsTable]
+    : [header, serviceTable, priceTable];
 
   return {
     content: content.flat(),
