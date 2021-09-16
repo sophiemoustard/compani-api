@@ -429,12 +429,13 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
       billingStartDate,
       dates.endDate
     );
+    const customerBills = [...subscriptionsDraftBills, ...formattedBillingItems];
     const groupedByCustomerBills = {
       customer,
       endDate: dates.endDate,
       customerBills: {
-        bills: [...subscriptionsDraftBills, ...formattedBillingItems],
-        total: [...subscriptionsDraftBills, ...formattedBillingItems].reduce((sum, b) => sum + (b.inclTaxes || 0), 0),
+        bills: customerBills,
+        total: customerBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0),
       },
     };
     if (Object.values(tppBills).length > 0) {
