@@ -1926,7 +1926,7 @@ describe('formatBillDetailsForPdf', () => {
         hours: 0,
         exclTaxes: 20.3,
         inclTaxes: 22,
-        events: [{ startDate: '2019-09-15T05:00:00.000+00:00', endDate: '2019-09-15T05:00:00.000+00:00'}],
+        events: [{ startDate: '2019-09-15T05:00:00.000+00:00', endDate: '2019-09-15T05:00:00.000+00:00' }],
       }],
     };
 

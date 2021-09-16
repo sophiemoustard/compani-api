@@ -6,7 +6,7 @@ exports.getPdfContent = async (data) => {
   const { bill } = data;
   const header = await UtilsPdfHelper.getHeader(bill.company, bill, BILL);
 
-  const serviceTableBody = [
+  const billDetailsTableBody = [
     [
       { text: 'Intitulé', bold: true },
       { text: 'Prix unitaire TTC', bold: true },
@@ -15,20 +15,20 @@ exports.getPdfContent = async (data) => {
     ],
   ];
 
-  bill.formattedDetails.forEach((sub) => {
-    serviceTableBody.push(
+  bill.formattedDetails.forEach((detail) => {
+    billDetailsTableBody.push(
       [
-        { text: `${sub.name}${sub.vat ? ` (TVA ${UtilsHelper.formatPercentage(sub.vat / 100)})` : ''}` },
-        { text: sub.unitInclTaxes ? UtilsHelper.formatPrice(sub.unitInclTaxes) : '-' },
-        { text: sub.volume || '-' },
-        { text: sub.total ? UtilsHelper.formatPrice(sub.total) : '-' },
+        { text: `${detail.name}${detail.vat ? ` (TVA ${UtilsHelper.formatPercentage(detail.vat / 100)})` : ''}` },
+        { text: detail.unitInclTaxes ? UtilsHelper.formatPrice(detail.unitInclTaxes) : '-' },
+        { text: detail.volume || '-' },
+        { text: detail.total ? UtilsHelper.formatPrice(detail.total) : '-' },
       ]
     );
   });
 
   const serviceTable = [
     {
-      table: { body: serviceTableBody, widths: ['*', 'auto', 'auto', 'auto'] },
+      table: { body: billDetailsTableBody, widths: ['*', 'auto', 'auto', 'auto'] },
       margin: [0, 40, 0, 8],
       layout: { vLineWidth: () => 0.5, hLineWidth: () => 0.5 },
     },

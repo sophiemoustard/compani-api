@@ -291,7 +291,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 
     formattedDetails.push({
       unitInclTaxes,
-      vat: sub.vat ? sub.vat : 0,
+      vat: sub.vat || 0,
       name: sub.service.name,
       volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
       total: volume * unitInclTaxes,
