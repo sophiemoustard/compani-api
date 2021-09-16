@@ -1962,7 +1962,7 @@ describe('formatBillDetailsForPdf', () => {
         hours: 18,
         exclTaxes: 430.5444,
         inclTaxes: 454.2243,
-        discount: 5,
+        discount: -5,
       }],
     };
 

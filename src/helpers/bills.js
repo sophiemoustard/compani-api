@@ -299,7 +299,7 @@ exports.formatBillDetailsForPdf = (bill) => {
     totalSurcharge += exports.computeSurcharge(sub);
   }
 
-  if (totalDiscount) formattedDetails.push({ name: 'Remises', total: totalDiscount });
+  if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
   if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
   totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
   totalVAT = UtilsHelper.formatPrice(totalVAT);
