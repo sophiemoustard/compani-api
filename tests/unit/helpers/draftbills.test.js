@@ -1141,7 +1141,7 @@ describe('formatBillingItems', () => {
   });
 
   it('should return formatted billing items', async () => {
-    const eventsGroupedByBillingItemList = [
+    const eventsByBillingItemBySubscriptions = [
       { d00000000000000000000001: ['eventId1', 'eventId2'], d00000000000000000000002: ['eventId1, eventId2'] },
       { d00000000000000000000001: ['eventId3'] },
     ];
@@ -1164,7 +1164,7 @@ describe('formatBillingItems', () => {
     const bddBillingItems = [billingItem1, billingItem2, billingItem1];
 
     const result = await DraftBillsHelper.formatBillingItems(
-      eventsGroupedByBillingItemList,
+      eventsByBillingItemBySubscriptions,
       bddBillingItems,
       billingStartDate,
       endDate

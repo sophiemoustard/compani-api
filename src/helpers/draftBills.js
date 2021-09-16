@@ -346,40 +346,43 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
   return { ...draftBillsPerSubscription, eventsByBillingItem };
 };
 
-exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, startDate, endDate) => {
-  const formattedBillingItems = [];
-  for (const eventByBillingItem of eventsByBillingItemBySubscriptions) {
-    for (const billingItemId of Object.keys(eventByBillingItem)) {
-      const bddBillingItem = billingItems.find(bi => UtilsHelper.areObjectIdsEquals(bi._id, billingItemId));
-      const eventsList = eventByBillingItem[billingItemId];
-      const unitExclTaxes = exports.getExclTaxes(bddBillingItem.defaultUnitAmount, bddBillingItem.vat);
-
-      const existingbillingItemIndex = formattedBillingItems.findIndex(
-        bi => UtilsHelper.areObjectIdsEquals(bi.billingItem._id, billingItemId)
-      );
-      if (existingbillingItemIndex !== -1) {
-        // billingItem has already been formatted for another subscription
-        formattedBillingItems[existingbillingItemIndex].eventsList = formattedBillingItems[existingbillingItemIndex]
-          .eventsList.concat(eventsList);
-        formattedBillingItems[existingbillingItemIndex].exclTaxes += unitExclTaxes * eventsList.length;
-        formattedBillingItems[existingbillingItemIndex].inclTaxes += bddBillingItem.defaultUnitAmount
-          * eventsList.length;
+const formatEventsByBillingItem = (eventsByBillingItemBySubscriptions) => {
+  const eventsByBillingItem = {};
+  for (const eventsByBillingItemInSubscription of eventsByBillingItemBySubscriptions) {
+    for (const [billingItemId, eventsList] of Object.entries(eventsByBillingItemInSubscription)) {
+      if (eventsByBillingItem[billingItemId]) {
+        eventsByBillingItem[billingItemId] = eventsByBillingItem[billingItemId]
+          .concat(eventsList);
       } else {
-        formattedBillingItems.push({
-          _id: new ObjectID(),
-          billingItem: { _id: billingItemId, name: bddBillingItem.name },
-          discount: 0,
-          unitExclTaxes,
-          unitInclTaxes: bddBillingItem.defaultUnitAmount,
-          vat: bddBillingItem.vat,
-          eventsList,
-          exclTaxes: unitExclTaxes * eventsList.length,
-          inclTaxes: bddBillingItem.defaultUnitAmount * eventsList.length,
-          startDate,
-          endDate,
-        });
+        eventsByBillingItem[billingItemId] = eventsList;
       }
     }
+  }
+
+  return eventsByBillingItem;
+};
+
+exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, startDate, endDate) => {
+  const eventsByBillingItem = formatEventsByBillingItem(eventsByBillingItemBySubscriptions);
+
+  const formattedBillingItems = [];
+  for (const [billingItemId, eventsList] of Object.entries(eventsByBillingItem)) {
+    const bddBillingItem = billingItems.find(bi => UtilsHelper.areObjectIdsEquals(bi._id, billingItemId));
+    const unitExclTaxes = exports.getExclTaxes(bddBillingItem.defaultUnitAmount, bddBillingItem.vat);
+
+    formattedBillingItems.push({
+      _id: new ObjectID(),
+      billingItem: { _id: billingItemId, name: bddBillingItem.name },
+      discount: 0,
+      unitExclTaxes,
+      unitInclTaxes: bddBillingItem.defaultUnitAmount,
+      vat: bddBillingItem.vat,
+      eventsList,
+      exclTaxes: unitExclTaxes * eventsList.length,
+      inclTaxes: bddBillingItem.defaultUnitAmount * eventsList.length,
+      startDate,
+      endDate,
+    });
   }
 
   return formattedBillingItems;
@@ -414,7 +417,7 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
         dates.endDate
       );
       if (draftBills.customer) subscriptionsDraftBills.push(draftBills.customer);
-      if (draftBills.billingItems) eventsByBillingItemBySubscriptions.push(draftBills.eventsByBillingItem);
+      if (draftBills.eventsByBillingItem) eventsByBillingItemBySubscriptions.push(draftBills.eventsByBillingItem);
       if (draftBills.thirdPartyPayer) {
         for (const tpp of Object.keys(draftBills.thirdPartyPayer)) {
           if (!tppBills[tpp]) tppBills[tpp] = [draftBills.thirdPartyPayer[tpp]];
@@ -430,10 +433,7 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
     const groupedByCustomerBills = {
       customer,
       endDate: dates.endDate,
-      customerBills: {
-        bills: customerBills,
-        total: customerBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0),
-      },
+      customerBills: { bills: customerBills, total: customerBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0) },
     };
     if (Object.values(tppBills).length > 0) {
       groupedByCustomerBills.thirdPartyPayerBills = [];
