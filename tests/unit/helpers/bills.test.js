@@ -1846,7 +1846,7 @@ describe('computeSurcharge', () => {
     expect(totalSurcharge).toEqual(7.646875);
   });
 
-  it('should not compute totalSurcharges if there are note surcharges in a subscription', () => {
+  it('should not compute totalSurcharges if there is no surcharge in a subscription', () => {
     const subscription = {
       unitInclTaxes: 24.47,
       vat: 5.5,
