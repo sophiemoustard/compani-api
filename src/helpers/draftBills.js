@@ -9,21 +9,22 @@ const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE, FIXED, BILLING_DIRECT } = require('./constants');
 const UtilsHelper = require('./utils');
 const SurchargesHelper = require('./surcharges');
+const DatesHelper = require('./dates');
 
-exports.populateSurchargeAndBillingItem = async (subscription, surcharges, billingItems) => ({
+const populateSurchargeAndBillingItem = (arr, surcharges, billingItems) => arr.map(v => ({
+  ...v,
+  ...(v.surcharge && { surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }),
+  billingItems: v.billingItems.map(bi =>
+    billingItems.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi))),
+}))
+  .sort(DatesHelper.descendingSort('startDate'));
+
+exports.populateAndFormatSubscription = async (subscription, surcharges, billingItems) => ({
   ...subscription,
-  versions: [...subscription.versions].sort((a, b) => new Date(b.startDate) - new Date(a.startDate)),
+  versions: [...subscription.versions].sort(DatesHelper.descendingSort('startDate')),
   service: {
     ...subscription.service,
-    versions: subscription.service.versions
-      .map(v => ({
-        ...v,
-        ...(v.surcharge && { surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }),
-        billingItems: v.billingItems.map(bi =>
-          billingItems.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi))),
-      }))
-      .sort((a, b) => new Date(b.startDate) - new Date(a.startDate)), // bug étrange temps de qualité de vie,
-    // 1ère version est un string et pas une date
+    versions: populateSurchargeAndBillingItem(subscription.service.versions, surcharges, billingItems),
   },
 });
 
@@ -273,12 +274,12 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(billingStartDate);
-  const billingItems = {};
+  const eventsByBillingItem = {};
+
   for (const event of events) {
     const matchingService = UtilsHelper.getMatchingVersion(event.startDate, service, 'startDate');
-    const matchingFunding = fundings && fundings.length > 0
-      ? exports.getMatchingFunding(event.startDate, fundings)
-      : null;
+    const matchingFunding = get(fundings, 'length') ? exports.getMatchingFunding(event.startDate, fundings) : null;
+
     const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
     customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
@@ -294,24 +295,22 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
 
-    if (get(matchingService, 'billingItems.length')) {
-      for (const billingItem of matchingService.billingItems) {
-        if (Object.keys(billingItems).includes(billingItem._id.toHexString())) {
-          billingItems[billingItem._id].push(event._id);
-        } else {
-          billingItems[`${billingItem._id}`] = [event._id];
-        }
+    for (const billingItem of matchingService.billingItems) {
+      if (eventsByBillingItem[billingItem._id.toHexString()]) {
+        eventsByBillingItem[billingItem._id.toHexString()].push(event._id.toHexString());
+      } else {
+        eventsByBillingItem[billingItem._id.toHexString()] = [event._id.toHexString()];
       }
     }
   }
 
-  return { prices: { customerPrices, thirdPartyPayerPrices, startDate }, billingItems };
+  return { prices: { customerPrices, thirdPartyPayerPrices, startDate }, eventsByBillingItem };
 };
 
 exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingStartDate, endDate) => {
   const { unitTTCRate } = UtilsHelper.getLastVersion(subscription.versions, 'createdAt');
   const serviceMatchingVersion = UtilsHelper.getMatchingVersion(endDate, subscription.service, 'startDate');
-  const { prices: { customerPrices, thirdPartyPayerPrices, startDate }, billingItems } =
+  const { prices: { customerPrices, thirdPartyPayerPrices, startDate }, eventsByBillingItem } =
     exports.computeBillingInfoForEvents(events, subscription.service, fundings, billingStartDate, unitTTCRate);
 
   const draftBillInfo = {
@@ -344,18 +343,20 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
     );
   }
 
-  return { ...draftBillsPerSubscription, billingItems };
+  return { ...draftBillsPerSubscription, eventsByBillingItem };
 };
 
-exports.formatBillingItemsDraftBills = async (eventsGroupedByBillingItemList, startDate, endDate) => {
+exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, startDate, endDate) => {
   const formattedBillingItems = [];
-  for (const eventsGroupedByBillingItem of eventsGroupedByBillingItemList) {
-    for (const billingItemId of Object.keys(eventsGroupedByBillingItem)) {
-      const bddBillingItem = await BillingItem.findOne({ _id: billingItemId }).lean();
-      const eventsList = eventsGroupedByBillingItem[billingItemId];
-      const unitExclTaxes = bddBillingItem.defaultUnitAmount / (1 + bddBillingItem.vat / 100);
+  for (const eventByBillingItem of eventsByBillingItemBySubscriptions) {
+    for (const billingItemId of Object.keys(eventByBillingItem)) {
+      const bddBillingItem = billingItems.find(bi => UtilsHelper.areObjectIdsEquals(bi._id, billingItemId));
+      const eventsList = eventByBillingItem[billingItemId];
+      const unitExclTaxes = exports.getExclTaxes(bddBillingItem.defaultUnitAmount, bddBillingItem.vat);
 
-      const existingbillingItemIndex = formattedBillingItems.findIndex(bi => bi.billingItem._id === billingItemId);
+      const existingbillingItemIndex = formattedBillingItems.findIndex(
+        bi => UtilsHelper.areObjectIdsEquals(bi.billingItem._id, billingItemId)
+      );
       if (existingbillingItemIndex !== -1) {
         // billingItem has already been formatted for another subscription
         formattedBillingItems[existingbillingItemIndex].eventsList = formattedBillingItems[existingbillingItemIndex]
@@ -387,25 +388,23 @@ exports.formatBillingItemsDraftBills = async (eventsGroupedByBillingItemList, st
 exports.getDraftBillsList = async (dates, billingStartDate, credentials, customerId = null) => {
   const companyId = get(credentials, 'company._id', null);
   const eventsToBill = await EventRepository.getEventsToBill(dates, customerId, companyId);
-  const thirdPartyPayersList = await ThirdPartyPayer.find({ company: companyId }).lean();
+  const thirdPartyPayers = await ThirdPartyPayer.find({ company: companyId }).lean();
   const surcharges = await Surcharge.find({ company: companyId }).lean();
-  const bddBillingItems = await BillingItem.find({ company: companyId }).lean();
+  const billingItems = await BillingItem.find({ company: companyId }).lean();
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const subscriptionsDraftBills = [];
     const tppBills = {};
-    const billingItems = [];
+    const eventsByBillingItemBySubscriptions = [];
     const { customer, eventsBySubscriptions } = eventsToBill[i];
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
-      const subscription = await exports.populateSurchargeAndBillingItem(
+      const subscription = await exports.populateAndFormatSubscription(
         eventsBySubscriptions[k].subscription,
         surcharges,
-        bddBillingItems
+        billingItems
       );
       let { fundings } = eventsBySubscriptions[k];
-      fundings = fundings
-        ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList, companyId)
-        : null;
+      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayers, companyId) : null;
 
       const draftBills = exports.getDraftBillsPerSubscription(
         eventsBySubscriptions[k].events,
@@ -415,7 +414,7 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
         dates.endDate
       );
       if (draftBills.customer) subscriptionsDraftBills.push(draftBills.customer);
-      if (draftBills.billingItems) billingItems.push(draftBills.billingItems);
+      if (draftBills.billingItems) eventsByBillingItemBySubscriptions.push(draftBills.eventsByBillingItem);
       if (draftBills.thirdPartyPayer) {
         for (const tpp of Object.keys(draftBills.thirdPartyPayer)) {
           if (!tppBills[tpp]) tppBills[tpp] = [draftBills.thirdPartyPayer[tpp]];
@@ -424,12 +423,10 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
       }
     }
 
-    const formattedBillingItems = await exports.formatBillingItemsDraftBills(
-      billingItems,
-      billingStartDate,
-      dates.endDate
-    );
-    const customerBills = [...subscriptionsDraftBills, ...formattedBillingItems];
+    const customerBills = [
+      ...subscriptionsDraftBills,
+      ...exports.formatBillingItems(eventsByBillingItemBySubscriptions, billingItems, billingStartDate, dates.endDate),
+    ];
     const groupedByCustomerBills = {
       customer,
       endDate: dates.endDate,

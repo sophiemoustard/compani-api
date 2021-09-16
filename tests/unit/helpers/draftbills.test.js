@@ -14,7 +14,7 @@ const SurchargesHelper = require('../../../src/helpers/surcharges');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../../../src/helpers/constants');
 
-describe('populateSurchargeAndBillingItem', () => {
+describe('populateAndFormatSubscription', () => {
   it('should populate surcharge and order versions', async () => {
     const surchargeId = new ObjectID();
     const bddSurcharges = [{ _id: surchargeId, sundaySurcharge: 10 }];
@@ -45,7 +45,7 @@ describe('populateSurchargeAndBillingItem', () => {
       },
     };
 
-    const result = await DraftBillsHelper.populateSurchargeAndBillingItem(subscription, bddSurcharges, bddBillingItems);
+    const result = await DraftBillsHelper.populateAndFormatSubscription(subscription, bddSurcharges, bddBillingItems);
 
     expect(result).toEqual(expect.objectContaining({
       _id: 'abc',
@@ -769,9 +769,9 @@ describe('computeBillingInfoForEvents', () => {
         thirdPartyPayerPrices: {},
         startDate: moment('2021-02-04T12:00:00.000Z'),
       },
-      billingItems: {
-        d00000000000000000000000: [events[0]._id, events[1]._id],
-        d00000000000000000000001: [events[0]._id, events[1]._id],
+      eventsByBillingItem: {
+        d00000000000000000000000: [events[0]._id.toHexString(), events[1]._id.toHexString()],
+        d00000000000000000000001: [events[0]._id.toHexString(), events[1]._id.toHexString()],
       },
     });
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), events[0].startDate, service, 'startDate');
@@ -843,8 +843,12 @@ describe('computeBillingInfoForEvents', () => {
         },
         startDate,
       },
-      billingItems: {
-        d00000000000000000000000: [events[0]._id, events[1]._id, events[2]._id],
+      eventsByBillingItem: {
+        d00000000000000000000000: [
+          events[0]._id.toHexString(),
+          events[1]._id.toHexString(),
+          events[2]._id.toHexString(),
+        ],
       },
     });
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), events[0].startDate, service, 'startDate');
@@ -906,7 +910,7 @@ describe('computeBillingInfoForEvents', () => {
         thirdPartyPayerPrices: {},
         startDate,
       },
-      billingItems: {},
+      eventsByBillingItem: {},
     });
     sinon.assert.notCalled(getMatchingVersion);
     sinon.assert.notCalled(getMatchingFunding);
@@ -1007,7 +1011,7 @@ describe('getDraftBillsPerSubscription', () => {
         thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
         startDate: moment('2019/02/01', 'YY/MM/DD'),
       },
-      billingItems: [{ d00000000000000000000001: [events[0]._id] }],
+      eventsByBillingItem: [{ d00000000000000000000001: [events[0]._id] }],
     });
 
     const result =
@@ -1017,7 +1021,7 @@ describe('getDraftBillsPerSubscription', () => {
     expect(result.customer.unitExclTaxes).toEqual(70);
     expect(result.customer.unitInclTaxes).toEqual(21);
     expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
-    expect(result.billingItems).toEqual([{ d00000000000000000000001: [events[0]._id] }]);
+    expect(result.eventsByBillingItem).toEqual([{ d00000000000000000000001: [events[0]._id] }]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
@@ -1052,7 +1056,7 @@ describe('getDraftBillsPerSubscription', () => {
         customerPrices: { exclTaxes: 35 },
         startDate: moment('2019/02/01', 'YY/MM/DD'),
       },
-      billingItems: [],
+      eventsByBillingItem: [],
     });
 
     const result =
@@ -1061,7 +1065,7 @@ describe('getDraftBillsPerSubscription', () => {
     expect(result.customer.exclTaxes).toEqual(35);
     expect(result.customer.unitExclTaxes).toEqual(70);
     expect(result.customer.unitInclTaxes).toEqual(21);
-    expect(result.billingItems).toEqual([]);
+    expect(result.eventsByBillingItem).toEqual([]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
@@ -1099,7 +1103,7 @@ describe('getDraftBillsPerSubscription', () => {
         thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
         startDate: moment('2019/02/01', 'YY/MM/DD'),
       },
-      billingItems: [],
+      eventsByBillingItem: [],
     });
 
     const result =
@@ -1107,7 +1111,7 @@ describe('getDraftBillsPerSubscription', () => {
 
     expect(result.customer).toBeUndefined();
     expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
-    expect(result.billingItems).toEqual([]);
+    expect(result.eventsByBillingItem).toEqual([]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
@@ -1126,7 +1130,7 @@ describe('getDraftBillsPerSubscription', () => {
   });
 });
 
-describe('formatBillingItemsDraftBills', () => {
+describe('formatBillingItems', () => {
   let findOne;
 
   beforeEach(() => {
@@ -1138,25 +1142,37 @@ describe('formatBillingItemsDraftBills', () => {
 
   it('should return formatted billing items', async () => {
     const eventsGroupedByBillingItemList = [
-      { billingItemId1: ['eventId1', 'eventId2'], billingItemId2: ['eventId1, eventId2'] },
-      { billingItemId1: ['eventId3'] },
+      { d00000000000000000000001: ['eventId1', 'eventId2'], d00000000000000000000002: ['eventId1, eventId2'] },
+      { d00000000000000000000001: ['eventId3'] },
     ];
     const endDate = '2019-12-25T07:00:00';
     const billingStartDate = '2019-12-31T07:00:00';
-    const billingItem1 = { _id: 'billingItemId1', name: 'FI', type: 'per_intervention', defaultUnitAmount: 1, vat: 10 };
-    const billingItem2 = { _id: 'billingItemId1', name: 'FI', type: 'per_intervention', defaultUnitAmount: 5, vat: 10 };
+    const billingItem1 = {
+      _id: 'd00000000000000000000001',
+      name: 'FI',
+      type: 'per_intervention',
+      defaultUnitAmount: 1,
+      vat: 10,
+    };
+    const billingItem2 = {
+      _id: 'd00000000000000000000002',
+      name: 'EPI',
+      type: 'per_intervention',
+      defaultUnitAmount: 5,
+      vat: 10,
+    };
+    const bddBillingItems = [billingItem1, billingItem2, billingItem1];
 
-    findOne.returns(SinonMongoose.stubChainedQueries([billingItem1, billingItem2, billingItem1], ['lean']));
-
-    const result = await DraftBillsHelper.formatBillingItemsDraftBills(
+    const result = await DraftBillsHelper.formatBillingItems(
       eventsGroupedByBillingItemList,
+      bddBillingItems,
       billingStartDate,
       endDate
     );
 
     expect(result).toEqual([
       expect.objectContaining({
-        billingItem: { _id: 'billingItemId1', name: 'FI' },
+        billingItem: { _id: 'd00000000000000000000001', name: 'FI' },
         discount: 0,
         unitExclTaxes: 0.9090909090909091,
         unitInclTaxes: 1,
@@ -1168,7 +1184,7 @@ describe('formatBillingItemsDraftBills', () => {
         endDate: '2019-12-25T07:00:00',
       }),
       expect.objectContaining({
-        billingItem: { _id: 'billingItemId2', name: 'FI' },
+        billingItem: { _id: 'd00000000000000000000002', name: 'EPI' },
         discount: 0,
         unitExclTaxes: 4.545454545454545,
         unitInclTaxes: 5,
@@ -1188,32 +1204,32 @@ describe('getDraftBillsList', () => {
   const billingStartDate = '2019-12-31T07:00:00';
   let findThirdPartyPayer;
   let getEventsToBill;
-  let populateSurchargeAndBillingItem;
+  let populateAndFormatSubscription;
   let populateFundings;
   let getDraftBillsPerSubscription;
   let findSurcharge;
   let findBillingItem;
-  let formatBillingItemsDraftBills;
+  let formatBillingItems;
 
   beforeEach(() => {
     findThirdPartyPayer = sinon.stub(ThirdPartyPayer, 'find');
     getEventsToBill = sinon.stub(EventRepository, 'getEventsToBill');
-    populateSurchargeAndBillingItem = sinon.stub(DraftBillsHelper, 'populateSurchargeAndBillingItem');
+    populateAndFormatSubscription = sinon.stub(DraftBillsHelper, 'populateAndFormatSubscription');
     populateFundings = sinon.stub(DraftBillsHelper, 'populateFundings');
     getDraftBillsPerSubscription = sinon.stub(DraftBillsHelper, 'getDraftBillsPerSubscription');
     findSurcharge = sinon.stub(Surcharge, 'find');
     findBillingItem = sinon.stub(BillingItem, 'find');
-    formatBillingItemsDraftBills = sinon.stub(DraftBillsHelper, 'formatBillingItemsDraftBills');
+    formatBillingItems = sinon.stub(DraftBillsHelper, 'formatBillingItems');
   });
   afterEach(() => {
     findThirdPartyPayer.restore();
     getEventsToBill.restore();
-    populateSurchargeAndBillingItem.restore();
+    populateAndFormatSubscription.restore();
     populateFundings.restore();
     getDraftBillsPerSubscription.restore();
     findSurcharge.restore();
     findBillingItem.restore();
-    formatBillingItemsDraftBills.restore();
+    formatBillingItems.restore();
   });
 
   it('should return empty array if not event to bill', async () => {
@@ -1226,7 +1242,7 @@ describe('getDraftBillsList', () => {
     findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     findSurcharge.returns(SinonMongoose.stubChainedQueries([bddSurcharges], ['lean']));
     findBillingItem.returns(SinonMongoose.stubChainedQueries([bddBillingItems], ['lean']));
-    formatBillingItemsDraftBills.returns([]);
+    formatBillingItems.returns([]);
 
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
@@ -1244,7 +1260,7 @@ describe('getDraftBillsList', () => {
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
-    sinon.assert.notCalled(populateSurchargeAndBillingItem);
+    sinon.assert.notCalled(populateAndFormatSubscription);
     sinon.assert.notCalled(populateFundings);
     sinon.assert.notCalled(getDraftBillsPerSubscription);
   });
@@ -1276,7 +1292,7 @@ describe('getDraftBillsList', () => {
         ],
       },
     ]);
-    populateSurchargeAndBillingItem.returnsArg(0);
+    populateAndFormatSubscription.returnsArg(0);
     populateFundings.returnsArg(0);
     getDraftBillsPerSubscription.onCall(0).returns({
       customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 },
@@ -1292,7 +1308,7 @@ describe('getDraftBillsList', () => {
       },
       billingItems: [],
     });
-    formatBillingItemsDraftBills.returns([]);
+    formatBillingItems.returns([]);
 
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
@@ -1318,13 +1334,13 @@ describe('getDraftBillsList', () => {
     ]);
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
     sinon.assert.calledWithExactly(
-      populateSurchargeAndBillingItem.firstCall,
+      populateAndFormatSubscription.firstCall,
       { _id: '1234567890' },
       bddSurcharges,
       bddBillingItems
     );
     sinon.assert.calledWithExactly(
-      populateSurchargeAndBillingItem.secondCall,
+      populateAndFormatSubscription.secondCall,
       { _id: '0987654321' },
       bddSurcharges,
       bddBillingItems
@@ -1403,7 +1419,7 @@ describe('getDraftBillsList', () => {
         ],
       },
     ]);
-    populateSurchargeAndBillingItem.returnsArg(0);
+    populateAndFormatSubscription.returnsArg(0);
     getDraftBillsPerSubscription.onCall(0).returns({
       customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 },
       billingItems: { biId1: ['eventId1'] },
@@ -1416,11 +1432,11 @@ describe('getDraftBillsList', () => {
       customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 },
       billingItems: [],
     });
-    formatBillingItemsDraftBills.onCall(0).returns([
+    formatBillingItems.onCall(0).returns([
       { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: ['eventId1'], inclTaxes: 200 },
       { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: ['eventId2'], inclTaxes: 100 },
     ]);
-    formatBillingItemsDraftBills.onCall(1).returns([]);
+    formatBillingItems.onCall(1).returns([]);
 
     const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
@@ -1451,19 +1467,19 @@ describe('getDraftBillsList', () => {
     ]);
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
     sinon.assert.calledWithExactly(
-      populateSurchargeAndBillingItem.firstCall,
+      populateAndFormatSubscription.firstCall,
       { _id: '1234567890', service: { versions: [{ billingItems: ['biId1'] }] } },
       bddSurcharges,
       bddBillingItems
     );
     sinon.assert.calledWithExactly(
-      populateSurchargeAndBillingItem.secondCall,
+      populateAndFormatSubscription.secondCall,
       { _id: '0987654321', service: { versions: [{ billingItems: ['biId2'] }] } },
       bddSurcharges,
       bddBillingItems
     );
     sinon.assert.calledWithExactly(
-      populateSurchargeAndBillingItem.thirdCall,
+      populateAndFormatSubscription.thirdCall,
       { _id: 'qwertyuiop' },
       bddSurcharges,
       bddBillingItems
