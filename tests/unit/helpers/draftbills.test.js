@@ -15,7 +15,7 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../../../src/helpers/constants');
 
 describe('populateAndFormatSubscription', () => {
-  it('should populate surcharge and order versions', async () => {
+  it('should populate surcharge and billing items and order versions', async () => {
     const surchargeId = new ObjectID();
     const bddSurcharges = [{ _id: surchargeId, sundaySurcharge: 10 }];
     const billingItemId1 = new ObjectID();
@@ -58,13 +58,13 @@ describe('populateAndFormatSubscription', () => {
           {
             billingItems: [],
             surcharge: { _id: surchargeId, sundaySurcharge: 10 },
-            startDate: new Date('2019-03-20T00:00:00.000Z'),
+            startDate: new Date('2019-03-20'),
             _id: 2,
           },
           {
             billingItems: [],
             surcharge: { _id: surchargeId, sundaySurcharge: 10 },
-            startDate: new Date('2019-03-01T00:00:00.000Z'),
+            startDate: new Date('2019-03-01'),
             _id: 3,
           },
           {
@@ -73,10 +73,10 @@ describe('populateAndFormatSubscription', () => {
               { _id: billingItemId2, defaultUnitAmount: 3 },
             ],
             surcharge: { _id: surchargeId, sundaySurcharge: 10 },
-            startDate: new Date('2019-02-25T00:00:00.000Z'),
+            startDate: new Date('2019-02-25'),
             _id: 4,
           },
-          { billingItems: [], startDate: new Date('2019-02-24T00:00:00.000Z'), _id: 1 },
+          { billingItems: [], startDate: new Date('2019-02-24'), _id: 1 },
         ],
       },
     }));
@@ -746,16 +746,34 @@ describe('computeBillingInfoForEvents', () => {
     ];
     const service = {
       _id: new ObjectID(),
+      versions: [
+        {
+          billingItems: [
+            { _id: new ObjectID('d00000000000000000000000'), name: 'skusku' },
+            { _id: new ObjectID('d00000000000000000000001'), name: 'skusku 2' },
+          ],
+        },
+        { billingItems: [{ _id: new ObjectID('d00000000000000000000001'), name: 'skusku 3' }] },
+      ],
+    };
+    const fundings = [];
+    const startDate = moment('2021/03/01', 'YYYY/MM/DD');
+    const matchingService1 = {
+      _id: service._id,
+      name: 'test',
       billingItems: [
         { _id: new ObjectID('d00000000000000000000000'), name: 'skusku' },
         { _id: new ObjectID('d00000000000000000000001'), name: 'skusku 2' },
       ],
     };
-    const fundings = [];
-    const startDate = moment('2021/03/01', 'YYYY/MM/DD');
-    const matchingService = { ...service, name: 'test' };
+    const matchingService2 = {
+      _id: service._id,
+      name: 'test',
+      billingItems: [{ _id: new ObjectID('d00000000000000000000001'), name: 'skusku 3' }],
+    };
 
-    getMatchingVersion.returns(matchingService);
+    getMatchingVersion.onCall(0).returns(matchingService1);
+    getMatchingVersion.onCall(1).returns(matchingService2);
     getEventBilling.onCall(0).returns({ customerPrice: 20 });
     getEventBilling.onCall(1).returns({ customerPrice: 15 });
     formatDraftBillsForCustomer.onCall(0).returns({ exclTaxes: 12, inclTaxes: 15, hours: 2, eventsList: [events[0]] });
@@ -770,27 +788,27 @@ describe('computeBillingInfoForEvents', () => {
         startDate: moment('2021-02-04T12:00:00.000Z'),
       },
       eventsByBillingItem: {
-        d00000000000000000000000: [events[0]._id.toHexString(), events[1]._id.toHexString()],
+        d00000000000000000000000: [events[0]._id.toHexString()],
         d00000000000000000000001: [events[0]._id.toHexString(), events[1]._id.toHexString()],
       },
     });
-    sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), events[0].startDate, service, 'startDate');
-    sinon.assert.calledWithExactly(getMatchingVersion.getCall(1), events[1].startDate, service, 'startDate');
-    sinon.assert.calledWithExactly(getEventBilling.getCall(0), events[0], 12, matchingService, null);
-    sinon.assert.calledWithExactly(getEventBilling.getCall(1), events[1], 12, matchingService, null);
+    sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), '2021-02-04T12:00:00.000Z', service, 'startDate');
+    sinon.assert.calledWithExactly(getMatchingVersion.getCall(1), '2021-03-05T10:00:00.000Z', service, 'startDate');
+    sinon.assert.calledWithExactly(getEventBilling.getCall(0), events[0], 12, matchingService1, null);
+    sinon.assert.calledWithExactly(getEventBilling.getCall(1), events[1], 12, matchingService2, null);
     sinon.assert.calledWithExactly(
       formatDraftBillsForCustomer.getCall(0),
       { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] },
       events[0],
       { customerPrice: 20 },
-      matchingService
+      matchingService1
     );
     sinon.assert.calledWithExactly(
       formatDraftBillsForCustomer.getCall(1),
       { exclTaxes: 12, inclTaxes: 15, hours: 2, eventsList: [events[0]] },
       events[1],
       { customerPrice: 15 },
-      matchingService
+      matchingService2
     );
     sinon.assert.notCalled(getMatchingFunding);
     sinon.assert.notCalled(formatDraftBillsForTPP);
@@ -804,9 +822,15 @@ describe('computeBillingInfoForEvents', () => {
     ];
     const service = {
       _id: new ObjectID(),
+      versions: [{
+        billingItems: [{ _id: new ObjectID('d00000000000000000000000'), name: 'skusku' }],
+      }],
+    };
+    const matchingService = {
+      _id: service._id,
+      name: 'test',
       billingItems: [{ _id: new ObjectID('d00000000000000000000000'), name: 'skusku' }],
     };
-    const matchingService = { ...service, name: 'test' };
     const fundings = [{ _id: new ObjectID() }];
     const matchingFunding = { ...fundings[0], thirdPartyPayer: 'tpp' };
     const startDate = moment('2021/03/01', 'YYYY/MM/DD');
@@ -1052,10 +1076,7 @@ describe('getDraftBillsPerSubscription', () => {
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
     getExclTaxes.returns(70);
     computeBillingInfoForEvents.returns({
-      prices: {
-        customerPrices: { exclTaxes: 35 },
-        startDate: moment('2019/02/01', 'YY/MM/DD'),
-      },
+      prices: { customerPrices: { exclTaxes: 35 }, startDate: moment('2019/02/01', 'YY/MM/DD') },
       eventsByBillingItem: [],
     });
 

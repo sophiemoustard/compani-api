@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const mergeWith = require('lodash/mergeWith');
 const { ObjectID } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
@@ -11,12 +12,12 @@ const UtilsHelper = require('./utils');
 const SurchargesHelper = require('./surcharges');
 const DatesHelper = require('./dates');
 
-const populateSurchargeAndBillingItem = (arr, surcharges, billingItems) => arr.map(v => ({
-  ...v,
-  ...(v.surcharge && { surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }),
-  billingItems: v.billingItems.map(bi =>
-    billingItems.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi))),
-}))
+const populateSurchargeAndBillingItem = (arr, surcharges, billingItems) => arr
+  .map(v => ({
+    ...v,
+    ...(v.surcharge && { surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }),
+    billingItems: v.billingItems.map(bi => billingItems.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi))),
+  }))
   .sort(DatesHelper.descendingSort('startDate'));
 
 exports.populateAndFormatSubscription = async (subscription, surcharges, billingItems) => ({
@@ -349,14 +350,8 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
 const formatEventsByBillingItem = (eventsByBillingItemBySubscriptions) => {
   const eventsByBillingItem = {};
   for (const eventsByBillingItemInSubscription of eventsByBillingItemBySubscriptions) {
-    for (const [billingItemId, eventsList] of Object.entries(eventsByBillingItemInSubscription)) {
-      if (eventsByBillingItem[billingItemId]) {
-        eventsByBillingItem[billingItemId] = eventsByBillingItem[billingItemId]
-          .concat(eventsList);
-      } else {
-        eventsByBillingItem[billingItemId] = eventsList;
-      }
-    }
+    // eslint-disable-next-line consistent-return
+    mergeWith(eventsByBillingItem, eventsByBillingItemInSubscription, (a, b) => { if (a) return a.concat(b); });
   }
 
   return eventsByBillingItem;
@@ -406,8 +401,9 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
         surcharges,
         billingItems
       );
-      let { fundings } = eventsBySubscriptions[k];
-      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayers, companyId) : null;
+      const fundings = eventsBySubscriptions[k].fundings
+        ? await exports.populateFundings(eventsBySubscriptions[k].fundings, dates.endDate, thirdPartyPayers, companyId)
+        : null;
 
       const draftBills = exports.getDraftBillsPerSubscription(
         eventsBySubscriptions[k].events,
@@ -435,7 +431,7 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
       endDate: dates.endDate,
       customerBills: { bills: customerBills, total: customerBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0) },
     };
-    if (Object.values(tppBills).length > 0) {
+    if (Object.values(tppBills).length) {
       groupedByCustomerBills.thirdPartyPayerBills = [];
       for (const bills of Object.values(tppBills)) {
         groupedByCustomerBills.thirdPartyPayerBills.push({
