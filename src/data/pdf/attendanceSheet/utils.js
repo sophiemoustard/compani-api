@@ -40,10 +40,11 @@ exports.getFooter = (pageBreak, signature, width) => [
       {
         image: signature,
         width,
-        pageBreak: pageBreak ? 'none' : 'after',
         marginTop: 8,
         alignment: 'right',
       },
     ],
+    pageBreak: pageBreak ? 'none' : 'after',
+    unbreakable: true,
   },
 ];
