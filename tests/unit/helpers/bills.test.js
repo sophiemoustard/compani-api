@@ -2034,6 +2034,39 @@ describe('formatBillDetailsForPdf', () => {
 
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
   });
+
+  it('should return formatted details if there are billItems #tag', () => {
+    const bill = {
+      _id: new ObjectID(),
+      origin: 'compani',
+      type: 'manual',
+      billingItemList: [
+        { name: 'Frais de dossier', unitInclTaxes: 30, count: 1, inclTaxes: 30, exclTaxes: 27.27272727272727 },
+        {
+          name: 'Equipement de protection individuel',
+          unitInclTaxes: 2,
+          count: 5,
+          inclTaxes: 10,
+          exclTaxes: 8.333333333333334,
+        },
+      ],
+      subscriptions: [],
+    };
+
+    formatPrice.onCall(0).returns('35,61 €');
+    formatPrice.onCall(1).returns('4,45 €');
+
+    const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
+
+    expect(formattedBillDetails).toEqual({
+      formattedDetails: [
+        { name: 'Frais de dossier', unitInclTaxes: 30, volume: 1, total: 30 },
+        { name: 'Equipement de protection individuel', unitInclTaxes: 2, volume: 5, total: 10 },
+      ],
+      totalExclTaxes: '35,61 €',
+      totalVAT: '4,45 €',
+    });
+  });
 });
 
 describe('formatEventsForPdf', () => {
