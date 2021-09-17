@@ -85,7 +85,14 @@ exports.getFollowUp = async (id, courseId) => {
       match: courseId ? { course: courseId } : null,
       populate: [
         { path: 'questionnaireAnswersList.card', select: '-createdAt -updatedAt' },
-        { path: 'course', select: 'trainer', populate: { path: 'trainer', select: 'identity' } },
+        {
+          path: 'course',
+          select: 'trainer subProgram',
+          populate: [
+            { path: 'trainer', select: 'identity' },
+            { path: 'subProgram', select: 'program', populate: { path: 'program', select: '_id -subPrograms' } },
+          ],
+        },
         { path: 'user', select: '_id', populate: { path: 'company' } },
       ],
     })
