@@ -375,15 +375,18 @@ describe('formatCustomerBills', () => {
   let formatBillNumber;
   let getFixedNumber;
   let formatSubscriptionData;
+  let formatBillingItemData;
   beforeEach(() => {
     formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
     getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
     formatSubscriptionData = sinon.stub(BillHelper, 'formatSubscriptionData');
+    formatBillingItemData = sinon.stub(BillHelper, 'formatBillingItemData');
   });
   afterEach(() => {
     formatBillNumber.restore();
     getFixedNumber.restore();
     formatSubscriptionData.restore();
+    formatBillingItemData.restore();
   });
 
   it('Case 1 : 1 bill', () => {
@@ -485,8 +488,8 @@ describe('formatCustomerBills', () => {
           endDate: '2019-09-19T00:00:00',
           subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString() }] } },
           unitExclTaxes: 34,
-          exclTaxes: 15,
-          inclTaxes: 11,
+          exclTaxes: 11,
+          inclTaxes: 15,
           hours: 5,
           startDate: moment().add(1, 'd').toISOString(),
           eventsList: [
@@ -505,11 +508,38 @@ describe('formatCustomerBills', () => {
               inclTaxesTpp: 23,
             },
           ],
-        }],
+        },
+        {
+          endDate: '2019-09-19T00:00:00',
+          billingItem: { _id: 'billingItemId', name: 'Billing Eilish' },
+          unitExclTaxes: 34,
+          exclTaxes: 12,
+          inclTaxes: 17,
+          hours: 5,
+          startDate: moment().add(1, 'd').toISOString(),
+          eventsList: [
+            {
+              event: '890',
+              startDate: '2019-05-29T10:00:55.374Z',
+              endDate: '2019-05-29T13:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 45,
+            },
+            {
+              event: '736',
+              startDate: '2019-05-30T08:00:55.374Z',
+              endDate: '2019-05-30T10:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 23,
+            },
+          ],
+        },
+      ],
     };
     formatBillNumber.returns('FACT-1234Picsou00077');
     getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
+    formatBillingItemData.returns({ billingItem: 'billingItemId' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
 
@@ -523,15 +553,45 @@ describe('formatCustomerBills', () => {
       date: '2019-09-19T00:00:00',
       netInclTaxes: 14.40,
       subscriptions: [{ subscriptions: 'subscriptions' }, { subscriptions: 'subscriptions' }],
-      billingItemList: [],
+      billingItemList: [{ billingItem: 'billingItemId' }],
       type: 'automatic',
     });
     expect(result.billedEvents).toBeDefined();
-    expect(result.billedEvents).toMatchObject({
-      123: { event: '123', inclTaxesTpp: 14.4 },
-      456: { event: '456', inclTaxesTpp: 12 },
-      890: { event: '890', inclTaxesTpp: 45 },
-      736: { event: '736', inclTaxesTpp: 23 },
+    expect(result.billedEvents).toEqual({
+      123: {
+        auxiliary: '34567890',
+        endDate: '2019-05-28T13:00:55.374Z',
+        event: '123',
+        inclTaxesTpp: 14.4,
+        startDate: '2019-05-28T10:00:55.374Z',
+      },
+      456: {
+        auxiliary: '34567890',
+        endDate: '2019-05-29T10:00:55.374Z',
+        event: '456',
+        inclTaxesTpp: 12,
+        startDate: '2019-05-29T08:00:55.374Z',
+      },
+      736: {
+        auxiliary: '34567890',
+        billingItems: [{ _id: 'billingItemId', exclTaxes: 12, inclTaxes: 17 }],
+        endDate: '2019-05-30T10:00:55.374Z',
+        event: '736',
+        exclTaxesCustomer: 12,
+        inclTaxesCustomer: 17,
+        inclTaxesTpp: 23,
+        startDate: '2019-05-30T08:00:55.374Z',
+      },
+      890: {
+        auxiliary: '34567890',
+        billingItems: [{ _id: 'billingItemId', exclTaxes: 12, inclTaxes: 17 }],
+        endDate: '2019-05-29T13:00:55.374Z',
+        event: '890',
+        exclTaxesCustomer: 12,
+        inclTaxesCustomer: 17,
+        inclTaxesTpp: 45,
+        startDate: '2019-05-29T10:00:55.374Z',
+      },
     });
     sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
     sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);

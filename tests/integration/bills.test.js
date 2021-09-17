@@ -363,7 +363,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(fundingHistoryAfter).toEqual(1);
 
       const eventInBill = await Event
-        .countDocuments({ _id: eventList[4]._id, bills: { surcharges: [] }, isBilled: false });
+        .countDocuments({ _id: eventList[4]._id, bills: { surcharges: [], billingItems: [] }, isBilled: false });
       expect(eventInBill).toEqual(1);
     });
 

@@ -112,11 +112,11 @@ const EventSchema = mongoose.Schema(
       nature: String,
       careHours: Number,
       surcharges: billEventSurchargesSchemaDefinition,
-      billingItems: {
+      billingItems: [{
         _id: { type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem' },
         exclTaxes: Number,
         inclTaxes: Number,
-      },
+      }],
     },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
     transportMode: { type: String, enum: EVENT_TRANSPORT_MODE },

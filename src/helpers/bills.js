@@ -70,6 +70,19 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
       }
     } else {
       bill.billingItemList.push(exports.formatBillingItemData(draftBill));
+      for (const ev of draftBill.eventsList) {
+        const eventBillingItems = [{
+          _id: draftBill.billingItem._id,
+          inclTaxes: draftBill.inclTaxes, // on veut inclure le discount ici ? ou on veut le unitInclTaxes ?
+          exclTaxes: draftBill.exclTaxes,
+        }].concat(get(billedEvents[ev.event], 'billingItems') || []);
+        const exclTaxesCustomer = draftBill.exclTaxes + (billedEvents[ev.event].exclTaxesCustomer || 0);
+        const inclTaxesCustomer = draftBill.inclTaxes + (billedEvents[ev.event].inclTaxesCustomer || 0);
+
+        billedEvents[ev.event].billingItems = eventBillingItems;
+        billedEvents[ev.event].exclTaxesCustomer = exclTaxesCustomer;
+        billedEvents[ev.event].inclTaxesCustomer = inclTaxesCustomer;
+      }
     }
   }
 
