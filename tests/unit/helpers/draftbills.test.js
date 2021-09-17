@@ -1163,7 +1163,7 @@ describe('formatBillingItems', () => {
 
   it('should return formatted billing items', async () => {
     const eventsByBillingItemBySubscriptions = [
-      { d00000000000000000000001: ['eventId1', 'eventId2'], d00000000000000000000002: ['eventId1, eventId2'] },
+      { d00000000000000000000001: ['eventId1', 'eventId2'], d00000000000000000000002: ['eventId1', 'eventId2'] },
       { d00000000000000000000001: ['eventId3'] },
     ];
     const endDate = '2019-12-25T07:00:00';
@@ -1210,9 +1210,9 @@ describe('formatBillingItems', () => {
         unitExclTaxes: 4.545454545454545,
         unitInclTaxes: 5,
         vat: 10,
-        eventsList: ['eventId1, eventId2'],
-        exclTaxes: 4.545454545454545,
-        inclTaxes: 5,
+        eventsList: ['eventId1', 'eventId2'],
+        exclTaxes: 9.09090909090909,
+        inclTaxes: 10,
         startDate: '2019-12-31T07:00:00',
         endDate: '2019-12-25T07:00:00',
       }),
