@@ -106,7 +106,7 @@ describe('getPdfContent', () => {
         {
           columns: [
             { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
-            { image: paths[3], width: 140, marginTop: 8, alignment: 'right' },
+            { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
           ],
           unbreakable: true,
           pageBreak: 'after',
@@ -142,7 +142,7 @@ describe('getPdfContent', () => {
         {
           columns: [
             { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
-            { image: paths[3], width: 140, marginTop: 8, alignment: 'right' },
+            { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
           ],
           pageBreak: 'none',
           unbreakable: true,

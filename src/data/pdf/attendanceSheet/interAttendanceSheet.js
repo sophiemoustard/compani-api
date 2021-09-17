@@ -39,7 +39,7 @@ exports.getPdfContent = async (data) => {
 
     const table = [{ table: { body, widths: ['auto', 'auto', '*', '*'], dontBreakRows: true }, marginBottom: 8 }];
 
-    const footer = UtilsPdfHelper.getFooter(i === trainees.length - 1, signature, 140);
+    const footer = UtilsPdfHelper.getFooter(i === trainees.length - 1, signature, 144);
 
     content.push(header, table, footer);
   });
