@@ -306,12 +306,7 @@ exports.formatBillDetailsForPdf = (bill) => {
       totalExclTaxes += bi.exclTaxes;
       totalVAT += bi.inclTaxes - bi.exclTaxes;
 
-      formattedDetails.push({
-        name: bi.name,
-        unitInclTaxes: bi.unitInclTaxes,
-        volume: bi.count,
-        total: bi.inclTaxes,
-      });
+      formattedDetails.push({ name: bi.name, unitInclTaxes: bi.unitInclTaxes, volume: bi.count, total: bi.inclTaxes });
     }
   }
 

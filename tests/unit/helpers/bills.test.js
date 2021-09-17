@@ -2035,7 +2035,7 @@ describe('formatBillDetailsForPdf', () => {
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
   });
 
-  it('should return formatted details if there are billItems #tag', () => {
+  it('should return formatted details if there are billingItems', () => {
     const bill = {
       _id: new ObjectID(),
       origin: 'compani',
