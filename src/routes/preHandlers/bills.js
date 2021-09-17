@@ -59,7 +59,7 @@ const getUniqueIdsFromBills = (bills) => {
       }
 
       if (customerBill.billingItem) {
-        ids.eventsIds.add(...customerBill.eventsList);
+        ids.eventsIds.add(...customerBill.eventsList.map(ev => ev.event));
         ids.billingItemsIds.add(customerBill.billingItem._id);
       }
     }

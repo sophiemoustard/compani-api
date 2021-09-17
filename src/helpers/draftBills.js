@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const uniq = require('lodash/uniq');
 const { ObjectID } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
@@ -361,13 +362,22 @@ const formatEventsByBillingItem = (eventsByBillingItemBySubscriptions) => {
   return eventsByBillingItem;
 };
 
-exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, startDate, endDate) => {
+exports.formatBillingItems = (
+  eventsByBillingItemBySubscriptions,
+  billingItems,
+  startDate,
+  endDate,
+  subscriptionsDraftBills
+) => {
   const eventsByBillingItem = formatEventsByBillingItem(eventsByBillingItemBySubscriptions);
+  const subscriptionsEvents = uniq(subscriptionsDraftBills.reduce((acc, value) => acc.concat(value.eventsList), []));
 
   const formattedBillingItems = [];
-  for (const [billingItemId, eventsList] of Object.entries(eventsByBillingItem)) {
+  for (const [billingItemId, eventsIdList] of Object.entries(eventsByBillingItem)) {
     const bddBillingItem = billingItems.find(bi => UtilsHelper.areObjectIdsEquals(bi._id, billingItemId));
     const unitExclTaxes = exports.getExclTaxes(bddBillingItem.defaultUnitAmount, bddBillingItem.vat);
+    const eventsList = eventsIdList.map(eventId =>
+      subscriptionsEvents.find(se => UtilsHelper.areObjectIdsEquals(se.event, eventId)));
 
     formattedBillingItems.push({
       _id: new ObjectID(),
@@ -428,7 +438,13 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
 
     const customerBills = [
       ...subscriptionsDraftBills,
-      ...exports.formatBillingItems(eventsByBillingItemBySubscriptions, billingItems, billingStartDate, dates.endDate),
+      ...exports.formatBillingItems(
+        eventsByBillingItemBySubscriptions,
+        billingItems,
+        billingStartDate,
+        dates.endDate,
+        subscriptionsDraftBills
+      ),
     ];
     const groupedByCustomerBills = {
       customer,

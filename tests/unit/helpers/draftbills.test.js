@@ -1162,9 +1162,12 @@ describe('formatBillingItems', () => {
   });
 
   it('should return formatted billing items', async () => {
+    const eventId1 = new ObjectID();
+    const eventId2 = new ObjectID();
+    const eventId3 = new ObjectID();
     const eventsByBillingItemBySubscriptions = [
-      { d00000000000000000000001: ['eventId1', 'eventId2'], d00000000000000000000002: ['eventId1', 'eventId2'] },
-      { d00000000000000000000001: ['eventId3'] },
+      { d00000000000000000000001: [eventId1, eventId2], d00000000000000000000002: [eventId1, eventId2] },
+      { d00000000000000000000001: [eventId3] },
     ];
     const endDate = '2019-12-25T07:00:00';
     const billingStartDate = '2019-12-31T07:00:00';
@@ -1183,12 +1186,17 @@ describe('formatBillingItems', () => {
       vat: 10,
     };
     const bddBillingItems = [billingItem1, billingItem2, billingItem1];
+    const subscriptionsDraftBills = [
+      { eventsList: [{ event: eventId1 }, { event: eventId2 }] },
+      { eventsList: [{ event: eventId3 }] },
+    ];
 
     const result = await DraftBillsHelper.formatBillingItems(
       eventsByBillingItemBySubscriptions,
       bddBillingItems,
       billingStartDate,
-      endDate
+      endDate,
+      subscriptionsDraftBills
     );
 
     expect(result).toEqual([
@@ -1198,7 +1206,7 @@ describe('formatBillingItems', () => {
         unitExclTaxes: 0.9090909090909091,
         unitInclTaxes: 1,
         vat: 10,
-        eventsList: ['eventId1', 'eventId2', 'eventId3'],
+        eventsList: [{ event: eventId1 }, { event: eventId2 }, { event: eventId3 }],
         exclTaxes: 2.727272727272727,
         inclTaxes: 3,
         startDate: '2019-12-31T07:00:00',
@@ -1210,7 +1218,7 @@ describe('formatBillingItems', () => {
         unitExclTaxes: 4.545454545454545,
         unitInclTaxes: 5,
         vat: 10,
-        eventsList: ['eventId1', 'eventId2'],
+        eventsList: [{ event: eventId1 }, { event: eventId2 }],
         exclTaxes: 9.09090909090909,
         inclTaxes: 10,
         startDate: '2019-12-31T07:00:00',
@@ -1454,8 +1462,8 @@ describe('getDraftBillsList', () => {
       billingItems: [],
     });
     formatBillingItems.onCall(0).returns([
-      { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: ['eventId1'], inclTaxes: 200 },
-      { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: ['eventId2'], inclTaxes: 100 },
+      { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: 200 },
+      { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: 100 },
     ]);
     formatBillingItems.onCall(1).returns([]);
 
@@ -1469,8 +1477,8 @@ describe('getDraftBillsList', () => {
           bills: [
             { identity: { firstname: 'Toto' }, inclTaxes: 20 },
             { identity: { firstname: 'Toto' }, inclTaxes: 21 },
-            { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: ['eventId1'], inclTaxes: 200 },
-            { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: ['eventId2'], inclTaxes: 100 },
+            { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: 200 },
+            { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: 100 },
           ],
           total: 341,
         },
