@@ -2041,13 +2041,13 @@ describe('formatBillDetailsForPdf', () => {
       origin: 'compani',
       type: 'manual',
       billingItemList: [
-        { name: 'Frais de dossier', unitInclTaxes: 30, count: 1, inclTaxes: 30, exclTaxes: 27.27272727272727 },
+        { name: 'Frais de dossier', unitInclTaxes: 30, count: 1, inclTaxes: 30, exclTaxes: 27.27 },
         {
           name: 'Equipement de protection individuel',
           unitInclTaxes: 2,
           count: 5,
           inclTaxes: 10,
-          exclTaxes: 8.333333333333334,
+          exclTaxes: 8.33,
         },
       ],
       subscriptions: [],

@@ -1,4 +1,4 @@
-const { BILL } = require('../../../helpers/constants');
+const { BILL, AUTOMATIC } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const UtilsHelper = require('../../../helpers/utils');
 
@@ -37,7 +37,7 @@ exports.getPdfContent = async (data) => {
   const priceTable = UtilsPdfHelper.getPriceTable(bill);
   const eventsTable = UtilsPdfHelper.getEventsTable(bill, !bill.forTpp);
 
-  const content = bill.type === 'automatic'
+  const content = bill.type === AUTOMATIC
     ? [header, serviceTable, priceTable, eventsTable]
     : [header, serviceTable, priceTable];
 
