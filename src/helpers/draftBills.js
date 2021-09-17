@@ -1,5 +1,4 @@
 const get = require('lodash/get');
-const mergeWith = require('lodash/mergeWith');
 const { ObjectID } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
@@ -350,8 +349,13 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
 const formatEventsByBillingItem = (eventsByBillingItemBySubscriptions) => {
   const eventsByBillingItem = {};
   for (const eventsByBillingItemInSubscription of eventsByBillingItemBySubscriptions) {
-    // eslint-disable-next-line consistent-return
-    mergeWith(eventsByBillingItem, eventsByBillingItemInSubscription, (a, b) => { if (a) return a.concat(b); });
+    for (const [billingItemId, eventsList] of Object.entries(eventsByBillingItemInSubscription)) {
+      if (eventsByBillingItem[billingItemId]) {
+        eventsByBillingItem[billingItemId] = eventsByBillingItem[billingItemId].concat(eventsList);
+      } else {
+        eventsByBillingItem[billingItemId] = eventsList;
+      }
+    }
   }
 
   return eventsByBillingItem;

@@ -15,7 +15,7 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../../../src/helpers/constants');
 
 describe('populateAndFormatSubscription', () => {
-  it('should populate surcharge and billing items and order versions', async () => {
+  it('should populate surcharge and billing items and sort versions', async () => {
     const surchargeId = new ObjectID();
     const bddSurcharges = [{ _id: surchargeId, sundaySurcharge: 10 }];
     const billingItemId1 = new ObjectID();
