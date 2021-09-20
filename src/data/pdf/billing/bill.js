@@ -2,6 +2,8 @@ const { BILL, AUTOMATIC } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const UtilsHelper = require('../../../helpers/utils');
 
+const formatBillingPrice = price => (price === 0 || price ? UtilsHelper.formatPrice(price) : '-');
+
 exports.getPdfContent = async (data) => {
   const { bill } = data;
   const header = await UtilsPdfHelper.getHeader(bill.company, bill, BILL);
@@ -19,9 +21,9 @@ exports.getPdfContent = async (data) => {
     billDetailsTableBody.push(
       [
         { text: `${detail.name}${detail.vat ? ` (TVA ${UtilsHelper.formatPercentage(detail.vat / 100)})` : ''}` },
-        { text: detail.unitInclTaxes ? UtilsHelper.formatPrice(detail.unitInclTaxes) : '-' },
+        { text: formatBillingPrice(detail.unitInclTaxes) },
         { text: detail.volume || '-' },
-        { text: detail.total ? UtilsHelper.formatPrice(detail.total) : '-' },
+        { text: formatBillingPrice(detail.total) },
       ]
     );
   });

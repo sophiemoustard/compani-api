@@ -272,6 +272,7 @@ describe('getPdfContent', () => {
         formattedDetails: [
           { name: 'Frais de dossier', unitInclTaxes: 30, volume: 1, total: 30, vat: 20 },
           { name: 'Equipement de protection individuel', unitInclTaxes: 2, volume: 5, total: 10, vat: 20 },
+          { name: 'Article offert', unitInclTaxes: 0, volume: 5, total: 0, vat: 20 },
         ],
         company: {
           rcs: '814 998 779',
@@ -333,6 +334,12 @@ describe('getPdfContent', () => {
                 { text: 5 },
                 { text: '10,00 €' },
               ],
+              [
+                { text: 'Article offert (TVA 20 %)' },
+                { text: '0,00 €' },
+                { text: 5 },
+                { text: '0,00 €' },
+              ],
             ],
             widths: ['*', 'auto', 'auto', 'auto'],
           },
@@ -372,8 +379,11 @@ describe('getPdfContent', () => {
     formatPrice.onCall(1).returns('30,00 €');
     formatPrice.onCall(2).returns('2,00 €');
     formatPrice.onCall(3).returns('10,00 €');
+    formatPrice.onCall(4).returns('0,00 €');
+    formatPrice.onCall(5).returns('0,00 €');
     formatPercentage.onCall(0).returns('20 %');
     formatPercentage.onCall(1).returns('20 %');
+    formatPercentage.onCall(2).returns('20 %');
 
     const result = await Bill.getPdfContent(data);
 
