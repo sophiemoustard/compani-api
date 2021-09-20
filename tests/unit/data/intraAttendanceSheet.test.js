@@ -56,8 +56,6 @@ describe('getPdfContent', () => {
         [{ text: '' }, { text: '' }],
         [{ text: '' }, { text: '' }],
         [{ text: '' }, { text: '' }],
-        [{ text: '' }, { text: '' }],
-        [{ text: '' }, { text: '' }],
         [{ text: 'Signature de l\'intervenant(e)', italics: true, margin: [0, 8, 0, 0] }, { text: '' }],
       ],
       widths: ['*', '*'],
@@ -93,10 +91,14 @@ describe('getPdfContent', () => {
           margin: [16, 0, 24, 16],
         },
         { table, marginBottom: 8 },
-        { columns: [
-          { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
-          { image: paths[3], width: 80, pageBreak: 'after', marginTop: 8, alignment: 'right' },
-        ] },
+        {
+          columns: [
+            { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
+            { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
+          ],
+          pageBreak: 'after',
+          unbreakable: true,
+        },
         {
           columns: [
             { image: paths[0], width: 64 },
@@ -125,10 +127,14 @@ describe('getPdfContent', () => {
           margin: [16, 0, 24, 16],
         },
         { table, marginBottom: 8 },
-        { columns: [
-          { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
-          { image: paths[3], width: 80, pageBreak: 'none', marginTop: 8, alignment: 'right' },
-        ] },
+        {
+          columns: [
+            { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
+            { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
+          ],
+          pageBreak: 'none',
+          unbreakable: true,
+        },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 10 },
       styles: {

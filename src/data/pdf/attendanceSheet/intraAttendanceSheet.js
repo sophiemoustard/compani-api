@@ -22,7 +22,7 @@ exports.getPdfContent = async (data) => {
 
     const body = [[{ text: 'Prénom NOM', style: 'header' }]];
     date.slots.forEach(slot => body[0].push({ text: `${slot.startHour} - ${slot.endHour}`, style: 'header' }));
-    const numberOfRows = 13;
+    const numberOfRows = 11;
     for (let row = 1; row <= numberOfRows; row++) {
       body.push([]);
       for (let column = 0; column <= date.slots.length; column++) {
@@ -38,7 +38,7 @@ exports.getPdfContent = async (data) => {
       marginBottom: 8,
     }];
 
-    const footer = UtilsPdfHelper.getFooter(i === dates.length - 1, signature, 80);
+    const footer = UtilsPdfHelper.getFooter(i === dates.length - 1, signature);
 
     content.push(header, table, footer);
   });
