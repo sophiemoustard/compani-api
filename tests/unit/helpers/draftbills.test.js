@@ -788,8 +788,11 @@ describe('computeBillingInfoForEvents', () => {
         startDate: moment('2021-02-04T12:00:00.000Z'),
       },
       eventsByBillingItem: {
-        d00000000000000000000000: [events[0]._id.toHexString()],
-        d00000000000000000000001: [events[0]._id.toHexString(), events[1]._id.toHexString()],
+        d00000000000000000000000: [{ _id: events[0]._id, startDate: '2021-02-04T12:00:00.000Z' }],
+        d00000000000000000000001: [
+          { _id: events[0]._id, startDate: '2021-02-04T12:00:00.000Z' },
+          { _id: events[1]._id, startDate: '2021-03-05T10:00:00.000Z' },
+        ],
       },
     });
     sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), '2021-02-04T12:00:00.000Z', service, 'startDate');
@@ -869,9 +872,9 @@ describe('computeBillingInfoForEvents', () => {
       },
       eventsByBillingItem: {
         d00000000000000000000000: [
-          events[0]._id.toHexString(),
-          events[1]._id.toHexString(),
-          events[2]._id.toHexString(),
+          { _id: events[0]._id, startDate: '2021-03-04T12:00:00.000Z' },
+          { _id: events[1]._id, startDate: '2021-03-05T10:00:00.000Z' },
+          { _id: events[2]._id, startDate: '2021-03-06T10:00:00.000Z' },
         ],
       },
     });
@@ -1166,8 +1169,11 @@ describe('formatBillingItems', () => {
     const eventId2 = new ObjectID();
     const eventId3 = new ObjectID();
     const eventsByBillingItemBySubscriptions = [
-      { d00000000000000000000001: [eventId1, eventId2], d00000000000000000000002: [eventId1, eventId2] },
-      { d00000000000000000000001: [eventId3] },
+      {
+        d00000000000000000000001: [{ _id: eventId1 }, { _id: eventId2 }],
+        d00000000000000000000002: [{ _id: eventId1 }, { _id: eventId2 }],
+      },
+      { d00000000000000000000001: [{ _id: eventId3 }] },
     ];
     const endDate = '2019-12-25T07:00:00';
     const billingStartDate = '2019-12-31T07:00:00';
