@@ -1,5 +1,6 @@
 const expect = require('expect');
 const app = require('../../server');
+const CustomerNote = require('../../src/models/CustomerNote');
 const { getToken } = require('./helpers/authentication');
 const { customersList, populateDB, customerNotesList } = require('./seed/customerNotesSeed');
 
@@ -27,6 +28,9 @@ describe('CUSTOMER NOTES ROUTES - POST /customernotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const customerNoteCreated = await CustomerNote
+        .countDocuments({ title: 'Titre', description: 'description', customer: customersList[0]._id });
+      expect(customerNoteCreated).toEqual(1);
     });
 
     it('should return 400 if missing customer', async () => {
@@ -57,39 +61,6 @@ describe('CUSTOMER NOTES ROUTES - POST /customernotes', () => {
         url: '/customernotes',
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { title: 'Titre', customer: customersList[0]._id },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if customer has invalid type ', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/customernotes',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'Titre', description: 'description', customer: '123423' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if title has invalid type ', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/customernotes',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 12342, description: 'description', customer: customersList[0]._id },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if description has invalid type ', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/customernotes',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'Titre', description: 12345, customer: customersList[0]._id },
       });
 
       expect(response.statusCode).toBe(400);
@@ -148,16 +119,7 @@ describe('CUSTOMER NOTES ROUTES - GET /customernotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 400 if query customer has invalid type', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/customernotes?customer=test',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
+      expect(response.result.data.customerNotes.length).toEqual(1);
     });
 
     it('should return 404 if customer and logged user have different companies', async () => {
@@ -213,17 +175,9 @@ describe('CUSTOMER NOTES ROUTES - PUT /customernotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 400 if params is not an id', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: '/customernotes/skusku',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'Titre', description: 'description' },
-      });
-
-      expect(response.statusCode).toBe(400);
+      const updatedCustomerNote = await CustomerNote
+        .countDocuments({ _id: customerNoteId, title: 'Titre 2', description: 'description 2' });
+      expect(updatedCustomerNote).toEqual(1);
     });
 
     it('should return 400 if missing title', async () => {
@@ -245,30 +199,6 @@ describe('CUSTOMER NOTES ROUTES - PUT /customernotes', () => {
         url: `/customernotes/${customerNoteId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { title: 'title 2' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if title has invalid type ', async () => {
-      const customerNoteId = customerNotesList[0]._id;
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/customernotes/${customerNoteId}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 12342, description: 'description' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if description has invalid type ', async () => {
-      const customerNoteId = customerNotesList[0]._id;
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/customernotes/${customerNoteId}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { title: 'Titre', description: 12345 },
       });
 
       expect(response.statusCode).toBe(400);
