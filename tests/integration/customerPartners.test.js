@@ -1,6 +1,6 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
+const CustomerPartner = require('../../src/models/CustomerPartner');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
   populateDB,
@@ -34,6 +34,9 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const createdCustomerParnter = await CustomerPartner
+        .countDocuments({ customer: customersList[0]._id, partner: partnersList[0]._id });
+      expect(createdCustomerParnter).toEqual(1);
     });
 
     it('should return 400 if missing customer', async () => {
@@ -53,28 +56,6 @@ describe('CUSTOMER PARTNERS ROUTES - POST /customerpartners', () => {
         url: '/customerpartners',
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { customer: customersList[0]._id },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if customer has invalid type ', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/customerpartners',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { customer: 'test', partner: partnersList[0]._id },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if partner has invalid type ', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/customerpartners',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { customer: customersList[0]._id, partner: 'test' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -167,26 +148,8 @@ describe('CUSTOMER PARTNERS ROUTES - GET /customerpartners', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 400 if query customer has invalid type', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/customerpartners?customer=test',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 404 if customer does not exists', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/customerpartners?customer=${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
+      const customerPartners = await CustomerPartner.countDocuments({ customer: customersList[0]._id });
+      expect(customerPartners).toEqual(1);
     });
 
     it('should return 404 if customer and user have different companies', async () => {
@@ -241,40 +204,8 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 400 if params is not an id', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: '/customerpartners/skusku',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { prescriber: true },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if payload is not a boolean', async () => {
-      const customerPartnerId = customerPartnersList[1]._id;
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/customerpartners/${customerPartnerId}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { prescriber: 'skusku' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 404 if customer partner doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/customerpartners/${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { prescriber: true },
-      });
-
-      expect(response.statusCode).toBe(404);
+      const updatedCustomerPartner = await CustomerPartner.countDocuments({ _id: customerPartnerId, prescriber: true });
+      expect(updatedCustomerPartner).toEqual(1);
     });
 
     it('should return 404 if customer partner has wrong company', async () => {
@@ -332,26 +263,8 @@ describe('CUSTOMER PARTNERS ROUTES - DELETE /customerpartners/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 400 if params is not an id', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: '/customerpartners/skusku',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 404 if customer partner doesn\'t exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/customerpartners/${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
+      const deletedCustomerPartner = await CustomerPartner.countDocuments({ _id: customerPartnerId });
+      expect(deletedCustomerPartner).toEqual(0);
     });
 
     it('should return 404 if customer partner has wrong company', async () => {

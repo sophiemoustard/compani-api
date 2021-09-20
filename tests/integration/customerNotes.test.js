@@ -28,9 +28,9 @@ describe('CUSTOMER NOTES ROUTES - POST /customernotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const customerNoteCreated = await CustomerNote
+      const createdCustomerNote = await CustomerNote
         .countDocuments({ title: 'Titre', description: 'description', customer: customersList[0]._id });
-      expect(customerNoteCreated).toEqual(1);
+      expect(createdCustomerNote).toEqual(1);
     });
 
     it('should return 400 if missing customer', async () => {

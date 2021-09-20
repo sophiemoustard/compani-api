@@ -542,8 +542,8 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
-      const deleteCreditNote = await CreditNote.countDocuments({ _id: creditNotesList[0]._id });
-      expect(deleteCreditNote).toEqual(0);
+      const deletedCreditNote = await CreditNote.countDocuments({ _id: creditNotesList[0]._id });
+      expect(deletedCreditNote).toEqual(0);
     });
 
     it('should return a 404 error if user is not from credit note company', async () => {
