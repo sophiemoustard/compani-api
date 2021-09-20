@@ -1,8 +1,8 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const { populateDB, customer, customerFromOtherCompany, helpersList } = require('./seed/helpersSeed');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
+const Helper = require('../../src/models/Helper');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -28,17 +28,7 @@ describe('GET /helpers', () => {
       });
 
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return 404 if invalid customer', async () => {
-      const customerId = (new ObjectID()).toHexString();
-      const response = await app.inject({
-        method: 'GET',
-        url: `/helpers?customer=${customerId}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
+      expect(response.result.data.helpers.length).toBe(1);
     });
 
     it('should return 404 if customer from another company', async () => {
@@ -53,9 +43,22 @@ describe('GET /helpers', () => {
     });
   });
 
+  describe('COACH', () => {
+    it('should return list of helpers', async () => {
+      const customerId = customer._id.toHexString();
+      const response = await app.inject({
+        method: 'GET',
+        url: `/helpers?customer=${customerId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.helpers.length).toBe(1);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
-      { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
@@ -97,7 +100,10 @@ describe('PUT /helpers/{_id}', () => {
         payload: { referent: true },
       });
 
+      const helperCount = await Helper.countDocuments({ _id: helperId, referent: true });
+
       expect(response.statusCode).toBe(200);
+      expect(helperCount).toBe(1);
     });
 
     it('should return 400 if params is not an id', async () => {

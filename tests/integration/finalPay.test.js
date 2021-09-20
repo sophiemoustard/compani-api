@@ -31,7 +31,6 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.draftFinalPay).toBeDefined();
       expect(response.result.data.draftFinalPay.length).toEqual(1);
       expect(omit(response.result.data.draftFinalPay[0], ['auxiliary', 'auxiliaryId'])).toEqual({
         overtimeHours: 0,

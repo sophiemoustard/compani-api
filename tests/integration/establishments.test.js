@@ -1,6 +1,5 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
-const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const {
   populateDB,
@@ -307,17 +306,6 @@ describe('ESTABLISHMENTS ROUTES', () => {
         expect(response.statusCode).toBe(404);
       });
 
-      it('should return a 404 error if establishment does not exist', async () => {
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/establishments/${new ObjectID()}`,
-          payload: { urssafCode: '117' },
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(404);
-      });
-
       it('should return a 409 error if siret already exists', async () => {
         const response = await app.inject({
           method: 'PUT',
@@ -369,8 +357,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const { establishments } = response.result.data;
-        expect(establishments).toHaveLength(establishmentsList.length);
+        expect(response.result.data.establishments).toHaveLength(establishmentsList.length);
       });
 
       it('should return establishments (company B)', async () => {
@@ -441,16 +428,6 @@ describe('ESTABLISHMENTS ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/establishments/${establishmentFromOtherCompany._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(404);
-      });
-
-      it('should return a 404 error if establishment does not exist', async () => {
-        const response = await app.inject({
-          method: 'DELETE',
-          url: `/establishments/${new ObjectID()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

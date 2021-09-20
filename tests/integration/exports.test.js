@@ -110,7 +110,6 @@ historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result).toBeDefined();
 
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
@@ -249,7 +248,6 @@ dataExportTypes.forEach(({ exportType, expectedRows }) => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result).toBeDefined();
 
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
