@@ -58,13 +58,14 @@ describe('GET /helpers', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
+
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const customerId = customer._id.toHexString();
         const response = await app.inject({
           method: 'GET',
@@ -126,13 +127,14 @@ describe('PUT /helpers/{_id}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const helperId = helpersList[0]._id;
         const response = await app.inject({
           method: 'PUT',
