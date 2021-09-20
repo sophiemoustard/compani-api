@@ -1165,7 +1165,7 @@ describe('sendSMS', () => {
     sendStub.restore();
   });
 
-  it('should sens SMS to trainees and save missing phone trainee id', async () => {
+  it('should send SMS to trainees and save missing phone trainee id', async () => {
     courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees }]));
     sendStub.returns();
 
@@ -1207,6 +1207,19 @@ describe('sendSMS', () => {
         tag: COURSE_SMS,
       }
     );
+  });
+
+  it('should not save coursesmshistory if no sms is sent', async () => {
+    try {
+      courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees }]));
+      sendStub.throws();
+
+      await CourseHelper.sendSMS(courseId, payload, credentials);
+
+      expect(false).toBe(true);
+    } catch (e) {
+      sinon.assert.notCalled(courseSmsHistoryCreate);
+    }
   });
 });
 

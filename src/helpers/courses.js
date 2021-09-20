@@ -323,15 +323,16 @@ exports.sendSMS = async (courseId, payload, credentials) => {
     }
   }
 
-  promises.push(CourseSmsHistory.create({
-    type: payload.type,
-    course: courseId,
-    message: payload.content,
-    sender: credentials._id,
-    missingPhones,
-  }));
-
-  await Promise.all(promises);
+  const smsSentStatus = await Promise.allSettled(promises);
+  if (smsSentStatus.some(res => res.status === 'fulfilled')) {
+    await CourseSmsHistory.create({
+      type: payload.type,
+      course: courseId,
+      message: payload.content,
+      sender: credentials._id,
+      missingPhones,
+    });
+  }
 };
 
 exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId })
