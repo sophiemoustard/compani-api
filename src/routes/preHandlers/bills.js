@@ -53,15 +53,11 @@ const getUniqueIdsFromBills = (bills) => {
 
   for (const bill of bills) {
     for (const customerBill of bill.customerBills.bills) {
-      if (customerBill.subscription) {
-        ids.eventsIds.add(...customerBill.eventsList.map(ev => ev.event));
-        ids.subscriptionsIds.add(customerBill.subscription._id);
-      }
+      ids.eventsIds.add(...customerBill.eventsList.map(ev => ev.event));
 
-      if (customerBill.billingItem) {
-        ids.eventsIds.add(...customerBill.eventsList.map(ev => ev.event));
-        ids.billingItemsIds.add(customerBill.billingItem._id);
-      }
+      if (customerBill.subscription) ids.subscriptionsIds.add(customerBill.subscription._id);
+
+      if (customerBill.billingItem) ids.billingItemsIds.add(customerBill.billingItem._id);
     }
 
     if (bill.thirdPartyPayerBills && bill.thirdPartyPayerBills.length) {

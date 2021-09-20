@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const billEventSurchargesSchemaDefinition = [{
   percentage: { type: Number, required: true },
   name: { type: String, required: true },
-  startHour: Date,
-  endHour: Date,
+  startHour: { type: Date },
+  endHour: { type: Date },
 }];
 
 const billingItemSchemaDefinition = {
@@ -15,9 +15,9 @@ const billingItemSchemaDefinition = {
   inclTaxes: { type: Number, required: true },
   exclTaxes: { type: Number, required: true },
   vat: { type: Number, required: true },
-  startDate: Date,
-  endDate: Date,
-  events: Array,
+  startDate: { type: Date },
+  endDate: { type: Date },
+  events: { type: Array },
 };
 
 module.exports = { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition };

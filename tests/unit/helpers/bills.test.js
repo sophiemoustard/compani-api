@@ -618,7 +618,7 @@ describe('formatCustomerBills', () => {
       },
       736: {
         auxiliary: '34567890',
-        billingItems: [{ _id: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
+        billingItems: [{ billingItem: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
         endDate: '2019-05-30T10:00:55.374Z',
         event: '736',
         exclTaxesCustomer: 12,
@@ -628,7 +628,7 @@ describe('formatCustomerBills', () => {
       },
       890: {
         auxiliary: '34567890',
-        billingItems: [{ _id: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
+        billingItems: [{ billingItem: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
         endDate: '2019-05-29T13:00:55.374Z',
         event: '890',
         exclTaxesCustomer: 12,
