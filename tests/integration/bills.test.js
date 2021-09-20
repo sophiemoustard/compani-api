@@ -7,8 +7,8 @@ const app = require('../../server');
 const {
   populateDB,
   billUserList,
-  billsList,
-  authBillsList,
+  billList,
+  authBillList,
   billCustomerList,
   billServices,
   eventList,
@@ -317,7 +317,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(response.statusCode).toBe(200);
 
       const billCount = await Bill.countDocuments({ company: authCompany._id });
-      expect(billCount).toBe(2 + authBillsList.length);
+      expect(billCount).toBe(2 + authBillList.length);
 
       const creditNote = await CreditNote.find({ customer: billCustomerList[0]._id, company: authCompany._id }).lean();
       expect(creditNote[0].isEditable).toBeFalsy();
@@ -333,12 +333,12 @@ describe('BILL ROUTES - POST /bills/list', () => {
 
       expect(response.statusCode).toBe(200);
       const billsCount = await Bill.countDocuments({ company: authCompany._id });
-      expect(billsCount).toBe(1 + authBillsList.length);
+      expect(billsCount).toBe(1 + authBillList.length);
     });
 
     it('should not create new bill with existing number', async () => {
       const formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
-      formatBillNumber.returns(billsList[0].number);
+      formatBillNumber.returns(billList[0].number);
 
       const response = await app.inject({
         method: 'POST',
@@ -351,7 +351,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
       formatBillNumber.restore();
 
       const billCountAfter = await Bill.countDocuments();
-      expect(billCountAfter).toEqual(authBillsList.length + billsList.length);
+      expect(billCountAfter).toEqual(authBillList.length + billList.length);
 
       const billNumberAfter = await BillNumber.countDocuments({ prefix: '0519', seq: 2 });
       expect(billNumberAfter).toEqual(1);
@@ -507,7 +507,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(bills.some(bill => !bill.number)).toBeTruthy();
 
       const draftBillsLength = draftBillPayload[0].thirdPartyPayerBills[0].bills.length;
-      expect(bills.length).toBe(draftBillsLength + authBillsList.length);
+      expect(bills.length).toBe(draftBillsLength + authBillList.length);
     });
 
     it('should create a bill with billingItems', async () => {
@@ -554,7 +554,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(response.statusCode).toBe(200);
 
       const billCount = await Bill.countDocuments({ company: authCompany._id });
-      expect(billCount).toBe(1 + authBillsList.length);
+      expect(billCount).toBe(1 + authBillList.length);
     });
 
     it('should return a 403 error if customer is not from same company', async () => {
@@ -806,7 +806,7 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(response.statusCode).toBe(200);
 
       const billsCount = await Bill.countDocuments({ company: authCompany._id });
-      expect(billsCount).toBe(1 + authBillsList.length);
+      expect(billsCount).toBe(1 + authBillList.length);
     });
 
     const missingParams = ['customer', 'date', 'netInclTaxes'];
@@ -926,7 +926,7 @@ describe('BILL ROUTES - POST /bills', () => {
 
     it('should return 409 billNumber is already taken', async () => {
       const formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
-      formatBillNumber.returns(billsList[0].number);
+      formatBillNumber.returns(billList[0].number);
 
       const payload = {
         customer: billCustomerList[0]._id,
@@ -991,7 +991,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
     it('should get bill pdf', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/bills/${authBillsList[0]._id}/pdfs`,
+        url: `/bills/${authBillList[0]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1001,7 +1001,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
     it('should return a 404 error if bill customer is not from same company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/bills/${billsList[0]._id}/pdfs`,
+        url: `/bills/${billList[0]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1023,7 +1023,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       authToken = await getTokenByCredentials(billUserList[0].local);
       const res = await app.inject({
         method: 'GET',
-        url: `/bills/${authBillsList[0]._id}/pdfs`,
+        url: `/bills/${authBillList[0]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
@@ -1040,7 +1040,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/bills/${authBillsList[0]._id}/pdfs`,
+          url: `/bills/${authBillList[0]._id}/pdfs`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

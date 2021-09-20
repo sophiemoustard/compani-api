@@ -73,11 +73,15 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
       for (const ev of draftBill.eventsList) {
         const eventBillingItems = [{
           _id: draftBill.billingItem._id,
-          inclTaxes: draftBill.inclTaxes, // on veut inclure le discount ici ? ou on veut le unitInclTaxes ?
-          exclTaxes: draftBill.exclTaxes,
+          inclTaxes: draftBill.unitInclTaxes,
+          exclTaxes: draftBill.unitInclTaxes / (1 + draftBill.vat / 100),
         }].concat(get(billedEvents[ev.event], 'billingItems') || []);
-        const exclTaxesCustomer = draftBill.exclTaxes + (billedEvents[ev.event].exclTaxesCustomer || 0);
-        const inclTaxesCustomer = draftBill.inclTaxes + (billedEvents[ev.event].inclTaxesCustomer || 0);
+        const exclTaxesCustomer = billedEvents[ev.event].exclTaxesCustomer
+          ? draftBill.exclTaxes + billedEvents[ev.event].exclTaxesCustomer
+          : draftBill.exclTaxes;
+        const inclTaxesCustomer = billedEvents[ev.event].inclTaxesCustomer
+          ? draftBill.inclTaxes + billedEvents[ev.event].inclTaxesCustomer
+          : draftBill.inclTaxes;
 
         billedEvents[ev.event].billingItems = eventBillingItems;
         billedEvents[ev.event].exclTaxesCustomer = exclTaxesCustomer;

@@ -371,7 +371,7 @@ describe('formatSubscriptionData', () => {
   });
 });
 
-describe('formatBillingItemData #tag', () => {
+describe('formatBillingItemData', () => {
   it('should return formatted data for bill with billing item', () => {
     const billingItemId = new ObjectID();
     const eventId = new ObjectID();
@@ -390,9 +390,6 @@ describe('formatBillingItemData #tag', () => {
         auxiliary: '34567890',
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
-        fundingId: 'fundingId',
-        inclTaxesTpp: 5,
-        exclTaxesTpp: 4,
       }],
     };
 
@@ -413,9 +410,6 @@ describe('formatBillingItemData #tag', () => {
         auxiliary: '34567890',
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
-        fundingId: 'fundingId',
-        inclTaxesTpp: 5,
-        exclTaxesTpp: 4,
       }],
       count: 1,
       name: 'skusku',
@@ -449,11 +443,11 @@ describe('formatCustomerBills', () => {
       shouldBeSent: true,
       bills: [{
         endDate: '2019-09-19T00:00:00',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: '2019-05-30T10:00:55.374Z' }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
-        startDate: moment().add(1, 'd').toISOString(),
+        startDate: '2019-05-31T10:00:55.374Z',
         hours: 1.5,
         eventsList: [
           {
@@ -513,12 +507,12 @@ describe('formatCustomerBills', () => {
       bills: [
         {
           endDate: '2019-09-19T00:00:00',
-          subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
+          subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: '2019-05-30T10:00:55.374Z' }] } },
           unitExclTaxes: 24.644549763033176,
           exclTaxes: 13.649289099526067,
           inclTaxes: 14.4,
           hours: 1.5,
-          startDate: moment().add(1, 'd').toISOString(),
+          startDate: '2019-05-31T10:00:55.374Z',
           eventsList: [
             {
               event: '123',
@@ -538,12 +532,12 @@ describe('formatCustomerBills', () => {
         },
         {
           endDate: '2019-09-19T00:00:00',
-          subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString() }] } },
+          subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: '2019-05-30T10:00:55.374Z' }] } },
           unitExclTaxes: 34,
           exclTaxes: 11,
           inclTaxes: 15,
           hours: 5,
-          startDate: moment().add(1, 'd').toISOString(),
+          startDate: '2019-05-31T10:00:55.374Z',
           eventsList: [
             {
               event: '890',
@@ -564,25 +558,23 @@ describe('formatCustomerBills', () => {
         {
           endDate: '2019-09-19T00:00:00',
           billingItem: { _id: 'billingItemId', name: 'Billing Eilish' },
-          unitExclTaxes: 34,
+          unitInclTaxes: 34,
           exclTaxes: 12,
           inclTaxes: 17,
-          hours: 5,
-          startDate: moment().add(1, 'd').toISOString(),
+          vat: 5,
+          startDate: '2019-05-31T10:00:55.374Z',
           eventsList: [
             {
               event: '890',
               startDate: '2019-05-29T10:00:55.374Z',
               endDate: '2019-05-29T13:00:55.374Z',
               auxiliary: '34567890',
-              inclTaxesTpp: 45,
             },
             {
               event: '736',
               startDate: '2019-05-30T08:00:55.374Z',
               endDate: '2019-05-30T10:00:55.374Z',
               auxiliary: '34567890',
-              inclTaxesTpp: 23,
             },
           ],
         },
@@ -626,7 +618,7 @@ describe('formatCustomerBills', () => {
       },
       736: {
         auxiliary: '34567890',
-        billingItems: [{ _id: 'billingItemId', exclTaxes: 12, inclTaxes: 17 }],
+        billingItems: [{ _id: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
         endDate: '2019-05-30T10:00:55.374Z',
         event: '736',
         exclTaxesCustomer: 12,
@@ -636,7 +628,7 @@ describe('formatCustomerBills', () => {
       },
       890: {
         auxiliary: '34567890',
-        billingItems: [{ _id: 'billingItemId', exclTaxes: 12, inclTaxes: 17 }],
+        billingItems: [{ _id: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
         endDate: '2019-05-29T13:00:55.374Z',
         event: '890',
         exclTaxesCustomer: 12,

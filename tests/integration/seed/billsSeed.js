@@ -301,7 +301,7 @@ const contracts = [
   },
 ];
 
-const authBillsList = [
+const authBillList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -383,7 +383,7 @@ const authBillsList = [
   },
 ];
 
-const billsList = [
+const billList = [
   {
     _id: new ObjectID(),
     company: otherCompany._id,
@@ -427,8 +427,8 @@ const billsList = [
       unitInclTaxes: 645,
       name: 'arctic',
       count: 2,
-      inclTaxes: 2,
-      exclTaxes: 4,
+      inclTaxes: 4,
+      exclTaxes: 2,
       vat: 2,
     }],
   },
@@ -605,7 +605,7 @@ const fundingHistory = {
   company: authCompany._id,
 };
 
-const helpersList = [
+const helperList = [
   { customer: billCustomerList[0]._id, user: billUserList[0]._id, company: authCompany._id, referent: true },
 ];
 
@@ -613,7 +613,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    Bill.create([...authBillsList, ...billsList]),
+    Bill.create([...authBillList, ...billList]),
     BillingItem.create(billingItemList),
     BillNumber.create(billNumbers),
     Contract.create(contracts),
@@ -621,7 +621,7 @@ const populateDB = async () => {
     Customer.create(billCustomerList.concat(customerFromOtherCompany)),
     Event.create(eventList),
     FundingHistory.create(fundingHistory),
-    Helper.create(helpersList),
+    Helper.create(helperList),
     Service.create(billServices),
     ThirdPartyPayer.create(billThirdPartyPayer),
     User.create(billUserList),
@@ -630,11 +630,11 @@ const populateDB = async () => {
 };
 
 module.exports = {
-  authBillsList,
+  authBillList,
   populateDB,
   billCustomerList,
   billUserList,
-  billsList,
+  billList,
   billServices,
   eventList,
   billThirdPartyPayer,
