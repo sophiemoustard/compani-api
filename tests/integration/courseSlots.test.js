@@ -234,7 +234,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const missingParams = ['course', 'step', 'endDate', 'address.fullAddress'];
+    const missingParams = ['course', 'step', 'address.fullAddress'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const payload = {
@@ -281,24 +281,6 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 200 as user is client admin from course company', async () => {
-      const payload = {
-        startDate: '2020-03-04T09:00:00',
-        endDate: '2020-03-04T11:00:00',
-        course: coursesList[0]._id,
-        step: stepsList[0]._id,
-      };
-      authToken = await getToken('client_admin');
-      const response = await app.inject({
-        method: 'POST',
-        url: '/courseslots',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
     it('should return 200 as user is coach from course company', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
@@ -319,9 +301,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
@@ -506,37 +486,24 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const missingParams = ['startDate', 'step', 'endDate'];
-    missingParams.forEach((param) => {
-      it(`should return a 400 error if missing '${param}' parameter`, async () => {
-        const payload = {
-          startDate: '2020-03-04T09:00:00',
-          endDate: '2020-03-04T11:00:00',
-          step: stepsList[0]._id,
-        };
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/courseslots/${courseSlotsList[0]._id}`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: omit({ ...payload }, param),
-        });
-
-        expect(response.statusCode).toBe(400);
+    it('should return a 400 error if missing step parameter', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        step: stepsList[0]._id,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: omit({ ...payload }, 'step'),
       });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-
     it('should a 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
@@ -562,6 +529,14 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
     });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -629,16 +604,6 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
   });
 
   describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-
     it('should return a 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
@@ -660,6 +625,14 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
     });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
