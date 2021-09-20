@@ -91,24 +91,24 @@ describe('GET /eventhistories', () => {
     expect(response.statusCode).toEqual(400);
   });
 
-  it('should return a 403 if at least one auxiliary is not from the same company', async () => {
+  it('should return a 404 if at least one auxiliary is not from the same company', async () => {
     const response = await app.inject({
       method: 'GET',
       url: `/eventhistories?auxiliaries=${auxiliaryFromOtherCompany._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
-    expect(response.statusCode).toEqual(403);
+    expect(response.statusCode).toEqual(404);
   });
 
-  it('should return a 403 if at least one sector is not from the same company', async () => {
+  it('should return a 404 if at least one sector is not from the same company', async () => {
     const response = await app.inject({
       method: 'GET',
       url: `/eventhistories?sectors=${sectorFromOtherCompany._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
-    expect(response.statusCode).toEqual(403);
+    expect(response.statusCode).toEqual(404);
   });
 
   it('should return a 400 if invalid action in query', async () => {
