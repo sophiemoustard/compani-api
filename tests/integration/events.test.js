@@ -137,14 +137,14 @@ describe('GET /events', () => {
       expect(response.statusCode).toEqual(200);
     });
 
-    it('should return a 403 if customer is not from the same company', async () => {
+    it('should return a 404 if customer is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events?customer=${customerFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 404 if auxiliary is not from the same company', async () => {
@@ -157,14 +157,14 @@ describe('GET /events', () => {
       expect(response.statusCode).toEqual(404);
     });
 
-    it('should return a 403 if sector is not from the same company', async () => {
+    it('should return a 404 if sector is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events?sector=${sectors[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return 400 if groupBy is an unauthorized string', async () => {
@@ -202,11 +202,14 @@ describe('GET /events', () => {
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = role.customCredentials
+          ? await getUserToken(role.customCredentials)
+          : await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: role.url || '/events',

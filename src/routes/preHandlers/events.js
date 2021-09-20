@@ -43,7 +43,7 @@ exports.authorizeEventGet = async (req) => {
   if (req.query.customer) {
     const customerIds = [...new Set(UtilsHelper.formatIdsArray(req.query.customer))];
     const customerCount = await Customer.countDocuments({ _id: { $in: customerIds }, company: companyId });
-    if (customerCount !== customerIds.length) throw Boom.forbidden();
+    if (customerCount !== customerIds.length) throw Boom.notFound();
   }
 
   if (req.query.auxiliary) {
@@ -55,7 +55,7 @@ exports.authorizeEventGet = async (req) => {
   if (req.query.sector) {
     const sectorsIds = [...new Set(UtilsHelper.formatIdsArray(req.query.sector))];
     const sectorCount = await Sector.countDocuments({ _id: { $in: sectorsIds }, company: companyId });
-    if (sectorCount !== sectorsIds.length) throw Boom.forbidden();
+    if (sectorCount !== sectorsIds.length) throw Boom.notFound();
   }
 
   return null;
