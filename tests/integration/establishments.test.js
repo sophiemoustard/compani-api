@@ -178,9 +178,9 @@ describe('ESTABLISHMENTS ROUTES', () => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -296,7 +296,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
         expect(response.statusCode).toBe(400);
       });
 
-      it('should return a 403 error if user is not from same company', async () => {
+      it('should return a 404 error if user is not from same company', async () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/establishments/${establishmentFromOtherCompany._id}`,
@@ -304,7 +304,7 @@ describe('ESTABLISHMENTS ROUTES', () => {
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(404);
       });
 
       it('should return a 404 error if establishment does not exist', async () => {
@@ -333,8 +333,8 @@ describe('ESTABLISHMENTS ROUTES', () => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 
@@ -355,10 +355,10 @@ describe('ESTABLISHMENTS ROUTES', () => {
   });
 
   describe('GET /etablishments', () => {
-    describe('CLIENT_ADMIN', () => {
+    describe('COACH', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('client_admin');
+        authToken = await getToken('coach');
       });
 
       it('should return establishments (company A)', async () => {
@@ -371,9 +371,6 @@ describe('ESTABLISHMENTS ROUTES', () => {
         expect(response.statusCode).toBe(200);
         const { establishments } = response.result.data;
         expect(establishments).toHaveLength(establishmentsList.length);
-        expect(establishments).toEqual(expect.arrayContaining([
-          expect.objectContaining({ usersCount: expect.any(Number) }),
-        ]));
       });
 
       it('should return establishments (company B)', async () => {
@@ -392,9 +389,8 @@ describe('ESTABLISHMENTS ROUTES', () => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
+        { name: 'planning_referent', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
@@ -441,14 +437,14 @@ describe('ESTABLISHMENTS ROUTES', () => {
         expect(response.statusCode).toBe(403);
       });
 
-      it('should return a 403 error if establishment is not from same company as user', async () => {
+      it('should return a 404 error if establishment is not from same company as user', async () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/establishments/${establishmentFromOtherCompany._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(404);
       });
 
       it('should return a 404 error if establishment does not exist', async () => {
@@ -465,8 +461,8 @@ describe('ESTABLISHMENTS ROUTES', () => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'auxiliary_without_company', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 403 },
+        { name: 'vendor_admin', expectedCode: 403 },
         { name: 'coach', expectedCode: 403 },
       ];
 
