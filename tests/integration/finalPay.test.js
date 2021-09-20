@@ -83,14 +83,15 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: '/finalpay/draft?startDate=2022-04-30T22:00:00.000Z&endDate=2022-05-31T21:59:59.999Z',
@@ -205,8 +206,8 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
     ];
