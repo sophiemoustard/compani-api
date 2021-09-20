@@ -371,6 +371,58 @@ describe('formatSubscriptionData', () => {
   });
 });
 
+describe('formatBillingItemData #tag', () => {
+  it('should return formatted data for bill with billing item', () => {
+    const billingItemId = new ObjectID();
+    const eventId = new ObjectID();
+    const bill = {
+      billingItem: { _id: billingItemId, name: 'skusku' },
+      unitInclTaxes: 24.64,
+      exclTaxes: 13.64,
+      inclTaxes: 14.40,
+      startDate: '2019-06-28T10:06:55.374Z',
+      endDate: '2019-06-28T12:06:55.374Z',
+      vat: 12,
+      eventsList: [{
+        event: eventId,
+        startDate: '2019-05-28T10:00:55.374Z',
+        endDate: '2019-05-28T13:00:55.374Z',
+        auxiliary: '34567890',
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
+        fundingId: 'fundingId',
+        inclTaxesTpp: 5,
+        exclTaxesTpp: 4,
+      }],
+    };
+
+    const result = BillHelper.formatBillingItemData(bill);
+
+    expect(result).toEqual({
+      startDate: '2019-06-28T10:06:55.374Z',
+      endDate: '2019-06-28T12:06:55.374Z',
+      unitInclTaxes: 24.64,
+      exclTaxes: 13.64,
+      inclTaxes: 14.4,
+      vat: 12,
+      billingItem: billingItemId,
+      events: [{
+        event: eventId,
+        startDate: '2019-05-28T10:00:55.374Z',
+        endDate: '2019-05-28T13:00:55.374Z',
+        auxiliary: '34567890',
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
+        fundingId: 'fundingId',
+        inclTaxesTpp: 5,
+        exclTaxesTpp: 4,
+      }],
+      count: 1,
+      name: 'skusku',
+    });
+  });
+});
+
 describe('formatCustomerBills', () => {
   let formatBillNumber;
   let getFixedNumber;
