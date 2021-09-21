@@ -19,10 +19,11 @@ const {
   internalHourFromOtherCompany,
   thirdPartyPayerFromOtherCompany,
   eventFromOtherCompany,
+  creditNote,
+  creditNoteFromOtherCompany,
 } = require('./seed/eventsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
-const { creditNotesList } = require('./seed/creditNotesSeed');
 const app = require('../../server');
 const {
   INTERVENTION,
@@ -235,7 +236,6 @@ describe('GET /events/credit-notes', () => {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
-        creditNoteId: creditNotesList._id,
       };
 
       const response = await app.inject({
@@ -245,7 +245,6 @@ describe('GET /events/credit-notes', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
       const filteredEvents = eventsList.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
       expect(response.result.data.events.length).toBe(filteredEvents.length);
     });
@@ -256,7 +255,6 @@ describe('GET /events/credit-notes', () => {
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayer._id.toHexString(),
-        creditNoteId: creditNotesList._id,
       };
 
       const response = await app.inject({
@@ -266,6 +264,25 @@ describe('GET /events/credit-notes', () => {
       });
 
       expect(response.statusCode).toEqual(200);
+      expect(response.result.data.events.length).toBe(1);
+    });
+
+    it('should return a list of billed events for specified customer and creditNote', async () => {
+      const query = {
+        startDate: moment('2019-01-01').toDate(),
+        endDate: moment('2019-01-20').toDate(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        creditNoteId: creditNote._id.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/events/credit-notes?${qs.stringify(query)}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.events.length).toBe(1);
     });
 
     const wrongParams = ['startDate', 'endDate', 'customer'];
@@ -288,31 +305,13 @@ describe('GET /events/credit-notes', () => {
       });
     });
 
-    it('should return a 403 if customer is not from the same company', async () => {
-      const query = {
-        startDate: moment('2019-01-01').toDate(),
-        endDate: moment('2019-01-20').toDate(),
-        customer: customerFromOtherCompany._id.toHexString(),
-        thirdPartyPayer: thirdPartyPayer._id.toHexString(),
-        creditNoteId: creditNotesList._id,
-      };
-
-      const response = await app.inject({
-        method: 'GET',
-        url: `/events/credit-notes?${qs.stringify(query)}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(403);
-    });
-
-    it('should return a 403 if tpp is not from the same company', async () => {
+    it('should return a 404 if credit note is not from the same company', async () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
-        creditNoteId: creditNotesList._id,
+        creditNoteId: creditNoteFromOtherCompany._id.toHexString(),
       };
 
       const response = await app.inject({
@@ -321,7 +320,41 @@ describe('GET /events/credit-notes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
+    });
+
+    it('should return a 404 if customer is not from the same company', async () => {
+      const query = {
+        startDate: moment('2019-01-01').toDate(),
+        endDate: moment('2019-01-20').toDate(),
+        customer: customerFromOtherCompany._id.toHexString(),
+        thirdPartyPayer: thirdPartyPayer._id.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/events/credit-notes?${qs.stringify(query)}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    it('should return a 404 if tpp is not from the same company', async () => {
+      const query = {
+        startDate: moment('2019-01-01').toDate(),
+        endDate: moment('2019-01-20').toDate(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/events/credit-notes?${qs.stringify(query)}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(404);
     });
   });
 
@@ -336,7 +369,6 @@ describe('GET /events/credit-notes', () => {
       startDate: moment('2019-01-01').toDate(),
       endDate: moment('2019-01-20').toDate(),
       customer: customerAuxiliaries[0]._id.toHexString(),
-      creditNoteId: creditNotesList._id,
     };
 
     roles.forEach((role) => {
