@@ -42,6 +42,33 @@ const otherCompanyBillThirdPartyPayer = {
   billingMode: 'direct',
 };
 
+const billingItemList = [
+  {
+    _id: new ObjectID(),
+    name: 'Billing Joel',
+    type: 'manual',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Boule et Billing',
+    type: 'per_intervention',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Billingbo Le Hobbit',
+    type: 'per_intervention',
+    defaultUnitAmount: 12,
+    vat: 15,
+    company: otherCompany._id,
+  },
+];
+
 const billServices = [{
   _id: new ObjectID(),
   company: authCompany._id,
@@ -51,6 +78,7 @@ const billServices = [{
     startDate: '2019-01-16T17:58:15.519',
     vat: 12,
     exemptFromCharges: false,
+    billingItems: [billingItemList[0]._id],
   }],
   nature: HOURLY,
 }, {
@@ -273,26 +301,7 @@ const contracts = [
   },
 ];
 
-const billingItemList = [
-  {
-    _id: new ObjectID(),
-    name: 'Billing Joel',
-    type: 'manual',
-    defaultUnitAmount: 12,
-    vat: 15,
-    company: authCompany._id,
-  },
-  {
-    _id: new ObjectID(),
-    name: 'Boule et Billing',
-    type: 'per_intervention',
-    defaultUnitAmount: 12,
-    vat: 15,
-    company: authCompany._id,
-  },
-];
-
-const authBillsList = [
+const authBillList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -369,11 +378,12 @@ const authBillsList = [
       count: 2,
       inclTaxes: 2000,
       exclTaxes: 200,
+      vat: 5,
     }],
   },
 ];
 
-const billsList = [
+const billList = [
   {
     _id: new ObjectID(),
     company: otherCompany._id,
@@ -417,8 +427,9 @@ const billsList = [
       unitInclTaxes: 645,
       name: 'arctic',
       count: 2,
-      inclTaxes: 2,
-      exclTaxes: 4,
+      inclTaxes: 4,
+      exclTaxes: 2,
+      vat: 2,
     }],
   },
 ];
@@ -594,7 +605,7 @@ const fundingHistory = {
   company: authCompany._id,
 };
 
-const helpersList = [
+const helperList = [
   { customer: billCustomerList[0]._id, user: billUserList[0]._id, company: authCompany._id, referent: true },
 ];
 
@@ -602,7 +613,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    Bill.create([...authBillsList, ...billsList]),
+    Bill.create([...authBillList, ...billList]),
     BillingItem.create(billingItemList),
     BillNumber.create(billNumbers),
     Contract.create(contracts),
@@ -610,7 +621,7 @@ const populateDB = async () => {
     Customer.create(billCustomerList.concat(customerFromOtherCompany)),
     Event.create(eventList),
     FundingHistory.create(fundingHistory),
-    Helper.create(helpersList),
+    Helper.create(helperList),
     Service.create(billServices),
     ThirdPartyPayer.create(billThirdPartyPayer),
     User.create(billUserList),
@@ -619,11 +630,11 @@ const populateDB = async () => {
 };
 
 module.exports = {
-  authBillsList,
+  authBillList,
   populateDB,
   billCustomerList,
   billUserList,
-  billsList,
+  billList,
   billServices,
   eventList,
   billThirdPartyPayer,

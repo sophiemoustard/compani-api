@@ -40,6 +40,14 @@ exports.formatSubscriptionData = (bill) => {
   };
 };
 
+exports.formatBillingItemData = bill => ({
+  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'vat']),
+  billingItem: bill.billingItem._id,
+  events: bill.eventsList.map(ev => ({ ...pick(ev, ['startDate', 'endDate', 'auxiliary']), eventId: ev.event })),
+  name: bill.billingItem.name,
+  count: bill.eventsList.length,
+});
+
 exports.formatCustomerBills = (customerBills, customer, number, company) => {
   const billedEvents = {};
   const bill = {
@@ -51,12 +59,30 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     shouldBeSent: customerBills.shouldBeSent,
     type: AUTOMATIC,
     company: company._id,
+    billingItemList: [],
   };
 
   for (const draftBill of customerBills.bills) {
-    bill.subscriptions.push(exports.formatSubscriptionData(draftBill));
-    for (const ev of draftBill.eventsList) {
-      billedEvents[ev.event] = { ...ev };
+    if (draftBill.subscription) {
+      bill.subscriptions.push(exports.formatSubscriptionData(draftBill));
+      for (const ev of draftBill.eventsList) {
+        billedEvents[ev.event] = { ...ev };
+      }
+    } else {
+      bill.billingItemList.push(exports.formatBillingItemData(draftBill));
+      for (const ev of draftBill.eventsList) {
+        if (!billedEvents[ev.event].billingItems) billedEvents[ev.event].billingItems = [];
+        if (!billedEvents[ev.event].exclTaxesCustomer) billedEvents[ev.event].exclTaxesCustomer = 0;
+        if (!billedEvents[ev.event].inclTaxesCustomer) billedEvents[ev.event].inclTaxesCustomer = 0;
+
+        billedEvents[ev.event].billingItems.push({
+          billingItem: draftBill.billingItem._id,
+          inclTaxes: draftBill.unitInclTaxes,
+          exclTaxes: draftBill.unitExclTaxes,
+        });
+        billedEvents[ev.event].exclTaxesCustomer += draftBill.exclTaxes;
+        billedEvents[ev.event].inclTaxesCustomer += draftBill.inclTaxes;
+      }
     }
   }
 
@@ -172,7 +198,10 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
     if (thirdPartyPayerBills && thirdPartyPayerBills.length > 0) {
       const tppBillingInfo = exports.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
       fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
-      eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
+      for (const eventId of Object.keys(tppBillingInfo.billedEvents)) {
+        if (!eventsToUpdate[eventId]) eventsToUpdate[eventId] = tppBillingInfo.billedEvents[eventId];
+        else eventsToUpdate[eventId] = { ...tppBillingInfo.billedEvents[eventId], ...eventsToUpdate[eventId] };
+      }
       for (const bill of tppBillingInfo.tppBills) {
         billList.push(bill);
         if (bill.number) number.seq += 1;
@@ -208,6 +237,7 @@ exports.formatBillingItem = (bi, bddBillingItemList) => {
     count: bi.count,
     inclTaxes: bi.unitInclTaxes * bi.count,
     exclTaxes: (bi.unitInclTaxes / (1 + bddBillingItem.vat / 100)) * bi.count,
+    vat: bddBillingItem.vat,
   };
 };
 

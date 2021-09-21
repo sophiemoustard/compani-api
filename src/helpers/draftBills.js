@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
@@ -297,9 +298,9 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
 
     for (const billingItem of matchingService.billingItems) {
       if (eventsByBillingItem[billingItem._id.toHexString()]) {
-        eventsByBillingItem[billingItem._id.toHexString()].push(event._id.toHexString());
+        eventsByBillingItem[billingItem._id.toHexString()].push(event);
       } else {
-        eventsByBillingItem[billingItem._id.toHexString()] = [event._id.toHexString()];
+        eventsByBillingItem[billingItem._id.toHexString()] = [event];
       }
     }
   }
@@ -371,12 +372,12 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
 
     formattedBillingItems.push({
       _id: new ObjectID(),
-      billingItem: { _id: billingItemId, name: bddBillingItem.name },
+      billingItem: { _id: new ObjectID(billingItemId), name: bddBillingItem.name },
       discount: 0,
       unitExclTaxes,
       unitInclTaxes: bddBillingItem.defaultUnitAmount,
       vat: bddBillingItem.vat,
-      eventsList,
+      eventsList: eventsList.map(event => ({ ...omit(event, ['_id', 'subscription']), event: event._id })),
       exclTaxes: unitExclTaxes * eventsList.length,
       inclTaxes: bddBillingItem.defaultUnitAmount * eventsList.length,
       startDate,

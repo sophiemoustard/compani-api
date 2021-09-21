@@ -303,6 +303,7 @@ describe('formatSubscriptionData', () => {
     sinon.assert.calledWithExactly(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
     sinon.assert.calledWithExactly(formatBilledEvents, bill);
   });
+
   it('should return formatted subscription data for tpp', () => {
     const bill = {
       subscription: {
@@ -354,6 +355,7 @@ describe('formatSubscriptionData', () => {
     formatBilledEvents.returns([{ event: 'event' }]);
 
     const result = BillHelper.formatSubscriptionData(bill);
+
     expect(result).toEqual(expect.objectContaining({
       subscription: 'asd',
       service: { serviceId: '1234567890', nature: 'test', name: 'service' },
@@ -369,19 +371,67 @@ describe('formatSubscriptionData', () => {
   });
 });
 
+describe('formatBillingItemData', () => {
+  it('should return formatted data for bill with billing item', () => {
+    const billingItemId = new ObjectID();
+    const eventId = new ObjectID();
+    const bill = {
+      billingItem: { _id: billingItemId, name: 'skusku' },
+      unitInclTaxes: 24.64,
+      unitExclTaxes: 22.64,
+      exclTaxes: 13.64,
+      inclTaxes: 14.40,
+      startDate: '2019-06-28T10:06:55.374Z',
+      endDate: '2019-06-28T12:06:55.374Z',
+      vat: 12,
+      eventsList: [{
+        event: eventId,
+        startDate: '2019-05-28T10:00:55.374Z',
+        endDate: '2019-05-28T13:00:55.374Z',
+        auxiliary: '34567890',
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
+      }],
+    };
+
+    const result = BillHelper.formatBillingItemData(bill);
+
+    expect(result).toEqual({
+      startDate: '2019-06-28T10:06:55.374Z',
+      endDate: '2019-06-28T12:06:55.374Z',
+      unitInclTaxes: 24.64,
+      exclTaxes: 13.64,
+      inclTaxes: 14.4,
+      vat: 12,
+      billingItem: billingItemId,
+      events: [{
+        eventId,
+        startDate: '2019-05-28T10:00:55.374Z',
+        endDate: '2019-05-28T13:00:55.374Z',
+        auxiliary: '34567890',
+      }],
+      count: 1,
+      name: 'skusku',
+    });
+  });
+});
+
 describe('formatCustomerBills', () => {
   let formatBillNumber;
   let getFixedNumber;
   let formatSubscriptionData;
+  let formatBillingItemData;
   beforeEach(() => {
     formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
     getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
     formatSubscriptionData = sinon.stub(BillHelper, 'formatSubscriptionData');
+    formatBillingItemData = sinon.stub(BillHelper, 'formatBillingItemData');
   });
   afterEach(() => {
     formatBillNumber.restore();
     getFixedNumber.restore();
     formatSubscriptionData.restore();
+    formatBillingItemData.restore();
   });
 
   it('Case 1 : 1 bill', () => {
@@ -392,11 +442,11 @@ describe('formatCustomerBills', () => {
       shouldBeSent: true,
       bills: [{
         endDate: '2019-09-19T00:00:00',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: '2019-05-30T10:00:55.374Z' }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
-        startDate: moment().add(1, 'd').toISOString(),
+        startDate: '2019-05-31T10:00:55.374Z',
         hours: 1.5,
         eventsList: [
           {
@@ -422,6 +472,7 @@ describe('formatCustomerBills', () => {
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
+
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toEqual({
@@ -433,6 +484,7 @@ describe('formatCustomerBills', () => {
       type: 'automatic',
       netInclTaxes: 14.40,
       date: '2019-09-19T00:00:00',
+      billingItemList: [],
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
@@ -451,64 +503,93 @@ describe('formatCustomerBills', () => {
     const customerBills = {
       total: 14.4,
       shouldBeSent: false,
-      bills: [{
-        endDate: '2019-09-19T00:00:00',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
-        startDate: moment().add(1, 'd').toISOString(),
-        eventsList: [
-          {
-            event: '123',
-            startDate: '2019-05-28T10:00:55.374Z',
-            endDate: '2019-05-28T13:00:55.374Z',
-            auxiliary: '34567890',
-            inclTaxesTpp: 14.4,
-          },
-          {
-            event: '456',
-            startDate: '2019-05-29T08:00:55.374Z',
-            endDate: '2019-05-29T10:00:55.374Z',
-            auxiliary: '34567890',
-            inclTaxesTpp: 12,
-          },
-        ],
-      }, {
-        endDate: '2019-09-19T00:00:00',
-        subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 34,
-        exclTaxes: 15,
-        inclTaxes: 11,
-        hours: 5,
-        startDate: moment().add(1, 'd').toISOString(),
-        eventsList: [
-          {
-            event: '890',
-            startDate: '2019-05-29T10:00:55.374Z',
-            endDate: '2019-05-29T13:00:55.374Z',
-            auxiliary: '34567890',
-            inclTaxesTpp: 45,
-          },
-          {
-            event: '736',
-            startDate: '2019-05-30T08:00:55.374Z',
-            endDate: '2019-05-30T10:00:55.374Z',
-            auxiliary: '34567890',
-            inclTaxesTpp: 23,
-          },
-        ],
-      }],
+      bills: [
+        {
+          endDate: '2019-09-19T00:00:00',
+          subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: '2019-05-30T10:00:55.374Z' }] } },
+          unitExclTaxes: 24.644549763033176,
+          exclTaxes: 13.649289099526067,
+          inclTaxes: 14.4,
+          hours: 1.5,
+          startDate: '2019-05-31T10:00:55.374Z',
+          eventsList: [
+            {
+              event: '123',
+              startDate: '2019-05-28T10:00:55.374Z',
+              endDate: '2019-05-28T13:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 14.4,
+            },
+            {
+              event: '456',
+              startDate: '2019-05-29T08:00:55.374Z',
+              endDate: '2019-05-29T10:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 12,
+            },
+          ],
+        },
+        {
+          endDate: '2019-09-19T00:00:00',
+          subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: '2019-05-30T10:00:55.374Z' }] } },
+          unitExclTaxes: 34,
+          exclTaxes: 11,
+          inclTaxes: 15,
+          hours: 5,
+          startDate: '2019-05-31T10:00:55.374Z',
+          eventsList: [
+            {
+              event: '890',
+              startDate: '2019-05-29T10:00:55.374Z',
+              endDate: '2019-05-29T13:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 45,
+            },
+            {
+              event: '736',
+              startDate: '2019-05-30T08:00:55.374Z',
+              endDate: '2019-05-30T10:00:55.374Z',
+              auxiliary: '34567890',
+              inclTaxesTpp: 23,
+            },
+          ],
+        },
+        {
+          endDate: '2019-09-19T00:00:00',
+          billingItem: { _id: 'billingItemId', name: 'Billing Eilish' },
+          unitInclTaxes: 34,
+          unitExclTaxes: 32.38095238095238,
+          exclTaxes: 12,
+          inclTaxes: 17,
+          vat: 5,
+          startDate: '2019-05-31T10:00:55.374Z',
+          eventsList: [
+            {
+              event: '890',
+              startDate: '2019-05-29T10:00:55.374Z',
+              endDate: '2019-05-29T13:00:55.374Z',
+              auxiliary: '34567890',
+            },
+            {
+              event: '736',
+              startDate: '2019-05-30T08:00:55.374Z',
+              endDate: '2019-05-30T10:00:55.374Z',
+              auxiliary: '34567890',
+            },
+          ],
+        },
+      ],
     };
     formatBillNumber.returns('FACT-1234Picsou00077');
     getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
+    formatBillingItemData.returns({ billingItem: 'billingItemId' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
+
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
-    expect(result.bill).toMatchObject({
+    expect(result.bill).toEqual({
       company: company._id,
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
@@ -516,13 +597,45 @@ describe('formatCustomerBills', () => {
       date: '2019-09-19T00:00:00',
       netInclTaxes: 14.40,
       subscriptions: [{ subscriptions: 'subscriptions' }, { subscriptions: 'subscriptions' }],
+      billingItemList: [{ billingItem: 'billingItemId' }],
+      type: 'automatic',
     });
     expect(result.billedEvents).toBeDefined();
-    expect(result.billedEvents).toMatchObject({
-      123: { event: '123', inclTaxesTpp: 14.4 },
-      456: { event: '456', inclTaxesTpp: 12 },
-      890: { event: '890', inclTaxesTpp: 45 },
-      736: { event: '736', inclTaxesTpp: 23 },
+    expect(result.billedEvents).toEqual({
+      123: {
+        auxiliary: '34567890',
+        endDate: '2019-05-28T13:00:55.374Z',
+        event: '123',
+        inclTaxesTpp: 14.4,
+        startDate: '2019-05-28T10:00:55.374Z',
+      },
+      456: {
+        auxiliary: '34567890',
+        endDate: '2019-05-29T10:00:55.374Z',
+        event: '456',
+        inclTaxesTpp: 12,
+        startDate: '2019-05-29T08:00:55.374Z',
+      },
+      736: {
+        auxiliary: '34567890',
+        billingItems: [{ billingItem: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
+        endDate: '2019-05-30T10:00:55.374Z',
+        event: '736',
+        exclTaxesCustomer: 12,
+        inclTaxesCustomer: 17,
+        inclTaxesTpp: 23,
+        startDate: '2019-05-30T08:00:55.374Z',
+      },
+      890: {
+        auxiliary: '34567890',
+        billingItems: [{ billingItem: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
+        endDate: '2019-05-29T13:00:55.374Z',
+        event: '890',
+        exclTaxesCustomer: 12,
+        inclTaxesCustomer: 17,
+        inclTaxesTpp: 45,
+        startDate: '2019-05-29T10:00:55.374Z',
+      },
     });
     sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
     sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
@@ -1133,7 +1246,7 @@ describe('formatAndCreateList', () => {
           events: customerSubscriptionEvents,
         }],
       },
-      customerBilledEvents,
+      billedEvents: customerBilledEvents,
     };
     const tppBillingInfo = {
       tppBills: [{
@@ -1154,7 +1267,7 @@ describe('formatAndCreateList', () => {
           events: tppSubscriptionEvents,
         }],
       }],
-      tppBilledEvents,
+      billedEvents: tppBilledEvents,
       fundingHistories: {},
     };
     const eventsToUpdate = { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents };
@@ -1203,6 +1316,105 @@ describe('formatAndCreateList', () => {
     sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
   });
 
+  it('should create a customer bill with billingItem and a third party payer bills', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const customerId = new ObjectID();
+    const subscriptionId = new ObjectID();
+    const billingItemId = new ObjectID();
+    const tppId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const groupByCustomerBills = [{
+      customer: { _id: customerId, identity: { title: 'mrs', lastname: 'Test', firstname: 'Aman' } },
+      endDate: '2021-09-30T21:59:59.999Z',
+      customerBills: {
+        total: 409.2,
+        bills: [{ subscription: { _id: subscriptionId } }, { billingItem: { _id: billingItemId } }],
+      },
+      thirdPartyPayerBills: [[{ subscription: { _id: subscriptionId }, thirdPartyPayer: { _id: tppId } }]],
+    }];
+    const customerBillingInfo = {
+      bill: { customer: customerId, billingItemList: [{ _id: billingItemId }] },
+      billedEvents: {
+        123: {
+          event: '123',
+          startDate: '2021-09-16T18:00:00.000Z',
+          endDate: '2021-09-16T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesCustomer: 304.6,
+          exclTaxesCustomer: 280,
+          inclTaxesTpp: 20.4,
+          exclTaxesTpp: 19.33649289099526,
+          thirdPartyPayer: tppId,
+          billingItems: [{ _id: billingItemId }],
+        },
+        456: {
+          event: '456',
+          startDate: '2021-09-17T18:00:00.000Z',
+          endDate: '2021-09-17T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesCustomer: 304.6,
+          exclTaxesCustomer: 280,
+          billingItems: [{ _id: billingItemId }],
+        },
+      },
+    };
+    const tppBillingInfo = {
+      tppBills: [{ customer: customerId, thirdPartyPayer: tppId }],
+      billedEvents: {
+        123: {
+          event: '123',
+          startDate: '2021-09-16T18:00:00.000Z',
+          endDate: '2021-09-16T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesTpp: 20.4,
+          exclTaxesTpp: 19.33649289099526,
+          thirdPartyPayer: tppId,
+          inclTaxesCustomer: 204.6,
+          exclTaxesCustomer: 180,
+          nature: 'hourly',
+          careHours: 2,
+        },
+      },
+    };
+    const number = { prefix: 'FACT-1911', seq: 1 };
+
+    getBillNumberStub.returns(number);
+    formatCustomerBillsStub.returns(customerBillingInfo);
+    formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+
+    await BillHelper.formatAndCreateList(groupByCustomerBills, credentials);
+
+    sinon.assert.calledWithExactly(
+      updateEventsStub,
+      {
+        123: {
+          event: '123',
+          startDate: '2021-09-16T18:00:00.000Z',
+          endDate: '2021-09-16T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesTpp: 20.4,
+          exclTaxesTpp: 19.33649289099526,
+          thirdPartyPayer: tppId,
+          inclTaxesCustomer: 304.6,
+          exclTaxesCustomer: 280,
+          nature: 'hourly',
+          billingItems: [{ _id: billingItemId }],
+          careHours: 2,
+        },
+        456: {
+          event: '456',
+          startDate: '2021-09-17T18:00:00.000Z',
+          endDate: '2021-09-17T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesCustomer: 304.6,
+          exclTaxesCustomer: 280,
+          billingItems: [{ _id: billingItemId }],
+        },
+      }
+    );
+  });
+
   it('should create customer bill', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
@@ -1234,7 +1446,7 @@ describe('formatAndCreateList', () => {
           events: customerSubscriptionEvents,
         }],
       },
-      customerBilledEvents,
+      billedEvents: customerBilledEvents,
     };
 
     getBillNumberStub.returns(number);
@@ -1301,7 +1513,7 @@ describe('formatAndCreateList', () => {
           events: tppSubscriptionEvents,
         }],
       }],
-      tppBilledEvents,
+      billedEvents: tppBilledEvents,
       fundingHistories: {},
     };
 
@@ -1377,7 +1589,7 @@ describe('formatAndCreateList', () => {
           events: customerSubscriptionEvents,
         }],
       },
-      customerBilledEvents,
+      billedEvents: customerBilledEvents,
     };
     const tppBillingInfo = {
       tppBills: [{
@@ -1398,7 +1610,7 @@ describe('formatAndCreateList', () => {
           events: tppSubscriptionEvents,
         }],
       }],
-      tppBilledEvents,
+      billedEvents: tppBilledEvents,
       fundingHistories: {},
     };
     const eventsToUpdate = { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents };
@@ -1568,6 +1780,7 @@ describe('formatBillingItem', () => {
       count: 3,
       inclTaxes: 180,
       exclTaxes: 150,
+      vat: 20,
     });
   });
 });
