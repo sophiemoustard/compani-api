@@ -319,15 +319,16 @@ exports.formatBillDetailsForPdf = (bill) => {
     totalDiscount += sub.discount;
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
+    const total = volume * unitInclTaxes;
 
     formattedDetails.push({
       unitInclTaxes,
       vat: sub.vat || 0,
       name: sub.service.name,
       volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
-      total: volume * unitInclTaxes,
+      total,
     });
-    totalSubscription += volume * unitInclTaxes;
+    totalSubscription += total;
     totalSurcharge += exports.computeSurcharge(sub);
   }
 
@@ -339,6 +340,7 @@ exports.formatBillDetailsForPdf = (bill) => {
       totalExclTaxes += bi.exclTaxes;
       totalVAT += bi.inclTaxes - bi.exclTaxes;
       totalBillingItem += bi.inclTaxes;
+      totalDiscount += bi.discount;
 
       formattedDetails.push({ name: bi.name, unitInclTaxes: bi.unitInclTaxes, volume: bi.count, total: bi.inclTaxes });
     }
@@ -346,9 +348,10 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
 
-  const totalTPP = Number((bill.netInclTaxes - totalSubscription - totalSurcharge - totalBillingItem + totalDiscount)
-    .toFixed(2));
-  if (totalTPP) formattedDetails.push({ name: 'Participation du/des tier(s) payeur(s)', total: totalTPP });
+  const totalTPP = bill.netInclTaxes - totalSubscription - totalSurcharge - totalBillingItem + totalDiscount;
+  if (Number(totalTPP.toFixed(2))) {
+    formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
+  }
 
   totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
   totalVAT = UtilsHelper.formatPrice(totalVAT);

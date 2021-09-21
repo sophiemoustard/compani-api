@@ -2106,7 +2106,7 @@ describe('formatBillDetailsForPdf', () => {
         service: { name: 'Temps de qualité - autonomie', nature: 'hourly' },
         hours: 18,
         exclTaxes: 430.5444,
-        inclTaxes: 454.2243,
+        inclTaxes: 440.46,
         discount: 0,
       }],
     };
@@ -2144,7 +2144,7 @@ describe('formatBillDetailsForPdf', () => {
         hours: 0,
         exclTaxes: 20.3,
         inclTaxes: 22,
-        discount: -5,
+        discount: 5,
         events: [{
           _id: new ObjectID(),
           startDate: '2019-09-15T05:00:00.000+00:00',
@@ -2153,13 +2153,14 @@ describe('formatBillDetailsForPdf', () => {
         }],
       }],
       billingItemList: [
-        { name: 'Frais de dossier', unitInclTaxes: 30, count: 1, inclTaxes: 30, exclTaxes: 27.27 },
+        { name: 'Frais de dossier', unitInclTaxes: 30, count: 1, inclTaxes: 30, exclTaxes: 27.27, discount: 10 },
         {
           name: 'Equipement de protection individuel',
           unitInclTaxes: 2,
           count: 5,
           inclTaxes: 10,
           exclTaxes: 8.33,
+          discount: 0,
         },
       ],
     };
@@ -2177,8 +2178,8 @@ describe('formatBillDetailsForPdf', () => {
         { name: 'Majorations', total: 12.24 },
         { name: 'Frais de dossier', unitInclTaxes: 30, volume: 1, total: 30 },
         { name: 'Equipement de protection individuel', unitInclTaxes: 2, volume: 5, total: 10 },
-        { name: 'Remises', total: 5 },
-        { name: 'Participation du/des tier(s) payeur(s)', total: -29.24 },
+        { name: 'Remises', total: -15 },
+        { name: 'Prise en charge du/des tiers(s) payeur(s)', total: -9.240000000000002 },
       ],
       totalExclTaxes: '20,30 €',
       totalVAT: '1,70 €',
