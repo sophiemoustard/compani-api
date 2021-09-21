@@ -118,7 +118,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
     });
 
-    it('should return a 403 error if customer is not from same company', async () => {
+    it('should return a 404 error if customer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -126,10 +126,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         payload: { ...payloadWithEvents, customer: otherCompanyCustomer._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if customer subscription is not from same company', async () => {
+    it('should return a 404 error if customer subscription is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -144,10 +144,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if third party payer is not from same company', async () => {
+    it('should return a 404 error if third party payer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -160,10 +160,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if at least one event is not from same company', async () => {
+    it('should return a 404 error if at least one event is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -188,7 +188,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     const missingParams = [
@@ -412,7 +412,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 error if customer is not from same company', async () => {
+    it('should return a 404 error if customer is not from same company', async () => {
       payload = { customer: otherCompanyCustomer._id };
 
       const response = await app.inject({
@@ -422,10 +422,10 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if third party payer is not from same company', async () => {
+    it('should return a 404 error if third party payer is not from same company', async () => {
       payload = { exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: otherCompanyThirdPartyPayer._id };
 
       const response = await app.inject({
@@ -435,10 +435,10 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if at least one event is not from same company', async () => {
+    it('should return a 404 error if at least one event is not from same company', async () => {
       payload = {
         events: [{
           eventId: otherCompanyEvent._id,
@@ -460,10 +460,10 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if customer subscription is not from same company', async () => {
+    it('should return a 404 error if customer subscription is not from same company', async () => {
       payload = {
         customer: creditNoteCustomer._id,
         subscription: {
@@ -479,7 +479,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 403 error if credit note is not editable', async () => {

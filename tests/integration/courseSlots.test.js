@@ -17,9 +17,9 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create course slot', async () => {
@@ -303,7 +303,6 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
@@ -332,9 +331,9 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should update course slot', async () => {
@@ -534,7 +533,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -559,9 +557,9 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete course slot and create courseHistory', async () => {
@@ -630,7 +628,6 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
