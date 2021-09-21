@@ -113,9 +113,9 @@ const EventSchema = mongoose.Schema(
       careHours: { type: Number },
       surcharges: billEventSurchargesSchemaDefinition,
       billingItems: [{
-        billingItem: { type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem' },
-        exclTaxes: { type: Number },
-        inclTaxes: { type: Number },
+        billingItem: { type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem', required: true },
+        exclTaxes: { type: Number, required: true },
+        inclTaxes: { type: Number, required: true },
       }],
     },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },

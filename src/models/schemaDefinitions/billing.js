@@ -17,7 +17,12 @@ const billingItemSchemaDefinition = {
   vat: { type: Number, required: true },
   startDate: { type: Date },
   endDate: { type: Date },
-  events: { type: Array },
+  events: [{
+    eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+  }],
 };
 
 module.exports = { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition };

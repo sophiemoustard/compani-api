@@ -1207,7 +1207,7 @@ describe('formatBillingItems', () => {
 
     expect(result).toEqual([
       expect.objectContaining({
-        billingItem: { _id: 'd00000000000000000000001', name: 'FI' },
+        billingItem: { _id: new ObjectID('d00000000000000000000001'), name: 'FI' },
         discount: 0,
         unitExclTaxes: 0.9090909090909091,
         unitInclTaxes: 1,
@@ -1219,7 +1219,7 @@ describe('formatBillingItems', () => {
         endDate: '2019-12-25T07:00:00',
       }),
       expect.objectContaining({
-        billingItem: { _id: 'd00000000000000000000002', name: 'EPI' },
+        billingItem: { _id: new ObjectID('d00000000000000000000002'), name: 'EPI' },
         discount: 0,
         unitExclTaxes: 4.545454545454545,
         unitInclTaxes: 5,

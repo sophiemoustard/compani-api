@@ -372,7 +372,7 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
 
     formattedBillingItems.push({
       _id: new ObjectID(),
-      billingItem: { _id: billingItemId, name: bddBillingItem.name },
+      billingItem: { _id: new ObjectID(billingItemId), name: bddBillingItem.name },
       discount: 0,
       unitExclTaxes,
       unitInclTaxes: bddBillingItem.defaultUnitAmount,

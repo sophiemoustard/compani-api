@@ -43,7 +43,7 @@ exports.formatSubscriptionData = (bill) => {
 exports.formatBillingItemData = bill => ({
   ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'vat']),
   billingItem: bill.billingItem._id,
-  events: bill.eventsList,
+  events: bill.eventsList.map(ev => ({ ...pick(ev, ['startDate', 'endDate', 'auxiliary']), eventId: ev.event })),
   name: bill.billingItem.name,
   count: bill.eventsList.length,
 });
@@ -71,25 +71,17 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     } else {
       bill.billingItemList.push(exports.formatBillingItemData(draftBill));
       for (const ev of draftBill.eventsList) {
-        const event = billedEvents[ev.event];
-        const eventBillingItems = [
-          ...event.billingItems || [],
-          {
-            billingItem: draftBill.billingItem._id,
-            inclTaxes: draftBill.unitInclTaxes,
-            exclTaxes: draftBill.unitExclTaxes,
-          },
-        ];
-        const exclTaxesCustomer = event.exclTaxesCustomer
-          ? draftBill.exclTaxes + event.exclTaxesCustomer
-          : draftBill.exclTaxes;
-        const inclTaxesCustomer = event.inclTaxesCustomer
-          ? draftBill.inclTaxes + event.inclTaxesCustomer
-          : draftBill.inclTaxes;
+        if (!billedEvents[ev.event].billingItems) billedEvents[ev.event].billingItems = [];
+        if (!billedEvents[ev.event].exclTaxesCustomer) billedEvents[ev.event].exclTaxesCustomer = 0;
+        if (!billedEvents[ev.event].inclTaxesCustomer) billedEvents[ev.event].inclTaxesCustomer = 0;
 
-        event.billingItems = eventBillingItems;
-        event.exclTaxesCustomer = exclTaxesCustomer;
-        event.inclTaxesCustomer = inclTaxesCustomer;
+        billedEvents[ev.event].billingItems.push({
+          billingItem: draftBill.billingItem._id,
+          inclTaxes: draftBill.unitInclTaxes,
+          exclTaxes: draftBill.unitExclTaxes,
+        });
+        billedEvents[ev.event].exclTaxesCustomer += draftBill.exclTaxes;
+        billedEvents[ev.event].inclTaxesCustomer += draftBill.inclTaxes;
       }
     }
   }

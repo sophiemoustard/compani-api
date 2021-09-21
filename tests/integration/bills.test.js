@@ -511,6 +511,11 @@ describe('BILL ROUTES - POST /bills/list', () => {
     });
 
     it('should create a bill with billingItems', async () => {
+      const billsWithBillingItemBefore = await Bill.countDocuments({
+        company: authCompany._id,
+        billingItemList: { $exists: true, $ne: [] },
+      });
+
       const draftBillPayload = [{
         customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
         endDate: '2019-05-30T23:59:59.999Z',
@@ -553,8 +558,14 @@ describe('BILL ROUTES - POST /bills/list', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const billCount = await Bill.countDocuments({ company: authCompany._id });
-      expect(billCount).toBe(1 + authBillList.length);
+      const billsWithBillingItemAfter = await Bill.countDocuments({
+        company: authCompany._id,
+        billingItemList: { $exists: true, $ne: [] },
+      });
+      expect(billsWithBillingItemAfter).toBe(1 + billsWithBillingItemBefore);
+
+      const eventInBill = await Event.countDocuments({ _id: eventList[4]._id, isBilled: true });
+      expect(eventInBill).toEqual(1);
     });
 
     it('should return a 403 error if customer is not from same company', async () => {

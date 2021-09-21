@@ -405,12 +405,10 @@ describe('formatBillingItemData', () => {
       vat: 12,
       billingItem: billingItemId,
       events: [{
-        event: eventId,
+        eventId,
         startDate: '2019-05-28T10:00:55.374Z',
         endDate: '2019-05-28T13:00:55.374Z',
         auxiliary: '34567890',
-        inclTaxesCustomer: 12,
-        exclTaxesCustomer: 10,
       }],
       count: 1,
       name: 'skusku',
