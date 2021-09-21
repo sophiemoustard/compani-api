@@ -198,7 +198,10 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
     if (thirdPartyPayerBills && thirdPartyPayerBills.length > 0) {
       const tppBillingInfo = exports.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
       fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
-      eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
+      for (const eventId of Object.keys(tppBillingInfo.billedEvents)) {
+        if (!eventsToUpdate[eventId]) eventsToUpdate[eventId] = tppBillingInfo.billedEvents[eventId];
+        else eventsToUpdate[eventId] = { ...tppBillingInfo.billedEvents[eventId], ...eventsToUpdate[eventId] };
+      }
       for (const bill of tppBillingInfo.tppBills) {
         billList.push(bill);
         if (bill.number) number.seq += 1;

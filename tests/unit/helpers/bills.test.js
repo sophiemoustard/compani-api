@@ -1246,7 +1246,7 @@ describe('formatAndCreateList', () => {
           events: customerSubscriptionEvents,
         }],
       },
-      customerBilledEvents,
+      billedEvents: customerBilledEvents,
     };
     const tppBillingInfo = {
       tppBills: [{
@@ -1267,7 +1267,7 @@ describe('formatAndCreateList', () => {
           events: tppSubscriptionEvents,
         }],
       }],
-      tppBilledEvents,
+      billedEvents: tppBilledEvents,
       fundingHistories: {},
     };
     const eventsToUpdate = { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents };
@@ -1316,6 +1316,105 @@ describe('formatAndCreateList', () => {
     sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
   });
 
+  it('should create a customer bill with billingItem and a third party payer bills', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const customerId = new ObjectID();
+    const subscriptionId = new ObjectID();
+    const billingItemId = new ObjectID();
+    const tppId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const groupByCustomerBills = [{
+      customer: { _id: customerId, identity: { title: 'mrs', lastname: 'Test', firstname: 'Aman' } },
+      endDate: '2021-09-30T21:59:59.999Z',
+      customerBills: {
+        total: 409.2,
+        bills: [{ subscription: { _id: subscriptionId } }, { billingItem: { _id: billingItemId } }],
+      },
+      thirdPartyPayerBills: [[{ subscription: { _id: subscriptionId }, thirdPartyPayer: { _id: tppId } }]],
+    }];
+    const customerBillingInfo = {
+      bill: { customer: customerId, billingItemList: [{ _id: billingItemId }] },
+      billedEvents: {
+        123: {
+          event: '123',
+          startDate: '2021-09-16T18:00:00.000Z',
+          endDate: '2021-09-16T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesCustomer: 304.6,
+          exclTaxesCustomer: 280,
+          inclTaxesTpp: 20.4,
+          exclTaxesTpp: 19.33649289099526,
+          thirdPartyPayer: tppId,
+          billingItems: [{ _id: billingItemId }],
+        },
+        456: {
+          event: '456',
+          startDate: '2021-09-17T18:00:00.000Z',
+          endDate: '2021-09-17T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesCustomer: 304.6,
+          exclTaxesCustomer: 280,
+          billingItems: [{ _id: billingItemId }],
+        },
+      },
+    };
+    const tppBillingInfo = {
+      tppBills: [{ customer: customerId, thirdPartyPayer: tppId }],
+      billedEvents: {
+        123: {
+          event: '123',
+          startDate: '2021-09-16T18:00:00.000Z',
+          endDate: '2021-09-16T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesTpp: 20.4,
+          exclTaxesTpp: 19.33649289099526,
+          thirdPartyPayer: tppId,
+          inclTaxesCustomer: 204.6,
+          exclTaxesCustomer: 180,
+          nature: 'hourly',
+          careHours: 2,
+        },
+      },
+    };
+    const number = { prefix: 'FACT-1911', seq: 1 };
+
+    getBillNumberStub.returns(number);
+    formatCustomerBillsStub.returns(customerBillingInfo);
+    formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+
+    await BillHelper.formatAndCreateList(groupByCustomerBills, credentials);
+
+    sinon.assert.calledWithExactly(
+      updateEventsStub,
+      {
+        123: {
+          event: '123',
+          startDate: '2021-09-16T18:00:00.000Z',
+          endDate: '2021-09-16T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesTpp: 20.4,
+          exclTaxesTpp: 19.33649289099526,
+          thirdPartyPayer: tppId,
+          inclTaxesCustomer: 304.6,
+          exclTaxesCustomer: 280,
+          nature: 'hourly',
+          billingItems: [{ _id: billingItemId }],
+          careHours: 2,
+        },
+        456: {
+          event: '456',
+          startDate: '2021-09-17T18:00:00.000Z',
+          endDate: '2021-09-17T20:00:00.000Z',
+          auxiliary: auxiliaryId,
+          inclTaxesCustomer: 304.6,
+          exclTaxesCustomer: 280,
+          billingItems: [{ _id: billingItemId }],
+        },
+      }
+    );
+  });
+
   it('should create customer bill', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
@@ -1347,7 +1446,7 @@ describe('formatAndCreateList', () => {
           events: customerSubscriptionEvents,
         }],
       },
-      customerBilledEvents,
+      billedEvents: customerBilledEvents,
     };
 
     getBillNumberStub.returns(number);
@@ -1414,7 +1513,7 @@ describe('formatAndCreateList', () => {
           events: tppSubscriptionEvents,
         }],
       }],
-      tppBilledEvents,
+      billedEvents: tppBilledEvents,
       fundingHistories: {},
     };
 
@@ -1490,7 +1589,7 @@ describe('formatAndCreateList', () => {
           events: customerSubscriptionEvents,
         }],
       },
-      customerBilledEvents,
+      billedEvents: customerBilledEvents,
     };
     const tppBillingInfo = {
       tppBills: [{
@@ -1511,7 +1610,7 @@ describe('formatAndCreateList', () => {
           events: tppSubscriptionEvents,
         }],
       }],
-      tppBilledEvents,
+      billedEvents: tppBilledEvents,
       fundingHistories: {},
     };
     const eventsToUpdate = { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents };
