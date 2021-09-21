@@ -90,16 +90,6 @@ describe('GET /eventhistories', () => {
     expect(response.result.data.eventHistories.every(history => actions.includes(history.action))).toBeTruthy();
   });
 
-  it('should return a 400 if invalid query', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: `/eventhistories?auxiliary=${auxiliaries[0]._id}`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-    });
-
-    expect(response.statusCode).toEqual(400);
-  });
-
   it('should return a 404 if at least one auxiliary is not from the same company', async () => {
     const response = await app.inject({
       method: 'GET',
