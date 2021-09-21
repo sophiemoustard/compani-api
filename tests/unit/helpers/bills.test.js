@@ -378,6 +378,7 @@ describe('formatBillingItemData', () => {
     const bill = {
       billingItem: { _id: billingItemId, name: 'skusku' },
       unitInclTaxes: 24.64,
+      unitExclTaxes: 22.64,
       exclTaxes: 13.64,
       inclTaxes: 14.40,
       startDate: '2019-06-28T10:06:55.374Z',
@@ -559,6 +560,7 @@ describe('formatCustomerBills', () => {
           endDate: '2019-09-19T00:00:00',
           billingItem: { _id: 'billingItemId', name: 'Billing Eilish' },
           unitInclTaxes: 34,
+          unitExclTaxes: 32.38095238095238,
           exclTaxes: 12,
           inclTaxes: 17,
           vat: 5,

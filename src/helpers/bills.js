@@ -71,24 +71,25 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     } else {
       bill.billingItemList.push(exports.formatBillingItemData(draftBill));
       for (const ev of draftBill.eventsList) {
+        const event = billedEvents[ev.event];
         const eventBillingItems = [
-          ...billedEvents[ev.event].billingItems || [],
+          ...event.billingItems || [],
           {
             billingItem: draftBill.billingItem._id,
             inclTaxes: draftBill.unitInclTaxes,
-            exclTaxes: draftBill.unitInclTaxes / (1 + draftBill.vat / 100),
+            exclTaxes: draftBill.unitExclTaxes,
           },
         ];
-        const exclTaxesCustomer = billedEvents[ev.event].exclTaxesCustomer
-          ? draftBill.exclTaxes + billedEvents[ev.event].exclTaxesCustomer
+        const exclTaxesCustomer = event.exclTaxesCustomer
+          ? draftBill.exclTaxes + event.exclTaxesCustomer
           : draftBill.exclTaxes;
-        const inclTaxesCustomer = billedEvents[ev.event].inclTaxesCustomer
-          ? draftBill.inclTaxes + billedEvents[ev.event].inclTaxesCustomer
+        const inclTaxesCustomer = event.inclTaxesCustomer
+          ? draftBill.inclTaxes + event.inclTaxesCustomer
           : draftBill.inclTaxes;
 
-        billedEvents[ev.event].billingItems = eventBillingItems;
-        billedEvents[ev.event].exclTaxesCustomer = exclTaxesCustomer;
-        billedEvents[ev.event].inclTaxesCustomer = inclTaxesCustomer;
+        event.billingItems = eventBillingItems;
+        event.exclTaxesCustomer = exclTaxesCustomer;
+        event.inclTaxesCustomer = inclTaxesCustomer;
       }
     }
   }
