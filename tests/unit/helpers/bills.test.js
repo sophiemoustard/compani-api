@@ -2099,6 +2099,7 @@ describe('formatBillDetailsForPdf', () => {
 
   it('should return formatted details if service.nature is hourly', () => {
     const bill = {
+      netInclTaxes: 440.46,
       subscriptions: [{
         unitInclTaxes: 24.47,
         vat: 5.5,
@@ -2106,6 +2107,7 @@ describe('formatBillDetailsForPdf', () => {
         hours: 18,
         exclTaxes: 430.5444,
         inclTaxes: 454.2243,
+        discount: 0,
       }],
     };
 
@@ -2134,6 +2136,7 @@ describe('formatBillDetailsForPdf', () => {
 
   it('should return formatted details if service.nature is fixed', () => {
     const bill = {
+      netInclTaxes: 50,
       subscriptions: [{
         unitInclTaxes: 22,
         vat: 5.5,
@@ -2141,80 +2144,7 @@ describe('formatBillDetailsForPdf', () => {
         hours: 0,
         exclTaxes: 20.3,
         inclTaxes: 22,
-        events: [{ startDate: '2019-09-15T05:00:00.000+00:00', endDate: '2019-09-15T05:00:00.000+00:00' }],
-      }],
-    };
-
-    getUnitInclTaxes.returns(22);
-    computeSurcharge.returns(0);
-    formatPrice.onCall(0).returns('20,30 €');
-    formatPrice.onCall(1).returns('1,70 €');
-
-    const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
-
-    expect(formattedBillDetails).toEqual({
-      formattedDetails: [{
-        unitInclTaxes: 22,
-        vat: 5.5,
-        name: 'Forfait nuit',
-        volume: 1,
-        total: 22,
-      }],
-      totalExclTaxes: '20,30 €',
-      totalVAT: '1,70 €',
-    });
-
-    sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
-    sinon.assert.notCalled(formatHour);
-  });
-
-  it('should return formatted details if customer has discounts', () => {
-    const bill = {
-      subscriptions: [{
-        unitInclTaxes: 24.47,
-        vat: 5.5,
-        service: { name: 'Temps de qualité - autonomie', nature: 'hourly' },
-        hours: 18,
-        exclTaxes: 430.5444,
-        inclTaxes: 454.2243,
         discount: -5,
-      }],
-    };
-
-    getUnitInclTaxes.returns(24.47);
-    formatHour.onCall(0).returns('18,00 h');
-    computeSurcharge.returns(0);
-    formatPrice.onCall(0).returns('430,54 €');
-    formatPrice.onCall(1).returns('23,68 €');
-
-    const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
-
-    expect(formattedBillDetails).toEqual({
-      formattedDetails: [
-        {
-          unitInclTaxes: 24.47,
-          vat: 5.5,
-          name: 'Temps de qualité - autonomie',
-          volume: '18,00 h',
-          total: 440.46,
-        },
-        { name: 'Remises', total: 5 },
-      ],
-      totalExclTaxes: '430,54 €',
-      totalVAT: '23,68 €',
-    });
-
-    sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
-  });
-  it('should return formatted details if there are surcharged interventions', () => {
-    const bill = {
-      subscriptions: [{
-        unitInclTaxes: 24.47,
-        vat: 5.5,
-        service: { name: 'Temps de qualité - autonomie', nature: 'hourly' },
-        hours: 18,
-        exclTaxes: 430.5444,
-        inclTaxes: 454.2243,
         events: [{
           _id: new ObjectID(),
           startDate: '2019-09-15T05:00:00.000+00:00',
@@ -2222,39 +2152,6 @@ describe('formatBillDetailsForPdf', () => {
           surcharges: [{ _id: new ObjectID(), percentage: 25, name: 'Dimanche' }],
         }],
       }],
-    };
-
-    getUnitInclTaxes.returns(24.47);
-    formatHour.onCall(0).returns('18,00 h');
-    computeSurcharge.returns(12.24);
-    formatPrice.onCall(0).returns('430,54 €');
-    formatPrice.onCall(1).returns('23,68 €');
-
-    const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
-
-    expect(formattedBillDetails).toEqual({
-      formattedDetails: [
-        {
-          unitInclTaxes: 24.47,
-          vat: 5.5,
-          name: 'Temps de qualité - autonomie',
-          volume: '18,00 h',
-          total: 440.46,
-        },
-        { name: 'Majorations', total: 12.24 },
-      ],
-      totalExclTaxes: '430,54 €',
-      totalVAT: '23,68 €',
-    });
-
-    sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
-  });
-
-  it('should return formatted details if there are billingItems', () => {
-    const bill = {
-      _id: new ObjectID(),
-      origin: 'compani',
-      type: 'manual',
       billingItemList: [
         { name: 'Frais de dossier', unitInclTaxes: 30, count: 1, inclTaxes: 30, exclTaxes: 27.27 },
         {
@@ -2265,22 +2162,30 @@ describe('formatBillDetailsForPdf', () => {
           exclTaxes: 8.33,
         },
       ],
-      subscriptions: [],
     };
 
-    formatPrice.onCall(0).returns('35,61 €');
-    formatPrice.onCall(1).returns('4,45 €');
+    getUnitInclTaxes.returns(22);
+    computeSurcharge.returns(12.24);
+    formatPrice.onCall(0).returns('20,30 €');
+    formatPrice.onCall(1).returns('1,70 €');
 
     const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
 
     expect(formattedBillDetails).toEqual({
       formattedDetails: [
+        { unitInclTaxes: 22, vat: 5.5, name: 'Forfait nuit', volume: 1, total: 22 },
+        { name: 'Majorations', total: 12.24 },
         { name: 'Frais de dossier', unitInclTaxes: 30, volume: 1, total: 30 },
         { name: 'Equipement de protection individuel', unitInclTaxes: 2, volume: 5, total: 10 },
+        { name: 'Remises', total: 5 },
+        { name: 'Participation du/des tier(s) payeur(s)', total: -29.24 },
       ],
-      totalExclTaxes: '35,61 €',
-      totalVAT: '4,45 €',
+      totalExclTaxes: '20,30 €',
+      totalVAT: '1,70 €',
     });
+
+    sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
+    sinon.assert.notCalled(formatHour);
   });
 });
 
