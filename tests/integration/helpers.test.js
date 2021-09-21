@@ -43,26 +43,13 @@ describe('GET /helpers', () => {
     });
   });
 
-  describe('COACH', () => {
-    it('should return list of helpers', async () => {
-      const customerId = customer._id.toHexString();
-      const response = await app.inject({
-        method: 'GET',
-        url: `/helpers?customer=${customerId}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.helpers.length).toBe(1);
-    });
-  });
-
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'coach', expectedCode: 200, erp: true },
 
     ];
 
@@ -100,9 +87,9 @@ describe('PUT /helpers/{_id}', () => {
         payload: { referent: true },
       });
 
-      const helperCount = await Helper.countDocuments({ _id: helperId, referent: true });
-
       expect(response.statusCode).toBe(200);
+
+      const helperCount = await Helper.countDocuments({ _id: helperId, referent: true });
       expect(helperCount).toBe(1);
     });
 
