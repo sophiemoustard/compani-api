@@ -41,7 +41,7 @@ exports.formatSubscriptionData = (bill) => {
 };
 
 exports.formatBillingItemData = bill => ({
-  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'vat']),
+  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'vat', 'discount']),
   billingItem: bill.billingItem._id,
   events: bill.eventsList.map(ev => ({ ...pick(ev, ['startDate', 'endDate', 'auxiliary']), eventId: ev.event })),
   name: bill.billingItem.name,
