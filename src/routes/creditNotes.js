@@ -60,6 +60,11 @@ exports.plugin = {
                   startHour: Joi.date(),
                   endHour: Joi.date(),
                 })),
+                billingItems: Joi.array().items(Joi.object({
+                  billingItem: Joi.objectId(),
+                  exclTaxes: Joi.string(),
+                  inclTaxes: Joi.string(),
+                })),
               }).required(),
             })),
             subscription: Joi.object().keys({
@@ -112,7 +117,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            date: Joi.date(),
+            date: Joi.date().required(),
             startDate: Joi.date(),
             endDate: Joi.date(),
             customer: Joi.objectId(),

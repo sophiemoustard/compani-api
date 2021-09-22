@@ -390,6 +390,17 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.result.data.creditNote.exclTaxesCustomer).toEqual(payload.exclTaxesCustomer);
     });
 
+    it('should return a 400 error if date isn\'t in payload', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 404 error if credit note does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -413,7 +424,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     });
 
     it('should return a 404 error if customer is not from same company', async () => {
-      payload = { customer: otherCompanyCustomer._id };
+      payload = { customer: otherCompanyCustomer._id, date: '2019-07-19T14:00:18' };
 
       const response = await app.inject({
         method: 'PUT',
@@ -426,7 +437,12 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     });
 
     it('should return a 404 error if third party payer is not from same company', async () => {
-      payload = { exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: otherCompanyThirdPartyPayer._id };
+      payload = {
+        date: '2019-07-19T14:00:18',
+        exclTaxesTpp: 100,
+        inclTaxesTpp: 100,
+        thirdPartyPayer: otherCompanyThirdPartyPayer._id,
+      };
 
       const response = await app.inject({
         method: 'PUT',
@@ -451,6 +467,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
             exclTaxesCustomer: 8,
           },
         }],
+        date: '2019-07-19T14:00:18',
       };
 
       const response = await app.inject({
@@ -465,6 +482,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 
     it('should return a 404 error if customer subscription is not from same company', async () => {
       payload = {
+        date: '2019-07-19T14:00:18',
         customer: creditNoteCustomer._id,
         subscription: {
           _id: otherCompanyCustomer.subscriptions[0]._id,
