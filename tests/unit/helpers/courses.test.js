@@ -6,6 +6,7 @@ const os = require('os');
 const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
 const moment = require('moment');
+const Boom = require('@hapi/boom');
 const Course = require('../../../src/models/Course');
 const User = require('../../../src/models/User');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
@@ -1167,7 +1168,8 @@ describe('sendSMS', () => {
 
   it('should send SMS to trainees and save missing phone trainee id', async () => {
     courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees }]));
-    sendStub.returns();
+    sendStub.onCall(0).returns();
+    sendStub.onCall(1).returns(new Promise(() => { throw Boom.badRequest(); }));
 
     await CourseHelper.sendSMS(courseId, payload, credentials);
 
@@ -1212,13 +1214,14 @@ describe('sendSMS', () => {
   it('should not save coursesmshistory if no sms is sent', async () => {
     try {
       courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees }]));
-      sendStub.throws();
+      sendStub.returns(new Promise(() => { throw Boom.badRequest(); }));
 
       await CourseHelper.sendSMS(courseId, payload, credentials);
 
       expect(false).toBe(true);
     } catch (e) {
       sinon.assert.notCalled(courseSmsHistoryCreate);
+      expect(e).toEqual(Boom.badRequest());
     }
   });
 });
