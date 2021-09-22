@@ -41,8 +41,7 @@ const auxiliary = {
   role: { client: auxiliaryRoleId },
   contracts: contractId,
   origin: WEBAPP,
-  administrative: { transportInvoice: { transportType: 'private' }, phoneInvoice: { driveId: 'qwertyuioiuytrew' } },
-
+  administrative: { phoneInvoice: { driveId: 'qwertyuioiuytrew' } },
 };
 
 const auxiliaryFromOtherCompany = {
