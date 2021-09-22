@@ -325,9 +325,8 @@ exports.sendSMS = async (courseId, payload, credentials) => {
   }
 
   const smsSentStatus = await Promise.allSettled(promises);
-  if (smsSentStatus.every(res => res.status === REJECTED)) {
-    throw Boom.badRequest(smsSentStatus[0].reason);
-  } else {
+  if (smsSentStatus.every(res => res.status === REJECTED)) throw Boom.badRequest(smsSentStatus[0].reason);
+  else {
     await CourseSmsHistory.create({
       type: payload.type,
       course: courseId,
