@@ -42,7 +42,7 @@ module.exports = {
     'no-restricted-syntax': 0,
     'no-underscore-dangle': 0,
     'no-use-before-define': 0,
-    'object-curly-newline': ['error', { consistent: true }],
+    'object-curly-newline': ['error', { consistent: true, multiline: true }],
     'operator-linebreak': ['error', 'before', { overrides: { '&&': 'after', '||': 'after', '=': 'after' } }],
     strict: 0,
   },

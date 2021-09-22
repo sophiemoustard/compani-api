@@ -36,9 +36,11 @@ exports.list = async (query) => {
         accessRules: { $in: [query.company, []] },
       });
 
-      return courses.map(course => ({ ...course,
+      return courses.map(course => ({
+        ...course,
         trainees: course.trainees.filter(t =>
-          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)) }));
+          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
+      }));
     }
     const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
     const interCourse = await CourseRepository.findCourseAndPopulate(

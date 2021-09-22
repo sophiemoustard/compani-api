@@ -681,12 +681,14 @@ describe('getCourseFollowUp', () => {
             ],
           }],
         },
-        { query: 'populate',
+        {
+          query: 'populate',
           args: [{
             path: 'trainees',
             select: 'identity.firstname identity.lastname firstMobileConnection',
             populate: { path: 'company' },
-          }] },
+          }],
+        },
         { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
         { query: 'lean' },
       ],
@@ -1056,7 +1058,8 @@ describe('getTraineeCourse', () => {
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: course._id }] },
-        { query: 'populate',
+        {
+          query: 'populate',
           args: [{
             path: 'subProgram',
             select: 'program steps',
@@ -1075,7 +1078,8 @@ describe('getTraineeCourse', () => {
                 },
               },
             ],
-          }] },
+          }],
+        },
         { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step address' }] },
         {
           query: 'populate',
