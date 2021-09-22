@@ -312,35 +312,47 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   const formattedDetails = [];
 
+  let totalSubscription = 0;
   for (const sub of bill.subscriptions) {
     totalExclTaxes += sub.exclTaxes;
     totalVAT += sub.inclTaxes - sub.exclTaxes;
     totalDiscount += sub.discount;
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
+    const total = volume * unitInclTaxes;
 
     formattedDetails.push({
       unitInclTaxes,
       vat: sub.vat || 0,
       name: sub.service.name,
       volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
-      total: volume * unitInclTaxes,
+      total,
     });
+    totalSubscription += total;
     totalSurcharge += exports.computeSurcharge(sub);
   }
 
   if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
 
+  let totalBillingItem = 0;
   if (bill.billingItemList) {
     for (const bi of bill.billingItemList) {
       totalExclTaxes += bi.exclTaxes;
       totalVAT += bi.inclTaxes - bi.exclTaxes;
+      totalBillingItem += bi.inclTaxes;
+      totalDiscount += bi.discount;
 
       formattedDetails.push({ name: bi.name, unitInclTaxes: bi.unitInclTaxes, volume: bi.count, total: bi.inclTaxes });
     }
   }
 
   if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
+
+  const totalTPP = bill.netInclTaxes - totalSubscription - totalSurcharge - totalBillingItem + totalDiscount;
+  if (Number(totalTPP.toFixed(2))) {
+    formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
+  }
+
   totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
   totalVAT = UtilsHelper.formatPrice(totalVAT);
 
