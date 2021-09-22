@@ -57,21 +57,21 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   if (payload.customer && payload.subscription) {
     const customer = await Customer
       .countDocuments({ _id: payload.customer, 'subscriptions._id': payload.subscription._id, company: companyId });
-    if (!customer) throw Boom.forbidden();
+    if (!customer) throw Boom.notFound();
   } else if (payload.customer) {
     const customer = await Customer.countDocuments(({ _id: payload.customer, company: companyId }));
-    if (!customer) throw Boom.forbidden();
+    if (!customer) throw Boom.notFound();
   }
 
   if (payload.thirdPartyPayer) {
     const tpp = await ThirdPartyPayer.countDocuments(({ _id: payload.thirdPartyPayer, company: companyId }));
-    if (!tpp) throw Boom.forbidden();
+    if (!tpp) throw Boom.notFound();
   }
 
   if (payload.events && payload.events.length) {
     const eventsIds = payload.events.map(ev => ev.eventId);
     const eventsCount = await Event.countDocuments({ _id: { $in: eventsIds }, company: companyId });
-    if (eventsCount !== eventsIds.length) throw Boom.forbidden();
+    if (eventsCount !== eventsIds.length) throw Boom.notFound();
   }
 
   return null;
