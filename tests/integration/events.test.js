@@ -635,6 +635,7 @@ describe('GET /events/unassigned-hours', () => {
 describe('POST /events', () => {
   let authToken;
   let DatesHelperDayDiff;
+  const countEventBeforeCreation = eventsList.length + 1;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -669,7 +670,9 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({});
+      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
     it('should create an intervention with auxiliary', async () => {
@@ -697,7 +700,9 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({});
+      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
     it('should create an intervention with sector', async () => {
@@ -725,7 +730,9 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({});
+      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
     it('should create an absence', async () => {
@@ -748,7 +755,33 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({});
+      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
+    });
+
+    it('should create an extended absence', async () => {
+      const payload = {
+        type: ABSENCE,
+        startDate: '2019-01-23T10:00:00',
+        endDate: '2019-01-23T12:30:00',
+        auxiliary: eventsList[20].auxiliary,
+        absenceNature: DAILY,
+        absence: PARENTAL_LEAVE,
+        extension: eventsList[20]._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
+
+      const countEventAfterCreation = await Event.countDocuments({});
+      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
     it('should create an unavailability', async () => {
@@ -767,7 +800,9 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({});
+      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
     it('should create a repetition', async () => {
@@ -802,10 +837,10 @@ describe('POST /events', () => {
       const repeatedEventsCount = await Event.countDocuments({
         'repetition.parentId': response.result.data.event._id,
         company: authCompany._id,
-      }).lean();
+      });
       expect(repeatedEventsCount).toEqual(91);
-      const repetition = await Repetition.findOne({ parentId: response.result.data.event._id }).lean();
-      expect(repetition).toBeDefined();
+      const repetition = await Repetition.countDocuments({ parentId: response.result.data.event._id });
+      expect(repetition).toBe(1);
     });
 
     const baseInterventionPayload = {
@@ -960,7 +995,7 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(400);
     });
 
-    it('should return a 403 if customer is not from the same company', async () => {
+    it('should return a 404 if customer is not from the same company', async () => {
       const payload = {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00',
@@ -984,7 +1019,7 @@ describe('POST /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 403 if the subscription is not for the customer', async () => {
@@ -1041,7 +1076,7 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(404);
     });
 
-    it('should return a 403 if internalHour is not from the same company', async () => {
+    it('should return a 404 if internalHour is not from the same company', async () => {
       const payload = {
         type: INTERNAL_HOUR,
         internalHour: internalHourFromOtherCompany._id,
@@ -1065,7 +1100,7 @@ describe('POST /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 403 if service is archived', async () => {
@@ -1095,28 +1130,6 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should create an extended absence', async () => {
-      const payload = {
-        type: ABSENCE,
-        startDate: '2019-01-23T10:00:00',
-        endDate: '2019-01-23T12:30:00',
-        auxiliary: eventsList[20].auxiliary,
-        absenceNature: DAILY,
-        absence: PARENTAL_LEAVE,
-        extension: eventsList[20]._id,
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/events',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
-    });
-
     it('should return 403 if absence extension and extended absence are not for the same valid reason', async () => {
       const payload = {
         type: ABSENCE,
@@ -1138,7 +1151,7 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return 403 if extended absence reason is invalid', async () => {
+    it('should return 400 if extended absence reason is invalid', async () => {
       const payload = {
         type: ABSENCE,
         startDate: '2019-01-23T10:00:00',
@@ -1156,7 +1169,7 @@ describe('POST /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(400);
     });
 
     it('should return 403 if event startDate is before extended absence startDate', async () => {
@@ -1203,7 +1216,6 @@ describe('POST /events', () => {
     const roles = [
       { name: 'helper', expectedCode: 403, erp: true },
       { name: 'auxiliary', expectedCode: 403, erp: true },
-      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
       {
         name: 'auxiliary event',
         expectedCode: 200,

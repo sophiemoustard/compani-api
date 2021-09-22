@@ -142,7 +142,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
     const customer = await Customer.findOne({ _id: customerId, company: companyId }, { subscriptions: 1 })
       .populate('subscriptions.service')
       .lean();
-    if (!customer) throw Boom.forbidden();
+    if (!customer) throw Boom.notFound();
 
     const customerSub = customer.subscriptions.find(sub =>
       UtilsHelper.areObjectIdsEquals(sub._id, req.payload.subscription));
@@ -160,17 +160,17 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
   if (req.payload.sector) {
     const sector = await Sector.countDocuments(({ _id: req.payload.sector, company: companyId }));
-    if (!sector) throw Boom.forbidden();
+    if (!sector) throw Boom.notFound();
   }
 
   if (req.payload.internalHour) {
     const internalHour = await InternalHour.countDocuments(({ _id: req.payload.internalHour, company: companyId }));
-    if (!internalHour) throw Boom.forbidden();
+    if (!internalHour) throw Boom.notFound();
   }
 
   if (req.payload.extension) {
     if (![MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, WORK_ACCIDENT, TRANSPORT_ACCIDENT, ILLNESS]
-      .includes(req.payload.absence)) throw Boom.forbidden();
+      .includes(req.payload.absence)) throw Boom.badRequest();
 
     const extendedAbsence = await Event.findOne(({ _id: req.payload.extension, absence: req.payload.absence })).lean();
     if (!extendedAbsence) throw Boom.forbidden();
