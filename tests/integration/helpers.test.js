@@ -50,7 +50,6 @@ describe('GET /helpers', () => {
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
       { name: 'coach', expectedCode: 200, erp: true },
-
     ];
 
     roles.forEach((role) => {
