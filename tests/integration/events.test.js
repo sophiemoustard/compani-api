@@ -1456,7 +1456,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toEqual(400);
     });
 
-    it('should return a 403 if internalHour is not from the same company', async () => {
+    it('should return a 404 if internalHour is not from the same company', async () => {
       const event = eventsList[0];
       const payload = {
         sector: sectors[0]._id.toHexString(),
@@ -1470,10 +1470,10 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
-    it('should return a 403 if sector is not from the same company', async () => {
+    it('should return a 404 if sector is not from the same company', async () => {
       const event = eventsList[0];
       const payload = {
         sector: sectors[2]._id.toHexString(),
@@ -1486,7 +1486,7 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 404 if event is not from the same company', async () => {
@@ -1634,7 +1634,6 @@ describe('PUT /events/{_id}', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
@@ -1665,6 +1664,7 @@ describe('DELETE /events/{_id}', () => {
 
     it('should delete corresponding event', async () => {
       const event = eventsList[0];
+      const countEventBeforeCreation = eventsList.length + 1;
 
       const response = await app.inject({
         method: 'DELETE',
@@ -1672,6 +1672,9 @@ describe('DELETE /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
+
+      const countEventAfterCreation = await Event.countDocuments({});
+      expect(countEventAfterCreation).toBe(countEventBeforeCreation - 1);
     });
 
     it('should return a 404 error as event is not found', async () => {
@@ -1703,7 +1706,6 @@ describe('DELETE /events/{_id}', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
@@ -1733,7 +1735,7 @@ describe('DELETE /events', () => {
       authToken = await getToken('planning_referent');
     });
 
-    it('should delete all events from startDate including repetitions', async () => {
+    it('should delete all customer events from startDate including repetitions', async () => {
       const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const response = await app.inject({
@@ -1746,17 +1748,22 @@ describe('DELETE /events', () => {
       expect(await Repetition.find({ company: authCompany._id }).lean()).toHaveLength(0);
     });
 
-    it('should delete all events from startDate to endDate', async () => {
+    it('should delete all customer events from startDate to endDate', async () => {
       const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
+      const countEventBeforeCreation = eventsList.length + 1;
 
       const response = await app.inject({
         method: 'DELETE',
         url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(200);
+
+      const countEventAfterCreation = await Event.countDocuments({});
+      expect(countEventAfterCreation).toBe(countEventBeforeCreation - 2);
     });
 
     it('should not delete events if one event is billed', async () => {
@@ -1784,14 +1791,14 @@ describe('DELETE /events', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should return a 403 if customer is not from the company', async () => {
+    it('should return a 404 if customer is not from the company', async () => {
       const startDate = '2019-01-01';
       const response = await app.inject({
         method: 'DELETE',
         url: `/events?customer=${customerFromOtherCompany._id}&startDate=${startDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -1802,7 +1809,6 @@ describe('DELETE /events', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
     ];
 
@@ -1858,7 +1864,6 @@ describe('DELETE /{_id}/repetition', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200, customCredentials: auxiliaries[0].local },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
     ];
 
@@ -2125,6 +2130,7 @@ describe('PUT /{_id}/timestamping', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
