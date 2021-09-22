@@ -392,6 +392,7 @@ describe('formatBillingItemData', () => {
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
+      discount: 10,
     };
 
     const result = BillHelper.formatBillingItemData(bill);
@@ -403,6 +404,7 @@ describe('formatBillingItemData', () => {
       exclTaxes: 13.64,
       inclTaxes: 14.4,
       vat: 12,
+      discount: 10,
       billingItem: billingItemId,
       events: [{
         eventId,
