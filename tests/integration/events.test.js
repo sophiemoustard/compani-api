@@ -405,7 +405,6 @@ describe('GET /events/working-stats', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.workingStats[auxiliaries[0]._id]).toBeDefined();
       expect(response.result.data.workingStats[auxiliaries[0]._id].hoursToWork).toEqual(2);
       expect(response.result.data.workingStats[auxiliaries[0]._id].workedHours).toEqual(5.5);
     });
@@ -418,6 +417,9 @@ describe('GET /events/working-stats', () => {
       });
 
       expect(response.statusCode).toEqual(200);
+
+      const countWorkingStats = Object.keys(response.result.data.workingStats).length;
+      expect(countWorkingStats).toBe(auxiliaries.length);
     });
 
     it('should return a 404 if auxiliary is not from the same company', async () => {
@@ -482,24 +484,14 @@ describe('GET /events/paid-transport', () => {
       expect(resultForSecondSector.duration).toEqual(0.5);
     });
 
-    it('should return a 403 if sector is not from the same company', async () => {
+    it('should return a 404 if sector is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events/paid-transport?sector=${sectors[2]._id}&month=01-2020`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
-    });
-
-    it('should return a 400 if missing sector', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/events/paid-transport?month=01-2020',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(400);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 400 if missing month', async () => {
@@ -584,24 +576,14 @@ describe('GET /events/unassigned-hours', () => {
       expect(secondSectorResult.duration).toEqual(1.5);
     });
 
-    it('should return a 403 if sector is not from the same company', async () => {
+    it('should return a 404 if sector is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events/unassigned-hours?sector=${sectors[2]._id}&month=01-2020`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
-    });
-
-    it('should return a 400 if missing sector', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/events/unassigned-hours?month=01-2020',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(400);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 400 if missing month', async () => {
