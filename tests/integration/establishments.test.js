@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /estblishments', () => {
+describe('ESTABLISHMENTS ROUTES - POST /establishments', () => {
   let authToken;
   const payload = {
     name: 'Titi',

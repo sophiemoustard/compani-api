@@ -369,16 +369,18 @@ const sectorHistory = { auxiliary: auxiliaryId, sector: sectorId, company: authC
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Contract.create(contract);
-  await Customer.create(customer);
-  await DistanceMatrix.create(distanceMatrix);
-  await Event.create(eventList);
-  await Sector.create(sector);
-  await SectorHistory.create(sectorHistory);
-  await Service.create(serviceList);
-  await Surcharge.create(surcharge);
-  await User.create([user, auxiliary, auxiliaryFromOtherCompany]);
-  await UserCompany.insertMany(userCompanyList);
+  await Promise.all([
+    Contract.create(contract),
+    Customer.create(customer),
+    DistanceMatrix.create(distanceMatrix),
+    Event.create(eventList),
+    Sector.create(sector),
+    SectorHistory.create(sectorHistory),
+    Service.create(serviceList),
+    Surcharge.create(surcharge),
+    User.create([user, auxiliary, auxiliaryFromOtherCompany]),
+    UserCompany.insertMany(userCompanyList),
+  ]);
 };
 
 module.exports = { populateDB, auxiliary, auxiliaryFromOtherCompany, surcharge };

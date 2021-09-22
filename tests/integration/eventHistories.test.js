@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GET /eventhistories', () => {
+describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {

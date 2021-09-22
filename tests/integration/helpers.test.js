@@ -10,7 +10,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GET /helpers', () => {
+describe('HELPERS ROUTES - GET /helpers', () => {
   let authToken;
   beforeEach(populateDB);
 
