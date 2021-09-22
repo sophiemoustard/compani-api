@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
@@ -10,6 +9,7 @@ const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const UserCompany = require('../../../src/models/UserCompany');
 const Surcharge = require('../../../src/models/Surcharge');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
@@ -64,11 +64,11 @@ const userCompanyList = [
 const contract = {
   createdAt: '2018-12-04T16:34:04',
   serialNumber: 'aswertyujnmklk',
-  endDate: moment('2022-05-28T23:59:59').toDate(),
-  endNotificationDate: moment('2022-03-28T00:00:00').toDate(),
+  endDate: '2022-05-28T23:59:59.000Z',
+  endNotificationDate: '2022-03-28T00:00:00.000Z',
   endReason: 'mutation',
   user: auxiliaryId,
-  startDate: moment('2018-12-03T00:00:00').toDate(),
+  startDate: '2018-12-03T00:00:00.000Z',
   _id: contractId,
   company: authCompany._id,
   versions: [
@@ -76,7 +76,7 @@ const contract = {
       createdAt: '2018-12-04T16:34:04',
       endDate: null,
       grossHourlyRate: 10.28,
-      startDate: moment('2018-12-03T00:00:00').toDate(),
+      startDate: '2018-12-03T00:00:00.000Z',
       weeklyHours: 9,
       _id: new ObjectID(),
     },
@@ -88,11 +88,11 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    startDate: '2022-05-12T09:00:00',
-    endDate: '2022-05-12T11:00:00',
+    startDate: '2022-05-12T09:00:00.000Z',
+    endDate: '2022-05-12T12:00:00.000Z',
     auxiliary: auxiliaryId,
     customer: customerId,
-    createdAt: '2022-05-01T09:00:00',
+    createdAt: '2022-05-01T09:00:00.000Z',
     sector: new ObjectID(),
     subscription: subscriptionIds[0],
     address: {
@@ -107,11 +107,11 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    startDate: '2022-05-08T09:00:00',
-    endDate: '2022-05-08T11:00:00',
+    startDate: '2022-05-08T09:00:00.000Z',
+    endDate: '2022-05-08T11:00:00.000Z',
     auxiliary: auxiliaryId,
     customer: customerId,
-    createdAt: '2022-05-01T09:00:00',
+    createdAt: '2022-05-01T09:00:00.000Z',
     sector: new ObjectID(),
     subscription: subscriptionIds[1],
     address: {
@@ -126,11 +126,11 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    startDate: '2022-05-08T15:00:00',
-    endDate: '2022-05-08T16:00:00',
+    startDate: '2022-05-08T15:00:00.000Z',
+    endDate: '2022-05-08T16:00:00.000Z',
     auxiliary: auxiliaryId,
     customer: customerId,
-    createdAt: '2022-05-01T10:00:00',
+    createdAt: '2022-05-01T10:00:00.000Z',
     sector: new ObjectID(),
     subscription: subscriptionIds[2],
     address: {
@@ -145,7 +145,7 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'internal_hour',
-    startDate: '2022-05-09T09:00:00',
+    startDate: '2022-05-09T09:00:00.000Z',
     endDate: '2022-05-09T12:00:00.000Z',
     auxiliary: auxiliaryId,
     internalHour: { _id: new ObjectID(), name: 'Formation' },
@@ -156,7 +156,7 @@ const eventList = [
     type: 'absence',
     absenceNature: 'hourly',
     absence: 'transport_accident',
-    startDate: '2022-05-08T09:00:00',
+    startDate: '2022-05-08T09:00:00.000Z',
     endDate: '2022-05-08T10:00:00.000Z',
     auxiliary: auxiliaryId,
     internalHour: { _id: new ObjectID(), name: 'Formation' },
@@ -166,11 +166,11 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    startDate: '2022-04-12T09:00:00',
-    endDate: '2022-04-12T13:00:00',
+    startDate: '2022-04-12T09:00:00.000Z',
+    endDate: '2022-04-12T13:00:00.000Z',
     auxiliary: auxiliaryId,
     customer: customerId,
-    createdAt: '2022-05-01T09:00:00',
+    createdAt: '2022-05-01T09:00:00.000Z',
     sector: new ObjectID(),
     subscription: subscriptionIds[0],
     address: {
@@ -185,11 +185,11 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    startDate: '2022-04-08T15:00:00',
-    endDate: '2022-04-08T16:30:00',
+    startDate: '2022-04-08T15:00:00.000Z',
+    endDate: '2022-04-08T16:30:00.000Z',
     auxiliary: auxiliaryId,
     customer: customerId,
-    createdAt: '2022-05-01T10:00:00',
+    createdAt: '2022-05-01T10:00:00.000Z',
     sector: new ObjectID(),
     subscription: subscriptionIds[1],
     address: {
@@ -204,11 +204,11 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
-    startDate: '2022-04-08T15:00:00',
-    endDate: '2022-04-08T16:30:00',
+    startDate: '2022-04-08T15:00:00.000Z',
+    endDate: '2022-04-08T16:30:00.000Z',
     auxiliary: auxiliaryId,
     customer: customerId,
-    createdAt: '2022-05-01T10:00:00',
+    createdAt: '2022-05-01T10:00:00.000Z',
     sector: new ObjectID(),
     subscription: subscriptionIds[3],
     address: {
@@ -223,7 +223,7 @@ const eventList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'internal_hour',
-    startDate: '2022-04-09T09:00:00',
+    startDate: '2022-04-09T09:00:00.000Z',
     endDate: '2022-04-09T12:00:00.000Z',
     auxiliary: auxiliaryId,
     internalHour: { _id: new ObjectID(), name: 'Formation' },
@@ -253,7 +253,7 @@ const customer = {
         estimatedWeeklyVolume: 12,
         evenings: 2,
         sundays: 1,
-        startDate: '2018-01-01T10:00:00.000',
+        startDate: '2018-01-01T10:00:00.000Z',
       }],
     },
     {
@@ -264,7 +264,7 @@ const customer = {
         estimatedWeeklyVolume: 12,
         evenings: 0,
         sundays: 3,
-        startDate: '2018-01-03T10:00:00.000',
+        startDate: '2018-01-03T10:00:00.000Z',
       }],
     },
     {
@@ -275,7 +275,7 @@ const customer = {
         estimatedWeeklyVolume: 14,
         evenings: 0,
         sundays: 1,
-        startDate: '2018-01-03T10:00:00.000',
+        startDate: '2018-01-03T10:00:00.000Z',
       }],
     },
     {
@@ -286,7 +286,7 @@ const customer = {
         estimatedWeeklyVolume: 4,
         evenings: 0,
         sundays: 1,
-        startDate: '2018-01-03T10:00:00.000',
+        startDate: '2018-01-03T10:00:00.000Z',
       }],
     },
   ],
@@ -307,7 +307,7 @@ const serviceList = [
       defaultUnitAmount: 12,
       name: 'Service A',
       exemptFromCharges: false,
-      startDate: '2019-01-16T00:00:00',
+      startDate: '2019-01-16T00:00:00.000Z',
       vat: 12,
     }],
     nature: 'hourly',
@@ -319,7 +319,7 @@ const serviceList = [
       defaultUnitAmount: 30,
       name: 'Service B',
       exemptFromCharges: true,
-      startDate: '2019-01-30T00:00:00',
+      startDate: '2019-01-30T00:00:00.000Z',
       vat: 20,
     }],
     nature: 'hourly',
@@ -331,7 +331,7 @@ const serviceList = [
       defaultUnitAmount: 100,
       name: 'Service C',
       exemptFromCharges: true,
-      startDate: '2019-01-30T00:00:00',
+      startDate: '2019-01-30T00:00:00.000Z',
       vat: 5,
       surcharge: surcharge._id,
     }],
@@ -344,13 +344,23 @@ const serviceList = [
       defaultUnitAmount: 33,
       name: 'Service D',
       exemptFromCharges: false,
-      startDate: '2019-01-30T00:00:00',
+      startDate: '2019-01-30T00:00:00.000Z',
       vat: 5,
       surcharge: surcharge._id,
     }],
     nature: 'hourly',
   },
 ];
+
+const distanceMatrix = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+  origins: '30 Rue Traversière 75012 Paris',
+  destinations: '62 Rue Brancion 75015 Paris',
+  mode: 'driving',
+  distance: 6532,
+  duration: 1458,
+};
 
 const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
 
@@ -359,14 +369,15 @@ const sectorHistory = { auxiliary: auxiliaryId, sector: sectorId, company: authC
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Surcharge.create(surcharge);
+  await Contract.create(contract);
+  await Customer.create(customer);
+  await DistanceMatrix.create(distanceMatrix);
+  await Event.create(eventList);
   await Sector.create(sector);
   await SectorHistory.create(sectorHistory);
-  await User.create([user, auxiliary, auxiliaryFromOtherCompany]);
-  await Customer.create(customer);
   await Service.create(serviceList);
-  await Event.create(eventList);
-  await Contract.create(contract);
+  await Surcharge.create(surcharge);
+  await User.create([user, auxiliary, auxiliaryFromOtherCompany]);
   await UserCompany.insertMany(userCompanyList);
 };
 
