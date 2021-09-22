@@ -6,6 +6,7 @@ const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
+const Boom = require('@hapi/boom');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
@@ -18,7 +19,7 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, STRICTLY_E_LEARNING, DRAFT, REJECTED } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
@@ -323,15 +324,17 @@ exports.sendSMS = async (courseId, payload, credentials) => {
     }
   }
 
-  promises.push(CourseSmsHistory.create({
-    type: payload.type,
-    course: courseId,
-    message: payload.content,
-    sender: credentials._id,
-    missingPhones,
-  }));
-
-  await Promise.all(promises);
+  const smsSentStatus = await Promise.allSettled(promises);
+  if (smsSentStatus.every(res => res.status === REJECTED)) throw Boom.badRequest(smsSentStatus[0].reason);
+  else {
+    await CourseSmsHistory.create({
+      type: payload.type,
+      course: courseId,
+      message: payload.content,
+      sender: credentials._id,
+      missingPhones,
+    });
+  }
 };
 
 exports.getSMSHistory = async courseId => CourseSmsHistory.find({ course: courseId })
