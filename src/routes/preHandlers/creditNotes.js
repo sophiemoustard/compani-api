@@ -42,6 +42,7 @@ exports.authorizeCreditNoteCreation = async req => exports.authorizeCreditNoteCr
 exports.authorizeCreditNoteUpdate = async (req) => {
   const { creditNote } = req.pre;
   if (!creditNote.isEditable) throw Boom.forbidden();
+
   return exports.authorizeCreditNoteCreationOrUpdate(req);
 };
 
@@ -52,20 +53,23 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const companyId = get(credentials, 'company._id', null);
 
   if (!credentials.scope.includes('bills:edit')) throw Boom.forbidden();
+
   if (creditNote && creditNote.origin !== COMPANI) throw Boom.forbidden(translate[language].creditNoteNotCompani);
 
-  if (payload.customer && payload.subscription) {
-    const customer = await Customer
-      .countDocuments({ _id: payload.customer, 'subscriptions._id': payload.subscription._id, company: companyId });
-    if (!customer) throw Boom.notFound();
-  } else if (payload.customer) {
-    const customer = await Customer.countDocuments(({ _id: payload.customer, company: companyId }));
-    if (!customer) throw Boom.notFound();
-  }
+  const query = {
+    _id: payload.customer || creditNote.customer,
+    ...(payload.subscription && { 'subscriptions._id': payload.subscription._id }),
+    company: companyId,
+  };
+  const customerCount = await Customer.countDocuments(query);
+  if (!customerCount) throw Boom.notFound();
 
   if (payload.thirdPartyPayer) {
-    const tpp = await ThirdPartyPayer.countDocuments(({ _id: payload.thirdPartyPayer, company: companyId }));
-    if (!tpp) throw Boom.notFound();
+    const tppCount = await ThirdPartyPayer.countDocuments({
+      _id: payload.thirdPartyPayer || creditNote._id,
+      company: companyId,
+    });
+    if (!tppCount) throw Boom.notFound();
   }
 
   if (payload.events && payload.events.length) {

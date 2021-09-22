@@ -530,9 +530,7 @@ describe('updateCreditNotes', () => {
     _id: new ObjectID(),
     number: 1,
     events: [{
-      auxiliary: {
-        identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
-      },
+      auxiliary: { identity: { firstname: 'Nathanaelle', lastname: 'Tata' } },
       startDate: '2019-04-29T06:00:00.000Z',
       endDate: '2019-04-29T15:00:00.000Z',
       serviceName: 'Toto',
@@ -564,25 +562,22 @@ describe('updateCreditNotes', () => {
   });
 
   it('should update a credit note', async () => {
-    const payload = { customer: { identity: { firstname: 'Titi' } } };
-    const updatedCreditNote = {
-      ...creditNote,
-      customer: {
-        ...creditNote.customer,
-        identity: {
-          ...creditNote.customer.identity,
-          firstname: payload.customer.identity.firstname,
-        },
-      },
-    };
+    findByIdAndUpdate.returns({ ...creditNote, date: '2020-04-29T22:00:00.000Z' });
 
-    findByIdAndUpdate.returns(updatedCreditNote);
+    const result = await CreditNoteHelper.updateCreditNotes(
+      creditNote,
+      { date: '2020-04-29T22:00:00.000Z' },
+      credentials
+    );
 
-    const result = await CreditNoteHelper.updateCreditNotes(creditNote, payload, credentials);
-
-    expect(result).toMatchObject(updatedCreditNote);
+    expect(result).toMatchObject({ ...creditNote, date: '2020-04-29T22:00:00.000Z' });
     sinon.assert.calledOnceWithExactly(updateEventAndFundingHistory, creditNote.events, true, credentials);
-    sinon.assert.calledOnceWithExactly(findByIdAndUpdate, creditNote._id, { $set: payload }, { new: true });
+    sinon.assert.calledOnceWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      { $set: { customer: creditNote.customer, date: '2020-04-29T22:00:00.000Z' } },
+      { new: true }
+    );
   });
 
   it('should update a customer credit note and its tpp linked credit note', async () => {
@@ -615,19 +610,20 @@ describe('updateCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(
       findByIdAndUpdate,
       creditNote._id,
-      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { $set: { ...payload, customer: creditNote.customer, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
       { new: true }
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: creditNoteWithLink.linkedCreditNote },
-      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      { $set: { ...payload, customer: creditNote.customer, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
       { new: true }
     );
   });
 
   it('should update a tpp credit note and its customer linked credit note', async () => {
-    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: new ObjectID(), linkedCreditNote: new ObjectID() };
+    const tppId = new ObjectID();
+    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: tppId, linkedCreditNote: new ObjectID() };
     const payload = {
       events: [{
         auxiliary: {
@@ -655,13 +651,21 @@ describe('updateCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(
       findByIdAndUpdate,
       creditNote._id,
-      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      {
+        $set: {
+          ...payload,
+          thirdPartyPayer: tppId,
+          customer: creditNote.customer,
+          inclTaxesCustomer: 0,
+          exclTaxesCustomer: 0,
+        },
+      },
       { new: true }
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: creditNoteWithLink.linkedCreditNote },
-      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { $set: { ...payload, customer: creditNote.customer, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
       { new: true }
     );
   });

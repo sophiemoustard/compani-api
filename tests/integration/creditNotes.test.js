@@ -423,37 +423,6 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 404 error if customer is not from same company', async () => {
-      payload = { customer: otherCompanyCustomer._id, date: '2019-07-19T14:00:18' };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return a 404 error if third party payer is not from same company', async () => {
-      payload = {
-        date: '2019-07-19T14:00:18',
-        exclTaxesTpp: 100,
-        inclTaxesTpp: 100,
-        thirdPartyPayer: otherCompanyThirdPartyPayer._id,
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
     it('should return a 404 error if at least one event is not from same company', async () => {
       payload = {
         events: [{
@@ -483,7 +452,6 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     it('should return a 404 error if customer subscription is not from same company', async () => {
       payload = {
         date: '2019-07-19T14:00:18',
-        customer: creditNoteCustomer._id,
         subscription: {
           _id: otherCompanyCustomer.subscriptions[0]._id,
           service: { serviceId: new ObjectID(), nature: FIXED, name: 'titi' },

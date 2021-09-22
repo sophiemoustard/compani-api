@@ -13,7 +13,8 @@ const {
 const {
   getCreditNote,
   authorizeGetCreditNotePdf,
-  authorizeCreditNoteCreationOrUpdate,
+  authorizeCreditNoteCreation,
+  authorizeCreditNoteUpdate,
   authorizeCreditNoteDeletion,
 } = require('./preHandlers/creditNotes');
 
@@ -30,11 +31,11 @@ exports.plugin = {
         auth: { scope: ['bills:edit'] },
         validate: {
           payload: Joi.object().keys({
+            customer: Joi.objectId().required(),
+            thirdPartyPayer: Joi.objectId(),
             date: Joi.date().required(),
             startDate: Joi.date(),
             endDate: Joi.date(),
-            customer: Joi.objectId().required(),
-            thirdPartyPayer: Joi.objectId(),
             exclTaxesCustomer: Joi.number(),
             inclTaxesCustomer: Joi.number(),
             exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
@@ -79,7 +80,7 @@ exports.plugin = {
             }),
           }),
         },
-        pre: [{ method: authorizeCreditNoteCreationOrUpdate }],
+        pre: [{ method: authorizeCreditNoteCreation }],
       },
     });
 
@@ -120,12 +121,10 @@ exports.plugin = {
             date: Joi.date().required(),
             startDate: Joi.date(),
             endDate: Joi.date(),
-            customer: Joi.objectId(),
-            thirdPartyPayer: Joi.objectId(),
             exclTaxesCustomer: Joi.number(),
             inclTaxesCustomer: Joi.number(),
-            exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
-            inclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
+            exclTaxesTpp: Joi.number(),
+            inclTaxesTpp: Joi.number(),
             events: Joi.array().items(Joi.object().keys({
               eventId: Joi.objectId().required(),
               auxiliary: Joi.objectId().required(),
@@ -163,7 +162,7 @@ exports.plugin = {
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeCreditNoteCreationOrUpdate },
+          { method: authorizeCreditNoteUpdate },
         ],
       },
     });
