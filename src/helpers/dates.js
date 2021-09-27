@@ -78,9 +78,7 @@ const DATE_FORMATS = {
   ss: { second: '2-digit' },
 };
 
-exports.toLocalISOString = (date) => {
-  if (!date) return null;
-
+exports.toLocalISOString = (date = new Date()) => {
   const dayOfMonth = new Date(date).getDate() < 10 ? `0${new Date(date).getDate()}` : new Date(date).getDate();
   const month = new Date(date).getMonth() + 1;
   const formattedMonth = month < 10 ? `0${month}` : month;

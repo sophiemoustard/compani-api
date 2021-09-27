@@ -339,6 +339,8 @@ module.exports = {
     billingItemCreated: 'Billing item created.',
     billingItemsFound: 'Billing items found.',
     billingItemsConflict: 'This billing item already exists.',
+    /* Télétransmission */
+    deliveryCreated: 'Delivery file created',
   },
   'fr-FR': {
     /* Global errors */
@@ -679,5 +681,7 @@ module.exports = {
     billingItemCreated: 'Article de facturation créé.',
     billingItemsFound: 'Articles de facturation trouvés.',
     billingItemsConflict: 'Cet article de facturation existe déjà.',
+    /* Télétransmission */
+    deliveryCreated: 'Fichier de delivery créé',
   },
 };

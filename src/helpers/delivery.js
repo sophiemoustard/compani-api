@@ -1,6 +1,5 @@
 const { get } = require('lodash');
 const builder = require('xmlbuilder');
-const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const UtilsHelper = require('./utils');
 const FundingsHelper = require('./fundings');
@@ -12,6 +11,7 @@ const MISSING_START_TIME_STAMP = 'COA';
 const MISSING_END_TIME_STAMP = 'COD';
 const MISSING_BOTH_TIME_STAMP = 'CO2';
 const AUXILIARY_CONTACT = 'INT';
+const SPECIFIED_CI_TRADE_PRODUCT_NAME = 'Aide aux personnes âgées';
 
 // Identifiant de transaction du flux delivery
 const getCIDDHExchangedDocumentContext = transactionId => ({ VersionID: '1.4', SpecifiedTransactionID: transactionId });
@@ -133,26 +133,32 @@ const computeBilledQuantity = (event) => {
 };
 
 // Prestation à effectuer
-const getIncludedCIDDLSupplyChainTradeLineItem = (event, funding, transactionId) => ({
-  AssociatedCIDDLDocumentLineDocument: {
-    LineID: transactionId,
-    OrderLineID: funding.folderNumber,
-  },
-  SpecifiedCIDDLSupplyChainTradeDelivery: {
-    BilledQuantity: { '#text': computeBilledQuantity(event), '@unitCode': 'HUR' },
-  },
-  SpecifiedCIDDLSupplyChainTradeSettlement: {
-    CadreIntervention: { '@listID': 'ESPPADOM_CADRE', '@listAgencyName': 'EDESS', '#text': CADRE_PRESTATAIRE },
-  },
-  SpecifiedCITradeProduct: {
-    'qdt:ID': {
-      '@listID': 'ESPPADOM_TYPE_AIDE',
-      '@listAgencyName': 'EDESS',
-      '#text': get(funding, 'thirdPartyPayer.type'),
+const getIncludedCIDDLSupplyChainTradeLineItem = (event, funding, transactionId) => {
+  const subscription = event.customer.subscriptions
+    .find(s => UtilsHelper.areObjectIdsEquals(event.subscription, s._id));
+  const lastServiceVersion = subscription ? UtilsHelper.getLastVersion(subscription.service.versions, 'startDate') : {};
+
+  return {
+    AssociatedCIDDLDocumentLineDocument: {
+      LineID: transactionId,
+      OrderLineID: funding.fundingPlanId,
     },
-    'qdt:Name': 'Aide aux personnes âgées',
-  },
-});
+    SpecifiedCIDDLSupplyChainTradeDelivery: {
+      BilledQuantity: { '#text': computeBilledQuantity(event), '@unitCode': 'HUR' },
+    },
+    SpecifiedCIDDLSupplyChainTradeSettlement: {
+      CadreIntervention: { '@listID': 'ESPPADOM_CADRE', '@listAgencyName': 'EDESS', '#text': CADRE_PRESTATAIRE },
+    },
+    SpecifiedCITradeProduct: {
+      'qdt:ID': {
+        '@listID': 'ESPPADOM_TYPE_AIDE',
+        '@listAgencyName': 'EDESS',
+        '#text': get(funding, 'thirdPartyPayer.type'),
+      },
+      'qdt:Name': lastServiceVersion.name || SPECIFIED_CI_TRADE_PRODUCT_NAME,
+    },
+  };
+};
 
 // Contenu du document
 const getCIDDHSupplyChainTradeTransaction = (event, funding, transactionId) => ({
@@ -162,9 +168,8 @@ const getCIDDHSupplyChainTradeTransaction = (event, funding, transactionId) => (
   IncludedCIDDLSupplyChainTradeLineItem: getIncludedCIDDLSupplyChainTradeLineItem(event, funding, transactionId),
 });
 
-const formatCrossIndustryDespatchAdvice = (event, customersWithFunding, transactionId, issueDateTime, eventIndex) => {
-  const customer = customersWithFunding.find(c => UtilsHelper.areObjectIdsEquals(c._id, event.customer));
-  const fundingsWithLastVersion = customer.fundings.map(f => ({ ...f, ...f.versions[f.versions.length - 1] }));
+const formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime, eventIndex) => {
+  const fundingsWithLastVersion = event.customer.fundings.map(f => ({ ...f, ...f.versions[f.versions.length - 1] }));
   const funding = FundingsHelper.getMatchingFunding(event.startDate, fundingsWithLastVersion);
   if (!funding) return null;
 
@@ -172,7 +177,7 @@ const formatCrossIndustryDespatchAdvice = (event, customersWithFunding, transact
     'ns:CIDDHExchangedDocumentContext': getCIDDHExchangedDocumentContext(`I${transactionId}${eventIndex}`),
     'ns:CIDDHExchangedDocument': getCIDDHExchangedDocument(`I${transactionId}${eventIndex}`, issueDateTime),
     'ns:CIDDHSupplyChainTradeTransaction':
-      getCIDDHSupplyChainTradeTransaction({ ...event, customer }, funding, `I${transactionId}${eventIndex}`),
+      getCIDDHSupplyChainTradeTransaction(event, funding, `I${transactionId}${eventIndex}`),
   };
 };
 
@@ -182,45 +187,33 @@ const formatCrossIndustryDespatchAdvice = (event, customersWithFunding, transact
  */
 exports.getCrossIndustryDespatchAdvice = async (query, credentials) => {
   const companyId = get(credentials, 'company._id');
-
-  const fundingQuery = query.thirdPartyPayer ? { thirdPartyPayer: query.thirdPartyPayer } : { $exists: true };
-
-  const customerIds = [
-    '604623164fb51b00152fc63e', // APA Dependence
-    '612cdc439588f60016d005c0', // APA Dependence
-    '60688c9201bffa0015d6556a', // APA Aide ménagère
-    '60eb3bf51ed1d40015742a07', // APA Aide ménagère
-  ];
-  const customersWithFunding = await Customer
-    .find(
-      { fundings: fundingQuery, _id: { $in: customerIds } },
-      { 'contact.primaryAddress': 1, identity: 1, fundings: 1, serialNumber: 1 }
-    )
-    .populate({ path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type' })
-    .lean();
-
-  const subscriptionIds = customersWithFunding.map(c => c.fundings.map(f => f.subscription)).flat();
+  const eventsQuery = {
+    company: companyId,
+    ...(query.thirdPartyPayer && { 'bills.thirdPartyPayer': UtilsHelper.formatObjectIdsArray(query.thirdPartyPayer) }),
+  };
   const events = await Event
-    .find({
-      company: companyId,
-      subscription: { $in: subscriptionIds },
-      startDate: { $gte: '2021-09-06T00:00:00' },
-      endDate: { $lte: '2021-09-10T12:00:00' },
-      auxiliary: { $exists: true },
-    })
+    .find(eventsQuery)
     .populate({
       path: 'auxiliary',
       populate: [{ path: 'establishment' }, { path: 'company', populate: { path: 'company' } }],
       select: 'establishment identity serialNumber',
     })
+    .populate({
+      path: ' customer',
+      select: 'contact.primaryAddress identity fundings serialNumber subscriptions',
+      populate: [
+        { path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type' },
+        { path: 'subscriptions.service' },
+      ],
+    })
     .populate({ path: 'histories', match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId } })
     .lean();
 
-  const issueDateTime = DatesHelper.toLocalISOString(new Date());
+  const issueDateTime = DatesHelper.toLocalISOString();
   const transactionId = issueDateTime.replace(/T/g, '').replace(/-/g, '').replace(/:/g, '');
 
   return events
-    .map((ev, i) => formatCrossIndustryDespatchAdvice(ev, customersWithFunding, transactionId, issueDateTime, i))
+    .map((ev, i) => formatCrossIndustryDespatchAdvice(ev, transactionId, issueDateTime, i))
     .filter(c => !!c);
 };
 
