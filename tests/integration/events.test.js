@@ -45,6 +45,7 @@ const DatesHelper = require('../../src/helpers/dates');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
+const ThirdPartyPayer = require('../../src/models/ThirdPartyPayer');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -307,7 +308,7 @@ describe('GET /events/credit-notes', () => {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
-        thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
+        thirdPartyPayer: thirdPartyPayer._id.toHexString(),
         creditNoteId: creditNoteFromOtherCompany._id.toHexString(),
       };
 

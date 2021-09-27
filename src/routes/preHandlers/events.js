@@ -69,7 +69,7 @@ exports.authorizeEventForCreditNoteGet = async (req) => {
   const { creditNoteId, startDate, endDate } = req.query;
   let creditNote = null;
   if (creditNoteId) {
-    creditNote = await CreditNote.findOne({ _id: req.query.creditNoteId }).lean();
+    creditNote = await CreditNote.findOne({ _id: req.query.creditNoteId, company: companyId }).lean();
     if (!creditNote) throw Boom.notFound();
     if (creditNote.events.some(e => e.startDate < startDate && e.endDate > endDate)) throw Boom.badData();
   }
