@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const BillingItem = require('../../models/BillingItem');
 const CreditNote = require('../../models/CreditNote');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
@@ -72,10 +73,17 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
     if (!tppCount) throw Boom.notFound();
   }
 
-  if (payload.events && payload.events.length) {
+  if (get(payload, 'events.length')) {
     const eventsIds = payload.events.map(ev => ev.eventId);
     const eventsCount = await Event.countDocuments({ _id: { $in: eventsIds }, company: companyId });
     if (eventsCount !== eventsIds.length) throw Boom.notFound();
+
+    for (const event of payload.events) {
+      if (!event.bills || !get(event, 'bills.billingItems.length')) continue;
+      const billingItemsIds = event.bills.billingItems.map(bi => bi.billingItem);
+      const billingItemsCount = await BillingItem.countDocuments({ _id: { $in: billingItemsIds }, company: companyId });
+      if (billingItemsCount !== billingItemsIds.length) throw Boom.notFound();
+    }
   }
 
   return null;

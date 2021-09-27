@@ -15,6 +15,7 @@ const {
   otherCompanyEvent,
   otherCompanyUser,
   otherCompanyCreditNote,
+  billingItem,
 } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -43,7 +44,11 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
-      bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
+        billingItems: [{ billingItem: billingItem._id, exclTaxes: 12, inclTaxes: 14 }],
+      },
     }],
   };
 
@@ -163,6 +168,31 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return a 404 if one billingItem doesn’t exists', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          ...payloadWithEvents,
+          events: [{
+            eventId: creditNoteEvent._id,
+            auxiliary: creditNoteEvent.auxiliary,
+            startDate: creditNoteEvent.startDate,
+            endDate: creditNoteEvent.endDate,
+            serviceName: 'toto',
+            bills: {
+              billingItems: [{ billingItem: new ObjectID(), exclTaxes: 12, inclTaxes: 14 }],
+              inclTaxesCustomer: 10,
+              exclTaxesCustomer: 8,
+            },
+          }],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     it('should return a 404 error if at least one event is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
@@ -177,7 +207,8 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
             endDate: creditNoteEvent.endDate,
             serviceName: 'toto',
             bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
-          }, {
+          },
+          {
             eventId: otherCompanyEvent._id,
             auxiliary: new ObjectID(),
             startDate: otherCompanyEvent.startDate,

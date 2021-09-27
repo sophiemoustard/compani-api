@@ -62,9 +62,10 @@ exports.plugin = {
                   endHour: Joi.date(),
                 })),
                 billingItems: Joi.array().items(Joi.object({
+                  _id: Joi.objectId(),
                   billingItem: Joi.objectId(),
-                  exclTaxes: Joi.string(),
-                  inclTaxes: Joi.string(),
+                  exclTaxes: Joi.number(),
+                  inclTaxes: Joi.number(),
                 })),
               }).required(),
             })),
