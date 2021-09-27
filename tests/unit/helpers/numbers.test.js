@@ -39,7 +39,7 @@ describe('subsdtract', () => {
     const a = 0.7;
     const b = 0.2;
 
-    const result = NumberHelper.subsctract(a, b);
+    const result = NumberHelper.substract(a, b);
 
     expect(result).toEqual(0.5);
   });

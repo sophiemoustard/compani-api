@@ -2179,7 +2179,7 @@ describe('formatBillDetailsForPdf', () => {
         { name: 'Frais de dossier', unitInclTaxes: 30, volume: 1, total: 30 },
         { name: 'Equipement de protection individuel', unitInclTaxes: 2, volume: 5, total: 10 },
         { name: 'Remises', total: -15 },
-        { name: 'Prise en charge du/des tiers(s) payeur(s)', total: -9.240000000000002 },
+        { name: 'Prise en charge du/des tiers(s) payeur(s)', total: -9.24 },
       ],
       totalExclTaxes: '20,30 €',
       totalVAT: '1,70 €',
