@@ -45,7 +45,6 @@ const DatesHelper = require('../../src/helpers/dates');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
-const ThirdPartyPayer = require('../../src/models/ThirdPartyPayer');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -235,6 +234,7 @@ describe('GET /events/credit-notes', () => {
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
       };
+      const filteredEventsFromSeeds = eventsList.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
 
       const response = await app.inject({
         method: 'GET',
@@ -243,33 +243,16 @@ describe('GET /events/credit-notes', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      const filteredEvents = eventsList.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
-      expect(response.result.data.events.length).toBe(filteredEvents.length);
+      const filteredEventsFromRequest = response.result.data.events.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
+      expect(filteredEventsFromRequest.length).toBe(filteredEventsFromSeeds.length);
     });
 
-    it('should return a list of billed events for specified customer and tpp', async () => {
+    it('should return a list of billed events for specified customer, tpp and creditNote', async () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayer._id.toHexString(),
-      };
-
-      const response = await app.inject({
-        method: 'GET',
-        url: `/events/credit-notes?${qs.stringify(query)}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events.length).toBe(1);
-    });
-
-    it('should return a list of billed events for specified customer and creditNote', async () => {
-      const query = {
-        startDate: moment('2019-01-01').toDate(),
-        endDate: moment('2019-01-20').toDate(),
-        customer: customerAuxiliaries[0]._id.toHexString(),
         creditNoteId: creditNote._id.toHexString(),
       };
 
@@ -280,7 +263,8 @@ describe('GET /events/credit-notes', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events.length).toBe(1);
+      const filteredEventsFromRequest = response.result.data.events.filter(ev => ev.isBilled);
+      expect(filteredEventsFromRequest.length).toBe(1);
     });
 
     const wrongParams = ['startDate', 'endDate', 'customer'];
