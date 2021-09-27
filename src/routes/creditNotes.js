@@ -147,6 +147,12 @@ exports.plugin = {
                   startHour: Joi.date(),
                   endHour: Joi.date(),
                 })),
+                billingItems: Joi.array().items(Joi.object({
+                  _id: Joi.objectId(),
+                  billingItem: Joi.objectId(),
+                  exclTaxes: Joi.number(),
+                  inclTaxes: Joi.number(),
+                })),
               }).required(),
             })),
             subscription: Joi.object().keys({
