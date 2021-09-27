@@ -3,12 +3,12 @@ const NumberHelper = require('../../../src/helpers/numbers');
 
 describe('multiply', () => {
   it('should multiply numbers', async () => {
-    const a = 0.3;
+    const a = 0.1;
     const b = 0.2;
 
     const result = NumberHelper.multiply(a, b);
 
-    expect(result).toEqual(0.06);
+    expect(result).toEqual(0.02);
   });
 });
 
@@ -17,7 +17,7 @@ describe('dividedBy', () => {
     const a = 0.3;
     const b = 0.2;
 
-    const result = NumberHelper.dividedBy(a, b);
+    const result = NumberHelper.divideBy(a, b);
 
     expect(result).toEqual(1.5);
   });
