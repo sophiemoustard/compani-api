@@ -1709,7 +1709,11 @@ describe('DELETE /events', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(await Repetition.find({ company: authCompany._id }).lean()).toHaveLength(0);
+      const query = { customer, company: authCompany._id, startDate: { $gte: new Date(startDate).toISOString() } };
+      const repetitionCount = await Repetition.countDocuments(query);
+      expect(repetitionCount).toBe(0);
+      const eventCount = await Event.countDocuments(query);
+      expect(eventCount).toBe(0);
     });
 
     it('should delete all customer events from startDate to endDate', async () => {
@@ -1804,37 +1808,64 @@ describe('DELETE /{_id}/repetition', () => {
     });
 
     it('should delete repetition', async () => {
-      const event = eventsList[18];
+      const parentEvent = eventsList[9];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/events/${event._id.toHexString()}/repetition`,
+        url: `/events/${parentEvent._id.toHexString()}/repetition`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const repetitionCount = await Repetition.countDocuments({
-        company: authCompany._id,
-        'repetition.parentId': event.repetition.parentId,
-      });
+      const query = { company: authCompany._id, 'repetition.parentId': parentEvent._id };
+      const repetitionCount = await Repetition.countDocuments(query);
       expect(repetitionCount).toEqual(0);
+      const eventCount = await Event.countDocuments(query);
+      expect(eventCount).toEqual(0);
     });
   });
 
   describe('Other roles', () => {
     beforeEach(populateDB);
 
+    describe('AUXILIARY', () => {
+      beforeEach(async () => {
+        authToken = await getUserToken(auxiliaries[0].local);
+      });
+
+      it('should return 200 as auxiliary is event auxiliary', async () => {
+        const event = eventsList[9];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${event._id.toHexString()}/repetition`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 200 as auxiliary is from event sector', async () => {
+        const event = eventsList[14];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${event._id.toHexString()}/repetition`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+    });
+
     const roles = [
       { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-        const event = eventsList[18];
+        authToken = await getToken(role.name);
+        const event = eventsList[9];
         const response = await app.inject({
           method: 'DELETE',
           url: `/events/${event._id.toHexString()}/repetition`,
