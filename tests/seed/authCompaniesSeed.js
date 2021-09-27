@@ -30,6 +30,10 @@ const authCompany = {
   },
   subscriptions: { erp: true },
   billingAssistance: 'assistance@billing.eu',
+  rhConfig: {
+    amountPerKm: 0.22,
+    phoneFeeAmount: 18,
+  },
 };
 
 const otherCompany = {

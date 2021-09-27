@@ -51,7 +51,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GET /events', () => {
+describe('EVENTS ROUTES - GET /events', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);

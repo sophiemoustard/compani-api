@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GET /eventhistories', () => {
+describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -32,7 +32,6 @@ describe('GET /eventhistories', () => {
     });
 
     expect(response.statusCode).toEqual(200);
-    expect(response.result.data.eventHistories).toBeDefined();
     expect(response.result.data.eventHistories.length).toEqual(eventHistoryList.length);
   });
 
@@ -45,7 +44,6 @@ describe('GET /eventhistories', () => {
     });
 
     expect(response.statusCode).toEqual(200);
-    expect(response.result.data.eventHistories).toBeDefined();
     response.result.data.eventHistories.forEach((history) => {
       expect(history.auxiliaries.every(aux => UtilsHelper.doesArrayIncludeId(auxiliaryIds, aux._id))).toBeTruthy();
     });
@@ -60,7 +58,6 @@ describe('GET /eventhistories', () => {
     });
 
     expect(response.statusCode).toEqual(200);
-    expect(response.result.data.eventHistories).toBeDefined();
     response.result.data.eventHistories.forEach((history) => {
       expect(history.sectors.every(sectorId => UtilsHelper.doesArrayIncludeId(sectorIds, sectorId))).toBeTruthy();
     });
@@ -76,45 +73,47 @@ describe('GET /eventhistories', () => {
     });
 
     expect(response.statusCode).toEqual(200);
-    expect(response.result.data.eventHistories).toBeDefined();
     expect(response.result.data.eventHistories.every(history =>
       UtilsHelper.areObjectIdsEquals(history.event.eventId, eventId))).toBeTruthy();
   });
 
-  it('should return a 400 if invalid query', async () => {
+  it('should return a list of all event histories with action type', async () => {
+    const actions = ['event_creation', 'event_update'];
     const response = await app.inject({
       method: 'GET',
-      url: `/eventhistories?auxiliary=${auxiliaries[0]._id}`,
+      url: '/eventhistories?action=event_update&action=event_creation',
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
-    expect(response.statusCode).toEqual(400);
+    expect(response.statusCode).toEqual(200);
+    expect(response.result.data.eventHistories.length).toBe(2);
+    expect(response.result.data.eventHistories.every(history => actions.includes(history.action))).toBeTruthy();
   });
 
-  it('should return a 403 if at least one auxiliary is not from the same company', async () => {
+  it('should return a 404 if at least one auxiliary is not from the same company', async () => {
     const response = await app.inject({
       method: 'GET',
       url: `/eventhistories?auxiliaries=${auxiliaryFromOtherCompany._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
-    expect(response.statusCode).toEqual(403);
+    expect(response.statusCode).toEqual(404);
   });
 
-  it('should return a 403 if at least one sector is not from the same company', async () => {
+  it('should return a 404 if at least one sector is not from the same company', async () => {
     const response = await app.inject({
       method: 'GET',
       url: `/eventhistories?sectors=${sectorFromOtherCompany._id}`,
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 
-    expect(response.statusCode).toEqual(403);
+    expect(response.statusCode).toEqual(404);
   });
 
   it('should return a 400 if invalid action in query', async () => {
     const response = await app.inject({
       method: 'GET',
-      url: '/eventhistories?action=mauvaiseaction',
+      url: '/eventhistories?action=event_update&action=mauvaiseaction',
       headers: { Cookie: `alenvi_token=${authToken}` },
     });
 

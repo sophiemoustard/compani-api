@@ -1,8 +1,7 @@
 const expect = require('expect');
-const moment = require('moment');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
-const { populateDB, auxiliary, auxiliaryFromOtherCompany } = require('./seed/finalPaySeed');
+const { populateDB, auxiliary, auxiliaryFromOtherCompany, surcharge } = require('./seed/finalPaySeed');
 const app = require('../../server');
 const FinalPay = require('../../src/models/FinalPay');
 const { getToken } = require('./helpers/authentication');
@@ -31,50 +30,51 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.draftFinalPay).toBeDefined();
       expect(response.result.data.draftFinalPay.length).toEqual(1);
       expect(omit(response.result.data.draftFinalPay[0], ['auxiliary', 'auxiliaryId'])).toEqual({
         overtimeHours: 0,
         additionalHours: 0,
         bonus: 0,
-        endDate: moment('2022-05-28T23:59:59').toDate(),
+        endDate: new Date('2022-05-28T23:59:59.000Z'),
         month: '05-2022',
         contractHours: 39,
         holidaysHours: 1.5,
-        absencesHours: 0,
-        hoursToWork: 37.5,
-        workedHours: 2,
-        internalHours: 0,
-        notSurchargedAndNotExempt: 2,
+        absencesHours: 1,
+        hoursToWork: 36.5,
+        workedHours: 9,
+        internalHours: 3,
+        notSurchargedAndNotExempt: 6,
         surchargedAndNotExempt: 0,
-        notSurchargedAndExempt: 0,
-        surchargedAndExempt: 0,
+        notSurchargedAndExempt: 2,
+        surchargedAndExempt: 1,
         surchargedAndNotExemptDetails: {},
-        surchargedAndExemptDetails: {},
+        surchargedAndExemptDetails: {
+          [surcharge._id]: { planName: surcharge.name, sunday: { hours: 1, percentage: 30 } },
+        },
         paidKm: 0,
         paidTransportHours: 0,
-        hoursBalance: -35.5,
+        hoursBalance: -27.5,
         transport: 0,
-        phoneFees: 0,
-        startDate: moment('2022-05-01T00:00:00').toDate(),
-        hoursCounter: -35.5,
+        phoneFees: 18,
+        startDate: new Date('2022-04-30T22:00:00.000Z'),
+        hoursCounter: -17.5,
         mutual: true,
         diff: {
-          hoursBalance: 0,
+          hoursBalance: 10,
           absencesHours: 0,
-          internalHours: 0,
-          notSurchargedAndExempt: 0,
-          notSurchargedAndNotExempt: 0,
+          internalHours: 3,
+          notSurchargedAndExempt: 1.5,
+          notSurchargedAndNotExempt: 8.5,
           paidTransportHours: 0,
           surchargedAndExempt: 0,
           surchargedAndExemptDetails: {},
           surchargedAndNotExempt: 0,
           surchargedAndNotExemptDetails: {},
-          workedHours: 0,
+          workedHours: 10,
         },
         previousMonthHoursCounter: 0,
         endReason: 'mutation',
-        endNotificationDate: moment('2022-03-28T00:00:00').toDate(),
+        endNotificationDate: new Date('2022-03-28T00:00:00.000Z'),
         compensation: 0,
       });
     });
@@ -83,14 +83,15 @@ describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: '/finalpay/draft?startDate=2022-04-30T22:00:00.000Z&endDate=2022-05-31T21:59:59.999Z',
@@ -205,8 +206,8 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
     ];
