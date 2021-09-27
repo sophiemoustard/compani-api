@@ -657,7 +657,7 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments({});
+      const countEventAfterCreation = await Event.countDocuments();
       expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
@@ -687,7 +687,7 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments({});
+      const countEventAfterCreation = await Event.countDocuments();
       expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
@@ -717,7 +717,7 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments({});
+      const countEventAfterCreation = await Event.countDocuments();
       expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
@@ -742,7 +742,7 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments({});
+      const countEventAfterCreation = await Event.countDocuments();
       expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
@@ -766,7 +766,7 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments({});
+      const countEventAfterCreation = await Event.countDocuments();
       expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
@@ -787,7 +787,7 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments({});
+      const countEventAfterCreation = await Event.countDocuments();
       expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
     });
 
@@ -1246,7 +1246,7 @@ describe('PUT /events/{_id}', () => {
       authToken = await getToken('planning_referent');
     });
 
-    it('should update corresponding event with sector', async () => {
+    it('should update corresponding event with startDate, endDate and sector', async () => {
       const event = eventsList[2];
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
@@ -1262,30 +1262,11 @@ describe('PUT /events/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.event._id).toEqual(event._id);
-      expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
-      expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
-    });
-
-    it('should update corresponding event with auxiliary', async () => {
-      const event = eventsList[0];
-      const payload = {
-        startDate: '2019-01-23T10:00:00.000Z',
-        endDate: '2019-01-23T12:00:00.000Z',
-        auxiliary: event.auxiliary.toHexString(),
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.event._id).toEqual(event._id);
-      expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
-      expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
+      const resultEvent = response.result.data.event;
+      expect(resultEvent._id).toEqual(event._id);
+      expect(moment(resultEvent.startDate).isSame(moment(payload.startDate))).toBeTruthy();
+      expect(moment(resultEvent.endDate).isSame(moment(payload.endDate))).toBeTruthy();
+      expect(resultEvent.sector.toHexString()).toBe(payload.sector);
     });
 
     it('should update intervention with other subscription', async () => {
@@ -1656,7 +1637,7 @@ describe('DELETE /events/{_id}', () => {
       });
       expect(response.statusCode).toBe(200);
 
-      const countEventAfterCreation = await Event.countDocuments({});
+      const countEventAfterCreation = await Event.countDocuments();
       expect(countEventAfterCreation).toBe(countEventBeforeCreation - 1);
     });
 
@@ -1745,7 +1726,7 @@ describe('DELETE /events', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const countEventAfterCreation = await Event.countDocuments({});
+      const countEventAfterCreation = await Event.countDocuments();
       expect(countEventAfterCreation).toBe(countEventBeforeCreation - 2);
     });
 
