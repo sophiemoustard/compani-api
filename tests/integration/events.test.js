@@ -71,7 +71,6 @@ describe('GET /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
       response.result.data.events.forEach((event) => {
         expect(DatesHelper.isSameOrAfter(event.startDate, startDate)).toBeTruthy();
         expect(DatesHelper.isSameOrBefore(event.startDate, endDate)).toBeTruthy();
@@ -88,7 +87,6 @@ describe('GET /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
       const { events } = response.result.data;
       const customerId = Object.keys(events)[0];
       events[customerId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.customer._id, customerId)).toBeTruthy());
@@ -102,7 +100,6 @@ describe('GET /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
       const { events } = response.result.data;
       const auxId = Object.keys(events)[0];
       events[auxId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.auxiliary._id, auxId)).toBeTruthy());
@@ -833,7 +830,6 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
       const repeatedEventsCount = await Event.countDocuments({
         'repetition.parentId': response.result.data.event._id,
         company: authCompany._id,
@@ -1277,7 +1273,6 @@ describe('PUT /events/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.event).toBeDefined();
       expect(response.result.data.event._id).toEqual(event._id);
       expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
       expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
@@ -1299,7 +1294,6 @@ describe('PUT /events/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.event).toBeDefined();
       expect(response.result.data.event._id).toEqual(event._id);
       expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
       expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
