@@ -1628,7 +1628,7 @@ describe('DELETE /events/{_id}', () => {
 
     it('should delete corresponding event', async () => {
       const event = eventsList[0];
-      const countEventBeforeCreation = eventsList.length + 1;
+      const countEventBeforeCreation = eventsList.length;
 
       const response = await app.inject({
         method: 'DELETE',
@@ -1637,7 +1637,7 @@ describe('DELETE /events/{_id}', () => {
       });
       expect(response.statusCode).toBe(200);
 
-      const countEventAfterCreation = await Event.countDocuments();
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
       expect(countEventAfterCreation).toBe(countEventBeforeCreation - 1);
     });
 
@@ -1720,7 +1720,7 @@ describe('DELETE /events', () => {
       const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
-      const countEventBeforeCreation = eventsList.length + 1;
+      const countEventBeforeCreation = eventsList.length;
 
       const response = await app.inject({
         method: 'DELETE',
@@ -1730,7 +1730,7 @@ describe('DELETE /events', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const countEventAfterCreation = await Event.countDocuments();
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
       expect(countEventAfterCreation).toBe(countEventBeforeCreation - 2);
     });
 
