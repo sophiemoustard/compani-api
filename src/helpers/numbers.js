@@ -6,4 +6,4 @@ exports.dividedBy = (a, b) => Number(BigNumber(a).dividedBy(b));
 
 exports.add = (a, b) => Number(BigNumber(a).plus(b));
 
-exports.subsctract = (a, b) => Number(BigNumber(a).minus(b));
+exports.substract = (a, b) => Number(BigNumber(a).minus(b));

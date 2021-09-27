@@ -10,6 +10,7 @@ const CreditNote = require('../models/CreditNote');
 const FundingHistory = require('../models/FundingHistory');
 const BillSlipHelper = require('./billSlips');
 const UtilsHelper = require('./utils');
+const NumberHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
 const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL } = require('./constants');
@@ -80,8 +81,14 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
           inclTaxes: draftBill.unitInclTaxes,
           exclTaxes: draftBill.unitExclTaxes,
         });
-        billedEvents[ev.event].exclTaxesCustomer += draftBill.exclTaxes;
-        billedEvents[ev.event].inclTaxesCustomer += draftBill.inclTaxes;
+        billedEvents[ev.event].exclTaxesCustomer = NumberHelper.add(
+          billedEvents[ev.event].exclTaxesCustomer,
+          draftBill.exclTaxes
+        );
+        billedEvents[ev.event].inclTaxesCustomer = NumberHelper.add(
+          billedEvents[ev.event].inclTaxesCustomer,
+          draftBill.inclTaxes
+        );
       }
     }
   }
@@ -106,7 +113,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
     };
     if (!tpp.bills[0].externalBilling) {
       tppBill.number = exports.formatBillNumber(company.prefixNumber, number.prefix, seq);
-      seq += 1;
+      seq = NumberHelper.add(seq, 1);
     } else tppBill.origin = THIRD_PARTY;
 
     for (const draftBill of tpp.bills) {
@@ -119,12 +126,23 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
           if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { [ev.history.month]: ev.history };
           else if (!histories[ev.history.fundingId][ev.history.month]) {
             histories[ev.history.fundingId][ev.history.month] = ev.history;
-          } else histories[ev.history.fundingId][ev.history.month].careHours += ev.history.careHours;
+          } else {
+            histories[ev.history.fundingId][ev.history.month].careHours = NumberHelper.add(
+              histories[ev.history.fundingId][ev.history.month].careHours,
+              ev.history.careHours
+            );
+          }
         } else if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { ...ev.history };
         else if (ev.history.nature === HOURLY) {
-          histories[ev.history.fundingId].careHours += ev.history.careHours;
+          histories[ev.history.fundingId].careHours = NumberHelper.add(
+            histories[ev.history.fundingId].careHours,
+            ev.history.careHours
+          );
         } else { // Funding with once frequency are only fixed !
-          histories[ev.history.fundingId].amountTTC += ev.history.amountTTC;
+          histories[ev.history.fundingId].amountTTC = NumberHelper.add(
+            histories[ev.history.fundingId].amountTTC,
+            ev.history.amountTTC
+          );
         }
       }
     }
@@ -191,7 +209,7 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
     if (customerBills.bills && customerBills.bills.length > 0) {
       const customerBillingInfo = exports.formatCustomerBills(customerBills, customer, number, company);
       eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
-      number.seq += 1;
+      number.seq = NumberHelper.add(number.seq, 1);
       billList.push(customerBillingInfo.bill);
     }
 
@@ -204,7 +222,7 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
       }
       for (const bill of tppBillingInfo.tppBills) {
         billList.push(bill);
-        if (bill.number) number.seq += 1;
+        if (bill.number) number.seq = NumberHelper.add(number.seq, 1);
       }
     }
   }
@@ -229,14 +247,18 @@ exports.list = async (query, credentials) => Bill
 
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
+  const vat = NumberHelper.dividedBy(bddBillingItem.vat, 100);
+  const addVat = NumberHelper.add(1, vat);
+  const unitExclTaxes = NumberHelper.dividedBy(bi.unitInclTaxes, addVat).toFixed(4);
+  const exclTaxes = NumberHelper.multiply(unitExclTaxes, bi.count);
 
   return {
     billingItem: bi.billingItem,
     name: bddBillingItem.name,
     unitInclTaxes: bi.unitInclTaxes,
     count: bi.count,
-    inclTaxes: bi.unitInclTaxes * bi.count,
-    exclTaxes: (bi.unitInclTaxes / (1 + bddBillingItem.vat / 100)) * bi.count,
+    inclTaxes: NumberHelper.multiply(bi.unitInclTaxes, bi.count),
+    exclTaxes,
     vat: bddBillingItem.vat,
   };
 };
@@ -261,7 +283,7 @@ exports.formatAndCreateBill = async (payload, credentials) => {
 
   await BillNumber.updateOne(
     { prefix: billNumber.prefix, company: company._id },
-    { $set: { seq: billNumber.seq + 1 } }
+    { $set: { seq: NumberHelper.add(billNumber.seq, 1) } }
   );
   await Bill.create(bill);
 };
@@ -282,9 +304,12 @@ exports.getUnitInclTaxes = (bill, subscription) => {
   if (!funding) return 0;
   const version = UtilsHelper.getLastVersion(funding.versions, 'createdAt');
 
-  return funding.nature === HOURLY
-    ? (version.unitTTCRate * (1 - (version.customerParticipationRate / 100)))
-    : subscription.unitInclTaxes;
+  if (funding.nature === HOURLY) {
+    const customerParticipationRate = NumberHelper.dividedBy(version.customerParticipationRate, 100);
+    const tppParticipationRate = NumberHelper.substract(1, customerParticipationRate);
+    return NumberHelper.multiply(version.unitTTCRate, tppParticipationRate);
+  }
+  return subscription.unitInclTaxes;
 };
 
 exports.computeSurcharge = (subscription) => {
@@ -297,7 +322,12 @@ exports.computeSurcharge = (subscription) => {
         ? moment(surcharge.endHour).diff(surcharge.startHour, 'm') / 60
         : moment(event.endDate).diff(event.startDate, 'm') / 60;
 
-      totalSurcharge += duration * subscription.unitInclTaxes * (surcharge.percentage / 100);
+      const surchargePrice = NumberHelper.multiply(
+        duration,
+        NumberHelper.multiply(subscription.unitInclTaxes, NumberHelper.dividedBy(surcharge.percentage, 100))
+      );
+
+      totalSurcharge = NumberHelper.add(totalSurcharge, surchargePrice);
     }
   }
 
@@ -314,12 +344,12 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   let totalSubscription = 0;
   for (const sub of bill.subscriptions) {
-    totalExclTaxes += sub.exclTaxes;
-    totalVAT += sub.inclTaxes - sub.exclTaxes;
-    totalDiscount += sub.discount;
+    totalExclTaxes = NumberHelper.add(totalExclTaxes, sub.exclTaxes);
+    totalVAT = NumberHelper.add(totalVAT, NumberHelper.substract(sub.inclTaxes, sub.exclTaxes));
+    totalDiscount = NumberHelper.add(totalDiscount, sub.discount);
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
-    const total = volume * unitInclTaxes;
+    const total = NumberHelper.multiply(volume, unitInclTaxes);
 
     formattedDetails.push({
       unitInclTaxes,
@@ -328,19 +358,20 @@ exports.formatBillDetailsForPdf = (bill) => {
       volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
       total,
     });
-    totalSubscription += total;
-    totalSurcharge += exports.computeSurcharge(sub);
+    totalSubscription = NumberHelper.add(totalSubscription, total);
+    totalSurcharge = NumberHelper.add(totalSurcharge, exports.computeSurcharge(sub));
   }
 
   if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
 
   let totalBillingItem = 0;
+  let totalTPP = 0;
   if (bill.billingItemList) {
     for (const bi of bill.billingItemList) {
-      totalExclTaxes += bi.exclTaxes;
-      totalVAT += bi.inclTaxes - bi.exclTaxes;
-      totalBillingItem += bi.inclTaxes;
-      totalDiscount += bi.discount;
+      totalExclTaxes = NumberHelper.add(totalExclTaxes, bi.exclTaxes);
+      totalVAT = NumberHelper.add(totalVAT, (NumberHelper.substract(bi.inclTaxes, bi.exclTaxes)));
+      totalBillingItem = NumberHelper.add(totalBillingItem, bi.inclTaxes);
+      totalDiscount = NumberHelper.add(totalDiscount, bi.discount);
 
       formattedDetails.push({ name: bi.name, unitInclTaxes: bi.unitInclTaxes, volume: bi.count, total: bi.inclTaxes });
     }
@@ -348,7 +379,12 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
 
-  const totalTPP = bill.netInclTaxes - totalSubscription - totalSurcharge - totalBillingItem + totalDiscount;
+  const totalCustomer = NumberHelper.add(totalSubscription, totalBillingItem);
+  const totalSurchargeAndDiscount = NumberHelper.substract(totalDiscount, totalSurcharge);
+
+  totalTPP = NumberHelper.substract(bill.netInclTaxes, totalCustomer);
+  totalTPP = NumberHelper.add(totalTPP, totalSurchargeAndDiscount);
+
   if (Number(totalTPP.toFixed(2))) {
     formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
   }
