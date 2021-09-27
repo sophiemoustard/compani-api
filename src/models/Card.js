@@ -101,10 +101,10 @@ function save(next) {
         if (!this.isMandatory) this.isMandatory = false;
         break;
       case TEXT_MEDIA:
-        if (!this.media) this.media = { type: UPLOAD_IMAGE };
+        if (!this.media.type) this.media = { type: UPLOAD_IMAGE };
         break;
       case TITLE_TEXT_MEDIA:
-        if (!this.media) this.media = { type: UPLOAD_IMAGE };
+        if (!this.media.type) this.media = { type: UPLOAD_IMAGE };
         break;
       case OPEN_QUESTION:
         if (!this.isMandatory) this.isMandatory = false;
