@@ -346,6 +346,7 @@ describe('GET /events/credit-notes', () => {
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
     const query = {
       startDate: moment('2019-01-01').toDate(),
@@ -354,8 +355,8 @@ describe('GET /events/credit-notes', () => {
     };
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
 
         const response = await app.inject({
           method: 'GET',
@@ -379,7 +380,7 @@ describe('GET /events/working-stats', () => {
       authToken = await getToken('auxiliary');
     });
 
-    it('should return working stats for auxiliaries', async () => {
+    it('should return working stats for auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
@@ -424,11 +425,12 @@ describe('GET /events/working-stats', () => {
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
@@ -505,11 +507,12 @@ describe('GET /events/paid-transport', () => {
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
@@ -597,11 +600,12 @@ describe('GET /events/unassigned-hours', () => {
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
