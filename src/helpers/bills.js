@@ -337,20 +337,15 @@ exports.computeSurcharge = (subscription) => {
 
 exports.formatBillDetailsForPdf = (bill) => {
   let totalExclTaxes = 0;
-  let totalVAT = 0;
   let totalDiscount = 0;
   let totalSurcharge = 0;
-
+  let totalSubscription = 0;
   const formattedDetails = [];
 
-  let totalSubscription = 0;
   for (const sub of bill.subscriptions) {
     const discountExclTaxes = UtilsHelper.getExclTaxes(sub.discount, sub.vat);
     const subExclTaxesWithDiscount = NumbersHelper.substract(sub.exclTaxes, discountExclTaxes);
     totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
-
-    const subInclTaxesWithDiscount = NumbersHelper.substract(sub.inclTaxes, sub.discount);
-    totalVAT = NumbersHelper.add(totalVAT, NumbersHelper.substract(subInclTaxesWithDiscount, subExclTaxesWithDiscount));
 
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
@@ -376,10 +371,6 @@ exports.formatBillDetailsForPdf = (bill) => {
       const discountExclTaxes = UtilsHelper.getExclTaxes(bi.discount, bi.vat);
       const biExclTaxesWithDiscount = NumbersHelper.substract(bi.exclTaxes, discountExclTaxes);
       totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
-
-      const biInclTaxesWithDiscount = NumbersHelper.substract(bi.inclTaxes, bi.discount);
-      totalVAT = NumbersHelper.add(totalVAT, NumbersHelper.substract(biInclTaxesWithDiscount, biExclTaxesWithDiscount));
-
       totalBillingItem = NumbersHelper.add(totalBillingItem, bi.inclTaxes);
       totalDiscount = NumbersHelper.add(totalDiscount, bi.discount);
 
@@ -391,13 +382,13 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   const totalCustomer = NumbersHelper.add(NumbersHelper.add(totalSubscription, totalBillingItem), totalSurcharge);
   const totalTPP = NumbersHelper.add(NumbersHelper.substract(bill.netInclTaxes, totalCustomer), totalDiscount);
-
   if (totalTPP) formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
 
-  totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
-  totalVAT = UtilsHelper.formatPrice(totalVAT);
-
-  return { totalExclTaxes, totalVAT, formattedDetails };
+  return {
+    totalExclTaxes: UtilsHelper.formatPrice(totalExclTaxes),
+    totalVAT: UtilsHelper.formatPrice(NumbersHelper.substract(bill.netInclTaxes, totalExclTaxes)),
+    formattedDetails,
+  };
 };
 
 exports.formatEventsForPdf = (events, service) => {
