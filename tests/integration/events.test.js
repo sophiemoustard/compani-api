@@ -232,7 +232,6 @@ describe('GET /events/credit-notes', () => {
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
       };
-      const filteredEventsFromSeeds = eventsList.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
 
       const response = await app.inject({
         method: 'GET',
@@ -241,8 +240,10 @@ describe('GET /events/credit-notes', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      const filteredEventsFromRequest = response.result.data.events.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
-      expect(filteredEventsFromRequest.length).toBe(filteredEventsFromSeeds.length);
+      const isBilledAndNotTpp = ev => ev.isBilled && !ev.bills.inclTaxesTpp;
+      expect(response.result.data.events.every(isBilledAndNotTpp)).toBeTruthy();
+      const countFilteredEventsFromSeeds = eventsList.filter(isBilledAndNotTpp).length;
+      expect(response.result.data.events.length).toBe(countFilteredEventsFromSeeds);
     });
 
     it('should return a list of billed events for specified customer, tpp and creditNote', async () => {
@@ -261,8 +262,8 @@ describe('GET /events/credit-notes', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      const filteredEventsFromRequest = response.result.data.events.filter(ev => ev.isBilled);
-      expect(filteredEventsFromRequest.length).toBe(1);
+      expect(response.result.data.events.length).toBe(1);
+      expect(response.result.data.events[0].isBilled).toBeTruthy();
     });
 
     const wrongParams = ['startDate', 'endDate', 'customer'];
@@ -1583,10 +1584,14 @@ describe('PUT /events/{_id}', () => {
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = role.customCredentials
+          ? await getUserToken(role.customCredentials)
+          : await getToken(role.name, role.erp);
+
         const response = await app.inject({
           method: 'PUT',
           url: `/events/${eventsList[2]._id.toHexString()}`,
@@ -1655,11 +1660,14 @@ describe('DELETE /events/{_id}', () => {
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = role.customCredentials
+          ? await getUserToken(role.customCredentials)
+          : await getToken(role.name, role.erp);
 
         const response = await app.inject({
           method: 'DELETE',
@@ -1764,6 +1772,7 @@ describe('DELETE /events', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
@@ -1771,8 +1780,8 @@ describe('DELETE /events', () => {
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
 
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'DELETE',
           url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
@@ -1846,11 +1855,12 @@ describe('DELETE /{_id}/repetition', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const event = eventsList[9];
         const response = await app.inject({
           method: 'DELETE',
@@ -2112,11 +2122,12 @@ describe('PUT /{_id}/timestamping', () => {
       { name: 'client_admin', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
 
         const response = await app.inject({
           method: 'PUT',
