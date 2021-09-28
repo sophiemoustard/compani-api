@@ -6,7 +6,7 @@ const SubProgram = require('../../src/models/SubProgram');
 const Course = require('../../src/models/Course');
 const Step = require('../../src/models/Step');
 const { E_LEARNING } = require('../../src/helpers/constants');
-const { populateDB, subProgramsList, stepsList, activitiesList, tester } = require('./seed/subProgramsSeed');
+const { populateDB, subProgramsList, stepsList, tester } = require('./seed/subProgramsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
 
@@ -27,7 +27,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should update subProgram name and steps #tag', async () => {
+    it('should update subProgram name and steps', async () => {
       const payload = {
         name: 'un autre nom pour le sous-programme',
         steps: [subProgramsList[0].steps[1], subProgramsList[0].steps[0]],

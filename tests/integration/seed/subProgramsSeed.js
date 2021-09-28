@@ -85,13 +85,15 @@ const courseSlotsList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Program.insertMany(programsList);
-  await SubProgram.insertMany(subProgramsList);
-  await Step.insertMany(stepsList);
-  await Activity.insertMany(activitiesList);
-  await Course.insertMany(coursesList);
-  await Card.insertMany(cardsList);
-  await CourseSlot.insertMany(courseSlotsList);
+  await Promise.all([
+    Program.create(programsList),
+    SubProgram.create(subProgramsList),
+    Step.create(stepsList),
+    Activity.create(activitiesList),
+    Course.create(coursesList),
+    Card.create(cardsList),
+    CourseSlot.create(courseSlotsList),
+  ]);
 };
 
 module.exports = {

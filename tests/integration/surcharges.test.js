@@ -1,5 +1,4 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 const { surchargesList, populateDB, surchargeFromOtherCompany } = require('./seed/surchargesSeed');
 const Surcharge = require('../../src/models/Surcharge');
 const app = require('../../server');
@@ -123,15 +122,16 @@ describe('POST /surcharges', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+    roles.forEach(({ name, expectedCode, erp }) => {
+      it(`should return ${expectedCode} as user is ${name}${erp === false ? ' without erp' : ''}`, async () => {
         const payload = { name: 'Chasse aux monstres automnaux', saturday: 35 };
-        authToken = await getToken(role.name);
+        authToken = await getToken(name, erp);
         const response = await app.inject({
           method: 'POST',
           url: '/surcharges',
@@ -139,7 +139,7 @@ describe('POST /surcharges', () => {
           payload,
         });
 
-        expect(response.statusCode).toBe(role.expectedCode);
+        expect(response.statusCode).toBe(expectedCode);
       });
     });
   });
@@ -149,7 +149,7 @@ describe('GET /surcharges', () => {
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken('client_admin');
+    authToken = await getToken('auxiliary');
   });
 
   it('should return only the surcharges from the same company', async () => {
@@ -165,22 +165,23 @@ describe('GET /surcharges', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+    roles.forEach(({ name, expectedCode, erp }) => {
+      it(`should return ${expectedCode} as user is ${name}${erp === false ? ' without erp' : ''}`, async () => {
+        authToken = await getToken(name, erp);
         const response = await app.inject({
           method: 'GET',
           url: '/surcharges',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(role.expectedCode);
+        expect(response.statusCode).toBe(expectedCode);
       });
     });
   });
@@ -219,18 +220,7 @@ describe('PUT /surcharges/:id', () => {
     expect(response.statusCode).toBe(200);
   });
 
-  it('should return 404 if no surcharge', async () => {
-    const response = await app.inject({
-      method: 'PUT',
-      url: `/surcharges/${new ObjectID()}`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-      payload: { name: 'Chasser sans son chien' },
-    });
-
-    expect(response.statusCode).toBe(404);
-  });
-
-  it('should return a 404 error if user is not from the same company', async () => {
+  it('should return a 404 if surcharge from other company', async () => {
     const payload = { name: 'Chasse aux monstres printaniers', saturday: 35, sunday: 30, publicHoliday: 16 };
     const response = await app.inject({
       method: 'PUT',
@@ -245,15 +235,16 @@ describe('PUT /surcharges/:id', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+    roles.forEach(({ name, expectedCode, erp }) => {
+      it(`should return ${expectedCode} as user is ${name}${erp === false ? ' without erp' : ''}`, async () => {
         const payload = { name: 'Chasse aux monstres printaniers', saturday: 35, sunday: 30, publicHoliday: 16 };
-        authToken = await getToken(role.name);
+        authToken = await getToken(name, erp);
         const response = await app.inject({
           method: 'PUT',
           url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
@@ -261,7 +252,7 @@ describe('PUT /surcharges/:id', () => {
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(role.expectedCode);
+        expect(response.statusCode).toBe(expectedCode);
       });
     });
   });
@@ -287,7 +278,7 @@ describe('DELETE /surcharges/:id', () => {
     expect(surchargesCount).toBe(surchargesList.length - 1);
   });
 
-  it('should return a 404 error if user is not from the same company', async () => {
+  it('should return a 404 if surcharge is from other company', async () => {
     const response = await app.inject({
       method: 'DELETE',
       url: `/surcharges/${surchargeFromOtherCompany._id.toHexString()}`,
@@ -297,34 +288,25 @@ describe('DELETE /surcharges/:id', () => {
     expect(response.statusCode).toBe(404);
   });
 
-  it('should return a 404 error if invalid surcharge id', async () => {
-    const response = await app.inject({
-      method: 'DELETE',
-      url: `/surcharges/${new ObjectID()}`,
-      headers: { Cookie: `alenvi_token=${authToken}` },
-    });
-
-    expect(response.statusCode).toBe(404);
-  });
-
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+    roles.forEach(({ name, expectedCode, erp }) => {
+      it(`should return ${expectedCode} as user is ${name}${erp === false ? ' without erp' : ''}`, async () => {
+        authToken = await getToken(name, erp);
         const response = await app.inject({
           method: 'DELETE',
           url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(response.statusCode).toBe(role.expectedCode);
+        expect(response.statusCode).toBe(expectedCode);
       });
     });
   });
