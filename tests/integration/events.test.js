@@ -74,8 +74,6 @@ describe('GET /events', () => {
       response.result.data.events.forEach((event) => {
         expect(DatesHelper.isSameOrAfter(event.startDate, startDate)).toBeTruthy();
         expect(DatesHelper.isSameOrBefore(event.startDate, endDate)).toBeTruthy();
-        expect(event.isCancelled).toEqual(false);
-        if (event.type === 'intervention') expect(event.subscription._id).toBeDefined();
       });
     });
 
@@ -1246,12 +1244,14 @@ describe('PUT /events/{_id}', () => {
       authToken = await getToken('planning_referent');
     });
 
-    it('should update corresponding event with startDate, endDate and sector', async () => {
+    it('should update corresponding event with startDate, endDate, subscription and sector', async () => {
       const event = eventsList[2];
+      const subscriptionId = customerAuxiliaries[0].subscriptions[1]._id.toHexString();
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
         sector: sectors[0]._id.toHexString(),
+        subscription: subscriptionId,
       };
 
       const response = await app.inject({
@@ -1264,28 +1264,10 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toBe(200);
       const resultEvent = response.result.data.event;
       expect(resultEvent._id).toEqual(event._id);
+      expect(resultEvent.subscription._id.toHexString()).toBe(subscriptionId);
       expect(moment(resultEvent.startDate).isSame(moment(payload.startDate))).toBeTruthy();
       expect(moment(resultEvent.endDate).isSame(moment(payload.endDate))).toBeTruthy();
       expect(resultEvent.sector.toHexString()).toBe(payload.sector);
-    });
-
-    it('should update intervention with other subscription', async () => {
-      const event = eventsList[2];
-      const payload = {
-        startDate: '2019-01-23T10:00:00.000Z',
-        endDate: '2019-01-23T12:00:00.000Z',
-        auxiliary: event.auxiliary.toHexString(),
-        subscription: customerAuxiliaries[0].subscriptions[1]._id.toHexString(),
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
     });
 
     it('should update intervention even if sub service is archived if it was already the selected sub', async () => {
@@ -1720,7 +1702,6 @@ describe('DELETE /events', () => {
       const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
-      const countEventBeforeCreation = eventsList.length;
 
       const response = await app.inject({
         method: 'DELETE',
@@ -1730,8 +1711,13 @@ describe('DELETE /events', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
-      expect(countEventAfterCreation).toBe(countEventBeforeCreation - 2);
+      const countEventAfterCreation = await Event.countDocuments({
+        customer,
+        company: authCompany._id,
+        startDate: { $gte: new Date(startDate).toISOString() },
+        endDate: { $lte: new Date(endDate).toISOString() },
+      });
+      expect(countEventAfterCreation).toBe(0);
     });
 
     it('should not delete events if one event is billed', async () => {
