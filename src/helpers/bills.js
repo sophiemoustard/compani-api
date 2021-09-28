@@ -83,11 +83,11 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
         });
         billedEvents[ev.event].exclTaxesCustomer = NumbersHelper.add(
           billedEvents[ev.event].exclTaxesCustomer,
-          draftBill.exclTaxes
+          draftBill.unitExclTaxes
         );
         billedEvents[ev.event].inclTaxesCustomer = NumbersHelper.add(
           billedEvents[ev.event].inclTaxesCustomer,
-          draftBill.inclTaxes
+          draftBill.unitInclTaxes
         );
       }
     }

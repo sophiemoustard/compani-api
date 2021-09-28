@@ -26,4 +26,10 @@ const billingItemSchemaDefinition = {
   }],
 };
 
-module.exports = { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition };
+const billingItemsInEventDefinition = [{
+  billingItem: { type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem', required: true },
+  exclTaxes: { type: Number, required: true },
+  inclTaxes: { type: Number, required: true },
+}];
+
+module.exports = { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition, billingItemsInEventDefinition };
