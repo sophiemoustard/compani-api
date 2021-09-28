@@ -283,18 +283,6 @@ describe('getMatchingFunding', () => {
   });
 });
 
-describe('getExclTaxes', () => {
-  it('should return excluded taxes price', () => {
-    expect(Number.parseFloat(DraftBillsHelper.getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
-  });
-});
-
-describe('getInclTaxes', () => {
-  it('should return excluded taxes price', () => {
-    expect(DraftBillsHelper.getInclTaxes(20, 2)).toEqual(20.4);
-  });
-});
-
 describe('getThirdPartyPayerPrice', () => {
   it('should compute tpp price', () => {
     expect(DraftBillsHelper.getThirdPartyPayerPrice(180, 10, 20)).toEqual(24);
@@ -351,7 +339,7 @@ describe('getHourlyFundingSplit', () => {
   let getMatchingHistory;
   let getThirdPartyPayerPrice;
   beforeEach(() => {
-    getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
     getMatchingHistory = sinon.stub(DraftBillsHelper, 'getMatchingHistory');
     getThirdPartyPayerPrice = sinon.stub(DraftBillsHelper, 'getThirdPartyPayerPrice');
   });
@@ -420,7 +408,7 @@ describe('getFixedFundingSplit', () => {
   const service = { vat: 20 };
   let getExclTaxes;
   beforeEach(() => {
-    getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
   });
   afterEach(() => {
     getExclTaxes.restore();
@@ -471,7 +459,7 @@ describe('getEventBilling', () => {
   let getHourlyFundingSplit;
   let getFixedFundingSplit;
   beforeEach(() => {
-    getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
     getEventSurcharges = sinon.stub(SurchargesHelper, 'getEventSurcharges');
     getSurchargedPrice = sinon.stub(DraftBillsHelper, 'getSurchargedPrice');
     getHourlyFundingSplit = sinon.stub(DraftBillsHelper, 'getHourlyFundingSplit');
@@ -622,7 +610,7 @@ describe('formatDraftBillsForCustomer', () => {
   let getInclTaxes;
 
   beforeEach(() => {
-    getInclTaxes = sinon.stub(DraftBillsHelper, 'getInclTaxes');
+    getInclTaxes = sinon.stub(UtilsHelper, 'getInclTaxes');
   });
 
   afterEach(() => {
@@ -950,7 +938,7 @@ describe('computeBillingInfoForEvents', () => {
 describe('formatDraftBillsForTPP', () => {
   let getInclTaxes;
   beforeEach(() => {
-    getInclTaxes = sinon.stub(DraftBillsHelper, 'getInclTaxes');
+    getInclTaxes = sinon.stub(UtilsHelper, 'getInclTaxes');
   });
   afterEach(() => {
     getInclTaxes.restore();
@@ -1004,7 +992,7 @@ describe('getDraftBillsPerSubscription', () => {
   beforeEach(() => {
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
     getMatchingVersion = sinon.stub(UtilsHelper, 'getMatchingVersion');
-    getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
     computeBillingInfoForEvents = sinon.stub(DraftBillsHelper, 'computeBillingInfoForEvents');
   });
   afterEach(() => {

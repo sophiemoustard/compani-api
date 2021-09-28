@@ -90,10 +90,6 @@ exports.getSurchargedPrice = (event, eventSurcharges, price) => {
   return coef * price;
 };
 
-exports.getExclTaxes = (inclTaxes, vat) => (vat ? inclTaxes / (1 + (vat / 100)) : inclTaxes);
-
-exports.getInclTaxes = (exclTaxes, vat) => (vat ? exclTaxes * (1 + (vat / 100)) : exclTaxes);
-
 exports.getThirdPartyPayerPrice = (time, fundingExclTaxes, customerParticipationRate) =>
   (time / 60) * fundingExclTaxes * (1 - (customerParticipationRate / 100));
 
@@ -120,7 +116,7 @@ exports.getMatchingHistory = (event, funding) => {
 exports.getHourlyFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
-  const fundingExclTaxes = exports.getExclTaxes(funding.unitTTCRate, service.vat);
+  const fundingExclTaxes = UtilsHelper.getExclTaxes(funding.unitTTCRate, service.vat);
   const history = exports.getMatchingHistory(event, funding);
 
   let chargedTime = 0;
@@ -165,7 +161,7 @@ exports.getFixedFundingSplit = (event, funding, service, price) => {
       thirdPartyPayerPrice = price;
       history.amountTTC += thirdPartyPayerPrice * (1 + (service.vat / 100));
     } else {
-      thirdPartyPayerPrice = exports.getExclTaxes(funding.amountTTC - history.amountTTC, service.vat);
+      thirdPartyPayerPrice = UtilsHelper.getExclTaxes(funding.amountTTC - history.amountTTC, service.vat);
       history.amountTTC = funding.amountTTC;
     }
   }
@@ -190,7 +186,7 @@ exports.getFixedFundingSplit = (event, funding, service, price) => {
  * Returns customer and tpp excluded taxes prices of the given event.
  */
 exports.getEventBilling = (event, unitTTCRate, service, funding) => {
-  const unitExclTaxes = exports.getExclTaxes(unitTTCRate, service.vat);
+  const unitExclTaxes = UtilsHelper.getExclTaxes(unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;
   const billing = {};
 
@@ -215,7 +211,7 @@ exports.getEventBilling = (event, unitTTCRate, service, funding) => {
 };
 
 exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
-  const inclTaxesCustomer = exports.getInclTaxes(eventPrice.customerPrice, service.vat);
+  const inclTaxesCustomer = UtilsHelper.getInclTaxes(eventPrice.customerPrice, service.vat);
   const { endDate, startDate, _id: eventId, auxiliary } = event;
   const prices = {
     event: eventId,
@@ -228,7 +224,7 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
   if (eventPrice.surcharges) prices.surcharges = eventPrice.surcharges;
 
   if (eventPrice.thirdPartyPayerPrice && eventPrice.thirdPartyPayerPrice !== 0) {
-    prices.inclTaxesTpp = exports.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
+    prices.inclTaxesTpp = UtilsHelper.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
     prices.exclTaxesTpp = eventPrice.thirdPartyPayerPrice;
     prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
   }
@@ -244,7 +240,7 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
 exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
   const currentTppPrices = tppPrices[tpp._id] || { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
 
-  const inclTaxesTpp = exports.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
+  const inclTaxesTpp = UtilsHelper.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
   const prices = {
     event: event._id,
     startDate: event.startDate,
@@ -253,7 +249,7 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
     inclTaxesTpp,
     exclTaxesTpp: eventPrice.thirdPartyPayerPrice,
     thirdPartyPayer: eventPrice.thirdPartyPayer,
-    inclTaxesCustomer: exports.getInclTaxes(eventPrice.customerPrice, service.vat),
+    inclTaxesCustomer: UtilsHelper.getInclTaxes(eventPrice.customerPrice, service.vat),
     exclTaxesCustomer: eventPrice.customerPrice,
     history: { ...eventPrice.history },
     fundingId: eventPrice.fundingId,
@@ -264,7 +260,7 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
     ...tppPrices,
     [tpp._id]: {
       exclTaxes: currentTppPrices.exclTaxes + eventPrice.thirdPartyPayerPrice,
-      inclTaxes: currentTppPrices.inclTaxes + exports.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
+      inclTaxes: currentTppPrices.inclTaxes + UtilsHelper.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
       hours: currentTppPrices.hours + (eventPrice.chargedTime / 60),
       eventsList: [...currentTppPrices.eventsList, { ...prices }],
     },
@@ -320,7 +316,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
     discount: 0,
     startDate: startDate.toDate(),
     endDate: moment(endDate, 'YYYYMMDD').toDate(),
-    unitExclTaxes: exports.getExclTaxes(unitTTCRate, serviceMatchingVersion.vat),
+    unitExclTaxes: UtilsHelper.getExclTaxes(unitTTCRate, serviceMatchingVersion.vat),
     unitInclTaxes: unitTTCRate,
     vat: serviceMatchingVersion.vat || 0,
   };
@@ -368,7 +364,7 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
   const formattedBillingItems = [];
   for (const [billingItemId, eventsList] of Object.entries(eventsByBillingItem)) {
     const bddBillingItem = billingItems.find(bi => UtilsHelper.areObjectIdsEquals(bi._id, billingItemId));
-    const unitExclTaxes = exports.getExclTaxes(bddBillingItem.defaultUnitAmount, bddBillingItem.vat);
+    const unitExclTaxes = UtilsHelper.getExclTaxes(bddBillingItem.defaultUnitAmount, bddBillingItem.vat);
 
     formattedBillingItems.push({
       _id: new ObjectID(),

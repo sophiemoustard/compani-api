@@ -2084,17 +2084,20 @@ describe('formatBillDetailsForPdf', () => {
   let computeSurcharge;
   let formatPrice;
   let formatHour;
+  let getExclTaxes;
   beforeEach(() => {
     getUnitInclTaxes = sinon.stub(BillHelper, 'getUnitInclTaxes');
     computeSurcharge = sinon.stub(BillHelper, 'computeSurcharge');
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
     formatHour = sinon.stub(UtilsHelper, 'formatHour');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
   });
   afterEach(() => {
     getUnitInclTaxes.restore();
     computeSurcharge.restore();
     formatPrice.restore();
     formatHour.restore();
+    getExclTaxes.restore();
   });
 
   it('should return formatted details if service.nature is hourly', () => {
@@ -2116,6 +2119,7 @@ describe('formatBillDetailsForPdf', () => {
     computeSurcharge.returns(0);
     formatPrice.onCall(0).returns('430,54 €');
     formatPrice.onCall(1).returns('23,68 €');
+    getExclTaxes.returns(0);
 
     const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
 
@@ -2153,7 +2157,15 @@ describe('formatBillDetailsForPdf', () => {
         }],
       }],
       billingItemList: [
-        { name: 'Frais de dossier', unitInclTaxes: 30, count: 1, inclTaxes: 30, exclTaxes: 27.27, discount: 10 },
+        {
+          name: 'Frais de dossier',
+          unitInclTaxes: 30,
+          count: 1,
+          inclTaxes: 30,
+          exclTaxes: 27.27,
+          discount: 10,
+          vat: 10,
+        },
         {
           name: 'Equipement de protection individuel',
           unitInclTaxes: 2,
@@ -2161,6 +2173,7 @@ describe('formatBillDetailsForPdf', () => {
           inclTaxes: 10,
           exclTaxes: 8.33,
           discount: 0,
+          vat: 15,
         },
       ],
     };
@@ -2169,6 +2182,9 @@ describe('formatBillDetailsForPdf', () => {
     computeSurcharge.returns(12.24);
     formatPrice.onCall(0).returns('20,30 €');
     formatPrice.onCall(1).returns('1,70 €');
+    getExclTaxes.onCall(0).returns(4.739336);
+    getExclTaxes.onCall(1).returns(9.090909);
+    getExclTaxes.onCall(2).returns(0);
 
     const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
 
@@ -2176,10 +2192,10 @@ describe('formatBillDetailsForPdf', () => {
       formattedDetails: [
         { unitInclTaxes: 22, vat: 5.5, name: 'Forfait nuit', volume: 1, total: 22 },
         { name: 'Majorations', total: 12.24 },
-        { name: 'Frais de dossier', unitInclTaxes: 30, volume: 1, total: 30 },
-        { name: 'Equipement de protection individuel', unitInclTaxes: 2, volume: 5, total: 10 },
+        { name: 'Frais de dossier', unitInclTaxes: 30, volume: 1, total: 30, vat: 10 },
+        { name: 'Equipement de protection individuel', unitInclTaxes: 2, volume: 5, total: 10, vat: 15 },
         { name: 'Remises', total: -15 },
-        { name: 'Prise en charge du/des tiers(s) payeur(s)', total: -9.240000000000002 },
+        { name: 'Prise en charge du/des tiers(s) payeur(s)', total: -9.24 },
       ],
       totalExclTaxes: '20,30 €',
       totalVAT: '1,70 €',
