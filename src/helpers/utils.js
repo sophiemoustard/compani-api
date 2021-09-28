@@ -61,7 +61,7 @@ exports.getDateQuery = (dates) => {
   return { $lt: dates.endDate };
 };
 
-exports.getFixedNumber = (number, toFixedNb) => number.toFixed(toFixedNb);
+exports.getFixedNumber = (number, toFixedNb) => Math.round(number * (10 ** toFixedNb)) / (10 ** toFixedNb);
 
 exports.removeSpaces = str => (str ? str.split(' ').join('') : '');
 
