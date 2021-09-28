@@ -560,7 +560,7 @@ describe('formatCustomerBills', () => {
           endDate: '2019-09-19T00:00:00',
           billingItem: { _id: 'billingItemId', name: 'Billing Eilish' },
           unitInclTaxes: 34,
-          unitExclTaxes: 32.38095238095238,
+          unitExclTaxes: 32.12,
           exclTaxes: 12,
           inclTaxes: 17,
           vat: 5,
@@ -580,12 +580,31 @@ describe('formatCustomerBills', () => {
             },
           ],
         },
+        {
+          endDate: '2019-09-19T00:00:00',
+          billingItem: { _id: 'billingItemId2', name: 'Billing Eilish' },
+          unitInclTaxes: 20,
+          unitExclTaxes: 10,
+          exclTaxes: 12,
+          inclTaxes: 17,
+          vat: 5,
+          startDate: '2019-05-31T10:00:55.374Z',
+          eventsList: [
+            {
+              event: '736',
+              startDate: '2019-05-30T08:00:55.374Z',
+              endDate: '2019-05-30T10:00:55.374Z',
+              auxiliary: '34567890',
+            },
+          ],
+        },
       ],
     };
     formatBillNumber.returns('FACT-1234Picsou00077');
     getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
-    formatBillingItemData.returns({ billingItem: 'billingItemId' });
+    formatBillingItemData.onCall(0).returns({ billingItem: 'billingItemId' });
+    formatBillingItemData.onCall(1).returns({ billingItem: 'billingItemId2' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
 
@@ -599,7 +618,7 @@ describe('formatCustomerBills', () => {
       date: '2019-09-19T00:00:00',
       netInclTaxes: 14.40,
       subscriptions: [{ subscriptions: 'subscriptions' }, { subscriptions: 'subscriptions' }],
-      billingItemList: [{ billingItem: 'billingItemId' }],
+      billingItemList: [{ billingItem: 'billingItemId' }, { billingItem: 'billingItemId2' }],
       type: 'automatic',
     });
     expect(result.billedEvents).toBeDefined();
@@ -620,21 +639,24 @@ describe('formatCustomerBills', () => {
       },
       736: {
         auxiliary: '34567890',
-        billingItems: [{ billingItem: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
+        billingItems: [
+          { billingItem: 'billingItemId', exclTaxes: 32.12, inclTaxes: 34 },
+          { billingItem: 'billingItemId2', exclTaxes: 10, inclTaxes: 20 },
+        ],
         endDate: '2019-05-30T10:00:55.374Z',
         event: '736',
-        exclTaxesCustomer: 12,
-        inclTaxesCustomer: 17,
+        exclTaxesCustomer: 42.12,
+        inclTaxesCustomer: 54,
         inclTaxesTpp: 23,
         startDate: '2019-05-30T08:00:55.374Z',
       },
       890: {
         auxiliary: '34567890',
-        billingItems: [{ billingItem: 'billingItemId', exclTaxes: 32.38095238095238, inclTaxes: 34 }],
+        billingItems: [{ billingItem: 'billingItemId', exclTaxes: 32.12, inclTaxes: 34 }],
         endDate: '2019-05-29T13:00:55.374Z',
         event: '890',
-        exclTaxesCustomer: 12,
-        inclTaxesCustomer: 17,
+        exclTaxesCustomer: 32.12,
+        inclTaxesCustomer: 34,
         inclTaxesTpp: 45,
         startDate: '2019-05-29T10:00:55.374Z',
       },
@@ -643,6 +665,8 @@ describe('formatCustomerBills', () => {
     sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.calledWithExactly(formatSubscriptionData.getCall(0), customerBills.bills[0]);
     sinon.assert.calledWithExactly(formatSubscriptionData.getCall(1), customerBills.bills[1]);
+    sinon.assert.calledWithExactly(formatBillingItemData.getCall(0), customerBills.bills[2]);
+    sinon.assert.calledWithExactly(formatBillingItemData.getCall(1), customerBills.bills[3]);
   });
 });
 

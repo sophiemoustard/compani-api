@@ -57,10 +57,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeCreditNoteDeletion },
-        ],
+        pre: [{ method: getCreditNote, assign: 'creditNote' }, { method: authorizeCreditNoteDeletion }],
       },
     });
 
@@ -72,14 +69,9 @@ exports.plugin = {
         auth: { scope: ['bills:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            ...creditNoteValidations,
-          }),
+          payload: Joi.object().keys(creditNoteValidations),
         },
-        pre: [
-          { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeCreditNoteUpdate },
-        ],
+        pre: [{ method: getCreditNote, assign: 'creditNote' }, { method: authorizeCreditNoteUpdate }],
       },
     });
 
@@ -90,10 +82,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeGetCreditNotePdf },
-        ],
+        pre: [{ method: getCreditNote, assign: 'creditNote' }, { method: authorizeGetCreditNotePdf }],
       },
       handler: generateCreditNotePdf,
     });

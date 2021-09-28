@@ -56,10 +56,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getBill, assign: 'bill' },
-          { method: authorizeGetBillPdf },
-        ],
+        pre: [{ method: getBill, assign: 'bill' }, { method: authorizeGetBillPdf }],
       },
       handler: generateBillPdf,
     });
