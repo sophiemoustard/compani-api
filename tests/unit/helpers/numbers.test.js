@@ -9,7 +9,7 @@ describe('multiply', () => {
   });
 });
 
-describe('dividedBy', () => {
+describe('divide', () => {
   it('should divid numbers', async () => {
     const result = NumbersHelper.divide(0.3, 0.2);
 
@@ -25,7 +25,7 @@ describe('add', () => {
   });
 });
 
-describe('subsdtract', () => {
+describe('subtract', () => {
   it('should subtract numbers', async () => {
     const result = NumbersHelper.subtract(0.7, 0.2);
 

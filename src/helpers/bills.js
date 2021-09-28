@@ -113,7 +113,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
     };
     if (!tpp.bills[0].externalBilling) {
       tppBill.number = exports.formatBillNumber(company.prefixNumber, number.prefix, seq);
-      seq = NumbersHelper.add(seq, 1);
+      seq += 1;
     } else tppBill.origin = THIRD_PARTY;
 
     for (const draftBill of tpp.bills) {
@@ -209,7 +209,7 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
     if (customerBills.bills && customerBills.bills.length > 0) {
       const customerBillingInfo = exports.formatCustomerBills(customerBills, customer, number, company);
       eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
-      number.seq = NumbersHelper.add(number.seq, 1);
+      number.seq += 1;
       billList.push(customerBillingInfo.bill);
     }
 
@@ -222,7 +222,7 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
       }
       for (const bill of tppBillingInfo.tppBills) {
         billList.push(bill);
-        if (bill.number) number.seq = NumbersHelper.add(number.seq, 1);
+        if (bill.number) number.seq += 1;
       }
     }
   }
@@ -282,7 +282,7 @@ exports.formatAndCreateBill = async (payload, credentials) => {
 
   await BillNumber.updateOne(
     { prefix: billNumber.prefix, company: company._id },
-    { $set: { seq: NumbersHelper.add(billNumber.seq, 1) } }
+    { $set: { seq: billNumber.seq + 1 } }
   );
   await Bill.create(bill);
 };
@@ -324,7 +324,8 @@ exports.computeSurcharge = (subscription) => {
 
       const surchargePrice = NumbersHelper.multiply(
         duration,
-        NumbersHelper.multiply(subscription.unitInclTaxes, NumbersHelper.divide(surcharge.percentage, 100))
+        subscription.unitInclTaxes,
+        NumbersHelper.divide(surcharge.percentage, 100)
       );
 
       totalSurcharge = NumbersHelper.add(totalSurcharge, surchargePrice);
@@ -379,7 +380,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
 
-  const totalCustomer = NumbersHelper.add(NumbersHelper.add(totalSubscription, totalBillingItem), totalSurcharge);
+  const totalCustomer = NumbersHelper.add(totalSubscription, totalBillingItem, totalSurcharge);
   const totalTPP = NumbersHelper.add(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
   if (totalTPP) formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
 
