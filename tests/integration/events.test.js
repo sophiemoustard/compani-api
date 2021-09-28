@@ -620,7 +620,6 @@ describe('GET /events/unassigned-hours', () => {
 describe('POST /events', () => {
   let authToken;
   let DatesHelperDayDiff;
-  const countEventBeforeCreation = eventsList.length + 1;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -656,8 +655,8 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments();
-      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an intervention with auxiliary', async () => {
@@ -686,8 +685,8 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments();
-      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an intervention with sector', async () => {
@@ -716,8 +715,8 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments();
-      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an absence', async () => {
@@ -741,8 +740,8 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments();
-      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an extended absence', async () => {
@@ -765,8 +764,8 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments();
-      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an unavailability', async () => {
@@ -786,8 +785,8 @@ describe('POST /events', () => {
 
       expect(response.statusCode).toEqual(200);
 
-      const countEventAfterCreation = await Event.countDocuments();
-      expect(countEventAfterCreation).toBe(countEventBeforeCreation + 1);
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create a repetition', async () => {
@@ -1615,7 +1614,6 @@ describe('DELETE /events/{_id}', () => {
 
     it('should delete corresponding event', async () => {
       const event = eventsList[0];
-      const countEventBeforeCreation = eventsList.length;
 
       const response = await app.inject({
         method: 'DELETE',
@@ -1625,7 +1623,7 @@ describe('DELETE /events/{_id}', () => {
       expect(response.statusCode).toBe(200);
 
       const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
-      expect(countEventAfterCreation).toBe(countEventBeforeCreation - 1);
+      expect(countEventAfterCreation).toBe(eventsList.length - 1);
     });
 
     it('should return a 404 error as event is not found', async () => {
