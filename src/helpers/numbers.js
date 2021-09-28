@@ -1,9 +1,9 @@
 const { BigNumber } = require('bignumber.js');
 
-exports.multiply = (a, b) => Number(BigNumber(a).multipliedBy(b));
+exports.multiply = (...nums) => nums.reduce((acc, n) => Number(BigNumber(acc).multipliedBy(n)), 1);
 
-exports.divideBy = (a, b) => Number(BigNumber(a).dividedBy(b));
+exports.divide = (a, b) => Number(BigNumber(a).dividedBy(b));
 
-exports.add = (a, b) => Number(BigNumber(a).plus(b));
+exports.add = (...nums) => nums.reduce((acc, n) => Number(BigNumber(acc).plus(n)), 0);
 
-exports.substract = (a, b) => Number(BigNumber(a).minus(b));
+exports.subtract = (a, b) => Number(BigNumber(a).minus(b));

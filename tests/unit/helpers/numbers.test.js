@@ -1,23 +1,17 @@
 const expect = require('expect');
-const NumberHelper = require('../../../src/helpers/numbers');
+const NumbersHelper = require('../../../src/helpers/numbers');
 
 describe('multiply', () => {
   it('should multiply numbers', async () => {
-    const a = 0.1;
-    const b = 0.2;
+    const result = NumbersHelper.multiply(0.1, 2, 0.2);
 
-    const result = NumberHelper.multiply(a, b);
-
-    expect(result).toEqual(0.02);
+    expect(result).toEqual(0.04);
   });
 });
 
 describe('dividedBy', () => {
   it('should divid numbers', async () => {
-    const a = 0.3;
-    const b = 0.2;
-
-    const result = NumberHelper.divideBy(a, b);
+    const result = NumbersHelper.divide(0.3, 0.2);
 
     expect(result).toEqual(1.5);
   });
@@ -25,21 +19,15 @@ describe('dividedBy', () => {
 
 describe('add', () => {
   it('should add numbers', async () => {
-    const a = 0.6;
-    const b = 1.2;
+    const result = NumbersHelper.add(0.6, 0.3, 1.2);
 
-    const result = NumberHelper.add(a, b);
-
-    expect(result).toEqual(1.8);
+    expect(result).toEqual(2.1);
   });
 });
 
 describe('subsdtract', () => {
-  it('should substract numbers', async () => {
-    const a = 0.7;
-    const b = 0.2;
-
-    const result = NumberHelper.substract(a, b);
+  it('should subtract numbers', async () => {
+    const result = NumbersHelper.subtract(0.7, 0.2);
 
     expect(result).toEqual(0.5);
   });

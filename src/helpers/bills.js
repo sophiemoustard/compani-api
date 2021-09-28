@@ -247,9 +247,8 @@ exports.list = async (query, credentials) => Bill
 
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
-  const vatMultiplier = NumbersHelper.divideBy(bddBillingItem.vat, 100);
-  const addOneToVat = NumbersHelper.add(1, vatMultiplier);
-  const unitExclTaxes = NumbersHelper.divideBy(bi.unitInclTaxes, addOneToVat);
+  const vatMultiplier = NumbersHelper.divide(bddBillingItem.vat, 100);
+  const unitExclTaxes = NumbersHelper.divide(bi.unitInclTaxes, vatMultiplier + 1);
   const exclTaxes = NumbersHelper.multiply(unitExclTaxes, bi.count);
 
   return {
@@ -305,8 +304,8 @@ exports.getUnitInclTaxes = (bill, subscription) => {
   const version = UtilsHelper.getLastVersion(funding.versions, 'createdAt');
 
   if (funding.nature === HOURLY) {
-    const customerParticipationRate = NumbersHelper.divideBy(version.customerParticipationRate, 100);
-    const tppParticipationRate = NumbersHelper.substract(1, customerParticipationRate);
+    const customerParticipationRate = NumbersHelper.divide(version.customerParticipationRate, 100);
+    const tppParticipationRate = NumbersHelper.subtract(1, customerParticipationRate);
     return NumbersHelper.multiply(version.unitTTCRate, tppParticipationRate);
   }
 
@@ -325,7 +324,7 @@ exports.computeSurcharge = (subscription) => {
 
       const surchargePrice = NumbersHelper.multiply(
         duration,
-        NumbersHelper.multiply(subscription.unitInclTaxes, NumbersHelper.divideBy(surcharge.percentage, 100))
+        NumbersHelper.multiply(subscription.unitInclTaxes, NumbersHelper.divide(surcharge.percentage, 100))
       );
 
       totalSurcharge = NumbersHelper.add(totalSurcharge, surchargePrice);
@@ -344,7 +343,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   for (const sub of bill.subscriptions) {
     const discountExclTaxes = UtilsHelper.getExclTaxes(sub.discount, sub.vat);
-    const subExclTaxesWithDiscount = NumbersHelper.substract(sub.exclTaxes, discountExclTaxes);
+    const subExclTaxesWithDiscount = NumbersHelper.subtract(sub.exclTaxes, discountExclTaxes);
     totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
 
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
@@ -369,7 +368,7 @@ exports.formatBillDetailsForPdf = (bill) => {
   if (bill.billingItemList) {
     for (const bi of bill.billingItemList) {
       const discountExclTaxes = UtilsHelper.getExclTaxes(bi.discount, bi.vat);
-      const biExclTaxesWithDiscount = NumbersHelper.substract(bi.exclTaxes, discountExclTaxes);
+      const biExclTaxesWithDiscount = NumbersHelper.subtract(bi.exclTaxes, discountExclTaxes);
       totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
       totalBillingItem = NumbersHelper.add(totalBillingItem, bi.inclTaxes);
       totalDiscount = NumbersHelper.add(totalDiscount, bi.discount);
@@ -381,12 +380,12 @@ exports.formatBillDetailsForPdf = (bill) => {
   if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
 
   const totalCustomer = NumbersHelper.add(NumbersHelper.add(totalSubscription, totalBillingItem), totalSurcharge);
-  const totalTPP = NumbersHelper.add(NumbersHelper.substract(bill.netInclTaxes, totalCustomer), totalDiscount);
+  const totalTPP = NumbersHelper.add(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
   if (totalTPP) formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
 
   return {
     totalExclTaxes: UtilsHelper.formatPrice(totalExclTaxes),
-    totalVAT: UtilsHelper.formatPrice(NumbersHelper.substract(bill.netInclTaxes, totalExclTaxes)),
+    totalVAT: UtilsHelper.formatPrice(NumbersHelper.subtract(bill.netInclTaxes, totalExclTaxes)),
     formattedDetails,
   };
 };
