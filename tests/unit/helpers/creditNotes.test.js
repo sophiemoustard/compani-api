@@ -595,7 +595,7 @@ describe('updateCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(
       findByIdAndUpdate,
       creditNote._id,
-      { $set: { customer: creditNote.customer, date: '2020-04-29T22:00:00.000Z' } },
+      { $set: { date: '2020-04-29T22:00:00.000Z' } },
       { new: true }
     );
   });
@@ -630,13 +630,13 @@ describe('updateCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(
       findByIdAndUpdate,
       creditNote._id,
-      { $set: { ...payload, customer: creditNote.customer, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
       { new: true }
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: creditNoteWithLink.linkedCreditNote },
-      { $set: { ...payload, customer: creditNote.customer, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
       { new: true }
     );
   });
@@ -671,21 +671,13 @@ describe('updateCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(
       findByIdAndUpdate,
       creditNote._id,
-      {
-        $set: {
-          ...payload,
-          thirdPartyPayer: tppId,
-          customer: creditNote.customer,
-          inclTaxesCustomer: 0,
-          exclTaxesCustomer: 0,
-        },
-      },
+      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
       { new: true }
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: creditNoteWithLink.linkedCreditNote },
-      { $set: { ...payload, customer: creditNote.customer, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
       { new: true }
     );
   });

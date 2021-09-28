@@ -39,7 +39,7 @@ exports.creditNoteValidations = {
   })),
   subscription: Joi.object().keys({
     _id: Joi.objectId(),
-    service: Joi.object().keys({
+    service: Joi.object().required().keys({
       serviceId: Joi.objectId().required(),
       name: Joi.string().required(),
       nature: Joi.string().required().valid(...SERVICE_NATURES),
