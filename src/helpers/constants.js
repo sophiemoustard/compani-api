@@ -5,6 +5,7 @@ module.exports = {
   SENDER_MAIL: 'nepasrepondre@compani.fr',
   IDENTIFICATION: 'identification',
   CONTRACT_END: 'contract_end',
+  REJECTED: 'rejected',
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',

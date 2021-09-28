@@ -2,7 +2,7 @@ const UtilsPdfHelper = require('./utils');
 const { COPPER_500 } = require('../../../helpers/constants');
 
 const getSlotTableContent = slot => [
-  { stack: [{ text: `${slot.date}` }, { text: `${slot.address}`, fontSize: 8 }] },
+  { stack: [{ text: `${slot.date}` }, { text: `${slot.address || ''}`, fontSize: 8 }] },
   { stack: [{ text: `${slot.duration}` }, { text: `${slot.startHour} - ${slot.endHour}`, fontSize: 8 }] },
   { text: '' },
   { text: '' },
@@ -35,11 +35,11 @@ exports.getPdfContent = async (data) => {
         { text: 'Signature de l\'intervenant(e)', style: 'header' },
       ],
     ];
-    trainee.course.slots.forEach((slot) => { body.push(getSlotTableContent(slot)); });
+    trainee.course.slots.forEach(slot => body.push(getSlotTableContent(slot)));
 
-    const table = [{ table: { body, widths: ['auto', 'auto', '*', '*'] }, marginBottom: 8 }];
+    const table = [{ table: { body, widths: ['auto', 'auto', '*', '*'], dontBreakRows: true }, marginBottom: 8 }];
 
-    const footer = UtilsPdfHelper.getFooter(i === trainees.length - 1, signature, 96);
+    const footer = UtilsPdfHelper.getFooter(i === trainees.length - 1, signature);
 
     content.push(header, table, footer);
   });

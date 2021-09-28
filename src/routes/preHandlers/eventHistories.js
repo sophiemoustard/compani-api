@@ -11,13 +11,13 @@ exports.authorizeEventsHistoriesGet = async (req) => {
   if (req.query.auxiliaries) {
     const auxiliariesIds = UtilsHelper.formatIdsArray(req.query.auxiliaries);
     const auxiliariesCount = await UserCompany.countDocuments({ user: { $in: auxiliariesIds }, company: companyId });
-    if (auxiliariesCount !== auxiliariesIds.length) throw Boom.forbidden();
+    if (auxiliariesCount !== auxiliariesIds.length) throw Boom.notFound();
   }
 
   if (req.query.sectors) {
     const sectorsIds = UtilsHelper.formatIdsArray(req.query.sectors);
     const sectorCount = await Sector.countDocuments({ _id: { $in: sectorsIds }, company: companyId });
-    if (sectorCount !== sectorsIds.length) throw Boom.forbidden();
+    if (sectorCount !== sectorsIds.length) throw Boom.notFound();
   }
 
   return null;

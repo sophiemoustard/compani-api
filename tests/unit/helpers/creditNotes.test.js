@@ -530,9 +530,7 @@ describe('updateCreditNotes', () => {
     _id: new ObjectID(),
     number: 1,
     events: [{
-      auxiliary: {
-        identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
-      },
+      auxiliary: { identity: { firstname: 'Nathanaelle', lastname: 'Tata' } },
       startDate: '2019-04-29T06:00:00.000Z',
       endDate: '2019-04-29T15:00:00.000Z',
       serviceName: 'Toto',
@@ -564,25 +562,42 @@ describe('updateCreditNotes', () => {
   });
 
   it('should update a credit note', async () => {
-    const payload = { customer: { identity: { firstname: 'Titi' } } };
-    const updatedCreditNote = {
-      ...creditNote,
+    findByIdAndUpdate.returns({ ...creditNote, date: '2020-04-29T22:00:00.000Z' });
+
+    const result = await CreditNoteHelper.updateCreditNotes(
+      creditNote,
+      { date: '2020-04-29T22:00:00.000Z' },
+      credentials
+    );
+
+    expect(result).toMatchObject({
+      _id: creditNote._id,
+      number: 1,
+      events: [{
+        auxiliary: { identity: { firstname: 'Nathanaelle', lastname: 'Tata' } },
+        startDate: '2019-04-29T06:00:00.000Z',
+        endDate: '2019-04-29T15:00:00.000Z',
+        serviceName: 'Toto',
+        bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
+      }],
       customer: {
-        ...creditNote.customer,
-        identity: {
-          ...creditNote.customer.identity,
-          firstname: payload.customer.identity.firstname,
-        },
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
+        subscriptions: [{ _id: creditNote.customer.subscriptions[0]._id, service: { versions: [{ name: 'Toto' }] } }],
       },
-    };
-
-    findByIdAndUpdate.returns(updatedCreditNote);
-
-    const result = await CreditNoteHelper.updateCreditNotes(creditNote, payload, credentials);
-
-    expect(result).toMatchObject(updatedCreditNote);
+      exclTaxesCustomer: 221,
+      inclTaxesCustomer: 234,
+      exclTaxesTpp: 21,
+      inclTaxesTpp: 34,
+      date: '2020-04-29T22:00:00.000Z',
+    });
     sinon.assert.calledOnceWithExactly(updateEventAndFundingHistory, creditNote.events, true, credentials);
-    sinon.assert.calledOnceWithExactly(findByIdAndUpdate, creditNote._id, { $set: payload }, { new: true });
+    sinon.assert.calledOnceWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      { $set: { date: '2020-04-29T22:00:00.000Z' } },
+      { new: true }
+    );
   });
 
   it('should update a customer credit note and its tpp linked credit note', async () => {
@@ -627,7 +642,8 @@ describe('updateCreditNotes', () => {
   });
 
   it('should update a tpp credit note and its customer linked credit note', async () => {
-    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: new ObjectID(), linkedCreditNote: new ObjectID() };
+    const tppId = new ObjectID();
+    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: tppId, linkedCreditNote: new ObjectID() };
     const payload = {
       events: [{
         auxiliary: {

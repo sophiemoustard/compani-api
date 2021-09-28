@@ -15,6 +15,7 @@ const {
   otherCompanyEvent,
   otherCompanyUser,
   otherCompanyCreditNote,
+  billingItem,
 } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -43,7 +44,11 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
-      bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
+        billingItems: [{ billingItem: billingItem._id, exclTaxes: 12, inclTaxes: 14 }],
+      },
     }],
   };
 
@@ -84,7 +89,6 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 
       const creditNotes = await CreditNote.find({ company: authCompany }).lean();
       const cnWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
-      expect(cnWithlinkedCreditNotes).toBeDefined();
       expect(cnWithlinkedCreditNotes.length).toEqual(2);
       expect(cnWithlinkedCreditNotes).toEqual(expect.arrayContaining([
         expect.objectContaining({ number: 'AV-101071900001' }),
@@ -111,7 +115,6 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 
       const creditNotes = await CreditNote.find({ company: authCompany }).lean();
       const cnWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
-      expect(cnWithlinkedCreditNotes).toBeDefined();
       expect(cnWithlinkedCreditNotes.length).toEqual(2);
       expect(cnWithlinkedCreditNotes).toEqual(expect.arrayContaining([
         expect.objectContaining({ number: 'AV-101071900001' }),
@@ -120,33 +123,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
     });
 
-    it('should create one credit note with linked events', async () => {
-      const initialCreditNotesNumber = creditNotesList.length;
-      const response = await app.inject({
-        method: 'POST',
-        url: '/creditNotes',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { ...payloadWithEvents },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const creditNotesCount = await CreditNote.countDocuments({ company: authCompany._id });
-      expect(creditNotesCount).toEqual(initialCreditNotesNumber + 1);
-    });
-
-    it('should create one credit note with subscription', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/creditNotes',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { ...payloadWithEvents },
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 403 error if customer is not from same company', async () => {
+    it('should return a 404 error if customer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -154,10 +131,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         payload: { ...payloadWithEvents, customer: otherCompanyCustomer._id },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if customer subscription is not from same company', async () => {
+    it('should return a 404 error if customer subscription is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -172,10 +149,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if third party payer is not from same company', async () => {
+    it('should return a 404 error if third party payer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -188,10 +165,35 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if at least one event is not from same company', async () => {
+    it('should return a 404 if one billingItem doesn’t exists', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          ...payloadWithEvents,
+          events: [{
+            eventId: creditNoteEvent._id,
+            auxiliary: creditNoteEvent.auxiliary,
+            startDate: creditNoteEvent.startDate,
+            endDate: creditNoteEvent.endDate,
+            serviceName: 'toto',
+            bills: {
+              billingItems: [{ billingItem: new ObjectID(), exclTaxes: 12, inclTaxes: 14 }],
+              inclTaxesCustomer: 10,
+              exclTaxesCustomer: 8,
+            },
+          }],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 error if at least one event is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -205,7 +207,8 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
             endDate: creditNoteEvent.endDate,
             serviceName: 'toto',
             bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
-          }, {
+          },
+          {
             eventId: otherCompanyEvent._id,
             auxiliary: new ObjectID(),
             startDate: otherCompanyEvent.startDate,
@@ -216,7 +219,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     const missingParams = [
@@ -246,11 +249,11 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 
   describe('Other roles', () => {
     const roles = [
-      { name: 'helper', expectedCode: 403, erp: true },
-      { name: 'auxiliary', expectedCode: 403, erp: true },
-      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-      { name: 'coach', expectedCode: 403, erp: true },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -273,9 +276,9 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get all credit notes (company A)', async () => {
@@ -307,9 +310,8 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -331,19 +333,9 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
-    });
-
-    it('should get credit note pdf', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/creditNotes/${creditNotesList[0]._id}/pdfs`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
+      authToken = await getToken('coach');
     });
 
     it('should get credit note pdf', async () => {
@@ -380,9 +372,8 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -430,6 +421,17 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.result.data.creditNote.exclTaxesCustomer).toEqual(payload.exclTaxesCustomer);
     });
 
+    it('should return a 400 error if date isn\'t in payload', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 404 error if credit note does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -452,33 +454,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 error if customer is not from same company', async () => {
-      payload = { customer: otherCompanyCustomer._id };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 403 error if third party payer is not from same company', async () => {
-      payload = { exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: otherCompanyThirdPartyPayer._id };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/creditNotes/${creditNotesList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return a 403 error if at least one event is not from same company', async () => {
+    it('should return a 404 error if at least one event is not from same company', async () => {
       payload = {
         events: [{
           eventId: otherCompanyEvent._id,
@@ -491,6 +467,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
             exclTaxesCustomer: 8,
           },
         }],
+        date: '2019-07-19T14:00:18',
       };
 
       const response = await app.inject({
@@ -500,12 +477,12 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if customer subscription is not from same company', async () => {
+    it('should return a 404 error if customer subscription is not from same company', async () => {
       payload = {
-        customer: creditNoteCustomer._id,
+        date: '2019-07-19T14:00:18',
         subscription: {
           _id: otherCompanyCustomer.subscriptions[0]._id,
           service: { serviceId: new ObjectID(), nature: FIXED, name: 'titi' },
@@ -519,7 +496,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 403 error if credit note is not editable', async () => {
@@ -545,9 +522,9 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
@@ -582,15 +559,8 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
-    });
-
-    it('should return a 404 error if credit does not exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/creditNotes/${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(response.statusCode).toBe(404);
+      const deletedCreditNote = await CreditNote.countDocuments({ _id: creditNotesList[0]._id });
+      expect(deletedCreditNote).toEqual(0);
     });
 
     it('should return a 404 error if user is not from credit note company', async () => {
@@ -626,9 +596,9 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

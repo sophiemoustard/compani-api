@@ -93,7 +93,7 @@ const historyExportTypes = [
 ];
 
 historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
-  describe(`GET /exports/${exportType}/data`, () => {
+  describe(`EXPORTS ROUTES - GET /exports/${exportType}/data`, () => {
     let authToken;
     before(populateDB);
 
@@ -110,7 +110,6 @@ historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result).toBeDefined();
 
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
@@ -124,12 +123,13 @@ historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 403 },
         { name: 'vendor_admin', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403, erp: false },
       ];
       roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+        it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+          authToken = await getToken(role.name, role.erp);
           const response = await app.inject({
             method: 'GET',
             url: `/exports/${exportType}/data`,
@@ -248,7 +248,6 @@ dataExportTypes.forEach(({ exportType, expectedRows }) => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result).toBeDefined();
 
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
@@ -262,12 +261,13 @@ dataExportTypes.forEach(({ exportType, expectedRows }) => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 403 },
         { name: 'vendor_admin', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403, erp: false },
       ];
       roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+        it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+          authToken = await getToken(role.name, role.erp);
           const response = await app.inject({
             method: 'GET',
             url: `/exports/${exportType}/data`,

@@ -1,39 +1,47 @@
-const { BILL } = require('../../../helpers/constants');
+const { BILL, AUTOMATIC } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
+const UtilsHelper = require('../../../helpers/utils');
+
+const formatBillingPrice = price => (price === 0 || price ? UtilsHelper.formatPrice(price) : '-');
 
 exports.getPdfContent = async (data) => {
   const { bill } = data;
   const header = await UtilsPdfHelper.getHeader(bill.company, bill, BILL);
 
-  const serviceTableBody = [
+  const billDetailsTableBody = [
     [
-      { text: 'Service', bold: true },
+      { text: 'Intitulé', bold: true },
       { text: 'Prix unitaire TTC', bold: true },
       { text: 'Volume', bold: true },
-      { text: 'Total TTC*', bold: true },
+      { text: 'Total TTC', bold: true },
     ],
   ];
-  bill.formattedSubs.forEach(sub => serviceTableBody.push(
-    [
-      { text: `${sub.service} (TVA ${sub.vat} %)` },
-      { text: sub.unitInclTaxes },
-      { text: sub.volume },
-      { text: sub.inclTaxes },
-    ]
-  ));
+
+  bill.formattedDetails.forEach((detail) => {
+    billDetailsTableBody.push(
+      [
+        { text: `${detail.name}${detail.vat ? ` (TVA ${UtilsHelper.formatPercentage(detail.vat / 100)})` : ''}` },
+        { text: formatBillingPrice(detail.unitInclTaxes) },
+        { text: detail.volume || '-' },
+        { text: formatBillingPrice(detail.total) },
+      ]
+    );
+  });
+
   const serviceTable = [
     {
-      table: { body: serviceTableBody, widths: ['*', 'auto', 'auto', 'auto'] },
+      table: { body: billDetailsTableBody, widths: ['*', 'auto', 'auto', 'auto'] },
       margin: [0, 40, 0, 8],
       layout: { vLineWidth: () => 0.5, hLineWidth: () => 0.5 },
     },
-    { text: '*ce total intègre les financements, majorations et éventuelles remises.' },
   ];
 
   const priceTable = UtilsPdfHelper.getPriceTable(bill);
   const eventsTable = UtilsPdfHelper.getEventsTable(bill, !bill.forTpp);
 
-  const content = [header, serviceTable, priceTable, eventsTable];
+  const content = bill.type === AUTOMATIC
+    ? [header, serviceTable, priceTable, eventsTable]
+    : [header, serviceTable, priceTable];
 
   return {
     content: content.flat(),

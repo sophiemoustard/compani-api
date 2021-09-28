@@ -11,6 +11,7 @@ const EventHistory = require('../../../src/models/EventHistory');
 const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const CreditNote = require('../../../src/models/CreditNote');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Helper = require('../../../src/models/Helper');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
@@ -880,6 +881,56 @@ const eventHistoriesList = [
   },
 ];
 
+const creditNote = {
+  _id: new ObjectID(),
+  date: new Date('2020-01-10T06:00:00Z'),
+  startDate: new Date('2020-01-01T06:00:00Z'),
+  endDate: new Date('2020-01-15T06:00:00Z'),
+  customer: customerAuxiliaries[0]._id,
+  exclTaxesCustomer: 100,
+  inclTaxesCustomer: 112,
+  events: [{
+    eventId: eventsList[0]._id,
+    auxiliary: eventsList[0].auxiliary,
+    startDate: eventsList[0].startDate,
+    endDate: eventsList[0].endDate,
+    serviceName: 'toto',
+    bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+  }],
+  subscription: {
+    _id: customerAuxiliaries[0].subscriptions[0]._id,
+    service: { serviceId: services[0]._id, nature: 'fixed', name: 'toto' },
+    vat: 5.5,
+  },
+  origin: 'compani',
+  company: authCompany._id,
+};
+
+const creditNoteFromOtherCompany = {
+  _id: new ObjectID(),
+  date: new Date('2020-01-12T10:00:00Z'),
+  startDate: new Date('2020-01-01T10:00:00Z'),
+  endDate: new Date('2020-01-15T10:00:00Z'),
+  customer: customerFromOtherCompany._id,
+  exclTaxesCustomer: 100,
+  inclTaxesCustomer: 112,
+  events: [{
+    eventId: eventFromOtherCompany._id,
+    auxiliary: eventFromOtherCompany.auxiliary,
+    startDate: eventFromOtherCompany.startDate,
+    endDate: eventFromOtherCompany.endDate,
+    serviceName: 'toto',
+    bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+  }],
+  subscription: {
+    _id: customerFromOtherCompany.subscriptions[0]._id,
+    service: { serviceId: services[0]._id, nature: 'fixed', name: 'toto' },
+    vat: 5.5,
+  },
+  origin: 'compani',
+  company: otherCompany._id,
+};
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -897,6 +948,7 @@ const populateDB = async () => {
   await Helper.insertMany(helpersList);
   await EventHistory.insertMany(eventHistoriesList);
   await UserCompany.insertMany(userCompanies);
+  await CreditNote.insertMany([creditNote, creditNoteFromOtherCompany]);
 };
 
 const getUserToken = async (userCredentials) => {
@@ -926,4 +978,6 @@ module.exports = {
   thirdPartyPayerFromOtherCompany,
   eventFromOtherCompany,
   eventHistoriesList,
+  creditNote,
+  creditNoteFromOtherCompany,
 };

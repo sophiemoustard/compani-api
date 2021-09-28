@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
+const BillingItem = require('../../../src/models/BillingItem');
 const CreditNote = require('../../../src/models/CreditNote');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
@@ -13,6 +14,15 @@ const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
+
+const billingItem = {
+  _id: new ObjectID(),
+  defaultUnitAmount: 12,
+  company: authCompany._id,
+  type: 'per_intervention',
+  vat: 10,
+  name: 'Billing Idol',
+};
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -337,6 +347,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
+    BillingItem.create([billingItem]),
     CreditNote.create([...creditNotesList, otherCompanyCreditNote]),
     Customer.create([creditNoteCustomer, otherCompanyCustomer]),
     Event.create([creditNoteEvent, otherCompanyEvent]),
@@ -350,6 +361,7 @@ const populateDB = async () => {
 
 module.exports = {
   creditNotesList,
+  billingItem,
   populateDB,
   creditNoteCustomer,
   creditNoteEvent,

@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
@@ -9,6 +8,8 @@ const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const UserCompany = require('../../../src/models/UserCompany');
+const Surcharge = require('../../../src/models/Surcharge');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
@@ -17,8 +18,8 @@ const { auxiliaryRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
 const customerId = new ObjectID();
-const subscriptionId = new ObjectID();
-const serviceId = new ObjectID();
+const subscriptionIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
+const serviceIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
 const sectorId = new ObjectID();
 
 const user = {
@@ -40,6 +41,7 @@ const auxiliary = {
   role: { client: auxiliaryRoleId },
   contracts: contractId,
   origin: WEBAPP,
+  administrative: { phoneInvoice: { driveId: 'qwertyuioiuytrew' } },
 };
 
 const auxiliaryFromOtherCompany = {
@@ -61,11 +63,11 @@ const userCompanyList = [
 const contract = {
   createdAt: '2018-12-04T16:34:04',
   serialNumber: 'aswertyujnmklk',
-  endDate: moment('2022-05-28T23:59:59').toDate(),
-  endNotificationDate: moment('2022-03-28T00:00:00').toDate(),
+  endDate: '2022-05-28T23:59:59.000Z',
+  endNotificationDate: '2022-03-28T00:00:00.000Z',
   endReason: 'mutation',
   user: auxiliaryId,
-  startDate: moment('2018-12-03T00:00:00').toDate(),
+  startDate: '2018-12-03T00:00:00.000Z',
   _id: contractId,
   company: authCompany._id,
   versions: [
@@ -73,32 +75,159 @@ const contract = {
       createdAt: '2018-12-04T16:34:04',
       endDate: null,
       grossHourlyRate: 10.28,
-      startDate: moment('2018-12-03T00:00:00').toDate(),
+      startDate: '2018-12-03T00:00:00.000Z',
       weeklyHours: 9,
       _id: new ObjectID(),
     },
   ],
 };
 
-const event = {
-  _id: new ObjectID(),
-  company: authCompany._id,
-  type: 'intervention',
-  startDate: '2022-05-12T09:00:00',
-  endDate: '2022-05-12T11:00:00',
-  auxiliary: auxiliaryId,
-  customer: customerId,
-  createdAt: '2022-05-01T09:00:00',
-  sector: new ObjectID(),
-  subscription: subscriptionId,
-  address: {
-    fullAddress: '37 rue de ponthieu 75008 Paris',
-    zipCode: '75008',
-    city: 'Paris',
-    street: '37 rue de Ponthieu',
-    location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+const eventList = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    startDate: '2022-05-12T09:00:00.000Z',
+    endDate: '2022-05-12T12:00:00.000Z',
+    auxiliary: auxiliaryId,
+    customer: customerId,
+    createdAt: '2022-05-01T09:00:00.000Z',
+    sector: new ObjectID(),
+    subscription: subscriptionIds[0],
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
-};
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    startDate: '2022-05-08T09:00:00.000Z',
+    endDate: '2022-05-08T11:00:00.000Z',
+    auxiliary: auxiliaryId,
+    customer: customerId,
+    createdAt: '2022-05-01T09:00:00.000Z',
+    sector: new ObjectID(),
+    subscription: subscriptionIds[1],
+    address: {
+      fullAddress: '30 Rue Traversière 75012 Paris',
+      zipCode: '75012',
+      city: 'Paris',
+      street: '30 Rue Traversière',
+      location: { type: 'Point', coordinates: [2.37413, 48.848278] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    startDate: '2022-05-08T15:00:00.000Z',
+    endDate: '2022-05-08T16:00:00.000Z',
+    auxiliary: auxiliaryId,
+    customer: customerId,
+    createdAt: '2022-05-01T10:00:00.000Z',
+    sector: new ObjectID(),
+    subscription: subscriptionIds[2],
+    address: {
+      fullAddress: '62 Rue Brancion 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '62 Rue Brancion',
+      location: { type: 'Point', coordinates: [2.303387, 48.832701] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'internal_hour',
+    startDate: '2022-05-09T09:00:00.000Z',
+    endDate: '2022-05-09T12:00:00.000Z',
+    auxiliary: auxiliaryId,
+    internalHour: { _id: new ObjectID(), name: 'Formation' },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'absence',
+    absenceNature: 'hourly',
+    absence: 'transport_accident',
+    startDate: '2022-05-08T09:00:00.000Z',
+    endDate: '2022-05-08T10:00:00.000Z',
+    auxiliary: auxiliaryId,
+    internalHour: { _id: new ObjectID(), name: 'Formation' },
+  },
+  // previous month
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    startDate: '2022-04-12T09:00:00.000Z',
+    endDate: '2022-04-12T13:00:00.000Z',
+    auxiliary: auxiliaryId,
+    customer: customerId,
+    createdAt: '2022-05-01T09:00:00.000Z',
+    sector: new ObjectID(),
+    subscription: subscriptionIds[0],
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    startDate: '2022-04-08T15:00:00.000Z',
+    endDate: '2022-04-08T16:30:00.000Z',
+    auxiliary: auxiliaryId,
+    customer: customerId,
+    createdAt: '2022-05-01T10:00:00.000Z',
+    sector: new ObjectID(),
+    subscription: subscriptionIds[1],
+    address: {
+      fullAddress: '30 Rue Traversière 75012 Paris',
+      zipCode: '75012',
+      city: 'Paris',
+      street: '30 Rue Traversière',
+      location: { type: 'Point', coordinates: [2.37413, 48.848278] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    startDate: '2022-04-08T15:00:00.000Z',
+    endDate: '2022-04-08T16:30:00.000Z',
+    auxiliary: auxiliaryId,
+    customer: customerId,
+    createdAt: '2022-05-01T10:00:00.000Z',
+    sector: new ObjectID(),
+    subscription: subscriptionIds[3],
+    address: {
+      fullAddress: '62 Rue Brancion 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '62 Rue Brancion',
+      location: { type: 'Point', coordinates: [2.303387, 48.832701] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'internal_hour',
+    startDate: '2022-04-09T09:00:00.000Z',
+    endDate: '2022-04-09T12:00:00.000Z',
+    auxiliary: auxiliaryId,
+    internalHour: { _id: new ObjectID(), name: 'Formation' },
+  },
+];
 
 const customer = {
   _id: customerId,
@@ -114,30 +243,122 @@ const customer = {
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  subscriptions: [{
-    _id: subscriptionId,
-    service: serviceId,
-    versions: [{
-      unitTTCRate: 12,
-      estimatedWeeklyVolume: 12,
-      evenings: 2,
-      sundays: 1,
-      startDate: '2018-01-01T10:00:00.000',
-    }],
-  }],
+  subscriptions: [
+    {
+      _id: subscriptionIds[0],
+      service: serviceIds[0],
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000Z',
+      }],
+    },
+    {
+      _id: subscriptionIds[1],
+      service: serviceIds[1],
+      versions: [{
+        unitTTCRate: 100,
+        estimatedWeeklyVolume: 12,
+        evenings: 0,
+        sundays: 3,
+        startDate: '2018-01-03T10:00:00.000Z',
+      }],
+    },
+    {
+      _id: subscriptionIds[2],
+      service: serviceIds[2],
+      versions: [{
+        unitTTCRate: 4,
+        estimatedWeeklyVolume: 14,
+        evenings: 0,
+        sundays: 1,
+        startDate: '2018-01-03T10:00:00.000Z',
+      }],
+    },
+    {
+      _id: subscriptionIds[3],
+      service: serviceIds[3],
+      versions: [{
+        unitTTCRate: 5,
+        estimatedWeeklyVolume: 4,
+        evenings: 0,
+        sundays: 1,
+        startDate: '2018-01-03T10:00:00.000Z',
+      }],
+    },
+  ],
 };
 
-const service = {
-  _id: serviceId,
+const surcharge = {
+  _id: new ObjectID(),
+  name: 'surplus',
+  sunday: 30,
   company: authCompany._id,
-  versions: [{
-    defaultUnitAmount: 12,
-    name: 'Service 1',
-    exemptFromCharges: false,
-    startDate: '2019-01-16T00:00:00',
-    vat: 12,
-  }],
-  nature: 'hourly',
+};
+
+const serviceList = [
+  {
+    _id: serviceIds[0],
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      name: 'Service A',
+      exemptFromCharges: false,
+      startDate: '2019-01-16T00:00:00.000Z',
+      vat: 12,
+    }],
+    nature: 'hourly',
+  },
+  {
+    _id: serviceIds[1],
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 30,
+      name: 'Service B',
+      exemptFromCharges: true,
+      startDate: '2019-01-30T00:00:00.000Z',
+      vat: 20,
+    }],
+    nature: 'hourly',
+  },
+  {
+    _id: serviceIds[2],
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 100,
+      name: 'Service C',
+      exemptFromCharges: true,
+      startDate: '2019-01-30T00:00:00.000Z',
+      vat: 5,
+      surcharge: surcharge._id,
+    }],
+    nature: 'hourly',
+  },
+  {
+    _id: serviceIds[3],
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 33,
+      name: 'Service D',
+      exemptFromCharges: false,
+      startDate: '2019-01-30T00:00:00.000Z',
+      vat: 5,
+      surcharge: surcharge._id,
+    }],
+    nature: 'hourly',
+  },
+];
+
+const distanceMatrix = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+  origins: '30 Rue Traversière 75012 Paris',
+  destinations: '62 Rue Brancion 75015 Paris',
+  mode: 'driving',
+  distance: 6532,
+  duration: 1458,
 };
 
 const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
@@ -147,14 +368,18 @@ const sectorHistory = { auxiliary: auxiliaryId, sector: sectorId, company: authC
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Sector.create(sector);
-  await SectorHistory.create(sectorHistory);
-  await User.create([user, auxiliary, auxiliaryFromOtherCompany]);
-  await Customer.create(customer);
-  await Service.create(service);
-  await Event.create(event);
-  await Contract.create(contract);
-  await UserCompany.insertMany(userCompanyList);
+  await Promise.all([
+    Contract.create(contract),
+    Customer.create(customer),
+    DistanceMatrix.create(distanceMatrix),
+    Event.create(eventList),
+    Sector.create(sector),
+    SectorHistory.create(sectorHistory),
+    Service.create(serviceList),
+    Surcharge.create(surcharge),
+    User.create([user, auxiliary, auxiliaryFromOtherCompany]),
+    UserCompany.insertMany(userCompanyList),
+  ]);
 };
 
-module.exports = { populateDB, auxiliary, auxiliaryFromOtherCompany };
+module.exports = { populateDB, auxiliary, auxiliaryFromOtherCompany, surcharge };

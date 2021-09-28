@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const get = require('lodash/get');
 const { COMPANI, OGUST } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { billEventSurchargesSchemaDefinition } = require('./schemaDefinitions/billing');
+const { billEventSurchargesSchemaDefinition, billingItemsInEventDefinition } = require('./schemaDefinitions/billing');
 const { SERVICE_NATURES } = require('./Service');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 
@@ -14,24 +14,12 @@ const CreditNoteSchema = mongoose.Schema(
     date: { type: Date, required: true },
     startDate: { type: Date },
     endDate: { type: Date },
-    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
-    thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
-    exclTaxesCustomer: {
-      type: Number,
-      required() { return !this.thirdPartyPayer; },
-    },
-    inclTaxesCustomer: {
-      type: Number,
-      required() { return !this.thirdPartyPayer; },
-    },
-    exclTaxesTpp: {
-      type: Number,
-      required() { return !!this.thirdPartyPayer; },
-    },
-    inclTaxesTpp: {
-      type: Number,
-      required() { return !!this.thirdPartyPayer; },
-    },
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true, immutable: true },
+    thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer', immutable: true },
+    exclTaxesCustomer: { type: Number, required() { return !this.thirdPartyPayer; } },
+    inclTaxesCustomer: { type: Number, required() { return !this.thirdPartyPayer; } },
+    exclTaxesTpp: { type: Number, required() { return !!this.thirdPartyPayer; } },
+    inclTaxesTpp: { type: Number, required() { return !!this.thirdPartyPayer; } },
     events: [
       {
         eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -51,6 +39,7 @@ const CreditNoteSchema = mongoose.Schema(
               nature: { type: String },
               careHours: { type: Number },
               surcharges: billEventSurchargesSchemaDefinition,
+              billingItems: billingItemsInEventDefinition,
             },
             { id: false }
           ),
@@ -72,10 +61,10 @@ const CreditNoteSchema = mongoose.Schema(
       vat: { type: Number },
       unitInclTaxes: { type: Number },
     },
-    linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' },
-    origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI },
+    linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote', immutable: true },
+    origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI, immutable: true },
     driveFile: driveResourceSchemaDefinition,
-    company: { type: mongoose.Schema.Types.ObjectId, required: true },
+    company: { type: mongoose.Schema.Types.ObjectId, required: true, immutable: true },
     isEditable: { type: Boolean, default: true },
   },
   { timestamps: true }

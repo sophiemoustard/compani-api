@@ -76,8 +76,9 @@ const getServiceName = (service) => {
   return lastVersion.name;
 };
 
-const getMatchingSector = (histories, event) => histories.filter(sh => moment(sh.startDate).isBefore(event.startDate))
-  .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
+const getMatchingSector = (histories, event) => histories
+  .filter(sh => moment(sh.startDate).isBefore(event.startDate))
+  .sort(DatesHelper.descendingSort('startDate'))[0];
 
 const displayDate = (timestamp = null, path, scheduledDate = null) => {
   if (timestamp) return DatesHelper.formatDateAndTime(get(timestamp, path), 'DDMMMMYYYYhhmmss');

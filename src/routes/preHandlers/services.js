@@ -1,6 +1,8 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { PER_INTERVENTION } = require('../../helpers/constants');
+const DatesHelper = require('../../helpers/dates');
+const UtilsHelper = require('../../helpers/utils');
 const BillingItem = require('../../models/BillingItem');
 const Customer = require('../../models/Customer');
 const Service = require('../../models/Service');
@@ -11,7 +13,7 @@ const { language } = translate;
 const authorizeServiceEdit = async (req) => {
   const serviceId = req.params._id;
   const companyId = req.auth.credentials.company._id;
-  const service = await Service.findOne({ _id: serviceId, company: companyId }, { isArchived: 1 }).lean();
+  const service = await Service.findOne({ _id: serviceId, company: companyId }, { isArchived: 1, versions: 1 }).lean();
   if (!service) throw Boom.notFound(translate[language].serviceNotFound);
   if (service.isArchived) throw Boom.forbidden();
 
@@ -19,6 +21,11 @@ const authorizeServiceEdit = async (req) => {
     const billingItemsCount = await BillingItem
       .countDocuments({ _id: { $in: req.payload.billingItems }, company: companyId, type: PER_INTERVENTION });
     if (billingItemsCount !== req.payload.billingItems.length) throw Boom.forbidden();
+  }
+
+  if (get(req, 'payload.startDate')) {
+    const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
+    if (DatesHelper.isSameOrBefore(req.payload.startDate, lastVersion.startDate)) throw Boom.forbidden();
   }
 };
 

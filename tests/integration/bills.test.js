@@ -7,8 +7,8 @@ const app = require('../../server');
 const {
   populateDB,
   billUserList,
-  billsList,
-  authBillsList,
+  billList,
+  authBillList,
   billCustomerList,
   billServices,
   eventList,
@@ -317,7 +317,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(response.statusCode).toBe(200);
 
       const billCount = await Bill.countDocuments({ company: authCompany._id });
-      expect(billCount).toBe(2 + authBillsList.length);
+      expect(billCount).toBe(2 + authBillList.length);
 
       const creditNote = await CreditNote.find({ customer: billCustomerList[0]._id, company: authCompany._id }).lean();
       expect(creditNote[0].isEditable).toBeFalsy();
@@ -333,12 +333,12 @@ describe('BILL ROUTES - POST /bills/list', () => {
 
       expect(response.statusCode).toBe(200);
       const billsCount = await Bill.countDocuments({ company: authCompany._id });
-      expect(billsCount).toBe(1 + authBillsList.length);
+      expect(billsCount).toBe(1 + authBillList.length);
     });
 
     it('should not create new bill with existing number', async () => {
       const formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
-      formatBillNumber.returns(billsList[0].number);
+      formatBillNumber.returns(billList[0].number);
 
       const response = await app.inject({
         method: 'POST',
@@ -351,7 +351,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
       formatBillNumber.restore();
 
       const billCountAfter = await Bill.countDocuments();
-      expect(billCountAfter).toEqual(authBillsList.length + billsList.length);
+      expect(billCountAfter).toEqual(authBillList.length + billList.length);
 
       const billNumberAfter = await BillNumber.countDocuments({ prefix: '0519', seq: 2 });
       expect(billNumberAfter).toEqual(1);
@@ -363,7 +363,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(fundingHistoryAfter).toEqual(1);
 
       const eventInBill = await Event
-        .countDocuments({ _id: eventList[4]._id, bills: { surcharges: [] }, isBilled: false });
+        .countDocuments({ _id: eventList[4]._id, bills: { surcharges: [], billingItems: [] }, isBilled: false });
       expect(eventInBill).toEqual(1);
     });
 
@@ -507,7 +507,65 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(bills.some(bill => !bill.number)).toBeTruthy();
 
       const draftBillsLength = draftBillPayload[0].thirdPartyPayerBills[0].bills.length;
-      expect(bills.length).toBe(draftBillsLength + authBillsList.length);
+      expect(bills.length).toBe(draftBillsLength + authBillList.length);
+    });
+
+    it('should create a bill with billingItems', async () => {
+      const billsWithBillingItemBefore = await Bill.countDocuments({
+        company: authCompany._id,
+        billingItemList: { $exists: true, $ne: [] },
+      });
+
+      const draftBillPayload = [{
+        customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
+        endDate: '2019-05-30T23:59:59.999Z',
+        customerBills: {
+          bills: [
+            payload[0].customerBills.bills[0],
+            {
+              _id: new ObjectID(),
+              discount: 0,
+              startDate: '2019-05-01T00:00:00.000Z',
+              endDate: '2019-05-31T23:59:59.999Z',
+              unitExclTaxes: 10.714285714285714,
+              unitInclTaxes: 12,
+              vat: 12,
+              eventsList: [{
+                event: eventList[4]._id,
+                auxiliary: new ObjectID(),
+                startDate: '2019-05-02T08:00:00.000Z',
+                endDate: '2019-05-02T10:00:00.000Z',
+                inclTaxesCustomer: 24,
+                exclTaxesCustomer: 21.428571428571427,
+                surcharges: [{ percentage: 90, name: 'Noël' }],
+              }],
+              hours: 2,
+              exclTaxes: 21.428571428571427,
+              inclTaxes: 24,
+              billingItem: { _id: billingItemList[0]._id, name: 'Billing Joel' },
+            },
+          ],
+          total: 48,
+        },
+      }];
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills/list',
+        payload: { bills: draftBillPayload },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const billsWithBillingItemAfter = await Bill.countDocuments({
+        company: authCompany._id,
+        billingItemList: { $exists: true, $ne: [] },
+      });
+      expect(billsWithBillingItemAfter).toBe(1 + billsWithBillingItemBefore);
+
+      const eventInBill = await Event.countDocuments({ _id: eventList[4]._id, isBilled: true });
+      expect(eventInBill).toEqual(1);
     });
 
     it('should return a 403 error if customer is not from same company', async () => {
@@ -602,6 +660,49 @@ describe('BILL ROUTES - POST /bills/list', () => {
             },
           }],
         },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if a billingItem is not from same company', async () => {
+      const draftBillPayload = [{
+        customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
+        endDate: '2019-05-30T23:59:59.999Z',
+        customerBills: {
+          bills: [
+            {
+              _id: new ObjectID(),
+              discount: 0,
+              startDate: '2019-05-01T00:00:00.000Z',
+              endDate: '2019-05-31T23:59:59.999Z',
+              unitExclTaxes: 10.714285714285714,
+              unitInclTaxes: 12,
+              vat: 12,
+              eventsList: [{
+                event: eventList[4]._id,
+                auxiliary: new ObjectID(),
+                startDate: '2019-05-02T08:00:00.000Z',
+                endDate: '2019-05-02T10:00:00.000Z',
+                inclTaxesCustomer: 24,
+                exclTaxesCustomer: 21.428571428571427,
+                surcharges: [{ percentage: 90, name: 'Noël' }],
+              }],
+              hours: 2,
+              exclTaxes: 21.428571428571427,
+              inclTaxes: 24,
+              billingItem: { _id: billingItemList[2]._id, name: 'Billingbo Le Hobbit' },
+            },
+          ],
+          total: 48,
+        },
+      }];
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills/list',
+        payload: { bills: draftBillPayload },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -716,7 +817,7 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(response.statusCode).toBe(200);
 
       const billsCount = await Bill.countDocuments({ company: authCompany._id });
-      expect(billsCount).toBe(1 + authBillsList.length);
+      expect(billsCount).toBe(1 + authBillList.length);
     });
 
     const missingParams = ['customer', 'date', 'netInclTaxes'];
@@ -836,7 +937,7 @@ describe('BILL ROUTES - POST /bills', () => {
 
     it('should return 409 billNumber is already taken', async () => {
       const formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
-      formatBillNumber.returns(billsList[0].number);
+      formatBillNumber.returns(billList[0].number);
 
       const payload = {
         customer: billCustomerList[0]._id,
@@ -901,7 +1002,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
     it('should get bill pdf', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/bills/${authBillsList[0]._id}/pdfs`,
+        url: `/bills/${authBillList[0]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -911,7 +1012,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
     it('should return a 404 error if bill customer is not from same company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/bills/${billsList[0]._id}/pdfs`,
+        url: `/bills/${billList[0]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -933,7 +1034,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       authToken = await getTokenByCredentials(billUserList[0].local);
       const res = await app.inject({
         method: 'GET',
-        url: `/bills/${authBillsList[0]._id}/pdfs`,
+        url: `/bills/${authBillList[0]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(200);
@@ -950,7 +1051,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/bills/${authBillsList[0]._id}/pdfs`,
+          url: `/bills/${authBillList[0]._id}/pdfs`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
