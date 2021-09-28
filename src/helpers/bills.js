@@ -345,9 +345,13 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   let totalSubscription = 0;
   for (const sub of bill.subscriptions) {
-    totalExclTaxes = NumbersHelper.add(totalExclTaxes, sub.exclTaxes);
-    totalVAT = NumbersHelper.add(totalVAT, NumbersHelper.substract(sub.inclTaxes, sub.exclTaxes));
-    totalDiscount = NumbersHelper.add(totalDiscount, sub.discount);
+    const discountExclTaxes = UtilsHelper.getExclTaxes(sub.discount, sub.vat);
+    const subExclTaxesWithDiscount = NumbersHelper.substract(sub.exclTaxes, discountExclTaxes);
+    totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
+
+    const subInclTaxesWithDiscount = NumbersHelper.substract(sub.inclTaxes, sub.discount);
+    totalVAT = NumbersHelper.add(totalVAT, NumbersHelper.substract(subInclTaxesWithDiscount, subExclTaxesWithDiscount));
+
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
     const total = NumbersHelper.multiply(volume, unitInclTaxes);
@@ -361,6 +365,7 @@ exports.formatBillDetailsForPdf = (bill) => {
     });
     totalSubscription = NumbersHelper.add(totalSubscription, total);
     totalSurcharge = NumbersHelper.add(totalSurcharge, exports.computeSurcharge(sub));
+    totalDiscount = NumbersHelper.add(totalDiscount, sub.discount);
   }
 
   if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
@@ -368,12 +373,17 @@ exports.formatBillDetailsForPdf = (bill) => {
   let totalBillingItem = 0;
   if (bill.billingItemList) {
     for (const bi of bill.billingItemList) {
-      totalExclTaxes = NumbersHelper.add(totalExclTaxes, bi.exclTaxes);
-      totalVAT = NumbersHelper.add(totalVAT, (NumbersHelper.substract(bi.inclTaxes, bi.exclTaxes)));
+      const discountExclTaxes = UtilsHelper.getExclTaxes(bi.discount, bi.vat);
+      const biExclTaxesWithDiscount = NumbersHelper.substract(bi.exclTaxes, discountExclTaxes);
+      totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
+
+      const biInclTaxesWithDiscount = NumbersHelper.substract(bi.inclTaxes, bi.discount);
+      totalVAT = NumbersHelper.add(totalVAT, NumbersHelper.substract(biInclTaxesWithDiscount, biExclTaxesWithDiscount));
+
       totalBillingItem = NumbersHelper.add(totalBillingItem, bi.inclTaxes);
       totalDiscount = NumbersHelper.add(totalDiscount, bi.discount);
 
-      formattedDetails.push({ name: bi.name, unitInclTaxes: bi.unitInclTaxes, volume: bi.count, total: bi.inclTaxes });
+      formattedDetails.push({ ...pick(bi, ['name', 'unitInclTaxes', 'vat']), volume: bi.count, total: bi.inclTaxes });
     }
   }
 

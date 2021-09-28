@@ -14,7 +14,7 @@ const billingItemSchemaDefinition = {
   count: { type: Number, required: true },
   inclTaxes: { type: Number, required: true },
   exclTaxes: { type: Number, required: true },
-  discount: { type: Number },
+  discount: { type: Number, default: 0 },
   vat: { type: Number, required: true },
   startDate: { type: Date },
   endDate: { type: Date },

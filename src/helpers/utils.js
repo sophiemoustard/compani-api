@@ -186,3 +186,5 @@ exports.computeHoursWithDiff = (pay, key) => {
 
   return hours + diff;
 };
+
+exports.getExclTaxes = (inclTaxes, vat) => (vat ? inclTaxes / (1 + (vat / 100)) : inclTaxes);
