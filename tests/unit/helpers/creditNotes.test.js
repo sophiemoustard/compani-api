@@ -570,7 +570,27 @@ describe('updateCreditNotes', () => {
       credentials
     );
 
-    expect(result).toMatchObject({ ...creditNote, date: '2020-04-29T22:00:00.000Z' });
+    expect(result).toMatchObject({
+      _id: creditNote._id,
+      number: 1,
+      events: [{
+        auxiliary: { identity: { firstname: 'Nathanaelle', lastname: 'Tata' } },
+        startDate: '2019-04-29T06:00:00.000Z',
+        endDate: '2019-04-29T15:00:00.000Z',
+        serviceName: 'Toto',
+        bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
+      }],
+      customer: {
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
+        subscriptions: [{ _id: creditNote.customer.subscriptions[0]._id, service: { versions: [{ name: 'Toto' }] } }],
+      },
+      exclTaxesCustomer: 221,
+      inclTaxesCustomer: 234,
+      exclTaxesTpp: 21,
+      inclTaxesTpp: 34,
+      date: '2020-04-29T22:00:00.000Z',
+    });
     sinon.assert.calledOnceWithExactly(updateEventAndFundingHistory, creditNote.events, true, credentials);
     sinon.assert.calledOnceWithExactly(
       findByIdAndUpdate,

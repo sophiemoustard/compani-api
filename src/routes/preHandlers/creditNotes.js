@@ -66,10 +66,7 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   if (!customerCount) throw Boom.notFound();
 
   if (payload.thirdPartyPayer) {
-    const tppCount = await ThirdPartyPayer.countDocuments({
-      _id: payload.thirdPartyPayer || creditNote._id,
-      company: companyId,
-    });
+    const tppCount = await ThirdPartyPayer.countDocuments({ _id: payload.thirdPartyPayer, company: companyId });
     if (!tppCount) throw Boom.notFound();
   }
 
@@ -79,7 +76,7 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
     if (eventsCount !== eventsIds.length) throw Boom.notFound();
 
     for (const event of payload.events) {
-      if (!event.bills || !get(event, 'bills.billingItems.length')) continue;
+      if (!get(event, 'bills.billingItems.length')) continue;
       const billingItemsIds = event.bills.billingItems.map(bi => bi.billingItem);
       const billingItemsCount = await BillingItem.countDocuments({ _id: { $in: billingItemsIds }, company: companyId });
       if (billingItemsCount !== billingItemsIds.length) throw Boom.notFound();

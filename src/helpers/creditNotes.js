@@ -134,19 +134,12 @@ exports.createCreditNotes = async (payload, credentials) => {
 exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
   if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true, credentials);
 
-  const formattedPayload = {
-    ...payload,
-    customer: creditNoteFromDB.customer,
-    ...(creditNoteFromDB.thirdPartyPayer && { thirdPartyPayer: creditNoteFromDB.thirdPartyPayer }),
-  };
-
   let creditNote;
   if (!creditNoteFromDB.linkedCreditNote) {
-    creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: formattedPayload }, { new: true });
+    creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payload }, { new: true });
   } else {
-    const tppPayload = { ...formattedPayload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
-    const customerPayload = { ...formattedPayload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
-    delete customerPayload.thirdPartyPayer;
+    const tppPayload = { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
+    const customerPayload = { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
 
     if (creditNoteFromDB.thirdPartyPayer) {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });
@@ -157,7 +150,7 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
     }
   }
 
-  if (formattedPayload.events) await exports.updateEventAndFundingHistory(formattedPayload.events, false, credentials);
+  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false, credentials);
 
   return creditNote;
 };
