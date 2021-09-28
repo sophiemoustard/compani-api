@@ -138,6 +138,11 @@ describe('getFixedNumber', () => {
     const result = UtilsHelper.getFixedNumber(10, 2);
     expect(result).toBe('10.00');
   });
+
+  it('should round number', () => {
+    const result = UtilsHelper.getFixedNumber(10.175, 2);
+    expect(result).toBe('10.18');
+  });
 });
 
 describe('removeSpaces', () => {
@@ -328,5 +333,17 @@ describe('doesArrayIncludeId', () => {
     const result = UtilsHelper.doesArrayIncludeId([new ObjectID(), new ObjectID()], new ObjectID());
 
     expect(result).toBe(false);
+  });
+});
+
+describe('getExclTaxes', () => {
+  it('should return excluded taxes price', () => {
+    expect(Number.parseFloat(UtilsHelper.getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
+  });
+});
+
+describe('getInclTaxes', () => {
+  it('should return excluded taxes price', () => {
+    expect(UtilsHelper.getInclTaxes(20, 2)).toEqual(20.4);
   });
 });
