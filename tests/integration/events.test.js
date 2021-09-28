@@ -19,10 +19,11 @@ const {
   internalHourFromOtherCompany,
   thirdPartyPayerFromOtherCompany,
   eventFromOtherCompany,
+  creditNote,
+  creditNoteFromOtherCompany,
 } = require('./seed/eventsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
-const { creditNotesList } = require('./seed/creditNotesSeed');
 const app = require('../../server');
 const {
   INTERVENTION,
@@ -70,12 +71,9 @@ describe('EVENTS ROUTES - GET /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
       response.result.data.events.forEach((event) => {
         expect(DatesHelper.isSameOrAfter(event.startDate, startDate)).toBeTruthy();
         expect(DatesHelper.isSameOrBefore(event.startDate, endDate)).toBeTruthy();
-        expect(event.isCancelled).toEqual(false);
-        if (event.type === 'intervention') expect(event.subscription._id).toBeDefined();
       });
     });
 
@@ -87,7 +85,6 @@ describe('EVENTS ROUTES - GET /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
       const { events } = response.result.data;
       const customerId = Object.keys(events)[0];
       events[customerId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.customer._id, customerId)).toBeTruthy());
@@ -101,7 +98,6 @@ describe('EVENTS ROUTES - GET /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
       const { events } = response.result.data;
       const auxId = Object.keys(events)[0];
       events[auxId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.auxiliary._id, auxId)).toBeTruthy());
@@ -137,14 +133,14 @@ describe('EVENTS ROUTES - GET /events', () => {
       expect(response.statusCode).toEqual(200);
     });
 
-    it('should return a 403 if customer is not from the same company', async () => {
+    it('should return a 404 if customer is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events?customer=${customerFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 404 if auxiliary is not from the same company', async () => {
@@ -157,14 +153,14 @@ describe('EVENTS ROUTES - GET /events', () => {
       expect(response.statusCode).toEqual(404);
     });
 
-    it('should return a 403 if sector is not from the same company', async () => {
+    it('should return a 404 if sector is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events?sector=${sectors[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return 400 if groupBy is an unauthorized string', async () => {
@@ -202,11 +198,14 @@ describe('EVENTS ROUTES - GET /events', () => {
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = role.customCredentials
+          ? await getUserToken(role.customCredentials)
+          : await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: role.url || '/events',
@@ -232,7 +231,6 @@ describe('GET /events/credit-notes', () => {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
-        creditNoteId: creditNotesList._id,
       };
 
       const response = await app.inject({
@@ -242,18 +240,19 @@ describe('GET /events/credit-notes', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
-      const filteredEvents = eventsList.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
-      expect(response.result.data.events.length).toBe(filteredEvents.length);
+      const isBilledAndNotTpp = ev => ev.isBilled && !ev.bills.inclTaxesTpp;
+      expect(response.result.data.events.every(isBilledAndNotTpp)).toBeTruthy();
+      const countFilteredEventsFromSeeds = eventsList.filter(isBilledAndNotTpp).length;
+      expect(response.result.data.events.length).toBe(countFilteredEventsFromSeeds);
     });
 
-    it('should return a list of billed events for specified customer and tpp', async () => {
+    it('should return a list of billed events for specified customer, tpp and creditNote', async () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayer._id.toHexString(),
-        creditNoteId: creditNotesList._id,
+        creditNoteId: creditNote._id.toHexString(),
       };
 
       const response = await app.inject({
@@ -263,6 +262,8 @@ describe('GET /events/credit-notes', () => {
       });
 
       expect(response.statusCode).toEqual(200);
+      expect(response.result.data.events.length).toBe(1);
+      expect(response.result.data.events[0].isBilled).toBeTruthy();
     });
 
     const wrongParams = ['startDate', 'endDate', 'customer'];
@@ -285,13 +286,30 @@ describe('GET /events/credit-notes', () => {
       });
     });
 
-    it('should return a 403 if customer is not from the same company', async () => {
+    it('should return a 404 if credit note is not from the same company', async () => {
+      const query = {
+        startDate: moment('2019-01-01').toDate(),
+        endDate: moment('2019-01-20').toDate(),
+        customer: customerAuxiliaries[0]._id.toHexString(),
+        thirdPartyPayer: thirdPartyPayer._id.toHexString(),
+        creditNoteId: creditNoteFromOtherCompany._id.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/events/credit-notes?${qs.stringify(query)}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    it('should return a 404 if customer is not from the same company', async () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerFromOtherCompany._id.toHexString(),
         thirdPartyPayer: thirdPartyPayer._id.toHexString(),
-        creditNoteId: creditNotesList._id,
       };
 
       const response = await app.inject({
@@ -300,16 +318,15 @@ describe('GET /events/credit-notes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
-    it('should return a 403 if tpp is not from the same company', async () => {
+    it('should return a 404 if tpp is not from the same company', async () => {
       const query = {
         startDate: moment('2019-01-01').toDate(),
         endDate: moment('2019-01-20').toDate(),
         customer: customerAuxiliaries[0]._id.toHexString(),
         thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
-        creditNoteId: creditNotesList._id,
       };
 
       const response = await app.inject({
@@ -318,7 +335,7 @@ describe('GET /events/credit-notes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
   });
 
@@ -328,17 +345,17 @@ describe('GET /events/credit-notes', () => {
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
     const query = {
       startDate: moment('2019-01-01').toDate(),
       endDate: moment('2019-01-20').toDate(),
       customer: customerAuxiliaries[0]._id.toHexString(),
-      creditNoteId: creditNotesList._id,
     };
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
 
         const response = await app.inject({
           method: 'GET',
@@ -362,7 +379,7 @@ describe('GET /events/working-stats', () => {
       authToken = await getToken('auxiliary');
     });
 
-    it('should return working stats for auxiliaries', async () => {
+    it('should return working stats for auxiliary', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
@@ -370,7 +387,6 @@ describe('GET /events/working-stats', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.workingStats[auxiliaries[0]._id]).toBeDefined();
       expect(response.result.data.workingStats[auxiliaries[0]._id].hoursToWork).toEqual(2);
       expect(response.result.data.workingStats[auxiliaries[0]._id].workedHours).toEqual(5.5);
     });
@@ -383,6 +399,9 @@ describe('GET /events/working-stats', () => {
       });
 
       expect(response.statusCode).toEqual(200);
+
+      const countWorkingStats = Object.keys(response.result.data.workingStats).length;
+      expect(countWorkingStats).toBe(auxiliaries.length);
     });
 
     it('should return a 404 if auxiliary is not from the same company', async () => {
@@ -405,11 +424,12 @@ describe('GET /events/working-stats', () => {
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: `/events/working-stats?auxiliary=${auxiliaries[0]._id}&startDate=${startDate}&endDate=${endDate}`,
@@ -447,24 +467,14 @@ describe('GET /events/paid-transport', () => {
       expect(resultForSecondSector.duration).toEqual(0.5);
     });
 
-    it('should return a 403 if sector is not from the same company', async () => {
+    it('should return a 404 if sector is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events/paid-transport?sector=${sectors[2]._id}&month=01-2020`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
-    });
-
-    it('should return a 400 if missing sector', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/events/paid-transport?month=01-2020',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(400);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 400 if missing month', async () => {
@@ -496,11 +506,12 @@ describe('GET /events/paid-transport', () => {
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: `/events/paid-transport?sector=${sectors[0]._id}&month=01-2020`,
@@ -549,24 +560,14 @@ describe('GET /events/unassigned-hours', () => {
       expect(secondSectorResult.duration).toEqual(1.5);
     });
 
-    it('should return a 403 if sector is not from the same company', async () => {
+    it('should return a 404 if sector is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/events/unassigned-hours?sector=${sectors[2]._id}&month=01-2020`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
-    });
-
-    it('should return a 400 if missing sector', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/events/unassigned-hours?month=01-2020',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(400);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 400 if missing month', async () => {
@@ -598,11 +599,12 @@ describe('GET /events/unassigned-hours', () => {
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'GET',
           url: `/events/unassigned-hours?sector=${sectors[0]._id}&month=01-2020`,
@@ -652,7 +654,9 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an intervention with auxiliary', async () => {
@@ -680,7 +684,9 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an intervention with sector', async () => {
@@ -708,7 +714,9 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an absence', async () => {
@@ -731,7 +739,33 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
+    });
+
+    it('should create an extended absence', async () => {
+      const payload = {
+        type: ABSENCE,
+        startDate: '2019-01-23T10:00:00',
+        endDate: '2019-01-23T12:30:00',
+        auxiliary: eventsList[20].auxiliary,
+        absenceNature: DAILY,
+        absence: PARENTAL_LEAVE,
+        extension: eventsList[20]._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
+
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create an unavailability', async () => {
@@ -750,7 +784,9 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
+
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length + 1);
     });
 
     it('should create a repetition', async () => {
@@ -781,14 +817,13 @@ describe('POST /events', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
       const repeatedEventsCount = await Event.countDocuments({
         'repetition.parentId': response.result.data.event._id,
         company: authCompany._id,
-      }).lean();
+      });
       expect(repeatedEventsCount).toEqual(91);
-      const repetition = await Repetition.findOne({ parentId: response.result.data.event._id }).lean();
-      expect(repetition).toBeDefined();
+      const repetition = await Repetition.countDocuments({ parentId: response.result.data.event._id });
+      expect(repetition).toBe(1);
     });
 
     const baseInterventionPayload = {
@@ -943,7 +978,7 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(400);
     });
 
-    it('should return a 403 if customer is not from the same company', async () => {
+    it('should return a 404 if customer is not from the same company', async () => {
       const payload = {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00',
@@ -967,7 +1002,7 @@ describe('POST /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 403 if the subscription is not for the customer', async () => {
@@ -1024,7 +1059,7 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(404);
     });
 
-    it('should return a 403 if internalHour is not from the same company', async () => {
+    it('should return a 404 if internalHour is not from the same company', async () => {
       const payload = {
         type: INTERNAL_HOUR,
         internalHour: internalHourFromOtherCompany._id,
@@ -1048,7 +1083,7 @@ describe('POST /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 403 if service is archived', async () => {
@@ -1078,28 +1113,6 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should create an extended absence', async () => {
-      const payload = {
-        type: ABSENCE,
-        startDate: '2019-01-23T10:00:00',
-        endDate: '2019-01-23T12:30:00',
-        auxiliary: eventsList[20].auxiliary,
-        absenceNature: DAILY,
-        absence: PARENTAL_LEAVE,
-        extension: eventsList[20]._id,
-      };
-
-      const response = await app.inject({
-        method: 'POST',
-        url: '/events',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(200);
-      expect(response.result.data.event).toBeDefined();
-    });
-
     it('should return 403 if absence extension and extended absence are not for the same valid reason', async () => {
       const payload = {
         type: ABSENCE,
@@ -1121,7 +1134,7 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(403);
     });
 
-    it('should return 403 if extended absence reason is invalid', async () => {
+    it('should return 400 if extended absence reason is invalid', async () => {
       const payload = {
         type: ABSENCE,
         startDate: '2019-01-23T10:00:00',
@@ -1139,7 +1152,7 @@ describe('POST /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(400);
     });
 
     it('should return 403 if event startDate is before extended absence startDate', async () => {
@@ -1186,7 +1199,6 @@ describe('POST /events', () => {
     const roles = [
       { name: 'helper', expectedCode: 403, erp: true },
       { name: 'auxiliary', expectedCode: 403, erp: true },
-      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
       {
         name: 'auxiliary event',
         expectedCode: 200,
@@ -1232,12 +1244,14 @@ describe('PUT /events/{_id}', () => {
       authToken = await getToken('planning_referent');
     });
 
-    it('should update corresponding event with sector', async () => {
+    it('should update corresponding event with startDate, endDate, subscription and sector', async () => {
       const event = eventsList[2];
+      const subscriptionId = customerAuxiliaries[0].subscriptions[1]._id.toHexString();
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
         sector: sectors[0]._id.toHexString(),
+        subscription: subscriptionId,
       };
 
       const response = await app.inject({
@@ -1248,51 +1262,12 @@ describe('PUT /events/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.event).toBeDefined();
-      expect(response.result.data.event._id).toEqual(event._id);
-      expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
-      expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
-    });
-
-    it('should update corresponding event with auxiliary', async () => {
-      const event = eventsList[0];
-      const payload = {
-        startDate: '2019-01-23T10:00:00.000Z',
-        endDate: '2019-01-23T12:00:00.000Z',
-        auxiliary: event.auxiliary.toHexString(),
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.event).toBeDefined();
-      expect(response.result.data.event._id).toEqual(event._id);
-      expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
-      expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
-    });
-
-    it('should update intervention with other subscription', async () => {
-      const event = eventsList[2];
-      const payload = {
-        startDate: '2019-01-23T10:00:00.000Z',
-        endDate: '2019-01-23T12:00:00.000Z',
-        auxiliary: event.auxiliary.toHexString(),
-        subscription: customerAuxiliaries[0].subscriptions[1]._id.toHexString(),
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
+      const resultEvent = response.result.data.event;
+      expect(resultEvent._id).toEqual(event._id);
+      expect(resultEvent.subscription._id.toHexString()).toBe(subscriptionId);
+      expect(moment(resultEvent.startDate).isSame(moment(payload.startDate))).toBeTruthy();
+      expect(moment(resultEvent.endDate).isSame(moment(payload.endDate))).toBeTruthy();
+      expect(resultEvent.sector.toHexString()).toBe(payload.sector);
     });
 
     it('should update intervention even if sub service is archived if it was already the selected sub', async () => {
@@ -1427,7 +1402,7 @@ describe('PUT /events/{_id}', () => {
       expect(response.statusCode).toEqual(400);
     });
 
-    it('should return a 403 if internalHour is not from the same company', async () => {
+    it('should return a 404 if internalHour is not from the same company', async () => {
       const event = eventsList[0];
       const payload = {
         sector: sectors[0]._id.toHexString(),
@@ -1441,10 +1416,10 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
-    it('should return a 403 if sector is not from the same company', async () => {
+    it('should return a 404 if sector is not from the same company', async () => {
       const event = eventsList[0];
       const payload = {
         sector: sectors[2]._id.toHexString(),
@@ -1457,7 +1432,7 @@ describe('PUT /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toEqual(403);
+      expect(response.statusCode).toEqual(404);
     });
 
     it('should return a 404 if event is not from the same company', async () => {
@@ -1605,14 +1580,17 @@ describe('PUT /events/{_id}', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 200 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = role.customCredentials
+          ? await getUserToken(role.customCredentials)
+          : await getToken(role.name, role.erp);
+
         const response = await app.inject({
           method: 'PUT',
           url: `/events/${eventsList[2]._id.toHexString()}`,
@@ -1643,6 +1621,9 @@ describe('DELETE /events/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
+
+      const countEventAfterCreation = await Event.countDocuments({ company: authCompany._id });
+      expect(countEventAfterCreation).toBe(eventsList.length - 1);
     });
 
     it('should return a 404 error as event is not found', async () => {
@@ -1674,15 +1655,17 @@ describe('DELETE /events/{_id}', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'auxiliary event', expectedCode: 200, customCredentials: auxiliaries[0].local },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = role.customCredentials
+          ? await getUserToken(role.customCredentials)
+          : await getToken(role.name, role.erp);
 
         const response = await app.inject({
           method: 'DELETE',
@@ -1704,7 +1687,7 @@ describe('DELETE /events', () => {
       authToken = await getToken('planning_referent');
     });
 
-    it('should delete all events from startDate including repetitions', async () => {
+    it('should delete all customer events from startDate including repetitions', async () => {
       const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const response = await app.inject({
@@ -1714,10 +1697,14 @@ describe('DELETE /events', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(await Repetition.find({ company: authCompany._id }).lean()).toHaveLength(0);
+      const query = { customer, company: authCompany._id, startDate: { $gte: new Date(startDate).toISOString() } };
+      const repetitionCount = await Repetition.countDocuments(query);
+      expect(repetitionCount).toBe(0);
+      const eventCount = await Event.countDocuments(query);
+      expect(eventCount).toBe(0);
     });
 
-    it('should delete all events from startDate to endDate', async () => {
+    it('should delete all customer events from startDate to endDate', async () => {
       const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
@@ -1727,7 +1714,16 @@ describe('DELETE /events', () => {
         url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(200);
+
+      const countEventAfterCreation = await Event.countDocuments({
+        customer,
+        company: authCompany._id,
+        startDate: { $gte: new Date(startDate).toISOString() },
+        endDate: { $lte: new Date(endDate).toISOString() },
+      });
+      expect(countEventAfterCreation).toBe(0);
     });
 
     it('should not delete events if one event is billed', async () => {
@@ -1755,14 +1751,14 @@ describe('DELETE /events', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should return a 403 if customer is not from the company', async () => {
+    it('should return a 404 if customer is not from the company', async () => {
       const startDate = '2019-01-01';
       const response = await app.inject({
         method: 'DELETE',
         url: `/events?customer=${customerFromOtherCompany._id}&startDate=${startDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -1773,8 +1769,8 @@ describe('DELETE /events', () => {
       { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
@@ -1782,8 +1778,8 @@ describe('DELETE /events', () => {
       const startDate = '2019-10-14';
       const endDate = '2019-10-16';
 
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
         const response = await app.inject({
           method: 'DELETE',
           url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
@@ -1805,38 +1801,65 @@ describe('DELETE /{_id}/repetition', () => {
     });
 
     it('should delete repetition', async () => {
-      const event = eventsList[18];
+      const parentEvent = eventsList[9];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/events/${event._id.toHexString()}/repetition`,
+        url: `/events/${parentEvent._id.toHexString()}/repetition`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const repetitionCount = await Repetition.countDocuments({
-        company: authCompany._id,
-        'repetition.parentId': event.repetition.parentId,
-      });
+      const query = { company: authCompany._id, 'repetition.parentId': parentEvent._id };
+      const repetitionCount = await Repetition.countDocuments(query);
       expect(repetitionCount).toEqual(0);
+      const eventCount = await Event.countDocuments(query);
+      expect(eventCount).toEqual(0);
     });
   });
 
   describe('Other roles', () => {
     beforeEach(populateDB);
 
+    describe('AUXILIARY', () => {
+      beforeEach(async () => {
+        authToken = await getUserToken(auxiliaries[0].local);
+      });
+
+      it('should return 200 as auxiliary is event auxiliary', async () => {
+        const event = eventsList[9];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${event._id.toHexString()}/repetition`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 200 as auxiliary is from event sector', async () => {
+        const event = eventsList[14];
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${event._id.toHexString()}/repetition`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+    });
+
     const roles = [
       { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 200, customCredentials: auxiliaries[0].local },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-        const event = eventsList[18];
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
+        const event = eventsList[9];
         const response = await app.inject({
           method: 'DELETE',
           url: `/events/${event._id.toHexString()}/repetition`,
@@ -2096,11 +2119,13 @@ describe('PUT /{_id}/timestamping', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403, erp: false },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
+      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+        authToken = await getToken(role.name, role.erp);
 
         const response = await app.inject({
           method: 'PUT',
