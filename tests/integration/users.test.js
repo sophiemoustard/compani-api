@@ -17,7 +17,6 @@ const {
   COACH,
   AUXILIARY,
   TRAINER,
-  AUXILIARY_WITHOUT_COMPANY,
   MOBILE,
   WEBAPP,
 } = require('../../src/helpers/constants');
@@ -889,7 +888,7 @@ describe('PUT /users/:id', () => {
     });
 
     it('should update the user sector and sector history', async () => {
-      const userId = usersSeedList[0]._id.toHexString();
+      const userId = usersSeedList[0]._id;
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${userId}`,
@@ -902,16 +901,16 @@ describe('PUT /users/:id', () => {
       const updatedUser = await User.findById(userId)
         .populate({ path: 'sector', select: '_id sector', match: { company: authCompany._id } })
         .lean({ autopopulate: true, virtuals: true });
-      expect(updatedUser).toBeDefined();
       expect(updatedUser.sector).toEqual(userSectors[1]._id);
 
-      const userSectorHistory = sectorHistories.filter(history => history.auxiliary.toHexString() === userId);
+      const userSectorHistory = sectorHistories
+        .filter(history => UtilsHelper.areObjectIdsEquals(history.auxiliary, userId));
       const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company: authCompany });
       expect(sectorHistoryCount).toBe(userSectorHistory.length + 1);
     });
 
     it('should delete unrelevant sector histories on update', async () => {
-      const userId = usersSeedList[0]._id.toHexString();
+      const userId = usersSeedList[0]._id;
       const firstResponse = await app.inject({
         method: 'PUT',
         url: `/users/${userId}`,
@@ -936,27 +935,26 @@ describe('PUT /users/:id', () => {
 
       expect(updatedUser.sector).toEqual(userSectors[2]._id);
       const histories = await SectorHistory.find({ auxiliary: userId, company: authCompany }).lean();
-      expect(histories.find(sh => sh.sector.toHexString() === userSectors[0]._id.toHexString())).toBeDefined();
-      expect(histories.find(sh => sh.sector.toHexString() === userSectors[1]._id.toHexString())).toBeUndefined();
-      expect(histories.find(sh => sh.sector.toHexString() === userSectors[2]._id.toHexString())).toBeDefined();
+      expect(histories.some(sh => UtilsHelper.areObjectIdsEquals(sh.sector, userSectors[0]._id))).toBeTruthy();
+      expect(histories.some(sh => UtilsHelper.areObjectIdsEquals(sh.sector, userSectors[1]._id))).toBeFalsy();
+      expect(histories.some(sh => UtilsHelper.areObjectIdsEquals(sh.sector, userSectors[2]._id))).toBeTruthy();
     });
 
-    it('should not create sectorhistory if it is same sector', async () => {
-      const userId = usersSeedList[0]._id.toHexString();
+    it('should not create sectorhistory if it is same sector #tag', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${userId}`,
+        url: `/users/${usersSeedList[0]._id}`,
         payload: { sector: userSectors[0]._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
-      const histories = await SectorHistory.find({ auxiliary: userId, company: authCompany }).lean();
-      expect(histories.length).toEqual(1);
-      expect(histories[0].sector).toEqual(userSectors[0]._id);
+      const countHistory = await SectorHistory
+        .countDocuments({ auxiliary: usersSeedList[0]._id, company: authCompany, sector: userSectors[0]._id });
+      expect(countHistory).toEqual(1);
     });
 
-    it('should update sectorHistory if auxiliary does not have contract', async () => {
+    it('should update sectorHistory if auxiliary does not have contract #tag', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[1]._id}`,
@@ -965,12 +963,12 @@ describe('PUT /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const histories = await SectorHistory.find({ auxiliary: usersSeedList[1]._id, company: authCompany }).lean();
-      expect(histories.length).toEqual(1);
-      expect(histories[0].sector).toEqual(userSectors[1]._id);
+      const countHistories = await SectorHistory
+        .countDocuments({ auxiliary: usersSeedList[1]._id, company: authCompany, sector: userSectors[1]._id });
+      expect(countHistories).toEqual(1);
     });
 
-    it('should update sectorHistory if auxiliary contract is between contracts', async () => {
+    it('should update sectorHistory if auxiliary contract is between contracts #tag', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[4]._id}`,
@@ -980,14 +978,15 @@ describe('PUT /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
 
-      const histories = await SectorHistory.find({ auxiliary: usersSeedList[4]._id, company: authCompany }).lean();
-      expect(histories.length).toEqual(1);
-      expect(histories[0].sector).toEqual(userSectors[1]._id);
+      const countHistories = await SectorHistory
+        .countDocuments({ auxiliary: usersSeedList[4]._id, company: authCompany, sector: userSectors[1]._id });
+      expect(countHistories).toEqual(1);
     });
 
     it('should create sectorHistory if auxiliary does not have one', async () => {
       const role = await Role.find({ name: 'auxiliary' }).lean();
-      const previousHistories = await SectorHistory.find({ auxiliary: usersSeedList[8]._id, company: authCompany })
+      const previousHistories = await SectorHistory
+        .find({ auxiliary: usersSeedList[8]._id, company: authCompany, sector: userSectors[1]._id })
         .lean();
 
       const res = await app.inject({
@@ -999,10 +998,59 @@ describe('PUT /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
       expect(previousHistories).toHaveLength(0);
-      const histories = await SectorHistory.find({ auxiliary: usersSeedList[8]._id, company: authCompany }).lean();
+      const histories = await SectorHistory
+        .find({ auxiliary: usersSeedList[8]._id, company: authCompany, sector: userSectors[1]._id })
+        .lean();
       expect(histories.length).toEqual(1);
-      expect(histories[0].sector).toEqual(userSectors[1]._id);
       expect(histories[0].startDate).toBeUndefined();
+    });
+
+    it('should update a user with vendor role', async () => {
+      const roleTrainer = await Role.findOne({ name: TRAINER }).lean();
+      const userId = usersSeedList[0]._id;
+      const trainerPayload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: usersSeedList[0].local.email },
+        role: roleTrainer._id,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload: trainerPayload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const userCount = await User
+        .countDocuments({ _id: userId, 'identity.lastname': 'Kirk', 'role.vendor': roleTrainer._id });
+      expect(userCount).toEqual(1);
+    });
+
+    it('should update a user who has no role, with auxiliary role', async () => {
+      const roleAuxiliary = await Role.findOne({ name: AUXILIARY }).lean();
+      const userId = usersSeedList[7]._id;
+      const auxiliaryPayload = {
+        identity: { title: 'mr', lastname: 'Auxiliary', firstname: 'test' },
+        contact: { phone: '0600000001' },
+        local: { email: usersSeedList[7].local.email },
+        role: roleAuxiliary._id,
+        sector: userSectors[0]._id,
+        administrative: { transportInvoice: { transportType: 'public' } },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload: auxiliaryPayload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const userCount = await User
+        .countDocuments({ _id: userId, 'identity.lastname': 'Auxiliary', 'role.client': roleAuxiliary._id });
+      expect(userCount).toEqual(1);
     });
 
     it('should add helper role to user', async () => {
@@ -1056,54 +1104,6 @@ describe('PUT /users/:id', () => {
       expect(res.statusCode).toBe(409);
     });
 
-    it('should update a user with vendor role', async () => {
-      const roleTrainer = await Role.findOne({ name: TRAINER }).lean();
-      const userId = usersSeedList[0]._id;
-      const trainerPayload = {
-        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-        local: { email: usersSeedList[0].local.email },
-        role: roleTrainer._id,
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${userId}`,
-        payload: trainerPayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const userCount = await User
-        .countDocuments({ _id: userId, 'identity.lastname': 'Kirk', 'role.vendor': roleTrainer._id });
-      expect(userCount).toEqual(1);
-    });
-
-    it('should update a user who has no role, with auxiliary role', async () => {
-      const roleAuxiliary = await Role.findOne({ name: AUXILIARY }).lean();
-      const userId = usersSeedList[7]._id;
-      const auxiliaryPayload = {
-        identity: { title: 'mr', lastname: 'Auxiliary', firstname: 'test' },
-        contact: { phone: '0600000001' },
-        local: { email: usersSeedList[7].local.email },
-        role: roleAuxiliary._id,
-        sector: userSectors[0]._id,
-        administrative: { transportInvoice: { transportType: 'public' } },
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${userId}`,
-        payload: auxiliaryPayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const userCount = await User
-        .countDocuments({ _id: userId, 'identity.lastname': 'Auxiliary', 'role.client': roleAuxiliary._id });
-      expect(userCount).toEqual(1);
-    });
-
     it('should return a 409 if the role switch is not allowed', async () => {
       const roleAuxiliary = await Role.findOne({ name: AUXILIARY }).lean();
       const userId = usersSeedList[2]._id;
@@ -1127,16 +1127,6 @@ describe('PUT /users/:id', () => {
       expect(response.result.message).toBe('Ce compte a déjà un rôle sur cette interface.');
     });
 
-    it('should return a 404 error if no user found', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${new ObjectID()}`,
-        payload: {},
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(404);
-    });
-
     it('should return a 403 error if user is not from the same company', async () => {
       const res = await app.inject({
         method: 'PUT',
@@ -1145,16 +1135,6 @@ describe('PUT /users/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
-    });
-
-    it('should return a 400 error if user establishment is removed', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${usersSeedList[0]._id}`,
-        payload: { establishment: null },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(400);
     });
 
     it('should return a 403 error if user establishment is not from same company', async () => {
@@ -1190,10 +1170,10 @@ describe('PUT /users/:id', () => {
     });
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
     it('should update trainer', async () => {
       const res = await app.inject({
@@ -1227,10 +1207,13 @@ describe('PUT /users/:id', () => {
     });
   });
 
-  describe('Other roles', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+    });
 
-    it('should update user if it is me - no role no company', async () => {
+    it('should update user if it is me', async () => {
       const updatePayload = { identity: { firstname: 'Riri' }, local: { email: 'riri@alenvi.io' } };
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
@@ -1244,36 +1227,13 @@ describe('PUT /users/:id', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should not update another field than allowed ones if aux-without-company', async () => {
-      authToken = await getToken('auxiliary_without_company');
-      const roleAuxiliary = await Role.findOne({ name: AUXILIARY_WITHOUT_COMPANY }).lean();
-      const userId = userList[3]._id;
-      const auxiliaryPayload = {
-        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
-        contact: { phone: '0600000001' },
-        local: { email: userList[3].local.email },
-        role: roleAuxiliary._id,
-        picture: { link: 'test' },
-      };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/users/${userId}`,
-        payload: auxiliaryPayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should not update another field than allowed ones if no role', async () => {
-      const user = userList[10];
-      authToken = await getTokenByCredentials(user.local);
-      const userId = user._id;
+    it('should not update another field than allowed ones', async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      const userId = noRoleNoCompany._id;
       const payload = {
         identity: { firstname: 'No', lastname: 'Body' },
         contact: { phone: '0344543932' },
-        local: { email: user.local.email },
+        local: { email: noRoleNoCompany.local.email },
         picture: { link: 'test' },
       };
 
@@ -1286,12 +1246,15 @@ describe('PUT /users/:id', () => {
 
       expect(response.statusCode).toBe(403);
     });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -1361,16 +1324,6 @@ describe('DELETE /users/:id', () => {
       });
     });
 
-    it('should return a 404 error if user is not found', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/users/${(new ObjectID()).toHexString()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(404);
-    });
-
     it('should return a 403 error if user is not from same company', async () => {
       const res = await app.inject({
         method: 'DELETE',
@@ -1388,8 +1341,8 @@ describe('DELETE /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
       { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -1426,18 +1379,7 @@ describe('PUT /users/:id/certificates', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it('should return a 404 error if no user found', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${new ObjectID().toHexString()}/certificates`,
-        payload: {},
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(404);
-    });
-
-    it('should return a 403 error if user is not from same company', async () => {
+    it('should return a 403 if user is not from same company', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/certificates`,
@@ -1446,6 +1388,24 @@ describe('PUT /users/:id/certificates', () => {
       });
 
       expect(res.statusCode).toBe(403);
+    });
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should return a 200 even if user is not from same company', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/certificates`,
+        payload: updatePayload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
     });
   });
 
@@ -1463,7 +1423,11 @@ describe('PUT /users/:id/certificates', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -1512,7 +1476,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.uploadedFile).toMatchObject({ id: 'qwerty' });
+      expect(response.result.data.uploadedFile.id).toBe('qwerty');
       const userCount = await User.countDocuments({
         _id: usersSeedList[0]._id,
         'administrative.mutualFund': { driveId: 'qwerty', link: 'http://test.com/file.pdf' },
@@ -1564,7 +1528,12 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -1595,10 +1564,10 @@ describe('POST /users/:id/upload', () => {
     momentFormat.restore();
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should add a user picture', async () => {
@@ -1638,15 +1607,14 @@ describe('POST /users/:id/upload', () => {
 
   describe('Other roles', () => {
     it('should upload picture if it is me', async () => {
-      const user = userList[11];
-      authToken = await getTokenByCredentials(user.local);
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
       const form = generateFormData({ fileName: 'user_image_test', file: 'yoyoyo' });
       uploadUserMediaStub.returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
 
       const response = await app.inject({
         method: 'POST',
-        url: `/users/${user._id.toHexString()}/upload`,
+        url: `/users/${noRoleNoCompany._id.toHexString()}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), 'x-access-token': authToken },
       });
@@ -1658,7 +1626,6 @@ describe('POST /users/:id/upload', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
@@ -1691,15 +1658,15 @@ describe('DELETE /users/:id/upload', () => {
     deleteUserMediaStub.restore();
   });
 
-  describe('VENDOR ROLE', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should delete picture', async () => {
       const user = usersSeedList[0];
-      const pictureExistsBeforeUpdate = await User
+      const pictureExistsBeforeUpdate = !!await User
         .countDocuments({ _id: user._id, 'picture.publicId': { $exists: true } });
 
       const response = await app.inject({
@@ -1711,7 +1678,7 @@ describe('DELETE /users/:id/upload', () => {
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnceWithExactly(deleteUserMediaStub, 'a/public/id');
 
-      const isPictureDeleted = await User.countDocuments({ _id: user._id, 'picture.publicId': { $exists: false } });
+      const isPictureDeleted = !!await User.countDocuments({ _id: user._id, 'picture.publicId': { $exists: false } });
       expect(pictureExistsBeforeUpdate).toBeTruthy();
       expect(isPictureDeleted).toBeTruthy();
     });
@@ -1730,11 +1697,11 @@ describe('DELETE /users/:id/upload', () => {
   describe('Other roles', () => {
     beforeEach(populateDB);
     it('should delete picture if it is me', async () => {
-      const user = userList[11];
-      authToken = await getTokenByCredentials(user.local);
+      const userWithPicture = userList[11];
+      authToken = await getTokenByCredentials(userWithPicture.local);
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${user._id}/upload`,
+        url: `/users/${userWithPicture._id}/upload`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -1745,7 +1712,6 @@ describe('DELETE /users/:id/upload', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
@@ -1802,7 +1768,12 @@ describe('POST /users/:id/drivefolder', () => {
 
   describe('Other roles', () => {
     beforeEach(populateDB);
-    const roles = [{ name: 'helper', expectedCode: 403 }, { name: 'planning_referent', expectedCode: 403 }];
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
@@ -1820,7 +1791,7 @@ describe('POST /users/:id/drivefolder', () => {
   });
 });
 
-describe('POST /users/:id', () => {
+describe('POST /users/:id/expo-token', () => {
   let authToken;
 
   describe('LOGGED_USER', () => {
