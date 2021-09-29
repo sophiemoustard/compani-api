@@ -23,6 +23,7 @@ const {
 } = require('../../src/helpers/constants');
 const {
   usersSeedList,
+  usersFromOtherCompanyList,
   populateDB,
   customer,
   customerFromOtherCompany,
@@ -87,10 +88,10 @@ describe('POST /users', () => {
     });
   });
 
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should create a user', async () => {
@@ -129,7 +130,7 @@ describe('POST /users', () => {
       expect(userCompanyCount).toEqual(1);
     });
 
-    it('should not create user if password in payload', async () => {
+    it('should return a 403 if password in payload', async () => {
       const payload = {
         identity: { firstname: 'Test', lastname: 'Kirk' },
         local: { email: 'newuser@alenvi.io', password: 'testpassword' },
@@ -146,7 +147,7 @@ describe('POST /users', () => {
       expect(res.statusCode).toBe(403);
     });
 
-    it('should not create a user if role provided does not exist', async () => {
+    it('should return a 400 if role provided does not exist', async () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
@@ -164,7 +165,7 @@ describe('POST /users', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should not create a user if not from his company', async () => {
+    it('should return a 403 user if not from his company', async () => {
       const payload = {
         identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
@@ -183,7 +184,7 @@ describe('POST /users', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should not create a user if email provided already exists', async () => {
+    it('should return a 409 if email provided already exists', async () => {
       const payload = {
         identity: { firstname: 'user', lastname: 'Kirk' },
         origin: WEBAPP,
@@ -201,7 +202,7 @@ describe('POST /users', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should not create a user if phone number is not correct', async () => {
+    it('should return a 400 if phone number is not correct', async () => {
       const payload = {
         identity: { firstname: 'Bonjour', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
@@ -219,7 +220,7 @@ describe('POST /users', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return a 403 if customer is not from the same company', async () => {
+    it('should return a 404 if customer is not from the same company', async () => {
       const payload = {
         identity: { firstname: 'coucou', lastname: 'Kirk' },
         local: { email: 'kirk@alenvi.io' },
@@ -235,7 +236,7 @@ describe('POST /users', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     const missingParams = ['local.email', 'identity.lastname', 'origin'];
@@ -276,10 +277,10 @@ describe('POST /users', () => {
     });
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create a user for another company', async () => {
@@ -300,7 +301,6 @@ describe('POST /users', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.user.company).toBeDefined();
       expect(response.result.data.user.company._id).toEqual(otherCompany._id);
     });
 
@@ -327,10 +327,7 @@ describe('POST /users', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'vendor_admin', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
+      { name: 'trainer', expectedCode: 403 },
     ];
     beforeEach(populateDB);
 
@@ -359,10 +356,10 @@ describe('POST /users', () => {
 
 describe('GET /users', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get all users (company B)', async () => {
@@ -375,11 +372,10 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const usersCount = await UserCompany.countDocuments({ company: otherCompany._id });
-      expect(res.result.data.users.length).toBe(usersCount);
+      expect(res.result.data.users.length).toBe(usersFromOtherCompanyList.length);
     });
 
-    it('should get all coachs users (company A)', async () => {
+    it('should get all coachs users (company A), role as a string', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=coach`,
@@ -391,14 +387,24 @@ describe('GET /users', () => {
       expect(res.result.data.users.every(u => get(u, 'role.client.name') === COACH)).toBeTruthy();
     });
 
-    it('should not get users if role given doesn\'t exist', async () => {
+    it('should get all auxiliaries and helpers users (company A), role as an array of strings', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users?company=${authCompany._id}&role=helper&role=auxiliary`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return 400 if wrong role in query', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users?company=${authCompany._id}&role=Babouin`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(400);
     });
 
     it('should return a 403 if company is not the same and does not have a vendor role', async () => {
@@ -410,21 +416,11 @@ describe('GET /users', () => {
 
       expect(res.statusCode).toBe(403);
     });
-
-    it('should return a 403 if missing company params', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users?company=${new ObjectID()}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(403);
-    });
   });
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     it('should get all users from all companies', async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
       const res = await app.inject({
         method: 'GET',
         url: '/users',
@@ -432,8 +428,8 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const usersCount = await User.countDocuments();
-      expect(res.result.data.users.length).toBe(usersCount);
+      const countUserInDB = userList.length + usersSeedList.length + usersFromOtherCompanyList.length;
+      expect(res.result.data.users.length).toBe(countUserInDB);
     });
 
     it('should get users from an other companies', async () => {
@@ -453,8 +449,6 @@ describe('GET /users', () => {
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 200 },
       { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
