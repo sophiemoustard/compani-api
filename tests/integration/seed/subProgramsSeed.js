@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
@@ -6,10 +7,19 @@ const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
 const CourseSlot = require('../../../src/models/CourseSlot');
-const { userList, vendorAdmin } = require('../../seed/authUsersSeed');
+const User = require('../../../src/models/User');
+const { vendorAdmin } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { WEBAPP } = require('../../../src/helpers/constants');
 
-const tester = userList.find(user => user.local.email === 'norole@alenvi.io');
+const tester = {
+  _id: new ObjectID(),
+  identity: { firstname: 'tester', lastname: 'without role' },
+  refreshToken: uuidv4(),
+  local: { email: 'tester.withoutrole@compani.fr', password: 'zxcvbnm' },
+  contact: { phone: '0798640728' },
+  origin: WEBAPP,
+};
 
 const cardsList = [
   { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
@@ -86,13 +96,14 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    Program.create(programsList),
-    SubProgram.create(subProgramsList),
-    Step.create(stepsList),
     Activity.create(activitiesList),
-    Course.create(coursesList),
     Card.create(cardsList),
+    Course.create(coursesList),
     CourseSlot.create(courseSlotsList),
+    Program.create(programsList),
+    Step.create(stepsList),
+    SubProgram.create(subProgramsList),
+    User.create(tester),
   ]);
 };
 
