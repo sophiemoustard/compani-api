@@ -56,10 +56,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getBill, assign: 'bill' },
-          { method: authorizeGetBillPdf },
-        ],
+        pre: [{ method: getBill, assign: 'bill' }, { method: authorizeGetBillPdf }],
       },
       handler: generateBillPdf,
     });
@@ -77,7 +74,7 @@ exports.plugin = {
               customerBills: Joi.object({
                 bills: Joi.array().items(Joi.object({
                   _id: Joi.objectId(),
-                  subscription: Joi.object().required(),
+                  subscription: Joi.object(),
                   discount: Joi.number().required(),
                   startDate: Joi.date().required(),
                   endDate: Joi.date().required(),
@@ -88,8 +85,8 @@ exports.plugin = {
                     startDate: Joi.date().required(),
                     endDate: Joi.date().required(),
                     auxiliary: Joi.objectId().required(),
-                    inclTaxesCustomer: Joi.number().required(),
-                    exclTaxesCustomer: Joi.number().required(),
+                    inclTaxesCustomer: Joi.number().when('subscription', { is: Joi.exist(), then: Joi.required() }),
+                    exclTaxesCustomer: Joi.number().when('subscription', { is: Joi.exist(), then: Joi.required() }),
                     inclTaxesTpp: Joi.number(),
                     exclTaxesTpp: Joi.number(),
                     thirdPartyPayer: Joi.objectId(),
@@ -100,12 +97,13 @@ exports.plugin = {
                       endHour: Joi.date(),
                     })),
                   })).required(),
-                  hours: Joi.number().required(),
+                  hours: Joi.number().when('subscription', { is: Joi.exist(), then: Joi.required() }),
                   inclTaxes: Joi.number().required(),
                   exclTaxes: Joi.number().required(),
                   vat: Joi.number().required(),
                   discountEdition: Joi.boolean(),
-                })),
+                  billingItem: Joi.object({ _id: Joi.objectId(), name: Joi.string() }),
+                }).xor('subscription', 'billingItem')),
                 shouldBeSent: Joi.boolean(),
                 total: Joi.number(),
               }),

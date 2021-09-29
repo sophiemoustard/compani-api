@@ -5,6 +5,8 @@ const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const SubProgram = require('../../../src/models/SubProgram');
 const Program = require('../../../src/models/Program');
+const UserCompany = require('../../../src/models/UserCompany');
+const User = require('../../../src/models/User');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { userList } = require('../../seed/authUsersSeed');
@@ -70,6 +72,16 @@ const coursesList = [
   },
 ];
 
+const traineeList = [{
+  _id: new ObjectID(),
+  serialNumber: '274124',
+  local: { email: 'trainee@email.it' },
+  identity: { lastname: 'Personne' },
+  origin: 'webapp',
+}];
+
+const traineeCompanyList = [{ _id: new ObjectID(), user: traineeList[0]._id, company: new ObjectID() }];
+
 const slots = [{
   startDate: new Date('2021-04-20T09:00:00'),
   endDate: new Date('2021-04-20T11:00:00'),
@@ -80,20 +92,24 @@ const slots = [{
 const questionnaireHistories = [{
   course: coursesList[0]._id,
   questionnaire: questionnairesList[0]._id,
-  user: new ObjectID(),
+  user: traineeList[0]._id,
   questionnaireAnswersList: [{ card: cardsList[1]._id, answerList: ['blabla'] }],
 }];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Questionnaire.insertMany(questionnairesList);
-  await Card.insertMany(cardsList);
-  await Course.insertMany(coursesList);
-  await CourseSlot.insertMany(slots);
-  await SubProgram.insertMany(subProgramsList);
-  await Program.insertMany(programsList);
-  await QuestionnaireHistory.insertMany(questionnaireHistories);
+  await Promise.all([
+    User.insertMany(traineeList),
+    UserCompany.insertMany(traineeCompanyList),
+    Questionnaire.insertMany(questionnairesList),
+    Card.insertMany(cardsList),
+    Course.insertMany(coursesList),
+    CourseSlot.insertMany(slots),
+    SubProgram.insertMany(subProgramsList),
+    Program.insertMany(programsList),
+    QuestionnaireHistory.insertMany(questionnaireHistories),
+  ]);
 };
 
 module.exports = {

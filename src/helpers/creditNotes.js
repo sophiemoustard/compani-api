@@ -140,7 +140,6 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
   } else {
     const tppPayload = { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
     const customerPayload = { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
-    delete customerPayload.thirdPartyPayer;
 
     if (creditNoteFromDB.thirdPartyPayer) {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });

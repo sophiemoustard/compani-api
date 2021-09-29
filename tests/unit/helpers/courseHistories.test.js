@@ -221,11 +221,13 @@ describe('createHistoryOnSlotDeletion', () => {
     const payload = {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
-      address: { fullAddress: 'ertyui',
+      address: {
+        fullAddress: 'ertyui',
         street: '12345',
         zipCode: '12345',
         city: 'qwert',
-        location: { type: 'Point', coordinates: [0, 1] } },
+        location: { type: 'Point', coordinates: [0, 1] },
+      },
       course: new ObjectID(),
     };
     const userId = new ObjectID();

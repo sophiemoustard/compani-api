@@ -61,7 +61,8 @@ exports.getDateQuery = (dates) => {
   return { $lt: dates.endDate };
 };
 
-exports.getFixedNumber = (number, toFixedNb) => number.toFixed(toFixedNb);
+exports.getFixedNumber = (number, toFixedNb) =>
+  (Math.round(number * (10 ** toFixedNb)) / (10 ** toFixedNb)).toFixed(toFixedNb);
 
 exports.removeSpaces = str => (str ? str.split(' ').join('') : '');
 
@@ -186,3 +187,7 @@ exports.computeHoursWithDiff = (pay, key) => {
 
   return hours + diff;
 };
+
+exports.getExclTaxes = (inclTaxes, vat) => (vat ? inclTaxes / (1 + (vat / 100)) : inclTaxes);
+
+exports.getInclTaxes = (exclTaxes, vat) => (vat ? exclTaxes * (1 + (vat / 100)) : exclTaxes);

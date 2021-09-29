@@ -34,7 +34,7 @@ const {
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const { billEventSurchargesSchemaDefinition } = require('./schemaDefinitions/billing');
+const { billEventSurchargesSchemaDefinition, billingItemsInEventDefinition } = require('./schemaDefinitions/billing');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
 const { TIME_STAMPING_ACTIONS } = require('./EventHistory');
 
@@ -103,15 +103,16 @@ const EventSchema = mongoose.Schema(
     },
     isBilled: { type: Boolean, default: false },
     bills: {
-      inclTaxesCustomer: Number,
-      exclTaxesCustomer: Number,
+      inclTaxesCustomer: { type: Number },
+      exclTaxesCustomer: { type: Number },
       thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
-      inclTaxesTpp: Number,
-      exclTaxesTpp: Number,
+      inclTaxesTpp: { type: Number },
+      exclTaxesTpp: { type: Number },
       fundingId: { type: mongoose.Schema.Types.ObjectId },
-      nature: String,
-      careHours: Number,
-      surcharges: billEventSurchargesSchemaDefinition,
+      nature: { type: String },
+      careHours: { type: Number },
+      surcharges: { type: billEventSurchargesSchemaDefinition, _id: 0 },
+      billingItems: { type: billingItemsInEventDefinition, _id: 0 },
     },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
     transportMode: { type: String, enum: EVENT_TRANSPORT_MODE },

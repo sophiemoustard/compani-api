@@ -43,7 +43,7 @@ exports.authorizeEventGet = async (req) => {
   if (req.query.customer) {
     const customerIds = [...new Set(UtilsHelper.formatIdsArray(req.query.customer))];
     const customerCount = await Customer.countDocuments({ _id: { $in: customerIds }, company: companyId });
-    if (customerCount !== customerIds.length) throw Boom.forbidden();
+    if (customerCount !== customerIds.length) throw Boom.notFound();
   }
 
   if (req.query.auxiliary) {
@@ -55,7 +55,7 @@ exports.authorizeEventGet = async (req) => {
   if (req.query.sector) {
     const sectorsIds = [...new Set(UtilsHelper.formatIdsArray(req.query.sector))];
     const sectorCount = await Sector.countDocuments({ _id: { $in: sectorsIds }, company: companyId });
-    if (sectorCount !== sectorsIds.length) throw Boom.forbidden();
+    if (sectorCount !== sectorsIds.length) throw Boom.notFound();
   }
 
   return null;
@@ -64,18 +64,19 @@ exports.authorizeEventGet = async (req) => {
 exports.authorizeEventForCreditNoteGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const customer = await Customer.countDocuments({ _id: req.query.customer, company: companyId });
-  if (!customer) throw Boom.forbidden();
+  if (!customer) throw Boom.notFound();
 
   const { creditNoteId, startDate, endDate } = req.query;
   let creditNote = null;
   if (creditNoteId) {
-    creditNote = await CreditNote.findOne({ _id: req.query.creditNoteId }).lean();
+    creditNote = await CreditNote.findOne({ _id: req.query.creditNoteId, company: companyId }).lean();
+    if (!creditNote) throw Boom.notFound();
     if (creditNote.events.some(e => e.startDate < startDate && e.endDate > endDate)) throw Boom.badData();
   }
 
   if (req.query.thirdPartyPayer) {
     const tpp = await ThirdPartyPayer.countDocuments({ _id: req.query.thirdPartyPayer, company: companyId });
-    if (!tpp) throw Boom.forbidden();
+    if (!tpp) throw Boom.notFound();
   }
 
   return creditNote;
@@ -141,7 +142,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
     const customer = await Customer.findOne({ _id: customerId, company: companyId }, { subscriptions: 1 })
       .populate('subscriptions.service')
       .lean();
-    if (!customer) throw Boom.forbidden();
+    if (!customer) throw Boom.notFound();
 
     const customerSub = customer.subscriptions.find(sub =>
       UtilsHelper.areObjectIdsEquals(sub._id, req.payload.subscription));
@@ -159,17 +160,17 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
   if (req.payload.sector) {
     const sector = await Sector.countDocuments(({ _id: req.payload.sector, company: companyId }));
-    if (!sector) throw Boom.forbidden();
+    if (!sector) throw Boom.notFound();
   }
 
   if (req.payload.internalHour) {
     const internalHour = await InternalHour.countDocuments(({ _id: req.payload.internalHour, company: companyId }));
-    if (!internalHour) throw Boom.forbidden();
+    if (!internalHour) throw Boom.notFound();
   }
 
   if (req.payload.extension) {
     if (![MATERNITY_LEAVE, PATERNITY_LEAVE, PARENTAL_LEAVE, WORK_ACCIDENT, TRANSPORT_ACCIDENT, ILLNESS]
-      .includes(req.payload.absence)) throw Boom.forbidden();
+      .includes(req.payload.absence)) throw Boom.badRequest();
 
     const extendedAbsence = await Event.findOne(({ _id: req.payload.extension, absence: req.payload.absence })).lean();
     if (!extendedAbsence) throw Boom.forbidden();
@@ -186,7 +187,7 @@ exports.authorizeEventDeletionList = async (req) => {
   if (isAuxiliary) throw Boom.forbidden();
 
   const customer = await Customer.countDocuments({ _id: req.query.customer, company: get(credentials, 'company._id') });
-  if (!customer) throw Boom.forbidden();
+  if (!customer) throw Boom.notFound();
 
   return null;
 };

@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const BillingItem = require('../../models/BillingItem');
 const CreditNote = require('../../models/CreditNote');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
@@ -42,6 +43,7 @@ exports.authorizeCreditNoteCreation = async req => exports.authorizeCreditNoteCr
 exports.authorizeCreditNoteUpdate = async (req) => {
   const { creditNote } = req.pre;
   if (!creditNote.isEditable) throw Boom.forbidden();
+
   return exports.authorizeCreditNoteCreationOrUpdate(req);
 };
 
@@ -52,26 +54,33 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const companyId = get(credentials, 'company._id', null);
 
   if (!credentials.scope.includes('bills:edit')) throw Boom.forbidden();
+
   if (creditNote && creditNote.origin !== COMPANI) throw Boom.forbidden(translate[language].creditNoteNotCompani);
 
-  if (payload.customer && payload.subscription) {
-    const customer = await Customer
-      .countDocuments({ _id: payload.customer, 'subscriptions._id': payload.subscription._id, company: companyId });
-    if (!customer) throw Boom.forbidden();
-  } else if (payload.customer) {
-    const customer = await Customer.countDocuments(({ _id: payload.customer, company: companyId }));
-    if (!customer) throw Boom.forbidden();
-  }
+  const query = {
+    _id: payload.customer || creditNote.customer,
+    ...(payload.subscription && { 'subscriptions._id': payload.subscription._id }),
+    company: companyId,
+  };
+  const customerCount = await Customer.countDocuments(query);
+  if (!customerCount) throw Boom.notFound();
 
   if (payload.thirdPartyPayer) {
-    const tpp = await ThirdPartyPayer.countDocuments(({ _id: payload.thirdPartyPayer, company: companyId }));
-    if (!tpp) throw Boom.forbidden();
+    const tppCount = await ThirdPartyPayer.countDocuments({ _id: payload.thirdPartyPayer, company: companyId });
+    if (!tppCount) throw Boom.notFound();
   }
 
-  if (payload.events && payload.events.length) {
+  if (get(payload, 'events.length')) {
     const eventsIds = payload.events.map(ev => ev.eventId);
     const eventsCount = await Event.countDocuments({ _id: { $in: eventsIds }, company: companyId });
-    if (eventsCount !== eventsIds.length) throw Boom.forbidden();
+    if (eventsCount !== eventsIds.length) throw Boom.notFound();
+
+    for (const event of payload.events) {
+      if (!get(event, 'bills.billingItems.length')) continue;
+      const billingItemsIds = event.bills.billingItems.map(bi => bi.billingItem);
+      const billingItemsCount = await BillingItem.countDocuments({ _id: { $in: billingItemsIds }, company: companyId });
+      if (billingItemsCount !== billingItemsIds.length) throw Boom.notFound();
+    }
   }
 
   return null;

@@ -13,11 +13,11 @@ const {
 const {
   getCreditNote,
   authorizeGetCreditNotePdf,
-  authorizeCreditNoteCreationOrUpdate,
+  authorizeCreditNoteCreation,
+  authorizeCreditNoteUpdate,
   authorizeCreditNoteDeletion,
 } = require('./preHandlers/creditNotes');
-
-const { SERVICE_NATURES } = require('../models/Service');
+const { creditNoteValidations } = require('./validations/creditNote');
 
 exports.plugin = {
   name: 'routes-credit-notes',
@@ -30,51 +30,12 @@ exports.plugin = {
         auth: { scope: ['bills:edit'] },
         validate: {
           payload: Joi.object().keys({
-            date: Joi.date().required(),
-            startDate: Joi.date(),
-            endDate: Joi.date(),
             customer: Joi.objectId().required(),
             thirdPartyPayer: Joi.objectId(),
-            exclTaxesCustomer: Joi.number(),
-            inclTaxesCustomer: Joi.number(),
-            exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
-            inclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
-            events: Joi.array().items(Joi.object().keys({
-              eventId: Joi.objectId().required(),
-              auxiliary: Joi.objectId().required(),
-              serviceName: Joi.string().required(),
-              startDate: Joi.date().required(),
-              endDate: Joi.date().required(),
-              bills: Joi.object().keys({
-                inclTaxesCustomer: Joi.number(),
-                exclTaxesCustomer: Joi.number(),
-                thirdPartyPayer: Joi.objectId(),
-                inclTaxesTpp: Joi.number(),
-                exclTaxesTpp: Joi.number(),
-                fundingId: Joi.objectId(),
-                nature: Joi.string(),
-                careHours: Joi.number(),
-                surcharges: Joi.array().items(Joi.object({
-                  percentage: Joi.number().required(),
-                  name: Joi.string().required(),
-                  startHour: Joi.date(),
-                  endHour: Joi.date(),
-                })),
-              }).required(),
-            })),
-            subscription: Joi.object().keys({
-              _id: Joi.objectId(),
-              service: Joi.object().required().keys({
-                serviceId: Joi.objectId().required(),
-                name: Joi.string().required(),
-                nature: Joi.string().required().valid(...SERVICE_NATURES),
-              }),
-              vat: Joi.number(),
-              unitInclTaxes: Joi.number(),
-            }),
+            ...creditNoteValidations,
           }),
         },
-        pre: [{ method: authorizeCreditNoteCreationOrUpdate }],
+        pre: [{ method: authorizeCreditNoteCreation }],
       },
     });
 
@@ -96,10 +57,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeCreditNoteDeletion },
-        ],
+        pre: [{ method: getCreditNote, assign: 'creditNote' }, { method: authorizeCreditNoteDeletion }],
       },
     });
 
@@ -111,55 +69,9 @@ exports.plugin = {
         auth: { scope: ['bills:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object().keys({
-            date: Joi.date(),
-            startDate: Joi.date(),
-            endDate: Joi.date(),
-            customer: Joi.objectId(),
-            thirdPartyPayer: Joi.objectId(),
-            exclTaxesCustomer: Joi.number(),
-            inclTaxesCustomer: Joi.number(),
-            exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
-            inclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
-            events: Joi.array().items(Joi.object().keys({
-              eventId: Joi.objectId().required(),
-              auxiliary: Joi.objectId().required(),
-              serviceName: Joi.string().required(),
-              startDate: Joi.date().required(),
-              endDate: Joi.date().required(),
-              bills: Joi.object().keys({
-                inclTaxesCustomer: Joi.number(),
-                exclTaxesCustomer: Joi.number(),
-                thirdPartyPayer: Joi.objectId(),
-                inclTaxesTpp: Joi.number(),
-                exclTaxesTpp: Joi.number(),
-                fundingId: Joi.objectId(),
-                nature: Joi.string(),
-                careHours: Joi.number(),
-                surcharges: Joi.array().items(Joi.object({
-                  percentage: Joi.number().required(),
-                  name: Joi.string().required(),
-                  startHour: Joi.date(),
-                  endHour: Joi.date(),
-                })),
-              }).required(),
-            })),
-            subscription: Joi.object().keys({
-              _id: Joi.objectId(),
-              service: Joi.object().keys({
-                serviceId: Joi.objectId().required(),
-                name: Joi.string().required(),
-                nature: Joi.string().required().valid(...SERVICE_NATURES),
-              }),
-              vat: Joi.number(),
-              unitInclTaxes: Joi.number(),
-            }),
-          }),
+          payload: Joi.object().keys(creditNoteValidations),
         },
-        pre: [
-          { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeCreditNoteCreationOrUpdate },
-        ],
+        pre: [{ method: getCreditNote, assign: 'creditNote' }, { method: authorizeCreditNoteUpdate }],
       },
     });
 
@@ -170,10 +82,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [
-          { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeGetCreditNotePdf },
-        ],
+        pre: [{ method: getCreditNote, assign: 'creditNote' }, { method: authorizeGetCreditNotePdf }],
       },
       handler: generateCreditNotePdf,
     });

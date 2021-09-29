@@ -10,6 +10,7 @@ const CreditNote = require('../models/CreditNote');
 const FundingHistory = require('../models/FundingHistory');
 const BillSlipHelper = require('./billSlips');
 const UtilsHelper = require('./utils');
+const NumbersHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
 const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL } = require('./constants');
@@ -40,6 +41,14 @@ exports.formatSubscriptionData = (bill) => {
   };
 };
 
+exports.formatBillingItemData = bill => ({
+  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'vat', 'discount']),
+  billingItem: bill.billingItem._id,
+  events: bill.eventsList.map(ev => ({ ...pick(ev, ['startDate', 'endDate', 'auxiliary']), eventId: ev.event })),
+  name: bill.billingItem.name,
+  count: bill.eventsList.length,
+});
+
 exports.formatCustomerBills = (customerBills, customer, number, company) => {
   const billedEvents = {};
   const bill = {
@@ -51,12 +60,36 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     shouldBeSent: customerBills.shouldBeSent,
     type: AUTOMATIC,
     company: company._id,
+    billingItemList: [],
   };
 
   for (const draftBill of customerBills.bills) {
-    bill.subscriptions.push(exports.formatSubscriptionData(draftBill));
-    for (const ev of draftBill.eventsList) {
-      billedEvents[ev.event] = { ...ev };
+    if (draftBill.subscription) {
+      bill.subscriptions.push(exports.formatSubscriptionData(draftBill));
+      for (const ev of draftBill.eventsList) {
+        billedEvents[ev.event] = { ...ev };
+      }
+    } else {
+      bill.billingItemList.push(exports.formatBillingItemData(draftBill));
+      for (const ev of draftBill.eventsList) {
+        if (!billedEvents[ev.event].billingItems) billedEvents[ev.event].billingItems = [];
+        if (!billedEvents[ev.event].exclTaxesCustomer) billedEvents[ev.event].exclTaxesCustomer = 0;
+        if (!billedEvents[ev.event].inclTaxesCustomer) billedEvents[ev.event].inclTaxesCustomer = 0;
+
+        billedEvents[ev.event].billingItems.push({
+          billingItem: draftBill.billingItem._id,
+          inclTaxes: draftBill.unitInclTaxes,
+          exclTaxes: draftBill.unitExclTaxes,
+        });
+        billedEvents[ev.event].exclTaxesCustomer = NumbersHelper.add(
+          billedEvents[ev.event].exclTaxesCustomer,
+          draftBill.unitExclTaxes
+        );
+        billedEvents[ev.event].inclTaxesCustomer = NumbersHelper.add(
+          billedEvents[ev.event].inclTaxesCustomer,
+          draftBill.unitInclTaxes
+        );
+      }
     }
   }
 
@@ -93,12 +126,23 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
           if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { [ev.history.month]: ev.history };
           else if (!histories[ev.history.fundingId][ev.history.month]) {
             histories[ev.history.fundingId][ev.history.month] = ev.history;
-          } else histories[ev.history.fundingId][ev.history.month].careHours += ev.history.careHours;
+          } else {
+            histories[ev.history.fundingId][ev.history.month].careHours = NumbersHelper.add(
+              histories[ev.history.fundingId][ev.history.month].careHours,
+              ev.history.careHours
+            );
+          }
         } else if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { ...ev.history };
         else if (ev.history.nature === HOURLY) {
-          histories[ev.history.fundingId].careHours += ev.history.careHours;
+          histories[ev.history.fundingId].careHours = NumbersHelper.add(
+            histories[ev.history.fundingId].careHours,
+            ev.history.careHours
+          );
         } else { // Funding with once frequency are only fixed !
-          histories[ev.history.fundingId].amountTTC += ev.history.amountTTC;
+          histories[ev.history.fundingId].amountTTC = NumbersHelper.add(
+            histories[ev.history.fundingId].amountTTC,
+            ev.history.amountTTC
+          );
         }
       }
     }
@@ -172,7 +216,10 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
     if (thirdPartyPayerBills && thirdPartyPayerBills.length > 0) {
       const tppBillingInfo = exports.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
       fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
-      eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
+      for (const eventId of Object.keys(tppBillingInfo.billedEvents)) {
+        if (!eventsToUpdate[eventId]) eventsToUpdate[eventId] = tppBillingInfo.billedEvents[eventId];
+        else eventsToUpdate[eventId] = { ...tppBillingInfo.billedEvents[eventId], ...eventsToUpdate[eventId] };
+      }
       for (const bill of tppBillingInfo.tppBills) {
         billList.push(bill);
         if (bill.number) number.seq += 1;
@@ -200,14 +247,18 @@ exports.list = async (query, credentials) => Bill
 
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
+  const vatMultiplier = NumbersHelper.divide(bddBillingItem.vat, 100);
+  const unitExclTaxes = NumbersHelper.divide(bi.unitInclTaxes, vatMultiplier + 1);
+  const exclTaxes = NumbersHelper.multiply(unitExclTaxes, bi.count);
 
   return {
     billingItem: bi.billingItem,
     name: bddBillingItem.name,
     unitInclTaxes: bi.unitInclTaxes,
     count: bi.count,
-    inclTaxes: bi.unitInclTaxes * bi.count,
-    exclTaxes: (bi.unitInclTaxes / (1 + bddBillingItem.vat / 100)) * bi.count,
+    inclTaxes: NumbersHelper.multiply(bi.unitInclTaxes, bi.count),
+    exclTaxes,
+    vat: bddBillingItem.vat,
   };
 };
 
@@ -252,38 +303,92 @@ exports.getUnitInclTaxes = (bill, subscription) => {
   if (!funding) return 0;
   const version = UtilsHelper.getLastVersion(funding.versions, 'createdAt');
 
-  return funding.nature === HOURLY
-    ? (version.unitTTCRate * (1 - (version.customerParticipationRate / 100)))
-    : subscription.unitInclTaxes;
-};
-
-exports.formatBillSubscriptionsForPdf = (bill) => {
-  let totalExclTaxes = 0;
-  let totalVAT = 0;
-  const formattedSubs = [];
-
-  for (const sub of bill.subscriptions) {
-    totalExclTaxes += sub.exclTaxes;
-    totalVAT += sub.inclTaxes - sub.exclTaxes;
-    const formattedSub = {
-      unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
-      inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
-      vat: sub.vat ? sub.vat.toString().replace(/\./g, ',') : 0,
-      service: sub.service.name,
-    };
-    if (sub.service.nature === HOURLY) {
-      const formattedHours = UtilsHelper.formatFloatForExport(sub.hours);
-      formattedSub.volume = formattedHours === '' ? '' : `${formattedHours} h`;
-    } else {
-      formattedSub.volume = sub.events.length;
-    }
-    formattedSubs.push(formattedSub);
+  if (funding.nature === HOURLY) {
+    const customerParticipationRate = NumbersHelper.divide(version.customerParticipationRate, 100);
+    const tppParticipationRate = NumbersHelper.subtract(1, customerParticipationRate);
+    return NumbersHelper.multiply(version.unitTTCRate, tppParticipationRate);
   }
 
-  totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
-  totalVAT = UtilsHelper.formatPrice(totalVAT);
+  return subscription.unitInclTaxes;
+};
 
-  return { totalExclTaxes, totalVAT, formattedSubs };
+exports.computeSurcharge = (subscription) => {
+  let totalSurcharge = 0;
+  for (const event of subscription.events) {
+    if (!event.surcharges || event.surcharges.length === 0) continue;
+
+    for (const surcharge of event.surcharges) {
+      const duration = surcharge.startHour
+        ? moment(surcharge.endHour).diff(surcharge.startHour, 'm') / 60
+        : moment(event.endDate).diff(event.startDate, 'm') / 60;
+
+      const surchargePrice = NumbersHelper.multiply(
+        duration,
+        subscription.unitInclTaxes,
+        NumbersHelper.divide(surcharge.percentage, 100)
+      );
+
+      totalSurcharge = NumbersHelper.add(totalSurcharge, surchargePrice);
+    }
+  }
+
+  return totalSurcharge;
+};
+
+exports.formatBillDetailsForPdf = (bill) => {
+  let totalExclTaxes = 0;
+  let totalDiscount = 0;
+  let totalSurcharge = 0;
+  let totalSubscription = 0;
+  const formattedDetails = [];
+
+  for (const sub of bill.subscriptions) {
+    const discountExclTaxes = UtilsHelper.getExclTaxes(sub.discount, sub.vat);
+    const subExclTaxesWithDiscount = NumbersHelper.subtract(sub.exclTaxes, discountExclTaxes);
+    totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
+
+    const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
+    const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
+    const total = NumbersHelper.multiply(volume, unitInclTaxes);
+
+    formattedDetails.push({
+      unitInclTaxes,
+      vat: sub.vat || 0,
+      name: sub.service.name,
+      volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
+      total,
+    });
+    totalSubscription = NumbersHelper.add(totalSubscription, total);
+    totalSurcharge = NumbersHelper.add(totalSurcharge, exports.computeSurcharge(sub));
+    totalDiscount = NumbersHelper.add(totalDiscount, sub.discount);
+  }
+
+  if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
+
+  let totalBillingItem = 0;
+  if (bill.billingItemList) {
+    for (const bi of bill.billingItemList) {
+      const discountExclTaxes = UtilsHelper.getExclTaxes(bi.discount, bi.vat);
+      const biExclTaxesWithDiscount = NumbersHelper.subtract(bi.exclTaxes, discountExclTaxes);
+      totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
+      totalBillingItem = NumbersHelper.add(totalBillingItem, bi.inclTaxes);
+      totalDiscount = NumbersHelper.add(totalDiscount, bi.discount);
+
+      formattedDetails.push({ ...pick(bi, ['name', 'unitInclTaxes', 'vat']), volume: bi.count, total: bi.inclTaxes });
+    }
+  }
+
+  if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
+
+  const totalCustomer = NumbersHelper.add(totalSubscription, totalBillingItem, totalSurcharge);
+  const totalTPP = NumbersHelper.add(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
+  if (totalTPP) formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
+
+  return {
+    totalExclTaxes: UtilsHelper.formatPrice(totalExclTaxes),
+    totalVAT: UtilsHelper.formatPrice(NumbersHelper.subtract(bill.netInclTaxes, totalExclTaxes)),
+    formattedDetails,
+  };
 };
 
 exports.formatEventsForPdf = (events, service) => {
@@ -321,7 +426,7 @@ exports.formatPdf = (bill, company) => {
         : UtilsHelper.formatIdentity(bill.customer.identity, 'TFL'),
     },
     forTpp: !!bill.thirdPartyPayer,
-    ...exports.formatBillSubscriptionsForPdf(bill),
+    ...exports.formatBillDetailsForPdf(bill),
   };
 
   for (const sub of bill.subscriptions) {
@@ -331,6 +436,7 @@ exports.formatPdf = (bill, company) => {
 
   return {
     bill: {
+      type: bill.type,
       number: bill.number,
       customer: {
         identity: { ...get(bill, 'customer.identity'), title: CIVILITY_LIST[get(bill, 'customer.identity.title')] },

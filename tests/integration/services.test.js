@@ -286,6 +286,24 @@ describe('PUT /services/:id', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 error if startDate is same or before last version startDate', async () => {
+      const payload = {
+        defaultUnitAmount: 15,
+        name: 'Service bis',
+        startDate: '2019-01-16T00:00:00',
+        vat: 12,
+        billingItems: [billingItemList[0]._id],
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/services/${servicesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
