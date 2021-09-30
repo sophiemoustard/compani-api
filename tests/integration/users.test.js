@@ -395,6 +395,8 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(5);
+      expect(res.result.data.users.every(u => [HELPER, AUXILIARY].includes(get(u, 'role.client.name')))).toBeTruthy();
     });
 
     it('should return 400 if wrong role in query', async () => {
@@ -441,6 +443,7 @@ describe('GET /users', () => {
       });
 
       expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(usersFromOtherCompanyList.length);
     });
   });
 
