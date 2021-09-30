@@ -167,15 +167,8 @@ describe('applySurcharge', () => {
     const details = { planId: { 10: { hours: 3 } } };
     const result = DraftPayHelper.applySurcharge(2.8, surcharge, 'name', details, { duration: 30, distance: 10 });
 
+    expect(result).toEqual({ surcharged: 2.8, details: {} });
     sinon.assert.calledOnceWithExactly(getSurchargeDetails, 2.8, surcharge, 'name', details);
-    expect(result).toBeDefined();
-    expect(result).toEqual({
-      surcharged: 2.8,
-      notSurcharged: 0,
-      details: {},
-      paidKm: 10,
-      paidTransportHours: 0.5,
-    });
   });
 });
 
@@ -199,11 +192,11 @@ describe('getSurchargeSplit', () => {
     const surcharge = { twentyFifthOfDecember: 20 };
     const paidTransport = { duration: 30, distance: 10 };
     const details = { planId: { 10: { hours: 3 } } };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    applySurcharge.returns({ surcharged: 2.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
-    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'twentyFifthOfDecember', details, paidTransport);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'twentyFifthOfDecember', details);
+    expect(result).toEqual({ surcharged: 2.5 });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -216,7 +209,7 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details, paidKm: 10, paidTransportHours: 0.5 });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: { planId: { 10: { hours: 3 } } } });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -226,11 +219,11 @@ describe('getSurchargeSplit', () => {
     const surcharge = { firstOfMay: 20 };
     const paidTransport = { duration: 30, distance: 10 };
     const details = { planId: { 10: { hours: 3 } } };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    applySurcharge.returns({ surcharged: 2.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
-    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'firstOfMay', details, paidTransport);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'firstOfMay', details);
+    expect(result).toEqual({ surcharged: 2.5 });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -243,7 +236,7 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details, paidKm: 10, paidTransportHours: 0.5 });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: { planId: { 10: { hours: 3 } } } });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -254,12 +247,12 @@ describe('getSurchargeSplit', () => {
     const paidTransport = { duration: 30, distance: 10 };
     const details = { planId: { 10: { hours: 3 } } };
 
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    applySurcharge.returns({ surcharged: 2.5 });
 
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
-    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'firstOfJanuary', details, paidTransport);
+    expect(result).toEqual({ surcharged: 2.5 });
+    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'firstOfJanuary', details);
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -272,7 +265,7 @@ describe('getSurchargeSplit', () => {
 
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details, paidKm: 10, paidTransportHours: 0.5 });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: { planId: { 10: { hours: 3 } } } });
     sinon.assert.notCalled(applySurcharge);
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
@@ -283,11 +276,11 @@ describe('getSurchargeSplit', () => {
     const surcharge = { publicHoliday: 20 };
     const paidTransport = { duration: 30, distance: 10 };
     const details = { planId: { 10: { hours: 3 } } };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    applySurcharge.returns({ surcharged: 2.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
-    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'publicHoliday', details, paidTransport);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'publicHoliday', details);
+    expect(result).toEqual({ surcharged: 2.5 });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -300,7 +293,7 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details, paidKm: 10, paidTransportHours: 0.5 });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: { planId: { 10: { hours: 3 } } } });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -310,11 +303,11 @@ describe('getSurchargeSplit', () => {
     const surcharge = { saturday: 20 };
     const paidTransport = { duration: 30, distance: 10 };
     const details = { planId: { 10: { hours: 3 } } };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    applySurcharge.returns({ surcharged: 2.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
-    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'saturday', details, paidTransport);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
+    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'saturday', details);
+    expect(result).toEqual({ surcharged: 2.5 });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -327,7 +320,7 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details, paidKm: 10, paidTransportHours: 0.5 });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: { planId: { 10: { hours: 3 } } } });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -337,11 +330,11 @@ describe('getSurchargeSplit', () => {
     const surcharge = { sunday: 20 };
     const paidTransport = { duration: 30, distance: 10 };
     const details = { planId: { 10: { hours: 3 } } };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
+    applySurcharge.returns({ surcharged: 2.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
-    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'sunday', details, paidTransport);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10 });
+    sinon.assert.calledOnceWithExactly(applySurcharge, 2.5, surcharge, 'sunday', details);
+    expect(result).toEqual({ surcharged: 2.5 });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -354,7 +347,7 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, details, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details, paidKm: 10, paidTransportHours: 0.5 });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: { planId: { 10: { hours: 3 } } } });
     sinon.assert.notCalled(applyCustomSurcharge);
     sinon.assert.notCalled(getSurchargeDetails);
   });
@@ -370,13 +363,7 @@ describe('getSurchargeSplit', () => {
 
     sinon.assert.calledOnceWithExactly(applyCustomSurcharge, event, '18:00', '20:00', 30);
     sinon.assert.calledOnceWithExactly(getSurchargeDetails, 2, surcharge, 'evening', details);
-    expect(result).toEqual({
-      surcharged: 2,
-      notSurcharged: 0.5,
-      details: { key: 2 },
-      paidKm: 10,
-      paidTransportHours: 0.5,
-    });
+    expect(result).toEqual({ surcharged: 2, notSurcharged: 0.5, details: { key: 2 } });
     sinon.assert.notCalled(applySurcharge);
   });
 
@@ -391,13 +378,7 @@ describe('getSurchargeSplit', () => {
 
     sinon.assert.calledOnceWithExactly(applyCustomSurcharge, event, '18:00', '20:00', 30);
     sinon.assert.calledOnceWithExactly(getSurchargeDetails, 2, surcharge, 'custom', details);
-    expect(result).toEqual({
-      surcharged: 2,
-      notSurcharged: 0.5,
-      details: { key: 2 },
-      paidKm: 10,
-      paidTransportHours: 0.5,
-    });
+    expect(result).toEqual({ surcharged: 2, notSurcharged: 0.5, details: { key: 2 } });
     sinon.assert.notCalled(applySurcharge);
   });
 });
@@ -480,8 +461,7 @@ describe('getPaidTransportInfo', () => {
     const event = {};
     const result = await DraftPayHelper.getPaidTransportInfo(event, null, []);
 
-    expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 0, duration: 0 });
+    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
   });
 
   it('should return 0 if prevEvent has fixed service', async () => {
@@ -489,8 +469,7 @@ describe('getPaidTransportInfo', () => {
     const prevEvent = { hasFixedService: true };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 0, duration: 0 });
+    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
   });
 
   it('should return 0 if event has fixed service', async () => {
@@ -498,17 +477,14 @@ describe('getPaidTransportInfo', () => {
     const prevEvent = { hasFixedService: false };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 0, duration: 0 });
+    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
   });
 
   it('should return 0 if no address in event', async () => {
     const event = {
       type: 'intervention',
       hasFixedService: false,
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'private' } },
-      },
+      auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
     };
     const prevEvent = {
       type: 'intervention',
@@ -518,8 +494,7 @@ describe('getPaidTransportInfo', () => {
     };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 0, duration: 0 });
+    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
   });
 
   it('should return 0 if no address in prevEvent', async () => {
@@ -539,7 +514,7 @@ describe('getPaidTransportInfo', () => {
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 0, duration: 0 });
+    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
   });
 
   it('should return 0 if no tranport mode', async () => {
@@ -557,54 +532,29 @@ describe('getPaidTransportInfo', () => {
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 0, duration: 0 });
+    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
   });
 
   it('should compute driving transport', async () => {
     const event = {
       hasFixedService: false,
       type: 'intervention',
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'private' } },
-      },
+      startDate: '2019-01-18T16:46:30',
+      auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
       address: { fullAddress: 'jébobolà' },
       company: new ObjectID(),
     };
     const prevEvent = {
       hasFixedService: false,
       type: 'intervention',
-      startDate: '2019-01-18T15:46:30.636Z',
+      endDate: '2019-01-18T15:46:30',
       address: { fullAddress: 'tamalou' },
     };
-    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toBeDefined();
+    expect(result).toEqual({ duration: 40, paidKm: 10, travelledKm: 10 });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
-  });
-
-  it('should compute specific transport mode if exist', async () => {
-    const event = {
-      hasFixedService: false,
-      type: 'intervention',
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'private' } },
-      },
-      address: { fullAddress: 'jébobolà' },
-      company: new ObjectID(),
-      transportMode: 'public',
-    };
-    const prevEvent = {
-      hasFixedService: false,
-      type: 'intervention',
-      startDate: '2019-01-18T15:46:30.636Z',
-      address: { fullAddress: 'tamalou' },
-    };
-    getTransportInfo.resolves({ distance: 10, duration: 40 });
-    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
-
-    expect(result).toBeDefined();
-    sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
   });
 
   it('should not paid transport if specific transport is not personal car', async () => {
@@ -612,9 +562,7 @@ describe('getPaidTransportInfo', () => {
       hasFixedService: false,
       startDate: '2019-01-18T18:00:00',
       type: 'intervention',
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'private' } },
-      },
+      auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
       address: { fullAddress: 'jébobolà' },
       transportMode: 'public',
 
@@ -625,11 +573,10 @@ describe('getPaidTransportInfo', () => {
       endDate: '2019-01-18T15:00:00',
       address: { fullAddress: 'tamalou' },
     };
-    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 0, duration: 40 });
+    expect(result).toEqual({ duration: 40, paidKm: 0, travelledKm: 10 });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
   });
 
@@ -638,12 +585,9 @@ describe('getPaidTransportInfo', () => {
       hasFixedService: false,
       startDate: '2019-01-18T18:00:00',
       type: 'intervention',
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'public' } },
-      },
+      auxiliary: { administrative: { transportInvoice: { transportType: 'public' } } },
       address: { fullAddress: 'jébobolà' },
       transportMode: 'private',
-
     };
     const prevEvent = {
       hasFixedService: false,
@@ -651,11 +595,10 @@ describe('getPaidTransportInfo', () => {
       endDate: '2019-01-18T15:00:00',
       address: { fullAddress: 'tamalou' },
     };
-    getTransportInfo.resolves({ distance: 10, duration: 40 });
+    getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 0, duration: 40 });
+    expect(result).toEqual({ duration: 40, paidKm: 0, travelledKm: 10 });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
@@ -664,9 +607,7 @@ describe('getPaidTransportInfo', () => {
       hasFixedService: false,
       startDate: '2019-01-18T18:00:00',
       type: 'intervention',
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'private' } },
-      },
+      auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
       address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
@@ -678,8 +619,7 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 10, duration: 40 });
+    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 40 });
   });
 
   it('should return break duration', async () => {
@@ -687,9 +627,7 @@ describe('getPaidTransportInfo', () => {
       hasFixedService: false,
       startDate: '2019-01-18T16:10:00',
       type: 'intervention',
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'private' } },
-      },
+      auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
       address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
@@ -701,8 +639,7 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toBeDefined();
-    expect(result).toEqual({ distance: 10, duration: 70 });
+    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 70 });
   });
 
   it('should return transport duration if transport duration is shorter than break duration', async () => {
@@ -710,9 +647,7 @@ describe('getPaidTransportInfo', () => {
       startDate: '2019-01-18T18:00:00',
       type: 'intervention',
       hasFixedService: false,
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'private' } },
-      },
+      auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
       address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
@@ -724,7 +659,7 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ distance: 10, duration: 60 });
+    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 60 });
   });
 
   it('should return break if break is shorter than transport duration', async () => {
@@ -732,9 +667,7 @@ describe('getPaidTransportInfo', () => {
       hasFixedService: false,
       startDate: '2019-01-18T15:30:00',
       type: 'intervention',
-      auxiliary: {
-        administrative: { transportInvoice: { transportType: 'private' } },
-      },
+      auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
       address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
@@ -746,7 +679,7 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 8, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ distance: 8, duration: 30 });
+    expect(result).toEqual({ paidKm: 8, travelledKm: 8, duration: 30 });
   });
 });
 
@@ -770,7 +703,7 @@ describe('getEventHours', () => {
 
   it('should not call getSurchargeSplit if no service', async () => {
     const service = null;
-    getPaidTransportInfo.returns({ distance: 12, duration: 30 });
+    getPaidTransportInfo.returns({ paidKm: 12, travelledKm: 12, duration: 30 });
 
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
@@ -779,6 +712,7 @@ describe('getEventHours', () => {
       notSurcharged: 2.5,
       details: {},
       paidKm: 12,
+      travelledKm: 12,
       paidTransportHours: 0.5,
     });
     sinon.assert.notCalled(getSurchargeSplit);
@@ -786,7 +720,7 @@ describe('getEventHours', () => {
 
   it('should not call getSurchargeSplit if no surcharge', async () => {
     const service = { nature: 'hourly' };
-    getPaidTransportInfo.returns({ distance: 12, duration: 30 });
+    getPaidTransportInfo.returns({ paidKm: 12, travelledKm: 12, duration: 30 });
 
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
@@ -795,6 +729,7 @@ describe('getEventHours', () => {
       notSurcharged: 2.5,
       details: {},
       paidKm: 12,
+      travelledKm: 12,
       paidTransportHours: 0.5,
     });
     sinon.assert.notCalled(getSurchargeSplit);
@@ -802,18 +737,25 @@ describe('getEventHours', () => {
 
   it('should call getSurchargeSplit if hourly service with surcharge', async () => {
     const service = { surcharge: { sunday: 10 }, nature: 'hourly' };
-    getPaidTransportInfo.returns({ distance: 12, duration: 30 });
+    getPaidTransportInfo.returns({ paidKm: 0, travelledKm: 12, duration: 30 });
     getSurchargeSplit.returns({ surcharged: 10, notSurcharged: 2.5, paidTransportHours: 0.5 });
 
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
-    expect(result).toEqual({ surcharged: 10, notSurcharged: 2.5, paidTransportHours: 0.5 });
+    expect(result).toEqual({
+      surcharged: 10,
+      notSurcharged: 2.5,
+      paidTransportHours: 0.5,
+      paidKm: 0,
+      travelledKm: 12,
+      details: {},
+    });
     sinon.assert.calledOnceWithExactly(
       getSurchargeSplit,
       event,
       { sunday: 10 },
       details,
-      { distance: 12, duration: 30 }
+      { paidKm: 0, travelledKm: 12, duration: 30 }
     );
   });
 });
@@ -926,6 +868,7 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: {},
       surchargedAndExemptDetails: {},
       paidKm: 0,
+      travelledKm: 0,
     });
     sinon.assert.notCalled(getMatchingVersion);
     sinon.assert.notCalled(getEventHours);
@@ -959,6 +902,7 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: {},
       surchargedAndExemptDetails: {},
       paidKm: 0,
+      travelledKm: 0,
       internalHours: 0,
       paidTransportHours: 0,
     });
@@ -989,7 +933,7 @@ describe('getPayFromEvents', () => {
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
     getMatchingVersion.returns({ startDate: '2019-02-22T00:00:00', surcharge: surchargeId });
-    getEventHours.returns({ surcharged: 2, notSurcharged: 5, details: {}, paidKm: 5.8 });
+    getEventHours.returns({ surcharged: 2, notSurcharged: 5, details: {}, paidKm: 5.8, travelledKm: 5.8 });
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
 
     expect(result).toBeDefined();
@@ -1029,6 +973,7 @@ describe('getPayFromEvents', () => {
       notSurcharged: 5,
       details: { sunday: 10 },
       paidKm: 5.8,
+      travelledKm: 5.8,
       paidTransportHours: 2,
     });
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
@@ -1043,6 +988,7 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: {},
       surchargedAndExemptDetails: { sunday: 10 },
       paidKm: 5.8,
+      travelledKm: 5.8,
       internalHours: 0,
       paidTransportHours: 2,
     });
@@ -1084,6 +1030,7 @@ describe('getPayFromEvents', () => {
       notSurcharged: 5,
       details: { sunday: 10 },
       paidKm: 5.8,
+      travelledKm: 5.8,
       paidTransportHours: 3,
     });
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
@@ -1098,6 +1045,7 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: { sunday: 10 },
       surchargedAndExemptDetails: {},
       paidKm: 5.8,
+      travelledKm: 5.8,
       paidTransportHours: 3,
       internalHours: 0,
     });
@@ -1122,6 +1070,7 @@ describe('getPayFromEvents', () => {
       notSurcharged: 5,
       details: {},
       paidKm: 5.8,
+      travelledKm: 5.8,
       paidTransportHours: 2,
     });
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
@@ -1136,6 +1085,7 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: {},
       surchargedAndExemptDetails: {},
       paidKm: 5.8,
+      travelledKm: 5.8,
       internalHours: 5,
       paidTransportHours: 2,
     });
@@ -1197,6 +1147,7 @@ describe('getPayFromEvents', () => {
       notSurcharged: 5,
       details: {},
       paidKm: 5.8,
+      travelledKm: 5.8,
       paidTransportHours: 3,
     });
     getEventHours.onCall(1).returns({
@@ -1204,6 +1155,7 @@ describe('getPayFromEvents', () => {
       notSurcharged: 0,
       details: {},
       paidKm: 3.2,
+      travelledKm: 3.2,
       paidTransportHours: 0,
     });
     getEventHours.onCall(2).returns({
@@ -1211,6 +1163,7 @@ describe('getPayFromEvents', () => {
       notSurcharged: 5,
       details: {},
       paidKm: 0,
+      travelledKm: 2,
       paidTransportHours: 1,
     });
 
@@ -1226,6 +1179,7 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: {},
       surchargedAndExemptDetails: {},
       paidKm: 9,
+      travelledKm: 11,
       internalHours: 0,
       paidTransportHours: 4,
     });
