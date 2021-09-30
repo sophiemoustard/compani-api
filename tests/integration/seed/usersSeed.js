@@ -103,6 +103,8 @@ const auxiliaryFromOtherCompany = {
   origin: WEBAPP,
 };
 
+const usersFromOtherCompanyList = [helperFromOtherCompany, coachFromOtherCompany, auxiliaryFromOtherCompany];
+
 const contractId = new ObjectID();
 const contractNotStartedId = new ObjectID();
 const endedContractId = new ObjectID();
@@ -315,25 +317,23 @@ const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create([
-    ...usersSeedList,
-    helperFromOtherCompany,
-    coachFromOtherCompany,
-    auxiliaryFromOtherCompany,
+  await Promise.all([
+    Contract.create(contracts),
+    Course.create(followingCourses),
+    Customer.create(customer, customerFromOtherCompany),
+    Establishment.create(establishmentList),
+    Helper.create(helpers),
+    IdentityVerification.create(identityVerifications),
+    Sector.create(userSectors),
+    SectorHistory.create(sectorHistories),
+    User.create([...usersSeedList, ...usersFromOtherCompanyList]),
+    UserCompany.create(userCompanies),
   ]);
-  await Customer.create(customer, customerFromOtherCompany);
-  await Sector.create(userSectors);
-  await SectorHistory.create(sectorHistories);
-  await Contract.insertMany(contracts);
-  await Establishment.insertMany(establishmentList);
-  await Course.insertMany(followingCourses);
-  await UserCompany.insertMany(userCompanies);
-  await Helper.insertMany(helpers);
-  await IdentityVerification.insertMany(identityVerifications);
 };
 
 module.exports = {
   usersSeedList,
+  usersFromOtherCompanyList,
   populateDB,
   isInList,
   customer,
