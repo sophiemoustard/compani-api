@@ -85,6 +85,7 @@ describe('PAY ROUTES - POST /pay', () => {
     mutual: true,
     transport: 0,
     travelledKm: 10,
+    paidKm: 10,
     phoneFees: 0,
     bonus: 0,
     hoursToWork: 10,

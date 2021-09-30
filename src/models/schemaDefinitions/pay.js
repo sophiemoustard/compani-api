@@ -46,6 +46,7 @@ module.exports = {
   hoursToWork: { type: Number, min: 0, required: true },
   month: { type: String, required: true, validate: /^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/ },
   mutual: { type: Boolean, required: true },
+  paidKm: { type: Number, min: 0, required: true },
   phoneFees: { type: Number, min: 0, required: true },
   overtimeHours: { type: Number, min: 0, required: true },
   startDate: { type: Date, required: true },
