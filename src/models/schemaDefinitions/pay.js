@@ -50,4 +50,5 @@ module.exports = {
   overtimeHours: { type: Number, min: 0, required: true },
   startDate: { type: Date, required: true },
   transport: { type: Number, min: 0, required: true },
+  travelledKm: { type: Number, min: 0, required: true },
 };

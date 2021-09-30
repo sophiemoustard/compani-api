@@ -56,5 +56,6 @@ exports.payValidation = {
   surchargedAndNotExempt: Joi.number().required(),
   surchargedAndNotExemptDetails: surchargedDetailsValidation,
   transport: Joi.number().required(),
+  travelledKm: Joi.number().required(),
   workedHours: Joi.number().required(),
 };
