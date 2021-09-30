@@ -54,7 +54,7 @@ describe('POST /users', () => {
   describe('NOT_CONNECTED', () => {
     beforeEach(populateDB);
 
-    it('should create user if user not connected without phone is payload', async () => {
+    it('should create user', async () => {
       const payload = {
         identity: { firstname: 'Test', lastname: 'Kirk' },
         local: { email: 'newuser@alenvi.io', password: 'testpassword' },
@@ -239,8 +239,7 @@ describe('POST /users', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    const missingParams = ['local.email', 'identity.lastname', 'origin'];
-    missingParams.forEach((param) => {
+    ['local.email', 'identity.lastname', 'origin'].forEach((param) => {
       it(`should return a 400 error if '${param}' is missing in payload`, async () => {
         const payload = {
           identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
