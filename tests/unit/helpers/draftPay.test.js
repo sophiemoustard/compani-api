@@ -165,7 +165,7 @@ describe('applySurcharge', () => {
     getSurchargeDetails.returns({});
     const surcharge = { _id: new ObjectID(), name: 'Luigi', Noel: 35 };
     const details = { planId: { 10: { hours: 3 } } };
-    const result = DraftPayHelper.applySurcharge(2.8, surcharge, 'name', details, { duration: 30, distance: 10 });
+    const result = DraftPayHelper.applySurcharge(2.8, surcharge, 'name', details);
 
     expect(result).toEqual({ surcharged: 2.8, details: {} });
     sinon.assert.calledOnceWithExactly(getSurchargeDetails, 2.8, surcharge, 'name', details);
