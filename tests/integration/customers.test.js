@@ -2157,7 +2157,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         amountTTC: 90,
         customerParticipationRate: 20,
         startDate: '2021-01-01T00:00:00',
-        endDate: '2021-03-01T23:59:59',
+        endDate: '',
         careDays: [1, 3],
         fundingPlanId: '12345',
       };
@@ -2174,6 +2174,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer.fundings[0]).toBeDefined();
       expect(res.result.data.customer._id).toEqual(customer._id);
       expect(res.result.data.customer.fundings[0].versions.length).toBe(2);
+      expect(res.result.data.customer.fundings[0].versions[1].endDate).toBeNull();
     });
 
     it('should return 400 if endDate is before startDate', async () => {
