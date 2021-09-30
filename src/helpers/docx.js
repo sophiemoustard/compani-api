@@ -15,14 +15,17 @@ const docxParser = tag => ({
   },
 });
 
+exports.createDocxTemplater = (zip, data) => {
+  const docxTemplater = new DocxTemplater(zip, { parser: docxParser, linebreaks: true });
+  docxTemplater.render(data);
+
+  return docxTemplater;
+};
+
 exports.createDocx = async (filePath, data) => {
   const file = await fsPromises.readFile(filePath, 'binary');
   const zip = new PizZip(file);
-  const doc = new DocxTemplater();
-  doc.loadZip(zip);
-  doc.setOptions({ parser: docxParser, linebreaks: true });
-  doc.setData(data);
-  doc.render();
+  const doc = exports.createDocxTemplater(zip, data);
   const filledZip = doc.getZip().generate({ type: 'nodebuffer' });
   const date = new Date();
   const tmpOutputPath = path.join(os.tmpdir(), `template-filled-${date.getTime()}.docx`);
