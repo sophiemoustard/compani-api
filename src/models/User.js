@@ -14,6 +14,12 @@ const {
   AUXILIARY,
   PLANNING_REFERENT,
   AUXILIARY_WITHOUT_COMPANY,
+  CLIENT_ADMIN,
+  COACH,
+  VENDOR_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+  TRAINER,
+  HELPER,
   BLENDED,
   STRICTLY_E_LEARNING,
   MOBILE,
@@ -30,6 +36,18 @@ const roleSchemaDefinition = {
 };
 
 const ORIGIN_OPTIONS = [WEBAPP, MOBILE];
+
+const USER_ROLE_LIST = [
+  PLANNING_REFERENT,
+  AUXILIARY,
+  AUXILIARY_WITHOUT_COMPANY,
+  CLIENT_ADMIN,
+  COACH,
+  VENDOR_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+  TRAINER,
+  HELPER,
+];
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -366,3 +384,4 @@ UserSchema.plugin(autopopulate);
 module.exports = mongoose.model('User', UserSchema);
 module.exports.TOKEN_EXPIRE_TIME = TOKEN_EXPIRE_TIME;
 module.exports.ORIGIN_OPTIONS = ORIGIN_OPTIONS;
+module.exports.USER_ROLE_LIST = USER_ROLE_LIST;

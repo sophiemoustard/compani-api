@@ -35,9 +35,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['pay:edit'] },
         validate: {
-          payload: Joi.array().items(Joi.object({
-            ...payValidation,
-          })),
+          payload: Joi.array().items(Joi.object(payValidation)),
         },
         pre: [{ method: authorizePayCreation }],
       },

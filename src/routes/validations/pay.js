@@ -48,6 +48,7 @@ exports.payValidation = {
   notSurchargedAndNotExempt: Joi.number().required(),
   phoneFees: Joi.number().required(),
   overtimeHours: Joi.number().required(),
+  paidKm: Joi.number().required(),
   paidTransportHours: Joi.number().required(),
   previousMonthHoursCounter: Joi.number().required(),
   startDate: Joi.date().required(),
@@ -56,5 +57,6 @@ exports.payValidation = {
   surchargedAndNotExempt: Joi.number().required(),
   surchargedAndNotExemptDetails: surchargedDetailsValidation,
   transport: Joi.number().required(),
+  travelledKm: Joi.number().required(),
   workedHours: Joi.number().required(),
 };

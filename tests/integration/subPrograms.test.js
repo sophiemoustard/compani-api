@@ -5,8 +5,8 @@ const app = require('../../server');
 const SubProgram = require('../../src/models/SubProgram');
 const Course = require('../../src/models/Course');
 const Step = require('../../src/models/Step');
-const { E_LEARNING } = require('../../src/helpers/constants');
-const { populateDB, subProgramsList, stepsList, activitiesList, tester } = require('./seed/subProgramsSeed');
+const UtilsHelper = require('../../src/helpers/utils');
+const { populateDB, subProgramsList, stepsList, tester } = require('./seed/subProgramsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
 
@@ -22,28 +22,16 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
   const blendedSubProgramId = subProgramsList[0]._id;
   const eLearningSubProgramId = subProgramsList[1]._id;
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
-    it('should update subProgram name', async () => {
-      const payload = { name: 'un autre nom pour le sous-programme' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      const subProgramUpdated = await SubProgram.findById(blendedSubProgramId);
-
-      expect(response.statusCode).toBe(200);
-      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: blendedSubProgramId, name: payload.name }));
-    });
-
-    it('should update subProgram steps', async () => {
-      const payload = { steps: [subProgramsList[0].steps[1], subProgramsList[0].steps[0]] };
+    it('should update subProgram name and steps', async () => {
+      const payload = {
+        name: 'un autre nom pour le sous-programme',
+        steps: [subProgramsList[0].steps[1], subProgramsList[0].steps[0]],
+      };
       const response = await app.inject({
         method: 'PUT',
         url: `/subprograms/${blendedSubProgramId.toHexString()}`,
@@ -54,18 +42,10 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       const subProgramUpdated = await SubProgram.findById(blendedSubProgramId).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: blendedSubProgramId, steps: payload.steps }));
-    });
-
-    it('should return a 400 if payload is empty', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/subprograms/${blendedSubProgramId.toHexString()}`,
-        payload: {},
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
+      expect(subProgramUpdated.name).toEqual(payload.name);
+      expect(subProgramUpdated.steps.length).toBe(2);
+      expect(UtilsHelper.areObjectIdsEquals(subProgramUpdated.steps[0], payload.steps[0])).toBeTruthy();
+      expect(UtilsHelper.areObjectIdsEquals(subProgramUpdated.steps[1], payload.steps[1])).toBeTruthy();
     });
 
     it('should publish blended subProgram', async () => {
@@ -77,32 +57,15 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const subProgramUpdated = await SubProgram.findById(blendedSubProgramId).lean();
-      const newCourseCreated = await Course.findOne({ subProgram: blendedSubProgramId, format: 'strictly_e_learning' })
-        .lean();
-
       expect(response.statusCode).toBe(200);
-      expect(!!newCourseCreated).toBeFalsy();
-      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: blendedSubProgramId, status: 'published' }));
-    });
 
-    it('should publish strictly e-learning subProgram, and create 100% e-learning course', async () => {
-      const payload = { status: 'published' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
+      const subProgramUpdated = !!await SubProgram.countDocuments({ _id: blendedSubProgramId, status: 'published' });
+      expect(subProgramUpdated).toBeTruthy();
+      const countCourse = await Course.countDocuments({
+        subProgram: blendedSubProgramId,
+        format: 'strictly_e_learning',
       });
-
-      const subProgramUpdated = await SubProgram.findById(eLearningSubProgramId).lean();
-      const newCourseCreated = await Course.countDocuments(
-        { subProgram: eLearningSubProgramId, format: 'strictly_e_learning', accessRules: [] }
-      );
-
-      expect(response.statusCode).toBe(200);
-      expect(!!newCourseCreated).toBeTruthy();
-      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: eLearningSubProgramId, status: 'published' }));
+      expect(countCourse).toBe(0);
     });
 
     it('should publish strictly e-learning subProgram, and create 100% e-learning course with accessRules',
@@ -115,59 +78,59 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        const subProgramUpdated = await SubProgram.findById(eLearningSubProgramId).lean();
-        const newCourseCreated = await Course.countDocuments(
-          { subProgram: eLearningSubProgramId, format: 'strictly_e_learning', accessRules: [payload.accessCompany] }
-        );
-
         expect(response.statusCode).toBe(200);
-        expect(!!newCourseCreated).toBeTruthy();
-        expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: eLearningSubProgramId, status: 'published' }));
-      });
 
-    it('should return a 403 trying to publish with empty eLearning step',
-      async () => {
-        const subProgramId = subProgramsList[5]._id;
-        const payload = { status: 'published', accessCompany: authCompany._id };
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/subprograms/${subProgramId.toHexString()}`,
-          payload,
-          headers: { 'x-access-token': authToken },
+        const subProgramUpdated = !!await SubProgram
+          .countDocuments({ _id: eLearningSubProgramId, status: 'published' });
+        expect(subProgramUpdated).toBeTruthy();
+        const countCourse = await Course.countDocuments({
+          subProgram: eLearningSubProgramId,
+          format: 'strictly_e_learning',
+          accessRules: [payload.accessCompany],
         });
-
-        expect(response.statusCode).toBe(403);
+        expect(countCourse).toBe(1);
       });
 
-    it('should return a 403 trying to publish with empty activity',
-      async () => {
-        const subProgramId = subProgramsList[6]._id;
-        const payload = { status: 'published', accessCompany: authCompany._id };
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/subprograms/${subProgramId.toHexString()}`,
-          payload,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(403);
+    it('should publish with empty onSite step', async () => {
+      const subProgramId = subProgramsList[7]._id;
+      const payload = { status: 'published', accessCompany: authCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
       });
 
-    it('should publish with empty onSite step',
-      async () => {
-        const subProgramId = subProgramsList[7]._id;
-        const payload = { status: 'published', accessCompany: authCompany._id };
-        const response = await app.inject({
-          method: 'PUT',
-          url: `/subprograms/${subProgramId.toHexString()}`,
-          payload,
-          headers: { 'x-access-token': authToken },
-        });
+      expect(response.statusCode).toBe(200);
+      const subProgramUpdated = await SubProgram.findById(subProgramId).lean();
+      expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, status: 'published' }));
+    });
 
-        expect(response.statusCode).toBe(200);
-        const subProgramUpdated = await SubProgram.findById(subProgramId).lean();
-        expect(subProgramUpdated).toEqual(expect.objectContaining({ _id: subProgramId, status: 'published' }));
+    it('should return a 403 trying to publish with empty eLearning step', async () => {
+      const subProgramId = subProgramsList[5]._id;
+      const payload = { status: 'published', accessCompany: authCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
       });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 trying to publish with empty activity', async () => {
+      const subProgramId = subProgramsList[6]._id;
+      const payload = { status: 'published', accessCompany: authCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
 
     it('should return a 400 if user tries to publish strictly e-learning subProgram with wrong accessCompany',
       async () => {
@@ -289,11 +252,8 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -319,9 +279,9 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
   beforeEach(populateDB);
   const payload = { name: 'new step', type: 'e_learning' };
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should create step', async () => {
@@ -334,11 +294,11 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const subProgramUpdated = await SubProgram.findById(subProgramId);
+      const subProgramUpdated = !!await SubProgram
+        .countDocuments({ _id: subProgramId, steps: { $size: stepsLengthBefore + 1 } });
 
       expect(response.statusCode).toBe(200);
-      expect(subProgramUpdated._id).toEqual(subProgramId);
-      expect(subProgramUpdated.steps.length).toEqual(stepsLengthBefore + 1);
+      expect(subProgramUpdated).toBeTruthy();
     });
 
     const missingParams = ['name', 'type'];
@@ -356,7 +316,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
       });
     });
 
-    it('should return a 400 if program does not exist', async () => {
+    it('should return a 404 if subprogram does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/subprograms/${new ObjectID()}/steps`,
@@ -382,11 +342,8 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -411,9 +368,9 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('VENDOR_ADMIN', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
-      authToken = await getToken('vendor_admin');
+      authToken = await getToken('training_organisation_manager');
     });
 
     it('should detach step from subprogram', async () => {
@@ -421,11 +378,9 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
       const stepsLengthBefore = subProgramsList[0].steps.length;
       const response = await app.inject({
         method: 'DELETE',
-        url: `/subprograms/${subProgramId.toHexString()}/steps/${subProgramsList[0].steps[0]._id}`,
+        url: `/subprograms/${subProgramId}/steps/${subProgramsList[0].steps[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-
-      await SubProgram.findById(subProgramId);
 
       expect(response.statusCode).toBe(200);
       const subProgramUpdated = await SubProgram.findOne({ _id: subProgramId }).lean();
@@ -433,20 +388,10 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
       expect(subProgramUpdated.steps.some(step => step._id === subProgramsList[0].steps[0]._id)).toBeFalsy();
     });
 
-    it('should return a 404 if subprogram does not exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/subprograms/${new ObjectID()}/steps/${subProgramsList[0].steps[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
     it('should return a 404 if subprogram does not contain step', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/subprograms/${subProgramsList[0]._id}/steps/${new ObjectID()}`,
+        url: `/subprograms/${subProgramsList[0]._id}/steps/${stepsList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -477,11 +422,8 @@ describe('SUBPROGRAMS ROUTES - DELETE /subprograms/{_id}/step/{stepId}', () => {
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
-      { name: 'training_organisation_manager', expectedCode: 200 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -518,11 +460,13 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.subPrograms.length).toEqual(2);
       const { subPrograms } = response.result.data;
+      expect(subPrograms.length).toEqual(2);
+
       const stepsIds = subPrograms[0].steps.map(step => step._id);
-      const steps = await Step.find({ _id: { $in: stepsIds } }).lean();
-      expect(steps.every(step => step.type === 'e_learning')).toBeTruthy();
+      const countElearningSteps = await Step
+        .countDocuments({ _id: { $in: stepsIds }, type: 'e_learning', status: 'draft' });
+      expect(countElearningSteps).toBe(stepsIds.length);
     });
   });
 
@@ -536,11 +480,13 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/draft-e-learning', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.subPrograms.length).toEqual(1);
       const { subPrograms } = response.result.data;
+      expect(subPrograms.length).toEqual(1);
+
       const stepsIds = subPrograms[0].steps.map(step => step._id);
-      const eLearningSteps = await Step.countDocuments({ type: E_LEARNING, _id: { $in: stepsIds } });
-      expect(eLearningSteps).toEqual(stepsIds.length);
+      const countElearningSteps = await Step
+        .countDocuments({ _id: { $in: stepsIds }, type: 'e_learning', status: 'draft' });
+      expect(countElearningSteps).toBe(stepsIds.length);
     });
 
     const roles = ['helper', 'client_admin', 'trainer'];
@@ -571,34 +517,15 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
     });
 
     it('should get subprogram', async () => {
-      const subProgramId = subProgramsList[3]._id;
-      const response = await app.inject({
-        method: 'GET',
-        url: `/subprograms/${subProgramId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.subProgram).toMatchObject({
-        _id: subProgramId,
-        name: 'subProgram 4',
-        status: 'draft',
-        program: { name: 'program 2' },
-        steps: [
-          { _id: stepsList[2]._id, name: 'step 3', type: 'e_learning', activities: [activitiesList[0]] },
-        ],
-      });
-    });
-
-    it('should return 400 if ID is null', async () => {
-      const subProgramId = null;
+      const subProgramId = subProgramsList[3]._id.toHexString();
       const response = await app.inject({
         method: 'GET',
         url: `/subprograms/${subProgramId}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.subProgram._id.toHexString()).toBe(subProgramId);
     });
 
     it('should return 404 if subprogram does not exists', async () => {
@@ -622,20 +549,12 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.subProgram).toMatchObject({
-        _id: subProgramId,
-        name: 'subProgram 4',
-        status: 'draft',
-        program: { name: 'program 2' },
-        steps: [
-          { _id: stepsList[2]._id, name: 'step 3', type: 'e_learning', activities: [activitiesList[0]] },
-        ],
-      });
     });
 
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
