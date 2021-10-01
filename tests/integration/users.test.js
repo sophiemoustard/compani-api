@@ -920,14 +920,14 @@ describe('PUT /users/:id', () => {
 
       expect(firstResponse.statusCode).toBe(200);
 
-      const secondRespons = await app.inject({
+      const secondResponse = await app.inject({
         method: 'PUT',
         url: `/users/${userId}`,
         payload: { sector: userSectors[2]._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(secondRespons.statusCode).toBe(200);
+      expect(secondResponse.statusCode).toBe(200);
 
       const updatedUser = await User.findById(userId)
         .populate({ path: 'sector', select: '_id sector', match: { company: authCompany._id } })
@@ -940,7 +940,7 @@ describe('PUT /users/:id', () => {
       expect(histories.some(sh => UtilsHelper.areObjectIdsEquals(sh.sector, userSectors[2]._id))).toBeTruthy();
     });
 
-    it('should not create sectorhistory if it is same sector #tag', async () => {
+    it('should return 200, but not create sectorhistory if it is same sector', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[0]._id}`,
@@ -954,7 +954,7 @@ describe('PUT /users/:id', () => {
       expect(countHistory).toEqual(1);
     });
 
-    it('should update sectorHistory if auxiliary does not have contract #tag', async () => {
+    it('should update sectorHistory if auxiliary does not have contract', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[1]._id}`,
@@ -968,7 +968,7 @@ describe('PUT /users/:id', () => {
       expect(countHistories).toEqual(1);
     });
 
-    it('should update sectorHistory if auxiliary contract is between contracts #tag', async () => {
+    it('should update sectorHistory if auxiliary contract is between contracts', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${usersSeedList[4]._id}`,
@@ -1057,27 +1057,34 @@ describe('PUT /users/:id', () => {
       const role = await Role.findOne({ name: HELPER }).lean();
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${userList[6]._id}`,
+        url: `/users/${usersSeedList[10]._id}`,
         payload: { customer: customer._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
+      const userUpdated = !!await User.countDocuments({ _id: usersSeedList[10]._id, 'role.client': role._id });
+      expect(userUpdated).toBeTruthy();
     });
 
-    it('should add helper role to user if no company', async () => {
+    it('should add helper role and company to user with previously no company', async () => {
       const role = await Role.findOne({ name: HELPER }).lean();
-      expect(await UserCompany.countDocuments({ user: userList[8]._id })).toBe(0);
+      const userId = usersSeedList[11]._id;
+      const noCompanyBefore = !await UserCompany.countDocuments({ user: userId });
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${userList[8]._id}`,
+        url: `/users/${userId}`,
         payload: { customer: customer._id, role: role._id, company: authCompany._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
-      expect(await UserCompany.countDocuments({ user: userList[8]._id })).toBe(1);
+      const updatedRole = await User.countDocuments({ _id: userId, 'role.client': role._id });
+      const updatedCompany = !!await UserCompany.countDocuments({ user: userId });
+      expect(updatedRole).toBeTruthy();
+      expect(updatedCompany).toBeTruthy();
+      expect(noCompanyBefore).toBeTruthy();
     });
 
     it('should not add helper role to user if customer is not from the same company as user', async () => {
@@ -1124,7 +1131,6 @@ describe('PUT /users/:id', () => {
       });
 
       expect(response.statusCode).toBe(409);
-      expect(response.result.message).toBe('Ce compte a déjà un rôle sur cette interface.');
     });
 
     it('should return a 403 error if user is not from the same company', async () => {
@@ -1184,6 +1190,9 @@ describe('PUT /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(200);
+      const updatedTrainer = !!await User
+        .countDocuments({ _id: trainer._id, 'identity.firstname': 'trainerUpdate' });
+      expect(updatedTrainer).toBeTruthy();
     });
 
     it('should return 200 if company is in payload and is the same as the user company', async () => {
@@ -1225,6 +1234,8 @@ describe('PUT /users/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const userUpdated = !!await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
+      expect(userUpdated).toBeTruthy();
     });
 
     it('should not update another field than allowed ones', async () => {
@@ -1368,15 +1379,25 @@ describe('PUT /users/:id/certificates', () => {
       authToken = await getToken('coach');
     });
 
-    it('should update user certificates', async () => {
+    it('should update user by removing the passed certificate id', async () => {
+      const certificatExistsBefore = !!await User.countDocuments({
+        _id: usersSeedList[0]._id,
+        'administrative.certificates.driveId': { $exists: true },
+      });
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${usersSeedList[0]._id.toHexString()}/certificates`,
+        url: `/users/${usersSeedList[0]._id}/certificates`,
         payload: updatePayload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
+      const certificateRemoved = !!await User.countDocuments({
+        _id: usersSeedList[0]._id,
+        'administrative.certificates.driveId': { $exists: false },
+      });
+      expect(certificatExistsBefore).toBeTruthy();
+      expect(certificateRemoved).toBeTruthy();
     });
 
     it('should return a 403 if user is not from same company', async () => {
@@ -1397,7 +1418,7 @@ describe('PUT /users/:id/certificates', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should return a 200 even if user is not from same company', async () => {
+    it('should update the user by removing certificate, even if user is not from same company', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/certificates`,
@@ -1410,7 +1431,7 @@ describe('PUT /users/:id/certificates', () => {
   });
 
   describe('Other roles', () => {
-    it('should update user certificate if it is me', async () => {
+    it('should update user by removing certificate, if it is me', async () => {
       authToken = await getToken('auxiliary');
 
       const response = await app.inject({
@@ -1526,6 +1547,12 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const userCount = await User.countDocuments({
+        _id: auxiliary._id,
+        'administrative.mutualFund': { driveId: 'qwerty', link: 'http://test.com/file.pdf' },
+      });
+      expect(userCount).toEqual(1);
     });
 
     const roles = [
@@ -1573,7 +1600,7 @@ describe('POST /users/:id/upload', () => {
     it('should add a user picture', async () => {
       const user = usersSeedList[0];
       const form = generateFormData({ fileName: 'user_image_test', file: 'yoyoyo' });
-      uploadUserMediaStub.returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
+      uploadUserMediaStub.returns({ public_id: 'abcdefgh', link: 'https://alenvi.io' });
       momentFormat.returns('20200625054512');
 
       const payload = await GetStream(form);
@@ -1585,6 +1612,9 @@ describe('POST /users/:id/upload', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const updatedUser = await User.countDocuments({ _id: user._id, 'picture.link': 'https://alenvi.io' });
+      expect(updatedUser).toBeTruthy();
       sinon.assert.calledOnceWithExactly(uploadUserMediaStub, { fileName: 'user_image_test', file: 'yoyoyo' });
     });
 
@@ -1610,7 +1640,7 @@ describe('POST /users/:id/upload', () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
       const form = generateFormData({ fileName: 'user_image_test', file: 'yoyoyo' });
-      uploadUserMediaStub.returns({ public_id: 'abcdefgh', secure_url: 'https://alenvi.io' });
+      uploadUserMediaStub.returns({ public_id: 'abcdefgh', link: 'https://alenvi.io' });
 
       const response = await app.inject({
         method: 'POST',
@@ -1620,6 +1650,9 @@ describe('POST /users/:id/upload', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const updatedUser = await User.countDocuments({ _id: noRoleNoCompany._id, 'picture.link': 'https://alenvi.io' });
+      expect(updatedUser).toBeTruthy();
     });
 
     const roles = [
@@ -1697,15 +1730,21 @@ describe('DELETE /users/:id/upload', () => {
   describe('Other roles', () => {
     beforeEach(populateDB);
     it('should delete picture if it is me', async () => {
-      const userWithPicture = userList[11];
-      authToken = await getTokenByCredentials(userWithPicture.local);
+      const user = usersSeedList[0];
+      authToken = await getTokenByCredentials(user.local);
+      const pictureExistsBeforeDeletion = !!await User
+        .countDocuments({ _id: user._id, 'picture.publicId': { $exists: true } });
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${userWithPicture._id}/upload`,
+        url: `/users/${user._id}/upload`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
+
+      const isPictureDeleted = !!await User.countDocuments({ _id: user._id, 'picture.publicId': { $exists: false } });
+      expect(pictureExistsBeforeDeletion).toBeTruthy();
+      expect(isPictureDeleted).toBeTruthy();
     });
 
     const roles = [
@@ -1809,6 +1848,11 @@ describe('POST /users/:id/expo-token', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const updatedToken = await User.countDocuments({
+        _id: usersSeedList[0]._id,
+        formationExpoTokenList: { $in: 'ExponentPushToken[jeSuisUnNouvelIdExpo]' },
+      });
+      expect(updatedToken).toBeTruthy();
     });
 
     it('should return 400 if formationExpoToken hasn\'t the right type', async () => {
@@ -1879,14 +1923,21 @@ describe('DELETE /users/:id/expo-token/:expoToken', () => {
     });
 
     it('should remove formationExpoToken from formationExpoTokenList', async () => {
+      const userId = usersSeedList[0]._id;
+      const expoToken = usersSeedList[0].formationExpoTokenList[0];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${usersSeedList[0]._id.toHexString()}`
-        + `/expo-token/${usersSeedList[0].formationExpoTokenList[0]}`,
+        url: `/users/${userId}`
+        + `/expo-token/${expoToken}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
+      const tokenDeleted = await User.countDocuments({
+        _id: userId,
+        formationExpoTokenList: { $nin: expoToken },
+      });
+      expect(tokenDeleted).toBeTruthy();
     });
 
     it('should return 403 if user is not loggedUser', async () => {
