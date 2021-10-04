@@ -3,7 +3,6 @@ const expect = require('expect');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const PizZip = require('pizzip');
 const DocxTemplater = require('docxtemplater');
 const Drive = require('../../../src/models/Google/Drive');
 const DocxHelper = require('../../../src/helpers/docx');
@@ -29,7 +28,6 @@ describe('generateDocx', () => {
 
 describe('createDocx', () => {
   it('should return filled docx template path', async () => {
-    sinon.createStubInstance(PizZip);
     const createDocxStub = sinon.stub(DocxHelper, 'createDocxTemplater').returns(new DocxTemplater());
     const generateStub = sinon.stub().returns('This is a filled zip file');
     const getZipStub = sinon.stub(DocxTemplater.prototype, 'getZip').returns({ generate: generateStub });

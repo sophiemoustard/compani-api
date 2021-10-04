@@ -15,7 +15,8 @@ const docxParser = tag => ({
   },
 });
 
-exports.createDocxTemplater = (zip, data) => {
+exports.createDocxTemplater = (file, data) => {
+  const zip = new PizZip(file);
   const docxTemplater = new DocxTemplater(zip, { parser: docxParser, linebreaks: true });
   docxTemplater.render(data);
 
@@ -24,8 +25,7 @@ exports.createDocxTemplater = (zip, data) => {
 
 exports.createDocx = async (filePath, data) => {
   const file = await fsPromises.readFile(filePath, 'binary');
-  const zip = new PizZip(file);
-  const doc = exports.createDocxTemplater(zip, data);
+  const doc = exports.createDocxTemplater(file, data);
   const filledZip = doc.getZip().generate({ type: 'nodebuffer' });
   const date = new Date();
   const tmpOutputPath = path.join(os.tmpdir(), `template-filled-${date.getTime()}.docx`);
