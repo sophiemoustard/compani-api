@@ -5,6 +5,7 @@ const mapKeys = require('lodash/mapKeys');
 const omit = require('lodash/omit');
 const setWith = require('lodash/setWith');
 const clone = require('lodash/clone');
+const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
 const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
@@ -76,12 +77,9 @@ exports.getSurchargeDetails = (surchargedHours, surcharge, surchargeKey, details
   return newDetails;
 };
 
-exports.applySurcharge = (paidHours, surcharge, surchargeKey, details, paidTransport) => ({
+exports.applySurcharge = (paidHours, surcharge, surchargeKey, details) => ({
   surcharged: paidHours,
-  notSurcharged: 0,
   details: exports.getSurchargeDetails(paidHours, surcharge, surchargeKey, details),
-  paidKm: paidTransport.distance,
-  paidTransportHours: paidTransport.duration / 60,
 });
 
 exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) => {
@@ -92,24 +90,24 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
 
   const paidHours = (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60;
   if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
-    return exports.applySurcharge(paidHours, surcharge, 'twentyFifthOfDecember', surchargeDetails, paidTransport);
+    return exports.applySurcharge(paidHours, surcharge, 'twentyFifthOfDecember', surchargeDetails);
   } if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
-    return exports.applySurcharge(paidHours, surcharge, 'firstOfMay', surchargeDetails, paidTransport);
+    return exports.applySurcharge(paidHours, surcharge, 'firstOfMay', surchargeDetails);
   } if (firstOfJanuary && firstOfJanuary > 0 && moment(event.startDate).format('DD/MM') === '01/01') {
-    return exports.applySurcharge(paidHours, surcharge, 'firstOfJanuary', surchargeDetails, paidTransport);
+    return exports.applySurcharge(paidHours, surcharge, 'firstOfJanuary', surchargeDetails);
   } if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
-    return exports.applySurcharge(paidHours, surcharge, 'publicHoliday', surchargeDetails, paidTransport);
+    return exports.applySurcharge(paidHours, surcharge, 'publicHoliday', surchargeDetails);
   } if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
-    return exports.applySurcharge(paidHours, surcharge, 'saturday', surchargeDetails, paidTransport);
+    return exports.applySurcharge(paidHours, surcharge, 'saturday', surchargeDetails);
   } if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) {
-    return exports.applySurcharge(paidHours, surcharge, 'sunday', surchargeDetails, paidTransport);
+    return exports.applySurcharge(paidHours, surcharge, 'sunday', surchargeDetails);
   }
 
   let totalSurchargedHours = 0;
   let details = { ...surchargeDetails };
   if (evening) {
-    /* eslint-disable-next-line max-len */
-    const surchargedHours = exports.applyCustomSurcharge(event, eveningStartTime, eveningEndTime, paidTransport.duration);
+    const surchargedHours =
+      exports.applyCustomSurcharge(event, eveningStartTime, eveningEndTime, paidTransport.duration);
     if (surchargedHours) details = exports.getSurchargeDetails(surchargedHours, surcharge, 'evening', details);
     totalSurchargedHours += surchargedHours;
   }
@@ -119,13 +117,7 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
     totalSurchargedHours += surchargedHours;
   }
 
-  return {
-    surcharged: totalSurchargedHours,
-    notSurcharged: paidHours - totalSurchargedHours,
-    details,
-    paidKm: paidTransport.distance,
-    paidTransportHours: paidTransport.duration / 60,
-  };
+  return { surcharged: totalSurchargedHours, notSurcharged: paidHours - totalSurchargedHours, details };
 };
 
 exports.getTransportInfo = async (distances, origins, destinations, mode, companyId) => {
@@ -160,6 +152,7 @@ exports.getTransportMode = (event) => {
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
   let paidTransportDuration = 0;
   let paidKm = 0;
+  let travelledKm = 0;
 
   if (prevEvent && !prevEvent.hasFixedService && !event.hasFixedService) {
     const origins = get(prevEvent, 'address.fullAddress', null);
@@ -169,7 +162,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
       transportMode = exports.getTransportMode(event);
     }
 
-    if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, distance: paidKm };
+    if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, paidKm, travelledKm };
 
     const transport = await exports.getTransportInfo(
       dm,
@@ -182,25 +175,31 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     const pickTransportDuration = breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
     paidKm = transportMode.shouldPayKm ? transport.distance : 0;
+    travelledKm = transport.distance;
   }
 
-  return { duration: paidTransportDuration, distance: paidKm };
+  return { duration: paidTransportDuration, paidKm, travelledKm };
 };
 
 exports.getEventHours = async (event, prevEvent, service, details, dm) => {
   const paidTransport = await exports.getPaidTransportInfo(event, prevEvent, dm);
 
-  if (!service || !service.surcharge) {
+  const eventHours = {
+    ...pick(paidTransport, ['paidKm', 'travelledKm']),
+    surcharged: 0,
+    notSurcharged: 0,
+    paidTransportHours: paidTransport.duration / 60,
+    details: { ...details },
+  };
+
+  if (!get(service, 'surcharge')) {
     return {
-      surcharged: 0,
+      ...eventHours,
       notSurcharged: (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60,
-      details: { ...details },
-      paidKm: paidTransport.distance,
-      paidTransportHours: paidTransport.duration / 60,
     };
   }
 
-  return exports.getSurchargeSplit(event, service.surcharge, details, paidTransport);
+  return { ...eventHours, ...exports.getSurchargeSplit(event, service.surcharge, details, paidTransport) };
 };
 
 exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
@@ -238,6 +237,7 @@ exports.initializePaidHours = () => cloneDeep({
   surchargedAndNotExemptDetails: {},
   surchargedAndExemptDetails: {},
   paidKm: 0,
+  travelledKm: 0,
   paidTransportHours: 0,
 });
 
@@ -251,6 +251,7 @@ const incrementHours = (total, hours, surchargedKey) => {
     [`${surchargedKey}Details`]: hours.details,
     workedHours: total.workedHours + hours.surcharged + hours.notSurcharged,
     paidKm: total.paidKm + hours.paidKm,
+    travelledKm: total.travelledKm + hours.travelledKm,
     paidTransportHours: total.paidTransportHours + hours.paidTransportHours,
   };
 };

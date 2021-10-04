@@ -167,7 +167,7 @@ exports.authorizeUserCreation = async (req) => {
   if (req.payload.customer) {
     const { customer } = req.payload;
     const customerCount = await Customer.countDocuments({ _id: customer, company: get(credentials, 'company._id') });
-    if (!customerCount) throw Boom.forbidden();
+    if (!customerCount) throw Boom.notFound();
   }
 
   const vendorRole = get(credentials, 'role.vendor.name');
