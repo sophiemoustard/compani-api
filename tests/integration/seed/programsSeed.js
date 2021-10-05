@@ -16,8 +16,9 @@ const cards = [
 ];
 
 const activitiesList = [
-  { _id: new ObjectID(), name: 'c\'est une activité', type: 'sharing_experience', cards: [cards[0]._id] },
-  { _id: new ObjectID(), name: 'toujours une activité', type: 'quiz', cards: [cards[1]._id] },
+  { _id: new ObjectID(), name: 'activité 1', type: 'sharing_experience', cards: [cards[0]._id] },
+  { _id: new ObjectID(), name: 'activité 2', type: 'quiz', cards: [cards[1]._id] },
+  { _id: new ObjectID(), name: 'activité 3', type: 'quiz', cards: [] },
 ];
 
 const categoriesList = [
@@ -33,18 +34,46 @@ const stepsList = [
   {
     _id: new ObjectID(),
     type: 'e_learning',
-    name: 'c\'est une étape',
+    name: 'étape 1',
     activities: [activitiesList[0]._id, activitiesList[1]._id],
   },
-  { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape', activities: [activitiesList[0]._id] },
-  { _id: new ObjectID(), type: 'on_site', name: 'encore une étape', activities: [activitiesList[0]._id] },
-  { _id: new ObjectID(), type: 'on_site', name: 'encore une étape', activities: [activitiesList[1]._id] },
+  { _id: new ObjectID(), type: 'e_learning', name: 'étape 2', activities: [activitiesList[0]._id] },
+  { _id: new ObjectID(), type: 'on_site', name: 'étape 3 - sans act', activities: [] },
+  { _id: new ObjectID(), type: 'on_site', name: 'étape 4 - tout valide', activities: [activitiesList[0]._id] },
+  { _id: new ObjectID(), type: 'on_site', name: 'étape 5 - carte non valide', activities: [activitiesList[1]._id] },
+  { _id: new ObjectID(), type: 'on_site', name: 'étape 6 - sans carte', activities: [activitiesList[2]._id] },
+  { _id: new ObjectID(), type: 'e_learning', name: 'étape 7 - sans act', activities: [] },
+  { _id: new ObjectID(), type: 'e_learning', name: 'étape 8 - tout valide', activities: [activitiesList[0]._id] },
+  { _id: new ObjectID(), type: 'e_learning', name: 'étape 9 - carte non valide', activities: [activitiesList[1]._id] },
+  { _id: new ObjectID(), type: 'e_learning', name: 'étape 10 - sans carte', activities: [activitiesList[2]._id] },
+  { _id: new ObjectID(), type: 'remote', name: 'étape 11 - sans act', activities: [] },
+  { _id: new ObjectID(), type: 'remote', name: 'étape 12 - tout valide', activities: [activitiesList[0]._id] },
+  { _id: new ObjectID(), type: 'remote', name: 'étape 13 - carte non valide', activities: [activitiesList[1]._id] },
+  { _id: new ObjectID(), type: 'remote', name: 'étape 14 - sans carte', activities: [activitiesList[2]._id] },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectID(), name: 'c\'est un sous-programme', steps: [stepsList[2]._id] },
-  { _id: new ObjectID(), name: 'c\'est un sous-programme', steps: [stepsList[3]._id] },
-  { _id: new ObjectID(), name: 'c\'est un sous-programme elearning', steps: [stepsList[1]._id] },
+  { _id: new ObjectID(), name: 'sous-programme 1', steps: [stepsList[2]._id] },
+  { _id: new ObjectID(), name: 'sous-programme 2', steps: [stepsList[3]._id] },
+  { _id: new ObjectID(), name: 'sous-programme 3', steps: [stepsList[1]._id] },
+  {
+    _id: new ObjectID(),
+    name: 'sous-programme 4',
+    steps: [
+      stepsList[2]._id,
+      stepsList[3]._id,
+      stepsList[4]._id,
+      stepsList[5]._id,
+      stepsList[6]._id,
+      stepsList[7]._id,
+      stepsList[8]._id,
+      stepsList[9]._id,
+      stepsList[10]._id,
+      stepsList[11]._id,
+      stepsList[12]._id,
+      stepsList[13]._id,
+    ],
+  },
 ];
 
 const programsList = [
@@ -70,6 +99,7 @@ const programsList = [
     subPrograms: [subProgramsList[2]._id],
   },
   { _id: new ObjectID(), name: 'non valid program', subPrograms: [subProgramsList[1]._id] },
+  { _id: new ObjectID(), name: 'programme a vérifier', subPrograms: [subProgramsList[3]._id] },
 ];
 
 const course = {

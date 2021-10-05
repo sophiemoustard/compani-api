@@ -167,15 +167,102 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should get program', async () => {
+    it('should get program not strictly e-learning', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/programs/${programsList[0]._id}`,
+        url: `/programs/${programsList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.program._id).toEqual(programsList[0]._id);
+      expect(response.result.data.program._id).toEqual(programsList[4]._id);
+      expect(response.result.data.program.subPrograms[0].areStepsValid).toBeFalsy();
+      expect(response.result.data.program.subPrograms[0].isStrictlyELearning).toBeFalsy();
+      expect(response.result.data.program.subPrograms[0].steps).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          name: 'étape 3 - sans act',
+          type: 'on_site',
+          activities: [],
+          areActivitiesValid: true,
+        }),
+        expect.objectContaining({
+          name: 'étape 4 - tout valide',
+          type: 'on_site',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 1', areCardsValid: true })]),
+          areActivitiesValid: true,
+        }),
+        expect.objectContaining({
+          name: 'étape 5 - carte non valide',
+          type: 'on_site',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 2', areCardsValid: false })]),
+          areActivitiesValid: false,
+        }),
+        expect.objectContaining({
+          name: 'étape 6 - sans carte',
+          type: 'on_site',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 3', areCardsValid: false })]),
+          areActivitiesValid: false,
+        }),
+        expect.objectContaining({
+          name: 'étape 7 - sans act',
+          type: 'e_learning',
+          activities: [],
+          areActivitiesValid: false,
+        }),
+        expect.objectContaining({
+          name: 'étape 8 - tout valide',
+          type: 'e_learning',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 1', areCardsValid: true })]),
+          areActivitiesValid: true,
+        }),
+        expect.objectContaining({
+          name: 'étape 9 - carte non valide',
+          type: 'e_learning',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 2', areCardsValid: false })]),
+          areActivitiesValid: false,
+        }),
+        expect.objectContaining({
+          name: 'étape 10 - sans carte',
+          type: 'e_learning',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 3', areCardsValid: false })]),
+          areActivitiesValid: false,
+        }),
+        expect.objectContaining({
+          name: 'étape 11 - sans act',
+          type: 'remote',
+          activities: [],
+          areActivitiesValid: true,
+        }),
+        expect.objectContaining({
+          name: 'étape 12 - tout valide',
+          type: 'remote',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 1', areCardsValid: true })]),
+          areActivitiesValid: true,
+        }),
+        expect.objectContaining({
+          name: 'étape 13 - carte non valide',
+          type: 'remote',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 2', areCardsValid: false })]),
+          areActivitiesValid: false,
+        }),
+        expect.objectContaining({
+          name: 'étape 14 - sans carte',
+          type: 'remote',
+          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 3', areCardsValid: false })]),
+          areActivitiesValid: false,
+        }),
+      ]));
+    });
+
+    it('should return a program strictly e-learning', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/${programsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.program.subPrograms[0].isStrictlyELearning).toBeTruthy();
     });
 
     it('should return 404 if program does not exist', async () => {

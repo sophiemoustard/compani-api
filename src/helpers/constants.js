@@ -308,6 +308,10 @@ module.exports = {
   // STEP
   E_LEARNING: 'e_learning',
   ON_SITE: 'on_site',
+  REMOTE: 'remote',
+  get LIVE_STEPS() {
+    return [this.ON_SITE, this.REMOTE];
+  },
   // ACTIVITY
   LESSON: 'lesson',
   QUIZ: 'quiz',
