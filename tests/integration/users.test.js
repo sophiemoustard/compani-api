@@ -31,7 +31,6 @@ const {
   userSectors,
   sectorHistories,
   establishmentList,
-  coachFromOtherCompany,
   auxiliaryFromOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -360,19 +359,6 @@ describe('GET /users', () => {
   describe('COACH', () => {
     beforeEach(async () => {
       authToken = await getToken('coach');
-    });
-
-    it('should get all users (company B)', async () => {
-      authToken = await getTokenByCredentials(coachFromOtherCompany.local);
-
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users?company=${otherCompany._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(usersFromOtherCompanyList.length);
     });
 
     it('should get all coachs users (company A), role as a string', async () => {
