@@ -78,6 +78,9 @@ exports.authorizeCustomerUpdate = async (req) => {
         $or: [{ stoppedAt: { $exists: false } }, { archivedAt: { $exists: true } }],
       });
       if (customer) throw Boom.forbidden();
+
+      const eventsToBill = await Event.countDocuments({ _id: req.params._id, isBilled: false });
+      if (eventsToBill) throw Boom.forbidden(translate[language].archivingNotAllowed);
     }
   }
 

@@ -117,6 +117,7 @@ module.exports = {
     customerFundingUpdated: 'Customer funding updated.',
     customerFundingRemoved: 'Customer funding removed.',
     qrCodeCreated: 'QR code created.',
+    archivingNotAllowed: 'Archivage impossible : interventions passées non facturées',
     /* Customer notes */
     customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
