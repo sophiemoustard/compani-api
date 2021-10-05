@@ -63,6 +63,7 @@ exports.plugin = {
             }),
             customersConfig: Joi.object().keys({
               billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS),
+              billFooter: Joi.string(),
               templates: Joi.object().keys({
                 debitMandate: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
                 quote: Joi.object().keys({ driveId: Joi.string().allow(null), link: Joi.string().allow(null) }),
