@@ -262,7 +262,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.program.subPrograms[0].areStepsValid).toBeTruthy();
+      expect(response.result.data.program.subPrograms[0].isStrictlyELearning).toBeTruthy();
     });
 
     it('should return 404 if program does not exist', async () => {
