@@ -167,7 +167,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should get program #tag', async () => {
+    it('should get program not strictly e-learning', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/programs/${programsList[4]._id}`,
@@ -252,6 +252,17 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
           areActivitiesValid: false,
         }),
       ]));
+    });
+
+    it('should return a program strictly e-learning', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/${programsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.program.subPrograms[0].areStepsValid).toBeTruthy();
     });
 
     it('should return 404 if program does not exist', async () => {
