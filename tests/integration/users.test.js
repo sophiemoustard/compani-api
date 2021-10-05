@@ -674,7 +674,7 @@ describe('GET /users/learners', () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should return 404 if client admin request learners from other company', async () => {
+    it('should return 403 if client admin request learners from other company', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/learners?company=${otherCompany._id}`,
@@ -714,7 +714,7 @@ describe('GET /users/active', () => {
       authToken = await getToken('coach');
     });
 
-    it('should get all active auxiliary (company A) #tag', async () => {
+    it('should get all active auxiliaries (company A)', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/users/active?company=${authCompany._id}&role=auxiliary`,
