@@ -439,7 +439,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers).toBeDefined();
-        expect(res.result.data.customers).toHaveLength(3);
+        expect(res.result.data.customers).toHaveLength(4);
       });
     });
 
@@ -836,7 +836,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return 403 if customer has not billed interventions', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${customersList[9]._id}`,
+          url: `/customers/${customersList[12]._id}`,
           payload: { archivedAt: '2021-01-16T14:30:19' },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });

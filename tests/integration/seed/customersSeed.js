@@ -414,7 +414,7 @@ const customersList = [
       },
     ],
   },
-  { // 9
+  {
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
@@ -445,7 +445,7 @@ const customersList = [
     },
     createdAt: new Date('2021-05-24'),
   },
-  { // 11
+  {
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'alex', lastname: 'terieur' },
@@ -461,6 +461,22 @@ const customersList = [
     stoppedAt: new Date(),
     stopReason: DEATH,
     archivedAt: new Date(),
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'testons', lastname: 'larchivage' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+    stoppedAt: new Date(),
+    stopReason: DEATH,
   },
 ];
 
@@ -851,7 +867,7 @@ const eventList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    customer: customersList[9]._id,
+    customer: customersList[12]._id,
     auxiliary: userList[6]._id,
     type: 'intervention',
     subscription: new ObjectID(),

@@ -146,7 +146,6 @@ const auxiliaryExportHeader = [
   'Date de fin de contrat prestataire',
   'Date d\'inactivité',
   'Date de création',
-  'Statut',
 ];
 
 const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {

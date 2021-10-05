@@ -114,9 +114,7 @@ historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
 
-        for (let i = 0; i < expectedRows.length; i++) {
-          expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
-        }
+        for (let i = 0; i < expectedRows.length; i++) expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
       });
     });
 
@@ -175,13 +173,13 @@ const dataExportTypes = [
   {
     exportType: CUSTOMER,
     expectedRows: [
-      '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Id Auxiliaire référent(e)";"Auxiliaire référent(e)";"Situation";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création"',
-      `${authCustomer._id.toHexString()};"M.";"LACORDÉE";"vian";;"37 rue de ponthieu 75008 Paris";;;;"Non renseigné";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}"`,
+      '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prenom";"Date de naissance";"Adresse";"1ère intervention";"Id Auxiliaire référent(e)";"Auxiliaire référent(e)";"Situation";"Environnement";"Objectifs";"Autres";"Nom associé au compte bancaire";"IBAN";"BIC";"RUM";"Date de signature du mandat";"Nombre de souscriptions";"Souscriptions";"Nombre de financements";"Date de création";"Statut"',
+      `${authCustomer._id.toHexString()};"M.";"LACORDÉE";"vian";;"37 rue de ponthieu 75008 Paris";;;;"Non renseigné";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Actif"`,
       `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"01/01/1940";"37 rue de ponthieu 75008 Paris";"17/01/2020";${auxiliaryList[0]._id};"Lulu Uiui";"Domicile";"test";"toto";"123456789";"Test Toto";"FR6930003000405885475816L80";"ABNAFRPP";;;2;"Service 1`,
-      ` Service 2";1;"${moment().format('DD/MM/YYYY')}"`,
-      `${customersList[1]._id.toHexString()};"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;${auxiliaryList[0]._id};"Lulu Uiui";"EHPAD";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}"`,
-      `${customersList[2]._id.toHexString()};"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;;"Domicile";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}"`,
-      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";"11/01/2019";;;"Non renseigné";;;;;;;;;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}"`,
+      ` Service 2";1;"${moment().format('DD/MM/YYYY')}";"Actif"`,
+      `${customersList[1]._id.toHexString()};"M.";"BERNAL";"Egan";;"37 rue de ponthieu 75008 Paris";;${auxiliaryList[0]._id};"Lulu Uiui";"EHPAD";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Actif"`,
+      `${customersList[2]._id.toHexString()};"M.";"ALAPHILIPPE";"Julian";;"37 rue de ponthieu 75008 Paris";;;;"Domicile";;;;;;;;;0;;0;"${moment().format('DD/MM/YYYY')}";"Actif"`,
+      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";;"37 rue de ponthieu 75008 Paris";"11/01/2019";;;"Non renseigné";;;;;;;;;1;"Service 1";1;"${moment().format('DD/MM/YYYY')}";"Actif"`,
     ],
   },
   {
@@ -252,9 +250,7 @@ dataExportTypes.forEach(({ exportType, expectedRows }) => {
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
 
-        for (let i = 0; i < expectedRows.length; i++) {
-          expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
-        }
+        for (let i = 0; i < expectedRows.length; i++) expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
       });
     });
 
