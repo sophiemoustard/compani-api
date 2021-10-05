@@ -759,7 +759,6 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(400);
       });
 
-
       it('should return a 404 error if no customer found', async () => {
         const res = await app.inject({
           method: 'PUT',
@@ -771,7 +770,7 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(404);
       });
 
-      it('should return 403 if already stop', async () => {
+      it('should return 403 if already stopped', async () => {
         const customer = customersList[9];
 
         const res = await app.inject({
@@ -828,6 +827,17 @@ describe('CUSTOMERS ROUTES', () => {
           method: 'PUT',
           url: `/customers/${otherCompanyCustomer._id}`,
           payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 403 if customer has not billed interventions', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customersList[9]._id}`,
+          payload: { archivedAt: '2021-01-16T14:30:19' },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

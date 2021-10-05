@@ -117,7 +117,7 @@ module.exports = {
     customerFundingUpdated: 'Customer funding updated.',
     customerFundingRemoved: 'Customer funding removed.',
     qrCodeCreated: 'QR code created.',
-    archivingNotAllowed: 'Archivage impossible : interventions passées non facturées',
+    archivingNotAllowed: 'Archiving not allowed : customer has non-billed intervention(s)',
     /* Customer notes */
     customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
@@ -451,6 +451,7 @@ module.exports = {
     customerFundingUpdated: 'Financement du/de la bénéficiaire modifié.',
     customerFundingRemoved: 'Financement du/ de la bénéficiaire supprimé.',
     qrCodeCreated: 'QR code créé.',
+    archivingNotAllowed: 'Archivage impossible : interventions passées non facturées',
     /* Customer notes */
     customerNoteCreated: 'Note de suivi créée.',
     customerNotesFound: 'Notes de suivi trouvées.',

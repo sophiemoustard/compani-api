@@ -848,6 +848,23 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: customersList[9]._id,
+    auxiliary: userList[6]._id,
+    type: 'intervention',
+    subscription: new ObjectID(),
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
 
 const helpersList = [
