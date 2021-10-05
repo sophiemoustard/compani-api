@@ -1228,6 +1228,21 @@ describe('sendSMS', () => {
       expect(e).toEqual(Boom.badRequest());
     }
   });
+
+  it('should do nothing if no phone numbers', async () => {
+    const traineesWithoutPhoneNumbers = [
+      { contact: {}, identity: { firstname: 'non', lasname: 'ok' }, _id: 'qwertyuio' },
+      { contact: {}, identity: { firstname: 'test', lasname: 'ok' }, _id: 'asdfghjkl' },
+      { contact: {}, identity: { firstname: 'test', lasname: 'ko' }, _id: 'poiuytrewq' },
+    ];
+
+    courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees: traineesWithoutPhoneNumbers }]));
+
+    await CourseHelper.sendSMS(courseId, payload, credentials);
+
+    sinon.assert.notCalled(sendStub);
+    sinon.assert.notCalled(courseSmsHistoryCreate);
+  });
 });
 
 describe('getSMSHistory', () => {
