@@ -33,7 +33,6 @@ describe('ACTIVITIES ROUTES - GET /activity/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.activity._id).toEqual(activityId);
-      expect(response.result.data.activity.name).toEqual('fumer');
       expect(response.result.data.activity.quizCount).toEqual(2);
     });
   });
