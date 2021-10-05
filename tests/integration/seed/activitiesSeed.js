@@ -4,7 +4,14 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
-const { TRANSITION, FLASHCARD, TITLE_TEXT, TITLE_TEXT_MEDIA } = require('../../../src/helpers/constants');
+const {
+  TRANSITION,
+  FLASHCARD,
+  TITLE_TEXT,
+  TITLE_TEXT_MEDIA,
+  FILL_THE_GAPS,
+  ORDER_THE_SEQUENCE,
+} = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const cardsList = [
@@ -20,6 +27,8 @@ const cardsList = [
   { _id: new ObjectID(), template: FLASHCARD, backText: 'ceci est un backText', text: 'ceci est un text' },
   { _id: new ObjectID(), template: TITLE_TEXT },
   { _id: new ObjectID(), template: TRANSITION },
+  { _id: new ObjectID(), template: FILL_THE_GAPS },
+  { _id: new ObjectID(), template: ORDER_THE_SEQUENCE },
 ];
 
 const activitiesList = [
@@ -31,7 +40,7 @@ const activitiesList = [
     cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id, cardsList[3]._id],
   },
   { _id: new ObjectID(), name: 'bouger', type: 'lesson' },
-  { _id: new ObjectID(), name: 'fumer', type: 'video' },
+  { _id: new ObjectID(), name: 'fumer', type: 'video', cards: [cardsList[0]._id, cardsList[6]._id, cardsList[7]._id] },
   {
     _id: new ObjectID(),
     name: 'publiée',

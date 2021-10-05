@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
 describe('ACTIVITIES ROUTES - GET /activity/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
-  const activityId = activitiesList[0]._id;
+  const activityId = activitiesList[2]._id;
 
   describe('Logged user', () => {
     beforeEach(async () => {
@@ -33,6 +33,8 @@ describe('ACTIVITIES ROUTES - GET /activity/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.activity._id).toEqual(activityId);
+      expect(response.result.data.activity.name).toEqual('fumer');
+      expect(response.result.data.activity.quizCount).toEqual(2);
     });
   });
 });
