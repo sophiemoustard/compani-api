@@ -455,4 +455,8 @@ module.exports = {
   // NOTES
   NOTE_CREATION: 'note_creation',
   NOTE_UPDATE: 'note_update',
+  // STATUS
+  ACTIVATED: 'Actif',
+  STOPPED: 'Arrêté',
+  ARCHIVED: 'Archivé',
 };

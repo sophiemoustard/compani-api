@@ -61,6 +61,7 @@ describe('exportCustomers', () => {
       'Souscriptions',
       'Nombre de financements',
       'Date de création',
+      'Statut',
     ]);
     SinonMongoose.calledWithExactly(
       findCustomer,
@@ -139,6 +140,7 @@ describe('exportCustomers', () => {
       'Au service de sa majesté\r\n Service public\r\n Service civique',
       2,
       '12/12/2012',
+      'Actif',
     ]);
     SinonMongoose.calledWithExactly(
       findCustomer,
@@ -167,7 +169,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', '',
     ]);
     SinonMongoose.calledWithExactly(
       findCustomer,
