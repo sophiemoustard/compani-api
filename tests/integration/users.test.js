@@ -668,14 +668,30 @@ describe('GET /users/learners', () => {
     });
   });
 
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should return 404 if client admin request learners from other company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/learners?company=${otherCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403, details: 'if not his company' },
       { name: 'planning_referent', expectedCode: 403 },
     ];
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name} ${get(role, 'details') || ''}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
@@ -697,28 +713,17 @@ describe('GET /users/active', () => {
       authToken = await getToken('coach');
     });
 
-    it('should get all active users (company A)', async () => {
+    it('should get all active auxiliary (company A) #tag', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/users/active?company=${authCompany._id}`,
+        url: `/users/active?company=${authCompany._id}&role=auxiliary`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(5);
+      expect(res.result.data.users.length).toBe(3);
       expect(res.result.data.users.every(u => u.isActive)).toBeTruthy();
-    });
-
-    it('should get all active auxiliary users (company B)', async () => {
-      authToken = await getTokenByCredentials(coachFromOtherCompany.local);
-
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/active?company=${otherCompany._id}&role=auxiliary`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(1);
+      expect(res.result.data.users.every(u => u.role.client.name === 'auxiliary')).toBeTruthy();
     });
 
     it('should return a 403 if not from the same company', async () => {
