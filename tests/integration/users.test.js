@@ -355,8 +355,9 @@ describe('POST /users', () => {
 
 describe('GET /users', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -420,7 +421,6 @@ describe('GET /users', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -475,6 +475,7 @@ describe('GET /users', () => {
 describe('GET /users/exists', () => {
   let authToken;
   beforeEach(populateDB);
+
   describe('NOT LOGGED', () => {
     it('should return 200 if user not connected', async () => {
       const { email } = usersSeedList[0].local;
@@ -550,12 +551,12 @@ describe('GET /users/exists', () => {
 
 describe('GET /users/sector-histories', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('COACH', () => {
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
-
-    beforeEach(populateDB);
 
     it('should get all auxiliary users', async () => {
       const res = await app.inject({
@@ -605,8 +606,9 @@ describe('GET /users/sector-histories', () => {
 
 describe('GET /users/learners', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('TRAINER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('trainer');
     });
@@ -650,7 +652,6 @@ describe('GET /users/learners', () => {
   });
 
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -669,7 +670,6 @@ describe('GET /users/learners', () => {
   });
 
   describe('CLIENT_ADMIN', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('client_admin');
     });
@@ -707,8 +707,9 @@ describe('GET /users/learners', () => {
 
 describe('GET /users/active', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -737,7 +738,6 @@ describe('GET /users/active', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -780,8 +780,9 @@ describe('GET /users/active', () => {
 
 describe('GET /users/:id', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -810,7 +811,6 @@ describe('GET /users/:id', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -829,7 +829,6 @@ describe('GET /users/:id', () => {
   });
 
   describe('NO_ROLE_NO_COMPANY', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
