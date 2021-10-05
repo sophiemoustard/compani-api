@@ -71,6 +71,14 @@ exports.authorizeCustomerUpdate = async (req) => {
       );
       if (customer) return Boom.forbidden();
     }
+
+    if (payload.archivedAt) {
+      const customer = await Customer.countDocuments({
+        _id: req.params._id,
+        $or: [{ stoppedAt: { $exists: false } }, { archivedAt: { $exists: true } }],
+      });
+      if (customer) throw Boom.forbidden();
+    }
   }
 
   return null;

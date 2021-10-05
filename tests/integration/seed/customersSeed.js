@@ -414,7 +414,7 @@ const customersList = [
       },
     ],
   },
-  { // 8
+  { // 9
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
@@ -444,6 +444,23 @@ const customersList = [
       },
     },
     createdAt: new Date('2021-05-24'),
+  },
+  { // 11
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'alex', lastname: 'terieur' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+    stoppedAt: new Date(),
+    stopReason: DEATH,
+    archivedAt: new Date(),
   },
 ];
 

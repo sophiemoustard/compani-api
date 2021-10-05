@@ -682,7 +682,7 @@ describe('CUSTOMERS ROUTES', () => {
       });
 
       it('should archive customer', async () => {
-        const customer = customersList[8];
+        const customer = customersList[9];
 
         const res = await app.inject({
           method: 'PUT',
@@ -791,6 +791,32 @@ describe('CUSTOMERS ROUTES', () => {
           method: 'PUT',
           url: `/customers/${customer._id}`,
           payload: { stoppedAt: new Date('2021-05-23'), stopReason: DEATH },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 403 if user tries to archive a customer before stopping it', async () => {
+        const customer = customersList[10];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 403 if user tries to archive a customer who is already archived', async () => {
+        const customer = customersList[11];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
