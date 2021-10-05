@@ -414,7 +414,7 @@ const customersList = [
       },
     ],
   },
-  {
+  { // 8
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },

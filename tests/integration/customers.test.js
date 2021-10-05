@@ -681,15 +681,30 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
       });
 
-      it('should return a 404 error if no customer found', async () => {
+      it('should archive customer', async () => {
+        const customer = customersList[8];
+
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${new ObjectID()}`,
-          payload: updatePayload,
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(res.statusCode).toBe(404);
+        expect(res.statusCode).toBe(200);
+      });
+
+      it('should return a 400 if there are both archivedAt and stoppedAt in payload', async () => {
+        const customer = customersList[0];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date(), stopReason: DEATH, archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(400);
       });
 
       it('should return a 400 error if phone number is invalid', async () => {
@@ -705,7 +720,20 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(400);
       });
 
-      it('should return a 400 error if missing stopReason or stoppedAt in status update', async () => {
+      it('should return a 400 error if missing stopReason when stoppedAt is in payload', async () => {
+        const customer = customersList[0];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(400);
+      });
+
+      it('should return a 400 error if missing stoppedAt when stopReason is in payload', async () => {
         const customer = customersList[0];
 
         const res = await app.inject({
@@ -729,6 +757,18 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(400);
+      });
+
+
+      it('should return a 404 error if no customer found', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${new ObjectID()}`,
+          payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(404);
       });
 
       it('should return 403 if already stop', async () => {
