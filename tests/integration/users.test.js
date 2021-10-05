@@ -863,9 +863,9 @@ describe('GET /users/:id', () => {
 
 describe('PUT /users/:id', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -1177,7 +1177,6 @@ describe('PUT /users/:id', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -1217,7 +1216,6 @@ describe('PUT /users/:id', () => {
   });
 
   describe('NO_ROLE_NO_COMPANY', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
@@ -1260,8 +1258,6 @@ describe('PUT /users/:id', () => {
   });
 
   describe('Other roles', () => {
-    beforeEach(populateDB);
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
@@ -1287,8 +1283,9 @@ describe('PUT /users/:id', () => {
 
 describe('DELETE /users/:id', () => {
   let authToken;
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -1347,8 +1344,6 @@ describe('DELETE /users/:id', () => {
   });
 
   describe('Other roles', () => {
-    beforeEach(populateDB);
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
@@ -1373,8 +1368,9 @@ describe('DELETE /users/:id', () => {
 describe('PUT /users/:id/certificates', () => {
   let authToken;
   const updatePayload = { certificates: { driveId: usersSeedList[0].administrative.certificates.driveId } };
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -1413,7 +1409,6 @@ describe('PUT /users/:id/certificates', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -1481,8 +1476,9 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     addFileStub.restore();
   });
 
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -1591,8 +1587,9 @@ describe('POST /users/:id/upload', () => {
     momentFormat.restore();
   });
 
+  beforeEach(populateDB);
+
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -1691,8 +1688,9 @@ describe('DELETE /users/:id/upload', () => {
     deleteUserMediaStub.restore();
   });
 
+  beforeEach(populateDB);
+
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -1728,7 +1726,6 @@ describe('DELETE /users/:id/upload', () => {
   });
 
   describe('Other roles', () => {
-    beforeEach(populateDB);
     it('should delete picture if it is me', async () => {
       const user = usersSeedList[0];
       authToken = await getTokenByCredentials(user.local);
@@ -1779,8 +1776,9 @@ describe('POST /users/:id/drivefolder', () => {
     createFolderStub.restore();
   });
 
+  beforeEach(populateDB);
+
   describe('COACH', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
@@ -1806,7 +1804,6 @@ describe('POST /users/:id/drivefolder', () => {
   });
 
   describe('Other roles', () => {
-    beforeEach(populateDB);
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
@@ -1832,9 +1829,9 @@ describe('POST /users/:id/drivefolder', () => {
 
 describe('POST /users/:id/expo-token', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('LOGGED_USER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getTokenByCredentials(usersSeedList[0].local);
     });
@@ -1890,7 +1887,6 @@ describe('POST /users/:id/expo-token', () => {
   });
 
   describe('Other roles', () => {
-    beforeEach(populateDB);
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403 },
@@ -1915,9 +1911,9 @@ describe('POST /users/:id/expo-token', () => {
 
 describe('DELETE /users/:id/expo-token/:expoToken', () => {
   let authToken;
+  beforeEach(populateDB);
 
   describe('LOGGED_USER', () => {
-    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getTokenByCredentials(usersSeedList[0].local);
     });
@@ -1953,8 +1949,6 @@ describe('DELETE /users/:id/expo-token/:expoToken', () => {
   });
 
   describe('Other roles', () => {
-    beforeEach(populateDB);
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
