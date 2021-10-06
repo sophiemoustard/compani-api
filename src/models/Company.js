@@ -48,6 +48,7 @@ const CompanySchema = mongoose.Schema({
   },
   customersConfig: {
     billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS },
+    billFooter: { type: String },
     templates: {
       folderId: String,
       debitMandate: driveResourceSchemaDefinition,
