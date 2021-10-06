@@ -42,6 +42,7 @@ const {
   authorizeGetFollowUp,
   checkSalesRepresentativeExists,
   authorizeGetQuestionnaires,
+  authorizeAttendanceSheetsGet,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -184,7 +185,7 @@ exports.plugin = {
             salesRepresentative: Joi.objectId(),
           }),
         },
-        pre: [{ method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: update,
@@ -215,7 +216,7 @@ exports.plugin = {
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
-        pre: [{ method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
       },
       handler: sendSMS,
     });
@@ -228,7 +229,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
       },
       handler: getSMSHistory,
     });
@@ -241,7 +242,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({ trainee: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourseTrainee }, { method: authorizeCourseEdit }],
+        pre: [{ method: getCourseTrainee }, { method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
         auth: { scope: ['courses:edit'] },
       },
       handler: addTrainee,
@@ -266,7 +267,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), traineeId: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
       },
       handler: removeTrainee,
     });
@@ -279,7 +280,11 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCourseEdit }],
+        pre: [
+          { method: getCourse, assign: 'course' },
+          { method: authorizeCourseEdit },
+          { method: authorizeAttendanceSheetsGet },
+        ],
       },
       handler: downloadAttendanceSheets,
     });
@@ -292,7 +297,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
       },
       handler: downloadCompletionCertificates,
     });

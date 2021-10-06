@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
 const UserCompany = require('../../models/UserCompany');
+const CourseSlot = require('../../models/CourseSlot');
 const Company = require('../../models/Company');
 const {
   TRAINER,
@@ -13,6 +14,7 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   STRICTLY_E_LEARNING,
   BLENDED,
+  ON_SITE,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -49,8 +51,7 @@ exports.checkSalesRepresentativeExists = async (req) => {
 exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
-    const course = await Course.findOne({ _id: req.params._id }).lean();
-    if (!course) throw Boom.notFound();
+    const { course } = req.pre;
 
     const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
     const courseCompanyId = course.company ? course.company.toHexString() : null;
@@ -202,7 +203,7 @@ exports.authorizeGetCourse = async (req) => {
 };
 
 exports.getCourse = async (req) => {
-  const course = await Course.findById(req.params._id).lean();
+  const course = await Course.findById(req.params._id).populate({ path: 'slots', select: '_id' }).lean();
   if (!course) throw Boom.notFound();
 
   return course;
@@ -279,6 +280,15 @@ exports.authorizeGetQuestionnaires = async (req) => {
     : { _id: req.params._id, format: BLENDED };
   const course = await Course.countDocuments(countQuery);
   if (!course) throw Boom.notFound();
+
+  return null;
+};
+
+exports.authorizeAttendanceSheetsGet = async (req) => {
+  const { course } = req.pre;
+  const slots = await CourseSlot.find({ _id: { $in: course.slots } }).populate({ path: 'step' }).lean();
+
+  if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
 
   return null;
 };

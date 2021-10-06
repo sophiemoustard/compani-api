@@ -19,7 +19,7 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, STRICTLY_E_LEARNING, DRAFT, REJECTED } = require('./constants');
+const { INTRA, INTER_B2B, COURSE_SMS, STRICTLY_E_LEARNING, DRAFT, REJECTED, ON_SITE } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
@@ -410,7 +410,8 @@ exports.formatIntraCourseForPdf = (course) => {
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
 
-  const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
+  const filteredSlots = course.slots.filter(slot => slot.step.type === ON_SITE);
+  const slotsGroupedByDate = exports.groupSlotsByDate(filteredSlots);
 
   return {
     dates: slotsGroupedByDate.map(groupedSlots => ({
@@ -425,15 +426,21 @@ exports.formatIntraCourseForPdf = (course) => {
 exports.formatInterCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
-  const slots = course.slots ? course.slots.sort((a, b) => new Date(a.startDate) - new Date(b.startDate)) : [];
+  const formattedSlots = course.slots
+    ? course.slots
+      .filter(slot => slot.step.type === ON_SITE)
+      .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    : [];
 
   const courseData = {
     name,
-    slots: slots.map(exports.formatInterCourseSlotsForPdf),
+    slots: formattedSlots.map(exports.formatInterCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
-    firstDate: slots.length ? moment(slots[0].startDate).format('DD/MM/YYYY') : '',
-    lastDate: slots.length ? moment(slots[slots.length - 1].startDate).format('DD/MM/YYYY') : '',
-    duration: exports.getCourseDuration(slots),
+    firstDate: formattedSlots.length ? moment(formattedSlots[0].startDate).format('DD/MM/YYYY') : '',
+    lastDate: formattedSlots.length
+      ? moment(formattedSlots[formattedSlots.length - 1].startDate).format('DD/MM/YYYY')
+      : '',
+    duration: exports.getCourseDuration(formattedSlots),
   };
 
   return {
@@ -448,7 +455,7 @@ exports.formatInterCourseForPdf = (course) => {
 exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('company')
-    .populate('slots')
+    .populate({ path: 'slots', populate: { path: 'step', select: 'type' } })
     .populate({ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } })
     .populate('trainer')
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })

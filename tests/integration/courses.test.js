@@ -1591,6 +1591,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
 describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
+  const courseIdFromAuthCompanyElearning = coursesList[12]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
   beforeEach(populateDB);
 
@@ -1609,7 +1610,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 404 error if course does not exist', async () => {
+    it('should return a 404 if course does not exist', async () => {
       const invalidId = (new ObjectID()).toHexString();
       const response = await app.inject({
         method: 'GET',
@@ -1618,6 +1619,17 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 if no on-site slot', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompanyElearning}/attendance-sheets`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect(response.result.message).toBeDefined();
     });
   });
 
