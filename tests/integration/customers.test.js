@@ -784,6 +784,19 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(403);
       });
 
+      it('should return 403 user tries to archive a customer before its stopping date', async () => {
+        const customer = customersList[13];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
       it('should return 403 if stoppedDate before createdAt', async () => {
         const customer = customersList[10];
 
