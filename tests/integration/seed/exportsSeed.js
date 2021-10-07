@@ -247,6 +247,9 @@ const customersList = [
     }],
     payment: { bankAccountOwner: 'Test Toto', iban: 'FR6930003000405885475816L80', bic: 'ABNAFRPP' },
     followUp: { situation: 'home', misc: '123456789', environment: 'test', objectives: 'toto' },
+    stoppedAt: '2021-02-03T22:00:00.000+01:00',
+    stopReason: 'death',
+    archivedAt: '2021-06-03T22:00:00.000+01:00',
   },
   {
     _id: new ObjectID(),
@@ -263,6 +266,8 @@ const customersList = [
       phone: '0612345678',
     },
     followUp: { situation: 'nursing_home' },
+    stoppedAt: '2021-06-10T22:00:00.000+01:00',
+    stopReason: 'quality',
   },
   {
     _id: new ObjectID(),
@@ -440,6 +445,7 @@ const eventList = [
       street: '37 rue de Ponthieu',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
+    isBilled: true,
   },
   {
     _id: new ObjectID(),

@@ -692,6 +692,7 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
+        expect(res.result.data.customer.archivedAt).toBeDefined();
       });
 
       it('should return a 400 if there are both archivedAt and stoppedAt in payload', async () => {
