@@ -76,6 +76,8 @@ exports.createEvent = async (payload, credentials) => {
   const event = (await Event.create(eventPayload)).toObject();
   const populatedEvent = await EventRepository.getEvent(event._id, credentials);
 
+  if (populatedEvent.customer.archivedAt) throw Boom.forbidden(translate[language].eventCreationNotAllowed);
+
   if (!isRepeatedEvent) await EventHistoriesHelper.createEventHistoryOnCreate(event, credentials);
   else {
     const repetition = { ...payload.repetition, parentId: populatedEvent._id };
@@ -268,7 +270,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
       select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
       populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
     })
-    .populate({ path: 'customer', select: 'identity subscriptions contact' })
+    .populate({ path: 'customer', select: 'identity archivedAt subscriptions contact' })
     .populate({ path: 'internalHour', match: { company: companyId } })
     .lean();
 
@@ -277,6 +279,8 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     await exports.deleteConflictInternalHoursAndUnavailabilities(updatedEvent, updatedEvent.auxiliary, credentials);
     await exports.unassignConflictInterventions(dates, updatedEvent.auxiliary, credentials);
   }
+
+  if (updatedEvent.customer.archivedAt) throw Boom.forbidden(translate[language].eventEditionNotAllowed);
 
   return exports.populateEventSubscription(updatedEvent);
 };
