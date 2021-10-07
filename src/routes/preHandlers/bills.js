@@ -74,13 +74,17 @@ const getUniqueIdsFromBills = (bills) => {
   return ids;
 };
 
-exports.authorizeBillsCreation = async (req) => {
+exports.authorizeBillListCreation = async (req) => {
   const { credentials } = req.auth;
   const { bills } = req.payload;
   const companyId = credentials.company._id;
 
   const customersIds = [...new Set(bills.map(bill => bill.customer._id))];
-  const customerCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: companyId });
+  const customerCount = await Customer.countDocuments({
+    _id: { $in: customersIds },
+    archivedAt: { $eq: null },
+    company: companyId,
+  });
   if (customerCount !== customersIds.length) throw Boom.forbidden();
 
   const ids = getUniqueIdsFromBills(bills);

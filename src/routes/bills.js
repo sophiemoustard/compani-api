@@ -14,7 +14,7 @@ const {
   getBill,
   authorizeGetBill,
   authorizeGetBillPdf,
-  authorizeBillsCreation,
+  authorizeBillListCreation,
   authorizeBillCreation,
 } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
@@ -143,7 +143,7 @@ exports.plugin = {
             })),
           }),
         },
-        pre: [{ method: authorizeBillsCreation }],
+        pre: [{ method: authorizeBillListCreation }],
       },
       handler: createBillList,
     });

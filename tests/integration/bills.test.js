@@ -579,6 +579,17 @@ describe('BILL ROUTES - POST /bills/list', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return a 403 error if customer is archived', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills/list',
+        payload: { bills: [{ ...payload[0], customer: { ...payload[0].customer, _id: billCustomerList[3]._id } }] },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return a 403 error if third party payer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
