@@ -80,7 +80,9 @@ exports.authorizeCustomerUpdate = async (req) => {
       });
       if (customer) throw Boom.forbidden();
 
-      const stoppedCustomer = await Customer.findOne({ _id: req.params._id, stoppedAt: { $exists: true } }).lean();
+      const stoppedCustomer = await Customer
+        .findOne({ _id: req.params._id, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
+        .lean();
 
       if (DatesHelper.isBefore(payload.archivedAt, stoppedCustomer.stoppedAt)) {
         throw Boom.forbidden(translate[language].archivingNotAllowedBeforeStoppingDate);

@@ -115,7 +115,7 @@ exports.getEvent = async (eventId, credentials) => Event.findOne({ _id: eventId 
     path: 'auxiliary',
     select: 'identity administrative.driveFolder administrative.transportInvoice company',
   })
-  .populate({ path: 'customer', select: 'identity archivedAt subscriptions contact' })
+  .populate({ path: 'customer', select: 'identity subscriptions contact' })
   .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id') } })
   .lean();
 

@@ -151,6 +151,9 @@ exports.checkEventCreationOrUpdate = async (req) => {
     const eventHaveSameSub = req.pre.event &&
       UtilsHelper.areObjectIdsEquals(req.pre.event.subscription, req.payload.subscription);
     if (!eventHaveSameSub && get(customerSub, 'service.isArchived')) throw Boom.forbidden();
+
+    const isCustomerArchived = await Customer.findOne({ _id: event.customer }, { archivedAt: 1 });
+    if (isCustomerArchived) throw Boom.forbidden();
   }
 
   if (req.payload.auxiliary) {
