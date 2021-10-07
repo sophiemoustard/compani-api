@@ -784,13 +784,13 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(403);
       });
 
-      it('should return 403 user tries to archive a customer before its stopping date', async () => {
+      it('should return 403 if user tries to archive a customer before its stopping date', async () => {
         const customer = customersList[13];
 
         const res = await app.inject({
           method: 'PUT',
           url: `/customers/${customer._id}`,
-          payload: { archivedAt: new Date() },
+          payload: { archivedAt: new Date('2020-05-23') },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

@@ -268,7 +268,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
       select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
       populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
     })
-    .populate({ path: 'customer', select: 'identity archivedAt subscriptions contact' })
+    .populate({ path: 'customer', select: 'identity subscriptions contact' })
     .populate({ path: 'internalHour', match: { company: companyId } })
     .lean();
 

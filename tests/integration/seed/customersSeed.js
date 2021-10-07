@@ -491,7 +491,7 @@ const customersList = [
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     },
-    stoppedAt: '2031-06-01T23:00:00',
+    stoppedAt: '2021-06-01T23:00:00',
     stopReason: QUALITY,
   },
 ];
