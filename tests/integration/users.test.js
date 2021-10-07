@@ -1063,7 +1063,7 @@ describe('PUT /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const userUpdated = !!await User.countDocuments({ _id: usersSeedList[10]._id, 'role.client': role._id });
+      const userUpdated = await User.countDocuments({ _id: usersSeedList[10]._id, 'role.client': role._id });
       expect(userUpdated).toBeTruthy();
     });
 
@@ -1081,7 +1081,7 @@ describe('PUT /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
       const updatedRole = await User.countDocuments({ _id: userId, 'role.client': role._id });
-      const updatedCompany = !!await UserCompany.countDocuments({ user: userId });
+      const updatedCompany = await UserCompany.countDocuments({ user: userId });
       expect(updatedRole).toBeTruthy();
       expect(updatedCompany).toBeTruthy();
       expect(noCompanyBefore).toBeTruthy();
@@ -1189,7 +1189,7 @@ describe('PUT /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const updatedTrainer = !!await User
+      const updatedTrainer = await User
         .countDocuments({ _id: trainer._id, 'identity.firstname': 'trainerUpdate' });
       expect(updatedTrainer).toBeTruthy();
     });
@@ -1232,7 +1232,7 @@ describe('PUT /users/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const userUpdated = !!await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
+      const userUpdated = await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
       expect(userUpdated).toBeTruthy();
     });
 
@@ -1308,8 +1308,8 @@ describe('DELETE /users/:id', () => {
         let userCompanyExistBefore;
         let helperExistBefore;
         if (get(userToDelete, 'role.client') === helperRoleId) {
-          userCompanyExistBefore = !!await UserCompany.countDocuments({ user: userToDelete._id });
-          helperExistBefore = !!await Helper.countDocuments({ user: userToDelete._id });
+          userCompanyExistBefore = await UserCompany.countDocuments({ user: userToDelete._id });
+          helperExistBefore = await Helper.countDocuments({ user: userToDelete._id });
         }
 
         const res = await app.inject({
@@ -1321,8 +1321,8 @@ describe('DELETE /users/:id', () => {
         expect(res.statusCode).toBe(test.expectedCode);
 
         if (get(userToDelete, 'role.client') === helperRoleId) {
-          const userCompanyExistAfter = !!await UserCompany.countDocuments({ user: userToDelete._id });
-          const helperExistAfter = !!await Helper.countDocuments({ user: userToDelete._id });
+          const userCompanyExistAfter = await UserCompany.countDocuments({ user: userToDelete._id });
+          const helperExistAfter = await Helper.countDocuments({ user: userToDelete._id });
 
           expect(userCompanyExistBefore).toBeTruthy();
           expect(helperExistBefore).toBeTruthy();
@@ -1376,7 +1376,7 @@ describe('PUT /users/:id/certificates', () => {
     });
 
     it('should update user by removing the passed certificate id', async () => {
-      const certificatExistsBefore = !!await User.countDocuments({
+      const certificatExistsBefore = await User.countDocuments({
         _id: usersSeedList[0]._id,
         'administrative.certificates.driveId': { $exists: true },
       });
@@ -1388,7 +1388,7 @@ describe('PUT /users/:id/certificates', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      const certificateRemoved = !!await User.countDocuments({
+      const certificateRemoved = await User.countDocuments({
         _id: usersSeedList[0]._id,
         'administrative.certificates.driveId': { $exists: false },
       });
@@ -1693,7 +1693,7 @@ describe('DELETE /users/:id/upload', () => {
 
     it('should delete picture', async () => {
       const user = usersSeedList[0];
-      const pictureExistsBeforeUpdate = !!await User
+      const pictureExistsBeforeUpdate = await User
         .countDocuments({ _id: user._id, 'picture.publicId': { $exists: true } });
 
       const response = await app.inject({
@@ -1705,7 +1705,7 @@ describe('DELETE /users/:id/upload', () => {
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnceWithExactly(deleteUserMediaStub, 'a/public/id');
 
-      const isPictureDeleted = !!await User.countDocuments({ _id: user._id, 'picture.publicId': { $exists: false } });
+      const isPictureDeleted = await User.countDocuments({ _id: user._id, 'picture.publicId': { $exists: false } });
       expect(pictureExistsBeforeUpdate).toBeTruthy();
       expect(isPictureDeleted).toBeTruthy();
     });
@@ -1725,7 +1725,7 @@ describe('DELETE /users/:id/upload', () => {
     it('should delete picture if it is me', async () => {
       const user = usersSeedList[0];
       authToken = await getTokenByCredentials(user.local);
-      const pictureExistsBeforeDeletion = !!await User
+      const pictureExistsBeforeDeletion = await User
         .countDocuments({ _id: user._id, 'picture.publicId': { $exists: true } });
       const response = await app.inject({
         method: 'DELETE',
@@ -1735,7 +1735,7 @@ describe('DELETE /users/:id/upload', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const isPictureDeleted = !!await User.countDocuments({ _id: user._id, 'picture.publicId': { $exists: false } });
+      const isPictureDeleted = await User.countDocuments({ _id: user._id, 'picture.publicId': { $exists: false } });
       expect(pictureExistsBeforeDeletion).toBeTruthy();
       expect(isPictureDeleted).toBeTruthy();
     });
