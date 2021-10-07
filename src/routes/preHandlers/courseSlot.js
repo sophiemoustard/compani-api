@@ -7,7 +7,7 @@ const Step = require('../../models/Step');
 const Attendance = require('../../models/Attendance');
 const translate = require('../../helpers/translate');
 const { checkAuthorization } = require('./courses');
-const { E_LEARNING } = require('../../helpers/constants');
+const { E_LEARNING, ON_SITE, REMOTE } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -45,6 +45,9 @@ const checkPayload = async (courseId, payload) => {
 
     if (step.type === E_LEARNING) throw Boom.badRequest();
     if (!course.subProgram.steps.map(s => s.toHexString()).includes(stepId)) throw Boom.badRequest();
+    if ((payload.address && step.type !== ON_SITE) || (payload.meetingLink && step.type !== REMOTE)) {
+      throw Boom.badRequest();
+    }
   }
 };
 

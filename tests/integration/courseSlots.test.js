@@ -5,6 +5,7 @@ const app = require('../../server');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const CourseHistory = require('../../src/models/CourseHistory');
+const CourseSlot = require('../../src/models/CourseSlot');
 const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
@@ -22,7 +23,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create course slot', async () => {
+    it('should create on site course slot', async () => {
       const payload = {
         startDate: '2020-01-04T17:00:00',
         endDate: '2020-01-04T20:00:00',
@@ -54,16 +55,35 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(courseHistory).toEqual(1);
     });
 
+    it('should create remote course slot', async () => {
+      const payload = {
+        startDate: '2020-01-04T17:00:00',
+        endDate: '2020-01-04T20:00:00',
+        course: courseSlotsList[0].course,
+        step: stepsList[4]._id,
+        meetingLink: 'meet.google.com',
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: payload.course,
+        'slot.startDate': payload.startDate,
+        action: SLOT_CREATION,
+      });
+
+      expect(courseHistory).toEqual(1);
+    });
+
     it('should create slot to plan', async () => {
       const payload = {
         course: coursesList[0]._id,
-        address: {
-          street: '37 rue de Ponthieu',
-          zipCode: '75008',
-          city: 'Paris',
-          fullAddress: '37 rue de Ponthieu 75008 Paris',
-          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-        },
       };
       const response = await app.inject({
         method: 'POST',
@@ -234,6 +254,48 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if step is remote but address is in payload', async () => {
+      const payload = {
+        startDate: '2020-01-04T17:00:00',
+        endDate: '2020-01-04T20:00:00',
+        course: courseSlotsList[0].course,
+        step: stepsList[4]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if step is on site but meetingLink is in payload', async () => {
+      const payload = {
+        startDate: '2020-01-04T17:00:00',
+        endDate: '2020-01-04T20:00:00',
+        course: courseSlotsList[0].course,
+        step: stepsList[0]._id,
+        meetingLink: 'meet.google.com',
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const missingParams = ['course', 'step', 'address.fullAddress'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
@@ -358,6 +420,35 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       });
 
       expect(courseHistory).toEqual(1);
+    });
+
+    it('should replace address with meetingLink if update step from on site to remote', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        step: stepsList[4]._id,
+        meetingLink: 'meet.google.com',
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: courseSlotsList[0].course,
+        'update.startDate.to': payload.startDate,
+        action: SLOT_EDITION,
+      });
+
+      const courseSlot = await CourseSlot.findOne({ _id: courseSlotsList[0]._id, step: stepsList[4]._id }).lean();
+
+      expect(courseHistory).toEqual(1);
+      expect(courseSlot.meetingLink).toEqual(payload.meetingLink);
+      expect(courseSlot.address).toBeUndefined();
     });
 
     it('should return 400 if endDate without startDate', async () => {
@@ -496,6 +587,46 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
         url: `/courseslots/${courseSlotsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: omit({ ...payload }, 'step'),
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if step is remote but address is in payload', async () => {
+      const payload = {
+        startDate: '2020-01-04T17:00:00',
+        endDate: '2020-01-04T20:00:00',
+        step: stepsList[4]._id,
+        address: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if step is on site but meetingLink is in payload', async () => {
+      const payload = {
+        startDate: '2020-01-04T17:00:00',
+        endDate: '2020-01-04T20:00:00',
+        step: stepsList[0]._id,
+        meetingLink: 'meet.google.com',
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
       });
 
       expect(response.statusCode).toBe(400);
