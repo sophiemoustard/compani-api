@@ -439,7 +439,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers).toBeDefined();
-        expect(res.result.data.customers).toHaveLength(3);
+        expect(res.result.data.customers).toHaveLength(4);
       });
     });
 
@@ -681,15 +681,31 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
       });
 
-      it('should return a 404 error if no customer found', async () => {
+      it('should archive customer', async () => {
+        const customer = customersList[9];
+
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${new ObjectID()}`,
-          payload: updatePayload,
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(res.statusCode).toBe(404);
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customer.archivedAt).toBeDefined();
+      });
+
+      it('should return a 400 if there are both archivedAt and stoppedAt in payload', async () => {
+        const customer = customersList[0];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date(), stopReason: DEATH, archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(400);
       });
 
       it('should return a 400 error if phone number is invalid', async () => {
@@ -705,7 +721,20 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(400);
       });
 
-      it('should return a 400 error if missing stopReason or stoppedAt in status update', async () => {
+      it('should return a 400 error if missing stopReason when stoppedAt is in payload', async () => {
+        const customer = customersList[0];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(400);
+      });
+
+      it('should return a 400 error if missing stoppedAt when stopReason is in payload', async () => {
         const customer = customersList[0];
 
         const res = await app.inject({
@@ -731,7 +760,18 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(400);
       });
 
-      it('should return 403 if already stop', async () => {
+      it('should return a 404 error if no customer found', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${new ObjectID()}`,
+          payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(404);
+      });
+
+      it('should return 403 if already stopped', async () => {
         const customer = customersList[9];
 
         const res = await app.inject({
@@ -757,11 +797,48 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(403);
       });
 
+      it('should return 403 if user tries to archive a customer before stopping it', async () => {
+        const customer = customersList[10];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 403 if user tries to archive a customer who is already archived', async () => {
+        const customer = customersList[11];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
       it('should not update a customer if from other company', async () => {
         const res = await app.inject({
           method: 'PUT',
           url: `/customers/${otherCompanyCustomer._id}`,
           payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 403 if customer has not billed interventions', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customersList[12]._id}`,
+          payload: { archivedAt: '2021-01-16T14:30:19' },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
