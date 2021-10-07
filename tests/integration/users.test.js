@@ -1133,14 +1133,14 @@ describe('PUT /users/:id', () => {
       expect(response.statusCode).toBe(409);
     });
 
-    it('should return a 403 error if user is not from the same company', async () => {
+    it('should return a 404 error if user is not from the same company', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${helperFromOtherCompany._id}`,
         payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(404);
     });
 
     it('should return a 403 error if user establishment is not from same company', async () => {
@@ -1332,14 +1332,14 @@ describe('DELETE /users/:id', () => {
       });
     });
 
-    it('should return a 403 error if user is not from same company', async () => {
+    it('should return a 404 error if user is not from same company', async () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/users/${helperFromOtherCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(404);
     });
   });
 
@@ -1396,7 +1396,7 @@ describe('PUT /users/:id/certificates', () => {
       expect(certificateRemoved).toBeTruthy();
     });
 
-    it('should return a 403 if user is not from same company', async () => {
+    it('should return a 404 if user is not from same company', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/certificates`,
@@ -1404,24 +1404,7 @@ describe('PUT /users/:id/certificates', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(res.statusCode).toBe(403);
-    });
-  });
-
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
-    });
-
-    it('should update the user by removing certificate, even if user is not from same company', async () => {
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/certificates`,
-        payload: updatePayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(404);
     });
   });
 
@@ -1437,6 +1420,19 @@ describe('PUT /users/:id/certificates', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should update the user by removing certificate, even if user is not from same company', async () => {
+      authToken = await getToken('training_organisation_manager');
+
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/certificates`,
+        payload: updatePayload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(200);
     });
 
     const roles = [
@@ -1502,7 +1498,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
       sinon.assert.calledOnce(addFileStub);
     });
 
-    it('should return a 403 error if user is not from same company', async () => {
+    it('should return a 404 error if user is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/users/${auxiliaryFromOtherCompany._id}/gdrive/${new ObjectID()}/upload`,
@@ -1510,7 +1506,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     const wrongParams = ['type', 'file', 'fileName'];

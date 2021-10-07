@@ -54,18 +54,18 @@ exports.authorizeUserUpdate = async (req) => {
 };
 
 const checkCompany = (credentials, userFromDB, payload, isLoggedUserVendor) => {
-  const loggedUserCompany = get(credentials, 'company._id') || '';
-  const userCompany = userFromDB.company || payload.company;
-
-  const sameCompany = userCompany && loggedUserCompany &&
-    UtilsHelper.areObjectIdsEquals(userCompany, loggedUserCompany);
-  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
-  const canLoggedUserUpdate = isLoggedUserVendor || sameCompany || updatingOwnInfos;
-
   const isCompanyUpdated = payload.company && userFromDB.company &&
     !UtilsHelper.areObjectIdsEquals(payload.company, userFromDB.company);
+  if (isCompanyUpdated) throw Boom.forbidden();
 
-  if (!canLoggedUserUpdate || isCompanyUpdated) throw Boom.forbidden();
+  const updatingOwnInfos = UtilsHelper.areObjectIdsEquals(credentials._id, userFromDB._id);
+  if (isLoggedUserVendor || updatingOwnInfos) return;
+
+  const loggedUserCompany = get(credentials, 'company._id') || '';
+  const userCompany = userFromDB.company || payload.company;
+  const sameCompany = userCompany && loggedUserCompany &&
+    UtilsHelper.areObjectIdsEquals(userCompany, loggedUserCompany);
+  if (!sameCompany) throw Boom.notFound();
 };
 
 const checkEstablishment = async (companyId, payload) => {
@@ -150,7 +150,7 @@ exports.authorizeUserDeletion = async (req) => {
   const role = await Role.findById(clientRoleId).lean();
   if (role.name !== HELPER) throw Boom.forbidden();
 
-  if (!UtilsHelper.areObjectIdsEquals(user.company, companyId)) throw Boom.forbidden();
+  if (!UtilsHelper.areObjectIdsEquals(user.company, companyId)) throw Boom.notFound();
 
   return null;
 };
