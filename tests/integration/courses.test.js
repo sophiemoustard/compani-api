@@ -235,7 +235,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(5);
+      expect(response.result.data.courses.length).toEqual(6);
     });
 
     it('should get strictly e-learning courses', async () => {
@@ -282,7 +282,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(6);
+      expect(response.result.data.courses.length).toEqual(7);
     });
 
     const roles = [
