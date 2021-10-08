@@ -108,7 +108,11 @@ exports.authorizeBillCreation = async (req) => {
   const { credentials } = req.auth;
   const companyId = credentials.company._id;
 
-  const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
+  const customer = await Customer.countDocuments({
+    _id: req.payload.customer,
+    company: companyId,
+    archivedAt: { $eq: null },
+  });
   if (!customer) throw Boom.forbidden();
 
   const billingItemIds = [...new Set(req.payload.billingItemList.map(bi => bi.billingItem))];

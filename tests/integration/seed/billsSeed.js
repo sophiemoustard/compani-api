@@ -197,6 +197,39 @@ const billCustomerList = [
       mandates: [{ rum: 'R014345658903456780', _id: new ObjectID() }],
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Jean', lastname: 'Paul' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: billServices[1]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
+    payment: {
+      bankAccountOwner: 'Roberto Alagna',
+      mandates: [{ rum: 'R014345658903456780', _id: new ObjectID() }],
+    },
+    stoppedAt: '2021-09-01T10:00:00.000+01:00',
+    stopReason: 'death',
+    archivedAt: '2021-10-07T10:00:00.000+01:00',
+  },
 ];
 
 const billUserList = [
