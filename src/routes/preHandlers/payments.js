@@ -45,10 +45,14 @@ exports.authorizePaymentCreation = async (req) => {
   try {
     const { credentials } = req.auth;
     const payment = req.payload;
-    const companyId = get(credentials, 'company._id', null).toHexString();
+    const companyId = get(credentials, 'company._id');
 
-    const customer = await Customer.countDocuments({ _id: payment.customer, company: companyId });
-    if (!customer) throw Boom.notFound();
+    const customer = await Customer.countDocuments({
+      _id: payment.customer,
+      company: companyId,
+      archivedAt: { $eq: null },
+    });
+    if (!customer) throw Boom.forbidden();
 
     if (payment.thirdPartyPayer) {
       const tpp = await ThirdPartyPayer.countDocuments({ _id: payment.thirdPartyPayer, company: companyId });
@@ -62,9 +66,41 @@ exports.authorizePaymentCreation = async (req) => {
   }
 };
 
-exports.authorizePaymentDeletion = async (req) => {
-  const { payment } = req.pre;
-  if (payment.nature !== REFUND) throw Boom.forbidden();
+exports.authorizePaymentEdition = async (req) => {
+  try {
+    const { credentials } = req.auth;
+    const { payment } = req.pre;
 
-  return null;
+    const customer = await Customer.countDocuments({
+      _id: payment.customer,
+      company: get(credentials, 'company._id'),
+      archivedAt: { $eq: null },
+    });
+    if (!customer) throw Boom.forbidden();
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+exports.authorizePaymentDeletion = async (req) => {
+  try {
+    const { credentials } = req.auth;
+    const { payment } = req.pre;
+    if (payment.nature !== REFUND) throw Boom.forbidden();
+
+    const customer = await Customer.countDocuments({
+      _id: payment.customer,
+      company: get(credentials, 'company._id'),
+      archivedAt: { $eq: null },
+    });
+    if (!customer) throw Boom.forbidden();
+
+    return null;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
 };

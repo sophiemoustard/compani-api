@@ -8,6 +8,7 @@ const {
   getPayment,
   authorizePaymentsListCreation,
   authorizePaymentCreation,
+  authorizePaymentEdition,
   authorizePaymentDeletion,
 } = require('./preHandlers/payments');
 const { PAYMENT_NATURES, PAYMENT_TYPES } = require('../models/Payment');
@@ -70,7 +71,7 @@ exports.plugin = {
             nature: Joi.string(),
           }),
         },
-        pre: [{ method: getPayment, assign: 'payment' }],
+        pre: [{ method: getPayment, assign: 'payment' }, { method: authorizePaymentEdition }],
       },
       handler: update,
     });
