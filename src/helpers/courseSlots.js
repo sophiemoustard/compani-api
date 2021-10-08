@@ -36,12 +36,8 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
   const updatePayload = { $set: payload };
   const step = await Step.findById(payload.step).lean();
 
-  if (step.type === ON_SITE || (step.type === REMOTE && !payload.meetingLink)) {
-    updatePayload.$unset = { meetingLink: '' };
-  }
-  if (step.type === REMOTE || (step.type === ON_SITE && !payload.address)) {
-    updatePayload.$unset = { ...updatePayload.$unset, address: '' };
-  }
+  if (step.type === ON_SITE || !payload.meetingLink) updatePayload.$unset = { meetingLink: '' };
+  if (step.type === REMOTE || !payload.address) updatePayload.$unset = { ...updatePayload.$unset, address: '' };
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, user._id),
