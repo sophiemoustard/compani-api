@@ -1422,23 +1422,11 @@ describe('PUT /users/:id/certificates', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should update the user by removing certificate, even if user is not from same company', async () => {
-      authToken = await getToken('training_organisation_manager');
-
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${auxiliaryFromOtherCompany._id.toHexString()}/certificates`,
-        payload: updatePayload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(res.statusCode).toBe(200);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
+      { name: 'training_organisation_manager', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
