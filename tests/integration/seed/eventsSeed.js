@@ -254,6 +254,29 @@ const customerAuxiliaries = [
       phone: '0612345671',
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { firstname: 'Pierre', lastname: 'Jean' },
+    subscriptions: [
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
+    ],
+    contact: {
+      primaryAddress: {
+        street: '37 rue de Ponthieu',
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345671',
+    },
+    stoppedAt: '2021-01-16 17:58:15.519',
+    stopReason: 'quality',
+    archivedAt: '2021-09-16 17:58:15.519',
+  },
 ];
 
 const customerFromOtherCompany = {
@@ -803,6 +826,27 @@ const eventsList = [
     createdAt: '2019-01-05T15:24:18.653Z',
     isCancelled: true,
     cancel: { condition: INVOICED_AND_NOT_PAID, reason: AUXILIARY_INITIATIVE },
+    misc: 'blabla',
+    address: {
+      fullAddress: '25 rue du test 92160 Antony',
+      street: '25 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    repetition: { frequency: NEVER },
+    startDate: (new Date()),
+    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    auxiliary: auxiliaries[2]._id,
+    customer: customerAuxiliaries[2]._id,
+    subscription: customerAuxiliaries[2].subscriptions[2]._id,
+    createdAt: '2019-01-05T15:24:18.653Z',
+    isCancelled: false,
     misc: 'blabla',
     address: {
       fullAddress: '25 rue du test 92160 Antony',

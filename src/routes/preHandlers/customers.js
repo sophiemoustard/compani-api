@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const DatesHelper = require('../../helpers/dates');
 const { INTERVENTION } = require('../../helpers/constants');
 const Customer = require('../../models/Customer');
 const UserCompany = require('../../models/UserCompany');
@@ -78,6 +79,14 @@ exports.authorizeCustomerUpdate = async (req) => {
         $or: [{ stoppedAt: { $exists: false } }, { archivedAt: { $exists: true } }],
       });
       if (customer) throw Boom.forbidden();
+
+      const stoppedCustomer = await Customer
+        .findOne({ _id: req.params._id, stoppedAt: { $exists: true } }, { stoppedAt: 1 })
+        .lean();
+
+      if (DatesHelper.isBefore(payload.archivedAt, stoppedCustomer.stoppedAt)) {
+        throw Boom.forbidden(translate[language].archivingNotAllowedBeforeStoppingDate);
+      }
 
       const eventsToBill = await Event.countDocuments({ customer: req.params._id, isBilled: false });
       if (eventsToBill) throw Boom.forbidden(translate[language].archivingNotAllowed);

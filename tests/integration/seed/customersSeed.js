@@ -15,7 +15,7 @@ const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
-const { FIXED, ONCE, HOURLY, WEBAPP, DEATH } = require('../../../src/helpers/constants');
+const { FIXED, ONCE, HOURLY, WEBAPP, DEATH, QUALITY } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
@@ -477,6 +477,22 @@ const customersList = [
     },
     stoppedAt: new Date(),
     stopReason: DEATH,
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'agathe', lastname: 'thepower' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+    stoppedAt: '2021-06-01T23:00:00',
+    stopReason: QUALITY,
   },
 ];
 
