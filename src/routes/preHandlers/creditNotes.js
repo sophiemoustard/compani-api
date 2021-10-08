@@ -60,6 +60,7 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const query = {
     _id: payload.customer || creditNote.customer,
     ...(payload.subscription && { 'subscriptions._id': payload.subscription._id }),
+    archivedAt: { $eq: null },
     company: companyId,
   };
   const customerCount = await Customer.countDocuments(query);
@@ -88,8 +89,13 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
 
 exports.authorizeCreditNoteDeletion = async (req) => {
   const { creditNote } = req.pre;
+
   if (creditNote.origin !== COMPANI || !creditNote.isEditable) {
     throw Boom.forbidden(translate[language].creditNoteNotCompani);
   }
+
+  const customerCount = await Customer.countDocuments({ _id: creditNote.customer, archivedAt: { $eq: null } });
+  if (!customerCount) throw Boom.notFound();
+
   return null;
 };

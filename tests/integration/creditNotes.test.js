@@ -16,6 +16,7 @@ const {
   otherCompanyUser,
   otherCompanyCreditNote,
   billingItem,
+  archivedCustomer,
 } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -129,6 +130,17 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         url: '/creditNotes',
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { ...payloadWithEvents, customer: otherCompanyCustomer._id },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 error if customer is archived', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payloadWithEvents, customer: archivedCustomer._id },
       });
 
       expect(response.statusCode).toBe(404);
@@ -454,6 +466,17 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return a 404 error if creditNote is for archived customer', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
     it('should return a 404 error if at least one event is not from same company', async () => {
       payload = {
         events: [{
@@ -569,6 +592,15 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/creditNotes/${creditNotesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 error if credit note is for archived customer', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/creditNotes/${creditNotesList[3]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(404);
