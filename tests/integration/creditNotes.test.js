@@ -124,7 +124,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
     });
 
-    it('should return a 404 error if customer is not from same company', async () => {
+    it('should return a 403 error if customer is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -132,7 +132,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         payload: { ...payloadWithEvents, customer: otherCompanyCustomer._id },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 404 error if customer is archived', async () => {
@@ -143,10 +143,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         payload: { ...payloadWithEvents, customer: archivedCustomer._id },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 404 error if customer subscription is not from same company', async () => {
+    it('should return a 403 error if customer subscription is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -161,7 +161,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 404 error if third party payer is not from same company', async () => {
@@ -474,7 +474,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 404 error if at least one event is not from same company', async () => {
@@ -503,7 +503,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 404 error if customer subscription is not from same company', async () => {
+    it('should return a 403 error if customer subscription is not from same company', async () => {
       payload = {
         date: '2019-07-19T14:00:18',
         subscription: {
@@ -519,7 +519,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 403 error if credit note is not editable', async () => {
@@ -603,7 +603,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
         url: `/creditNotes/${creditNotesList[3]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 403 error if credit note origin is not COMPANI', async () => {

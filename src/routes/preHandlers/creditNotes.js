@@ -64,7 +64,7 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
     company: companyId,
   };
   const customerCount = await Customer.countDocuments(query);
-  if (!customerCount) throw Boom.notFound();
+  if (!customerCount) throw Boom.forbidden();
 
   if (payload.thirdPartyPayer) {
     const tppCount = await ThirdPartyPayer.countDocuments({ _id: payload.thirdPartyPayer, company: companyId });
@@ -95,7 +95,7 @@ exports.authorizeCreditNoteDeletion = async (req) => {
   }
 
   const customerCount = await Customer.countDocuments({ _id: creditNote.customer, archivedAt: { $eq: null } });
-  if (!customerCount) throw Boom.notFound();
+  if (!customerCount) throw Boom.forbidden();
 
   return null;
 };
