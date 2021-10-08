@@ -935,6 +935,23 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return a 403 if the customer is archived', async () => {
+      const payload = {
+        customer: billCustomerList[3]._id,
+        date: new Date('2021-09-02T20:00:00'),
+        billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
+        netInclTaxes: 30,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 409 billNumber is already taken', async () => {
       const formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
       formatBillNumber.returns(billList[0].number);
