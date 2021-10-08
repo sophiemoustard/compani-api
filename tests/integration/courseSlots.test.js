@@ -5,7 +5,6 @@ const app = require('../../server');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const CourseHistory = require('../../src/models/CourseHistory');
-const CourseSlot = require('../../src/models/CourseSlot');
 const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
@@ -420,35 +419,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       });
 
       expect(courseHistory).toEqual(1);
-    });
-
-    it('should replace address with meetingLink if update step from on site to remote', async () => {
-      const payload = {
-        startDate: '2020-03-04T09:00:00',
-        endDate: '2020-03-04T11:00:00',
-        step: stepsList[4]._id,
-        meetingLink: 'meet.google.com',
-      };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const courseHistory = await CourseHistory.countDocuments({
-        course: courseSlotsList[0].course,
-        'update.startDate.to': payload.startDate,
-        action: SLOT_EDITION,
-      });
-
-      const courseSlot = await CourseSlot.findOne({ _id: courseSlotsList[0]._id, step: stepsList[4]._id }).lean();
-
-      expect(courseHistory).toEqual(1);
-      expect(courseSlot.meetingLink).toEqual(payload.meetingLink);
-      expect(courseSlot.address).toBeUndefined();
     });
 
     it('should return 400 if endDate without startDate', async () => {
