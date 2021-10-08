@@ -147,7 +147,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
   });
 });
 
-describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
+describe('PAYMENTS ROUTES - POST /payments/list', () => {
   let authToken;
   const originalPayload = [
     {
@@ -188,7 +188,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/payments/createlist',
+        url: '/payments/list',
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -207,7 +207,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/payments/createlist',
+        url: '/payments/list',
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -218,7 +218,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
     it('should return a 403 if customer is archived', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/payments/createlist',
+        url: '/payments/list',
         payload: [{ ...originalPayload[0], customer: paymentCustomerList[2]._id }, { ...originalPayload[1] }],
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -233,7 +233,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/payments/createlist',
+        url: '/payments/list',
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -259,7 +259,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
         const payload = [...originalPayload];
         const response = await app.inject({
           method: 'POST',
-          url: '/payments/createlist',
+          url: '/payments/list',
           payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });

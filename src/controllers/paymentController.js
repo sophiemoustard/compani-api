@@ -22,7 +22,7 @@ const create = async (req) => {
   }
 };
 
-const createList = async (req, h) => {
+const list = async (req, h) => {
   try {
     const payments = await PaymentHelper.savePayments(req.payload, req.auth.credentials);
 
@@ -64,4 +64,4 @@ const remove = async (req) => {
   }
 };
 
-module.exports = { create, createList, update, remove };
+module.exports = { create, list, update, remove };
