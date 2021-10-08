@@ -291,7 +291,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
         },
       ],
     })
-    .populate({ path: 'slots', select: 'startDate endDate step address' })
+    .populate({ path: 'slots', select: 'startDate endDate step address meetingLink' })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .select('_id misc contact')
     .lean({ autopopulate: true, virtuals: true });
