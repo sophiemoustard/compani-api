@@ -203,7 +203,7 @@ const billCustomerList = [
     identity: { title: 'mr', firstname: 'Benard', lastname: 'Chived' },
     stopReason: 'hospitalization',
     stoppedAt: '2021-10-10T21:59:59',
-    archivedAt: '2021-10-07T11:58:14',
+    archivedAt: '2021-11-07T11:58:14',
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
