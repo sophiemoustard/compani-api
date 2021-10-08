@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { create, list, update, remove } = require('../controllers/paymentController');
+const { create, createList, update, remove } = require('../controllers/paymentController');
 const {
   getPayment,
   authorizePaymentsListCreation,
@@ -53,7 +53,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizePaymentsListCreation }],
       },
-      handler: list,
+      handler: createList,
     });
 
     server.route({
