@@ -440,7 +440,7 @@ describe('getCourse', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name type' } }] },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         {
           query: 'populate',
@@ -499,7 +499,7 @@ describe('getCourse', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name type' } }] },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         {
           query: 'populate',
