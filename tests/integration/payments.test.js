@@ -199,7 +199,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       sinon.assert.called(addStub);
     });
 
-    it('should return a 404 if at least one customer is not from the same company', async () => {
+    it('should return a 403 if at least one customer is not from the same company', async () => {
       const payload = [
         { ...originalPayload[0], customer: customerFromOtherCompany._id },
         { ...originalPayload[1] },
@@ -212,7 +212,18 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if customer is archived', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload: [{ ...originalPayload[0], customer: paymentCustomerList[2]._id }, { ...originalPayload[1] }],
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 400 if user tries to create a payment with an existing number', async () => {

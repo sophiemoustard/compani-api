@@ -83,6 +83,41 @@ const paymentCustomerList = [
       mandates: [{ rum: 'R012345678903456789', _id: new ObjectID() }],
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Paul', lastname: 'Lepoulpe' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: new ObjectID(),
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
+    payment: {
+      bankAccountOwner: 'David gaudu',
+      iban: '',
+      bic: '',
+      mandates: [{ rum: 'R012345678903456789', _id: new ObjectID() }],
+    },
+    stoppedAt: '2021-10-01T10:00:00.000+01:00',
+    stopReason: 'death',
+    archivedAt: '2021-10-05T10:00:00.000+01:00',
+  },
 ];
 
 const paymentsList = [
