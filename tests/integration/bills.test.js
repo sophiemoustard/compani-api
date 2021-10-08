@@ -591,21 +591,18 @@ describe('BILL ROUTES - POST /bills/list', () => {
     });
 
     it('should return a 403 error if third party payer is not from same company', async () => {
+      const bills = [{
+        ...payload[0],
+        thirdPartyPayerBills: [{
+          ...payload[0].thirdPartyPayerBills[0],
+          bills: [{ ...payload[0].thirdPartyPayerBills[0].bills[0], thirdPartyPayer: otherCompanyBillThirdPartyPayer }],
+        }],
+      }];
+
       const response = await app.inject({
         method: 'POST',
         url: '/bills/list',
-        payload: {
-          bills: [{
-            ...payload[0],
-            thirdPartyPayerBills: [{
-              ...payload[0].thirdPartyPayerBills[0],
-              bills: [{
-                ...payload[0].thirdPartyPayerBills[0].bills[0],
-                thirdPartyPayer: otherCompanyBillThirdPartyPayer,
-              }],
-            }],
-          }],
-        },
+        payload: { bills },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -613,29 +610,29 @@ describe('BILL ROUTES - POST /bills/list', () => {
     });
 
     it('should return a 403 error if at least one event is not from same company', async () => {
+      const bills = [{
+        ...payload[0],
+        customerBills: {
+          ...payload[0].customerBills,
+          bills: [{
+            ...payload[0].customerBills.bills[0],
+            eventsList: [{
+              event: eventList[5]._id,
+              auxiliary: new ObjectID(),
+              startDate: '2019-05-02T08:00:00.000Z',
+              endDate: '2019-05-02T10:00:00.000Z',
+              inclTaxesCustomer: 24,
+              exclTaxesCustomer: 24,
+              surcharges: [{ percentage: 90, name: 'Noël' }],
+            }],
+          }],
+        },
+      }];
+
       const response = await app.inject({
         method: 'POST',
         url: '/bills/list',
-        payload: {
-          bills: [{
-            ...payload[0],
-            customerBills: {
-              ...payload[0].customerBills,
-              bills: [{
-                ...payload[0].customerBills.bills[0],
-                eventsList: [{
-                  event: eventList[5]._id,
-                  auxiliary: new ObjectID(),
-                  startDate: '2019-05-02T08:00:00.000Z',
-                  endDate: '2019-05-02T10:00:00.000Z',
-                  inclTaxesCustomer: 24,
-                  exclTaxesCustomer: 24,
-                  surcharges: [{ percentage: 90, name: 'Noël' }],
-                }],
-              }],
-            },
-          }],
-        },
+        payload: { bills },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -643,34 +640,34 @@ describe('BILL ROUTES - POST /bills/list', () => {
     });
 
     it('should return a 403 error if at least one bill subscription is not from same company', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/bills/list',
-        payload: {
+      const bills = [{
+        ...payload[0],
+        customerBills: {
+          ...payload[0].customerBills,
           bills: [{
-            ...payload[0],
-            customerBills: {
-              ...payload[0].customerBills,
-              bills: [{
-                ...payload[0].customerBills.bills[0],
-                subscription: {
-                  _id: billCustomerList[2].subscriptions[0]._id,
-                  service: billServices[1],
-                  versions: [{
-                    _id: new ObjectID(),
-                    unitTTCRate: 12,
-                    estimatedWeeklyVolume: 12,
-                    evenings: 2,
-                    sundays: 1,
-                    startDate: '2019-04-03T08:33:55.370Z',
-                    createdAt: '2019-05-03T08:33:56.144Z',
-                  }],
-                  createdAt: '2019-05-03T08:33:56.144Z',
-                },
+            ...payload[0].customerBills.bills[0],
+            subscription: {
+              _id: billCustomerList[2].subscriptions[0]._id,
+              service: billServices[1],
+              versions: [{
+                _id: new ObjectID(),
+                unitTTCRate: 12,
+                estimatedWeeklyVolume: 12,
+                evenings: 2,
+                sundays: 1,
+                startDate: '2019-04-03T08:33:55.370Z',
+                createdAt: '2019-05-03T08:33:56.144Z',
               }],
+              createdAt: '2019-05-03T08:33:56.144Z',
             },
           }],
         },
+      }];
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills/list',
+        payload: { bills },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
