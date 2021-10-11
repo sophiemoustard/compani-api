@@ -57,13 +57,12 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
 
   if (creditNote && creditNote.origin !== COMPANI) throw Boom.forbidden(translate[language].creditNoteNotCompani);
 
-  const query = {
+  const customerCount = await Customer.countDocuments({
     _id: payload.customer || creditNote.customer,
     ...(payload.subscription && { 'subscriptions._id': payload.subscription._id }),
     archivedAt: { $eq: null },
     company: companyId,
-  };
-  const customerCount = await Customer.countDocuments(query);
+  });
   if (!customerCount) throw Boom.forbidden();
 
   if (payload.thirdPartyPayer) {

@@ -135,7 +135,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 404 error if customer is archived', async () => {
+    it('should return a 403 error if customer is archived', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
@@ -466,7 +466,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 404 error if creditNote is for archived customer', async () => {
+    it('should return a 403 error if creditNote is for archived customer', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/creditNotes/${creditNotesList[3]._id}`,
@@ -597,7 +597,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 404 error if credit note is for archived customer', async () => {
+    it('should return a 403 error if credit note is for archived customer', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/creditNotes/${creditNotesList[3]._id}`,
