@@ -66,7 +66,7 @@ describe('getCreditNotes', () => {
           query: 'populate',
           args: [{
             path: 'customer',
-            select: '_id identity subscriptions',
+            select: '_id identity subscriptions archivedAt',
             populate: { path: 'subscriptions.service' },
           }],
         },
@@ -97,7 +97,7 @@ describe('getCreditNotes', () => {
           query: 'populate',
           args: [{
             path: 'customer',
-            select: '_id identity subscriptions',
+            select: '_id identity subscriptions archivedAt',
             populate: { path: 'subscriptions.service' },
           }],
         },
@@ -134,7 +134,7 @@ describe('getCreditNotes', () => {
           query: 'populate',
           args: [{
             path: 'customer',
-            select: '_id identity subscriptions',
+            select: '_id identity subscriptions archivedAt',
             populate: { path: 'subscriptions.service' },
           }],
         },

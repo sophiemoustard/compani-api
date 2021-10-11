@@ -80,6 +80,44 @@ const creditNoteCustomer = {
   ],
 };
 
+const archivedCustomer = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+  identity: { title: 'mr', firstname: 'Gérard', lastname: 'Chivé' },
+  stopReason: 'hospitalization',
+  stoppedAt: '2021-10-10T21:59:59',
+  archivedAt: '2021-10-17T11:58:14',
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    phone: '0612345678',
+  },
+  payment: {
+    bankAccountOwner: 'Gérard Chivé',
+    iban: 'FR3514508000505917721779B12',
+    bic: 'BNMDHISOBD',
+    mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+  },
+  subscriptions: [
+    {
+      _id: new ObjectID(),
+      service: creditNoteService._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    },
+  ],
+};
+
 const creditNoteUserList = [
   {
     _id: new ObjectID(),
@@ -156,7 +194,7 @@ const creditNotesList = [
     origin: 'compani',
     company: authCompany._id,
   },
-  {
+  { // 1
     _id: new ObjectID(),
     date: moment().toDate(),
     startDate: moment().startOf('month').toDate(),
@@ -183,7 +221,7 @@ const creditNotesList = [
     origin: 'ogust',
     company: authCompany._id,
   },
-  {
+  { // 2
     _id: new ObjectID(),
     date: '2020-01-01',
     startDate: '2020-01-01',
@@ -207,6 +245,31 @@ const creditNotesList = [
     isEditable: false,
     origin: 'ogust',
     company: authCompany._id,
+  },
+  { // 3 - with archived customer
+    _id: new ObjectID(),
+    date: moment().toDate(),
+    startDate: moment().startOf('month').toDate(),
+    endDate: moment().set('date', 15).toDate(),
+    customer: archivedCustomer._id,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    events: [{
+      eventId: creditNoteEvent._id,
+      auxiliary: creditNoteEvent.auxiliary,
+      startDate: creditNoteEvent.startDate,
+      endDate: creditNoteEvent.endDate,
+      serviceName: 'toto',
+      bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+    }],
+    subscription: {
+      _id: archivedCustomer.subscriptions[0]._id,
+      service: { serviceId: creditNoteService._id, nature: 'fixed', name: 'toto' },
+      vat: 5.5,
+    },
+    origin: 'compani',
+    company: authCompany._id,
+    isEditable: true,
   },
 ];
 
@@ -349,7 +412,7 @@ const populateDB = async () => {
   await Promise.all([
     BillingItem.create([billingItem]),
     CreditNote.create([...creditNotesList, otherCompanyCreditNote]),
-    Customer.create([creditNoteCustomer, otherCompanyCustomer]),
+    Customer.create([creditNoteCustomer, otherCompanyCustomer, archivedCustomer]),
     Event.create([creditNoteEvent, otherCompanyEvent]),
     Helper.create(helpersList),
     Service.create([creditNoteService, otherCompanyService]),
@@ -364,6 +427,7 @@ module.exports = {
   billingItem,
   populateDB,
   creditNoteCustomer,
+  archivedCustomer,
   creditNoteEvent,
   creditNoteUserList,
   creditNoteThirdPartyPayer,
