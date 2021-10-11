@@ -520,7 +520,8 @@ exports.formatCourseForConvocationPdf = (course) => {
   const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
 
   const slots = slotsGroupedByDate.map(groupedSlots => ({
-    address: get(groupedSlots[0], 'address.fullAddress') || '',
+    ...(get(groupedSlots[0], 'address.fullAddress') && { address: get(groupedSlots[0], 'address.fullAddress') }),
+    ...(groupedSlots[0].meetingLink && { meetingLink: groupedSlots[0].meetingLink }),
     hours: exports.formatHoursForConvocation(groupedSlots),
     date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
   }));
