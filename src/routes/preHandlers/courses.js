@@ -286,7 +286,7 @@ exports.authorizeGetQuestionnaires = async (req) => {
 
 exports.authorizeAttendanceSheetsGet = async (req) => {
   const { course } = req.pre;
-  const slots = await CourseSlot.find({ _id: { $in: course.slots } }).populate({ path: 'step' }).lean();
+  const slots = await CourseSlot.find({ _id: { $in: course.slots } }).populate({ path: 'step', select: 'type' }).lean();
 
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
 
