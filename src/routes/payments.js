@@ -37,7 +37,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/createlist',
+      path: '/list',
       options: {
         auth: { scope: ['payments:edit'] },
         validate: {

@@ -29,9 +29,10 @@ exports.authorizePaymentsListCreation = async (req) => {
     const customersCount = await Customer.countDocuments({
       _id: { $in: customersIds },
       company: get(credentials, 'company._id'),
+      archivedAt: { $eq: null },
     });
 
-    if (customersCount !== customersIds.length) throw Boom.notFound();
+    if (customersCount !== customersIds.length) throw Boom.forbidden();
 
     return null;
   } catch (e) {
