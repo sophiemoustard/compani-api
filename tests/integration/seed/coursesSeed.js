@@ -245,7 +245,6 @@ const coursesList = [
     misc: 'inter_b2b',
     type: 'inter_b2b',
     trainees: [coach._id],
-    accessRules: [authCompany._id, new ObjectID()],
     salesRepresentative: vendorAdmin._id,
   },
 ];
