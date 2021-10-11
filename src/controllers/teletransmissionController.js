@@ -1,13 +1,10 @@
 const DeliveryHelper = require('../helpers/delivery');
-const translate = require('../helpers/translate');
 
-const { language } = translate;
-
-const generateDeliveryXml = async (req) => {
+const generateDeliveryXml = async (req, h) => {
   try {
     const xml = await DeliveryHelper.generateDeliveryXml(req.query, req.auth.credentials);
 
-    return { message: translate[language].delievryCreated, data: { xml } };
+    return h.file(xml, { confine: false });
   } catch (e) {
     req.log('error', e);
     return e;

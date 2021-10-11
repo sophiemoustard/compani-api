@@ -1,10 +1,14 @@
 const { get } = require('lodash');
 const builder = require('xmlbuilder');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const Event = require('../models/Event');
 const UtilsHelper = require('./utils');
 const FundingsHelper = require('./fundings');
 const DatesHelper = require('./dates');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
+const moment = require('../extensions/moment');
 
 const CADRE_PRESTATAIRE = 'PRE';
 const MISSING_START_TIME_STAMP = 'COA';
@@ -190,8 +194,10 @@ exports.getCrossIndustryDespatchAdvice = async (query, credentials) => {
   const companyId = get(credentials, 'company._id');
   const eventsQuery = {
     company: companyId,
-    ...(query.thirdPartyPayer && { 'bills.thirdPartyPayer': UtilsHelper.formatObjectIdsArray(query.thirdPartyPayer) }),
+    ...(query.thirdPartyPayer &&
+      { 'bills.thirdPartyPayer': { $in: UtilsHelper.formatObjectIdsArray(query.thirdPartyPayer) } }),
   };
+
   const events = await Event
     .find(eventsQuery)
     .populate({
@@ -229,7 +235,17 @@ exports.generateDeliveryXml = async (query, credentials) => {
       'ns:CrossIndustryDespatchAdvice': await exports.getCrossIndustryDespatchAdvice(query, credentials),
     },
   };
-  const xml = builder.create(data, { encoding: 'utf-8' }).end({ pretty: true });
 
-  return xml;
+  return new Promise((resolve, reject) => {
+    const finalDoc = builder.create(data, { encoding: 'utf-8' });
+    const outputPath = path.join(
+      os.tmpdir(),
+      `449-${moment(query.month).format('YYYYMM')}-PCH-${moment().format('YYMMDDHHmm')}.xml`
+    );
+    const file = fs.createWriteStream(outputPath);
+    file.write(finalDoc.end({ pretty: true }));
+    file.end();
+    file.on('finish', async () => { resolve(outputPath); });
+    file.on('error', err => reject(err));
+  });
 };
