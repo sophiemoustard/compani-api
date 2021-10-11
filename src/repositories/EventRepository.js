@@ -303,7 +303,16 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
         events: { $push: '$$ROOT' },
       },
     },
-    { $lookup: { from: 'customers', localField: '_id.CUSTOMER', foreignField: '_id', as: 'customer' } },
+    {
+      $lookup: {
+        from: 'customers',
+        as: 'customer',
+        let: { customerId: '$_id.CUSTOMER' },
+        pipeline: [{
+          $match: { $and: [{ $expr: { $eq: ['$_id', '$$customerId'] }, archivedAt: { $eq: null } }] },
+        }],
+      },
+    },
     { $unwind: { path: '$customer' } },
     {
       $addFields: {
