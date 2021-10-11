@@ -203,7 +203,7 @@ exports.authorizeGetCourse = async (req) => {
 };
 
 exports.getCourse = async (req) => {
-  const course = await Course.findById(req.params._id).populate({ path: 'slots', select: '_id' }).lean();
+  const course = await Course.findById(req.params._id).lean();
   if (!course) throw Boom.notFound();
 
   return course;
@@ -284,11 +284,12 @@ exports.authorizeGetQuestionnaires = async (req) => {
   return null;
 };
 
-exports.authorizeAttendanceSheetsGet = async (req) => {
-  const { course } = req.pre;
-  const slots = await CourseSlot.find({ _id: { $in: course.slots } }).populate({ path: 'step', select: 'type' }).lean();
+exports.authorizeAttendanceSheetsGetAndAssignCourse = async (req) => {
+  const course = await Course.findById(req.params._id).populate({ path: 'slots', select: '_id' }).lean();
+  if (!course) throw Boom.notFound();
 
+  const slots = await CourseSlot.find({ _id: { $in: course.slots } }).populate({ path: 'step', select: 'type' }).lean();
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
 
-  return null;
+  return course;
 };

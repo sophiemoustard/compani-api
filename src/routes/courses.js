@@ -42,7 +42,7 @@ const {
   authorizeGetFollowUp,
   checkSalesRepresentativeExists,
   authorizeGetQuestionnaires,
-  authorizeAttendanceSheetsGet,
+  authorizeAttendanceSheetsGetAndAssignCourse,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -281,9 +281,8 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [
-          { method: getCourse, assign: 'course' },
+          { method: authorizeAttendanceSheetsGetAndAssignCourse, assign: 'course' },
           { method: authorizeCourseEdit },
-          { method: authorizeAttendanceSheetsGet },
         ],
       },
       handler: downloadAttendanceSheets,

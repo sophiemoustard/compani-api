@@ -426,7 +426,7 @@ exports.formatIntraCourseForPdf = (course) => {
 exports.formatInterCourseForPdf = (course) => {
   const possibleMisc = course.misc ? ` - ${course.misc}` : '';
   const name = course.subProgram.program.name + possibleMisc;
-  const formattedSlots = course.slots
+  const filteredSlots = course.slots
     ? course.slots
       .filter(slot => slot.step.type === ON_SITE)
       .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
@@ -434,13 +434,13 @@ exports.formatInterCourseForPdf = (course) => {
 
   const courseData = {
     name,
-    slots: formattedSlots.map(exports.formatInterCourseSlotsForPdf),
+    slots: filteredSlots.map(exports.formatInterCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
-    firstDate: formattedSlots.length ? moment(formattedSlots[0].startDate).format('DD/MM/YYYY') : '',
-    lastDate: formattedSlots.length
-      ? moment(formattedSlots[formattedSlots.length - 1].startDate).format('DD/MM/YYYY')
+    firstDate: filteredSlots.length ? moment(filteredSlots[0].startDate).format('DD/MM/YYYY') : '',
+    lastDate: filteredSlots.length
+      ? moment(filteredSlots[filteredSlots.length - 1].startDate).format('DD/MM/YYYY')
       : '',
-    duration: exports.getCourseDuration(formattedSlots),
+    duration: exports.getCourseDuration(filteredSlots),
   };
 
   return {
