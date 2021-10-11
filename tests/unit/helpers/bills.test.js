@@ -448,20 +448,20 @@ describe('formatCustomerBills', () => {
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
-        startDate: '2019-05-31T10:00:55.374Z',
+        startDate: '2019-05-31T10:00:55',
         hours: 1.5,
         eventsList: [
           {
             event: '123',
-            startDate: '2019-05-28T10:00:55.374Z',
-            endDate: '2019-05-28T13:00:55.374Z',
+            startDate: '2019-05-28T10:00:55',
+            endDate: '2019-05-28T13:00:55',
             auxiliary: '34567890',
             inclTaxesTpp: 14.4,
           },
           {
             event: '456',
-            startDate: '2019-05-29T08:00:55.374Z',
-            endDate: '2019-05-29T10:00:55.374Z',
+            startDate: '2019-05-29T08:00:55',
+            endDate: '2019-05-29T10:00:55',
             auxiliary: '34567890',
             inclTaxesTpp: 12,
           },
@@ -476,7 +476,6 @@ describe('formatCustomerBills', () => {
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
 
     expect(result).toBeDefined();
-    expect(result.bill).toBeDefined();
     expect(result.bill).toEqual({
       company: company._id,
       customer: 'lilalo',
@@ -489,17 +488,29 @@ describe('formatCustomerBills', () => {
       billingItemList: [],
     });
     expect(result.billedEvents).toBeDefined();
-    expect(result.billedEvents).toMatchObject({
-      123: { event: '123', inclTaxesTpp: 14.4 },
-      456: { event: '456', inclTaxesTpp: 12 },
+    expect(result.billedEvents).toEqual({
+      123: {
+        event: '123',
+        startDate: '2019-05-28T10:00:55',
+        endDate: '2019-05-28T13:00:55',
+        auxiliary: '34567890',
+        inclTaxesTpp: 14.4,
+      },
+      456: {
+        event: '456',
+        startDate: '2019-05-29T08:00:55',
+        endDate: '2019-05-29T10:00:55',
+        auxiliary: '34567890',
+        inclTaxesTpp: 12,
+      },
     });
-    sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
-    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
-    sinon.assert.calledWithExactly(formatSubscriptionData, customerBills.bills[0]);
+    sinon.assert.calledOnceWithExactly(formatBillNumber, 1234, 'Picsou', 77);
+    sinon.assert.calledOnceWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledOnceWithExactly(formatSubscriptionData, customerBills.bills[0]);
     sinon.assert.notCalled(formatBillingItemData);
   });
 
-  it('Case 1bis : 1 bill with billing items #tag', () => {
+  it('Case 1bis : 1 bill with billing items', () => {
     const company = { prefixNumber: 1234, _id: new ObjectID() };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
@@ -527,7 +538,6 @@ describe('formatCustomerBills', () => {
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
 
     expect(result).toBeDefined();
-    expect(result.bill).toBeDefined();
     expect(result.bill).toEqual({
       company: company._id,
       customer: 'lilalo',
@@ -553,10 +563,10 @@ describe('formatCustomerBills', () => {
         inclTaxesCustomer: 30,
       },
     });
-    sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
-    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledOnceWithExactly(formatBillNumber, 1234, 'Picsou', 77);
+    sinon.assert.calledOnceWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.notCalled(formatSubscriptionData);
-    sinon.assert.calledWithExactly(formatBillingItemData, customerBills.bills[0]);
+    sinon.assert.calledOnceWithExactly(formatBillingItemData, customerBills.bills[0]);
   });
 
   it('Case 2 : multiple bills', () => {
