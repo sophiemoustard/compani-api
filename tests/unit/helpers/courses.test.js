@@ -1080,7 +1080,16 @@ describe('getTraineeCourse', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step address meetingLink' }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'slots',
+              select: 'startDate endDate step address meetingLink',
+              populate: { path: 'step', select: 'type' },
+            },
+          ],
+        },
         {
           query: 'populate',
           args: [{
