@@ -186,14 +186,21 @@ describe('getCustomers', () => {
     const credentials = { company: { _id: companyId } };
     const query = {};
 
-    const customers = [
-      { identity: { firstname: 'Emmanuel' }, company: companyId },
-      { company: companyId },
-    ];
+    const customers = [{ identity: { firstname: 'Emmanuel' }, company: companyId }, { company: companyId }];
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
-    populateSubscriptionsServices.returnsArg(0);
-    subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
+    populateSubscriptionsServices.onCall(0).returns({
+      identity: { firstname: 'Emmanuel' },
+      company: companyId,
+      subscriptions: [{ unitTTCRate: 75 }],
+    });
+    populateSubscriptionsServices.onCall(1).returns({ company: companyId, subscriptions: [{ unitTTCRate: 10 }] });
+    subscriptionsAccepted.onCall(0).returns({
+      identity: { firstname: 'Emmanuel' },
+      company: companyId,
+      subscriptionsAccepted: true,
+    });
+    subscriptionsAccepted.onCall(1).returns({ company: companyId, subscriptionsAccepted: true });
 
     const result = await CustomerHelper.getCustomers(query, credentials);
 
@@ -201,8 +208,23 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { subscriptionsAccepted: true, company: companyId },
     ]);
-    sinon.assert.calledTwice(subscriptionsAccepted);
-    sinon.assert.calledTwice(populateSubscriptionsServices);
+    sinon.assert.calledWithExactly(
+      subscriptionsAccepted.getCall(0),
+      {
+        identity: { firstname: 'Emmanuel' },
+        company: companyId,
+        subscriptions: [{ unitTTCRate: 75 }],
+      }
+    );
+    sinon.assert.calledWithExactly(
+      subscriptionsAccepted.getCall(1),
+      { company: companyId, subscriptions: [{ unitTTCRate: 10 }] }
+    );
+    sinon.assert.calledWithExactly(
+      populateSubscriptionsServices.getCall(0),
+      { identity: { firstname: 'Emmanuel' }, company: companyId }
+    );
+    sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(1), { company: companyId });
     SinonMongoose.calledWithExactly(
       findCustomer,
       [
