@@ -231,7 +231,7 @@ const customersList = [
       }],
     }],
   },
-  {
+  { // 2
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
@@ -248,7 +248,7 @@ const customersList = [
     },
     payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
   },
-  {
+  { // 3
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Volgarr', lastname: 'Theviking' },
@@ -264,7 +264,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  // customer with bill
+  // customer with bill - 4
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -286,7 +286,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  // customer with payment
+  // customer with payment - 5
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -308,7 +308,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  // customer with creditNote
+  // customer with creditNote - 6
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -330,7 +330,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  // customer with taxcertificate
+  // customer with taxcertificate - 7
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -352,7 +352,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  { // Helper's customer
+  { // Helper's customer - 8
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
@@ -414,7 +414,7 @@ const customersList = [
       },
     ],
   },
-  {
+  { // 9
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
@@ -430,7 +430,7 @@ const customersList = [
     stoppedAt: new Date(),
     stopReason: DEATH,
   },
-  {
+  { // 10
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
@@ -445,7 +445,7 @@ const customersList = [
     },
     createdAt: new Date('2021-05-24'),
   },
-  {
+  { // 11
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'alex', lastname: 'terieur' },
@@ -462,7 +462,7 @@ const customersList = [
     stopReason: DEATH,
     archivedAt: new Date(),
   },
-  {
+  { // 12
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'testons', lastname: 'larchivage' },
@@ -478,7 +478,7 @@ const customersList = [
     stoppedAt: new Date(),
     stopReason: DEATH,
   },
-  {
+  { // 13
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'agathe', lastname: 'thepower' },
@@ -494,42 +494,100 @@ const customersList = [
     stoppedAt: '2021-06-01T23:00:00',
     stopReason: QUALITY,
   },
+  // customer with bill and archived - 14
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Baltazar', lastname: 'ChivedWithBills' },
+    driveFolder: { driveId: '1234567890' },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: customerServiceList[0]._id,
+      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+    }],
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+  },
 ];
 
-const bill = {
-  _id: new ObjectID(),
-  type: 'automatic',
-  company: customersList[4].company,
-  number: 'FACT-1901001',
-  date: '2019-05-29',
-  customer: customersList[4]._id,
-  netInclTaxes: 75.96,
-  subscriptions: [{
-    startDate: '2019-05-29',
-    endDate: '2019-11-29',
-    subscription: customersList[5].subscriptions[0]._id,
-    service: {
-      serviceId: new ObjectID(),
-      name: 'Temps de qualité - autonomie',
-      nature: 'fixed',
-    },
-    vat: 5.5,
-    events: [{
-      eventId: new ObjectID(),
-      startDate: '2019-01-16T09:30:19',
-      endDate: '2019-01-16T11:30:21',
-      auxiliary: referentList[0]._id,
-      inclTaxesCustomer: 12,
-      exclTaxesCustomer: 10,
+const billList = [
+  {
+    _id: new ObjectID(),
+    type: 'automatic',
+    company: customersList[4].company,
+    number: 'FACT-1901001',
+    date: '2019-05-29',
+    customer: customersList[4]._id,
+    netInclTaxes: 75.96,
+    subscriptions: [{
+      startDate: '2019-05-29',
+      endDate: '2019-11-29',
+      subscription: customersList[5].subscriptions[0]._id,
+      service: {
+        serviceId: new ObjectID(),
+        name: 'Temps de qualité - autonomie',
+        nature: 'fixed',
+      },
+      vat: 5.5,
+      events: [{
+        eventId: new ObjectID(),
+        startDate: '2019-01-16T09:30:19',
+        endDate: '2019-01-16T11:30:21',
+        auxiliary: referentList[0]._id,
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
+      }],
+      hours: 8,
+      unitExclTaxes: 9,
+      unitInclTaxes: 9.495,
+      exclTaxes: 72,
+      inclTaxes: 75.96,
+      discount: 0,
     }],
-    hours: 8,
-    unitExclTaxes: 9,
-    unitInclTaxes: 9.495,
-    exclTaxes: 72,
-    inclTaxes: 75.96,
-    discount: 0,
-  }],
-};
+  },
+  {
+    _id: new ObjectID(),
+    type: 'automatic',
+    company: customersList[14].company,
+    number: 'FACT-1901002',
+    date: '2019-05-29',
+    customer: customersList[14]._id,
+    netInclTaxes: 75.96,
+    subscriptions: [{
+      startDate: '2019-05-29',
+      endDate: '2019-11-29',
+      subscription: customersList[5].subscriptions[0]._id,
+      service: {
+        serviceId: new ObjectID(),
+        name: 'Temps de qualité - autonomie',
+        nature: 'fixed',
+      },
+      vat: 5.5,
+      events: [{
+        eventId: new ObjectID(),
+        startDate: '2019-01-16T09:30:19',
+        endDate: '2019-01-16T11:30:21',
+        auxiliary: referentList[0]._id,
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
+      }],
+      hours: 8,
+      unitExclTaxes: 9,
+      unitInclTaxes: 9.495,
+      exclTaxes: 72,
+      inclTaxes: 75.96,
+      discount: 0,
+    }],
+  },
+];
 
 const payment = {
   _id: new ObjectID(),
@@ -702,11 +760,14 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
+    identity: { firstname: 'HelperForCustomer4 Archived', lastname: 'Life' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
     origin: WEBAPP,
+    stopReason: 'hospitalization',
+    stoppedAt: '2021-10-10T21:59:59',
+    archivedAt: '2021-11-07T11:58:14',
   },
   {
     _id: new ObjectID(),
@@ -920,7 +981,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    Bill.create(bill),
+    Bill.create(billList),
     CreditNote.create(creditNote),
     Customer.create([...customersList, otherCompanyCustomer]),
     Event.create(eventList),

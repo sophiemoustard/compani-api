@@ -269,7 +269,7 @@ describe('CUSTOMERS ROUTES', () => {
         authToken = await getToken('coach');
       });
 
-      it('should get all customers with billed events', async () => {
+      it('should get all actives customers with billed events', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/customers/billed-events',
@@ -278,6 +278,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers).toBeDefined();
+        expect(res.result.data.customers.length).toEqual(1);
         expect(res.result.data.customers[0].subscriptions).toBeDefined();
         expect(res.result.data.customers[0].subscriptions.length).toEqual(1);
         expect(res.result.data.customers[0].thirdPartyPayers).toBeDefined();
@@ -334,7 +335,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
-        expect(res.result.data.customers.length).toEqual(7);
+        expect(res.result.data.customers.length).toEqual(8);
         expect(res.result.data.customers[0].contact).toBeDefined();
         const customer = res.result.data.customers
           .find(cus => UtilsHelper.areObjectIdsEquals(cus._id, customersList[0]._id));
