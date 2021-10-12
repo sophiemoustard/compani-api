@@ -588,7 +588,7 @@ const eventsList = [
     startDate: '2020-01-12T15:30:19.543Z',
     endDate: '2020-01-12T16:30:19.543Z',
     customer: customerAuxiliaries[0]._id,
-    repetition: { frequency: NEVER },
+    repetition: { frequency: EVERY_WEEK, parentId: new ObjectID() },
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliaries[0].subscriptions[0]._id,
     isBilled: false,
@@ -812,6 +812,52 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+<<<<<<< HEAD
+=======
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    repetition: { frequency: NEVER },
+    startDate: (new Date()),
+    endDate: (new Date()).setHours((new Date()).getHours() + 2),
+    auxiliary: auxiliaries[2]._id,
+    customer: customerAuxiliaries[2]._id,
+    subscription: customerAuxiliaries[2].subscriptions[2]._id,
+    createdAt: '2019-01-05T15:24:18.653Z',
+    isCancelled: false,
+    misc: 'blabla',
+    address: {
+      fullAddress: '26 rue du test 92160 Antony',
+      street: '26 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector: sectors[0]._id,
+    type: INTERVENTION,
+    startDate: '2019-10-23T14:30:19.543Z',
+    endDate: '2019-10-23T16:30:19.543Z',
+    auxiliary: auxiliaries[0]._id,
+    customer: customerAuxiliaries[0]._id,
+    repetition: { frequency: EVERY_WEEK },
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customerAuxiliaries[0].subscriptions[0]._id,
+    isBilled: false,
+    bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
+    address: {
+      fullAddress: '27 rue du test 92160 Antony',
+      street: '27 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+>>>>>>> 02ff11b5 (COM-2433 throw 422 if no parentId)
 ];
 
 const eventFromOtherCompany = {
