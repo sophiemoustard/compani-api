@@ -1989,20 +1989,35 @@ describe('formatCourseForConvocationPdf', () => {
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
       contact: { phone: '0123456789' },
-      slots: [{
+      slots: [
+        {
+          startDate: '2020-10-12T12:30:00',
+          endDate: '2020-10-12T13:30:00',
+          address: { fullAddress: '3 rue T' },
+        },
+        {
+          startDate: '2020-10-14T17:30:00',
+          endDate: '2020-10-14T19:30:00',
+          meetingLink: 'http://eelslap.com/',
+        },
+      ],
+    };
+
+    formatIdentity.returns('Ash Ketchum');
+    formatHoursForConvocation.onCall(0).returns('13:30 - 14:30');
+    formatHoursForConvocation.onCall(1).returns('18:30 - 20:30');
+    groupSlotsByDate.returns([
+      [{
         startDate: '2020-10-12T12:30:00',
         endDate: '2020-10-12T13:30:00',
         address: { fullAddress: '3 rue T' },
       }],
-    };
-
-    formatIdentity.returns('Ash Ketchum');
-    formatHoursForConvocation.returns('13:30 - 14:30');
-    groupSlotsByDate.returns([[{
-      startDate: '2020-10-12T12:30:00',
-      endDate: '2020-10-12T13:30:00',
-      address: { fullAddress: '3 rue T' },
-    }]]);
+      [{
+        startDate: '2020-10-14T17:30:00',
+        endDate: '2020-10-14T19:30:00',
+        meetingLink: 'http://eelslap.com/',
+      }],
+    ]);
 
     const result = await CourseHelper.formatCourseForConvocationPdf(course);
 
@@ -2011,17 +2026,20 @@ describe('formatCourseForConvocationPdf', () => {
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash Ketchum' },
       contact: { phone: '0123456789', formattedPhone: '01 23 45 67 89' },
-      slots: [{ date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' }],
+      slots: [
+        { date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' },
+        { date: '14/10/2020', hours: '18:30 - 20:30', meetingLink: 'http://eelslap.com/' },
+      ],
     });
 
     sinon.assert.calledOnceWithExactly(formatIdentity, { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
-    sinon.assert.calledOnceWithExactly(
-      formatHoursForConvocation,
+    sinon.assert.calledWithExactly(
+      formatHoursForConvocation.getCall(0),
       [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
     );
-    sinon.assert.calledOnceWithExactly(
-      formatHoursForConvocation,
-      [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
+    sinon.assert.calledWithExactly(
+      formatHoursForConvocation.getCall(1),
+      [{ startDate: '2020-10-14T17:30:00', endDate: '2020-10-14T19:30:00', meetingLink: 'http://eelslap.com/' }]
     );
   });
 });

@@ -40,6 +40,9 @@ const fonts = {
     bold: 'src/data/pdf/fonts/SourceSansPro-Bold.ttf',
     italics: 'src/data/pdf/fonts/SourceSansPro-Italic.ttf',
   },
+  icon: {
+    normal: 'src/data/pdf/fonts/icon.ttf',
+  },
 };
 
 exports.generatePdf = async (template) => {
