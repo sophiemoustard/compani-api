@@ -13,7 +13,7 @@ const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL } = require('./constants');
+const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL, ROUNDING_ERROR } = require('./constants');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -385,7 +385,9 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   const totalCustomer = NumbersHelper.add(totalSubscription, totalBillingItem, totalSurcharge);
   const totalTPP = NumbersHelper.add(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
-  if (totalTPP < -0.01) formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
+  if (totalTPP < -ROUNDING_ERROR) {
+    formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
+  }
 
   return {
     totalExclTaxes: UtilsHelper.formatPrice(totalExclTaxes),
