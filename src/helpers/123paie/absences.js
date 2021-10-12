@@ -1,6 +1,8 @@
 const get = require('lodash/get');
 const moment = require('moment');
+const fs = require('fs');
 const FileHelper = require('../file');
+const ZipHelper = require('../zip');
 const {
   ABSENCE,
   DAILY,
@@ -18,6 +20,8 @@ const {
 const HistoryExportHelper = require('../historyExport');
 const Event = require('../../models/Event');
 const Pay = require('../../models/Pay');
+
+const fsPromises = fs.promises;
 
 const NIC_LENGHT = 5;
 const VA_ABS_CODE = {
@@ -109,7 +113,12 @@ exports.exportAbsences = async (query, credentials) => {
     }
   }
 
-  return data.length
-    ? FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))])
-    : FileHelper.exportToTxt([]);
+  const file = data.length
+    ? await FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))])
+    : await FileHelper.exportToTxt([]);
+
+  return ZipHelper.generateZip(
+    'absences.zip',
+    await Promise.all([{ name: 'absence.txt', file: fs.createReadStream(file) }])
+  );
 };

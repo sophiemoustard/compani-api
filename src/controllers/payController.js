@@ -84,7 +84,9 @@ const exportDsnInfo = async (req, h) => {
         break;
     }
 
-    return h.file(txt, { confine: false });
+    return h.file(txt.zipPath, { confine: false })
+      .header('content-disposition', `attachment; filename=${txt.zipName}`)
+      .type('application/zip');
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
