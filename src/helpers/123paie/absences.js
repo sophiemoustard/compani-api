@@ -21,8 +21,6 @@ const HistoryExportHelper = require('../historyExport');
 const Event = require('../../models/Event');
 const Pay = require('../../models/Pay');
 
-const fsPromises = fs.promises;
-
 const NIC_LENGHT = 5;
 const VA_ABS_CODE = {
   [PAID_LEAVE]: 'CPL',
@@ -113,12 +111,13 @@ exports.exportAbsences = async (query, credentials) => {
     }
   }
 
-  const file = data.length
-    ? await FileHelper.exportToTxt([Object.keys(data[0]), ...data.map(d => Object.values(d))])
-    : await FileHelper.exportToTxt([]);
+  const BATCH_SIZE = 50;
+  const files = [];
+  for (let i = 0; i < data.length; i += BATCH_SIZE) {
+    const content = [Object.keys(data[0]), ...data.slice(i, i + BATCH_SIZE).map(d => Object.values(d))];
+    const txt = await FileHelper.exportToTxt(content);
+    files.push({ name: `absence${i}.txt`, file: fs.createReadStream(txt) });
+  }
 
-  return ZipHelper.generateZip(
-    'absences.zip',
-    await Promise.all([{ name: 'absence.txt', file: fs.createReadStream(file) }])
-  );
+  return ZipHelper.generateZip('absences.zip', await Promise.all(files));
 };

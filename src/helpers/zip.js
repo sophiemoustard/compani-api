@@ -10,7 +10,6 @@ exports.generateZip = (zipName, fileList = []) => new Promise((resolve, reject) 
   }
 
   const tmpOutputPath = path.join(os.tmpdir(), zipName);
-
   const stream = zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true });
 
   stream.pipe(fs.createWriteStream(tmpOutputPath))
