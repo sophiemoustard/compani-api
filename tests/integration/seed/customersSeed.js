@@ -264,7 +264,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  // customer with bill - 4
+  // 4 - customer with bill
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -286,7 +286,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  // customer with payment - 5
+  // 5 - customer with payment
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -308,7 +308,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  // customer with creditNote - 6
+  // 6 - customer with creditNote
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -330,7 +330,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  // customer with taxcertificate - 7
+  // 7 - customer with taxcertificate
   {
     _id: new ObjectID(),
     company: authCompany._id,
@@ -352,7 +352,7 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  { // Helper's customer - 8
+  { // 8 - Helper's customer
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
@@ -494,14 +494,17 @@ const customersList = [
     stoppedAt: '2021-06-01T23:00:00',
     stopReason: QUALITY,
   },
-  // customer with bill and archived - 14
+  // 14 - customer with bill and archived
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    stoppedAt: '2021-06-01T23:00:00',
+    stopReason: QUALITY,
+    archivedAt: '2021-07-01T23:00:00',
     identity: { title: 'mr', firstname: 'Baltazar', lastname: 'ChivedWithBills' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: subId,
       service: customerServiceList[0]._id,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
@@ -818,6 +821,24 @@ const eventList = [
     customer: customersList[0]._id,
     type: 'intervention',
     sector: sectorsList[0]._id,
+    subscription: subId,
+    startDate: '2019-01-16T14:30:19',
+    endDate: '2019-01-16T15:30:21',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    isBilled: true,
+    customer: customersList[14]._id,
+    type: 'intervention',
+    sector: new ObjectID(),
     subscription: subId,
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',

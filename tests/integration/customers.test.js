@@ -269,7 +269,7 @@ describe('CUSTOMERS ROUTES', () => {
         authToken = await getToken('coach');
       });
 
-      it('should get all actives customers with billed events', async () => {
+      it('should get all not archived customers with billed events', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/customers/billed-events',
@@ -277,11 +277,8 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.customers).toBeDefined();
         expect(res.result.data.customers.length).toEqual(1);
-        expect(res.result.data.customers[0].subscriptions).toBeDefined();
         expect(res.result.data.customers[0].subscriptions.length).toEqual(1);
-        expect(res.result.data.customers[0].thirdPartyPayers).toBeDefined();
         expect(res.result.data.customers[0].thirdPartyPayers.length).toEqual(1);
       });
 
@@ -294,7 +291,6 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.customers).toBeDefined();
         const areAllCustomersFromCompany = res.result.data.customers.every(async (customer) => {
           const customerFromDB = await Customer.find({ _id: customer._id, company: otherCompany._id });
           return customerFromDB;
