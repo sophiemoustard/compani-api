@@ -1919,7 +1919,6 @@ describe('formatAndCreateBill', () => {
         { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
         { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
       ],
-      netInclTaxes: 50,
     };
 
     getBillNumber.returns({ prefix: 'FACT-101', seq: 1 });

@@ -275,8 +275,14 @@ exports.formatAndCreateBill = async (payload, credentials) => {
     .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1, name: 1 })
     .lean();
 
+  let netInclTaxes = 0;
+  for (const bi of billingItemList) {
+    netInclTaxes = NumbersHelper.add(netInclTaxes, NumbersHelper.multiply(bi.count, bi.unitInclTaxes));
+  }
+
   const bill = {
-    ...pick(payload, ['date', 'customer', 'netInclTaxes']),
+    ...pick(payload, ['date', 'customer']),
+    netInclTaxes,
     type: MANUAL,
     number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq),
     billingItemList: billingItemList.map(bi => exports.formatBillingItem(bi, bddBillingItemList)),
