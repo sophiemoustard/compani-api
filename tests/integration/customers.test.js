@@ -181,8 +181,8 @@ describe('CUSTOMERS ROUTES', () => {
         const areAllCustomersFromCompany = res.result.data.customers
           .every(c => UtilsHelper.areObjectIdsEquals(c.company, authCompany._id));
         expect(areAllCustomersFromCompany).toBe(true);
-        const customers = await Customer.find({ company: authCompany._id, archivedAt: { $ne: null } }).lean();
-        expect(res.result.data.customers).toHaveLength(customers.length);
+        const archivedCustomers = await Customer.find({ company: authCompany._id, archivedAt: { $ne: null } }).lean();
+        expect(res.result.data.customers).toHaveLength(archivedCustomers.length);
       });
 
       it('should get non-archived customers', async () => {
@@ -196,8 +196,9 @@ describe('CUSTOMERS ROUTES', () => {
         const areAllCustomersFromCompany = res.result.data.customers
           .every(c => UtilsHelper.areObjectIdsEquals(c.company, authCompany._id));
         expect(areAllCustomersFromCompany).toBe(true);
-        const customers = await Customer.find({ company: authCompany._id, archivedAt: { $eq: null } }).lean();
-        expect(res.result.data.customers).toHaveLength(customers.length);
+        const notArchivedCustomers = await Customer.find({ company: authCompany._id, archivedAt: { $eq: null } })
+          .lean();
+        expect(res.result.data.customers).toHaveLength(notArchivedCustomers.length);
       });
     });
 

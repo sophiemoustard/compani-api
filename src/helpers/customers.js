@@ -79,10 +79,11 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
 };
 
 exports.getCustomers = async (query = null, credentials) => {
-  let findQuery = { company: get(credentials, 'company._id', null) };
-
-  if (query.archived) findQuery = { ...findQuery, archivedAt: { $ne: null } };
-  else if (query.archived === false) findQuery = { ...findQuery, archivedAt: { $eq: null } };
+  const findQuery = {
+    company: get(credentials, 'company._id', null),
+    ...(query.archived && { archivedAt: { $ne: null } }),
+    ...(query.archived === false && { archivedAt: { $eq: null } }),
+  };
 
   const customers = await Customer.find(findQuery).populate({ path: 'subscriptions.service' }).lean();
 
