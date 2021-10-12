@@ -1849,19 +1849,28 @@ describe('DELETE /{_id}/repetition', () => {
     });
 
     it('should delete repetition', async () => {
-      const parentEvent = eventsList[9];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/events/${parentEvent._id.toHexString()}/repetition`,
+        url: `/events/${eventsList[9]._id.toHexString()}/repetition`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const query = { company: authCompany._id, 'repetition.parentId': parentEvent._id };
+      const query = { company: authCompany._id, 'repetition.parentId': eventsList[9]._id };
       const repetitionCount = await Repetition.countDocuments(query);
       expect(repetitionCount).toEqual(0);
       const eventCount = await Event.countDocuments(query);
       expect(eventCount).toEqual(0);
+    });
+
+    it('should throw 422 if repetition is invalid', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events/${eventsList[27]._id}/repetition`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(422);
     });
   });
 
