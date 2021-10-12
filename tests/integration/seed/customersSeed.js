@@ -760,14 +760,11 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer4 Archived', lastname: 'Life' },
+    identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
     origin: WEBAPP,
-    stopReason: 'hospitalization',
-    stoppedAt: '2021-10-10T21:59:59',
-    archivedAt: '2021-11-07T11:58:14',
   },
   {
     _id: new ObjectID(),
