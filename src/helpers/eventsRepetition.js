@@ -1,3 +1,4 @@
+const Boom = require('@hapi/boom');
 const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
@@ -24,6 +25,9 @@ const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
 const DatesHelper = require('./dates');
+const translate = require('./translate');
+
+const { language } = translate;
 
 momentRange.extendMoment(moment);
 
@@ -183,9 +187,12 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   return eventFromDb;
 };
 
+const isRepetitionValid = repetition => repetition.frequency !== NEVER && !!repetition.parentId;
+
 exports.deleteRepetition = async (event, credentials) => {
   const { type, repetition } = event;
-  if (type === ABSENCE || !repetition || repetition.frequency === NEVER) return;
+  if (type === ABSENCE || !repetition) return;
+  if (!isRepetitionValid(repetition)) throw Boom.badData(translate[language].invalidRepetition);
 
   const query = {
     'repetition.parentId': event.repetition.parentId,

@@ -149,6 +149,8 @@ module.exports = {
     isBilled: 'You can not delete a billed event.',
     isTimeStamped: 'You can not delete a timestamped event.',
     timeStampCancelledEvent: 'Can\'t timestamp a cancelled event.',
+    /* Repetitions */
+    invalidRepetition: 'Forbidden deletion : Invalid repetition.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -482,6 +484,8 @@ module.exports = {
     isBilled: 'Vous ne pouvez pas supprimer un évènement facturé.',
     isTimeStamped: 'Vous ne pouvez pas supprimer un évènement horodaté.',
     timeStampCancelledEvent: 'Vous ne pouvez pas horodater un évènement annulé.',
+    /* Repetitions */
+    invalidRepetition: 'Suppression impossible : La répétition est invalide.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',
