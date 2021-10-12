@@ -49,12 +49,14 @@ const getSlotTableContent = (slot) => {
             alignment: 'left',
           },
         ],
+        margin: [0, 4, 0, 4],
       }
     );
   } else if (slot.address) {
     content.push(
       {
         text: [{ text: ' ', style: 'icon' }, { text: slot.address, style: 'tableContent', alignment: 'left' }],
+        margin: [0, 4, 0, 4],
       }
     );
   } else {
