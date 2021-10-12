@@ -73,6 +73,7 @@ describe('getPdfContent', () => {
                   { text: ' ', style: 'icon' },
                   { text: '24 avenue du test', style: 'tableContent', alignment: 'left' },
                 ],
+                margin: [0, 4, 0, 4],
               },
             ],
             [
@@ -89,6 +90,7 @@ describe('getPdfContent', () => {
                     alignment: 'left',
                   },
                 ],
+                margin: [0, 4, 0, 4],
               },
             ],
           ],
@@ -219,6 +221,7 @@ describe('getPdfContent', () => {
                   { text: ' ', style: 'icon' },
                   { text: '24 avenue du test', style: 'tableContent', alignment: 'left' },
                 ],
+                margin: [0, 4, 0, 4],
               },
             ],
             [
@@ -235,6 +238,7 @@ describe('getPdfContent', () => {
                     alignment: 'left',
                   },
                 ],
+                margin: [0, 4, 0, 4],
               },
             ],
           ],
