@@ -223,6 +223,7 @@ module.exports = {
     };
   },
   AUTOMATIC: 'automatic',
+  ROUNDING_ERROR: 0.01,
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;
