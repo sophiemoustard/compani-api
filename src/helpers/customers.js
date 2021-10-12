@@ -101,12 +101,15 @@ exports.getCustomersFirstIntervention = async (query, credentials) => {
 exports.getCustomersWithIntervention = async credentials =>
   EventRepository.getCustomersWithIntervention(get(credentials, 'company._id', null));
 
+exports.formatSubscriptionInPopulate = doc =>
+  ({ ...doc, ...doc.versions.sort((a, b) => DatesHelper.diff(a.startDate, b.startDate))[0] });
+
 exports.getCustomersWithSubscriptions = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   return Customer.find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
     .populate({
       path: 'subscriptions.service',
-      transform: doc => ({ ...doc, ...doc.versions.sort((a, b) => DatesHelper.diff(a.startDate, b.startDate))[0] }),
+      transform: exports.formatSubscriptionInPopulate,
     })
     .populate({ path: 'referentHistories', match: { company: companyId } })
     .select('subscriptions identity contact stoppedAt archivedAt referentHistories')

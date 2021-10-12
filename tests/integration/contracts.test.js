@@ -513,23 +513,24 @@ describe('POST contract/:id/versions', () => {
     });
   });
 
-  describe('Other roles', () => {});
-  const roles = [
-    { name: 'planning_referent', expectedCode: 403 },
-    { name: 'helper', expectedCode: 403 },
-    { name: 'vendor_admin', expectedCode: 403 },
-  ];
-  roles.forEach((role) => {
-    it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-      authToken = await getToken(role.name);
-      const response = await app.inject({
-        method: 'POST',
-        url: `/contracts/${contractsList[5]._id}/versions`,
-        payload: { grossHourlyRate: 10.12, startDate: '2020-10-15T00:00:00', weeklyHours: 24 },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/contracts/${contractsList[5]._id}/versions`,
+          payload: { grossHourlyRate: 10.12, startDate: '2020-10-15T00:00:00', weeklyHours: 24 },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      expect(response.statusCode).toBe(role.expectedCode);
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });
