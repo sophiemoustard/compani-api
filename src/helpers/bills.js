@@ -385,7 +385,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   const totalCustomer = NumbersHelper.add(totalSubscription, totalBillingItem, totalSurcharge);
   const totalTPP = NumbersHelper.add(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
-  if (totalTPP) formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
+  if (totalTPP < -0.01) formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
 
   return {
     totalExclTaxes: UtilsHelper.formatPrice(totalExclTaxes),
