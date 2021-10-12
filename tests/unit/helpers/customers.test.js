@@ -162,10 +162,11 @@ describe('getCustomers', () => {
   it('should return empty array if no customer', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
+    const query = {};
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([[]]));
 
-    const result = await CustomerHelper.getCustomers(credentials);
+    const result = await CustomerHelper.getCustomers(query, credentials);
 
     expect(result).toEqual([]);
     sinon.assert.notCalled(subscriptionsAccepted);
@@ -183,6 +184,8 @@ describe('getCustomers', () => {
   it('should return customers', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
+    const query = {};
+
     const customers = [
       { identity: { firstname: 'Emmanuel' }, company: companyId },
       { company: companyId },
@@ -192,7 +195,7 @@ describe('getCustomers', () => {
     populateSubscriptionsServices.returnsArg(0);
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
-    const result = await CustomerHelper.getCustomers(credentials);
+    const result = await CustomerHelper.getCustomers(query, credentials);
 
     expect(result).toEqual([
       { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
@@ -204,6 +207,77 @@ describe('getCustomers', () => {
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return only archived customer', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const query = { archived: true };
+
+    const customers = [
+      { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' },
+      { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
+    ];
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([[customers[0]]]));
+    populateSubscriptionsServices.returnsArg(0);
+    subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
+
+    const result = await CustomerHelper.getCustomers(query, credentials);
+
+    expect(result).toEqual([
+      {
+        identity: { firstname: 'Emmanuel' },
+        archivedAt: '2021-09-10T00:00:00',
+        subscriptionsAccepted: true,
+        company: companyId,
+      },
+    ]);
+    sinon.assert.calledOnce(subscriptionsAccepted);
+    sinon.assert.calledOnce(populateSubscriptionsServices);
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId, archivedAt: { $ne: null } }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return only non-archived customer', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const query = { archived: false };
+
+    const customers = [
+      { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' },
+      { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
+    ];
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([[customers[1]]]));
+    populateSubscriptionsServices.returnsArg(0);
+    subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
+
+    const result = await CustomerHelper.getCustomers(query, credentials);
+
+    expect(result).toEqual([
+      {
+        identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' },
+        subscriptionsAccepted: true,
+        company: companyId,
+      },
+    ]);
+    sinon.assert.calledOnce(subscriptionsAccepted);
+    sinon.assert.calledOnce(populateSubscriptionsServices);
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId, archivedAt: { $eq: null } }] },
         { query: 'populate', args: [{ path: 'subscriptions.service' }] },
         { query: 'lean' },
       ]

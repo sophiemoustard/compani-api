@@ -169,6 +169,36 @@ describe('CUSTOMERS ROUTES', () => {
         const customers = await Customer.find({ company: authCompany._id }).lean();
         expect(res.result.data.customers).toHaveLength(customers.length);
       });
+
+      it('should get archived customers', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers?archived=${true}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const areAllCustomersFromCompany = res.result.data.customers
+          .every(c => UtilsHelper.areObjectIdsEquals(c.company, authCompany._id));
+        expect(areAllCustomersFromCompany).toBe(true);
+        const customers = await Customer.find({ company: authCompany._id, archivedAt: { $ne: null } }).lean();
+        expect(res.result.data.customers).toHaveLength(customers.length);
+      });
+
+      it('should get non-archived customers', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers?archived=${false}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const areAllCustomersFromCompany = res.result.data.customers
+          .every(c => UtilsHelper.areObjectIdsEquals(c.company, authCompany._id));
+        expect(areAllCustomersFromCompany).toBe(true);
+        const customers = await Customer.find({ company: authCompany._id, archivedAt: { $eq: null } }).lean();
+        expect(res.result.data.customers).toHaveLength(customers.length);
+      });
     });
 
     describe('Other roles', () => {

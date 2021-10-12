@@ -118,6 +118,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['customers:read'] },
+        validate: { query: Joi.object({ archived: Joi.boolean() }) },
       },
       handler: list,
     });
