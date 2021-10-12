@@ -278,12 +278,12 @@ describe('formatSubscriptionInPopulate', () => {
   it('should return subscription with last version only', () => {
     const subscription = {
       _id: new ObjectID(),
-      versions: [{ startDate: '2021-01-10' }, { startDate: '2020-09-20' }, { startDate: '2020-12-10' }],
+      versions: [{ startDate: '2021-01-10' }, { startDate: '2021-09-20' }, { startDate: '2020-12-10' }],
     };
 
     const rep = CustomerHelper.formatSubscriptionInPopulate(subscription);
 
-    expect(rep).toEqual({ ...subscription, startDate: '2020-09-20' });
+    expect(rep).toEqual({ ...subscription, versions: { startDate: '2021-09-20' }, startDate: '2021-09-20' });
   });
 });
 
@@ -323,7 +323,14 @@ describe('getCustomersWithSubscriptions', () => {
             transform: formatSubscriptionInPopulateStub,
           }],
         },
-        { query: 'populate', args: [{ path: 'referentHistories', match: { company: companyId } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'referentHistories',
+            match: { company: companyId },
+            populate: { path: 'auxiliary', select: 'identity' },
+          }],
+        },
         { query: 'select', args: ['subscriptions identity contact stoppedAt archivedAt referentHistories'] },
         { query: 'lean' },
       ]

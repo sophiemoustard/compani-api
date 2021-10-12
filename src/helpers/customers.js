@@ -26,7 +26,6 @@ const { INTERVENTION } = require('./constants');
 const GDriveStorageHelper = require('./gDriveStorage');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
-const DatesHelper = require('./dates');
 const FundingsHelper = require('./fundings');
 const EventsHelper = require('./events');
 const PdfHelper = require('./pdf');
@@ -101,8 +100,10 @@ exports.getCustomersFirstIntervention = async (query, credentials) => {
 exports.getCustomersWithIntervention = async credentials =>
   EventRepository.getCustomersWithIntervention(get(credentials, 'company._id', null));
 
-exports.formatSubscriptionInPopulate = doc =>
-  ({ ...doc, ...doc.versions.sort((a, b) => DatesHelper.diff(a.startDate, b.startDate))[0] });
+exports.formatSubscriptionInPopulate = (doc) => {
+  const lastVersion = UtilsHelper.getLastVersion(doc.versions, 'startDate');
+  return ({ ...doc, versions: lastVersion, ...lastVersion });
+};
 
 exports.getCustomersWithSubscriptions = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -111,7 +112,11 @@ exports.getCustomersWithSubscriptions = async (credentials) => {
       path: 'subscriptions.service',
       transform: exports.formatSubscriptionInPopulate,
     })
-    .populate({ path: 'referentHistories', match: { company: companyId } })
+    .populate({
+      path: 'referentHistories',
+      match: { company: companyId },
+      populate: { path: 'auxiliary', select: 'identity' },
+    })
     .select('subscriptions identity contact stoppedAt archivedAt referentHistories')
     .lean();
 };
