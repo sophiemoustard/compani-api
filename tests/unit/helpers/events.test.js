@@ -224,7 +224,12 @@ describe('updateEvent', () => {
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
-    const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
+    const event = {
+      _id: eventId,
+      type: INTERVENTION,
+      auxiliary,
+      repetition: { frequency: 'every_week', parentId: new ObjectID() },
+    };
     const payload = {
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T10:38:18',
@@ -257,6 +262,40 @@ describe('updateEvent', () => {
     );
     sinon.assert.notCalled(isRepetition);
     sinon.assert.notCalled(updateOne);
+  });
+
+  it('should not update repetition if it is invalid', async () => {
+    try {
+      const companyId = new ObjectID();
+      const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+      const eventId = new ObjectID();
+      const auxiliary = new ObjectID();
+      const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
+      const payload = {
+        startDate: '2019-01-21T09:38:18',
+        endDate: '2019-01-21T10:38:18',
+        auxiliary: auxiliary.toHexString(),
+        shouldUpdateRepetition: true,
+      };
+
+      isUpdateAllowed.returns(true);
+      findOne.returns(SinonMongoose.stubChainedQueries([event]));
+
+      await EventHelper.updateEvent(event, payload, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toBe(422);
+    } finally {
+      sinon.assert.notCalled(findOne);
+      sinon.assert.notCalled(createEventHistoryOnUpdate);
+      sinon.assert.notCalled(isRepetition);
+      sinon.assert.notCalled(updateRepetition);
+      sinon.assert.notCalled(updateOne);
+      sinon.assert.notCalled(populateEventSubscription);
+      sinon.assert.notCalled(deleteConflictInternalHoursAndUnavailabilities);
+      sinon.assert.notCalled(unassignConflictInterventions);
+      sinon.assert.notCalled(formatEditionPayload);
+      sinon.assert.notCalled(shouldDetachFromRepetition);
+    }
   });
 
   it('should update event', async () => {
