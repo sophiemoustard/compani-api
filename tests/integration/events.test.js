@@ -1566,6 +1566,24 @@ describe('PUT /events/{_id}', () => {
 
       expect(response.statusCode).toEqual(422);
     });
+
+    it('should return a 422 if repetition is invalid', async () => {
+      const payload = {
+        startDate: '2019-10-23T15:30:19.543Z',
+        endDate: '2019-10-23T17:30:19.543Z',
+        auxiliary: auxiliaries[0]._id,
+        shouldUpdateRepetition: true,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[27]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
   });
 
   describe('Other roles', () => {
@@ -1801,19 +1819,28 @@ describe('DELETE /{_id}/repetition', () => {
     });
 
     it('should delete repetition', async () => {
-      const parentEvent = eventsList[9];
       const response = await app.inject({
         method: 'DELETE',
-        url: `/events/${parentEvent._id.toHexString()}/repetition`,
+        url: `/events/${eventsList[9]._id.toHexString()}/repetition`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const query = { company: authCompany._id, 'repetition.parentId': parentEvent._id };
+      const query = { company: authCompany._id, 'repetition.parentId': eventsList[9]._id };
       const repetitionCount = await Repetition.countDocuments(query);
       expect(repetitionCount).toEqual(0);
       const eventCount = await Event.countDocuments(query);
       expect(eventCount).toEqual(0);
+    });
+
+    it('should throw 422 if repetition is invalid', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events/${eventsList[27]._id}/repetition`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(422);
     });
   });
 
