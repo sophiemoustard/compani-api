@@ -213,7 +213,7 @@ describe('getPdfContent', () => {
           marginTop: 8,
           layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
         },
-        { text: 'Sku skusku', fontSize: 9, marginTop: 6 },
+        { text: 'Sku skusku', fontSize: 9, marginTop: 12, alignment: 'justify' },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
