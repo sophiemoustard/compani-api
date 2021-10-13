@@ -187,12 +187,12 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   return eventFromDb;
 };
 
-const isRepetitionValid = repetition => repetition.frequency !== NEVER && !!repetition.parentId;
+exports.isRepetitionValid = repetition => repetition.frequency !== NEVER && !!repetition.parentId;
 
 exports.deleteRepetition = async (event, credentials) => {
   const { type, repetition } = event;
   if (type === ABSENCE || !repetition) return;
-  if (!isRepetitionValid(repetition)) throw Boom.badData(translate[language].invalidRepetition);
+  if (!exports.isRepetitionValid(repetition)) throw Boom.badData(translate[language].invalidRepetition);
 
   const query = {
     'repetition.parentId': event.repetition.parentId,
