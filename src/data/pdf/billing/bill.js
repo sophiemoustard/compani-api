@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const { BILL, AUTOMATIC } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const UtilsHelper = require('../../../helpers/utils');
@@ -39,9 +40,15 @@ exports.getPdfContent = async (data) => {
   const priceTable = UtilsPdfHelper.getPriceTable(bill);
   const eventsTable = UtilsPdfHelper.getEventsTable(bill, !bill.forTpp);
 
-  const content = bill.type === AUTOMATIC
-    ? [header, serviceTable, priceTable, eventsTable]
-    : [header, serviceTable, priceTable];
+  const footer = [{ text: get(bill, 'company.customersConfig.billFooter'), fontSize: 9, marginTop: 6 }];
+
+  const content = [
+    header,
+    serviceTable,
+    priceTable,
+    ...(bill.type === AUTOMATIC ? eventsTable : []),
+    ...(get(bill, 'company.customersConfig.billFooter') ? footer : []),
+  ];
 
   return {
     content: content.flat(),

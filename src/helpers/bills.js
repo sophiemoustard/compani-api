@@ -448,7 +448,7 @@ exports.formatPdf = (bill, company) => {
         contact: get(bill, 'customer.contact'),
       },
       ...computedData,
-      company: pick(company, ['rcs', 'rna', 'address', 'logo', 'name']),
+      company: pick(company, ['rcs', 'rna', 'address', 'logo', 'name', 'customersConfig.billFooter']),
     },
   };
 };
