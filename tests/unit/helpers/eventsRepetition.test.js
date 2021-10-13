@@ -1013,19 +1013,37 @@ describe('deleteRepetition', () => {
   });
 
   it('should not delete repetition as event is not a repetition', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const parentId = new ObjectID();
-    const event = {
-      type: INTERVENTION,
-      repetition: {
-        frequency: NEVER,
-        parentId,
-      },
-      startDate: '2019-01-21T09:38:18.653Z',
-    };
-    await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    try {
+      const credentials = { company: { _id: new ObjectID() } };
+      const parentId = new ObjectID();
+      const event = {
+        type: INTERVENTION,
+        repetition: { frequency: NEVER, parentId },
+        startDate: '2019-01-21T09:38:18.653Z',
+      };
+      await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      sinon.assert.notCalled(deleteEventsAndRepetition);
+    }
+  });
 
-    sinon.assert.notCalled(deleteEventsAndRepetition);
+  it('should not delete repetition as event is parentId is missing', async () => {
+    try {
+      const credentials = { company: { _id: new ObjectID() } };
+      const event = {
+        type: INTERVENTION,
+        repetition: { frequency: EVERY_WEEK },
+        startDate: '2019-01-21T09:38:18.653Z',
+      };
+
+      await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(422);
+    } finally {
+      sinon.assert.notCalled(deleteEventsAndRepetition);
+    }
   });
 });
 
