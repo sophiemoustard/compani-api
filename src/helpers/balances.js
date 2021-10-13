@@ -9,6 +9,7 @@ const CreditNoteHelper = require('./creditNotes');
 const PaymentHelper = require('./payments');
 const UtilsHelper = require('./utils');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
+const Customer = require('../models/Customer');
 
 exports.canBeDirectDebited = (bill) => {
   if (!bill) throw new Error('Bill must be provided');
@@ -132,10 +133,25 @@ const isAlreadyProcessed = (clients, doc) => clients.some((cl) => {
 
 exports.getBalances = async (credentials, customerId = null, maxDate = null) => {
   const companyId = get(credentials, 'company._id', null);
-  const bills = await BillRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
-  const customerCNAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(companyId, customerId, maxDate);
-  const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId, customerId, maxDate);
-  const payments = await PaymentRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
+  let customersQuery = [];
+
+  if (customerId) customersQuery.push(customerId);
+  else {
+    const notArchivedCustomers = await Customer.find(
+      { company: credentials.company._id, archivedAt: { $eq: null } },
+      { _id: 1 }
+    ).lean();
+    customersQuery = notArchivedCustomers.map(cus => cus._id);
+  }
+
+  const bills = await BillRepository.findAmountsGroupedByClient(companyId, customersQuery, maxDate);
+  const customerCNAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(
+    companyId,
+    customersQuery,
+    maxDate
+  );
+  const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId, customersQuery, maxDate);
+  const payments = await PaymentRepository.findAmountsGroupedByClient(companyId, customersQuery, maxDate);
   const tppList = await ThirdPartyPayer.find({ company: companyId }).lean();
 
   const balances = [];
