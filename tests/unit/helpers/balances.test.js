@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const _ = require('lodash');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const Customer = require('../../../src/models/Customer');
 const BalanceHelper = require('../../../src/helpers/balances');
 const BillHelper = require('../../../src/helpers/bills');
 const PaymentHelper = require('../../../src/helpers/payments');
@@ -626,17 +627,20 @@ describe('getBalancesFromPayments', () => {
   });
 });
 
-describe('getBalances', () => {
+describe('getBalances #tag', () => {
   let findBillsAmountsGroupedByClient;
   let findCNAmountsGroupedByCustomer;
   let findCNAmountsGroupedByTpp;
   let findPaymentsAmountsGroupedByClient;
+  let findCustomers;
   let getBalance;
   let getBalancesFromCreditNotes;
   let getBalancesFromPayments;
   let findThirdPartyPayer;
 
-  const customers = [new ObjectID(), new ObjectID(), new ObjectID()];
+  const archivedCustomer = [{ _id: new ObjectID(), archivedAt: '2021-09-27T14:00:18' }];
+  const nonArchivedCustomers = [new ObjectID(), new ObjectID(), new ObjectID()];
+  const customers = [nonArchivedCustomers[0], nonArchivedCustomers[1], nonArchivedCustomers[2], archivedCustomer._id];
   const tpps = [new ObjectID(), new ObjectID()];
   const credentials = { company: { _id: new ObjectID() } };
   const customerId = new ObjectID();
@@ -647,6 +651,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer = sinon.stub(CreditNoteRepository, 'findAmountsGroupedByCustomer');
     findCNAmountsGroupedByTpp = sinon.stub(CreditNoteRepository, 'findAmountsGroupedByTpp');
     findPaymentsAmountsGroupedByClient = sinon.stub(PaymentRepository, 'findAmountsGroupedByClient');
+    findCustomers = sinon.stub(Customer, 'find');
     getBalance = sinon.stub(BalanceHelper, 'getBalance');
     getBalancesFromCreditNotes = sinon.stub(BalanceHelper, 'getBalancesFromCreditNotes');
     getBalancesFromPayments = sinon.stub(BalanceHelper, 'getBalancesFromPayments');
@@ -662,6 +667,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.restore();
     findCNAmountsGroupedByTpp.restore();
     findPaymentsAmountsGroupedByClient.restore();
+    findCustomers.restore();
     getBalance.restore();
     getBalancesFromCreditNotes.restore();
     getBalancesFromPayments.restore();
@@ -682,13 +688,13 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(
       findPaymentsAmountsGroupedByClient,
       credentials.company._id,
-      customerId,
+      [customerId],
       maxDate
     );
     SinonMongoose.calledWithExactly(
@@ -701,7 +707,7 @@ describe('getBalances', () => {
     const billsAmountsGroupedByClient = [
       { _id: { customer: customers[0] } },
       { _id: { customer: customers[1] } },
-      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customers[2], tpp: tpps[0] } },
     ];
 
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
@@ -717,11 +723,11 @@ describe('getBalances', () => {
     sinon.assert.callCount(getBalance, billsAmountsGroupedByClient.length);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(
-      findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate
+      findPaymentsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate
     );
     SinonMongoose.calledWithExactly(
       findThirdPartyPayer,
@@ -749,13 +755,13 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByCustomer.length);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(
       findPaymentsAmountsGroupedByClient,
       credentials.company._id,
-      customerId,
+      [customerId],
       maxDate
     );
     SinonMongoose.calledWithExactly(
@@ -783,13 +789,13 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByTpp.length);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(
       findPaymentsAmountsGroupedByClient,
       credentials.company._id,
-      customerId,
+      [customerId],
       maxDate
     );
     SinonMongoose.calledWithExactly(
@@ -819,13 +825,13 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalance);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.callCount(getBalancesFromPayments, paymentsAmountsGroupedByClient.length);
-    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(
       findPaymentsAmountsGroupedByClient,
       credentials.company._id,
-      customerId,
+      [customerId],
       maxDate
     );
     SinonMongoose.calledWithExactly(
@@ -876,18 +882,327 @@ describe('getBalances', () => {
     sinon.assert.callCount(getBalance, 3);
     sinon.assert.callCount(getBalancesFromCreditNotes, 1);
     sinon.assert.callCount(getBalancesFromPayments, 1);
-    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
+    sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(
       findPaymentsAmountsGroupedByClient,
       credentials.company._id,
-      customerId,
+      [customerId],
       maxDate
     );
     SinonMongoose.calledWithExactly(
       findThirdPartyPayer,
       [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
+  });
+
+  it('should return non-archived customer balances from bills', async () => {
+    const billsAmountsGroupedByClient = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2], tpp: tpps[0] } },
+    ];
+
+    findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
+    findCNAmountsGroupedByCustomer.returns([]);
+    findCNAmountsGroupedByTpp.returns([]);
+    findPaymentsAmountsGroupedByClient.returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+
+    const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
+
+    expect(balances).toEqual(billsAmountsGroupedByClient);
+
+    sinon.assert.callCount(getBalance, billsAmountsGroupedByClient.length);
+    sinon.assert.notCalled(getBalancesFromCreditNotes);
+    sinon.assert.notCalled(getBalancesFromPayments);
+    sinon.assert.calledOnceWithExactly(
+      findBillsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByCustomer,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByTpp,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient, credentials.company._id, nonArchivedCustomers, maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findCustomers,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, archivedAt: { $eq: null } }, { _id: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return non-archived customer balances from customer credit notes', async () => {
+    const cnAmountsGroupedByCustomer = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+    ];
+
+    findBillsAmountsGroupedByClient.returns([]);
+    findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
+    findCNAmountsGroupedByTpp.returns([]);
+    findPaymentsAmountsGroupedByClient.returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+
+    const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
+
+    expect(balances).toEqual(cnAmountsGroupedByCustomer);
+
+    sinon.assert.notCalled(getBalance);
+    sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByCustomer.length);
+    sinon.assert.notCalled(getBalancesFromPayments);
+    sinon.assert.calledOnceWithExactly(
+      findBillsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByCustomer,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByTpp,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findCustomers,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, archivedAt: { $eq: null } }, { _id: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return non-archived customer balances from TPP credit notes', async () => {
+    const cnAmountsGroupedByTpp = [
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
+
+    findBillsAmountsGroupedByClient.returns([]);
+    findCNAmountsGroupedByCustomer.returns([]);
+    findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
+    findPaymentsAmountsGroupedByClient.returns([]);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+
+    const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
+
+    expect(balances).toEqual(cnAmountsGroupedByTpp);
+
+    sinon.assert.notCalled(getBalance);
+    sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByTpp.length);
+    sinon.assert.notCalled(getBalancesFromPayments);
+    sinon.assert.calledOnceWithExactly(
+      findBillsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByCustomer,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByTpp,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findCustomers,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, archivedAt: { $eq: null } }, { _id: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return non-archived customer balances from payments', async () => {
+    const paymentsAmountsGroupedByClient = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
+    findBillsAmountsGroupedByClient.returns([]);
+    findCNAmountsGroupedByCustomer.returns([]);
+    findCNAmountsGroupedByTpp.returns([]);
+    findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+
+    const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
+
+    expect(balances).toEqual(paymentsAmountsGroupedByClient);
+
+    sinon.assert.notCalled(getBalance);
+    sinon.assert.notCalled(getBalancesFromCreditNotes);
+    sinon.assert.callCount(getBalancesFromPayments, paymentsAmountsGroupedByClient.length);
+    sinon.assert.calledOnceWithExactly(
+      findBillsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByCustomer,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByTpp,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findCustomers,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, archivedAt: { $eq: null } }, { _id: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return non-archived customer balances from bills, credit notes and payments', async () => {
+    const billsAmountsGroupedByClient = [
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
+    const cnAmountsGroupedByCustomer = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[2] } },
+    ];
+    const cnAmountsGroupedByTpp = [
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
+    const paymentsAmountsGroupedByClient = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+    ];
+
+    findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
+    findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
+    findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
+    findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+
+    const allAmounts = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
+
+    const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
+
+    expect(balances).toEqual(expect.arrayContaining(allAmounts));
+    expect(balances.length).toEqual(allAmounts.length);
+
+    sinon.assert.callCount(getBalance, 3);
+    sinon.assert.callCount(getBalancesFromCreditNotes, 1);
+    sinon.assert.callCount(getBalancesFromPayments, 1);
+    sinon.assert.calledOnceWithExactly(
+      findBillsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByCustomer,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findCNAmountsGroupedByTpp,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    sinon.assert.calledOnceWithExactly(
+      findPaymentsAmountsGroupedByClient,
+      credentials.company._id,
+      nonArchivedCustomers,
+      maxDate
+    );
+    SinonMongoose.calledWithExactly(
+      findThirdPartyPayer,
+      [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(
+      findCustomers,
+      [
+        { query: 'find', args: [{ company: credentials.company._id, archivedAt: { $eq: null } }, { _id: 1 }] },
+        { query: 'lean' },
+      ]
     );
   });
 });
