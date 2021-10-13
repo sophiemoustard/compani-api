@@ -250,6 +250,9 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
   }
   if (!(await EventsValidationHelper.isUpdateAllowed(event, eventPayload, credentials))) throw Boom.badData();
+  if (eventPayload.shouldUpdateRepetition && !EventsRepetitionHelper.isRepetitionValid(event.repetition)) {
+    throw Boom.badData(translate[language].invalidRepetition);
+  }
 
   const companyId = get(credentials, 'company._id', null);
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
