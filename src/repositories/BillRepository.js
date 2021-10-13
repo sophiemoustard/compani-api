@@ -23,7 +23,7 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
     {
       $project: {
         _id: 1,
-        customer: { _id: 1, identity: 1, payment: 1, fundings: 1 },
+        customer: { _id: 1, identity: 1, payment: 1, fundings: 1, archivedAt: 1 },
         thirdPartyPayer: { name: 1, _id: 1 },
         billed: 1,
       },
