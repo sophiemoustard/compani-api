@@ -2,8 +2,8 @@ const moment = require('../extensions/moment');
 const Payment = require('../models/Payment');
 const { PAYMENT, REFUND, CESU } = require('../helpers/constants');
 
-exports.findAmountsGroupedByClient = async (companyId, customersQuery, dateMax = null) => {
-  const rules = [{ customer: { $in: customersQuery } }];
+exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = null) => {
+  const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const paymentsAmounts = await Payment.aggregate([

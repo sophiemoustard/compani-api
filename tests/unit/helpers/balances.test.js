@@ -627,7 +627,7 @@ describe('getBalancesFromPayments', () => {
   });
 });
 
-describe('getBalances #tag', () => {
+describe('getBalances', () => {
   let findBillsAmountsGroupedByClient;
   let findCNAmountsGroupedByCustomer;
   let findCNAmountsGroupedByTpp;
@@ -640,7 +640,7 @@ describe('getBalances #tag', () => {
 
   const archivedCustomer = [{ _id: new ObjectID(), archivedAt: '2021-09-27T14:00:18' }];
   const nonArchivedCustomers = [new ObjectID(), new ObjectID(), new ObjectID()];
-  const customers = [nonArchivedCustomers[0], nonArchivedCustomers[1], nonArchivedCustomers[2], archivedCustomer._id];
+  const customers = [...nonArchivedCustomers, ...archivedCustomer.map(cus => cus._id)];
   const tpps = [new ObjectID(), new ObjectID()];
   const credentials = { company: { _id: new ObjectID() } };
   const customerId = new ObjectID();
@@ -705,9 +705,8 @@ describe('getBalances #tag', () => {
 
   it('should return balances from bills', async () => {
     const billsAmountsGroupedByClient = [
-      { _id: { customer: customers[0] } },
-      { _id: { customer: customers[1] } },
-      { _id: { customer: customers[2], tpp: tpps[0] } },
+      { _id: { customer: customerId } },
+      { _id: { customer: customerId, tpp: tpps[0] } },
     ];
 
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
@@ -736,11 +735,7 @@ describe('getBalances #tag', () => {
   });
 
   it('should return balances from customer credit notes', async () => {
-    const cnAmountsGroupedByCustomer = [
-      { _id: { customer: customers[0] } },
-      { _id: { customer: customers[1] } },
-      { _id: { customer: customers[2] } },
-    ];
+    const cnAmountsGroupedByCustomer = [{ _id: { customer: customerId } }];
 
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
@@ -772,8 +767,8 @@ describe('getBalances #tag', () => {
 
   it('should return balances from TPP credit notes', async () => {
     const cnAmountsGroupedByTpp = [
-      { _id: { customer: customers[0], tpp: tpps[0] } },
-      { _id: { customer: customers[1], tpp: tpps[1] } },
+      { _id: { customer: customerId, tpp: tpps[0] } },
+      { _id: { customer: customerId, tpp: tpps[1] } },
     ];
 
     findBillsAmountsGroupedByClient.returns([]);
@@ -805,13 +800,8 @@ describe('getBalances #tag', () => {
   });
 
   it('should return balances from payments', async () => {
-    const paymentsAmountsGroupedByClient = [
-      { _id: { customer: customers[0] } },
-      { _id: { customer: customers[1] } },
-      { _id: { customer: customers[2] } },
-      { _id: { customer: customers[0], tpp: tpps[0] } },
-      { _id: { customer: customers[1], tpp: tpps[1] } },
-    ];
+    const paymentsAmountsGroupedByClient = [{ _id: { customer: customerId, tpp: tpps[0] } }];
+
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
@@ -841,23 +831,15 @@ describe('getBalances #tag', () => {
   });
 
   it('should return balances from bills, credit notes and payments', async () => {
-    const billsAmountsGroupedByClient = [
-      { _id: { customer: customers[1] } },
-      { _id: { customer: customers[2] } },
-      { _id: { customer: customers[1], tpp: tpps[1] } },
-    ];
-    const cnAmountsGroupedByCustomer = [
-      { _id: { customer: customers[0] } },
-      { _id: { customer: customers[2] } },
-    ];
+    const billsAmountsGroupedByClient = [{ _id: { customer: customerId, tpp: tpps[1] } }];
+    const cnAmountsGroupedByCustomer = [{ _id: { customer: customerId } }];
     const cnAmountsGroupedByTpp = [
-      { _id: { customer: customers[1], tpp: tpps[1] } },
+      { _id: { customer: customerId, tpp: tpps[0] } },
+      { _id: { customer: customerId, tpp: tpps[1] } },
     ];
     const paymentsAmountsGroupedByClient = [
-      { _id: { customer: customers[0] } },
-      { _id: { customer: customers[1] } },
-      { _id: { customer: customers[2] } },
-      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customerId } },
+      { _id: { customer: customerId, tpp: tpps[1] } },
     ];
 
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
@@ -867,11 +849,9 @@ describe('getBalances #tag', () => {
     findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const allAmounts = [
-      { _id: { customer: customers[0] } },
-      { _id: { customer: customers[1] } },
-      { _id: { customer: customers[2] } },
-      { _id: { customer: customers[0], tpp: tpps[0] } },
-      { _id: { customer: customers[1], tpp: tpps[1] } },
+      { _id: { customer: customerId } },
+      { _id: { customer: customerId, tpp: tpps[0] } },
+      { _id: { customer: customerId, tpp: tpps[1] } },
     ];
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
@@ -879,9 +859,9 @@ describe('getBalances #tag', () => {
     expect(balances).toEqual(expect.arrayContaining(allAmounts));
     expect(balances.length).toEqual(allAmounts.length);
 
-    sinon.assert.callCount(getBalance, 3);
-    sinon.assert.callCount(getBalancesFromCreditNotes, 1);
-    sinon.assert.callCount(getBalancesFromPayments, 1);
+    sinon.assert.callCount(getBalance, billsAmountsGroupedByClient.length);
+    sinon.assert.callCount(getBalancesFromCreditNotes, 2);
+    sinon.assert.callCount(getBalancesFromPayments, 0);
     sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);

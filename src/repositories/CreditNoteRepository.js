@@ -1,8 +1,8 @@
 const moment = require('moment');
 const CreditNote = require('../models/CreditNote');
 
-exports.findAmountsGroupedByCustomer = async (companyId, customersQuery, dateMax = null) => {
-  const rules = [{ customer: { $in: customersQuery } }];
+exports.findAmountsGroupedByCustomer = async (companyId, customersIds, dateMax = null) => {
+  const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const customerCreditNotesAmounts = await CreditNote.aggregate([
@@ -31,8 +31,8 @@ exports.findAmountsGroupedByCustomer = async (companyId, customersQuery, dateMax
   return customerCreditNotesAmounts;
 };
 
-exports.findAmountsGroupedByTpp = async (companyId, customersQuery, dateMax = null) => {
-  const rules = [{ customer: { $in: customersQuery } }];
+exports.findAmountsGroupedByTpp = async (companyId, customersIds, dateMax = null) => {
+  const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const tppCreditNotesAmounts = await CreditNote.aggregate([

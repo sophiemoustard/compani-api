@@ -2,8 +2,8 @@ const moment = require('moment');
 const groupBy = require('lodash/groupBy');
 const Bill = require('../models/Bill');
 
-exports.findAmountsGroupedByClient = async (companyId, customersQuery, dateMax = null) => {
-  const rules = [{ customer: { $in: customersQuery } }];
+exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = null) => {
+  const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const billsAmounts = await Bill.aggregate([

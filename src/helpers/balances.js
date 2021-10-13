@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const { ObjectID } = require('mongodb');
 const { getLastVersion } = require('./utils');
 const { PAYMENT, CESU } = require('./constants');
 const BillRepository = require('../repositories/BillRepository');
@@ -133,25 +134,25 @@ const isAlreadyProcessed = (clients, doc) => clients.some((cl) => {
 
 exports.getBalances = async (credentials, customerId = null, maxDate = null) => {
   const companyId = get(credentials, 'company._id', null);
-  let customersQuery = [];
+  let customersIds = [];
 
-  if (customerId) customersQuery.push(customerId);
+  if (customerId) customersIds.push(new ObjectID(customerId));
   else {
     const notArchivedCustomers = await Customer.find(
       { company: credentials.company._id, archivedAt: { $eq: null } },
       { _id: 1 }
     ).lean();
-    customersQuery = notArchivedCustomers.map(cus => cus._id);
+    customersIds = notArchivedCustomers.map(cus => cus._id);
   }
 
-  const bills = await BillRepository.findAmountsGroupedByClient(companyId, customersQuery, maxDate);
+  const bills = await BillRepository.findAmountsGroupedByClient(companyId, customersIds, maxDate);
   const customerCNAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(
     companyId,
-    customersQuery,
+    customersIds,
     maxDate
   );
-  const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId, customersQuery, maxDate);
-  const payments = await PaymentRepository.findAmountsGroupedByClient(companyId, customersQuery, maxDate);
+  const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId, customersIds, maxDate);
+  const payments = await PaymentRepository.findAmountsGroupedByClient(companyId, customersIds, maxDate);
   const tppList = await ThirdPartyPayer.find({ company: companyId }).lean();
 
   const balances = [];
@@ -180,7 +181,7 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
 
 exports.getBalancesWithDetails = async (query, credentials) => {
   const [balances, bills, payments, creditNotes] = await Promise.all([
-    exports.getBalances(credentials, query.customer, query.startDate),
+    exports.getBalances(credentials, query.customer, query.endDate),
     BillHelper.getBills(query, credentials),
     PaymentHelper.getPayments(query, credentials),
     CreditNoteHelper.getCreditNotes(query, credentials),
