@@ -1566,6 +1566,24 @@ describe('PUT /events/{_id}', () => {
 
       expect(response.statusCode).toEqual(422);
     });
+
+    it('should return a 422 if repetition is invalid', async () => {
+      const payload = {
+        startDate: '2019-10-23T15:30:19.543Z',
+        endDate: '2019-10-23T17:30:19.543Z',
+        auxiliary: auxiliaries[0]._id,
+        shouldUpdateRepetition: true,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${eventsList[27]._id}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(422);
+    });
   });
 
   describe('Other roles', () => {
