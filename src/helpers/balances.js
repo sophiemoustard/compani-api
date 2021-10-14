@@ -181,7 +181,7 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
 
 exports.getBalancesWithDetails = async (query, credentials) => {
   const [balances, bills, payments, creditNotes] = await Promise.all([
-    exports.getBalances(credentials, query.customer, query.endDate),
+    exports.getBalances(credentials, query.customer, query.startDate),
     BillHelper.getBills(query, credentials),
     PaymentHelper.getPayments(query, credentials),
     CreditNoteHelper.getCreditNotes(query, credentials),

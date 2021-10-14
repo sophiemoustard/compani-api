@@ -1221,9 +1221,9 @@ describe('getBalancesWithDetails', () => {
     expect(result.bills).toEqual([{ name: 'bills' }]);
     expect(result.payments).toEqual([{ name: 'payments' }]);
     expect(result.creditNotes).toEqual([{ name: 'creditNotes' }]);
-    getBalancesStub.calledOnceWithExactly(credentials, query.customer, query.startDate);
-    getBillsStub.calledOnceWithExactly(query, credentials);
-    getPaymentsStub.calledOnceWithExactly(query, credentials);
-    getCreditNotesStub.calledOnceWithExactly(query, credentials);
+    sinon.assert.calledOnceWithExactly(getBalancesStub, credentials, query.customer, query.startDate);
+    sinon.assert.calledOnceWithExactly(getBillsStub, query, credentials);
+    sinon.assert.calledOnceWithExactly(getPaymentsStub, query, credentials);
+    sinon.assert.calledOnceWithExactly(getCreditNotesStub, query, credentials);
   });
 });
