@@ -5,6 +5,7 @@ const flat = require('flat');
 const crypto = require('crypto');
 const moment = require('moment');
 const QRCode = require('qrcode');
+const SinonMongoose = require('../sinonMongoose');
 const CustomerQRCode = require('../../../src/data/pdf/customerQRCode/customerQRCode');
 const Customer = require('../../../src/models/Customer');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
@@ -26,7 +27,6 @@ const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventsHelper = require('../../../src/helpers/events');
 const PdfHelper = require('../../../src/helpers/pdf');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const SinonMongoose = require('../sinonMongoose');
 
 describe('getCustomersBySector', () => {
   let findSectorHistories;
@@ -183,14 +183,21 @@ describe('getCustomers', () => {
   it('should return customers', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
-    const customers = [
-      { identity: { firstname: 'Emmanuel' }, company: companyId },
-      { company: companyId },
-    ];
+    const customers = [{ identity: { firstname: 'Emmanuel' }, company: companyId }, { company: companyId }];
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
-    populateSubscriptionsServices.returnsArg(0);
-    subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
+    populateSubscriptionsServices.onCall(0).returns({
+      identity: { firstname: 'Emmanuel' },
+      company: companyId,
+      subscriptions: [{ unitTTCRate: 75 }],
+    });
+    populateSubscriptionsServices.onCall(1).returns({ company: companyId, subscriptions: [{ unitTTCRate: 10 }] });
+    subscriptionsAccepted.onCall(0).returns({
+      identity: { firstname: 'Emmanuel' },
+      company: companyId,
+      subscriptionsAccepted: true,
+    });
+    subscriptionsAccepted.onCall(1).returns({ company: companyId, subscriptionsAccepted: true });
 
     const result = await CustomerHelper.getCustomers(credentials);
 
@@ -200,10 +207,133 @@ describe('getCustomers', () => {
     ]);
     sinon.assert.calledTwice(subscriptionsAccepted);
     sinon.assert.calledTwice(populateSubscriptionsServices);
+    sinon.assert.calledWithExactly(
+      subscriptionsAccepted.getCall(0),
+      {
+        identity: { firstname: 'Emmanuel' },
+        company: companyId,
+        subscriptions: [{ unitTTCRate: 75 }],
+      }
+    );
+    sinon.assert.calledWithExactly(
+      subscriptionsAccepted.getCall(1),
+      { company: companyId, subscriptions: [{ unitTTCRate: 10 }] }
+    );
+    sinon.assert.calledWithExactly(
+      populateSubscriptionsServices.getCall(0),
+      { identity: { firstname: 'Emmanuel' }, company: companyId }
+    );
+    sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(1), { company: companyId });
     SinonMongoose.calledWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return only archived customer', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const query = { archived: true };
+    const customers = [
+      { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' },
+      { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
+    ];
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([[customers[0]]]));
+    populateSubscriptionsServices.returns({
+      identity: { firstname: 'Emmanuel' },
+      company: companyId,
+      archivedAt: '2021-09-10T00:00:00',
+      subscriptions: [{ unitTTCRate: 75 }],
+    });
+    subscriptionsAccepted.returns({
+      identity: { firstname: 'Emmanuel' },
+      company: companyId,
+      archivedAt: '2021-09-10T00:00:00',
+      subscriptionsAccepted: true,
+    });
+
+    const result = await CustomerHelper.getCustomers(credentials, query);
+
+    expect(result).toEqual([{
+      identity: { firstname: 'Emmanuel' },
+      archivedAt: '2021-09-10T00:00:00',
+      subscriptionsAccepted: true,
+      company: companyId,
+    }]);
+    sinon.assert.calledOnceWithExactly(
+      subscriptionsAccepted,
+      {
+        identity: { firstname: 'Emmanuel' },
+        company: companyId,
+        archivedAt: '2021-09-10T00:00:00',
+        subscriptions: [{ unitTTCRate: 75 }],
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      populateSubscriptionsServices,
+      { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' }
+    );
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId, archivedAt: { $ne: null } }] },
+        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return only non-archived customer', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const query = { archived: false };
+    const customers = [
+      { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' },
+      { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
+    ];
+
+    findCustomer.returns(SinonMongoose.stubChainedQueries([[customers[1]]]));
+    populateSubscriptionsServices.returns({
+      identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' },
+      company: companyId,
+      subscriptions: [{ unitTTCRate: 75 }],
+    });
+    subscriptionsAccepted.returns({
+      identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' },
+      company: companyId,
+      subscriptionsAccepted: true,
+    });
+
+    const result = await CustomerHelper.getCustomers(credentials, query);
+
+    expect(result).toEqual([
+      {
+        identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' },
+        subscriptionsAccepted: true,
+        company: companyId,
+      },
+    ]);
+    sinon.assert.calledOnceWithExactly(
+      subscriptionsAccepted,
+      {
+        identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' },
+        company: companyId,
+        subscriptions: [{ unitTTCRate: 75 }],
+      }
+    );
+    sinon.assert.calledOnceWithExactly(
+      populateSubscriptionsServices,
+      { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId }
+    );
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ company: companyId, archivedAt: { $eq: null } }] },
         { query: 'populate', args: [{ path: 'subscriptions.service' }] },
         { query: 'lean' },
       ]
