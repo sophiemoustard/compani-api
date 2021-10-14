@@ -21,7 +21,6 @@ const User = require('../models/User');
 const SectorHistory = require('../models/SectorHistory');
 const UserCompany = require('../models/UserCompany');
 const EventRepository = require('../repositories/EventRepository');
-const CustomerRepository = require('../repositories/CustomerRepository');
 const translate = require('./translate');
 const { INTERVENTION } = require('./constants');
 const GDriveStorageHelper = require('./gDriveStorage');
@@ -98,14 +97,28 @@ exports.getCustomersFirstIntervention = async (query, credentials) => {
   return keyBy(customers, '_id');
 };
 
-exports.getCustomersWithIntervention = async (credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  return EventRepository.getCustomersWithIntervention(companyId);
+exports.getCustomersWithIntervention = async credentials =>
+  EventRepository.getCustomersWithIntervention(get(credentials, 'company._id', null));
+
+exports.formatSubscriptionInPopulate = (doc) => {
+  const lastVersion = UtilsHelper.getLastVersion(doc.versions, 'startDate');
+  return ({ ...doc, versions: lastVersion, ...lastVersion });
 };
 
 exports.getCustomersWithSubscriptions = async (credentials) => {
-  const query = { subscriptions: { $exists: true, $not: { $size: 0 } } };
-  return CustomerRepository.getCustomersWithSubscriptions(query, get(credentials, 'company._id', null));
+  const companyId = get(credentials, 'company._id', null);
+  return Customer.find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
+    .populate({
+      path: 'subscriptions.service',
+      transform: exports.formatSubscriptionInPopulate,
+    })
+    .populate({
+      path: 'referentHistories',
+      match: { company: companyId },
+      populate: { path: 'auxiliary', select: 'identity' },
+    })
+    .select('subscriptions identity contact stoppedAt archivedAt referentHistories')
+    .lean();
 };
 
 exports.getCustomer = async (customerId, credentials) => {

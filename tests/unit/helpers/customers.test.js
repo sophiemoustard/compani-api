@@ -274,6 +274,70 @@ describe('getCustomersWithIntervention', () => {
   });
 });
 
+describe('formatSubscriptionInPopulate', () => {
+  it('should return subscription with last version only', () => {
+    const subscription = {
+      _id: new ObjectID(),
+      versions: [{ startDate: '2021-01-10' }, { startDate: '2021-09-20' }, { startDate: '2020-12-10' }],
+    };
+
+    const rep = CustomerHelper.formatSubscriptionInPopulate(subscription);
+
+    expect(rep).toEqual({ ...subscription, versions: { startDate: '2021-09-20' }, startDate: '2021-09-20' });
+  });
+});
+
+describe('getCustomersWithSubscriptions', () => {
+  let findCustomer;
+  let formatSubscriptionInPopulateStub;
+
+  beforeEach(() => {
+    findCustomer = sinon.stub(Customer, 'find');
+    formatSubscriptionInPopulateStub = sinon.stub(CustomerHelper, 'formatSubscriptionInPopulate');
+  });
+
+  afterEach(() => {
+    findCustomer.restore();
+    formatSubscriptionInPopulateStub.restore();
+  });
+
+  it('should return customers with subscriptions', async () => {
+    const companyId = new ObjectID();
+    const customersWithSubscriptions = [{ identity: { lastname: 'Fred' }, subscriptions: [{ _id: new ObjectID() }] }];
+    findCustomer.returns(SinonMongoose.stubChainedQueries(
+      [customersWithSubscriptions],
+      ['find', 'populate', 'select', 'lean']
+    ));
+
+    const rep = await CustomerHelper.getCustomersWithSubscriptions({ company: { _id: companyId } });
+
+    expect(rep).toEqual(customersWithSubscriptions);
+    SinonMongoose.calledWithExactly(
+      findCustomer,
+      [
+        { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subscriptions.service',
+            transform: formatSubscriptionInPopulateStub,
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'referentHistories',
+            match: { company: companyId },
+            populate: { path: 'auxiliary', select: 'identity' },
+          }],
+        },
+        { query: 'select', args: ['subscriptions identity contact stoppedAt archivedAt referentHistories'] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
 describe('getCustomer', () => {
   let findOneCustomer;
   let populateSubscriptionsServices;
