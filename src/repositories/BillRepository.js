@@ -1,15 +1,13 @@
-const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const groupBy = require('lodash/groupBy');
 const Bill = require('../models/Bill');
 
-exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMax = null) => {
-  const rules = [];
-  if (customerId) rules.push({ customer: new ObjectID(customerId) });
+exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = null) => {
+  const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const billsAmounts = await Bill.aggregate([
-    { $match: rules.length === 0 ? {} : { $and: rules } },
+    { $match: { $and: rules } },
     {
       $group: {
         _id: { tpp: { $ifNull: ['$thirdPartyPayer', null] }, customer: '$customer' },
