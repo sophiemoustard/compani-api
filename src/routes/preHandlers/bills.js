@@ -124,9 +124,5 @@ exports.authorizeBillCreation = async (req) => {
     .countDocuments({ _id: { $in: billingItemIds }, company: companyId, type: MANUAL });
   if (billingItems !== billingItemIds.length) throw Boom.forbidden();
 
-  const totalInclTaxes = req.payload.billingItemList
-    .reduce((acc, current) => acc + current.unitInclTaxes * current.count, 0);
-  if (totalInclTaxes !== req.payload.netInclTaxes) throw Boom.forbidden();
-
   return null;
 };

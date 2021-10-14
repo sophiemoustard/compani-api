@@ -174,7 +174,6 @@ exports.plugin = {
               unitInclTaxes: Joi.number().required(),
               count: Joi.number().required(),
             })),
-            netInclTaxes: Joi.number().required(),
           }),
         },
         pre: [{ method: authorizeBillCreation }],

@@ -813,7 +813,6 @@ describe('BILL ROUTES - POST /bills', () => {
         customer: billCustomerList[0]._id,
         date: new Date('2021-09-02T20:00:00'),
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
-        netInclTaxes: 30,
       };
       const response = await app.inject({
         method: 'POST',
@@ -828,14 +827,13 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(billsCount).toBe(1 + authBillList.length);
     });
 
-    const missingParams = ['customer', 'date', 'netInclTaxes'];
+    const missingParams = ['customer', 'date'];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {
         const payload = {
           customer: billCustomerList[0]._id,
           date: new Date('2021-09-02T20:00:00'),
           billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
-          netInclTaxes: 30,
         };
         const response = await app.inject({
           method: 'POST',
@@ -856,7 +854,6 @@ describe('BILL ROUTES - POST /bills', () => {
           customer: billCustomerList[0]._id,
           date: new Date('2021-09-02T20:00:00'),
           billingItemList: [billingItem],
-          netInclTaxes: 30,
         };
         const response = await app.inject({
           method: 'POST',
@@ -874,7 +871,6 @@ describe('BILL ROUTES - POST /bills', () => {
         customer: new ObjectID(),
         date: new Date('2021-09-02T20:00:00'),
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
-        netInclTaxes: 30,
       };
       const response = await app.inject({
         method: 'POST',
@@ -894,27 +890,6 @@ describe('BILL ROUTES - POST /bills', () => {
           { billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 },
           { billingItem: new ObjectID(), unitInclTaxes: 15, count: 2 },
         ],
-        netInclTaxes: 60,
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/bills',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if netInclTaxes has incorrect amount', async () => {
-      const payload = {
-        customer: billCustomerList[0]._id,
-        date: new Date('2021-09-02T20:00:00'),
-        billingItemList: [
-          { billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 },
-          { billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 },
-        ],
-        netInclTaxes: 34.5,
       };
       const response = await app.inject({
         method: 'POST',
@@ -931,7 +906,6 @@ describe('BILL ROUTES - POST /bills', () => {
         customer: billCustomerList[0]._id,
         date: new Date('2021-09-02T20:00:00'),
         billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 15, count: 2 }],
-        netInclTaxes: 30,
       };
       const response = await app.inject({
         method: 'POST',
@@ -948,7 +922,6 @@ describe('BILL ROUTES - POST /bills', () => {
         customer: billCustomerList[3]._id,
         date: new Date('2021-09-02T20:00:00'),
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
-        netInclTaxes: 30,
       };
       const response = await app.inject({
         method: 'POST',
@@ -968,7 +941,6 @@ describe('BILL ROUTES - POST /bills', () => {
         customer: billCustomerList[0]._id,
         date: new Date('2021-09-02T20:00:00'),
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
-        netInclTaxes: 30,
       };
       const response = await app.inject({
         method: 'POST',
@@ -999,7 +971,6 @@ describe('BILL ROUTES - POST /bills', () => {
           customer: new ObjectID(),
           date: '2021-09-02T20:00:00',
           billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
-          netInclTaxes: 30,
         };
 
         const response = await app.inject({
