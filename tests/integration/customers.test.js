@@ -436,7 +436,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers).toBeDefined();
-        expect(res.result.data.customers).toHaveLength(4);
+        expect(res.result.data.customers).toHaveLength(6);
       });
     });
 
@@ -678,7 +678,7 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
       });
 
-      it('should archive customer', async () => {
+      it('should archive customer even with billed interventions', async () => {
         const customer = customersList[9];
 
         const res = await app.inject({
@@ -844,7 +844,7 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(403);
       });
 
-      it('should return 403 if customer has not billed interventions', async () => {
+      it('should not archived customer with non-billed and non-cancelled interventions', async () => {
         const res = await app.inject({
           method: 'PUT',
           url: `/customers/${customersList[12]._id}`,
@@ -853,6 +853,28 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(403);
+      });
+
+      it('should not archived customer with non-billed, cancelled but to invoice interventions', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customersList[13]._id}`,
+          payload: { archivedAt: '2021-01-16T14:30:19' },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should archived customer with non-billed, cancelled but not to invoice interventions', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customersList[15]._id}`,
+          payload: { archivedAt: '2021-01-16T14:30:19' },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
       });
     });
 
