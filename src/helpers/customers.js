@@ -78,11 +78,11 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
   return EventRepository.getCustomersWithBilledEvents(query, companyId);
 };
 
-exports.getCustomers = async (query = null, credentials) => {
+exports.getCustomers = async (credentials, query = null) => {
   const findQuery = {
     company: get(credentials, 'company._id', null),
-    ...(query.archived && { archivedAt: { $ne: null } }),
-    ...(query.archived === false && { archivedAt: { $eq: null } }),
+    ...(query && query.archived && { archivedAt: { $ne: null } }),
+    ...(query && query.archived === false && { archivedAt: { $eq: null } }),
   };
 
   const customers = await Customer.find(findQuery).populate({ path: 'subscriptions.service' }).lean();

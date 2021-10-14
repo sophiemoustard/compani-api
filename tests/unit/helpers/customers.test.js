@@ -5,6 +5,7 @@ const flat = require('flat');
 const crypto = require('crypto');
 const moment = require('moment');
 const QRCode = require('qrcode');
+const SinonMongoose = require('../sinonMongoose');
 const CustomerQRCode = require('../../../src/data/pdf/customerQRCode/customerQRCode');
 const Customer = require('../../../src/models/Customer');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
@@ -26,7 +27,6 @@ const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventsHelper = require('../../../src/helpers/events');
 const PdfHelper = require('../../../src/helpers/pdf');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const SinonMongoose = require('../sinonMongoose');
 
 describe('getCustomersBySector', () => {
   let findSectorHistories;
@@ -162,11 +162,10 @@ describe('getCustomers', () => {
   it('should return empty array if no customer', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
-    const query = {};
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([[]]));
 
-    const result = await CustomerHelper.getCustomers(query, credentials);
+    const result = await CustomerHelper.getCustomers(credentials);
 
     expect(result).toEqual([]);
     sinon.assert.notCalled(subscriptionsAccepted);
@@ -184,8 +183,6 @@ describe('getCustomers', () => {
   it('should return customers', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
-    const query = {};
-
     const customers = [{ identity: { firstname: 'Emmanuel' }, company: companyId }, { company: companyId }];
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
@@ -202,12 +199,14 @@ describe('getCustomers', () => {
     });
     subscriptionsAccepted.onCall(1).returns({ company: companyId, subscriptionsAccepted: true });
 
-    const result = await CustomerHelper.getCustomers(query, credentials);
+    const result = await CustomerHelper.getCustomers(credentials);
 
     expect(result).toEqual([
       { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { subscriptionsAccepted: true, company: companyId },
     ]);
+    sinon.assert.calledTwice(subscriptionsAccepted);
+    sinon.assert.calledTwice(populateSubscriptionsServices);
     sinon.assert.calledWithExactly(
       subscriptionsAccepted.getCall(0),
       {
@@ -239,7 +238,6 @@ describe('getCustomers', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
     const query = { archived: true };
-
     const customers = [
       { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' },
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
@@ -259,7 +257,7 @@ describe('getCustomers', () => {
       subscriptionsAccepted: true,
     });
 
-    const result = await CustomerHelper.getCustomers(query, credentials);
+    const result = await CustomerHelper.getCustomers(credentials, query);
 
     expect(result).toEqual([{
       identity: { firstname: 'Emmanuel' },
@@ -294,7 +292,6 @@ describe('getCustomers', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
     const query = { archived: false };
-
     const customers = [
       { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' },
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
@@ -312,7 +309,7 @@ describe('getCustomers', () => {
       subscriptionsAccepted: true,
     });
 
-    const result = await CustomerHelper.getCustomers(query, credentials);
+    const result = await CustomerHelper.getCustomers(credentials, query);
 
     expect(result).toEqual([
       {
@@ -321,7 +318,6 @@ describe('getCustomers', () => {
         company: companyId,
       },
     ]);
-
     sinon.assert.calledOnceWithExactly(
       subscriptionsAccepted,
       {
@@ -334,7 +330,6 @@ describe('getCustomers', () => {
       populateSubscriptionsServices,
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId }
     );
-
     SinonMongoose.calledWithExactly(
       findCustomer,
       [
