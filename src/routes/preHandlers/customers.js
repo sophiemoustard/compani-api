@@ -127,12 +127,10 @@ exports.authorizeSubscriptionDeletion = async (req) => {
 
   const eventsLinkedToSub = await Event.countDocuments({ subscription: subscriptionId });
   const repetitionsLinkedToSub = await Repetition.countDocuments({ subscription: subscriptionId });
+  const fundingsLinkedToSub = await Customer
+    .countDocuments({ _id: customerId, 'fundings.subscription': subscriptionId });
 
-  const customer = await Customer.findOne({ _id: customerId }).lean();
-  const fundingsLinkedToSub = customer.fundings
-    .filter(f => UtilsHelper.areObjectIdsEquals(f.subscription, subscriptionId));
-
-  if (eventsLinkedToSub || repetitionsLinkedToSub || fundingsLinkedToSub.length) {
+  if (eventsLinkedToSub || repetitionsLinkedToSub || fundingsLinkedToSub) {
     throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
   }
 
