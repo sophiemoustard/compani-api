@@ -1016,10 +1016,7 @@ const eventList = [
     customer: customersList[13]._id,
     isBilled: false,
     isCancelled: true,
-    cancel: {
-      reason: 'auxiliary_initiative',
-      condition: 'invoiced_and_not_paid',
-    },
+    cancel: { reason: 'auxiliary_initiative', condition: 'invoiced_and_not_paid' },
     misc: 'skusku',
     auxiliary: userList[6]._id,
     type: 'intervention',
@@ -1040,10 +1037,7 @@ const eventList = [
     customer: customersList[15]._id,
     isBilled: false,
     isCancelled: true,
-    cancel: {
-      reason: 'auxiliary_initiative',
-      condition: 'not_invoiced_and_not_paid',
-    },
+    cancel: { reason: 'auxiliary_initiative', condition: 'not_invoiced_and_not_paid' },
     misc: 'skusku',
     auxiliary: userList[6]._id,
     type: 'intervention',
