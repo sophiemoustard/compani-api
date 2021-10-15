@@ -1,9 +1,10 @@
 const Boom = require('@hapi/boom');
-const pickBy = require('lodash/pickBy');
 const pick = require('lodash/pick');
 const translate = require('./translate');
 const CourseSlot = require('../models/CourseSlot');
+const Step = require('../models/Step');
 const CourseHistoriesHelper = require('./courseHistories');
+const { ON_SITE, REMOTE } = require('./constants');
 
 const { language } = translate;
 
@@ -32,9 +33,11 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
   const hasConflicts = await exports.hasConflicts({ ...slotFromDb, ...payload });
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
-  const updatePayload = { $set: pickBy(payload) };
+  const updatePayload = { $set: payload };
+  const step = await Step.findById(payload.step).lean();
 
-  if (!payload.step) updatePayload.$unset = { step: '' };
+  if (step.type === ON_SITE || !payload.meetingLink) updatePayload.$unset = { meetingLink: '' };
+  if (step.type === REMOTE || !payload.address) updatePayload.$unset = { ...updatePayload.$unset, address: '' };
 
   await Promise.all([
     CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, user._id),

@@ -30,6 +30,7 @@ describe('getPdfContent', () => {
       slots: [
         { date: '23/12/2020', hours: '12h - 14h', address: '' },
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
+        { date: '15/01/2020', hours: '12h - 14h', meetingLink: 'https://pointerpointer.com/' },
       ],
       slotsToPlan: [{ _id: new ObjectID() }],
       trainer: { formattedIdentity: 'test OK', biography: 'Voici ma bio' },
@@ -57,17 +58,40 @@ describe('getPdfContent', () => {
             [
               { text: 'Dates', style: 'tableHeader' },
               { text: 'Heures', style: 'tableHeader' },
-              { text: 'Lieux', style: 'tableHeader' },
+              { text: 'Lieux', style: 'tableHeader', alignment: 'left' },
             ],
             [
               { text: '23/12/2020', style: 'tableContent' },
               { text: '12h - 14h', style: 'tableContent' },
-              { text: '', style: 'tableContent' },
+              { text: '' },
             ],
             [
               { text: '14/01/2020', style: 'tableContent' },
               { text: '12h - 14h', style: 'tableContent' },
-              { text: '24 avenue du test', style: 'tableContent' },
+              {
+                text: [
+                  { text: ' ', style: 'icon' },
+                  { text: '24 avenue du test', style: 'tableContent', alignment: 'left' },
+                ],
+                margin: [0, 4, 0, 4],
+              },
+            ],
+            [
+              { text: '15/01/2020', style: 'tableContent' },
+              { text: '12h - 14h', style: 'tableContent' },
+              {
+                text: [
+                  { text: ' ', style: 'icon' },
+                  {
+                    text: 'https://pointerpointer.com/',
+                    link: 'https://pointerpointer.com/',
+                    style: 'tableContent',
+                    decoration: 'underline',
+                    alignment: 'left',
+                  },
+                ],
+                margin: [0, 4, 0, 4],
+              },
             ],
           ],
           height: 24,
@@ -126,6 +150,7 @@ describe('getPdfContent', () => {
         infoTitle: { fontSize: 14, bold: true },
         infoSubTitle: { fontSize: 12 },
         infoContent: { italics: true },
+        icon: { font: 'icon' },
       },
     };
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
@@ -151,8 +176,9 @@ describe('getPdfContent', () => {
     const data = {
       subProgram: { program: { name: 'test' } },
       slots: [
-        { date: '23/12/2020', hours: '12h - 14h', address: '' },
+        { date: '23/12/2020', hours: '12h - 14h' },
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
+        { date: '22/01/2020', hours: '12h - 14h', meetingLink: 'https://mondrianandme.com/' },
       ],
       contact: { formattedPhone: '09 87 65 43 21' },
     };
@@ -178,17 +204,42 @@ describe('getPdfContent', () => {
             [
               { text: 'Dates', style: 'tableHeader' },
               { text: 'Heures', style: 'tableHeader' },
-              { text: 'Lieux', style: 'tableHeader' },
+              { text: 'Lieux', style: 'tableHeader', alignment: 'left' },
             ],
             [
               { text: '23/12/2020', style: 'tableContent' },
               { text: '12h - 14h', style: 'tableContent' },
-              { text: '', style: 'tableContent' },
+              {
+                text: '',
+              },
             ],
             [
               { text: '14/01/2020', style: 'tableContent' },
               { text: '12h - 14h', style: 'tableContent' },
-              { text: '24 avenue du test', style: 'tableContent' },
+              {
+                text: [
+                  { text: ' ', style: 'icon' },
+                  { text: '24 avenue du test', style: 'tableContent', alignment: 'left' },
+                ],
+                margin: [0, 4, 0, 4],
+              },
+            ],
+            [
+              { text: '22/01/2020', style: 'tableContent' },
+              { text: '12h - 14h', style: 'tableContent' },
+              {
+                text: [
+                  { text: ' ', style: 'icon' },
+                  {
+                    text: 'https://mondrianandme.com/',
+                    link: 'https://mondrianandme.com/',
+                    style: 'tableContent',
+                    decoration: 'underline',
+                    alignment: 'left',
+                  },
+                ],
+                margin: [0, 4, 0, 4],
+              },
             ],
           ],
           height: 24,
@@ -246,6 +297,7 @@ describe('getPdfContent', () => {
         infoTitle: { fontSize: 14, bold: true },
         infoSubTitle: { fontSize: 12 },
         infoContent: { italics: true },
+        icon: { font: 'icon' },
       },
     };
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));

@@ -6,6 +6,7 @@ const CourseSlotSchema = mongoose.Schema({
   startDate: { type: Date, required() { return !!this.endDate; } },
   endDate: { type: Date, required() { return !!this.startDate; } },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
+  meetingLink: { type: String, trim: true },
   step: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required() { return !!this.startDate; } },
 }, { timestamps: true });
 

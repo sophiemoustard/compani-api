@@ -1032,6 +1032,33 @@ describe('POST /events', () => {
       expect(response.statusCode).toEqual(403);
     });
 
+    it('should return a 403 if the customer is archived', async () => {
+      const payload = {
+        type: INTERVENTION,
+        startDate: '2019-01-23T12:00:00',
+        endDate: '2019-01-23T13:30:00',
+        auxiliary: auxiliaries[0]._id.toHexString(),
+        customer: customerAuxiliaries[2]._id.toHexString(),
+        subscription: customerAuxiliaries[2].subscriptions[0]._id.toHexString(),
+        address: {
+          fullAddress: '4 rue du test 92160 Antony',
+          street: '4 rue du test',
+          zipCode: '92160',
+          city: 'Antony',
+          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+        },
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
     it('should return a 404 if auxiliary is not from the same company', async () => {
       const payload = {
         type: INTERVENTION,
@@ -1352,6 +1379,27 @@ describe('PUT /events/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if customer is archived', async () => {
+      const event = eventsList[26];
+
+      const payload = {
+        misc: 'Quelle jolie note !',
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-02-23T12:00:00.000Z',
+        auxiliary: auxiliaries[2]._id.toHexString(),
+        subscription: event.subscription,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${event._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
     });
 
     it('should return a 403 if the subscription is not for the customer', async () => {

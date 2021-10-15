@@ -30,10 +30,11 @@ const stepsList = [
   { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape' },
   { _id: new ObjectID(), type: 'e_learning', name: 'encore une étape' },
   { _id: new ObjectID(), type: 'on_site', name: 'encore une étape' },
+  { _id: new ObjectID(), type: 'remote', name: 'une étape de plus' },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectID(), name: 'sous-programme A', steps: [stepsList[0]._id, stepsList[1]._id] },
+  { _id: new ObjectID(), name: 'sous-programme A', steps: [stepsList[0]._id, stepsList[1]._id, stepsList[4]._id] },
   { _id: new ObjectID(), name: 'sous-programme B', steps: [stepsList[2]._id, stepsList[3]._id] },
 ];
 
@@ -70,6 +71,13 @@ const courseSlotsList = [
     endDate: '2020-03-10T12:00:00',
     course: coursesList[0]._id,
     step: stepsList[0]._id,
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),

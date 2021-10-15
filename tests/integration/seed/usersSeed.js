@@ -22,6 +22,8 @@ const {
   planningReferentRoleId,
   auxiliaryWithoutCompanyRoleId,
   clientAdminRoleId,
+  vendorAdminRoleId,
+  trainerRoleId,
 } = require('../../seed/authRolesSeed');
 
 const establishmentList = [
@@ -201,6 +203,22 @@ const usersSeedList = [
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'vendor', lastname: 'test' },
+    local: { email: 'vendor@alenvi.io', password: '123456!eR' },
+    role: { vendor: vendorAdminRoleId },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'trainer', lastname: 'no_company' },
+    local: { email: 'traisner_no_company@compani.io', password: '123456!eR' },
+    role: { vendor: trainerRoleId },
+    refreshToken: uuidv4(),
+    origin: WEBAPP,
+  },
 ];
 
 const customer = {
@@ -249,6 +267,7 @@ const userCompanies = [
   { user: usersSeedList[6]._id, company: authCompany._id },
   { user: usersSeedList[7]._id, company: authCompany._id },
   { user: usersSeedList[8]._id, company: authCompany._id },
+  { user: usersSeedList[10]._id, company: authCompany._id },
 ];
 
 const userSectors = [

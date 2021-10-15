@@ -83,6 +83,41 @@ const paymentCustomerList = [
       mandates: [{ rum: 'R012345678903456789', _id: new ObjectID() }],
     },
   },
+  { // 2 - archived customer
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Edgar', lastname: 'Chivé' },
+    stopReason: 'hospitalization',
+    stoppedAt: '2021-10-10T21:59:59',
+    archivedAt: '2021-10-17T11:58:14',
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+    payment: {
+      bankAccountOwner: 'Lance Amstrong',
+      iban: 'FR3514508000505917721779B12',
+      bic: 'BNMDHISOBD',
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+    },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: new ObjectID(),
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
+  },
 ];
 
 const paymentsList = [
@@ -114,6 +149,16 @@ const paymentsList = [
     date: '2019-05-27T12:10:20',
     customer: paymentCustomerList[1]._id,
     thirdPartyPayer: paymentTppList[1]._id,
+    netInclTaxes: 220,
+    nature: REFUND,
+    type: 'direct_debit',
+  },
+  { // 3 - archived customer
+    _id: new ObjectID(),
+    company: authCompany._id,
+    number: 'REMB-101031900202',
+    date: '2019-05-27T12:10:20',
+    customer: paymentCustomerList[2]._id,
     netInclTaxes: 220,
     nature: REFUND,
     type: 'direct_debit',

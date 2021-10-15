@@ -169,6 +169,37 @@ describe('CUSTOMERS ROUTES', () => {
         const customers = await Customer.find({ company: authCompany._id }).lean();
         expect(res.result.data.customers).toHaveLength(customers.length);
       });
+
+      it('should get archived customers', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers?archived=${true}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const areAllCustomersFromCompany = res.result.data.customers
+          .every(c => UtilsHelper.areObjectIdsEquals(c.company, authCompany._id));
+        expect(areAllCustomersFromCompany).toBe(true);
+        const archivedCustomers = await Customer.find({ company: authCompany._id, archivedAt: { $ne: null } }).lean();
+        expect(res.result.data.customers).toHaveLength(archivedCustomers.length);
+      });
+
+      it('should get non-archived customers', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers?archived=${false}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(200);
+        const areAllCustomersFromCompany = res.result.data.customers
+          .every(c => UtilsHelper.areObjectIdsEquals(c.company, authCompany._id));
+        expect(areAllCustomersFromCompany).toBe(true);
+        const notArchivedCustomers = await Customer.find({ company: authCompany._id, archivedAt: { $eq: null } })
+          .lean();
+        expect(res.result.data.customers).toHaveLength(notArchivedCustomers.length);
+      });
     });
 
     describe('Other roles', () => {
@@ -269,7 +300,7 @@ describe('CUSTOMERS ROUTES', () => {
         authToken = await getToken('coach');
       });
 
-      it('should get all customers with billed events', async () => {
+      it('should get all not archived customers with billed events', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/customers/billed-events',
@@ -277,10 +308,8 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.customers).toBeDefined();
-        expect(res.result.data.customers[0].subscriptions).toBeDefined();
+        expect(res.result.data.customers.length).toEqual(1);
         expect(res.result.data.customers[0].subscriptions.length).toEqual(1);
-        expect(res.result.data.customers[0].thirdPartyPayers).toBeDefined();
         expect(res.result.data.customers[0].thirdPartyPayers.length).toEqual(1);
       });
 
@@ -293,7 +322,6 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.customers).toBeDefined();
         const areAllCustomersFromCompany = res.result.data.customers.every(async (customer) => {
           const customerFromDB = await Customer.find({ _id: customer._id, company: otherCompany._id });
           return customerFromDB;
@@ -334,7 +362,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
-        expect(res.result.data.customers.length).toEqual(7);
+        expect(res.result.data.customers.length).toEqual(8);
         expect(res.result.data.customers[0].contact).toBeDefined();
         const customer = res.result.data.customers
           .find(cus => UtilsHelper.areObjectIdsEquals(cus._id, customersList[0]._id));
@@ -439,7 +467,7 @@ describe('CUSTOMERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.customers).toBeDefined();
-        expect(res.result.data.customers).toHaveLength(3);
+        expect(res.result.data.customers).toHaveLength(4);
       });
     });
 
@@ -681,15 +709,31 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(200);
       });
 
-      it('should return a 404 error if no customer found', async () => {
+      it('should archive customer', async () => {
+        const customer = customersList[9];
+
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${new ObjectID()}`,
-          payload: updatePayload,
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
-        expect(res.statusCode).toBe(404);
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.customer.archivedAt).toBeDefined();
+      });
+
+      it('should return a 400 if there are both archivedAt and stoppedAt in payload', async () => {
+        const customer = customersList[0];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date(), stopReason: DEATH, archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(400);
       });
 
       it('should return a 400 error if phone number is invalid', async () => {
@@ -705,7 +749,20 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(400);
       });
 
-      it('should return a 400 error if missing stopReason or stoppedAt in status update', async () => {
+      it('should return a 400 error if missing stopReason when stoppedAt is in payload', async () => {
+        const customer = customersList[0];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { stoppedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(400);
+      });
+
+      it('should return a 400 error if missing stoppedAt when stopReason is in payload', async () => {
         const customer = customersList[0];
 
         const res = await app.inject({
@@ -731,13 +788,37 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(400);
       });
 
-      it('should return 403 if already stop', async () => {
+      it('should return a 404 error if no customer found', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${new ObjectID()}`,
+          payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(404);
+      });
+
+      it('should return 403 if already stopped', async () => {
         const customer = customersList[9];
 
         const res = await app.inject({
           method: 'PUT',
           url: `/customers/${customer._id}`,
           payload: { stoppedAt: new Date(), stopReason: DEATH },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 403 if user tries to archive a customer before its stopping date', async () => {
+        const customer = customersList[13];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date('2020-05-23') },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -757,11 +838,48 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.statusCode).toBe(403);
       });
 
+      it('should return 403 if user tries to archive a customer before stopping it', async () => {
+        const customer = customersList[10];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 403 if user tries to archive a customer who is already archived', async () => {
+        const customer = customersList[11];
+
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}`,
+          payload: { archivedAt: new Date() },
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
       it('should not update a customer if from other company', async () => {
         const res = await app.inject({
           method: 'PUT',
           url: `/customers/${otherCompanyCustomer._id}`,
           payload: updatePayload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return 403 if customer has not billed interventions', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customersList[12]._id}`,
+          payload: { archivedAt: '2021-01-16T14:30:19' },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

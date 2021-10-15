@@ -1,15 +1,13 @@
-const { ObjectID } = require('mongodb');
 const moment = require('../extensions/moment');
 const Payment = require('../models/Payment');
 const { PAYMENT, REFUND, CESU } = require('../helpers/constants');
 
-exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMax = null) => {
-  const rules = [];
-  if (customerId) rules.push({ customer: new ObjectID(customerId) });
+exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = null) => {
+  const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const paymentsAmounts = await Payment.aggregate([
-    { $match: rules.length === 0 ? {} : { $and: rules } },
+    { $match: { $and: rules } },
     {
       $group: {
         _id: { customer: '$customer', tpp: { $ifNull: ['$thirdPartyPayer', null] } },

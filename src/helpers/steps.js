@@ -4,7 +4,7 @@ const moment = require('../extensions/moment');
 const UtilsHelper = require('./utils');
 const { E_LEARNING } = require('./constants');
 
-const ON_SITE_PROGRESS_WEIGHT = 0.9;
+const LIVE_PROGRESS_WEIGHT = 0.9;
 
 exports.updateStep = async (stepId, payload) => Step.updateOne({ _id: stepId }, { $set: payload });
 
@@ -26,16 +26,16 @@ exports.elearningStepProgress = (step) => {
   return maxProgress ? progress / maxProgress : 0;
 };
 
-exports.onSiteStepProgress = (step, slots) => {
+exports.liveStepProgress = (step, slots) => {
   const nextSlots = slots.filter(slot => moment().isSameOrBefore(slot.endDate));
-  const onSiteProgress = slots.length ? 1 - nextSlots.length / slots.length : 0;
+  const liveProgress = slots.length ? 1 - nextSlots.length / slots.length : 0;
 
   return step.activities.length
-    ? parseFloat((onSiteProgress * ON_SITE_PROGRESS_WEIGHT
-        + exports.elearningStepProgress(step) * (1 - ON_SITE_PROGRESS_WEIGHT)).toFixed(2))
-    : onSiteProgress;
+    ? parseFloat((liveProgress * LIVE_PROGRESS_WEIGHT
+        + exports.elearningStepProgress(step) * (1 - LIVE_PROGRESS_WEIGHT)).toFixed(2))
+    : liveProgress;
 };
 
 exports.getProgress = (step, slots) => (step.type === E_LEARNING
   ? exports.elearningStepProgress(step)
-  : exports.onSiteStepProgress(step, slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))));
+  : exports.liveStepProgress(step, slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))));

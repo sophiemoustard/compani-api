@@ -102,9 +102,11 @@ exports.plugin = {
               bic: Joi.string(),
             }).min(1),
             stoppedAt: Joi.date(),
+            archivedAt: Joi.date(),
             stopReason: Joi.string().valid(...STOP_REASONS),
           })
-            .and('stoppedAt', 'stopReason'),
+            .and('stoppedAt', 'stopReason')
+            .oxor('stoppedAt', 'archivedAt'),
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
@@ -116,6 +118,7 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['customers:read'] },
+        validate: { query: Joi.object({ archived: Joi.boolean() }) },
       },
       handler: list,
     });

@@ -91,7 +91,7 @@ exports.formatDateAndTime = (date, format = '') => {
   const options = format.split(' ').map(f => DATE_FORMATS[f]);
 
   return new Date(date).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', ...Object.assign({}, ...options) })
-    .replace('à ', '');
+    .replace(', ', ' ');
 };
 
 exports.descendingSort = key => (a, b) => new Date(b[key]) - new Date(a[key]);

@@ -1,14 +1,12 @@
-const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const CreditNote = require('../models/CreditNote');
 
-exports.findAmountsGroupedByCustomer = async (companyId, customerId = null, dateMax = null) => {
-  const rules = [];
-  if (customerId) rules.push({ customer: new ObjectID(customerId) });
+exports.findAmountsGroupedByCustomer = async (companyId, customersIds, dateMax = null) => {
+  const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const customerCreditNotesAmounts = await CreditNote.aggregate([
-    { $match: rules.length === 0 ? {} : { $and: rules } },
+    { $match: { $and: rules } },
     {
       $group: { _id: '$customer', refund: { $sum: '$inclTaxesCustomer' } },
     },
@@ -33,13 +31,12 @@ exports.findAmountsGroupedByCustomer = async (companyId, customerId = null, date
   return customerCreditNotesAmounts;
 };
 
-exports.findAmountsGroupedByTpp = async (companyId, customerId = null, dateMax = null) => {
-  const rules = [];
-  if (customerId) rules.push({ customer: new ObjectID(customerId) });
+exports.findAmountsGroupedByTpp = async (companyId, customersIds, dateMax = null) => {
+  const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const tppCreditNotesAmounts = await CreditNote.aggregate([
-    { $match: rules.length === 0 ? {} : { $and: rules } },
+    { $match: { $and: rules } },
     {
       $group: {
         _id: { tpp: '$thirdPartyPayer', customer: '$customer' },

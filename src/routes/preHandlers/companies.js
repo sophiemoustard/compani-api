@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const Company = require('../../models/Company');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -22,7 +23,9 @@ exports.authorizeCompanyUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const vendorRole = get(req, 'auth.credentials.role.vendor.name') || null;
   const isVendorAdmin = !!vendorRole && [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(vendorRole);
-  if (!isVendorAdmin && (!companyId || req.params._id !== companyId.toHexString())) throw Boom.forbidden();
+  if (!isVendorAdmin && (!companyId || !UtilsHelper.areObjectIdsEquals(req.params._id, companyId))) {
+    throw Boom.forbidden();
+  }
 
   return null;
 };

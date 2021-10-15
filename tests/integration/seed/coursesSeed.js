@@ -93,9 +93,16 @@ const activitiesHistory = [
   },
 ];
 
-const step = { _id: new ObjectID(), name: 'etape', type: 'on_site', activities: activitiesList.map(a => a._id) };
+const stepList = [
+  { _id: new ObjectID(), name: 'etape', type: 'on_site', activities: activitiesList.map(a => a._id) },
+  { _id: new ObjectID(), name: 'etape', type: 'e_learning', activities: activitiesList.map(a => a._id) },
+  { _id: new ObjectID(), name: 'etape', type: 'remote', activities: activitiesList.map(a => a._id) },
+];
 
-const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme', steps: [step._id] }];
+const subProgramsList = [
+  { _id: new ObjectID(), name: 'sous-programme 1', steps: [stepList[0]._id] },
+  { _id: new ObjectID(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id] },
+];
 
 const programsList = [
   {
@@ -232,6 +239,14 @@ const coursesList = [
     accessRules: [otherCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
+  { // course with no on-site slot
+    _id: new ObjectID(),
+    subProgram: subProgramsList[1]._id,
+    misc: 'inter_b2b',
+    type: 'inter_b2b',
+    trainees: [coach._id],
+    salesRepresentative: vendorAdmin._id,
+  },
 ];
 
 const questionnaire = {
@@ -261,38 +276,38 @@ const slots = [
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
     course: coursesList[0],
-    step: step._id,
+    step: stepList[0]._id,
   },
   {
     startDate: moment('2020-03-20T14:00:00').toDate(),
     endDate: moment('2020-03-20T18:00:00').toDate(),
     course: coursesList[0],
-    step: step._id,
+    step: stepList[0]._id,
   },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
     course: coursesList[1],
-    step: step._id,
+    step: stepList[0]._id,
   },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
     course: coursesList[2],
-    step: step._id,
+    step: stepList[0]._id,
   },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
     course: coursesList[3],
-    step: step._id,
+    step: stepList[0]._id,
   },
   { course: coursesList[3] },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
     course: coursesList[5],
-    step: step._id,
+    step: stepList[0]._id,
   },
   { course: coursesList[7] },
 ];
@@ -310,7 +325,7 @@ const populateDB = async () => {
     Program.create(programsList),
     Questionnaire.create(questionnaire),
     QuestionnaireHistory.create(questionnaireHistory),
-    Step.create(step),
+    Step.create(stepList),
     SubProgram.create(subProgramsList),
     User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]),
     UserCompany.create(userCompanies),
@@ -320,7 +335,7 @@ const populateDB = async () => {
 module.exports = {
   populateDB,
   activitiesList,
-  step,
+  stepList,
   coursesList,
   subProgramsList,
   programsList,

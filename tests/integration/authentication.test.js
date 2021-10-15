@@ -112,7 +112,7 @@ describe('POST /users/:id/passwordtoken', () => {
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
-      expect(res.statusCode).toBe(403);
+      expect(res.statusCode).toBe(404);
     });
   });
 
