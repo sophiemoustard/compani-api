@@ -456,7 +456,7 @@ module.exports = {
     customerFundingRemoved: 'Financement du/ de la bénéficiaire supprimé.',
     qrCodeCreated: 'QR code créé.',
     archivingNotAllowed: 'Archivage impossible : interventions non facturées.',
-    archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver quelqu\'un avant sa date d\'arrêt.',
+    archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver une personne avant sa date d\'arrêt.',
     /* Customer notes */
     customerNoteCreated: 'Note de suivi créée.',
     customerNotesFound: 'Notes de suivi trouvées.',
