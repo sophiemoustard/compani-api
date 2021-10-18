@@ -28,6 +28,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
+const Repetition = require('./Repetition');
 
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
@@ -136,6 +137,8 @@ const countSubscriptionUsage = async (doc) => {
   if (doc && doc.subscriptions && doc.subscriptions.length > 0) {
     for (const subscription of doc.subscriptions) {
       subscription.eventCount = await Event.countDocuments({ subscription: subscription._id, company: doc.company });
+      subscription.repetitionCount = await Repetition
+        .countDocuments({ subscription: subscription._id, company: doc.company });
     }
   }
 };

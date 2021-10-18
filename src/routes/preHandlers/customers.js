@@ -3,10 +3,11 @@ const get = require('lodash/get');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const DatesHelper = require('../../helpers/dates');
-const { INTERVENTION } = require('../../helpers/constants');
+const { INTERVENTION, NOT_INVOICED_AND_NOT_PAID } = require('../../helpers/constants');
 const Customer = require('../../models/Customer');
 const UserCompany = require('../../models/UserCompany');
 const Event = require('../../models/Event');
+const Repetition = require('../../models/Repetition');
 const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
@@ -88,7 +89,11 @@ exports.authorizeCustomerUpdate = async (req) => {
         throw Boom.forbidden(translate[language].archivingNotAllowedBeforeStoppingDate);
       }
 
-      const eventsToBill = await Event.countDocuments({ customer: req.params._id, isBilled: false });
+      const eventsToBill = await Event.countDocuments({
+        customer: req.params._id,
+        isBilled: false,
+        $or: [{ isCancelled: false }, { 'cancel.condition': { $ne: NOT_INVOICED_AND_NOT_PAID } }],
+      });
       if (eventsToBill) throw Boom.forbidden(translate[language].archivingNotAllowed);
     }
   }
@@ -122,8 +127,17 @@ exports.authorizeSubscriptionUpdate = async (req) => {
 };
 
 exports.authorizeSubscriptionDeletion = async (req) => {
-  const eventsCount = await Event.countDocuments({ subscription: req.params.subscriptionId });
-  if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
+  const { subscriptionId, _id: customerId } = req.params;
+
+  const eventsLinkedToSub = await Event.countDocuments({ subscription: subscriptionId });
+  const repetitionsLinkedToSub = await Repetition.countDocuments({ subscription: subscriptionId });
+  const fundingsLinkedToSub = await Customer
+    .countDocuments({ _id: customerId, 'fundings.subscription': subscriptionId });
+
+  if (eventsLinkedToSub || repetitionsLinkedToSub || fundingsLinkedToSub) {
+    throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
+  }
+
   return exports.authorizeCustomerUpdate(req);
 };
 
