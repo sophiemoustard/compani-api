@@ -16,7 +16,8 @@ const {
   otherCompanyCustomer,
   customersList,
   userList,
-  customerServiceList,
+  archivedService,
+  service2,
   customerThirdPartyPayers,
   sectorsList,
 } = require('./seed/customersSeed');
@@ -24,7 +25,7 @@ const Customer = require('../../src/models/Customer');
 const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const Helper = require('../../src/models/Helper');
-const { MONTHLY, FIXED, HOURLY, DEATH } = require('../../src/helpers/constants');
+const { MONTHLY, FIXED, DEATH } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 const FileHelper = require('../../src/helpers/file');
@@ -366,7 +367,7 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.result.data.customers[0].contact).toBeDefined();
         const customer = res.result.data.customers
           .find(cus => UtilsHelper.areObjectIdsEquals(cus._id, customersList[0]._id));
-        expect(customer.subscriptions.length).toEqual(2);
+        expect(customer.subscriptions.length).toEqual(4);
         expect(customer.referentHistories.length).toEqual(2);
       });
 
@@ -509,37 +510,7 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.customer).toMatchObject({
-          _id: customerId,
-          subscriptions: [
-            {
-              ...customersList[0].subscriptions[0],
-              service: {
-                defaultUnitAmount: 12,
-                name: 'Service 1',
-                startDate: new Date('2019-01-16 17:58:15'),
-                vat: 12,
-                nature: HOURLY,
-              },
-            },
-            {
-              ...customersList[0].subscriptions[1],
-              service: {
-                defaultUnitAmount: 24,
-                name: 'Service 2',
-                startDate: new Date('2019-01-18 19:58:15'),
-                vat: 12,
-                nature: HOURLY,
-              },
-            },
-          ],
-          subscriptionsAccepted: true,
-          referent: {
-            identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
-            contact: { phone: '0987654321' },
-            picture: { publicId: '1234', link: 'test' },
-          },
-        });
+        expect(UtilsHelper.areObjectIdsEquals(res.result.data.customer._id, customerId)).toBeTruthy();
       });
 
       it('should return a 404 error if customer is not found', async () => {
@@ -1124,7 +1095,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should add subscription to customer', async () => {
       const customer = customersList[1];
       const payload = {
-        service: customerServiceList[1]._id,
+        service: service2,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -1150,7 +1121,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should return 403 if service is archived', async () => {
       const customer = customersList[1];
       const payload = {
-        service: customerServiceList[2]._id,
+        service: archivedService,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -1215,7 +1186,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
     describe('Other roles', () => {
       const payload = {
-        service: customerServiceList[1]._id,
+        service: service2,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -1350,7 +1321,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should delete customer subscription', async () => {
       const result = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customersList[0]._id}/subscriptions/${customersList[0].subscriptions[1]._id}`,
+        url: `/customers/${customersList[0]._id}/subscriptions/${customersList[0].subscriptions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1370,7 +1341,27 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should not delete customer subscription if events linked', async () => {
       const result = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customersList[0]._id}/subscriptions/${customersList[0].subscriptions[0]._id}`,
+        url: `/customers/${customersList[0]._id}/subscriptions/${customersList[0].subscriptions[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
+    it('should not delete customer if repetition linked', async () => {
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[0]._id}/subscriptions/${customersList[0].subscriptions[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
+    it('should not delete customer if funding linked', async () => {
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[0]._id}/subscriptions/${customersList[0].subscriptions[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1379,7 +1370,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
     describe('Other roles', () => {
       const customer = customersList[0];
-      const subscription = customer.subscriptions[1];
+      const subscription = customer.subscriptions[0];
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
@@ -1993,7 +1984,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customer.fundings.length).toEqual(2);
+      expect(res.result.data.customer.fundings.length).toEqual(3);
     });
 
     it('should return a 409 error if subscription is used by another funding', async () => {
@@ -2001,7 +1992,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[0]._id,
-        subscription: customer.subscriptions[0]._id,
+        subscription: customer.subscriptions[1]._id,
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',

@@ -7,6 +7,7 @@ const { INTERVENTION } = require('../../helpers/constants');
 const Customer = require('../../models/Customer');
 const UserCompany = require('../../models/UserCompany');
 const Event = require('../../models/Event');
+const Repetition = require('../../models/Repetition');
 const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
@@ -122,8 +123,17 @@ exports.authorizeSubscriptionUpdate = async (req) => {
 };
 
 exports.authorizeSubscriptionDeletion = async (req) => {
-  const eventsCount = await Event.countDocuments({ subscription: req.params.subscriptionId });
-  if (eventsCount > 0) throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
+  const { subscriptionId, _id: customerId } = req.params;
+
+  const eventsLinkedToSub = await Event.countDocuments({ subscription: subscriptionId });
+  const repetitionsLinkedToSub = await Repetition.countDocuments({ subscription: subscriptionId });
+  const fundingsLinkedToSub = await Customer
+    .countDocuments({ _id: customerId, 'fundings.subscription': subscriptionId });
+
+  if (eventsLinkedToSub || repetitionsLinkedToSub || fundingsLinkedToSub) {
+    throw Boom.forbidden(translate[language].customerSubscriptionDeletionForbidden);
+  }
+
   return exports.authorizeCustomerUpdate(req);
 };
 
