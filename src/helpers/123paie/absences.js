@@ -16,6 +16,8 @@ const {
   TRANSPORT_ACCIDENT,
 } = require('../constants');
 const HistoryExportHelper = require('../historyExport');
+const DatesHelper = require('../dates');
+const UtilsHelper = require('../utils');
 const Event = require('../../models/Event');
 const Pay = require('../../models/Pay');
 
@@ -32,7 +34,7 @@ const VA_ABS_CODE = {
   [TRANSPORT_ACCIDENT]: 'ATR',
 };
 
-exports.getAbsences = async (query, credentials) => {
+exports.getMonthAbsences = async (query, credentials) => {
   const companyId = get(credentials, 'company._id') || '';
   const lastMonth = moment(query.endDate).subtract(1, 'month').startOf('month').toDate();
   const lastPay = await Pay.find({ date: { $gte: lastMonth }, company: companyId })
@@ -63,8 +65,28 @@ exports.getAbsences = async (query, credentials) => {
     .lean();
 };
 
+exports.getAllAbsences = async (query, credentials) => {
+  const absences = await exports.getMonthAbsences(query, credentials);
+
+  for (const abs of absences) {
+    if (abs.extension && !absences.some(a => UtilsHelper.areObjectIdsEquals(a._id, abs.extension._id))) {
+      const extension = await Event.findOne({ _id: abs.extension._id })
+        .populate({
+          path: 'auxiliary',
+          select: 'serialNumber identity',
+          populate: [{ path: 'contracts' }, { path: 'establishment' }],
+        })
+        .populate({ path: 'extension', select: 'startDate' })
+        .lean();
+      absences.push(extension);
+    }
+  }
+
+  return absences.sort(DatesHelper.ascendingSort('startDate'));
+};
+
 exports.exportAbsences = async (query, credentials) => {
-  const absences = await exports.getAbsences(query, credentials);
+  const absences = await exports.getAllAbsences(query, credentials);
 
   const data = [];
   for (const abs of absences) {
