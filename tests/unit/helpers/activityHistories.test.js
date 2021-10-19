@@ -54,14 +54,14 @@ describe('list', () => {
         activity: {
           steps: [
             {
-              subProgram: {
+              subPrograms: [{
                 program: { name: 'une incroyable découverte' },
                 courses: [{
                   misc: 'groupe 1',
                   format: 'strictly_e_learning',
                   trainees: [firstUserId],
                 }],
-              },
+              }],
             },
             { name: 'step without subprogram' },
           ],
@@ -72,14 +72,14 @@ describe('list', () => {
         user: secondUserId,
         activity: {
           steps: [{
-            subProgram: {
+            subPrograms: [{
               program: { name: 'une rencontre sensationnelle' },
               courses: [{
                 misc: 'groupe 2',
                 format: 'strictly_e_learning',
                 trainees: [new ObjectID()],
               }],
-            },
+            }],
           }],
         },
       }];
@@ -87,14 +87,14 @@ describe('list', () => {
       user: firstUserId,
       activity: {
         steps: [{
-          subProgram: {
+          subPrograms: [{
             program: { name: 'une incroyable découverte' },
             courses: [{
               misc: 'groupe 1',
               format: 'strictly_e_learning',
               trainees: [firstUserId],
             }],
-          },
+          }],
         }],
       },
     };
@@ -130,7 +130,7 @@ describe('list', () => {
               path: 'steps',
               select: '_id',
               populate: {
-                path: 'subProgram',
+                path: 'subPrograms',
                 select: '_id',
                 populate: [
                   { path: 'courses', select: 'misc format trainees', match: { format: 'strictly_e_learning' } },

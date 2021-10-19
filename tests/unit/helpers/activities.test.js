@@ -34,7 +34,7 @@ describe('getActivity', () => {
           path: 'steps',
           select: '_id -activities',
           populate:
-          { path: 'subProgram', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
+          { path: 'subPrograms', select: '_id -steps', populate: { path: 'program', select: 'name -subPrograms' } },
         }],
       },
       { query: 'lean', args: [{ virtuals: true }] },

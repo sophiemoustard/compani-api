@@ -13,11 +13,10 @@ const StepSchema = mongoose.Schema({
   status: { type: String, default: DRAFT, enum: STATUS_TYPES },
 }, { timestamps: true, id: false });
 
-StepSchema.virtual('subProgram', {
+StepSchema.virtual('subPrograms', {
   ref: 'SubProgram',
   localField: '_id',
   foreignField: 'steps',
-  justOne: true,
 });
 
 StepSchema.virtual('courseSlotsCount', {
