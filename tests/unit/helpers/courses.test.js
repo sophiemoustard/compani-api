@@ -440,7 +440,7 @@ describe('getCourse', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name type' } }] },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         {
           query: 'populate',
@@ -499,7 +499,7 @@ describe('getCourse', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name type' } }] },
         { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         {
           query: 'populate',
@@ -1080,7 +1080,16 @@ describe('getTraineeCourse', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate step address' }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'slots',
+              select: 'startDate endDate step address meetingLink',
+              populate: { path: 'step', select: 'type' },
+            },
+          ],
+        },
         {
           query: 'populate',
           args: [{
@@ -1227,6 +1236,21 @@ describe('sendSMS', () => {
       sinon.assert.notCalled(courseSmsHistoryCreate);
       expect(e).toEqual(Boom.badRequest());
     }
+  });
+
+  it('should do nothing if no phone numbers', async () => {
+    const traineesWithoutPhoneNumbers = [
+      { contact: {}, identity: { firstname: 'non', lasname: 'ok' }, _id: 'qwertyuio' },
+      { contact: {}, identity: { firstname: 'test', lasname: 'ok' }, _id: 'asdfghjkl' },
+      { contact: {}, identity: { firstname: 'test', lasname: 'ko' }, _id: 'poiuytrewq' },
+    ];
+
+    courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees: traineesWithoutPhoneNumbers }]));
+
+    await CourseHelper.sendSMS(courseId, payload, credentials);
+
+    sinon.assert.notCalled(sendStub);
+    sinon.assert.notCalled(courseSmsHistoryCreate);
   });
 });
 
@@ -1482,9 +1506,11 @@ describe('formatIntraCourseForPdf', () => {
           startDate: '2020-03-20T09:00:00',
           endDate: '2020-03-20T11:00:00',
           address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+          step: { type: 'on_site' },
         },
-        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
-        { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00', step: { type: 'on_site' } },
+        { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00', step: { type: 'on_site' } },
+        { startDate: '2020-04-14T18:00:00', endDate: '2020-04-14T19:30:00', step: { type: 'remote' } },
       ],
       company: { name: 'alenvi' },
     };
@@ -1495,9 +1521,10 @@ describe('formatIntraCourseForPdf', () => {
       startDate: '2020-03-20T09:00:00',
       endDate: '2020-03-20T11:00:00',
       address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+      step: { type: 'on_site' },
     }], [
-      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
-      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00', step: { type: 'on_site' } },
+      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00', step: { type: 'on_site' } },
     ]]);
     formatIntraCourseSlotsForPdf.onCall(0).returns({ startHour: 'slot1' });
     formatIntraCourseSlotsForPdf.onCall(1).returns({ startHour: 'slot2' });
@@ -1525,9 +1552,10 @@ describe('formatIntraCourseForPdf', () => {
         startDate: '2020-03-20T09:00:00',
         endDate: '2020-03-20T11:00:00',
         address: { fullAddress: '37 rue de Ponthieu 75008 Paris' },
+        step: { type: 'on_site' },
       },
-      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
-      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00' },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00', step: { type: 'on_site' } },
+      { startDate: '2020-04-12T14:00:00', endDate: '2020-04-12T17:30:00', step: { type: 'on_site' } },
     ]);
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(0), course.slots[0]);
     sinon.assert.calledWithExactly(formatIntraCourseSlotsForPdf.getCall(1), course.slots[1]);
@@ -1554,9 +1582,10 @@ describe('formatInterCourseForPdf', () => {
   it('should format course for pdf', () => {
     const course = {
       slots: [
-        { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
-        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
-        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
+        { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', step: { type: 'on_site' } },
+        { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00', step: { type: 'on_site' } },
+        { startDate: '2020-04-12T09:00:00', endDate: '2020-04-15T11:30:00', step: { type: 'remote' } },
       ],
       misc: 'des infos en plus',
       trainer: { identity: { lastname: 'MasterClass' } },
@@ -1567,9 +1596,9 @@ describe('formatInterCourseForPdf', () => {
       subProgram: { program: { name: 'programme de formation' } },
     };
     const sortedSlots = [
-      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
-      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
-      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
+      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00', step: { type: 'on_site' } },
+      { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00', step: { type: 'on_site' } },
+      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00', step: { type: 'on_site' } },
     ];
     formatInterCourseSlotsForPdf.returns('slot');
     formatIdentity.onCall(0).returns('Pere Castor');
@@ -1654,7 +1683,7 @@ describe('generateAttendanceSheets', () => {
     SinonMongoose.calledWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['company'] },
-      { query: 'populate', args: ['slots'] },
+      { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'type' } }] },
       {
         query: 'populate',
         args: [{ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } }],
@@ -1688,7 +1717,7 @@ describe('generateAttendanceSheets', () => {
     SinonMongoose.calledWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['company'] },
-      { query: 'populate', args: ['slots'] },
+      { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'type' } }] },
       {
         query: 'populate',
         args: [{ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } }],
@@ -1960,20 +1989,35 @@ describe('formatCourseForConvocationPdf', () => {
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
       contact: { phone: '0123456789' },
-      slots: [{
+      slots: [
+        {
+          startDate: '2020-10-12T12:30:00',
+          endDate: '2020-10-12T13:30:00',
+          address: { fullAddress: '3 rue T' },
+        },
+        {
+          startDate: '2020-10-14T17:30:00',
+          endDate: '2020-10-14T19:30:00',
+          meetingLink: 'http://eelslap.com/',
+        },
+      ],
+    };
+
+    formatIdentity.returns('Ash Ketchum');
+    formatHoursForConvocation.onCall(0).returns('13:30 - 14:30');
+    formatHoursForConvocation.onCall(1).returns('18:30 - 20:30');
+    groupSlotsByDate.returns([
+      [{
         startDate: '2020-10-12T12:30:00',
         endDate: '2020-10-12T13:30:00',
         address: { fullAddress: '3 rue T' },
       }],
-    };
-
-    formatIdentity.returns('Ash Ketchum');
-    formatHoursForConvocation.returns('13:30 - 14:30');
-    groupSlotsByDate.returns([[{
-      startDate: '2020-10-12T12:30:00',
-      endDate: '2020-10-12T13:30:00',
-      address: { fullAddress: '3 rue T' },
-    }]]);
+      [{
+        startDate: '2020-10-14T17:30:00',
+        endDate: '2020-10-14T19:30:00',
+        meetingLink: 'http://eelslap.com/',
+      }],
+    ]);
 
     const result = await CourseHelper.formatCourseForConvocationPdf(course);
 
@@ -1982,17 +2026,20 @@ describe('formatCourseForConvocationPdf', () => {
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash Ketchum' },
       contact: { phone: '0123456789', formattedPhone: '01 23 45 67 89' },
-      slots: [{ date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' }],
+      slots: [
+        { date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' },
+        { date: '14/10/2020', hours: '18:30 - 20:30', meetingLink: 'http://eelslap.com/' },
+      ],
     });
 
     sinon.assert.calledOnceWithExactly(formatIdentity, { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
-    sinon.assert.calledOnceWithExactly(
-      formatHoursForConvocation,
+    sinon.assert.calledWithExactly(
+      formatHoursForConvocation.getCall(0),
       [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
     );
-    sinon.assert.calledOnceWithExactly(
-      formatHoursForConvocation,
-      [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
+    sinon.assert.calledWithExactly(
+      formatHoursForConvocation.getCall(1),
+      [{ startDate: '2020-10-14T17:30:00', endDate: '2020-10-14T19:30:00', meetingLink: 'http://eelslap.com/' }]
     );
   });
 });

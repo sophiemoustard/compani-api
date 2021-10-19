@@ -13,7 +13,7 @@ const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL } = require('./constants');
+const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL, ROUNDING_ERROR } = require('./constants');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -275,8 +275,14 @@ exports.formatAndCreateBill = async (payload, credentials) => {
     .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1, name: 1 })
     .lean();
 
+  let netInclTaxes = 0;
+  for (const bi of billingItemList) {
+    netInclTaxes = NumbersHelper.add(netInclTaxes, NumbersHelper.multiply(bi.count, bi.unitInclTaxes));
+  }
+
   const bill = {
-    ...pick(payload, ['date', 'customer', 'netInclTaxes']),
+    ...pick(payload, ['date', 'customer']),
+    netInclTaxes,
     type: MANUAL,
     number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq),
     billingItemList: billingItemList.map(bi => exports.formatBillingItem(bi, bddBillingItemList)),
@@ -385,7 +391,9 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   const totalCustomer = NumbersHelper.add(totalSubscription, totalBillingItem, totalSurcharge);
   const totalTPP = NumbersHelper.add(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
-  if (totalTPP) formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
+  if (totalTPP < -ROUNDING_ERROR) {
+    formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
+  }
 
   return {
     totalExclTaxes: UtilsHelper.formatPrice(totalExclTaxes),
@@ -446,7 +454,7 @@ exports.formatPdf = (bill, company) => {
         contact: get(bill, 'customer.contact'),
       },
       ...computedData,
-      company: pick(company, ['rcs', 'rna', 'address', 'logo', 'name']),
+      company: pick(company, ['rcs', 'rna', 'address', 'logo', 'name', 'customersConfig.billFooter']),
     },
   };
 };

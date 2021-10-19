@@ -137,7 +137,7 @@ const billCustomerList = [
       }],
     }],
   },
-  {
+  { // 1
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
@@ -167,7 +167,7 @@ const billCustomerList = [
       mandates: [{ rum: 'R012345678903456789', _id: new ObjectID() }],
     },
   },
-  {
+  { // 2
     _id: new ObjectID(),
     company: otherCompany._id,
     identity: { title: 'mr', firstname: 'Roberto', lastname: 'Alagna' },
@@ -194,6 +194,39 @@ const billCustomerList = [
     }],
     payment: {
       bankAccountOwner: 'Roberto Alagna',
+      mandates: [{ rum: 'R014345658903456780', _id: new ObjectID() }],
+    },
+  },
+  { // 3 - archived
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Benard', lastname: 'Chived' },
+    stopReason: 'hospitalization',
+    stoppedAt: '2021-10-10T21:59:59',
+    archivedAt: '2021-11-07T11:58:14',
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345678',
+    },
+    subscriptions: [{
+      _id: new ObjectID(),
+      service: billServices[1]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    }],
+    payment: {
+      bankAccountOwner: 'Benard Chived',
       mandates: [{ rum: 'R014345658903456780', _id: new ObjectID() }],
     },
   },

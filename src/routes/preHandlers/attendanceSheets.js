@@ -7,7 +7,7 @@ const AttendanceSheet = require('../../models/AttendanceSheet');
 const { INTRA, INTER_B2B } = require('../../helpers/constants');
 
 exports.authorizeAttendanceSheetsGet = async (req) => {
-  const course = await Course.findOne({ _id: req.query.course });
+  const course = await Course.findOne({ _id: req.query.course }).lean();
   if (!course) throw Boom.notFound();
 
   const { credentials } = req.auth;
@@ -26,7 +26,8 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
 };
 
 exports.checkCourseType = async (req) => {
-  const course = await Course.findOne({ _id: req.payload.course }).populate('slots');
+  const course = await Course.findOne({ _id: req.payload.course }).populate('slots').lean();
+
   if (course.type === INTRA) {
     if (req.payload.trainee) return Boom.badRequest();
     const courseDates = course.slots.filter(slot => moment(slot.startDate).isSame(req.payload.date, 'day'));
@@ -35,7 +36,7 @@ exports.checkCourseType = async (req) => {
     return null;
   }
   if (req.payload.date) return Boom.badRequest();
-  if (!course.trainees.includes(req.payload.trainee)) return Boom.forbidden();
+  if (!course.trainees.some(t => UtilsHelper.areObjectIdsEquals(t, req.payload.trainee))) return Boom.forbidden();
 
   return null;
 };

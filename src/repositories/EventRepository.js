@@ -303,7 +303,16 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
         events: { $push: '$$ROOT' },
       },
     },
-    { $lookup: { from: 'customers', localField: '_id.CUSTOMER', foreignField: '_id', as: 'customer' } },
+    {
+      $lookup: {
+        from: 'customers',
+        as: 'customer',
+        let: { customerId: '$_id.CUSTOMER' },
+        pipeline: [{
+          $match: { $and: [{ $expr: { $eq: ['$_id', '$$customerId'] }, archivedAt: { $eq: null } }] },
+        }],
+      },
+    },
     { $unwind: { path: '$customer' } },
     {
       $addFields: {
@@ -361,11 +370,7 @@ exports.getCustomersWithBilledEvents = async (query, companyId) => Event.aggrega
       from: 'customers',
       as: 'customer',
       let: { customerId: '$_id.CUSTOMER' },
-      pipeline: [{
-        $match: {
-          $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] },
-        },
-      }],
+      pipeline: [{ $match: { $and: [{ archivedAt: { $eq: null } }, { $expr: { $eq: ['$_id', '$$customerId'] } }] } }],
     },
   },
   { $unwind: { path: '$customer' } },

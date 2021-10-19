@@ -1,6 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const isEmpty = require('lodash/isEmpty');
 const {
   CIVILITY_LIST,
   HELPER,
@@ -10,6 +11,9 @@ const {
   CUSTOMER_SITUATIONS,
   FUNDING_NATURES,
   SERVICE_NATURES,
+  STOPPED,
+  ARCHIVED,
+  ACTIVATED,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const Customer = require('../models/Customer');
@@ -57,9 +61,18 @@ const customerExportHeader = [
   'Souscriptions',
   'Nombre de financements',
   'Date de création',
+  'Statut',
 ];
 
 const formatIdentity = person => `${person.firstname} ${person.lastname}`;
+
+const getStatus = (customer) => {
+  if (isEmpty(customer)) return '';
+  if (customer.archivedAt) return ARCHIVED;
+  if (customer.stoppedAt) return STOPPED;
+
+  return ACTIVATED;
+};
 
 exports.exportCustomers = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -103,6 +116,7 @@ exports.exportCustomers = async (credentials) => {
       subscriptionsCount ? getServicesNameList(cus.subscriptions) : '',
       get(cus, 'fundings.length') || 0,
       cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '',
+      getStatus(cus),
     ];
 
     rows.push(cells);

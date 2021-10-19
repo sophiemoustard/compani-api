@@ -74,13 +74,17 @@ const getUniqueIdsFromBills = (bills) => {
   return ids;
 };
 
-exports.authorizeBillsCreation = async (req) => {
+exports.authorizeBillListCreation = async (req) => {
   const { credentials } = req.auth;
   const { bills } = req.payload;
   const companyId = credentials.company._id;
 
   const customersIds = [...new Set(bills.map(bill => bill.customer._id))];
-  const customerCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: companyId });
+  const customerCount = await Customer.countDocuments({
+    _id: { $in: customersIds },
+    archivedAt: { $eq: null },
+    company: companyId,
+  });
   if (customerCount !== customersIds.length) throw Boom.forbidden();
 
   const ids = getUniqueIdsFromBills(bills);
@@ -108,17 +112,17 @@ exports.authorizeBillCreation = async (req) => {
   const { credentials } = req.auth;
   const companyId = credentials.company._id;
 
-  const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
+  const customer = await Customer.countDocuments({
+    _id: req.payload.customer,
+    company: companyId,
+    archivedAt: { $eq: null },
+  });
   if (!customer) throw Boom.forbidden();
 
   const billingItemIds = [...new Set(req.payload.billingItemList.map(bi => bi.billingItem))];
   const billingItems = await BillingItem
     .countDocuments({ _id: { $in: billingItemIds }, company: companyId, type: MANUAL });
   if (billingItems !== billingItemIds.length) throw Boom.forbidden();
-
-  const totalInclTaxes = req.payload.billingItemList
-    .reduce((acc, current) => acc + current.unitInclTaxes * current.count, 0);
-  if (totalInclTaxes !== req.payload.netInclTaxes) throw Boom.forbidden();
 
   return null;
 };

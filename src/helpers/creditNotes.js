@@ -27,7 +27,7 @@ exports.getCreditNotes = async (query, credentials) => {
   const creditNotes = await CreditNote.find(creditNoteQuery)
     .populate({
       path: 'customer',
-      select: '_id identity subscriptions',
+      select: '_id identity subscriptions archivedAt',
       populate: { path: 'subscriptions.service' },
     })
     .populate({ path: 'thirdPartyPayer', select: '_id name' })

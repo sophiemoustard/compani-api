@@ -28,7 +28,40 @@ describe('PUT /companies/:id', () => {
     });
 
     it('should update company', async () => {
-      const payload = { name: 'Alenvi Alenvi', rhConfig: { phoneFeeAmount: 70 }, apeCode: '8110Z' };
+      const payload = {
+        name: 'Alenvi Alenvi',
+        apeCode: '8110Z',
+        customersConfig: {
+          billingPeriod: 'month',
+          billFooter: 'Bonjour, je suis un footer pour les factures',
+          templates: {
+            debitMandate: { driveId: 'skusku1', link: 'http://test.com/sku' },
+            quote: { driveId: 'skusku2', link: 'http://test.com/sku' },
+            gcs: { driveId: 'skusku3', link: 'http://test.com/sku' },
+          },
+        },
+        rcs: '1234567890',
+        subscriptions: { erp: true },
+        billingAssistance: 'bonjour@toi.com',
+        legalRepresentative: {
+          lastname: 'As',
+          firstname: 'Legal',
+          position: '1-2, c\'est bon ça',
+        },
+        rhConfig: {
+          grossHourlyRate: 25,
+          phoneFeeAmount: 26,
+          amountPerKm: 27,
+          templates: {
+            contract: { driveId: 'skusku4', link: 'http://test.com/sku' },
+            contractVersion: { driveId: 'skusku5', link: 'http://test.com/sku' },
+          },
+        },
+        tradeName: 'TT',
+        iban: 'FR3514508000505917721779B12',
+        bic: 'RTYUIKJHBFRG',
+        ics: '12345678',
+      };
       const response = await app.inject({
         method: 'PUT',
         url: `/companies/${company._id}`,
@@ -40,7 +73,7 @@ describe('PUT /companies/:id', () => {
       expect(response.result.data.company).toMatchObject(payload);
     });
 
-    it('should return 404 if not found', async () => {
+    it('should return 404 if company is not found', async () => {
       const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
         method: 'PUT',

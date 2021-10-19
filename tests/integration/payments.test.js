@@ -75,7 +75,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
       });
     });
 
-    it('should return a 404 if customer is not from the same company', async () => {
+    it('should return a 403 if customer is not from the same company', async () => {
       const payload = {
         date: moment('2019-09-15').toDate(),
         customer: customerFromOtherCompany._id,
@@ -91,7 +91,26 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if customer is archived', async () => {
+      const payload = {
+        date: moment('2019-09-15').toDate(),
+        customer: paymentCustomerList[2]._id,
+        netInclTaxes: 400,
+        nature: PAYMENT,
+        type: 'direct_debit',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 404 if thirdPartyPayer is not from the same company', async () => {
@@ -147,7 +166,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
   });
 });
 
-describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
+describe('PAYMENTS ROUTES - POST /payments/list', () => {
   let authToken;
   const originalPayload = [
     {
@@ -188,7 +207,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/payments/createlist',
+        url: '/payments/list',
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -199,7 +218,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       sinon.assert.called(addStub);
     });
 
-    it('should return a 404 if at least one customer is not from the same company', async () => {
+    it('should return a 403 if at least one customer is not from the same company', async () => {
       const payload = [
         { ...originalPayload[0], customer: customerFromOtherCompany._id },
         { ...originalPayload[1] },
@@ -207,12 +226,23 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/payments/createlist',
+        url: '/payments/list',
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if customer is archived', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/list',
+        payload: [{ ...originalPayload[0], customer: paymentCustomerList[2]._id }, { ...originalPayload[1] }],
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return a 400 if user tries to create a payment with an existing number', async () => {
@@ -222,7 +252,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: '/payments/createlist',
+        url: '/payments/list',
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -248,7 +278,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
         const payload = [...originalPayload];
         const response = await app.inject({
           method: 'POST',
-          url: '/payments/createlist',
+          url: '/payments/list',
           payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -297,6 +327,17 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
         payload,
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if customer is archived', async () => {
+      const payload = { netInclTaxes: 200, date: '2019-04-16T22:00:00', type: 'direct_debit' };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/payments/${paymentsList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+      expect(res.statusCode).toBe(403);
     });
 
     ['date', 'netInclTaxes', 'type'].forEach((param) => {
@@ -372,6 +413,16 @@ describe('PAYMENTS ROUTES - DELETE /payments/_id', () => {
       });
 
       expect(res.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if customer is archived', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/payments/${paymentsList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(res.statusCode).toBe(403);
     });
 
     it('should not remove payment if it is not refund', async () => {

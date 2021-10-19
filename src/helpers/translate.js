@@ -117,6 +117,8 @@ module.exports = {
     customerFundingUpdated: 'Customer funding updated.',
     customerFundingRemoved: 'Customer funding removed.',
     qrCodeCreated: 'QR code created.',
+    archivingNotAllowed: 'Archiving not allowed : customer has non-billed interventions.',
+    archivingNotAllowedBeforeStoppingDate: 'Archiving not allowed before stopping date.',
     /* Customer notes */
     customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
@@ -280,6 +282,7 @@ module.exports = {
     courseAccessRuleAdded: 'Access rule added.',
     courseAccessRuleDeleted: 'Access rule deleted.',
     courseQuestionnairesFound: 'Questionnaires found.',
+    courseAttendanceNotGenerated: 'Failed to download attendance sheet, no on-site slot.',
     /* Course slots */
     courseSlotCreated: 'Course slot created.',
     courseSlotUpdated: 'Course slot updated.',
@@ -452,6 +455,8 @@ module.exports = {
     customerFundingUpdated: 'Financement du/de la bénéficiaire modifié.',
     customerFundingRemoved: 'Financement du/ de la bénéficiaire supprimé.',
     qrCodeCreated: 'QR code créé.',
+    archivingNotAllowed: 'Archivage impossible : interventions non facturées.',
+    archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver une personne avant sa date d\'arrêt.',
     /* Customer notes */
     customerNoteCreated: 'Note de suivi créée.',
     customerNotesFound: 'Notes de suivi trouvées.',
@@ -615,6 +620,7 @@ module.exports = {
     courseAccessRuleAdded: 'Règle d\'accès ajoutée.',
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     courseQuestionnairesFound: 'Questionnaires trouvés.',
+    courseAttendanceNotGenerated: 'Erreur lors du téléchargement, la formation ne contient pas de créneau présentiel.',
     /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',

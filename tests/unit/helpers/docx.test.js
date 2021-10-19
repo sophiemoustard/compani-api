@@ -3,7 +3,6 @@ const expect = require('expect');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const PizZip = require('pizzip');
 const DocxTemplater = require('docxtemplater');
 const Drive = require('../../../src/models/Google/Drive');
 const DocxHelper = require('../../../src/helpers/docx');
@@ -29,11 +28,7 @@ describe('generateDocx', () => {
 
 describe('createDocx', () => {
   it('should return filled docx template path', async () => {
-    sinon.createStubInstance(PizZip);
-    const loadZipStub = sinon.stub(DocxTemplater.prototype, 'loadZip');
-    const setOptionsStub = sinon.stub(DocxTemplater.prototype, 'setOptions');
-    const setDataStub = sinon.stub(DocxTemplater.prototype, 'setData');
-    const renderStub = sinon.stub(DocxTemplater.prototype, 'render');
+    const createDocxStub = sinon.stub(DocxHelper, 'createDocxTemplater').returns(new DocxTemplater());
     const generateStub = sinon.stub().returns('This is a filled zip file');
     const getZipStub = sinon.stub(DocxTemplater.prototype, 'getZip').returns({ generate: generateStub });
     const readFileStub = sinon.stub(fs.promises, 'readFile');
@@ -48,17 +43,10 @@ describe('createDocx', () => {
 
     expect(result).toBe(outputPath);
     sinon.assert.calledWithExactly(readFileStub, filePath, 'binary');
-    sinon.assert.calledOnce(loadZipStub);
-    sinon.assert.calledWithExactly(setOptionsStub, { parser: sinon.match.func, linebreaks: true });
-    sinon.assert.calledWithExactly(setDataStub, data);
-    sinon.assert.calledOnce(renderStub);
+    sinon.assert.calledOnce(createDocxStub);
     sinon.assert.calledOnce(getZipStub);
     sinon.assert.calledWithExactly(generateStub, { type: 'nodebuffer' });
     sinon.assert.calledWithExactly(writeFileStub, outputPath, 'This is a filled zip file');
-    loadZipStub.restore();
-    setOptionsStub.restore();
-    setDataStub.restore();
-    renderStub.restore();
     getZipStub.restore();
     readFileStub.restore();
     writeFileStub.restore();

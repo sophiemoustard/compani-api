@@ -223,6 +223,7 @@ module.exports = {
     };
   },
   AUTOMATIC: 'automatic',
+  ROUNDING_ERROR: 0.01,
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;
@@ -308,6 +309,10 @@ module.exports = {
   // STEP
   E_LEARNING: 'e_learning',
   ON_SITE: 'on_site',
+  REMOTE: 'remote',
+  get LIVE_STEPS() {
+    return [this.ON_SITE, this.REMOTE];
+  },
   // ACTIVITY
   LESSON: 'lesson',
   QUIZ: 'quiz',
@@ -455,4 +460,8 @@ module.exports = {
   // NOTES
   NOTE_CREATION: 'note_creation',
   NOTE_UPDATE: 'note_update',
+  // STATUS
+  ACTIVATED: 'Actif',
+  STOPPED: 'Arrêté',
+  ARCHIVED: 'Archivé',
 };

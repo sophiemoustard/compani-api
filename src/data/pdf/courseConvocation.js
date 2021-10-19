@@ -30,18 +30,48 @@ const getHeader = (image, misc, subProgram) => {
   ];
 };
 
-const getSlotTableContent = slot => [
-  { text: slot.date, style: 'tableContent' },
-  { text: slot.hours, style: 'tableContent' },
-  { text: slot.address, style: 'tableContent' },
-];
+const getSlotTableContent = (slot) => {
+  const content = [
+    { text: slot.date, style: 'tableContent' },
+    { text: slot.hours, style: 'tableContent' },
+  ];
+
+  if (slot.meetingLink) {
+    content.push(
+      {
+        text: [
+          { text: ' ', style: 'icon' },
+          {
+            text: slot.meetingLink,
+            link: slot.meetingLink,
+            style: 'tableContent',
+            decoration: 'underline',
+            alignment: 'left',
+          },
+        ],
+        margin: [0, 4, 0, 4],
+      }
+    );
+  } else if (slot.address) {
+    content.push(
+      {
+        text: [{ text: ' ', style: 'icon' }, { text: slot.address, style: 'tableContent', alignment: 'left' }],
+        margin: [0, 4, 0, 4],
+      }
+    );
+  } else {
+    content.push({ text: '' });
+  }
+
+  return content;
+};
 
 const getTable = (slots, slotsToPlan) => {
   const body = [
     [
       { text: 'Dates', style: 'tableHeader' },
       { text: 'Heures', style: 'tableHeader' },
-      { text: 'Lieux', style: 'tableHeader' },
+      { text: 'Lieux', style: 'tableHeader', alignment: 'left' },
     ],
   ];
   slots.forEach((slot) => { body.push(getSlotTableContent(slot)); });
@@ -122,6 +152,7 @@ exports.getPdfContent = async (data) => {
       infoTitle: { fontSize: 14, bold: true },
       infoSubTitle: { fontSize: 12 },
       infoContent: { italics: true },
+      icon: { font: 'icon' },
     },
   };
 };
