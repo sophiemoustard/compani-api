@@ -209,6 +209,7 @@ module.exports = {
     finalPayListCreated: 'Final pay list created.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
+    eventHistoryUpdated: 'Event history updated.',
     /* Pay documents */
     payDocumentCreated: 'Pay document created.',
     payDocumentsFound: 'Pay documents found.',
@@ -547,6 +548,7 @@ module.exports = {
     finalPayListCreated: 'Liste des stc créée.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
+    eventHistoryUpdated: 'Historique d\'évènement mis à jour.',
     /* Pay documents */
     payDocumentCreated: 'Document de paie créé.',
     payDocumentsFound: 'Documents de paie trouvés.',

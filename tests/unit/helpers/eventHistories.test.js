@@ -1064,3 +1064,26 @@ describe('createTimeStampHistory', () => {
     );
   });
 });
+
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(EventHistory, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update an event history', async () => {
+    const payload = { isCancelled: true };
+    const eventHistoryId = new ObjectID();
+
+    await EventHistoryHelper.update(eventHistoryId, payload);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: eventHistoryId },
+      { $set: { isCancelled: payload.isCancelled } }
+    );
+  });
+});

@@ -258,3 +258,8 @@ exports.createTimeStampHistory = async (event, payload, credentials) => {
     ...(payload.reason && { manualTimeStampingReason: payload.reason }),
   });
 };
+
+exports.update = async (eventHistoryId, payload) => EventHistory.updateOne(
+  { _id: eventHistoryId },
+  { $set: { isCancelled: payload.isCancelled } }
+);
