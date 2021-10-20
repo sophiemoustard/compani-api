@@ -708,7 +708,6 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[2], tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
       { _id: { customer: nonArchivedCustomers[2], tpp: tpps[1] }, payments: [{ netInclTaxes: 130 }] },
     ]);
-
     sinon.assert.calledOnceWithExactly(
       findBillsAmountsGroupedByClient,
       credentials.company._id,
@@ -800,7 +799,6 @@ describe('getBalances', () => {
       { _id: { customer: customerId, tpp: tpps[0] }, payments: [{ netInclTaxes: 200 }] },
       { _id: { customer: customerId, tpp: tpps[2] }, payments: [{ netInclTaxes: 240 }] },
     ]);
-
     sinon.assert.calledOnceWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, [customerId], maxDate);
     sinon.assert.calledOnceWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, [customerId], maxDate);
@@ -848,7 +846,6 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1] }, billed: 120 },
       { _id: { customer: nonArchivedCustomers[0], tpp: tpps[0] }, billed: 450 },
     ]);
-
     sinon.assert.calledWithExactly(getBalance.getCall(0), billsAmountsGroupedByClient[0], [], [], [], tpps);
     sinon.assert.calledWithExactly(getBalance.getCall(1), billsAmountsGroupedByClient[1], [], [], [], tpps);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
@@ -874,7 +871,6 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[0] }, refund: 20 },
       { _id: { customer: nonArchivedCustomers[1] }, refund: 40 },
     ]);
-
     sinon.assert.calledWithExactly(getBalancesFromCreditNotes.getCall(0), cnAmountsGroupedByCustomer[0], [], tpps);
     sinon.assert.calledWithExactly(getBalancesFromCreditNotes.getCall(1), cnAmountsGroupedByCustomer[1], [], tpps);
     sinon.assert.notCalled(getBalance);
@@ -900,7 +896,6 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[0], tpp: tpps[1], refund: 10 } },
       { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1], refund: 50 } },
     ]);
-
     sinon.assert.calledWithExactly(getBalancesFromCreditNotes.getCall(0), cnAmountsGroupedByTpp[0], [], tpps);
     sinon.assert.calledWithExactly(getBalancesFromCreditNotes.getCall(1), cnAmountsGroupedByTpp[1], [], tpps);
     sinon.assert.notCalled(getBalance);
@@ -937,6 +932,7 @@ describe('getBalances', () => {
 
   it('should return no balance', async () => {
     const customerId = nonArchivedCustomers[0];
+
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
