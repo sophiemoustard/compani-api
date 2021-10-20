@@ -60,6 +60,20 @@ const getById = async (req) => {
   }
 };
 
+const getSteps = async (req) => {
+  try {
+    const steps = await ProgramHelper.getProgramSteps(req.params._id);
+
+    return {
+      message: translate[language].stepsFound,
+      data: { steps },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const update = async (req) => {
   try {
     await ProgramHelper.updateProgram(req.params._id, req.payload);
@@ -155,6 +169,7 @@ module.exports = {
   listELearning,
   create,
   getById,
+  getSteps,
   update,
   addSubProgram,
   uploadImage,
