@@ -16,8 +16,7 @@ const filterCourses = activityHistory => ({
       subPrograms: step.subPrograms.map(subProgram => ({
         ...subProgram,
         ...(subProgram.courses && {
-          courses: subProgram.courses
-            .filter(course => UtilsHelper.doesArrayIncludeId(course.trainees, activityHistory.user._id)),
+          courses: subProgram.courses.filter(c => UtilsHelper.doesArrayIncludeId(c.trainees, activityHistory.user._id)),
         }),
       })),
     })),
@@ -28,8 +27,7 @@ const filterSteps = activityHistory => ({
   ...activityHistory,
   activity: {
     ...activityHistory.activity,
-    steps: activityHistory.activity.steps
-      .filter(step => step.subPrograms.some(sp => get(sp, 'courses.length'))),
+    steps: activityHistory.activity.steps.filter(step => step.subPrograms.some(sp => get(sp, 'courses.length'))),
   },
 });
 
