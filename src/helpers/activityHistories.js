@@ -13,7 +13,7 @@ const filterCourses = activityHistory => ({
     ...activityHistory.activity,
     steps: activityHistory.activity.steps.map(step => ({
       ...step,
-      subPrograms: step.subPrograms && step.subPrograms.map(subProgram => ({
+      subPrograms: step.subPrograms.map(subProgram => ({
         ...subProgram,
         ...(subProgram.courses && {
           courses: subProgram.courses
@@ -29,7 +29,7 @@ const filterSteps = activityHistory => ({
   activity: {
     ...activityHistory.activity,
     steps: activityHistory.activity.steps
-      .filter(step => step.subPrograms && step.subPrograms.some(sp => get(sp, 'courses.length'))),
+      .filter(step => step.subPrograms.some(sp => get(sp, 'courses.length'))),
   },
 });
 

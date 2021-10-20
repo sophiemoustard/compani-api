@@ -18,8 +18,7 @@ exports.authorizeAddActivityHistory = async (req) => {
   const activitySubPrograms = activity.steps
     .map(step => step.subPrograms)
     .flat()
-    .map(s => s._id)
-    .filter(Boolean);
+    .map(s => s._id);
 
   const coursesWithActivityAndFollowedByUser = await Course
     .countDocuments({ subProgram: { $in: activitySubPrograms }, trainees: userId });

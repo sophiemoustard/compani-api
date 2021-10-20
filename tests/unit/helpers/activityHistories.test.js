@@ -63,7 +63,7 @@ describe('list', () => {
                 }],
               }],
             },
-            { name: 'step without subprogram' },
+            { name: 'step without subprogram', subPrograms: [] },
           ],
         },
       },
