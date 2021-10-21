@@ -321,6 +321,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}/steps', () => {
       expect(response.result.data.steps).toEqual(expect.arrayContaining([
         expect.objectContaining({
           name: 'étape 3 - sans act',
+          type: 'on_site',
         }),
       ]));
     });

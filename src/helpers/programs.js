@@ -69,7 +69,7 @@ exports.getProgramSteps = async (programId) => {
   const program = await Program.findOne({ _id: programId })
     .populate({
       path: 'subPrograms',
-      populate: [{ path: 'steps', select: 'name' }],
+      populate: [{ path: 'steps', select: 'name type' }],
     })
     .lean();
 

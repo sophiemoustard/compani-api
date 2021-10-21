@@ -207,8 +207,8 @@ describe('getProgramSteps', () => {
     const program = {
       _id: programId,
       subPrograms: [
-        { _id: new ObjectID(), steps: [{ _id: stepId, name: 'etape test' }] },
-        { _id: new ObjectID(), steps: [{ _id: stepId, name: 'etape test' }] },
+        { _id: new ObjectID(), steps: [{ _id: stepId, name: 'etape test', type: 'remote' }] },
+        { _id: new ObjectID(), steps: [{ _id: stepId, name: 'etape test', type: 'remote' }] },
       ],
     };
 
@@ -216,7 +216,7 @@ describe('getProgramSteps', () => {
 
     const result = await ProgramHelper.getProgramSteps(programId);
 
-    expect(result).toEqual([{ _id: stepId, name: 'etape test' }]);
+    expect(result).toEqual([{ _id: stepId, name: 'etape test', type: 'remote' }]);
     SinonMongoose.calledWithExactly(
       programFindOne,
       [
@@ -227,7 +227,7 @@ describe('getProgramSteps', () => {
             path: 'subPrograms',
             populate: [{
               path: 'steps',
-              select: 'name',
+              select: 'name type',
             }],
           }],
         },
