@@ -300,7 +300,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - GET /programs/{_id}/steps #tag', () => {
+describe('PROGRAMS ROUTES - GET /programs/{_id}/steps', () => {
   let authToken;
   beforeEach(populateDB);
 

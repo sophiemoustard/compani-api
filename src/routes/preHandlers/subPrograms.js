@@ -3,9 +3,11 @@ const get = require('lodash/get');
 const SubProgram = require('../../models/SubProgram');
 const Program = require('../../models/Program');
 const Company = require('../../models/Company');
+const Step = require('../../models/Step');
 const CourseSlot = require('../../models/CourseSlot');
 const { PUBLISHED, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
+const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
@@ -20,12 +22,12 @@ exports.authorizeStepDetachment = async (req) => {
   return null;
 };
 
-exports.authorizeStepAdd = async (req) => {
-  const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
+exports.authorizeStepAdditionAndGetSubProgram = async (req) => {
+  const subProgram = await SubProgram.findOne({ _id: req.params._id }, { steps: 1 }).lean();
   if (!subProgram) throw Boom.notFound();
   if (subProgram.status === PUBLISHED) throw Boom.forbidden();
 
-  return null;
+  return subProgram;
 };
 
 exports.authorizeSubProgramUpdate = async (req) => {
@@ -94,4 +96,17 @@ exports.authorizeGetDraftELearningSubPrograms = async (req) => {
   const testerRestrictedPrograms = await Program.find({ testers: loggedUserId }, { _id: 1 }).lean();
 
   return testerRestrictedPrograms.map(program => program._id);
+};
+
+exports.authorizeStepReuse = async (req) => {
+  const { subProgram } = req.pre;
+  const { steps } = req.payload;
+
+  const stepsExist = await Step.countDocuments({ _id: steps });
+  if (!stepsExist) throw Boom.notFound();
+
+  const stepsAlreadyAttached = UtilsHelper.doesArrayIncludeId(subProgram.steps, steps);
+  if (stepsAlreadyAttached) throw Boom.forbidden();
+
+  return null;
 };

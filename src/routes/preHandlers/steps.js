@@ -18,7 +18,7 @@ exports.authorizeStepUpdate = async (req) => {
   return null;
 };
 
-exports.authorizeActivityAdd = async (req) => {
+exports.authorizeActivityAddition = async (req) => {
   const step = await Step.findOne({ _id: req.params._id }, { status: 1 }).lean();
   if (!step) throw Boom.notFound();
   if (step.status === PUBLISHED) throw Boom.forbidden();

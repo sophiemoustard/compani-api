@@ -27,6 +27,17 @@ const addStep = async (req) => {
   }
 };
 
+const reuseStep = async (req) => {
+  try {
+    await SubProgramHelper.reuseStep(req.params._id, req.payload);
+
+    return { message: translate[language].subProgramUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const detachStep = async (req) => {
   try {
     await StepHelper.detachStep(req.params._id, req.params.stepId);
@@ -72,4 +83,5 @@ module.exports = {
   detachStep,
   listELearningDraft,
   getById,
+  reuseStep,
 };

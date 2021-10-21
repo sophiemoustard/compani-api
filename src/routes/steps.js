@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
-  authorizeActivityAdd,
+  authorizeActivityAddition,
   authorizeActivityReuse,
   authorizeActivityDetachment,
   authorizeStepUpdate,
@@ -43,7 +43,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeActivityAdd }],
+        pre: [{ method: authorizeActivityAddition }],
       },
       handler: addActivity,
     });
