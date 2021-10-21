@@ -234,8 +234,8 @@ const customersList = [
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[1]._id,
         subscription: subId3,
-        fundingPlanId: '12345',
         versions: [{
+          fundingPlanId: '12345',
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
           frequency: ONCE,
@@ -251,8 +251,8 @@ const customersList = [
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[1]._id,
         subscription: subId3,
-        fundingPlanId: '04124',
         versions: [{
+          fundingPlanId: '04124',
           folderNumber: 'D123457',
           startDate: moment.utc().toDate(),
           frequency: ONCE,

@@ -2202,8 +2202,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
+          fundingPlanId: 12345,
         }],
-        fundingPlanId: 12345,
       };
 
       const res = await app.inject({
@@ -2229,8 +2229,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
+          fundingPlanId: '12345',
         }],
-        fundingPlanId: '12345',
       };
 
       const res = await app.inject({
