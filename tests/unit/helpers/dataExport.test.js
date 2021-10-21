@@ -45,6 +45,7 @@ describe('exportCustomers', () => {
       'Prenom',
       'Date de naissance',
       'Adresse',
+      'Ville',
       '1ère intervention',
       'Id Auxiliaire référent(e)',
       'Auxiliaire référent(e)',
@@ -89,7 +90,7 @@ describe('exportCustomers', () => {
           title: 'mr',
           birthDate: '1919-12-12T00:00:00.000+00:00',
         },
-        contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
+        contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris', city: 'Paris' } },
         followUp: { situation: 'home', misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
         firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
         referent: { _id: new ObjectID(), identity: { firstname: 'Toto', lastname: 'Test' } },
@@ -124,6 +125,7 @@ describe('exportCustomers', () => {
       'Grand Père',
       '12/12/1919',
       '9 rue du paradis 70015 Paris',
+      'Paris',
       '08/08/2019',
       expect.any(ObjectID),
       'Toto Test',
@@ -169,7 +171,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', '',
+      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', '',
     ]);
     SinonMongoose.calledWithExactly(
       findCustomer,
