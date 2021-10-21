@@ -11,6 +11,7 @@ const {
 const { getToken } = require('./helpers/authentication');
 const UtilsHelper = require('../../src/helpers/utils');
 const EventHistory = require('../../src/models/EventHistory');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -25,7 +26,7 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
     authToken = await getToken('coach');
   });
 
-  it('should return all event histories', async () => {
+  it('should return all event histories from user\'s company', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/eventhistories',
@@ -33,7 +34,10 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
     });
 
     expect(response.statusCode).toEqual(200);
-    expect(response.result.data.eventHistories.length).toEqual(eventHistoryList.length);
+
+    const eventHistoriesFromAuthCompany = eventHistoryList
+      .filter(eh => UtilsHelper.areObjectIdsEquals(eh.company, authCompany._id));
+    expect(response.result.data.eventHistories.length).toEqual(eventHistoriesFromAuthCompany.length);
   });
 
   it('should return a list of event histories from auxiliaries ids', async () => {
