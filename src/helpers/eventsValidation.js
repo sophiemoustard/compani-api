@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const omit = require('lodash/omit');
+const get = require('lodash/get');
 const momentRange = require('moment-range');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, NEVER } = require('./constants');
 const User = require('../models/User');
@@ -91,13 +92,18 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
-  const event = !payload.auxiliary
-    ? { ...omit(eventFromDB, 'auxiliary'), ...payload }
-    : { ...eventFromDB, ...payload };
+  const keysToOmit = payload.auxiliary ? ['repetition'] : ['auxiliary', 'repetition'];
+  const frequency = get(payload, 'repetition.frequency') || get(eventFromDB, 'repetition.frequency');
+  const event = {
+    ...omit(eventFromDB, keysToOmit),
+    ...omit(payload, 'repetition.frequency'),
+    ...(!!frequency && { repetition: { frequency } }),
+  };
 
-  const isSingleIntervention = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
+  const isSingleInterventionNotCancelled = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
   const undoCancellation = eventFromDB.isCancelled && !payload.isCancelled;
-  if (event.auxiliary && (isSingleIntervention || undoCancellation) && await exports.hasConflicts(event)) {
+  const hasConflicts = await exports.hasConflicts(event);
+  if (event.auxiliary && (isSingleInterventionNotCancelled || undoCancellation) && hasConflicts) {
     throw Boom.conflict(translate[language].eventsConflict);
   }
 
