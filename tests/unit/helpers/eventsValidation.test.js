@@ -755,7 +755,7 @@ describe('isUpdateAllowed', () => {
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
-      startDateTimeStampedCount: 1,
+      startDateTimeStamp: 1,
     };
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
@@ -777,7 +777,7 @@ describe('isUpdateAllowed', () => {
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
-      startDateTimeStampedCount: 1,
+      startDateTimeStamp: 1,
     };
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
@@ -800,7 +800,7 @@ describe('isUpdateAllowed', () => {
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
-      startDateTimeStampedCount: 1,
+      startDateTimeStamp: 1,
     };
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
@@ -822,7 +822,7 @@ describe('isUpdateAllowed', () => {
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
-      endDateTimeStampedCount: 1,
+      endDateTimeStamp: 1,
     };
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
@@ -844,7 +844,7 @@ describe('isUpdateAllowed', () => {
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
-      endDateTimeStampedCount: 1,
+      endDateTimeStamp: 1,
     };
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
@@ -867,7 +867,7 @@ describe('isUpdateAllowed', () => {
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
-      endDateTimeStampedCount: 1,
+      endDateTimeStamp: 1,
     };
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);

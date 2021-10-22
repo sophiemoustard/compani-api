@@ -84,9 +84,9 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
     !UtilsHelper.areObjectIdsEquals(eventFromDB.auxiliary, payload.auxiliary);
   const cancelEvent = payload.isCancelled;
   const forbiddenUpdateOnTimeStampedEvent = updateAuxiliary || cancelEvent;
-  const { startDateTimeStampedCount, endDateTimeStampedCount } = eventFromDB;
-  if (startDateTimeStampedCount && (updateStartDate || forbiddenUpdateOnTimeStampedEvent)) return false;
-  if (endDateTimeStampedCount && (updateEndDate || forbiddenUpdateOnTimeStampedEvent)) return false;
+  const { startDateTimeStamp, endDateTimeStamp } = eventFromDB;
+  if (startDateTimeStamp && (updateStartDate || forbiddenUpdateOnTimeStampedEvent)) return false;
+  if (endDateTimeStamp && (updateEndDate || forbiddenUpdateOnTimeStampedEvent)) return false;
 
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;

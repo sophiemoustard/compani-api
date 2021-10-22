@@ -7,10 +7,8 @@ const CreditNote = require('../../models/CreditNote');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
-const EventHistory = require('../../models/EventHistory');
 const InternalHour = require('../../models/InternalHour');
 const UserCompany = require('../../models/UserCompany');
-const { TIME_STAMPING_ACTIONS } = require('../../models/EventHistory');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const {
@@ -28,8 +26,8 @@ const { language } = translate;
 
 exports.getEvent = async (req) => {
   const event = await Event.findOne({ _id: req.params._id, company: get(req, 'auth.credentials.company._id') })
-    .populate('startDateTimeStampedCount')
-    .populate('endDateTimeStampedCount')
+    .populate('startDateTimeStamp')
+    .populate('endDateTimeStamp')
     .lean();
 
   if (!event) throw Boom.notFound(translate[language].eventNotFound);
@@ -201,18 +199,15 @@ exports.authorizeTimeStamping = async (req) => {
     type: INTERVENTION,
     auxiliary: get(req, 'auth.credentials._id'),
     startDate: { $gte: moment().startOf('d').toDate(), $lte: moment().endOf('d').toDate() },
-  }).lean();
+  })
+    .populate('startDateTimeStamp')
+    .populate('endDateTimeStamp')
+    .lean();
   if (!event) throw Boom.notFound();
 
   if (event.isCancelled) { throw Boom.conflict(translate[language].timeStampCancelledEvent); }
 
-  const timeStampPayload = { 'event.eventId': req.params._id, action: { $in: TIME_STAMPING_ACTIONS } };
-
-  if (req.payload.startDate) timeStampPayload['update.startHour'] = { $exists: true };
-  else timeStampPayload['update.endHour'] = { $exists: true };
-
-  const alreadyTimeStamped = await EventHistory.countDocuments(timeStampPayload);
-  if (alreadyTimeStamped) throw Boom.conflict(translate[language].alreadyTimeStamped);
+  if (event.startDateTimeStamp || event.endDateTimeStamp) throw Boom.conflict(translate[language].alreadyTimeStamped);
 
   return null;
 };
