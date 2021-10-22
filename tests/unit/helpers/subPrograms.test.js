@@ -314,3 +314,28 @@ describe('getSubProgram', () => {
     ]);
   });
 });
+
+describe('reuseStep', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(SubProgram, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should return the requested subprogram', async () => {
+    const reusedStepId = new ObjectID();
+    const subProgram = {
+      _id: new ObjectID(),
+      steps: [new ObjectID(), reusedStepId],
+    };
+
+    updateOne.returns(subProgram);
+
+    const result = await SubProgramHelper.reuseStep(subProgram._id, { steps: reusedStepId });
+
+    expect(result).toMatchObject(subProgram);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: subProgram._id }, { $push: { steps: reusedStepId } });
+  });
+});
