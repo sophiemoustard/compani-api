@@ -293,7 +293,7 @@ describe('createFunding', () => {
   });
 
   it('should create funding if no conflict', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { subscription: '1234567890' };
     const customer = { _id: customerId };
 
@@ -323,7 +323,7 @@ describe('createFunding', () => {
   });
 
   it('should create funding if no conflict and has fundingPlanId', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { subscription: '1234567890', fundingPlanId: '123456' };
     const customer = { _id: customerId };
 
@@ -332,8 +332,8 @@ describe('createFunding', () => {
 
     await FundingsHelper.createFunding(customerId, payload);
 
-    sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, payload);
-    sinon.assert.calledWithExactly(populateFundingsList, customer);
+    sinon.assert.calledOnceWithExactly(checkSubscriptionFunding, customerId, payload);
+    sinon.assert.calledOnceWithExactly(populateFundingsList, customer);
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [
@@ -353,7 +353,7 @@ describe('createFunding', () => {
   });
 
   it('should throw an error if conflict', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { subscription: '1234567890' };
 
     try {
@@ -385,7 +385,7 @@ describe('updateFunding', () => {
   });
 
   it('should update funding if no conflict and has fundingPlanId', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const fundingId = 'mnbvcxz';
     const payload = { subscription: '1234567890', fundingPlanId: '12345' };
     const customer = { _id: customerId };
@@ -424,7 +424,7 @@ describe('updateFunding', () => {
   });
 
   it('should update funding if no conflict and has no fundingPlanId', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const fundingId = 'mnbvcxz';
     const payload = { subscription: '1234567890' };
     const customer = { _id: customerId };
@@ -456,7 +456,7 @@ describe('updateFunding', () => {
   });
 
   it('should throw an error if conflict', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const fundingId = 'mnbvcxz';
     const payload = { subscription: '1234567890' };
     const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{ subscription: '1234567890' }] };
