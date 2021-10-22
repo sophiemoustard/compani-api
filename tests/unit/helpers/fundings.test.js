@@ -409,10 +409,7 @@ describe('updateFunding', () => {
           query: 'findOneAndUpdate',
           args: [
             { _id: customerId, 'fundings._id': fundingId },
-            {
-              $set: { 'fundings.$.fundingPlanId': payload.fundingPlanId },
-              $push: { 'fundings.$.versions': omit(payload, 'subscription') },
-            },
+            { $push: { 'fundings.$.versions': omit(payload, 'subscription') } },
             { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false },
           ],
         },
@@ -444,7 +441,7 @@ describe('updateFunding', () => {
           query: 'findOneAndUpdate',
           args: [
             { _id: customerId, 'fundings._id': fundingId },
-            { $push: { 'fundings.$.versions': payload } },
+            { $push: { 'fundings.$.versions': {} } },
             { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false },
           ],
         },

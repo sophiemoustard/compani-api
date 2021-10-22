@@ -80,15 +80,9 @@ exports.updateFunding = async (customerId, fundingId, payload) => {
   const check = await exports.checkSubscriptionFunding(customerId, checkFundingPayload);
   if (!check) return Boom.conflict(translate[language].customerFundingConflict);
 
-  const query = payload.fundingPlanId
-    ? {
-      $set: { 'fundings.$.fundingPlanId': payload.fundingPlanId },
-      $push: { 'fundings.$.versions': omit(payload, 'subscription') },
-    }
-    : { $push: { 'fundings.$.versions': payload } };
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, 'fundings._id': fundingId },
-    query,
+    { $push: { 'fundings.$.versions': omit(payload, 'subscription') } },
     { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
   )
     .populate({ path: 'subscriptions.service' })
