@@ -23,7 +23,7 @@ exports.authorizeStepDetachment = async (req) => {
 };
 
 exports.authorizeStepAdditionAndGetSubProgram = async (req) => {
-  const subProgram = await SubProgram.findOne({ _id: req.params._id }, { steps: 1, status: 1 }).lean();
+  const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
   if (!subProgram) throw Boom.notFound();
   if (subProgram.status !== DRAFT) throw Boom.forbidden();
 
