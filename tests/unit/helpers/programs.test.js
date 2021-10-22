@@ -221,16 +221,7 @@ describe('getProgramSteps', () => {
       programFindOne,
       [
         { query: 'findOne', args: [{ _id: program._id }] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'subPrograms',
-            populate: [{
-              path: 'steps',
-              select: 'name type',
-            }],
-          }],
-        },
+        { query: 'populate', args: [{ path: 'subPrograms', populate: [{ path: 'steps', select: 'name type' }] }] },
         { query: 'lean' },
       ]
     );

@@ -582,7 +582,7 @@ module.exports = {
     testerRemoved: 'Testeur(euse) supprimé(e) du programme.',
     testerNotFound: 'Testeur(euse) non trouvé(e) dans le programme.',
     testerConflict: 'Testeur(euse) déjà ajouté(e) au programme.',
-    stepsFound: 'Liste des étapes du programme trouvées.',
+    stepsFound: 'Liste des étapes trouvées, relatives au programme.',
     /* Categories */
     categoriesFound: 'Catégories trouvées.',
     categoriesNotFound: 'Catégories non trouvées.',

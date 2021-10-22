@@ -384,11 +384,11 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}/step', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const subProgramUpdated = SubProgram.countDocuments({ _id: subProgramId, steps: stepsList[3]._id });
+      const subProgramUpdated = await SubProgram.countDocuments({ _id: subProgramId, steps: stepsList[3]._id });
       expect(subProgramUpdated).toBeTruthy();
     });
 
-    it('should return a 404 if supProgram does not exist', async () => {
+    it('should return a 404 if subProgram does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/subprograms/${new ObjectID()}/steps`,
