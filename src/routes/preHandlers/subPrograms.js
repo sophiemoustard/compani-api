@@ -5,7 +5,7 @@ const Program = require('../../models/Program');
 const Company = require('../../models/Company');
 const Step = require('../../models/Step');
 const CourseSlot = require('../../models/CourseSlot');
-const { PUBLISHED, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
+const { PUBLISHED, DRAFT, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 
@@ -14,7 +14,7 @@ const { language } = translate;
 exports.authorizeStepDetachment = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id, steps: req.params.stepId }).lean();
   if (!subProgram) throw Boom.notFound();
-  if (subProgram.status === PUBLISHED) throw Boom.forbidden();
+  if (subProgram.status !== DRAFT) throw Boom.forbidden();
 
   const courseSlot = await CourseSlot.countDocuments({ step: req.params.stepId });
   if (courseSlot) throw Boom.conflict();
@@ -23,9 +23,9 @@ exports.authorizeStepDetachment = async (req) => {
 };
 
 exports.authorizeStepAdditionAndGetSubProgram = async (req) => {
-  const subProgram = await SubProgram.findOne({ _id: req.params._id }, { steps: 1 }).lean();
+  const subProgram = await SubProgram.findOne({ _id: req.params._id }, { steps: 1, status: 1 }).lean();
   if (!subProgram) throw Boom.notFound();
-  if (subProgram.status === PUBLISHED) throw Boom.forbidden();
+  if (subProgram.status !== DRAFT) throw Boom.forbidden();
 
   return subProgram;
 };
@@ -38,7 +38,7 @@ exports.authorizeSubProgramUpdate = async (req) => {
 
   if (!subProgram) throw Boom.notFound();
 
-  if (subProgram.status === PUBLISHED) throw Boom.forbidden();
+  if (subProgram.status !== DRAFT) throw Boom.forbidden();
 
   if (req.payload.status === PUBLISHED && !subProgram.areStepsValid) throw Boom.forbidden();
 
