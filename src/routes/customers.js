@@ -446,7 +446,6 @@ exports.plugin = {
             subscription: Joi.objectId().required(),
             frequency: Joi.string().valid(...FUNDING_FREQUENCIES).required(),
             versions: Joi.array().items(Joi.object().keys({ ...fundingValidation })),
-            fundingPlanId: Joi.string(),
           }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
@@ -464,7 +463,6 @@ exports.plugin = {
           payload: Joi.object().keys({
             subscription: Joi.objectId().required(),
             ...fundingValidation,
-            fundingPlanId: Joi.string(),
           }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
