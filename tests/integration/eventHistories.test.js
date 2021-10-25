@@ -162,7 +162,7 @@ describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/eventhistories/${eventHistoryList[3]._id}`,
-        payload: { isCancelled: true, timestampCancellationReason: 'oups' },
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

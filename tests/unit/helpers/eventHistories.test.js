@@ -1097,7 +1097,7 @@ describe('update', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries([{ _id: eventHistoryId, event: { eventId } }], ['lean']));
     findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, auxiliary: auxiliaryId }], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: { _id: sectorId } }]));
+    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
     await EventHistoryHelper.update(eventHistoryId, payload, credentials);
 
@@ -1109,7 +1109,7 @@ describe('update', () => {
         company: credentials.company._id,
         event: { eventId, auxiliary: auxiliaryId },
         linkedEventHistory: eventHistoryId,
-        timeStampCancellationReason: payload.timeStampCancellationReason,
+        timeStampCancellationReason: 'je m\'ai trompé',
         auxiliaries: [auxiliaryId],
         sectors: [sectorId],
       }
@@ -1153,7 +1153,7 @@ describe('update', () => {
         company: credentials.company._id,
         event: { eventId, sector: sectorId },
         linkedEventHistory: eventHistoryId,
-        timeStampCancellationReason: payload.timeStampCancellationReason,
+        timeStampCancellationReason: 'je m\'ai trompé',
         auxiliaries: [],
         sectors: [sectorId],
       }
