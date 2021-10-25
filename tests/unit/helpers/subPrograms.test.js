@@ -324,7 +324,7 @@ describe('reuseStep', () => {
     updateOne.restore();
   });
 
-  it('should return the requested subprogram', async () => {
+  it('should link an already existing step to the subProgram', async () => {
     const reusedStepId = new ObjectID();
     const subProgram = {
       _id: new ObjectID(),
