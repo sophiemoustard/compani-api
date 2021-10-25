@@ -72,17 +72,18 @@ exports.createFunding = async (customerId, payload) => {
 };
 
 exports.updateFunding = async (customerId, fundingId, payload) => {
+  const versionPayload = omit(payload, 'subscription');
   const checkFundingPayload = {
     _id: fundingId,
     subscription: payload.subscription,
-    versions: [payload],
+    versions: [versionPayload],
   };
   const check = await exports.checkSubscriptionFunding(customerId, checkFundingPayload);
   if (!check) return Boom.conflict(translate[language].customerFundingConflict);
 
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, 'fundings._id': fundingId },
-    { $push: { 'fundings.$.versions': omit(payload, 'subscription') } },
+    { $push: { 'fundings.$.versions': versionPayload } },
     { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
   )
     .populate({ path: 'subscriptions.service' })
