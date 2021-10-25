@@ -1,6 +1,5 @@
 const flat = require('flat');
 const { get } = require('lodash');
-const { uniqBy } = require('lodash');
 const Course = require('../models/Course');
 const Program = require('../models/Program');
 const User = require('../models/User');
@@ -63,17 +62,6 @@ exports.getProgram = async (programId) => {
       })),
     })),
   };
-};
-
-exports.getProgramSteps = async (programId) => {
-  const program = await Program.findOne({ _id: programId })
-    .populate({
-      path: 'subPrograms',
-      populate: [{ path: 'steps', select: 'name type' }],
-    })
-    .lean();
-
-  return uniqBy(program.subPrograms.map(subprogram => subprogram.steps).flat(), '_id');
 };
 
 exports.updateProgram = async (programId, payload) => Program.updateOne({ _id: programId }, { $set: payload });

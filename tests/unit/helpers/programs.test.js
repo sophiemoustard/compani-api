@@ -191,43 +191,6 @@ describe('getProgram', () => {
   });
 });
 
-describe('getProgramSteps', () => {
-  let programFindOne;
-  beforeEach(() => {
-    programFindOne = sinon.stub(Program, 'findOne');
-  });
-  afterEach(() => {
-    programFindOne.restore();
-  });
-
-  it('should return steps without duplicates', async () => {
-    const programId = new ObjectID();
-    const stepId = new ObjectID();
-
-    const program = {
-      _id: programId,
-      subPrograms: [
-        { _id: new ObjectID(), steps: [{ _id: stepId, name: 'etape test', type: 'remote' }] },
-        { _id: new ObjectID(), steps: [{ _id: stepId, name: 'etape test', type: 'remote' }] },
-      ],
-    };
-
-    programFindOne.returns(SinonMongoose.stubChainedQueries([program], ['populate', 'lean']));
-
-    const result = await ProgramHelper.getProgramSteps(programId);
-
-    expect(result).toEqual([{ _id: stepId, name: 'etape test', type: 'remote' }]);
-    SinonMongoose.calledWithExactly(
-      programFindOne,
-      [
-        { query: 'findOne', args: [{ _id: program._id }] },
-        { query: 'populate', args: [{ path: 'subPrograms', populate: [{ path: 'steps', select: 'name type' }] }] },
-        { query: 'lean' },
-      ]
-    );
-  });
-});
-
 describe('update', () => {
   let programUpdateOne;
   beforeEach(() => {

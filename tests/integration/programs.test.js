@@ -300,67 +300,6 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
   });
 });
 
-describe('PROGRAMS ROUTES - GET /programs/{_id}/steps', () => {
-  let authToken;
-  beforeEach(populateDB);
-
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
-    beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
-    });
-
-    it('should get program steps', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/programs/${programsList[0]._id}/steps`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.steps.length).toEqual(1);
-      expect(response.result.data.steps).toEqual(expect.arrayContaining([
-        expect.objectContaining({
-          name: 'étape 3 - sans act',
-          type: 'on_site',
-        }),
-      ]));
-    });
-
-    it('should return 404 if program does not exist', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/programs/${new ObjectID()}/steps`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-  });
-
-  describe('Other roles', () => {
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const programId = programsList[0]._id;
-        const response = await app.inject({
-          method: 'GET',
-          url: `/programs/${programId}/steps`,
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
 describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
   let authToken;
   beforeEach(populateDB);

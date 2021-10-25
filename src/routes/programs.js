@@ -22,7 +22,6 @@ const {
   removeCategory,
   addTester,
   removeTester,
-  getSteps,
 } = require('../controllers/programController');
 const { formDataPayload, phoneNumberValidation } = require('./validations/utils');
 
@@ -74,19 +73,6 @@ exports.plugin = {
         pre: [{ method: checkProgramExists }],
       },
       handler: getById,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/steps',
-      options: {
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
-        auth: { scope: ['programs:edit'] },
-        pre: [{ method: checkProgramExists }],
-      },
-      handler: getSteps,
     });
 
     server.route({
