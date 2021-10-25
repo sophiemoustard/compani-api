@@ -243,7 +243,7 @@ module.exports = {
     testerRemoved: 'Tester removed from program.',
     testerNotFound: 'Tester not found in program.',
     testerConflict: 'Tester already added to program.',
-    stepsFound: 'Program\'s Steps found.',
+    stepsFound: 'Program\'s steps found.',
     /* Categories */
     categoriesFound: 'Categories found.',
     categoriesNotFound: 'Categories not found.',
@@ -573,8 +573,8 @@ module.exports = {
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
     /* Programs */
-    programsFound: 'Liste des programmes trouvés.',
-    programsNotFound: 'Liste des programmes non trouvés.',
+    programsFound: 'Liste des programmes trouvée.',
+    programsNotFound: 'Liste des programmes non trouvée.',
     programCreated: 'Programme créé.',
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
@@ -582,7 +582,7 @@ module.exports = {
     testerRemoved: 'Testeur(euse) supprimé(e) du programme.',
     testerNotFound: 'Testeur(euse) non trouvé(e) dans le programme.',
     testerConflict: 'Testeur(euse) déjà ajouté(e) au programme.',
-    stepsFound: 'Liste des étapes trouvées, relatives au programme.',
+    stepsFound: 'Liste des étapes du programme trouvée.',
     /* Categories */
     categoriesFound: 'Catégories trouvées.',
     categoriesNotFound: 'Catégories non trouvées.',

@@ -4,11 +4,12 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   authorizeStepDetachment,
-  authorizeStepAdditionAndGetSubProgram,
+  authorizeStepAddition,
   authorizeSubProgramUpdate,
   authorizeGetSubProgram,
   authorizeGetDraftELearningSubPrograms,
   authorizeStepReuse,
+  getSubProgram,
 } = require('./preHandlers/subPrograms');
 const {
   update,
@@ -50,7 +51,7 @@ exports.plugin = {
           payload: Joi.object({ name: Joi.string().required(), type: Joi.string().required().valid(...STEP_TYPES) }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeStepAdditionAndGetSubProgram }],
+        pre: [{ method: getSubProgram, assign: 'subProgram' }, { method: authorizeStepAddition }],
       },
       handler: addStep,
     });
@@ -64,7 +65,11 @@ exports.plugin = {
           payload: Joi.object({ steps: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeStepAdditionAndGetSubProgram, assign: 'subProgram' }, { method: authorizeStepReuse }],
+        pre: [
+          { method: getSubProgram, assign: 'subProgram' },
+          { method: authorizeStepAddition },
+          { method: authorizeStepReuse },
+        ],
       },
       handler: reuseStep,
     });

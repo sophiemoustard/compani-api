@@ -11,6 +11,13 @@ const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
+exports.getSubProgram = async (req) => {
+  const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
+  if (!subProgram) throw Boom.notFound();
+
+  return subProgram;
+};
+
 exports.authorizeStepDetachment = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id, steps: req.params.stepId }).lean();
   if (!subProgram) throw Boom.notFound();
@@ -22,12 +29,11 @@ exports.authorizeStepDetachment = async (req) => {
   return null;
 };
 
-exports.authorizeStepAdditionAndGetSubProgram = async (req) => {
-  const subProgram = await SubProgram.findOne({ _id: req.params._id }).lean();
-  if (!subProgram) throw Boom.notFound();
+exports.authorizeStepAddition = async (req) => {
+  const { subProgram } = req.pre;
   if (subProgram.status !== DRAFT) throw Boom.forbidden();
 
-  return subProgram;
+  return null;
 };
 
 exports.authorizeSubProgramUpdate = async (req) => {
