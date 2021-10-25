@@ -26,8 +26,8 @@ const { language } = translate;
 
 exports.getEvent = async (req) => {
   const event = await Event.findOne({ _id: req.params._id, company: get(req, 'auth.credentials.company._id') })
-    .populate('startDateTimeStamp')
-    .populate('endDateTimeStamp')
+    .populate({ path: 'startDateTimeStamp' })
+    .populate({ path: 'endDateTimeStamp' })
     .lean();
 
   if (!event) throw Boom.notFound(translate[language].eventNotFound);
@@ -138,7 +138,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
     const customer = await Customer.findOne({ _id: customerId, company: companyId }, { subscriptions: 1 })
-      .populate('subscriptions.service')
+      .populate({ path: 'subscriptions.service' })
       .lean();
     if (!customer) throw Boom.notFound();
 
@@ -200,8 +200,8 @@ exports.authorizeTimeStamping = async (req) => {
     auxiliary: get(req, 'auth.credentials._id'),
     startDate: { $gte: moment().startOf('d').toDate(), $lte: moment().endOf('d').toDate() },
   })
-    .populate('startDateTimeStamp')
-    .populate('endDateTimeStamp')
+    .populate({ path: 'startDateTimeStamp' })
+    .populate({ path: 'endDateTimeStamp' })
     .lean();
   if (!event) throw Boom.notFound();
 

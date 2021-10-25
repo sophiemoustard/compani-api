@@ -6,7 +6,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const eventHistories = await EventHistoriesHelper.getEventHistories(req.query, req.auth.credentials);
+    const eventHistories = await EventHistoriesHelper.list(req.query, req.auth.credentials);
 
     return {
       message: translate[language].eventHistoriesFound,

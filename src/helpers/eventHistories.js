@@ -8,7 +8,7 @@ const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } =
 const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 
-exports.getEventHistories = async (query, credentials) => {
+exports.list = async (query, credentials) => {
   if (query.eventId) {
     return EventHistoryRepository.paginate({
       'event.eventId': query.eventId,
