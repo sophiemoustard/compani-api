@@ -1,14 +1,19 @@
-const { get } = require('lodash');
-const builder = require('xmlbuilder');
-const fs = require('fs');
+const get = require('lodash/get');
 const os = require('os');
 const path = require('path');
+const Customer = require('../models/Customer');
 const Event = require('../models/Event');
+const EventHistory = require('../models/EventHistory');
+const User = require('../models/User');
 const UtilsHelper = require('./utils');
+const XMLHelper = require('./xml');
+const DraftBillsHelper = require('./draftBills');
 const FundingsHelper = require('./fundings');
 const DatesHelper = require('./dates');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
 const moment = require('../extensions/moment');
+const { NOT_INVOICED_AND_NOT_PAID } = require('./constants');
+const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 
 const CADRE_PRESTATAIRE = 'PRE';
 const MISSING_START_TIME_STAMP = 'COA';
@@ -173,17 +178,93 @@ const getCIDDHSupplyChainTradeTransaction = (event, funding, transactionId) => (
 });
 
 const formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime, eventIndex) => {
-  const fundingsWithLastVersion = event.customer.fundings.map(f => ({ ...f, ...f.versions[f.versions.length - 1] }));
+  const fundingsWithLastVersion = event.customer.fundings
+    .map(f => UtilsHelper.mergeLastVersionWithBaseObject(f, 'createdAt'));
   const funding = FundingsHelper.getMatchingFunding(event.startDate, fundingsWithLastVersion);
   if (!funding) return null;
-  const lastVersion = UtilsHelper.mergeLastVersionWithBaseObject(funding, 'createdAt');
 
   return {
     'ns:CIDDHExchangedDocumentContext': getCIDDHExchangedDocumentContext(`I${transactionId}${eventIndex}`),
     'ns:CIDDHExchangedDocument': getCIDDHExchangedDocument(`I${transactionId}${eventIndex}`, issueDateTime),
     'ns:CIDDHSupplyChainTradeTransaction':
-      getCIDDHSupplyChainTradeTransaction(event, lastVersion, `I${transactionId}${eventIndex}`),
+      getCIDDHSupplyChainTradeTransaction(event, funding, `I${transactionId}${eventIndex}`),
   };
+};
+
+const formatEvents = async (events, companyId) => {
+  const auxiliaries = await User
+    .find({ _id: { $in: events.map(ev => ev.auxiliary) } }, { identity: 1, serialNumber: 1 })
+    .populate({ path: 'establishment' })
+    .populate({ path: 'company', populate: { path: 'company' } })
+    .lean();
+  const customers = await Customer
+    .find(
+      { _id: { $in: events.map(ev => ev.customer) }, company: companyId },
+      { 'contact.primaryAddress': 1, identity: 1, fundings: 1, serialNumber: 1, subscriptions: 1 }
+    )
+    .populate({ path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type' })
+    .populate({ path: 'subscriptions.service' })
+    .lean();
+  const eventHistories = await EventHistory
+    .find({
+      action: { $in: TIME_STAMPING_ACTIONS },
+      'event.eventId': { $in: events.map(ev => ev._id) },
+      company: companyId,
+      isCancelled: false,
+    })
+    .lean();
+
+  return events.map(ev => ({
+    ...ev,
+    auxiliary: auxiliaries.find(a => UtilsHelper.areObjectIdsEquals(ev.auxiliary, a._id)),
+    customer: customers.find(c => UtilsHelper.areObjectIdsEquals(ev.customer, c._id)),
+    histories: eventHistories.filter(h => UtilsHelper.areObjectIdsEquals(ev._id, h.event.eventId)),
+  }));
+};
+
+const formatNonBilledEvents = async (events, startDate, endDate, credentials) => {
+  const companyId = get(credentials, 'company._id');
+  const billsQuery = { startDate, endDate, eventIds: events.map(ev => ev._id) };
+  const bills = await DraftBillsHelper.getDraftBillsList(billsQuery, credentials);
+
+  const eventsWithBillingInfo = bills
+    .filter(b => !!b.thirdPartyPayerBills)
+    .flatMap(b => b.thirdPartyPayerBills
+      .flatMap(tppb => tppb.bills.flatMap(bi => bi.eventsList.flatMap(ev => ({ ...ev, customer: b.customer._id })))));
+
+  return formatEvents(eventsWithBillingInfo, companyId);
+};
+
+const formatBilledEvents = async (events, credentials) => formatEvents(events, get(credentials, 'company._id'));
+
+const getEvents = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id');
+  const tpps = UtilsHelper.formatObjectIdsArray(query.thirdPartyPayer);
+  const customersWithFundings = await Customer
+    .find({ 'fundings.thirdPartyPayer': { $in: tpps }, company: companyId })
+    .lean();
+  const subscriptionIds = customersWithFundings.flatMap(c => c.fundings)
+    .filter(f => UtilsHelper.doesArrayIncludeId(tpps, f.thirdPartyPayer))
+    .map(f => f.subscription);
+
+  const startDate = moment(query.month, 'MM-YYYY').startOf('month').toDate();
+  const endDate = moment(query.month, 'MM-YYYY').endOf('month').toDate();
+
+  const events = await Event
+    .find({
+      subscription: { $in: subscriptionIds },
+      company: companyId,
+      endDate: { $gt: startDate },
+      startDate: { $lt: endDate },
+      auxiliary: { $exists: true },
+      'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } },
+    })
+    .lean();
+
+  return [
+    ...await formatNonBilledEvents(events.filter(ev => !ev.isBilled), startDate, endDate, credentials),
+    ...await formatBilledEvents(events.filter(ev => !!ev.isBilled), credentials),
+  ];
 };
 
 /**
@@ -191,37 +272,24 @@ const formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime, 
  * => pour un tiers payeur, on récupere la liste des inteventions qui sont reliées à un plan d'aide
  */
 exports.getCrossIndustryDespatchAdvice = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id');
-  const eventsQuery = {
-    company: companyId,
-    ...(query.thirdPartyPayer &&
-      { 'bills.thirdPartyPayer': { $in: UtilsHelper.formatObjectIdsArray(query.thirdPartyPayer) } }),
-  };
-
-  const events = await Event
-    .find(eventsQuery)
-    .populate({
-      path: 'auxiliary',
-      populate: [{ path: 'establishment' }, { path: 'company', populate: { path: 'company' } }],
-      select: 'establishment identity serialNumber',
-    })
-    .populate({
-      path: ' customer',
-      select: 'contact.primaryAddress identity fundings serialNumber subscriptions',
-      populate: [
-        { path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type' },
-        { path: 'subscriptions.service' },
-      ],
-    })
-    .populate({ path: 'histories', match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId } })
-    .lean();
-
   const issueDateTime = DatesHelper.toLocalISOString();
   const transactionId = issueDateTime.replace(/T/g, '').replace(/-/g, '').replace(/:/g, '');
 
-  return events
+  return (await getEvents(query, credentials))
     .map((ev, i) => formatCrossIndustryDespatchAdvice(ev, transactionId, issueDateTime, i))
     .filter(c => !!c);
+};
+
+exports.getFileName = async (query) => {
+  const tpp = await ThirdPartyPayer.findOne(
+    { _id: query.thirdPartyPayer },
+    { teletranmissionType: 1, companyCode: 1 }
+  ).lean();
+
+  const month = moment(query.month, 'MM-YYYY').format('YYYYMM');
+  const date = moment().format('YYMMDDHHmm');
+
+  return `${tpp.companyCode || '449'}-${month}-${tpp.teletranmissionType || 'PCH'}-${date}.xml`;
 };
 
 exports.generateDeliveryXml = async (query, credentials) => {
@@ -236,16 +304,8 @@ exports.generateDeliveryXml = async (query, credentials) => {
     },
   };
 
-  return new Promise((resolve, reject) => {
-    const finalDoc = builder.create(data, { encoding: 'utf-8' });
-    const outputPath = path.join(
-      os.tmpdir(),
-      `449-${moment(query.month).format('YYYYMM')}-PCH-${moment().format('YYMMDDHHmm')}.xml`
-    );
-    const file = fs.createWriteStream(outputPath);
-    file.write(finalDoc.end({ pretty: true }));
-    file.end();
-    file.on('finish', async () => { resolve(outputPath); });
-    file.on('error', err => reject(err));
-  });
+  const fileName = await exports.getFileName(query);
+  const outputPath = path.join(os.tmpdir(), fileName);
+
+  return { file: await XMLHelper.generateXML(data, outputPath), fileName };
 };

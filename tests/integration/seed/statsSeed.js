@@ -141,10 +141,7 @@ const customerList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    subscriptions: [{
-      _id: subscriptionId,
-      service: serviceList[0]._id,
-    }],
+    subscriptions: [{ _id: subscriptionId, service: serviceList[0]._id }],
     fundings: [{
       nature: HOURLY,
       frequency: MONTHLY,
@@ -271,7 +268,7 @@ const referentList = [
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompany._id,
-  identity: { lastname: 'toto' },
+  identity: { lastname: 'Bonjour' },
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',

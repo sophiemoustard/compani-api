@@ -98,10 +98,6 @@ exports.deleteFunding = async (customerId, fundingId) => Customer.updateOne(
   { $pull: { fundings: { _id: fundingId } } }
 );
 
-exports.getFundingEvents = (funding, events) => events.filter(ev =>
-  UtilsHelper.areObjectIdsEquals(ev.subscription, funding.subscription) &&
-    funding.careDays.includes(new Date(ev.startDate).getDay()));
-
 exports.getMatchingFunding = (eventDate, fundings) => {
   const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(eventDate) &&
     (!fund.endDate || moment(fund.endDate).isAfter(eventDate)));
