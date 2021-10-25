@@ -7,11 +7,9 @@ const { language } = translate;
 
 const draftBillsList = async (req) => {
   try {
-    const { startDate, endDate, billingStartDate, customer } = req.query;
-    const dates = { endDate };
-    if (startDate) dates.startDate = startDate;
-    const { credentials } = req.auth;
-    const draftBills = await getDraftBillsList(dates, billingStartDate, credentials, customer);
+    // const { credentials } = req.auth;
+    // const draftBills = await getDraftBillsList(dates, billingStartDate, credentials, customer);
+    const draftBills = await getDraftBillsList(req.query, req.auth.credentials);
 
     return {
       message: translate[language].draftBills,

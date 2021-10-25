@@ -2,6 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
+const { objectIdOrArray } = require('./validations/utils');
 
 const { generateDeliveryXml } = require('../controllers/teletransmissionController');
 
@@ -12,6 +13,14 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       handler: generateDeliveryXml,
+      options: {
+        validate: {
+          query: Joi.object({
+            thirdPartyPayer: objectIdOrArray.required(),
+            month: Joi.string().required(),
+          }),
+        },
+      },
     });
   },
 };
