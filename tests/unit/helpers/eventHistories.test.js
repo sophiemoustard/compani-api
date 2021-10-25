@@ -5,6 +5,7 @@ const omit = require('lodash/omit');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventHistoryHelper = require('../../../src/helpers/eventHistories');
 const EventHistoryRepository = require('../../../src/repositories/EventHistoryRepository');
+const Event = require('../../../src/models/Event');
 const EventHistory = require('../../../src/models/EventHistory');
 const User = require('../../../src/models/User');
 const { INTERNAL_HOUR, INTERVENTION, EVENT_CREATION, EVENT_DELETION } = require('../../../src/helpers/constants');
@@ -1067,19 +1068,102 @@ describe('createTimeStampHistory', () => {
 
 describe('update', () => {
   let updateOne;
+  let findOne;
+  let findOneEvent;
+  let findOneUser;
+  let create;
   beforeEach(() => {
     updateOne = sinon.stub(EventHistory, 'updateOne');
+    findOne = sinon.stub(EventHistory, 'findOne');
+    findOneEvent = sinon.stub(Event, 'findOne');
+    findOneUser = sinon.stub(User, 'findOne');
+    create = sinon.stub(EventHistory, 'create');
   });
   afterEach(() => {
     updateOne.restore();
+    findOne.restore();
+    findOneEvent.restore();
+    findOneUser.restore();
+    create.restore();
   });
 
-  it('should update an event history', async () => {
-    const payload = { isCancelled: true };
+  it('should update an event history for event with auxiliary', async () => {
+    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const payload = { isCancelled: true, timeStampCancellationReason: 'je m\'ai trompé' };
     const eventHistoryId = new ObjectID();
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const sectorId = new ObjectID();
 
-    await EventHistoryHelper.update(eventHistoryId, payload);
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: eventHistoryId, event: { eventId } }], ['lean']));
+    findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, auxiliary: auxiliaryId }], ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: { _id: sectorId } }]));
 
+    await EventHistoryHelper.update(eventHistoryId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        action: 'time_stamp_cancellation',
+        createdBy: credentials._id,
+        company: credentials.company._id,
+        event: { eventId, auxiliary: auxiliaryId },
+        linkedEventHistory: eventHistoryId,
+        timeStampCancellationReason: payload.timeStampCancellationReason,
+        auxiliaries: [auxiliaryId],
+        sectors: [sectorId],
+      }
+    );
     sinon.assert.calledOnceWithExactly(updateOne, { _id: eventHistoryId }, { $set: { isCancelled: true } });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: eventHistoryId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(findOneEvent, [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]);
+    SinonMongoose.calledWithExactly(
+      findOneUser,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+      ]
+    );
+  });
+
+  it('should update an event history for event with sector', async () => {
+    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const payload = { isCancelled: true, timeStampCancellationReason: 'je m\'ai trompé' };
+    const eventHistoryId = new ObjectID();
+    const eventId = new ObjectID();
+    const sectorId = new ObjectID();
+
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: eventHistoryId, event: { eventId } }], ['lean']));
+    findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, sector: sectorId }], ['lean']));
+
+    await EventHistoryHelper.update(eventHistoryId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        action: 'time_stamp_cancellation',
+        createdBy: credentials._id,
+        company: credentials.company._id,
+        event: { eventId, sector: sectorId },
+        linkedEventHistory: eventHistoryId,
+        timeStampCancellationReason: payload.timeStampCancellationReason,
+        auxiliaries: [],
+        sectors: [sectorId],
+      }
+    );
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: eventHistoryId }, { $set: { isCancelled: true } });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: eventHistoryId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledWithExactly(findOneEvent, [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]);
+    sinon.assert.notCalled(findOneUser);
   });
 });

@@ -3,8 +3,16 @@ const get = require('lodash/get');
 const pickBy = require('lodash/pickBy');
 const omit = require('lodash/omit');
 const EventHistory = require('../models/EventHistory');
+const Event = require('../models/Event');
 const User = require('../models/User');
-const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } = require('./constants');
+const {
+  EVENT_CREATION,
+  EVENT_DELETION,
+  EVENT_UPDATE,
+  INTERNAL_HOUR,
+  ABSENCE,
+  TIME_STAMP_CANCELLATION,
+} = require('./constants');
 const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 
@@ -259,7 +267,37 @@ exports.createTimeStampHistory = async (event, payload, credentials) => {
   });
 };
 
-exports.update = async (eventHistoryId, payload) => EventHistory.updateOne(
-  { _id: eventHistoryId },
-  { $set: { isCancelled: payload.isCancelled } }
-);
+const createTimeStampCancellationHistory = async (eventHistoryId, payload, credentials) => {
+  const eventHistory = await EventHistory.findOne({ _id: eventHistoryId }).lean();
+  const event = await Event.findOne({ _id: eventHistory.event.eventId }).lean();
+
+  let sectors;
+  if (event.auxiliary) {
+    const auxiliary = await User.findOne({ _id: event.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
+      .lean({ autopopulate: true, virtuals: true });
+    sectors = [auxiliary.sector];
+  } else {
+    sectors = [event.sector];
+  }
+
+  await EventHistory.create({
+    action: TIME_STAMP_CANCELLATION,
+    createdBy: credentials._id,
+    company: credentials.company._id,
+    event: { ...omit(event, ['_id']), eventId: event._id },
+    linkedEventHistory: eventHistoryId,
+    timeStampCancellationReason: payload.timeStampCancellationReason || '',
+    auxiliaries: event.auxiliary ? [event.auxiliary] : [],
+    sectors,
+  });
+};
+
+exports.update = async (eventHistoryId, payload, credentials) => {
+  await createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
+
+  return EventHistory.updateOne(
+    { _id: eventHistoryId },
+    { $set: { isCancelled: payload.isCancelled } }
+  );
+};

@@ -36,7 +36,10 @@ exports.plugin = {
         auth: { scope: ['events:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ isCancelled: Joi.boolean().required().valid(true) }),
+          payload: Joi.object({
+            isCancelled: Joi.boolean().required().valid(true),
+            timeStampCancellationReason: Joi.string().allow(''),
+          }),
         },
         pre: [{ method: authorizeEventHistoryCancellation }],
       },
