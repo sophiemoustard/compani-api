@@ -5,6 +5,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const StepHelper = require('../../../src/helpers/steps');
 const { E_LEARNING } = require('../../../src/helpers/constants');
+const SinonMongoose = require('../sinonMongoose');
 
 describe('updateStep', () => {
   let updateOne;
@@ -228,5 +229,69 @@ describe('getProgress', () => {
     const result = await StepHelper.getProgress(step, slots);
     expect(result).toBe(1);
     sinon.assert.calledOnceWithExactly(liveStepProgress, step, slots);
+  });
+});
+
+describe('list', () => {
+  let stepFind;
+  beforeEach(() => {
+    stepFind = sinon.stub(Step, 'find');
+  });
+  afterEach(() => {
+    stepFind.restore();
+  });
+
+  it('should return steps linked to program id', async () => {
+    const programId = new ObjectID();
+    const subProgramId1 = new ObjectID();
+    const subProgramId2 = new ObjectID();
+    const stepId1 = new ObjectID();
+    const stepId2 = new ObjectID();
+    const stepId3 = new ObjectID();
+
+    const steps = [
+      {
+        _id: stepId1,
+        name: 'etape 1',
+        type: 'on_site',
+        subPrograms: [{ _id: subProgramId1, program: { _id: programId } }],
+      },
+      {
+        _id: stepId2,
+        name: 'etape 2',
+        type: 'remote',
+        subPrograms: [{ _id: subProgramId1, program: { _id: new ObjectID() } }],
+      },
+      {
+        _id: stepId3,
+        name: 'etape 3',
+        type: 'remote',
+        subPrograms: [{ _id: subProgramId2, program: { _id: programId } }],
+      },
+    ];
+
+    stepFind.returns(SinonMongoose.stubChainedQueries([steps], ['populate', 'lean']));
+
+    const result = await StepHelper.list(programId);
+
+    expect(result).toEqual([
+      { _id: stepId1, name: 'etape 1', type: 'on_site' },
+      { _id: stepId3, name: 'etape 3', type: 'remote' },
+    ]);
+    SinonMongoose.calledWithExactly(
+      stepFind,
+      [
+        { query: 'find', args: [{}] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subPrograms',
+            select: 'program -steps',
+            populate: { path: 'program', select: '_id' },
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 });

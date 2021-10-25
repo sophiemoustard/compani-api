@@ -7,8 +7,9 @@ const {
   authorizeActivityReuse,
   authorizeActivityDetachment,
   authorizeStepUpdate,
+  checkProgram,
 } = require('./preHandlers/steps');
-const { update, addActivity, detachActivity, reuseActivity } = require('../controllers/stepController');
+const { update, addActivity, detachActivity, reuseActivity, list } = require('../controllers/stepController');
 const { ACTIVITY_TYPES } = require('../models/Activity');
 
 const activityIdExists = { is: Joi.exist(), then: Joi.forbidden(), otherwise: Joi.required() };
@@ -73,6 +74,19 @@ exports.plugin = {
         pre: [{ method: authorizeActivityDetachment }],
       },
       handler: detachActivity,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        validate: {
+          query: Joi.object({ program: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: checkProgram }],
+      },
+      handler: list,
     });
   },
 };
