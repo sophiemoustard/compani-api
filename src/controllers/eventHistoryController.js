@@ -1,12 +1,12 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
-const { getEventHistories } = require('../helpers/eventHistories');
+const EventHistoriesHelper = require('../helpers/eventHistories');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const eventHistories = await getEventHistories(req.query, req.auth.credentials);
+    const eventHistories = await EventHistoriesHelper.list(req.query, req.auth.credentials);
 
     return {
       message: translate[language].eventHistoriesFound,
@@ -18,4 +18,15 @@ const list = async (req) => {
   }
 };
 
-module.exports = { list };
+const update = async (req) => {
+  try {
+    await EventHistoriesHelper.update(req.params._id, req.payload);
+
+    return { message: translate[language].eventHistoriesUpdated };
+  } catch (e) {
+    console.error(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation();
+  }
+};
+
+module.exports = { list, update };

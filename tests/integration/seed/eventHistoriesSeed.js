@@ -15,6 +15,7 @@ const {
   EVENT_DELETION,
   EVENT_CREATION,
   WEBAPP,
+  QR_CODE_TIME_STAMPING,
 } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -102,8 +103,9 @@ const events = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     subscription: new ObjectID(),
+    isBilled: false,
   },
-  {
+  { // 1
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERNAL_HOUR,
@@ -113,7 +115,7 @@ const events = [
     auxiliary: auxiliaries[0]._id,
     misc: 'Je suis une note',
   },
-  {
+  { // 2
     _id: new ObjectID(),
     company: authCompany._id,
     type: ABSENCE,
@@ -123,6 +125,24 @@ const events = [
     absence: PAID_LEAVE,
     auxiliary: auxiliaries[0]._id,
     misc: 'Je suis une note',
+  },
+  { // billed - 3
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: INTERVENTION,
+    startDate: '2019-01-20T09:38:18',
+    endDate: '2019-01-20T11:38:18',
+    customer: customer._id,
+    auxiliary: auxiliaries[0]._id,
+    subscription: new ObjectID(),
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    isBilled: true,
   },
 ];
 
@@ -143,7 +163,7 @@ const eventHistoryList = [
       auxiliary: auxiliaries[0]._id,
     },
   },
-  {
+  { // 1
     _id: ObjectID(),
     company: authCompany._id,
     action: EVENT_DELETION,
@@ -160,7 +180,7 @@ const eventHistoryList = [
       misc: 'Je suis une note',
     },
   },
-  {
+  { // 2
     _id: ObjectID(),
     company: authCompany._id,
     action: EVENT_UPDATE,
@@ -176,6 +196,74 @@ const eventHistoryList = [
       auxiliary: auxiliaries[0]._id,
       misc: 'Je suis une note',
     },
+  },
+  { // time stamping - 3
+    _id: ObjectID(),
+    company: authCompany._id,
+    action: QR_CODE_TIME_STAMPING,
+    createdBy: users[2]._id,
+    sectors: [sectors[0]._id],
+    auxiliaries: [auxiliaries[0]._id],
+    event: {
+      eventId: events[0]._id,
+      type: INTERVENTION,
+      startDate: '2021-01-20T09:38:18',
+      endDate: '2021-01-20T11:38:18',
+      customer: customer._id,
+      auxiliary: auxiliaries[0]._id,
+    },
+    isCancelled: false,
+  },
+  { // time stamping cancelled - 4
+    _id: ObjectID(),
+    company: authCompany._id,
+    action: QR_CODE_TIME_STAMPING,
+    createdBy: users[2]._id,
+    sectors: [sectors[0]._id],
+    auxiliaries: [auxiliaries[0]._id],
+    event: {
+      eventId: events[0]._id,
+      type: INTERVENTION,
+      startDate: '2021-01-20T09:38:18',
+      endDate: '2021-01-20T11:38:18',
+      customer: customer._id,
+      auxiliary: auxiliaries[0]._id,
+    },
+    isCancelled: true,
+  },
+  { // time stamping from other company - 5
+    _id: ObjectID(),
+    company: otherCompany._id,
+    action: QR_CODE_TIME_STAMPING,
+    createdBy: users[2]._id,
+    sectors: [sectors[0]._id],
+    auxiliaries: [auxiliaries[0]._id],
+    event: {
+      eventId: events[0]._id,
+      type: INTERVENTION,
+      startDate: '2021-01-20T09:38:18',
+      endDate: '2021-01-20T11:38:18',
+      customer: customer._id,
+      auxiliary: auxiliaries[0]._id,
+    },
+    isCancelled: false,
+  },
+  { // billed event - 6
+    _id: ObjectID(),
+    company: authCompany._id,
+    action: QR_CODE_TIME_STAMPING,
+    createdBy: users[2]._id,
+    sectors: [sectors[0]._id],
+    auxiliaries: [auxiliaries[0]._id],
+    event: {
+      eventId: events[3]._id,
+      type: INTERVENTION,
+      startDate: '2019-01-20T09:38:18',
+      endDate: '2019-01-20T11:38:18',
+      customer: customer._id,
+      auxiliary: auxiliaries[0]._id,
+    },
+    isCancelled: false,
   },
 ];
 

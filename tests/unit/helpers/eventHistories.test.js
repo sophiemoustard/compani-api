@@ -10,7 +10,7 @@ const User = require('../../../src/models/User');
 const { INTERNAL_HOUR, INTERVENTION, EVENT_CREATION, EVENT_DELETION } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
-describe('getEventHistories', () => {
+describe('list', () => {
   let getListQueryStub;
   let paginateStub;
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe('getEventHistories', () => {
     getListQueryStub.returns(listQuery);
     paginateStub.returns([{ type: INTERNAL_HOUR }]);
 
-    const result = await EventHistoryHelper.getEventHistories(query, credentials);
+    const result = await EventHistoryHelper.list(query, credentials);
 
     expect(result).toEqual([{ type: INTERNAL_HOUR }]);
     sinon.assert.calledOnceWithExactly(getListQueryStub, query, credentials);
@@ -49,7 +49,7 @@ describe('getEventHistories', () => {
     const credentials = { company: { _id: companyId } };
     paginateStub.returns([{ type: INTERVENTION }]);
 
-    const result = await EventHistoryHelper.getEventHistories(query, credentials);
+    const result = await EventHistoryHelper.list(query, credentials);
 
     expect(result).toEqual([{ type: INTERVENTION }]);
     sinon.assert.notCalled(getListQueryStub);
@@ -1062,5 +1062,24 @@ describe('createTimeStampHistory', () => {
         createdBy: credentials._id,
       }
     );
+  });
+});
+
+describe('update', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(EventHistory, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update an event history', async () => {
+    const payload = { isCancelled: true };
+    const eventHistoryId = new ObjectID();
+
+    await EventHistoryHelper.update(eventHistoryId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: eventHistoryId }, { $set: { isCancelled: true } });
   });
 });

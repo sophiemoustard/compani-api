@@ -8,7 +8,7 @@ const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } =
 const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 
-exports.getEventHistories = async (query, credentials) => {
+exports.list = async (query, credentials) => {
   if (query.eventId) {
     return EventHistoryRepository.paginate({
       'event.eventId': query.eventId,
@@ -258,3 +258,8 @@ exports.createTimeStampHistory = async (event, payload, credentials) => {
     ...(payload.reason && { manualTimeStampingReason: payload.reason }),
   });
 };
+
+exports.update = async (eventHistoryId, payload) => EventHistory.updateOne(
+  { _id: eventHistoryId },
+  { $set: { isCancelled: payload.isCancelled } }
+);
