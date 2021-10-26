@@ -116,10 +116,7 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
   const interventions = await Event.find(query).lean();
 
   for (let i = 0, l = interventions.length; i < l; i++) {
-    const payload = {
-      ...omit(interventions[i], ['_id', 'auxiliary', 'repetition']),
-      sector: auxiliary.sector,
-    };
+    const payload = { ...omit(interventions[i], ['_id', 'auxiliary', 'repetition']), sector: auxiliary.sector };
     await exports.updateEvent(interventions[i], payload, credentials);
   }
 };

@@ -100,10 +100,10 @@ exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
     ...(!!frequency && { repetition: { frequency } }),
   };
 
-  const isSingleInterventionNotCancelled = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
+  const isSingleEventNotCancelled = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
   const undoCancellation = eventFromDB.isCancelled && !payload.isCancelled;
   const hasConflicts = await exports.hasConflicts(event);
-  if (event.auxiliary && (isSingleInterventionNotCancelled || undoCancellation) && hasConflicts) {
+  if (event.auxiliary && (isSingleEventNotCancelled || undoCancellation) && hasConflicts) {
     throw Boom.conflict(translate[language].eventsConflict);
   }
 
