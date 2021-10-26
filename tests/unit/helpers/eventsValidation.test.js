@@ -504,7 +504,7 @@ describe('isCreationAllowed', () => {
   });
 });
 
-describe('isUpdateAllowed #tag', () => {
+describe('isUpdateAllowed', () => {
   let isEditionAllowed;
   let hasConflicts;
   const credentials = { company: { _id: new ObjectID() } };
@@ -731,7 +731,7 @@ describe('isUpdateAllowed #tag', () => {
     sinon.assert.notCalled(isEditionAllowed);
   });
 
-  it('should throw 409 id event has auxiliairy, is single intervention not cancelled and has conflicts', async () => {
+  it('should throw 409 if event has auxiliairy, is single intervention not cancelled and has conflicts', async () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
@@ -759,7 +759,7 @@ describe('isUpdateAllowed #tag', () => {
     }
   });
 
-  it('should throw 409 id event has auxiliairy, has conflicts ans cancellation is undone', async () => {
+  it('should throw 409 if event has auxiliairy, has conflicts and cancellation is undone', async () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),

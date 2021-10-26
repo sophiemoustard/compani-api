@@ -253,7 +253,7 @@ describe('updateEvent', () => {
     }
   });
 
-  it('shouldUpdateRepetition = true - should throw 400 if invalid repetition', async () => {
+  it('shouldUpdateRepetition = true - should throw 422 if invalid repetition', async () => {
     try {
       const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
       const auxiliary = new ObjectID();

@@ -667,7 +667,7 @@ describe('createRepetitions', () => {
   });
 });
 
-describe('updateRepetition #tag', () => {
+describe('updateRepetition', () => {
   let hasConflicts;
   let find;
   let updateOne;
