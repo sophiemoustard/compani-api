@@ -1128,7 +1128,7 @@ describe('update', () => {
           query: 'populate',
           args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
         },
-        { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
+        { query: 'lean' },
       ]
     );
   });

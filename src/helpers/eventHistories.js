@@ -275,7 +275,7 @@ const createTimeStampCancellationHistory = async (eventHistoryId, payload, crede
   if (event.auxiliary) {
     const auxiliary = await User.findOne({ _id: event.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
-      .lean({ autopopulate: true, virtuals: true });
+      .lean();
     sectors = [auxiliary.sector];
   } else {
     sectors = [event.sector];
