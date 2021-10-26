@@ -47,7 +47,7 @@ exports.list = async (programId) => {
     .lean();
 
   return steps
-    .filter(step => step.subPrograms.find(subProgram =>
+    .filter(step => step.subPrograms.some(subProgram =>
       UtilsHelper.areObjectIdsEquals(get(subProgram, 'program._id'), programId)))
     .map(step => pick(step, ['_id', 'name', 'type']));
 };
