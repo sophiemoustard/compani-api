@@ -1,15 +1,14 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const { omit } = require('lodash');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
-const { populateDB, billingItemList, services } = require('./seed/billingItemsSeed');
+const { populateDB, billingItemList } = require('./seed/billingItemsSeed');
 const BillingItem = require('../../src/models/BillingItem');
 const Service = require('../../src/models/Service');
 const Bill = require('../../src/models/Bill');
 const { authCompany } = require('../seed/authCompaniesSeed');
-const { ObjectID } = require('bson');
-const { stringContaining } = require('expect');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -193,7 +192,7 @@ describe('BILLING ITEMS ROUTES - DELETE /billingitems/{_id}', () => {
 
       countDocuments.returns(0);
       billCountDocuments.returns(0);
-  
+
       const response = await app.inject({
         method: 'DELETE',
         url: `/billingitems/${billingItemId}`,

@@ -340,8 +340,7 @@ module.exports = {
     billingItemsConflict: 'This billing item already exists.',
     billingItemRemoved: 'Billing item removed.',
     billingItemHasServiceLink: 'Billing item is linked to a service.',
-    billingItemHasBillLink: 'Billing item is linked to a bill.'
-
+    billingItemHasBillLink: 'Billing item is linked to a bill.',
   },
   'fr-FR': {
     /* Global errors */
@@ -683,6 +682,6 @@ module.exports = {
     billingItemsConflict: 'Cet article de facturation existe déjà.',
     billingItemRemoved: 'Article de facturation supprimé.',
     billingItemHasServiceLink: 'Impossible: l\'article de facturation est relié à un service.',
-    billingItemHasBillLink: 'Impossible: l\'article de facturation est relié à une facture.'
+    billingItemHasBillLink: 'Impossible: l\'article de facturation est relié à une facture.',
   },
 };
