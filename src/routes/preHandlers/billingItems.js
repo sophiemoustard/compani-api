@@ -4,6 +4,7 @@ const { areObjectIdsEquals } = require('../../helpers/utils');
 const BillingItem = require('../../models/BillingItem');
 const Service = require('../../models/Service');
 const Bill = require('../../models/Bill');
+const { ObjectID } = require('bson');
 
 const { language } = translate;
 
@@ -25,13 +26,13 @@ exports.authorizeBillingItemDeletion = async (req) => {
 
   const services = await Service.countDocuments({
     company: req.auth.credentials.company._id,
-    'versions.billingItems': { $eq: req.params._id }
+    'versions.billingItems': { $eq: new ObjectID(req.params._id) }
   });
   if (services) throw Boom.forbidden(translate[language].billingItemHasServiceLink);
 
   const bills = await Bill.countDocuments({
     company: req.auth.credentials.company._id,
-    'billingItemList.billingItem': { $eq: req.params._id }
+    'billingItemList.billingItem': { $eq: new ObjectID(req.params._id) }
   });
   if (bills) throw Boom.forbidden(translate[language].billingItemHasBillLink);
  
