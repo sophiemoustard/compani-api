@@ -207,7 +207,9 @@ exports.authorizeTimeStamping = async (req) => {
 
   if (event.isCancelled) { throw Boom.conflict(translate[language].timeStampCancelledEvent); }
 
-  if (event.startDateTimeStamp || event.endDateTimeStamp) throw Boom.conflict(translate[language].alreadyTimeStamped);
+  if ((event.startDateTimeStamp && req.payload.startDate) || (event.endDateTimeStamp && req.payload.endDate)) {
+    throw Boom.conflict(translate[language].alreadyTimeStamped);
+  }
 
   return null;
 };
