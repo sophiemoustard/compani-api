@@ -48,7 +48,7 @@ exports.authorizeActivityDetachment = async (req) => {
   return null;
 };
 
-exports.checkProgram = async (req) => {
+exports.authorizeGetStep = async (req) => {
   const program = await Program.countDocuments({ _id: req.query.program });
   if (!program) throw Boom.notFound();
 

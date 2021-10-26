@@ -7,7 +7,7 @@ const {
   authorizeActivityReuse,
   authorizeActivityDetachment,
   authorizeStepUpdate,
-  checkProgram,
+  authorizeGetStep,
 } = require('./preHandlers/steps');
 const { update, addActivity, detachActivity, reuseActivity, list } = require('../controllers/stepController');
 const { ACTIVITY_TYPES } = require('../models/Activity');
@@ -84,7 +84,7 @@ exports.plugin = {
           query: Joi.object({ program: Joi.objectId().required() }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: checkProgram }],
+        pre: [{ method: authorizeGetStep }],
       },
       handler: list,
     });

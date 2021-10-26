@@ -1,4 +1,4 @@
-const { pick } = require('lodash');
+const { pick, get } = require('lodash');
 const Step = require('../models/Step');
 const SubProgram = require('../models/SubProgram');
 const moment = require('../extensions/moment');
@@ -42,12 +42,12 @@ exports.getProgress = (step, slots) => (step.type === E_LEARNING
   : exports.liveStepProgress(step, slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))));
 
 exports.list = async (programId) => {
-  const steps = await Step.find({})
+  const steps = await Step.find()
     .populate({ path: 'subPrograms', select: 'program -steps', populate: { path: 'program', select: '_id' } })
     .lean();
 
   return steps
     .filter(step => step.subPrograms.find(subProgram =>
-      subProgram.program && UtilsHelper.areObjectIdsEquals(subProgram.program._id, programId)))
+      UtilsHelper.areObjectIdsEquals(get(subProgram, 'program._id'), programId)))
     .map(step => pick(step, ['_id', 'name', 'type']));
 };

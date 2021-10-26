@@ -281,7 +281,7 @@ describe('list', () => {
     SinonMongoose.calledWithExactly(
       stepFind,
       [
-        { query: 'find', args: [{}] },
+        { query: 'find', args: [] },
         {
           query: 'populate',
           args: [{
