@@ -15,8 +15,6 @@ const StepSchema = mongoose.Schema({
 
 StepSchema.virtual('subPrograms', { ref: 'SubProgram', localField: '_id', foreignField: 'steps' });
 
-StepSchema.virtual('courseSlotsCount', { ref: 'CourseSlot', localField: '_id', foreignField: 'step', count: true });
-
 // eslint-disable-next-line consistent-return
 function setAreActivitiesValid() {
   const hasActivities = this.activities && this.activities.length !== 0;

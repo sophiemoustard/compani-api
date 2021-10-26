@@ -58,8 +58,8 @@ const subProgramsList = [
   { _id: new ObjectID(), name: 'subProgram 4', status: 'draft', steps: [stepsList[2]._id] },
   { _id: new ObjectID(), name: 'subProgram 5', status: 'published', steps: [stepsList[2]._id] },
   { _id: new ObjectID(), name: 'subProgram 6', status: 'draft', steps: [stepsList[3]._id] },
-  { _id: new ObjectID(), name: 'subProgram 7', status: 'draft', steps: [stepsList[4]._id] },
-  { _id: new ObjectID(), name: 'subProgram 8', status: 'draft', steps: [stepsList[0]._id, stepsList[5]] },
+  { _id: new ObjectID(), name: 'subProgram 7', status: 'draft', steps: [stepsList[4]._id, stepsList[5]._id] },
+  { _id: new ObjectID(), name: 'subProgram 8', status: 'draft', steps: [stepsList[0]._id, stepsList[5]._id] },
 ];
 
 const programsList = [
@@ -76,7 +76,7 @@ const programsList = [
 const coursesList = [{
   _id: new ObjectID(),
   format: 'strictly_e_learning',
-  subProgram: subProgramsList[4]._id,
+  subProgram: subProgramsList[7]._id,
   type: 'intra',
   company: new ObjectID(),
   salesRepresentative: vendorAdmin._id,

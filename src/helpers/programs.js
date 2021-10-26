@@ -46,7 +46,7 @@ exports.getProgram = async (programId) => {
   const program = await Program.findOne({ _id: programId })
     .populate({
       path: 'subPrograms',
-      populate: { path: 'steps', populate: [{ path: 'activities ', populate: 'cards' }, { path: 'courseSlotsCount' }] },
+      populate: { path: 'steps', populate: [{ path: 'activities ', populate: 'cards' }] },
     })
     .populate({ path: 'testers', select: 'identity.firstname identity.lastname local.email contact.phone' })
     .populate('categories')
