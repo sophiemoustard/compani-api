@@ -1974,9 +1974,9 @@ describe('PUT /{_id}/timestamping', () => {
     });
 
     it('should timestamp event endDate and remove event from repetition', async () => {
-      authToken = await getTokenByCredentials(auxiliaries[0].local);
+      authToken = await getTokenByCredentials(auxiliaries[3].local);
       const endDate = new Date();
-      const eventId = eventsList[21]._id;
+      const eventId = eventsList[23]._id;
 
       const response = await app.inject({
         method: 'PUT',
@@ -2045,7 +2045,7 @@ describe('PUT /{_id}/timestamping', () => {
     });
 
     it('should return a 409 if event is already startDate timestamped', async () => {
-      authToken = await getTokenByCredentials(auxiliaries[2].local);
+      authToken = await getTokenByCredentials(auxiliaries[3].local);
       const startDate = new Date();
 
       const response = await app.inject({

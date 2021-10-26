@@ -348,7 +348,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 1
     _id: new ObjectID(),
     company: authCompany._id,
     repetition: { frequency: NEVER },
@@ -360,7 +360,7 @@ const eventsList = [
     auxiliary: auxiliaries[0]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
-  {
+  { // 2
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -379,7 +379,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 3
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -398,7 +398,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 4
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -428,7 +428,7 @@ const eventsList = [
       careHours: 2,
     },
   },
-  {
+  { // 5
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -449,7 +449,7 @@ const eventsList = [
     },
     bills: { inclTaxesCustomer: 20, exclTaxesCustomer: 15 },
   },
-  {
+  { // 6
     _id: new ObjectID(),
     company: authCompany._id,
     type: ABSENCE,
@@ -461,7 +461,7 @@ const eventsList = [
     auxiliary: auxiliaries[0]._id,
     createdAt: '2019-07-11T08:38:18.653Z',
   },
-  {
+  { // 7
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -482,7 +482,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 8
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -506,7 +506,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 9
     _id: repetitionParentId,
     company: authCompany._id,
     type: INTERVENTION,
@@ -527,7 +527,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 10
     _id: new ObjectID(),
     company: authCompany._id,
     auxiliary: auxiliaries[0]._id,
@@ -548,7 +548,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 11
     _id: new ObjectID(),
     company: authCompany._id,
     auxiliary: auxiliaries[0]._id,
@@ -565,7 +565,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 12
     _id: new ObjectID(),
     company: authCompany._id,
     auxiliary: auxiliaries[1]._id,
@@ -586,7 +586,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 13
     _id: new ObjectID(),
     company: authCompany._id,
     auxiliary: auxiliaries[1]._id,
@@ -603,7 +603,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 14
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
@@ -624,7 +624,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 15
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
@@ -645,7 +645,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 16
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[1]._id,
@@ -666,7 +666,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 17
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[1]._id,
@@ -687,7 +687,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 18
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
@@ -709,7 +709,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 19
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
@@ -729,7 +729,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 20
     _id: new ObjectID(),
     company: authCompany._id,
     repetition: { frequency: NEVER },
@@ -742,7 +742,7 @@ const eventsList = [
     createdAt: '2019-01-11T08:38:18.653Z',
   },
   // Timestamp
-  {
+  { // 21
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -761,7 +761,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 22
     _id: new ObjectID(),
     company: authCompany._id,
     repetition: { frequency: NEVER },
@@ -773,14 +773,14 @@ const eventsList = [
     auxiliary: auxiliaries[1]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
-  {
+  { // 23
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
     repetition: { frequency: NEVER },
     startDate: (new Date()),
     endDate: (new Date()).setHours((new Date()).getHours() + 2),
-    auxiliary: auxiliaries[2]._id,
+    auxiliary: auxiliaries[3]._id,
     customer: customerAuxiliaries[1]._id,
     subscription: customerAuxiliaries[1].subscriptions[2]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
@@ -793,7 +793,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 24
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -813,7 +813,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 25
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -835,7 +835,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 26
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
@@ -856,7 +856,7 @@ const eventsList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 27
     _id: new ObjectID(),
     company: authCompany._id,
     sector: sectors[0]._id,
