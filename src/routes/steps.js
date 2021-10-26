@@ -3,12 +3,13 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
-  authorizeActivityAdd,
+  authorizeActivityAddition,
   authorizeActivityReuse,
   authorizeActivityDetachment,
   authorizeStepUpdate,
+  authorizeGetStep,
 } = require('./preHandlers/steps');
-const { update, addActivity, detachActivity, reuseActivity } = require('../controllers/stepController');
+const { update, addActivity, detachActivity, reuseActivity, list } = require('../controllers/stepController');
 const { ACTIVITY_TYPES } = require('../models/Activity');
 
 const activityIdExists = { is: Joi.exist(), then: Joi.forbidden(), otherwise: Joi.required() };
@@ -43,7 +44,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeActivityAdd }],
+        pre: [{ method: authorizeActivityAddition }],
       },
       handler: addActivity,
     });
@@ -73,6 +74,19 @@ exports.plugin = {
         pre: [{ method: authorizeActivityDetachment }],
       },
       handler: detachActivity,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        validate: {
+          query: Joi.object({ program: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [{ method: authorizeGetStep }],
+      },
+      handler: list,
     });
   },
 };

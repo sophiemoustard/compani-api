@@ -19,7 +19,7 @@ exports.authorizeActivityUpdate = async (req) => {
   return null;
 };
 
-exports.authorizeCardAdd = async (req) => {
+exports.authorizeCardAddition = async (req) => {
   const activity = await Activity.findOne({ _id: req.params._id }).lean();
   if (!activity) throw Boom.notFound();
   if (activity.status === PUBLISHED) throw Boom.forbidden();

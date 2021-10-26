@@ -3,7 +3,7 @@ const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Step = require('../../src/models/Step');
-const { populateDB, stepsList, activitiesList, cardsList } = require('./seed/stepsSeed');
+const { populateDB, programsList, stepsList, activitiesList, cardsList } = require('./seed/stepsSeed');
 const Activity = require('../../src/models/Activity');
 const { getToken } = require('./helpers/authentication');
 const UtilsHelper = require('../../src/helpers/utils');
@@ -240,7 +240,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       expect(response.statusCode).toBe(200);
       expect(stepUpdated).toEqual(expect.objectContaining({
         _id: step._id,
-        name: 'c\'est une étape',
+        name: 'etape 1',
         type: 'on_site',
         status: 'draft',
         activities: expect.arrayContaining([
@@ -551,6 +551,66 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/steps/${step._id}/activities/${activityId}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('STEPS ROUTES - GET /steps', () => {
+  let authToken;
+  const programId = programsList[0]._id;
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get steps linked to program', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/steps?program=${programId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.steps.length).toEqual(3);
+      expect(response.result.data.steps).toEqual(expect.arrayContaining([
+        { _id: expect.any(ObjectID), name: 'etape 1', type: 'on_site' },
+        { _id: expect.any(ObjectID), name: 'etape 2', type: 'e_learning' },
+        { _id: expect.any(ObjectID), name: 'etape 3', type: 'e_learning' },
+      ]));
+    });
+
+    it('should return a 404 if program doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/steps?program=${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/steps?program=${programId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
