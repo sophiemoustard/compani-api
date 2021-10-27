@@ -48,3 +48,23 @@ describe('list', () => {
     sinon.assert.calledOnceWithExactly(find, { company: companyId });
   });
 });
+
+describe('remove', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(BillingItem, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should remove a billing item', async () => {
+    const billingItemId = new ObjectID();
+
+    deleteOne.returns(billingItemId);
+
+    await BillingItemsHelper.remove(billingItemId);
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: billingItemId });
+  });
+});

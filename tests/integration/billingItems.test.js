@@ -1,8 +1,9 @@
 const expect = require('expect');
 const { omit } = require('lodash');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
-const { populateDB } = require('./seed/billingItemsSeed');
+const { populateDB, billingItemList } = require('./seed/billingItemsSeed');
 const BillingItem = require('../../src/models/BillingItem');
 const { authCompany } = require('../seed/authCompaniesSeed');
 
@@ -115,7 +116,8 @@ describe('BILLING ITEMS ROUTES - GET /billingitems', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.billingItems).toHaveLength(2);
+      const billingItems = await BillingItem.countDocuments({ company: authCompany._id });
+      expect(response.result.data.billingItems).toHaveLength(billingItems);
     });
 
     it('should return manual billing items', async () => {
@@ -126,7 +128,8 @@ describe('BILLING ITEMS ROUTES - GET /billingitems', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.billingItems).toHaveLength(1);
+      const manualBillingItems = await BillingItem.countDocuments({ company: authCompany._id, type: 'manual' });
+      expect(response.result.data.billingItems).toHaveLength(manualBillingItems);
     });
 
     it('should return 400 if type is invalid', async () => {
@@ -154,6 +157,88 @@ describe('BILLING ITEMS ROUTES - GET /billingitems', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/billingitems',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('BILLING ITEMS ROUTES - DELETE /billingitems/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should delete a billingItem', async () => {
+      const billingItemId = billingItemList[0]._id;
+      const billingItemsBefore = await BillingItem.countDocuments({ company: authCompany._id });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/billingitems/${billingItemId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      const billingItemsAfter = await BillingItem.countDocuments({ company: authCompany._id });
+      expect(response.statusCode).toBe(200);
+      expect(billingItemsAfter).toEqual(billingItemsBefore - 1);
+    });
+
+    it('should return a 404 if billingItem doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/billingitems/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if billingItem is linked to a service', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/billingitems/${billingItemList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if billingItem is linked to a bill', async () => {
+      const billingItemId = billingItemList[3]._id;
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/billingitems/${billingItemId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const billingItemId = billingItemList[0]._id;
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/billingitems/${billingItemId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

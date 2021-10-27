@@ -1,9 +1,9 @@
 'use strict';
 
 const Joi = require('joi');
-const { create, list } = require('../controllers/billingItemController');
+const { create, list, remove } = require('../controllers/billingItemController');
 const { BILLING_ITEM_TYPES } = require('../models/BillingItem');
-const { authorizeBillingItemCreation } = require('./preHandlers/billingItems');
+const { authorizeBillingItemCreation, authorizeBillingItemDeletion } = require('./preHandlers/billingItems');
 
 exports.plugin = {
   name: 'routes-billing-items',
@@ -38,6 +38,19 @@ exports.plugin = {
         },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['config:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeBillingItemDeletion }],
+      },
+      handler: remove,
     });
   },
 };
