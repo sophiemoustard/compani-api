@@ -14,9 +14,8 @@ exports.list = async () => Program.find({})
   .lean();
 
 exports.listELearning = async (credentials) => {
-  const eLearningCourse = await Course.find(
-    { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: get(credentials, 'company._id') }] }
-  )
+  const eLearningCourse = await Course
+    .find({ format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: get(credentials, 'company._id') }] })
     .lean();
   const subPrograms = eLearningCourse.map(course => course.subProgram);
 
@@ -46,7 +45,10 @@ exports.getProgram = async (programId) => {
   const program = await Program.findOne({ _id: programId })
     .populate({
       path: 'subPrograms',
-      populate: { path: 'steps', populate: [{ path: 'activities ', populate: 'cards' }] },
+      populate: {
+        path: 'steps',
+        populate: [{ path: 'activities ', populate: 'cards' }, { path: 'subPrograms', select: '_id -steps' }],
+      },
     })
     .populate({ path: 'testers', select: 'identity.firstname identity.lastname local.email contact.phone' })
     .populate('categories')

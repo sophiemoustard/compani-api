@@ -11,6 +11,7 @@ const {
   populateDB,
   programsList,
   categoriesList,
+  subProgramsList,
 } = require('./seed/programsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
@@ -184,6 +185,10 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
           type: 'on_site',
           activities: [],
           areActivitiesValid: true,
+          subPrograms: expect.arrayContaining([
+            expect.objectContaining({ _id: subProgramsList[0]._id }),
+            expect.objectContaining({ _id: subProgramsList[3]._id }),
+          ]),
         }),
         expect.objectContaining({
           name: 'étape 4 - tout valide',
