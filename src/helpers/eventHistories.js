@@ -267,7 +267,7 @@ exports.createTimeStampHistory = async (event, payload, credentials) => {
   });
 };
 
-const createTimeStampCancellationHistory = async (eventHistoryId, payload, credentials) => {
+exports.createTimeStampCancellationHistory = async (eventHistoryId, payload, credentials) => {
   const eventHistory = await EventHistory.findOne({ _id: eventHistoryId }).lean();
   const event = await Event.findOne({ _id: eventHistory.event.eventId }).lean();
 
@@ -294,7 +294,7 @@ const createTimeStampCancellationHistory = async (eventHistoryId, payload, crede
 };
 
 exports.update = async (eventHistoryId, payload, credentials) => {
-  await createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
+  await this.createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
 
   return EventHistory.updateOne(
     { _id: eventHistoryId },

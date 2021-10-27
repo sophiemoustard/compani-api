@@ -63,7 +63,7 @@ const EventHistorySchema = mongoose.Schema({
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
   manualTimeStampingReason: { type: String, enum: Object.keys(MANUAL_TIME_STAMPING_REASONS) },
   isCancelled: { type: Boolean, default: false },
-  timeStampCancellationReason: { type: String, required() { return this.isCancelled === true; } },
+  timeStampCancellationReason: { type: String, required() { return this.action === TIME_STAMP_CANCELLATION; } },
   linkedEventHistory: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'EventHistory',

@@ -230,7 +230,6 @@ const eventHistoryList = [
       auxiliary: auxiliaries[0]._id,
     },
     isCancelled: true,
-    timeStampCancellationReason: 'oups',
   },
   { // time stamping from other company - 5
     _id: ObjectID(),

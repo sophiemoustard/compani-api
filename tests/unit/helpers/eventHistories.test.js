@@ -1066,28 +1066,25 @@ describe('createTimeStampHistory', () => {
   });
 });
 
-describe('update', () => {
-  let updateOne;
+describe('createTimeStampCancellationHistory', () => {
   let findOne;
   let findOneEvent;
   let findOneUser;
   let create;
   beforeEach(() => {
-    updateOne = sinon.stub(EventHistory, 'updateOne');
     findOne = sinon.stub(EventHistory, 'findOne');
     findOneEvent = sinon.stub(Event, 'findOne');
     findOneUser = sinon.stub(User, 'findOne');
     create = sinon.stub(EventHistory, 'create');
   });
   afterEach(() => {
-    updateOne.restore();
     findOne.restore();
     findOneEvent.restore();
     findOneUser.restore();
     create.restore();
   });
 
-  it('should update an event history for event with auxiliary', async () => {
+  it('should create a time stamp cancellation history for event with auxiliary', async () => {
     const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
     const payload = { isCancelled: true, timeStampCancellationReason: 'je m\'ai trompé' };
     const eventHistoryId = new ObjectID();
@@ -1099,7 +1096,7 @@ describe('update', () => {
     findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, auxiliary: auxiliaryId }], ['lean']));
     findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
-    await EventHistoryHelper.update(eventHistoryId, payload, credentials);
+    await EventHistoryHelper.createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       create,
@@ -1114,7 +1111,6 @@ describe('update', () => {
         sectors: [sectorId],
       }
     );
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: eventHistoryId }, { $set: { isCancelled: true } });
     SinonMongoose.calledWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: eventHistoryId }] }, { query: 'lean' }]
@@ -1133,7 +1129,7 @@ describe('update', () => {
     );
   });
 
-  it('should update an event history for event with sector', async () => {
+  it('should create a time stamp cancellation history for event with sector', async () => {
     const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
     const payload = { isCancelled: true, timeStampCancellationReason: 'je m\'ai trompé' };
     const eventHistoryId = new ObjectID();
@@ -1143,7 +1139,7 @@ describe('update', () => {
     findOne.returns(SinonMongoose.stubChainedQueries([{ _id: eventHistoryId, event: { eventId } }], ['lean']));
     findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, sector: sectorId }], ['lean']));
 
-    await EventHistoryHelper.update(eventHistoryId, payload, credentials);
+    await EventHistoryHelper.createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(
       create,
@@ -1158,12 +1154,35 @@ describe('update', () => {
         sectors: [sectorId],
       }
     );
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: eventHistoryId }, { $set: { isCancelled: true } });
     SinonMongoose.calledWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: eventHistoryId }] }, { query: 'lean' }]
     );
     SinonMongoose.calledWithExactly(findOneEvent, [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]);
     sinon.assert.notCalled(findOneUser);
+  });
+});
+
+describe('update', () => {
+  let updateOne;
+  let createTimeStampCancellationHistory;
+  beforeEach(() => {
+    updateOne = sinon.stub(EventHistory, 'updateOne');
+    createTimeStampCancellationHistory = sinon.stub(EventHistoryHelper, 'createTimeStampCancellationHistory');
+  });
+  afterEach(() => {
+    updateOne.restore();
+    createTimeStampCancellationHistory.restore();
+  });
+
+  it('should cancel a time stamp history and create a time stamp cancellation history', async () => {
+    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const payload = { isCancelled: true, timeStampCancellationReason: 'je m\'ai trompé' };
+    const eventHistoryId = new ObjectID();
+
+    await EventHistoryHelper.update(eventHistoryId, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: eventHistoryId }, { $set: { isCancelled: true } });
+    sinon.assert.calledOnceWithExactly(createTimeStampCancellationHistory, eventHistoryId, payload, credentials);
   });
 });
