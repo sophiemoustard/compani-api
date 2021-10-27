@@ -6,7 +6,7 @@ const Bill = require('../../../src/models/Bill');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 
 const billingItemList = [
-  {
+  { // 0
     _id: new ObjectID(),
     name: 'An existing billing',
     type: 'manual',
@@ -14,7 +14,7 @@ const billingItemList = [
     company: authCompany._id,
     vat: 2,
   },
-  {
+  { // 1
     _id: new ObjectID(),
     name: 'Another billing',
     type: 'per_intervention',
@@ -22,7 +22,7 @@ const billingItemList = [
     company: authCompany._id,
     vat: 2,
   },
-  {
+  { // 2
     _id: new ObjectID(),
     name: 'An existing billing',
     type: 'per_intervention',
@@ -30,7 +30,7 @@ const billingItemList = [
     company: otherCompany._id,
     vat: 2,
   },
-  {
+  { // 3
     _id: new ObjectID(),
     name: 'A nice billing',
     type: 'per_intervention',
@@ -38,9 +38,17 @@ const billingItemList = [
     company: authCompany._id,
     vat: 2,
   },
+  { // 4
+    _id: new ObjectID(),
+    name: 'Boule et Billing',
+    type: 'per_intervention',
+    defaultUnitAmount: 20,
+    company: authCompany._id,
+    vat: 2,
+  },
 ];
 
-const services = [
+const serviceList = [
   {
     nature: 'hourly',
     versions: [
@@ -58,12 +66,19 @@ const services = [
         startDate: '2010-09-03T00:00:00',
         exemptFromCharges: true,
       },
+      {
+        name: 'Forfait nuit',
+        defaultUnitAmount: 18,
+        billingItems: [billingItemList[4]._id],
+        startDate: '2010-09-03T00:00:00',
+        exemptFromCharges: true,
+      },
     ],
     company: authCompany._id,
   },
 ];
 
-const bills = [
+const billList = [
   {
     date: '2010-09-03T00:00:00',
     customer: new ObjectID(),
@@ -80,6 +95,15 @@ const bills = [
         exclTaxes: 200,
         vat: 5,
       },
+      {
+        billingItem: billingItemList[2]._id,
+        unitInclTaxes: 5,
+        name: 'frais d\'intervention',
+        count: 4,
+        inclTaxes: 20,
+        exclTaxes: 14,
+        vat: 5,
+      },
     ],
     company: authCompany._id,
   },
@@ -90,14 +114,9 @@ const populateDB = async () => {
 
   await Promise.all([
     BillingItem.create(billingItemList),
-    Service.create(services),
-    Bill.create(bills),
+    Service.create(serviceList),
+    Bill.create(billList),
   ]);
 };
 
-module.exports = {
-  populateDB,
-  billingItemList,
-  services,
-  bills,
-};
+module.exports = { populateDB, billingItemList };

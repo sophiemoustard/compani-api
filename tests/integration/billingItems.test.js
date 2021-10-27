@@ -166,7 +166,7 @@ describe('BILLING ITEMS ROUTES - GET /billingitems', () => {
   });
 });
 
-describe('BILLING ITEMS ROUTES - DELETE /billingitems/{_id} #tag', () => {
+describe('BILLING ITEMS ROUTES - DELETE /billingitems/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -234,6 +234,7 @@ describe('BILLING ITEMS ROUTES - DELETE /billingitems/{_id} #tag', () => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const billingItemId = billingItemList[0]._id;
+
         const response = await app.inject({
           method: 'DELETE',
           url: `/billingitems/${billingItemId}`,

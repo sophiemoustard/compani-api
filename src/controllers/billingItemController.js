@@ -30,9 +30,7 @@ const remove = async (req) => {
   try {
     await BillingItemsHelper.remove(req.params._id, req.params.fundingId);
 
-    return {
-      message: translate[language].billingItemRemoved,
-    };
+    return { message: translate[language].billingItemRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
