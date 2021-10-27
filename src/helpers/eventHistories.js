@@ -287,7 +287,7 @@ const createTimeStampCancellationHistory = async (eventHistoryId, payload, crede
     company: credentials.company._id,
     event: { ...omit(event, ['_id']), eventId: event._id },
     linkedEventHistory: eventHistoryId,
-    timeStampCancellationReason: payload.timeStampCancellationReason || '',
+    timeStampCancellationReason: payload.timeStampCancellationReason,
     auxiliaries: event.auxiliary ? [event.auxiliary] : [],
     sectors,
   });

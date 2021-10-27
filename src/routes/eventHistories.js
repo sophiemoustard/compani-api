@@ -38,7 +38,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             isCancelled: Joi.boolean().required().valid(true),
-            timeStampCancellationReason: Joi.string().allow(''),
+            timeStampCancellationReason: Joi.string().required(),
           }),
         },
         pre: [{ method: authorizeEventHistoryCancellation }],
