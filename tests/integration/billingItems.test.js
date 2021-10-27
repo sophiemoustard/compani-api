@@ -228,6 +228,7 @@ describe('BILLING ITEMS ROUTES - DELETE /billingitems/{_id}', () => {
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {

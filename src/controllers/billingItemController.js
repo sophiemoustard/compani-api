@@ -28,7 +28,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    await BillingItemsHelper.remove(req.params._id, req.params.fundingId);
+    await BillingItemsHelper.remove(req.params._id);
 
     return { message: translate[language].billingItemRemoved };
   } catch (e) {

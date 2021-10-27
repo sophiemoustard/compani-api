@@ -26,13 +26,13 @@ exports.authorizeBillingItemDeletion = async (req) => {
     company: req.auth.credentials.company._id,
     'versions.billingItems': req.params._id,
   });
-  if (services) throw Boom.forbidden(translate[language].billingItemHasServiceLink);
+  if (services) throw Boom.forbidden(translate[language].billingItemHasServiceLinked);
 
   const bills = await Bill.countDocuments({
     company: req.auth.credentials.company._id,
     'billingItemList.billingItem': req.params._id,
   });
-  if (bills) throw Boom.forbidden(translate[language].billingItemHasBillLink);
+  if (bills) throw Boom.forbidden(translate[language].billingItemHasBillLinked);
 
   return null;
 };
