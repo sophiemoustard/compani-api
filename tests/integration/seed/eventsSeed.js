@@ -33,7 +33,7 @@ const {
 const UserCompany = require('../../../src/models/UserCompany');
 const { auxiliaryRoleId, clientAdminRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
-const auxiliariesIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
+const auxiliariesIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
 
 const contracts = [
   {
@@ -64,6 +64,14 @@ const contracts = [
     _id: new ObjectID(),
     serialNumber: 'dskfajdksjwefkjhg',
     user: auxiliariesIds[3],
+    company: authCompany._id,
+    startDate: '2010-09-03T00:00:00',
+    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
+  },
+  {
+    _id: new ObjectID(),
+    serialNumber: 'skuskuksuksuksu',
+    user: auxiliariesIds[4],
     company: authCompany._id,
     startDate: '2010-09-03T00:00:00',
     versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
@@ -117,6 +125,16 @@ const auxiliaries = [
     contracts: [contracts[2]._id],
     origin: WEBAPP,
   },
+  {
+    _id: auxiliariesIds[4],
+    identity: { firstname: 'Noir', lastname: 'Pinot' },
+    local: { email: 'sku@p.com', password: '123456!eR' },
+    administrative: { driveFolder: { driveId: '1234567890123456' }, transportInvoice: { transportType: 'public' } },
+    refreshToken: uuidv4(),
+    role: { client: auxiliaryRoleId },
+    contracts: [contracts[4]._id],
+    origin: WEBAPP,
+  },
 ];
 
 const sectorHistories = [
@@ -124,6 +142,7 @@ const sectorHistories = [
   { auxiliary: auxiliaries[1]._id, sector: sectors[1]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
   { auxiliary: auxiliaries[2]._id, sector: sectors[1]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
   { auxiliary: auxiliaries[3]._id, sector: sectors[2]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
+  { auxiliary: auxiliaries[4]._id, sector: sectors[0]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
 ];
 
 const auxiliaryFromOtherCompany = {
@@ -313,6 +332,7 @@ const userCompanies = [
   { _id: new ObjectID(), user: auxiliariesIds[1], company: authCompany._id },
   { _id: new ObjectID(), user: auxiliariesIds[2], company: authCompany._id },
   { _id: new ObjectID(), user: auxiliariesIds[3], company: authCompany._id },
+  { _id: new ObjectID(), user: auxiliariesIds[4], company: authCompany._id },
   { _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectID(), user: helpersCustomer._id, company: authCompany._id },
 ];
@@ -777,7 +797,7 @@ const eventsList = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: INTERVENTION,
-    repetition: { frequency: NEVER },
+    repetition: { frequency: EVERY_WEEK, parentId: new ObjectID() },
     startDate: (new Date()),
     endDate: (new Date()).setHours((new Date()).getHours() + 2),
     auxiliary: auxiliaries[3]._id,
@@ -842,7 +862,7 @@ const eventsList = [
     repetition: { frequency: NEVER },
     startDate: (new Date()),
     endDate: (new Date()).setHours((new Date()).getHours() + 2),
-    auxiliary: auxiliaries[2]._id,
+    auxiliary: auxiliaries[4]._id,
     customer: customerAuxiliaries[2]._id,
     subscription: customerAuxiliaries[2].subscriptions[2]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
