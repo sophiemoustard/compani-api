@@ -1050,32 +1050,15 @@ describe('exportFundings', () => {
           customerParticipationRate: 90,
         },
       },
-      {
-        _id: new ObjectID(),
-        identity: { lastname: 'Potin', title: 'mrs' },
-        funding: {
-          thirdPartyPayer: { _id: new ObjectID(), name: 'SuperTPP' },
-          subscription: { service: { versions: [{ name: 'Bienvenue chez nous!' }] } },
-          nature: 'hourly',
-          frequency: 'once',
-          startDate: '2021-07-15T00:00:00.000+00:00',
-          folderNumber: '021',
-          amountTTC: 15,
-          unitTTCRate: 10,
-          careHours: 5,
-          careDays: [1, 4, 5],
-          customerParticipationRate: 50,
-        },
-      },
     ];
 
     getCustomerFundings.returns(customerFundings);
 
     const result = await ExportHelper.exportFundings(credentials);
 
-    sinon.assert.calledTwice(mergeLastVersionWithBaseObject);
-    sinon.assert.callCount(formatFloatForExport, 8);
-    sinon.assert.calledTwice(getLastVersion);
+    sinon.assert.calledOnce(mergeLastVersionWithBaseObject);
+    sinon.assert.callCount(formatFloatForExport, 4);
+    sinon.assert.calledOnce(getLastVersion);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
@@ -1097,26 +1080,6 @@ describe('exportFundings', () => {
       'F-3',
       'Mardi Vendredi Samedi',
       'F-90',
-    ]);
-    expect(result[2]).toMatchObject([
-      expect.any(ObjectID),
-      'Mme',
-      'POTIN',
-      '',
-      expect.any(ObjectID),
-      'SuperTPP',
-      '',
-      'Horaire',
-      'Bienvenue chez nous!',
-      '15/07/2021',
-      '',
-      '021',
-      'Une seule fois',
-      'F-15',
-      'F-10',
-      'F-5',
-      'Mardi Vendredi Samedi',
-      'F-50',
     ]);
   });
 });
