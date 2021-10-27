@@ -671,6 +671,7 @@ describe('updateRepetition', () => {
   let hasConflicts;
   let find;
   let updateOne;
+  let deleteOne;
   let updateRepetitions;
   let findOneUser;
   let formatEditionPayload;
@@ -678,6 +679,7 @@ describe('updateRepetition', () => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     find = sinon.stub(Event, 'find');
     updateOne = sinon.stub(Event, 'updateOne');
+    deleteOne = sinon.stub(Event, 'deleteOne');
     updateRepetitions = sinon.stub(RepetitionHelper, 'updateRepetitions');
     findOneUser = sinon.stub(User, 'findOne');
     formatEditionPayload = sinon.stub(EventsHelper, 'formatEditionPayload');
@@ -686,12 +688,15 @@ describe('updateRepetition', () => {
     hasConflicts.restore();
     find.restore();
     updateOne.restore();
+    deleteOne.restore();
     updateRepetitions.restore();
     findOneUser.restore();
     formatEditionPayload.restore();
   });
 
   it('should update repetition', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const auxiliaryId = new ObjectID();
     const event = {
       repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
@@ -700,7 +705,6 @@ describe('updateRepetition', () => {
       sector: new ObjectID(),
       auxiliary: auxiliaryId,
     };
-    const credentials = { company: { _id: new ObjectID() } };
     const payload = {
       startDate: '2019-03-23T10:00:00.000Z',
       endDate: '2019-03-23T11:00:00.000Z',
@@ -749,6 +753,7 @@ describe('updateRepetition', () => {
       ]
     );
     sinon.assert.calledThrice(hasConflicts);
+    sinon.assert.notCalled(deleteOne);
     sinon.assert.calledThrice(updateOne);
     sinon.assert.calledThrice(formatEditionPayload);
     sinon.assert.calledWithExactly(
@@ -768,6 +773,8 @@ describe('updateRepetition', () => {
   it('should unassign intervention in conflict', async () => {
     const auxiliaryId = new ObjectID();
     const sectorId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const event = {
       repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
       startDate: '2019-03-23T09:00:00.000Z',
@@ -802,7 +809,6 @@ describe('updateRepetition', () => {
     hasConflicts.returns(true);
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
-    const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     SinonMongoose.calledWithExactly(
@@ -838,7 +844,7 @@ describe('updateRepetition', () => {
         auxiliary: '1234567890',
         startDate: '2019-03-24T10:00:00.000Z',
         endDate: '2019-03-24T11:00:00.000Z',
-        company: credentials.company._id,
+        company: companyId,
       }
     );
     sinon.assert.calledWithExactly(
@@ -867,21 +873,21 @@ describe('updateRepetition', () => {
       },
       true
     );
+    sinon.assert.notCalled(deleteOne);
   });
 
   it('should unassign intervention if all the interventions are unassigned', async () => {
     const auxiliaryId = new ObjectID();
     const sectorId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const event = {
       repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
       startDate: '2019-03-23T09:00:00.000Z',
       type: INTERVENTION,
       auxiliary: auxiliaryId,
     };
-    const payload = {
-      startDate: '2019-03-23T10:00:00.000Z',
-      endDate: '2019-03-23T11:00:00.000Z',
-    };
+    const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z' };
     const events = [
       {
         repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
@@ -905,7 +911,6 @@ describe('updateRepetition', () => {
     findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
 
-    const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     SinonMongoose.calledWithExactly(
@@ -928,7 +933,7 @@ describe('updateRepetition', () => {
             'repetition.parentId': 'qwertyuiop',
             'repetition.frequency': { $not: { $eq: 'never' } },
             startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
-            company: credentials.company._id,
+            company: companyId,
           }],
         },
         { query: 'lean' },
@@ -936,12 +941,7 @@ describe('updateRepetition', () => {
     );
     sinon.assert.calledWithExactly(
       hasConflicts,
-      {
-        _id: '123456',
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        company: credentials.company._id,
-      }
+      { _id: '123456', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', company: companyId }
     );
     sinon.assert.calledWithExactly(
       updateOne,
@@ -961,14 +961,73 @@ describe('updateRepetition', () => {
     sinon.assert.calledOnceWithExactly(
       formatEditionPayload,
       events[0],
-      {
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        sector: sectorId,
-        _id: '123456',
-      },
+      { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', sector: sectorId, _id: '123456' },
       false
     );
+    sinon.assert.notCalled(deleteOne);
+  });
+
+  it('should delete internal hours in conflicts', async () => {
+    const auxiliaryId = new ObjectID();
+    const sectorId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const event = {
+      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+      startDate: '2019-03-23T09:00:00',
+      type: INTERNAL_HOUR,
+      auxiliary: auxiliaryId,
+    };
+    const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z' };
+    const events = [
+      {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-24T09:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        _id: '123456',
+      },
+    ];
+
+    hasConflicts.returns(true);
+    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
+
+    SinonMongoose.calledWithExactly(
+      findOneUser,
+      [
+        { query: 'findOne', args: [{ _id: auxiliaryId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{
+            'repetition.parentId': 'qwertyuiop',
+            'repetition.frequency': { $not: { $eq: 'never' } },
+            startDate: { $gte: new Date('2019-03-23T09:00:00') },
+            company: credentials.company._id,
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledWithExactly(
+      hasConflicts,
+      { _id: '123456', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', company: companyId }
+    );
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.calledWithExactly(deleteOne, { _id: '123456' });
+    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
+    sinon.assert.notCalled(formatEditionPayload);
   });
 });
 

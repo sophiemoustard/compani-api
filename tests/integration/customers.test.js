@@ -427,7 +427,9 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.customers.map(c => c._id)).toEqual([customersList[0]._id, customersList[1]._id]);
+        expect(res.result.data.customers.length).toEqual(2);
+        expect([customersList[0]._id, customersList[1]._id]
+          .every(id => UtilsHelper.doesArrayIncludeId(res.result.data.customers.map(c => c._id), id))).toBeTruthy();
       });
     });
 
