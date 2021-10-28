@@ -1014,6 +1014,7 @@ describe('exportFundings', () => {
       'Prénom',
       'Id tiers payeur',
       'Tiers payeur',
+      'Code EPA',
       'Nature',
       'Service',
       'Date de début',
@@ -1029,7 +1030,7 @@ describe('exportFundings', () => {
   });
 
   it('should return funding info', async () => {
-    const customers = [
+    const customerFundings = [
       {
         _id: new ObjectID(),
         identity: { lastname: 'Autonomie', title: 'mr' },
@@ -1041,6 +1042,7 @@ describe('exportFundings', () => {
           startDate: '2018-07-15T00:00:00.000+00:00',
           endDate: '2018-07-15T00:00:00.000+00:00',
           folderNumber: 'Toto',
+          fundingPlanId: '12345678',
           amountTTC: 12,
           unitTTCRate: 14,
           careHours: 3,
@@ -1050,7 +1052,7 @@ describe('exportFundings', () => {
       },
     ];
 
-    getCustomerFundings.returns(customers);
+    getCustomerFundings.returns(customerFundings);
 
     const result = await ExportHelper.exportFundings(credentials);
 
@@ -1066,6 +1068,7 @@ describe('exportFundings', () => {
       '',
       expect.any(ObjectID),
       'tpp',
+      '12345678',
       'Forfaitaire',
       'Toto',
       '15/07/2018',
