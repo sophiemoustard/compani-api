@@ -162,7 +162,7 @@ describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/eventhistories/${eventHistoryList[3]._id}`,
-        payload: { isCancelled: true },
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -175,7 +175,7 @@ describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
       expect(eventHistoryUpdated).toEqual(1);
     });
 
-    it('should return 400 if payload is invalid', async () => {
+    it('should return 400 if isCancelled is false', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/eventhistories/${eventHistoryList[3]._id}`,
@@ -186,11 +186,22 @@ describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
       expect(response.statusCode).toEqual(400);
     });
 
+    it('should return 400 if timeCancellationReason is misisng', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/eventhistories/${eventHistoryList[3]._id}`,
+        payload: { isCancelled: true },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
     it('should return 404 if event history is not a time stamping history', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/eventhistories/${eventHistoryList[0]._id}`,
-        payload: { isCancelled: true },
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -201,7 +212,7 @@ describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/eventhistories/${eventHistoryList[4]._id}`,
-        payload: { isCancelled: true },
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -212,7 +223,7 @@ describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/eventhistories/${eventHistoryList[5]._id}`,
-        payload: { isCancelled: true },
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -223,7 +234,7 @@ describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/eventhistories/${eventHistoryList[6]._id}`,
-        payload: { isCancelled: true },
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -246,7 +257,7 @@ describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/eventhistories/${eventHistoryList[3]._id}`,
-          payload: { isCancelled: true },
+          payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

@@ -441,6 +441,7 @@ module.exports = {
       [this.CAMERA_ERROR]: 'Problème de caméra',
     };
   },
+  TIME_STAMP_CANCELLATION: 'time_stamp_cancellation',
   // STOP REASONS
   QUALITY: 'quality',
   HOSPITALIZATION: 'hospitalization',

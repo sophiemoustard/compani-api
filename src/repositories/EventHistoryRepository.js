@@ -9,5 +9,6 @@ exports.paginate = async (query, limit = 0) => EventHistory
   .populate({ path: 'event.internalHour', select: 'name' })
   .populate({ path: 'update.auxiliary.from', select: '_id identity' })
   .populate({ path: 'update.auxiliary.to', select: '_id identity' })
+  .populate({ path: 'linkedEventHistory', select: '_id update' })
   .sort({ createdAt: -1 })
   .limit(limit);

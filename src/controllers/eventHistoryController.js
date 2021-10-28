@@ -20,7 +20,7 @@ const list = async (req) => {
 
 const update = async (req) => {
   try {
-    await EventHistoriesHelper.update(req.params._id, req.payload);
+    await EventHistoriesHelper.update(req.params._id, req.payload, req.auth.credentials);
 
     return { message: translate[language].eventHistoriesUpdated };
   } catch (e) {
