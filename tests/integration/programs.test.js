@@ -186,8 +186,16 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
           activities: [],
           areActivitiesValid: true,
           subPrograms: expect.arrayContaining([
-            expect.objectContaining({ _id: subProgramsList[0]._id }),
-            expect.objectContaining({ _id: subProgramsList[3]._id }),
+            expect.objectContaining({
+              _id: subProgramsList[0]._id,
+              name: 'sous-programme 1',
+              program: { _id: programsList[0]._id, name: 'program' },
+            }),
+            expect.objectContaining({
+              _id: subProgramsList[3]._id,
+              name: 'sous-programme 4',
+              program: { _id: programsList[4]._id, name: 'programme a vérifier' },
+            }),
           ]),
         }),
         expect.objectContaining({
