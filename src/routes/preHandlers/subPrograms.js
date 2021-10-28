@@ -19,11 +19,14 @@ exports.getSubProgram = async (req) => {
 };
 
 exports.authorizeStepDetachment = async (req) => {
-  const subProgram = await SubProgram.findOne({ _id: req.params._id, steps: req.params.stepId }).lean();
+  const subProgram = await SubProgram.findOne({ _id: req.params._id, steps: req.params.stepId })
+    .populate({ path: 'courses', select: '_id' })
+    .lean();
   if (!subProgram) throw Boom.notFound();
   if (subProgram.status !== DRAFT) throw Boom.forbidden();
 
-  const courseSlot = await CourseSlot.countDocuments({ step: req.params.stepId });
+  const courseSlot = await CourseSlot
+    .countDocuments({ step: req.params.stepId, course: { $in: subProgram.courses.map(course => course._id) } });
   if (courseSlot) throw Boom.conflict();
 
   return null;
