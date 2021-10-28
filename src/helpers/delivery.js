@@ -177,7 +177,7 @@ const getCIDDHSupplyChainTradeTransaction = (event, funding, transactionId) => (
   IncludedCIDDLSupplyChainTradeLineItem: getIncludedCIDDLSupplyChainTradeLineItem(event, funding, transactionId),
 });
 
-const formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime, eventIndex) => {
+exports.formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime, eventIndex) => {
   const fundingsWithLastVersion = event.customer.fundings
     .map(f => UtilsHelper.mergeLastVersionWithBaseObject(f, 'createdAt'));
   const funding = FundingsHelper.getMatchingFunding(event.startDate, fundingsWithLastVersion);
@@ -191,7 +191,7 @@ const formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime, 
   };
 };
 
-const formatEvents = async (events, companyId) => {
+exports.formatEvents = async (events, companyId) => {
   const auxiliaries = await User
     .find({ _id: { $in: events.map(ev => ev.auxiliary) } }, { identity: 1, serialNumber: 1 })
     .populate({ path: 'establishment' })
@@ -222,7 +222,7 @@ const formatEvents = async (events, companyId) => {
   }));
 };
 
-const formatNonBilledEvents = async (events, startDate, endDate, credentials) => {
+exports.formatNonBilledEvents = async (events, startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id');
   const billsQuery = { startDate, endDate, eventIds: events.map(ev => ev._id) };
   const bills = await DraftBillsHelper.getDraftBillsList(billsQuery, credentials);
@@ -232,16 +232,17 @@ const formatNonBilledEvents = async (events, startDate, endDate, credentials) =>
     .flatMap(b => b.thirdPartyPayerBills
       .flatMap(tppb => tppb.bills.flatMap(bi => bi.eventsList.flatMap(ev => ({ ...ev, customer: b.customer._id })))));
 
-  return formatEvents(eventsWithBillingInfo, companyId);
+  return exports.formatEvents(eventsWithBillingInfo, companyId);
 };
 
-const formatBilledEvents = async (events, credentials) => formatEvents(events, get(credentials, 'company._id'));
+exports.formatBilledEvents = async (events, credentials) =>
+  exports.formatEvents(events, get(credentials, 'company._id'));
 
-const getEvents = async (query, credentials) => {
+exports.getEvents = async (query, credentials) => {
   const companyId = get(credentials, 'company._id');
   const tpps = UtilsHelper.formatObjectIdsArray(query.thirdPartyPayer);
   const customersWithFundings = await Customer
-    .find({ 'fundings.thirdPartyPayer': { $in: tpps }, company: companyId })
+    .find({ 'fundings.thirdPartyPayer': { $in: tpps }, company: companyId }, { fundings: 1 })
     .lean();
   const subscriptionIds = customersWithFundings.flatMap(c => c.fundings)
     .filter(f => UtilsHelper.doesArrayIncludeId(tpps, f.thirdPartyPayer))
@@ -262,8 +263,8 @@ const getEvents = async (query, credentials) => {
     .lean();
 
   return [
-    ...await formatNonBilledEvents(events.filter(ev => !ev.isBilled), startDate, endDate, credentials),
-    ...await formatBilledEvents(events.filter(ev => !!ev.isBilled), credentials),
+    ...await exports.formatNonBilledEvents(events.filter(ev => !ev.isBilled), startDate, endDate, credentials),
+    ...await exports.formatBilledEvents(events.filter(ev => !!ev.isBilled), credentials),
   ];
 };
 
@@ -275,21 +276,20 @@ exports.getCrossIndustryDespatchAdvice = async (query, credentials) => {
   const issueDateTime = DatesHelper.toLocalISOString();
   const transactionId = issueDateTime.replace(/T/g, '').replace(/-/g, '').replace(/:/g, '');
 
-  return (await getEvents(query, credentials))
-    .map((ev, i) => formatCrossIndustryDespatchAdvice(ev, transactionId, issueDateTime, i))
+  return (await exports.getEvents(query, credentials))
+    .map((ev, i) => exports.formatCrossIndustryDespatchAdvice(ev, transactionId, issueDateTime, i))
     .filter(c => !!c);
 };
 
 exports.getFileName = async (query) => {
-  const tpp = await ThirdPartyPayer.findOne(
-    { _id: query.thirdPartyPayer },
-    { teletranmissionType: 1, companyCode: 1 }
-  ).lean();
+  const tpp = await ThirdPartyPayer
+    .findOne({ _id: query.thirdPartyPayer }, { teletransmissionType: 1, companyCode: 1 })
+    .lean();
 
   const month = moment(query.month, 'MM-YYYY').format('YYYYMM');
   const date = moment().format('YYMMDDHHmm');
 
-  return `${tpp.companyCode || '449'}-${month}-${tpp.teletranmissionType || 'PCH'}-${date}.xml`;
+  return `${tpp.companyCode}-${month}-${tpp.teletransmissionType}-${date}.xml`;
 };
 
 exports.generateDeliveryXml = async (query, credentials) => {

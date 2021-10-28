@@ -347,3 +347,9 @@ describe('getInclTaxes', () => {
     expect(UtilsHelper.getInclTaxes(20, 2)).toEqual(20.4);
   });
 });
+
+describe('sumReduce', () => {
+  it('should sum element in array', () => {
+    expect(UtilsHelper.sumReduce([{ incl: 20 }, { incl: 12, excl: 23 }], 'incl')).toEqual(32);
+  });
+});

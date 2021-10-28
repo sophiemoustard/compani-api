@@ -224,66 +224,6 @@ describe('populateFundings', () => {
   });
 });
 
-describe('getMatchingFunding', () => {
-  it('should return null if fundings is empty', () => {
-    expect(FundingsHelper.getMatchingFunding(new Date(), [])).toBeNull();
-  });
-
-  it('should return null is funding not started on date', () => {
-    const fundings = [
-      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00', createdAt: '2019-03-23T09:00:00' },
-      { _id: 3, careDays: [0, 3], startDate: '2019-02-23T09:00:00', createdAt: '2019-02-23T09:00:00' },
-      { _id: 2, careDays: [1, 5, 6], startDate: '2019-04-23T09:00:00', createdAt: '2019-04-23T09:00:00' },
-    ];
-    const result = FundingsHelper.getMatchingFunding('2019-01-23T09:00:00', fundings);
-    expect(result).toBeNull();
-  });
-
-  it('should return null if funding ended on date', () => {
-    const fundings = [
-      {
-        _id: 2,
-        careDays: [1, 5, 6],
-        startDate: '2019-01-01T09:00:00',
-        endDate: '2019-01-10T09:00:00',
-        createdAt: '2019-04-23T09:00:00',
-      },
-    ];
-    const result = FundingsHelper.getMatchingFunding('2019-01-23T09:00:00', fundings);
-    expect(result).toBeNull();
-  });
-
-  it('should return matching version with random day', () => {
-    const fundings = [
-      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00', createdAt: '2019-03-23T09:00:00' },
-      { _id: 3, careDays: [0, 3], startDate: '2019-02-23T09:00:00', createdAt: '2019-02-23T09:00:00' },
-      { _id: 2, careDays: [1, 5, 6], startDate: '2019-04-23T09:00:00', createdAt: '2019-04-23T09:00:00' },
-    ];
-    const result = FundingsHelper.getMatchingFunding('2019-04-23T09:00:00', fundings);
-
-    expect(result._id).toEqual(2);
-  });
-
-  it('should return matching version with holidays', () => {
-    const fundings = [
-      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
-      { _id: 3, careDays: [4, 7], startDate: '2019-04-23T09:00:00' },
-    ];
-    const result = FundingsHelper.getMatchingFunding('2022-05-01T09:00:00', fundings);
-
-    expect(result._id).toEqual(3);
-  });
-
-  it('should return null if no matching version', () => {
-    const fundings = [
-      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
-      { _id: 2, careDays: [5, 6], startDate: '2019-04-23T09:00:00' },
-    ];
-    const result = FundingsHelper.getMatchingFunding('2019-04-23T09:00:00', fundings);
-    expect(result).toBeNull();
-  });
-});
-
 describe('getSurchargedPrice', () => {
   const event = {
     startDate: '2019-06-29T10:00:00.000+02:00',

@@ -176,6 +176,17 @@ describe('addDays', () => {
   });
 });
 
+describe('toLocalISOString', () => {
+  it('should return local ISO string with month day hours minutes and seconds lower than 10', () => {
+    const result = DatesHelper.toLocalISOString(new Date(2021, 8, 8, 8, 9, 2));
+    expect(result).toEqual('2021-09-08T08:09:02'); // JavaScript counts months from 0 to 11
+  });
+  it('should return local ISO string with month day hours minutes and seconds higher than 10', () => {
+    const result = DatesHelper.toLocalISOString(new Date(2021, 10, 28, 18, 19, 12));
+    expect(result).toEqual('2021-11-28T18:19:12'); // JavaScript counts months from 0 to 11
+  });
+});
+
 describe('format', () => {
   it('should null if no date', () => {
     const formattedDate = DatesHelper.format();
