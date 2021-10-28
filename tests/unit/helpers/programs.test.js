@@ -131,6 +131,7 @@ describe('getProgram', () => {
   it('should return the requested program', async () => {
     const programId = new ObjectID();
     const subProgramId = new ObjectID();
+    const otherSubProgramId = new ObjectID();
     const stepId = new ObjectID();
     const activityId = new ObjectID();
     const cardsIds = [new ObjectID(), new ObjectID()];
@@ -145,6 +146,7 @@ describe('getProgram', () => {
             _id: activityId,
             cards: [{ _id: cardsIds[0], text: 'oui' }, { _id: cardsIds[1], text: 'non' }],
           }],
+          subPrograms: [subProgramId, otherSubProgramId],
         }],
       }],
     };
@@ -163,6 +165,7 @@ describe('getProgram', () => {
             _id: activityId,
             cards: cardsIds,
           }],
+          subPrograms: [subProgramId, otherSubProgramId],
         }],
       }],
     });
@@ -173,7 +176,11 @@ describe('getProgram', () => {
         {
           query: 'populate',
           args: [{
-            path: 'subPrograms', populate: { path: 'steps', populate: [{ path: 'activities ', populate: 'cards' }] },
+            path: 'subPrograms',
+            populate: {
+              path: 'steps',
+              populate: [{ path: 'activities ', populate: 'cards' }, { path: 'subPrograms', select: '_id -steps' }],
+            },
           }],
         },
         {
