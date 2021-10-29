@@ -37,6 +37,7 @@ const STOP_REASONS = [QUALITY, HOSPITALIZATION, DEATH, EPHAD_DEPARTURE, CONDITIO
 
 const CustomerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  serialNumber: { type: String, immutable: true, required: true, unique: true },
   driveFolder: driveResourceSchemaDefinition,
   identity: {
     type: mongoose.Schema(identitySchemaDefinition, { _id: false, id: false }),
@@ -193,15 +194,30 @@ function populateHelpers(doc, next) {
   return next();
 }
 
+const setSerialNumber = (customer) => {
+  const createdAt = moment(customer.createdAt).format('YYMMDD');
+  const timestamp = moment(customer.createdAt).valueOf().toString();
+  const lastname = customer.identity.lastname.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase();
+  const firstname = customer.identity.firstname
+    ? customer.identity.firstname.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase()
+    : '';
+
+  return `${lastname}${firstname}${createdAt}${timestamp.slice(-8)}`;
+};
+
+async function validate(next) {
+  try {
+    if (this.isNew) this.serialNumber = setSerialNumber(this);
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
 CustomerSchema.virtual(
   'firstIntervention',
-  {
-    ref: 'Event',
-    localField: '_id',
-    foreignField: 'customer',
-    justOne: true,
-    options: { sort: { startDate: 1 } },
-  }
+  { ref: 'Event', localField: '_id', foreignField: 'customer', justOne: true, options: { sort: { startDate: 1 } } }
 );
 
 CustomerSchema.virtual(
@@ -222,6 +238,7 @@ CustomerSchema.virtual(
 
 CustomerSchema.virtual('helpers', { ref: 'Helper', localField: '_id', foreignField: 'customer' });
 
+CustomerSchema.pre('validate', validate);
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);

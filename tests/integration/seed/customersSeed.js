@@ -367,7 +367,7 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'withPayments', lastname: 'customer' },
+    identity: { title: 'mr', firstname: 'withPayments', lastname: 'Kilian' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectID(),
@@ -389,7 +389,7 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'withCreditNote', lastname: 'customer' },
+    identity: { title: 'mr', firstname: 'withCreditNote', lastname: 'Antoine' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectID(),
@@ -411,7 +411,7 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'withBills', lastname: 'customer' },
+    identity: { title: 'mr', firstname: 'withBills', lastname: 'Hugo' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectID(),
@@ -432,7 +432,7 @@ const customersList = [
   { // 8 - Helper's customer
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+    identity: { title: 'mr', firstname: 'Romain', lastname: 'Duris' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -494,7 +494,7 @@ const customersList = [
   { // 9 - stopped with billed events
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
+    identity: { title: 'mr', firstname: 'Julian', lastname: 'Theresa' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -510,7 +510,7 @@ const customersList = [
   { // 10
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
+    identity: { title: 'mr', firstname: 'Julian', lastname: 'Bedot' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -558,7 +558,7 @@ const customersList = [
   { // 13 - stopped with non billed, to invoice events
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'agathe', lastname: 'thepower' },
+    identity: { title: 'mr', firstname: 'thepower', lastname: 'agathe' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -599,7 +599,7 @@ const customersList = [
   { // 15 - stopped with non billed, not to invoice events
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'agathe', lastname: 'thepower' },
+    identity: { title: 'mr', firstname: 'agathe', lastname: 'lenoir' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',

@@ -97,3 +97,14 @@ exports.deleteFunding = async (customerId, fundingId) => Customer.updateOne(
   { _id: customerId },
   { $pull: { fundings: { _id: fundingId } } }
 );
+
+exports.getMatchingFunding = (eventDate, fundings) => {
+  const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(eventDate) &&
+    (!fund.endDate || moment(fund.endDate).isAfter(eventDate)));
+
+  if (moment(eventDate).startOf('d').isHoliday()) {
+    return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
+  }
+
+  return filteredByDateFundings.find(funding => funding.careDays.includes(moment(eventDate).isoWeekday() - 1)) || null;
+};
