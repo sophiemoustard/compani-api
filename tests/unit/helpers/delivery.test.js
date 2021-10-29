@@ -293,7 +293,7 @@ describe('getFileName', () => {
   it('should return file name', async () => {
     const tppId = new ObjectID();
     const query = { thirdPartyPayer: tppId, month: '09-2021' };
-    const thirdPartyPayer = { teletransmissionType: 'APA', companyCode: 440 };
+    const thirdPartyPayer = { teletransmissionType: 'APA', companyCode: '440' };
     findOne.returns(SinonMongoose.stubChainedQueries([thirdPartyPayer], ['lean']));
 
     const result = await DeliveryHelper.getFileName(query);

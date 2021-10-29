@@ -1217,7 +1217,7 @@ describe('formatCustomerBills', () => {
     });
   });
 
-  it('should format customer bills', () => {
+  it('should format customer and tpp bills', () => {
     const customerBills = [{ inclTaxes: 20 }, { inclTaxes: 21 }];
     const tppBills = { tpp1: [{ inclTaxes: 13 }, { inclTaxes: 24 }], tpp2: [{ inclTaxes: 20 }] };
     const query = { endDate: '2019-12-25T07:00:00' };

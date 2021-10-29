@@ -383,6 +383,7 @@ exports.formatCustomerBills = (customerBills, tppBills, query, customer) => {
     endDate: query.endDate,
     customerBills: { bills: customerBills, total: UtilsHelper.sumReduce(customerBills, 'inclTaxes') },
   };
+
   if (Object.values(tppBills).length) {
     groupedByCustomerBills.thirdPartyPayerBills = [];
     for (const bills of Object.values(tppBills)) {

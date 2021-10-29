@@ -134,7 +134,10 @@ const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
   return applicableCIDDHSupplyChainTradeDelivery;
 };
 
-// Domatel ne tient pas compte des secondes sur les horodatages et calcule les durées à facturer au CD à la minute près
+/**
+ * Domatel ne tient pas compte des secondes sur les horodatages et calcule les durées à facturer au tiers-payeur
+ * à la minute près
+*/
 const computeBilledQuantity = (event) => {
   const minutes = (event.endDate - event.startDate) / (60 * 1000);
 
