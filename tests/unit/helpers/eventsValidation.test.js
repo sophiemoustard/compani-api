@@ -849,6 +849,7 @@ describe('checkDeletionIsAllowed', () => {
         'event.eventId': { $in: events.map(event => event._id) },
         'event.type': INTERVENTION,
         action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+        isCancelled: false,
       }
     );
   });
@@ -865,6 +866,7 @@ describe('checkDeletionIsAllowed', () => {
         'event.eventId': { $in: events.map(event => event._id) },
         'event.type': INTERVENTION,
         action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+        isCancelled: false,
       }
     );
   });
@@ -905,6 +907,7 @@ describe('checkDeletionIsAllowed', () => {
           'event.eventId': { $in: events.map(event => event._id) },
           'event.type': INTERVENTION,
           action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+          isCancelled: false,
         }
       );
     }

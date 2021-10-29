@@ -141,6 +141,7 @@ const canEndContract = async (contract, lastVersion, contractToEnd) => {
       { 'update.startHour.to': { $gte: contractToEnd.endDate } },
       { 'update.endHour.to': { $gte: contractToEnd.endDate } },
     ],
+    isCancelled: false,
   });
 
   if (hasTimeStampedEvents) throw Boom.forbidden(translate[language].contractHasTimeStampedEventAfterEndDate);

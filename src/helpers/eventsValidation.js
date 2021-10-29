@@ -119,6 +119,7 @@ exports.checkDeletionIsAllowed = async (events) => {
     'event.eventId': { $in: events.map(event => event._id) },
     'event.type': INTERVENTION,
     action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+    isCancelled: false,
   });
-  if (timestampedEventsCount > 0) throw Boom.conflict(translate[language].isTimeStamped);
+  if (timestampedEventsCount) throw Boom.conflict(translate[language].isTimeStamped);
 };
