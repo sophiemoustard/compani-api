@@ -47,7 +47,10 @@ exports.getProgram = async (programId) => {
       path: 'subPrograms',
       populate: {
         path: 'steps',
-        populate: [{ path: 'activities ', populate: 'cards' }, { path: 'subPrograms', select: '_id -steps' }],
+        populate: [
+          { path: 'activities ', populate: 'cards' },
+          { path: 'subPrograms', select: 'name -steps', populate: { path: 'program', select: 'name -subPrograms' } },
+        ],
       },
     })
     .populate({ path: 'testers', select: 'identity.firstname identity.lastname local.email contact.phone' })
