@@ -251,7 +251,11 @@ describe('getEvents', () => {
         ],
       },
     ];
-    const events = [{ isBilled: true, _id: 'billed' }, { isBilled: false, _id: 'not_billed' }];
+    const events = [
+      { isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } },
+      { isBilled: false, _id: 'not_billed' },
+      { isBilled: true, _id: 'billedbutwrongtpp', bills: { thirdPartyPayer: new ObjectID() } },
+    ];
     findCustomers.returns(SinonMongoose.stubChainedQueries([customers], ['lean']));
     findEvents.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
     formatNonBilledEvents.returns([{ isBilled: false, _id: 'not_billed', auxiliary: 'auxiliary' }]);
@@ -299,7 +303,7 @@ describe('getEvents', () => {
     );
     sinon.assert.calledOnceWithExactly(
       formatBilledEvents,
-      [{ isBilled: true, _id: 'billed' }],
+      [{ isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } }],
       { company: { _id: companyId } }
     );
   });

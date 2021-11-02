@@ -270,9 +270,12 @@ exports.getEvents = async (query, credentials) => {
     })
     .lean();
 
+  const billedEvents = events.filter(ev => !!ev.isBilled &&
+    UtilsHelper.doesArrayIncludeId(tpps, ev.bills.thirdPartyPayer));
+
   return [
     ...await exports.formatNonBilledEvents(events.filter(ev => !ev.isBilled), startDate, endDate, credentials),
-    ...await exports.formatBilledEvents(events.filter(ev => !!ev.isBilled), credentials),
+    ...await exports.formatBilledEvents(billedEvents, credentials),
   ];
 };
 
