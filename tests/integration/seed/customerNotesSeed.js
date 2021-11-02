@@ -22,7 +22,7 @@ const customersList = [
   {
     _id: new ObjectID(),
     company: otherCompany._id,
-    identity: { title: 'mrs', firstname: 'Romane', lastname: 'Bardet' },
+    identity: { title: 'mrs', firstname: 'Romane', lastname: 'Chal' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',

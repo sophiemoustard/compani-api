@@ -72,23 +72,18 @@ exports.createFunding = async (customerId, payload) => {
 };
 
 exports.updateFunding = async (customerId, fundingId, payload) => {
+  const versionPayload = omit(payload, 'subscription');
   const checkFundingPayload = {
     _id: fundingId,
     subscription: payload.subscription,
-    versions: [omit(payload, 'fundingPlanId')],
+    versions: [versionPayload],
   };
   const check = await exports.checkSubscriptionFunding(customerId, checkFundingPayload);
   if (!check) return Boom.conflict(translate[language].customerFundingConflict);
 
-  const query = payload.fundingPlanId
-    ? {
-      $set: { 'fundings.$.fundingPlanId': payload.fundingPlanId },
-      $push: { 'fundings.$.versions': omit(payload, 'fundingPlanId') },
-    }
-    : { $push: { 'fundings.$.versions': payload } };
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, 'fundings._id': fundingId },
-    query,
+    { $push: { 'fundings.$.versions': versionPayload } },
     { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
   )
     .populate({ path: 'subscriptions.service' })
@@ -102,3 +97,14 @@ exports.deleteFunding = async (customerId, fundingId) => Customer.updateOne(
   { _id: customerId },
   { $pull: { fundings: { _id: fundingId } } }
 );
+
+exports.getMatchingFunding = (eventDate, fundings) => {
+  const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(eventDate) &&
+    (!fund.endDate || moment(fund.endDate).isAfter(eventDate)));
+
+  if (moment(eventDate).startOf('d').isHoliday()) {
+    return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
+  }
+
+  return filteredByDateFundings.find(funding => funding.careDays.includes(moment(eventDate).isoWeekday() - 1)) || null;
+};

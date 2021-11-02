@@ -1,7 +1,9 @@
 const has = require('lodash/has');
+const get = require('lodash/get');
 const ActivityHistory = require('../models/ActivityHistory');
 const UserCompany = require('../models/UserCompany');
 const { STRICTLY_E_LEARNING } = require('./constants');
+const UtilsHelper = require('./utils');
 
 exports.addActivityHistory = async payload => ActivityHistory.create(payload);
 
@@ -11,13 +13,12 @@ const filterCourses = activityHistory => ({
     ...activityHistory.activity,
     steps: activityHistory.activity.steps.map(step => ({
       ...step,
-      subProgram: has(step, 'subProgram.courses')
-        ? {
-          ...step.subProgram,
-          courses: step.subProgram.courses.filter(course => course.trainees.map(trainee => trainee.toHexString())
-            .includes(activityHistory.user._id.toHexString())),
-        }
-        : { ...step.subProgram },
+      subPrograms: step.subPrograms.map(subProgram => ({
+        ...subProgram,
+        ...(subProgram.courses && {
+          courses: subProgram.courses.filter(c => UtilsHelper.doesArrayIncludeId(c.trainees, activityHistory.user._id)),
+        }),
+      })),
     })),
   },
 });
@@ -26,8 +27,7 @@ const filterSteps = activityHistory => ({
   ...activityHistory,
   activity: {
     ...activityHistory.activity,
-    steps: activityHistory.activity.steps.filter(step =>
-      (has(step, 'subProgram.courses') ? step.subProgram.courses.length : 0)),
+    steps: activityHistory.activity.steps.filter(step => step.subPrograms.some(sp => get(sp, 'courses.length'))),
   },
 });
 
@@ -46,7 +46,7 @@ exports.list = async (query, credentials) => {
         path: 'steps',
         select: '_id',
         populate: {
-          path: 'subProgram',
+          path: 'subPrograms',
           select: '_id',
           populate: [
             { path: 'courses', select: 'misc format trainees', match: { format: STRICTLY_E_LEARNING } },

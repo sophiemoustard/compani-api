@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const moment = require('moment');
 const omit = require('lodash/omit');
+const get = require('lodash/get');
 const momentRange = require('moment-range');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, NEVER } = require('./constants');
 const User = require('../models/User');
@@ -78,26 +79,31 @@ exports.isCreationAllowed = async (event, credentials) => {
 };
 
 exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
-  const updateStartDate = payload.startDate && DatesHelper.diff(eventFromDB.startDate, payload.startDate) !== 0;
-  const updateEndDate = payload.endDate && DatesHelper.diff(eventFromDB.endDate, payload.endDate) !== 0;
+  const updateStartDate = payload.startDate && !!DatesHelper.diff(eventFromDB.startDate, payload.startDate);
+  const updateEndDate = payload.endDate && !!DatesHelper.diff(eventFromDB.endDate, payload.endDate);
   const updateAuxiliary = payload.auxiliary &&
     !UtilsHelper.areObjectIdsEquals(eventFromDB.auxiliary, payload.auxiliary);
   const cancelEvent = payload.isCancelled;
   const forbiddenUpdateOnTimeStampedEvent = updateAuxiliary || cancelEvent;
-  const { startDateTimeStampedCount, endDateTimeStampedCount } = eventFromDB;
-  if (startDateTimeStampedCount && (updateStartDate || forbiddenUpdateOnTimeStampedEvent)) return false;
-  if (endDateTimeStampedCount && (updateEndDate || forbiddenUpdateOnTimeStampedEvent)) return false;
+  const { startDateTimeStamp, endDateTimeStamp } = eventFromDB;
+  if (startDateTimeStamp && (updateStartDate || forbiddenUpdateOnTimeStampedEvent)) return false;
+  if (endDateTimeStamp && (updateEndDate || forbiddenUpdateOnTimeStampedEvent)) return false;
 
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
-  const event = !payload.auxiliary
-    ? { ...omit(eventFromDB, 'auxiliary'), ...payload }
-    : { ...eventFromDB, ...payload };
+  const keysToOmit = payload.auxiliary ? ['repetition'] : ['auxiliary', 'repetition'];
+  const frequency = get(payload, 'repetition.frequency') || get(eventFromDB, 'repetition.frequency');
+  const event = {
+    ...omit(eventFromDB, keysToOmit),
+    ...omit(payload, 'repetition.frequency'),
+    ...(!!frequency && { repetition: { frequency } }),
+  };
 
-  const isSingleIntervention = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
+  const isSingleEventNotCancelled = !(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled;
   const undoCancellation = eventFromDB.isCancelled && !payload.isCancelled;
-  if (event.auxiliary && (isSingleIntervention || undoCancellation) && await exports.hasConflicts(event)) {
+  const hasConflicts = await exports.hasConflicts(event);
+  if (event.auxiliary && (isSingleEventNotCancelled || undoCancellation) && hasConflicts) {
     throw Boom.conflict(translate[language].eventsConflict);
   }
 
@@ -113,6 +119,7 @@ exports.checkDeletionIsAllowed = async (events) => {
     'event.eventId': { $in: events.map(event => event._id) },
     'event.type': INTERVENTION,
     action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+    isCancelled: false,
   });
-  if (timestampedEventsCount > 0) throw Boom.conflict(translate[language].isTimeStamped);
+  if (timestampedEventsCount) throw Boom.conflict(translate[language].isTimeStamped);
 };

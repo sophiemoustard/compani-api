@@ -116,10 +116,7 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
   const interventions = await Event.find(query).lean();
 
   for (let i = 0, l = interventions.length; i < l; i++) {
-    const payload = {
-      ...omit(interventions[i], ['_id', 'auxiliary', 'repetition']),
-      sector: auxiliary.sector,
-    };
+    const payload = { ...omit(interventions[i], ['_id', 'auxiliary', 'repetition']), sector: auxiliary.sector };
     await exports.updateEvent(interventions[i], payload, credentials);
   }
 };
@@ -245,34 +242,42 @@ exports.shouldDetachFromRepetition = (event, payload) => {
  * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the
  * cancellation i.e. delete the cancel object and set isCancelled to false.
  */
+const isOnSameDay = event => moment(event.startDate).isSame(event.endDate, 'day');
+
 exports.updateEvent = async (event, eventPayload, credentials) => {
-  if (event.type !== ABSENCE && !moment(eventPayload.startDate).isSame(eventPayload.endDate, 'day')) {
+  if (event.type !== ABSENCE && !isOnSameDay(eventPayload)) {
     throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
   }
-  if (!(await EventsValidationHelper.isUpdateAllowed(event, eventPayload, credentials))) throw Boom.badData();
-  if (eventPayload.shouldUpdateRepetition && !EventsRepetitionHelper.isRepetitionValid(event.repetition)) {
-    throw Boom.badData(translate[language].invalidRepetition);
-  }
-
-  const companyId = get(credentials, 'company._id', null);
-  await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
 
   if (eventPayload.shouldUpdateRepetition) {
+    if (!EventsRepetitionHelper.isRepetitionValid(event.repetition)) {
+      throw Boom.badData(translate[language].invalidRepetition);
+    }
+
+    const isUpdateAllowed = await EventsValidationHelper.isUpdateAllowed(event, eventPayload, credentials);
+    if (!isUpdateAllowed) throw Boom.badData();
+
+    await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
     await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   } else {
     const detachFromRepetition = exports.isRepetition(event) && exports.shouldDetachFromRepetition(event, eventPayload);
     const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
-    await Event.updateOne({ _id: event._id }, { ...payload });
+
+    const isUpdateAllowed = await EventsValidationHelper.isUpdateAllowed(event, payload.$set, credentials);
+    if (!isUpdateAllowed) throw Boom.badData();
+
+    await EventHistoriesHelper.createEventHistoryOnUpdate(payload.$set, event, credentials);
+    await Event.updateOne({ _id: event._id }, payload);
   }
 
   const updatedEvent = await Event.findOne({ _id: event._id })
     .populate({
       path: 'auxiliary',
       select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-      populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+      populate: { path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id') } },
     })
     .populate({ path: 'customer', select: 'identity subscriptions contact' })
-    .populate({ path: 'internalHour', match: { company: companyId } })
+    .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id') } })
     .lean();
 
   if (updatedEvent.type === ABSENCE) {

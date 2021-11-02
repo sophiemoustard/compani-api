@@ -2,9 +2,9 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list } = require('../controllers/eventHistoryController');
+const { list, update } = require('../controllers/eventHistoryController');
 const { EVENTS_HISTORY_ACTIONS } = require('../models/EventHistory');
-const { authorizeEventsHistoriesGet } = require('./preHandlers/eventHistories');
+const { authorizeEventsHistoriesGet, authorizeEventHistoryCancellation } = require('./preHandlers/eventHistories');
 const { objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
@@ -27,6 +27,23 @@ exports.plugin = {
         pre: [{ method: authorizeEventsHistoriesGet }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['events:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            isCancelled: Joi.boolean().required().valid(true),
+            timeStampCancellationReason: Joi.string().required(),
+          }),
+        },
+        pre: [{ method: authorizeEventHistoryCancellation }],
+      },
+      handler: update,
     });
   },
 };

@@ -293,8 +293,8 @@ describe('createFunding', () => {
   });
 
   it('should create funding if no conflict', async () => {
-    const customerId = 'qwertyuiop';
-    const payload = { subscription: '1234567890' };
+    const customerId = new ObjectID();
+    const payload = { subscription: '1234567890', fundingPlanId: '123456' };
     const customer = { _id: customerId };
 
     checkSubscriptionFunding.returns(true);
@@ -323,7 +323,7 @@ describe('createFunding', () => {
   });
 
   it('should throw an error if conflict', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const payload = { subscription: '1234567890' };
 
     try {
@@ -354,12 +354,16 @@ describe('updateFunding', () => {
     populateFundingsList.restore();
   });
 
-  it('should update funding if no conflict and has fundinPlanId', async () => {
-    const customerId = 'qwertyuiop';
+  it('should update funding if no conflict', async () => {
+    const customerId = new ObjectID();
     const fundingId = 'mnbvcxz';
     const payload = { subscription: '1234567890', fundingPlanId: '12345' };
     const customer = { _id: customerId };
-    const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{ subscription: '1234567890' }] };
+    const checkPayload = {
+      _id: fundingId,
+      subscription: '1234567890',
+      versions: [{ fundingPlanId: '12345' }],
+    };
 
     checkSubscriptionFunding.returns(true);
     findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
@@ -375,42 +379,7 @@ describe('updateFunding', () => {
           query: 'findOneAndUpdate',
           args: [
             { _id: customerId, 'fundings._id': fundingId },
-            {
-              $set: { 'fundings.$.fundingPlanId': payload.fundingPlanId },
-              $push: { 'fundings.$.versions': omit(payload, 'fundingPlanId') },
-            },
-            { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false },
-          ],
-        },
-        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
-        { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer' }] },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should update funding if no conflict and has no fundinPlanId', async () => {
-    const customerId = 'qwertyuiop';
-    const fundingId = 'mnbvcxz';
-    const payload = { subscription: '1234567890' };
-    const customer = { _id: customerId };
-    const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{ subscription: '1234567890' }] };
-
-    checkSubscriptionFunding.returns(true);
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
-
-    await FundingsHelper.updateFunding(customerId, fundingId, payload);
-
-    sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, checkPayload);
-    sinon.assert.calledWithExactly(populateFundingsList, customer);
-    SinonMongoose.calledWithExactly(
-      findOneAndUpdateCustomer,
-      [
-        {
-          query: 'findOneAndUpdate',
-          args: [
-            { _id: customerId, 'fundings._id': fundingId },
-            { $push: { 'fundings.$.versions': payload } },
+            { $push: { 'fundings.$.versions': omit(payload, 'subscription') } },
             { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false },
           ],
         },
@@ -422,10 +391,10 @@ describe('updateFunding', () => {
   });
 
   it('should throw an error if conflict', async () => {
-    const customerId = 'qwertyuiop';
+    const customerId = new ObjectID();
     const fundingId = 'mnbvcxz';
     const payload = { subscription: '1234567890' };
-    const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{ subscription: '1234567890' }] };
+    const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{}] };
 
     try {
       checkSubscriptionFunding.returns(false);
@@ -456,5 +425,65 @@ describe('deleteFunding', () => {
       { _id: '1234567890' },
       { $pull: { fundings: { _id: 'asdfghjkl' } } }
     );
+  });
+});
+
+describe('getMatchingFunding', () => {
+  it('should return null if fundings is empty', () => {
+    expect(FundingsHelper.getMatchingFunding(new Date(), [])).toBeNull();
+  });
+
+  it('should return null is funding not started on date', () => {
+    const fundings = [
+      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00', createdAt: '2019-03-23T09:00:00' },
+      { _id: 3, careDays: [0, 3], startDate: '2019-02-23T09:00:00', createdAt: '2019-02-23T09:00:00' },
+      { _id: 2, careDays: [1, 5, 6], startDate: '2019-04-23T09:00:00', createdAt: '2019-04-23T09:00:00' },
+    ];
+    const result = FundingsHelper.getMatchingFunding('2019-01-23T09:00:00', fundings);
+    expect(result).toBeNull();
+  });
+
+  it('should return null if funding ended on date', () => {
+    const fundings = [
+      {
+        _id: 2,
+        careDays: [1, 5, 6],
+        startDate: '2019-01-01T09:00:00',
+        endDate: '2019-01-10T09:00:00',
+        createdAt: '2019-04-23T09:00:00',
+      },
+    ];
+    const result = FundingsHelper.getMatchingFunding('2019-01-23T09:00:00', fundings);
+    expect(result).toBeNull();
+  });
+
+  it('should return matching version with random day', () => {
+    const fundings = [
+      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00', createdAt: '2019-03-23T09:00:00' },
+      { _id: 3, careDays: [0, 3], startDate: '2019-02-23T09:00:00', createdAt: '2019-02-23T09:00:00' },
+      { _id: 2, careDays: [1, 5, 6], startDate: '2019-04-23T09:00:00', createdAt: '2019-04-23T09:00:00' },
+    ];
+    const result = FundingsHelper.getMatchingFunding('2019-04-23T09:00:00', fundings);
+
+    expect(result._id).toEqual(2);
+  });
+
+  it('should return matching version with holidays', () => {
+    const fundings = [
+      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
+      { _id: 3, careDays: [4, 7], startDate: '2019-04-23T09:00:00' },
+    ];
+    const result = FundingsHelper.getMatchingFunding('2022-05-01T09:00:00', fundings);
+
+    expect(result._id).toEqual(3);
+  });
+
+  it('should return null if no matching version', () => {
+    const fundings = [
+      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
+      { _id: 2, careDays: [5, 6], startDate: '2019-04-23T09:00:00' },
+    ];
+    const result = FundingsHelper.getMatchingFunding('2019-04-23T09:00:00', fundings);
+    expect(result).toBeNull();
   });
 });

@@ -124,7 +124,7 @@ const EventSchema = mongoose.Schema(
 EventSchema.virtual('histories', { ref: 'EventHistory', localField: '_id', foreignField: 'event.eventId' });
 
 EventSchema.virtual(
-  'startDateTimeStampedCount',
+  'startDateTimeStamp',
   {
     ref: 'EventHistory',
     localField: '_id',
@@ -134,6 +134,7 @@ EventSchema.virtual(
         action: { $in: TIME_STAMPING_ACTIONS },
         'update.startHour': { $exists: true },
         company: doc.company,
+        isCancelled: false,
       }),
     },
     count: true,
@@ -141,7 +142,7 @@ EventSchema.virtual(
 );
 
 EventSchema.virtual(
-  'endDateTimeStampedCount',
+  'endDateTimeStamp',
   {
     ref: 'EventHistory',
     localField: '_id',
@@ -151,6 +152,7 @@ EventSchema.virtual(
         action: { $in: TIME_STAMPING_ACTIONS },
         'update.endHour': { $exists: true },
         company: doc.company,
+        isCancelled: false,
       }),
     },
     count: true,

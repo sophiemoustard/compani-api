@@ -49,3 +49,6 @@ exports.getSubProgram = async subProgramId => SubProgram
   .populate({ path: 'program', select: 'name image' })
   .populate({ path: 'steps', populate: { path: 'activities' } })
   .lean({ virtuals: true });
+
+exports.reuseStep = async (subProgramId, payload) =>
+  SubProgram.updateOne({ _id: subProgramId }, { $push: { steps: payload.steps } });

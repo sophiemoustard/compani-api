@@ -209,6 +209,7 @@ module.exports = {
     finalPayListCreated: 'Final pay list created.',
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
+    eventHistoryUpdated: 'Event history updated.',
     /* Pay documents */
     payDocumentCreated: 'Pay document created.',
     payDocumentsFound: 'Pay documents found.',
@@ -259,6 +260,7 @@ module.exports = {
     eLearningSubProgramAlreadyExists: 'A published eLearning sub-program already exists.',
     /* Steps */
     stepUpdated: 'Step updated.',
+    stepsFound: 'Steps found.',
     /* Activities */
     activityFound: 'Activity found.',
     activityUpdated: 'Activity updated.',
@@ -337,6 +339,11 @@ module.exports = {
     billingItemCreated: 'Billing item created.',
     billingItemsFound: 'Billing items found.',
     billingItemsConflict: 'This billing item already exists.',
+    billingItemRemoved: 'Billing item removed.',
+    billingItemHasServiceLinked: 'Billing item is linked to a service.',
+    billingItemHasBillLinked: 'Billing item is linked to a bill.',
+    /* Télétransmission */
+    deliveryCreated: 'Delivery file created',
   },
   'fr-FR': {
     /* Global errors */
@@ -547,6 +554,7 @@ module.exports = {
     finalPayListCreated: 'Liste des stc créée.',
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés.',
+    eventHistoryUpdated: 'Historique d\'évènement mis à jour.',
     /* Pay documents */
     payDocumentCreated: 'Document de paie créé.',
     payDocumentsFound: 'Documents de paie trouvés.',
@@ -572,8 +580,8 @@ module.exports = {
     establishmentRemoved: 'Établissement supprimé.',
     siretAlreadyExists: 'Siret déjà utilisé par un autre établissement.',
     /* Programs */
-    programsFound: 'Liste des programmes trouvés.',
-    programsNotFound: 'Liste des programmes non trouvés.',
+    programsFound: 'Liste des programmes trouvée.',
+    programsNotFound: 'Liste des programmes non trouvée.',
     programCreated: 'Programme créé.',
     programFound: 'Programme trouvé.',
     programUpdated: 'Programme mis à jour.',
@@ -596,6 +604,7 @@ module.exports = {
     subProgramsNotFound: 'Sous-Programmes non trouvés.',
     eLearningSubProgramAlreadyExists: 'Un sous-programme eLearning publié existe déjà.',
     /* Steps */
+    stepsFound: 'Liste des étapes trouvée.',
     stepUpdated: 'Étape mise à jour.',
     /* Activities */
     activityFound: 'Activité trouvée.',
@@ -675,5 +684,10 @@ module.exports = {
     billingItemCreated: 'Article de facturation créé.',
     billingItemsFound: 'Articles de facturation trouvés.',
     billingItemsConflict: 'Cet article de facturation existe déjà.',
+    billingItemRemoved: 'Article de facturation supprimé.',
+    billingItemHasServiceLinked: 'Impossible: l\'article de facturation est relié à un service.',
+    billingItemHasBillLinked: 'Impossible: l\'article de facturation est relié à une facture.',
+    /* Télétransmission */
+    deliveryCreated: 'Fichier de delivery créé',
   },
 };

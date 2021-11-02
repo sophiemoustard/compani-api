@@ -37,6 +37,7 @@ const STOP_REASONS = [QUALITY, HOSPITALIZATION, DEATH, EPHAD_DEPARTURE, CONDITIO
 
 const CustomerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  serialNumber: { type: String, immutable: true, required: true, unique: true },
   driveFolder: driveResourceSchemaDefinition,
   identity: {
     type: mongoose.Schema(identitySchemaDefinition, { _id: false, id: false }),
@@ -49,24 +50,24 @@ const CustomerSchema = mongoose.Schema({
     },
     secondaryAddress: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
     phone: { type: String, validate: PHONE_VALIDATION },
-    accessCodes: String,
-    others: String,
+    accessCodes: { type: String },
+    others: { type: String },
   },
   followUp: {
     situation: { type: String, enum: SITUATION_OPTIONS, default: UNKNOWN },
-    environment: String,
-    objectives: String,
-    misc: String,
+    environment: { type: String },
+    objectives: { type: String },
+    misc: { type: String },
   },
   payment: {
-    bankAccountOwner: String,
-    iban: String,
-    bic: String,
+    bankAccountOwner: { type: String },
+    iban: { type: String },
+    bic: { type: String },
     mandates: [{
-      rum: String,
-      everSignId: String,
+      rum: { type: String },
+      everSignId: { type: String },
       drive: driveResourceSchemaDefinition,
-      signedAt: Date,
+      signedAt: { type: Date },
       createdAt: { type: Date, default: Date.now },
     }],
   },
@@ -83,18 +84,18 @@ const CustomerSchema = mongoose.Schema({
     subscriptions: [{
       ...subscriptionSchemaDefinition,
       subscriptionId: { type: mongoose.Schema.Types.ObjectId },
-      service: String,
-      startDate: Date,
+      service: { type: String },
+      startDate: { type: Date },
     }],
     helper: {
-      firstname: String,
-      lastname: String,
-      title: String,
+      firstname: { type: String },
+      lastname: { type: String },
+      title: { type: String },
     },
     approvalDate: { type: Date, default: Date.now },
   }],
   quotes: [{
-    quoteNumber: String,
+    quoteNumber: { type: String },
     subscriptions: [{
       ...subscriptionSchemaDefinition,
       service: {
@@ -112,17 +113,17 @@ const CustomerSchema = mongoose.Schema({
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     frequency: { type: String, enum: FUNDING_FREQUENCIES },
     versions: [{
-      amountTTC: Number,
-      unitTTCRate: Number,
-      careHours: Number,
-      careDays: [Number],
-      customerParticipationRate: Number,
-      folderNumber: String,
-      startDate: Date,
-      endDate: Date,
+      amountTTC: { type: Number },
+      unitTTCRate: { type: Number },
+      careHours: { type: Number },
+      careDays: [{ type: Number }],
+      customerParticipationRate: { type: Number },
+      folderNumber: { type: String },
+      fundingPlanId: { type: String },
+      startDate: { type: Date },
+      endDate: { type: Date },
       createdAt: { type: Date, default: Date.now },
     }],
-    fundingPlanId: { type: String },
   }],
   stoppedAt: { type: Date },
   archivedAt: { type: Date },
@@ -193,15 +194,30 @@ function populateHelpers(doc, next) {
   return next();
 }
 
+const setSerialNumber = (customer) => {
+  const createdAt = moment(customer.createdAt).format('YYMMDD');
+  const timestamp = moment(customer.createdAt).valueOf().toString();
+  const lastname = customer.identity.lastname.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase();
+  const firstname = customer.identity.firstname
+    ? customer.identity.firstname.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase()
+    : '';
+
+  return `${lastname}${firstname}${createdAt}${timestamp.slice(-8)}`;
+};
+
+async function validate(next) {
+  try {
+    if (this.isNew) this.serialNumber = setSerialNumber(this);
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
 CustomerSchema.virtual(
   'firstIntervention',
-  {
-    ref: 'Event',
-    localField: '_id',
-    foreignField: 'customer',
-    justOne: true,
-    options: { sort: { startDate: 1 } },
-  }
+  { ref: 'Event', localField: '_id', foreignField: 'customer', justOne: true, options: { sort: { startDate: 1 } } }
 );
 
 CustomerSchema.virtual(
@@ -222,6 +238,7 @@ CustomerSchema.virtual(
 
 CustomerSchema.virtual('helpers', { ref: 'Helper', localField: '_id', foreignField: 'customer' });
 
+CustomerSchema.pre('validate', validate);
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);

@@ -7,17 +7,8 @@ exports.findAmountsGroupedByCustomer = async (companyId, customersIds, dateMax =
 
   const customerCreditNotesAmounts = await CreditNote.aggregate([
     { $match: { $and: rules } },
-    {
-      $group: { _id: '$customer', refund: { $sum: '$inclTaxesCustomer' } },
-    },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
+    { $group: { _id: '$customer', refund: { $sum: '$inclTaxesCustomer' } } },
+    { $lookup: { from: 'customers', localField: '_id', foreignField: '_id', as: 'customer' } },
     { $unwind: { path: '$customer' } },
     {
       $project: {

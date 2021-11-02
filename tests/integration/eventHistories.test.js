@@ -10,6 +10,8 @@ const {
 } = require('./seed/eventHistoriesSeed');
 const { getToken } = require('./helpers/authentication');
 const UtilsHelper = require('../../src/helpers/utils');
+const EventHistory = require('../../src/models/EventHistory');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -24,7 +26,7 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
     authToken = await getToken('coach');
   });
 
-  it('should return all event histories', async () => {
+  it('should return all event histories from user\'s company', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/eventhistories',
@@ -32,7 +34,10 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
     });
 
     expect(response.statusCode).toEqual(200);
-    expect(response.result.data.eventHistories.length).toEqual(eventHistoryList.length);
+
+    const eventHistoriesFromAuthCompany = eventHistoryList
+      .filter(eh => UtilsHelper.areObjectIdsEquals(eh.company, authCompany._id));
+    expect(response.result.data.eventHistories.length).toEqual(eventHistoriesFromAuthCompany.length);
   });
 
   it('should return a list of event histories from auxiliaries ids', async () => {
@@ -135,6 +140,124 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/eventhistories',
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('EVENT HISTORIES ROUTES - PUT /eventhistories/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should update an event history', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/eventhistories/${eventHistoryList[3]._id}`,
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
+
+      const eventHistoryUpdated = await EventHistory.countDocuments({
+        _id: eventHistoryList[3]._id,
+        isCancelled: true,
+      });
+      expect(eventHistoryUpdated).toEqual(1);
+    });
+
+    it('should return 400 if isCancelled is false', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/eventhistories/${eventHistoryList[3]._id}`,
+        payload: { isCancelled: false },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return 400 if timeCancellationReason is misisng', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/eventhistories/${eventHistoryList[3]._id}`,
+        payload: { isCancelled: true },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return 404 if event history is not a time stamping history', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/eventhistories/${eventHistoryList[0]._id}`,
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    it('should return 404 if event history is cancelled', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/eventhistories/${eventHistoryList[4]._id}`,
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    it('should return 404 if event history from other company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/eventhistories/${eventHistoryList[5]._id}`,
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    it('should return 403 if event history is from billed event', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/eventhistories/${eventHistoryList[6]._id}`,
+        payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/eventhistories/${eventHistoryList[3]._id}`,
+          payload: { isCancelled: true, timeStampCancellationReason: 'oups' },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
