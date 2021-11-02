@@ -127,6 +127,20 @@ describe('formatNonBilledEvents', () => {
     getDraftBillsList.restore();
   });
 
+  it('should return [] if no events', async () => {
+    const companyId = new ObjectID();
+    const startDate = '2021-10-12T09:00:00';
+    const endDate = '2021-10-15T19:00:00';
+    const events = [];
+
+    const result = await DeliveryHelper
+      .formatNonBilledEvents(events, startDate, endDate, { company: { _id: companyId } });
+
+    expect(result).toEqual([]);
+    sinon.assert.notCalled(getDraftBillsList);
+    sinon.assert.notCalled(formatEvents);
+  });
+
   it('should format non billed events', async () => {
     const companyId = new ObjectID();
     const startDate = '2021-10-12T09:00:00';
@@ -177,6 +191,16 @@ describe('formatBilledEvents', () => {
   });
   afterEach(() => {
     formatEvents.restore();
+  });
+
+  it('should return [] if no events', async () => {
+    const companyId = new ObjectID();
+    const events = [];
+
+    const result = await DeliveryHelper.formatBilledEvents(events, { company: { _id: companyId } });
+
+    expect(result).toEqual([]);
+    sinon.assert.notCalled(formatEvents);
   });
 
   it('should format events', async () => {

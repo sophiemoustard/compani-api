@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const groupBy = require('lodash/groupBy');
 const { cloneDeep } = require('lodash');
 const Event = require('../models/Event');
@@ -267,7 +268,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
 
 exports.getEventsToBill = async (query, companyId) => {
   const rules = [];
-  if (query.eventIds && query.eventIds.length) rules.push({ _id: { $in: query.eventIds.map(id => new ObjectID(id)) } });
+  if (has(query, 'eventIds')) rules.push({ _id: { $in: query.eventIds.map(id => new ObjectID(id)) } });
   else {
     rules.push(
       { endDate: { $lt: query.endDate } },

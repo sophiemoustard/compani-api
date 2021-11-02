@@ -226,6 +226,8 @@ exports.formatEvents = async (events, companyId) => {
 };
 
 exports.formatNonBilledEvents = async (events, startDate, endDate, credentials) => {
+  if (!events.length) return [];
+
   const companyId = get(credentials, 'company._id');
   const billsQuery = { startDate, endDate, eventIds: events.map(ev => ev._id) };
   const bills = await DraftBillsHelper.getDraftBillsList(billsQuery, credentials);
@@ -238,8 +240,11 @@ exports.formatNonBilledEvents = async (events, startDate, endDate, credentials) 
   return exports.formatEvents(eventsWithBillingInfo, companyId);
 };
 
-exports.formatBilledEvents = async (events, credentials) =>
-  exports.formatEvents(events, get(credentials, 'company._id'));
+exports.formatBilledEvents = async (events, credentials) => {
+  if (!events.length) return [];
+
+  return exports.formatEvents(events, get(credentials, 'company._id'));
+};
 
 exports.getEvents = async (query, credentials) => {
   const companyId = get(credentials, 'company._id');
