@@ -127,6 +127,20 @@ describe('formatNonBilledEvents', () => {
     getDraftBillsList.restore();
   });
 
+  it('should return [] if no events', async () => {
+    const companyId = new ObjectID();
+    const startDate = '2021-10-12T09:00:00';
+    const endDate = '2021-10-15T19:00:00';
+    const events = [];
+
+    const result = await DeliveryHelper
+      .formatNonBilledEvents(events, startDate, endDate, { company: { _id: companyId } });
+
+    expect(result).toEqual([]);
+    sinon.assert.notCalled(getDraftBillsList);
+    sinon.assert.notCalled(formatEvents);
+  });
+
   it('should format non billed events', async () => {
     const companyId = new ObjectID();
     const startDate = '2021-10-12T09:00:00';
@@ -179,6 +193,16 @@ describe('formatBilledEvents', () => {
     formatEvents.restore();
   });
 
+  it('should return [] if no events', async () => {
+    const companyId = new ObjectID();
+    const events = [];
+
+    const result = await DeliveryHelper.formatBilledEvents(events, { company: { _id: companyId } });
+
+    expect(result).toEqual([]);
+    sinon.assert.notCalled(formatEvents);
+  });
+
   it('should format events', async () => {
     const companyId = new ObjectID();
     const events = [{ _id: 'event1' }, { _id: 'event2' }];
@@ -227,7 +251,11 @@ describe('getEvents', () => {
         ],
       },
     ];
-    const events = [{ isBilled: true, _id: 'billed' }, { isBilled: false, _id: 'not_billed' }];
+    const events = [
+      { isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } },
+      { isBilled: false, _id: 'not_billed' },
+      { isBilled: true, _id: 'billedbutwrongtpp', bills: { thirdPartyPayer: new ObjectID() } },
+    ];
     findCustomers.returns(SinonMongoose.stubChainedQueries([customers], ['lean']));
     findEvents.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
     formatNonBilledEvents.returns([{ isBilled: false, _id: 'not_billed', auxiliary: 'auxiliary' }]);
@@ -275,7 +303,7 @@ describe('getEvents', () => {
     );
     sinon.assert.calledOnceWithExactly(
       formatBilledEvents,
-      [{ isBilled: true, _id: 'billed' }],
+      [{ isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } }],
       { company: { _id: companyId } }
     );
   });
