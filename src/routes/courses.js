@@ -183,6 +183,7 @@ exports.plugin = {
               email: Joi.string().allow('', null),
             }).min(1),
             salesRepresentative: Joi.objectId(),
+            archivedAt: Joi.date(),
           }),
         },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
