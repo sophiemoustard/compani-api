@@ -7,10 +7,8 @@ const CreditNote = require('../../models/CreditNote');
 const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
-const EventHistory = require('../../models/EventHistory');
 const InternalHour = require('../../models/InternalHour');
 const UserCompany = require('../../models/UserCompany');
-const { TIME_STAMPING_ACTIONS } = require('../../models/EventHistory');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const {
@@ -28,8 +26,8 @@ const { language } = translate;
 
 exports.getEvent = async (req) => {
   const event = await Event.findOne({ _id: req.params._id, company: get(req, 'auth.credentials.company._id') })
-    .populate('startDateTimeStampedCount')
-    .populate('endDateTimeStampedCount')
+    .populate({ path: 'startDateTimeStamp' })
+    .populate({ path: 'endDateTimeStamp' })
     .lean();
 
   if (!event) throw Boom.notFound(translate[language].eventNotFound);
@@ -140,7 +138,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
     const customer = await Customer.findOne({ _id: customerId, company: companyId }, { subscriptions: 1 })
-      .populate('subscriptions.service')
+      .populate({ path: 'subscriptions.service' })
       .lean();
     if (!customer) throw Boom.notFound();
 
@@ -201,18 +199,17 @@ exports.authorizeTimeStamping = async (req) => {
     type: INTERVENTION,
     auxiliary: get(req, 'auth.credentials._id'),
     startDate: { $gte: moment().startOf('d').toDate(), $lte: moment().endOf('d').toDate() },
-  }).lean();
+  })
+    .populate({ path: 'startDateTimeStamp' })
+    .populate({ path: 'endDateTimeStamp' })
+    .lean();
   if (!event) throw Boom.notFound();
 
   if (event.isCancelled) { throw Boom.conflict(translate[language].timeStampCancelledEvent); }
 
-  const timeStampPayload = { 'event.eventId': req.params._id, action: { $in: TIME_STAMPING_ACTIONS } };
-
-  if (req.payload.startDate) timeStampPayload['update.startHour'] = { $exists: true };
-  else timeStampPayload['update.endHour'] = { $exists: true };
-
-  const alreadyTimeStamped = await EventHistory.countDocuments(timeStampPayload);
-  if (alreadyTimeStamped) throw Boom.conflict(translate[language].alreadyTimeStamped);
+  if ((event.startDateTimeStamp && req.payload.startDate) || (event.endDateTimeStamp && req.payload.endDate)) {
+    throw Boom.conflict(translate[language].alreadyTimeStamped);
+  }
 
   return null;
 };

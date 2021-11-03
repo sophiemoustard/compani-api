@@ -2,6 +2,7 @@ const Boom = require('@hapi/boom');
 const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
+const set = require('lodash/set');
 const cloneDeep = require('lodash/cloneDeep');
 const pick = require('lodash/pick');
 const has = require('lodash/has');
@@ -171,14 +172,18 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
     let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
 
     const hasConflicts = await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId });
-    const detachFromRepetition = !!eventPayload.auxiliary && eventFromDb.type === INTERVENTION && hasConflicts;
-    if (detachFromRepetition || !eventPayload.auxiliary) {
-      eventToSet = { ...omit(eventToSet, 'auxiliary'), sector: sectorId };
-    }
+    if (eventFromDb.type !== INTERVENTION && hasConflicts) promises.push(Event.deleteOne({ _id: events[i]._id }));
+    else {
+      const detachFromRepetition = !!eventPayload.auxiliary && hasConflicts;
+      if (detachFromRepetition || !eventPayload.auxiliary) {
+        eventToSet = set(omit(eventToSet, 'auxiliary'), 'sector', sectorId);
+      }
 
-    const payload = EventsHelper.formatEditionPayload(events[i], eventToSet, detachFromRepetition);
-    promises.push(Event.updateOne({ _id: events[i]._id }, payload));
+      const payload = EventsHelper.formatEditionPayload(events[i], eventToSet, detachFromRepetition);
+      promises.push(Event.updateOne({ _id: events[i]._id }, payload));
+    }
   }
+
   await Promise.all([
     ...promises,
     RepetitionsHelper.updateRepetitions(eventPayload, eventFromDb.repetition.parentId),

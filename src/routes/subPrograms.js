@@ -4,12 +4,21 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   authorizeStepDetachment,
-  authorizeStepAdd,
+  authorizeStepAddition,
   authorizeSubProgramUpdate,
   authorizeGetSubProgram,
   authorizeGetDraftELearningSubPrograms,
+  authorizeStepReuse,
+  getSubProgram,
 } = require('./preHandlers/subPrograms');
-const { update, addStep, detachStep, listELearningDraft, getById } = require('../controllers/subProgramController');
+const {
+  update,
+  addStep,
+  detachStep,
+  listELearningDraft,
+  getById,
+  reuseStep,
+} = require('../controllers/subProgramController');
 const { STEP_TYPES } = require('../models/Step');
 const { PUBLISHED } = require('../helpers/constants');
 
@@ -42,9 +51,27 @@ exports.plugin = {
           payload: Joi.object({ name: Joi.string().required(), type: Joi.string().required().valid(...STEP_TYPES) }),
         },
         auth: { scope: ['programs:edit'] },
-        pre: [{ method: authorizeStepAdd }],
+        pre: [{ method: getSubProgram, assign: 'subProgram' }, { method: authorizeStepAddition }],
       },
       handler: addStep,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/steps',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({ steps: Joi.objectId().required() }),
+        },
+        auth: { scope: ['programs:edit'] },
+        pre: [
+          { method: getSubProgram, assign: 'subProgram' },
+          { method: authorizeStepAddition },
+          { method: authorizeStepReuse },
+        ],
+      },
+      handler: reuseStep,
     });
 
     server.route({

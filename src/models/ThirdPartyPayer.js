@@ -14,6 +14,8 @@ const ThirdPartyPayerSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, required: true },
   isApa: { type: Boolean, required: true },
   teletransmissionId: { type: String },
+  companyCode: { type: String },
+  teletransmissionType: { type: String },
 }, { timestamps: true });
 
 const countFundings = async (docs) => {

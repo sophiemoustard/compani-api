@@ -26,4 +26,15 @@ const list = async (req) => {
   }
 };
 
-module.exports = { create, list };
+const remove = async (req) => {
+  try {
+    await BillingItemsHelper.remove(req.params._id);
+
+    return { message: translate[language].billingItemRemoved };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, remove };

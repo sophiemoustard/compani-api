@@ -1,6 +1,7 @@
 const Boom = require('@hapi/boom');
 const Step = require('../../models/Step');
 const Activity = require('../../models/Activity');
+const Program = require('../../models/Program');
 const { PUBLISHED } = require('../../helpers/constants');
 
 exports.authorizeStepUpdate = async (req) => {
@@ -18,7 +19,7 @@ exports.authorizeStepUpdate = async (req) => {
   return null;
 };
 
-exports.authorizeActivityAdd = async (req) => {
+exports.authorizeActivityAddition = async (req) => {
   const step = await Step.findOne({ _id: req.params._id }, { status: 1 }).lean();
   if (!step) throw Boom.notFound();
   if (step.status === PUBLISHED) throw Boom.forbidden();
@@ -43,6 +44,13 @@ exports.authorizeActivityDetachment = async (req) => {
   const step = await Step.findOne({ _id: req.params._id, activities: req.params.activityId }, { status: 1 }).lean();
   if (!step) throw Boom.notFound();
   if (step.status === PUBLISHED) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeGetStep = async (req) => {
+  const program = await Program.countDocuments({ _id: req.query.program });
+  if (!program) throw Boom.notFound();
 
   return null;
 };

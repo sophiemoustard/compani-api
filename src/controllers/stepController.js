@@ -42,9 +42,18 @@ const detachActivity = async (req) => {
   try {
     await ActivityHelper.detachActivity(req.params._id, req.params.activityId);
 
-    return {
-      message: translate[language].activityDetached,
-    };
+    return { message: translate[language].activityDetached };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const list = async (req) => {
+  try {
+    const steps = await StepHelper.list(req.query.program);
+
+    return { data: { steps }, message: translate[language].stepsFound };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -56,4 +65,5 @@ module.exports = {
   addActivity,
   reuseActivity,
   detachActivity,
+  list,
 };

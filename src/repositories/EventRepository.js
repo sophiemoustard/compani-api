@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const groupBy = require('lodash/groupBy');
 const { cloneDeep } = require('lodash');
 const Event = require('../models/Event');
@@ -265,16 +266,20 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
   return Event.aggregate([...match, ...group]).option({ company: companyId });
 };
 
-exports.getEventsToBill = async (dates, customerId, companyId) => {
-  const rules = [
-    { endDate: { $lt: dates.endDate } },
-    { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-    { auxiliary: { $exists: true, $ne: '' } },
-    { type: INTERVENTION },
-    { 'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } } },
-  ];
-  if (dates.startDate) rules.push({ startDate: { $gte: dates.startDate } });
-  if (customerId) rules.push({ customer: new ObjectID(customerId) });
+exports.getEventsToBill = async (query, companyId) => {
+  const rules = [];
+  if (has(query, 'eventIds')) rules.push({ _id: { $in: query.eventIds.map(id => new ObjectID(id)) } });
+  else {
+    rules.push(
+      { endDate: { $lt: query.endDate } },
+      { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
+      { auxiliary: { $exists: true, $ne: '' } },
+      { type: INTERVENTION },
+      { 'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } } }
+    );
+    if (query.startDate) rules.push({ startDate: { $gte: query.startDate } });
+    if (query.customer) rules.push({ customer: new ObjectID(query.customer) });
+  }
 
   return Event.aggregate([
     { $match: { $and: rules } },
@@ -288,7 +293,7 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
             cond: {
               $and: [
                 { $lte: ['$$c.startDate', '$startDate'] },
-                { $gte: [{ $ifNull: ['$$c.endDate', dates.endDate] }, '$startDate'] },
+                { $gte: [{ $ifNull: ['$$c.endDate', query.endDate] }, '$startDate'] },
               ],
             },
           },
@@ -308,17 +313,13 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
         from: 'customers',
         as: 'customer',
         let: { customerId: '$_id.CUSTOMER' },
-        pipeline: [{
-          $match: { $and: [{ $expr: { $eq: ['$_id', '$$customerId'] }, archivedAt: { $eq: null } }] },
-        }],
+        pipeline: [{ $match: { $and: [{ $expr: { $eq: ['$_id', '$$customerId'] }, archivedAt: { $eq: null } }] } }],
       },
     },
     { $unwind: { path: '$customer' } },
     {
       $addFields: {
-        sub: {
-          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-        },
+        sub: { $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } } },
       },
     },
     { $unwind: { path: '$sub' } },

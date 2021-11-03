@@ -5,6 +5,7 @@ const Intl = require('intl');
 const moment = require('../extensions/moment');
 const { CIVILITY_LIST } = require('./constants');
 const DatesHelper = require('./dates');
+const NumbersHelper = require('./numbers');
 
 exports.getLastVersion = (versions, dateKey) => {
   if (versions.length === 0) return null;
@@ -191,3 +192,5 @@ exports.computeHoursWithDiff = (pay, key) => {
 exports.getExclTaxes = (inclTaxes, vat) => (vat ? inclTaxes / (1 + (vat / 100)) : inclTaxes);
 
 exports.getInclTaxes = (exclTaxes, vat) => (vat ? exclTaxes * (1 + (vat / 100)) : exclTaxes);
+
+exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.add(sum, (b[key] || 0)), 0);

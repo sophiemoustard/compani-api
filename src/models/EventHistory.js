@@ -10,6 +10,7 @@ const {
   MANUAL_TIME_STAMPING,
   MANUAL_TIME_STAMPING_REASONS,
   QR_CODE_TIME_STAMPING,
+  TIME_STAMP_CANCELLATION,
 } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
@@ -20,6 +21,7 @@ const EVENTS_HISTORY_ACTIONS = [
   EVENT_UPDATE,
   MANUAL_TIME_STAMPING,
   QR_CODE_TIME_STAMPING,
+  TIME_STAMP_CANCELLATION,
 ];
 const TIME_STAMPING_ACTIONS = [MANUAL_TIME_STAMPING, QR_CODE_TIME_STAMPING];
 
@@ -60,6 +62,13 @@ const EventHistorySchema = mongoose.Schema({
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
   manualTimeStampingReason: { type: String, enum: Object.keys(MANUAL_TIME_STAMPING_REASONS) },
+  isCancelled: { type: Boolean, default: false },
+  timeStampCancellationReason: { type: String, required() { return this.action === TIME_STAMP_CANCELLATION; } },
+  linkedEventHistory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'EventHistory',
+    required() { return this.action === TIME_STAMP_CANCELLATION; },
+  },
 }, { timestamps: true });
 
 EventHistorySchema.pre('find', validateQuery);

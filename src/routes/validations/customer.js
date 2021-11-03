@@ -2,6 +2,7 @@ const Joi = require('joi');
 
 exports.fundingValidation = {
   folderNumber: Joi.string(),
+  fundingPlanId: Joi.string(),
   startDate: Joi.date().required(),
   endDate: Joi.date().min(Joi.ref('startDate')).allow(''),
   amountTTC: Joi.number().min(0),

@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Program = require('../../../src/models/Program');
+const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Card = require('../../../src/models/Card');
@@ -18,39 +19,39 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  {
-    _id: new ObjectID(),
-    type: 'on_site',
-    name: 'c\'est une étape',
-    activities: [activitiesList[1]._id, activitiesList[2]._id],
-  },
-  { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape', activities: [activitiesList[0]._id] },
-  { _id: new ObjectID(), type: 'e_learning', name: 'encore une étape' },
-  {
-    _id: new ObjectID(),
-    type: 'e_learning',
-    name: 'Etape publiée',
-    status: 'published',
-    activities: [activitiesList[3]._id],
-  },
+  { _id: new ObjectID(), type: 'on_site', name: 'etape 1', activities: [activitiesList[1]._id, activitiesList[2]._id] },
+  { _id: new ObjectID(), type: 'e_learning', name: 'etape 2', activities: [activitiesList[0]._id] },
+  { _id: new ObjectID(), type: 'e_learning', name: 'etape 3' },
+  { _id: new ObjectID(), type: 'on_site', name: 'etape 4', status: 'published', activities: [activitiesList[3]._id] },
+  { _id: new ObjectID(), type: 'on_site', name: 'etape 5 - sans sous-prog', activities: [activitiesList[2]._id] },
+];
+
+const subProgramList = [
+  { _id: new ObjectID(), name: 'subProgram 1', steps: [stepsList[0]._id, stepsList[1]._id] },
+  { _id: new ObjectID(), name: 'subProgram 2', steps: [stepsList[0]._id, stepsList[2]._id] },
+  { _id: new ObjectID(), name: 'subProgram 3', steps: [stepsList[2]._id, stepsList[3]._id] },
 ];
 
 const programsList = [
-  { _id: new ObjectID(), name: 'program', steps: [stepsList[0]._id, stepsList[1]._id] },
-  { _id: new ObjectID(), name: 'training program', steps: [stepsList[2]._id] },
+  { _id: new ObjectID(), name: 'program 1', subPrograms: [subProgramList[0]._id, subProgramList[1]._id] },
+  { _id: new ObjectID(), name: 'program 2', subProgram: [subProgramList[2]._id] },
 ];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Program.insertMany(programsList);
-  await Step.insertMany(stepsList);
-  await Activity.insertMany(activitiesList);
-  await Card.insertMany(cardsList);
+  await Promise.all([
+    Program.insertMany(programsList),
+    SubProgram.insertMany(subProgramList),
+    Step.insertMany(stepsList),
+    Activity.insertMany(activitiesList),
+    Card.insertMany(cardsList),
+  ]);
 };
 
 module.exports = {
   populateDB,
+  programsList,
   stepsList,
   activitiesList,
   cardsList,

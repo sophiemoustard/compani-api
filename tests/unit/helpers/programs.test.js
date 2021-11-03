@@ -130,7 +130,9 @@ describe('getProgram', () => {
 
   it('should return the requested program', async () => {
     const programId = new ObjectID();
+    const otherProgramId = new ObjectID();
     const subProgramId = new ObjectID();
+    const otherSubProgramId = new ObjectID();
     const stepId = new ObjectID();
     const activityId = new ObjectID();
     const cardsIds = [new ObjectID(), new ObjectID()];
@@ -145,6 +147,10 @@ describe('getProgram', () => {
             _id: activityId,
             cards: [{ _id: cardsIds[0], text: 'oui' }, { _id: cardsIds[1], text: 'non' }],
           }],
+          subPrograms: [
+            { _id: subProgramId, name: 'sp 1', program: { _id: programId, name: 'prog 1' } },
+            { _id: otherSubProgramId, name: 'sp 2', program: { _id: otherProgramId, name: 'prog 2' } },
+          ],
         }],
       }],
     };
@@ -163,6 +169,10 @@ describe('getProgram', () => {
             _id: activityId,
             cards: cardsIds,
           }],
+          subPrograms: [
+            { _id: subProgramId, name: 'sp 1', program: { _id: programId, name: 'prog 1' } },
+            { _id: otherSubProgramId, name: 'sp 2', program: { _id: otherProgramId, name: 'prog 2' } },
+          ],
         }],
       }],
     });
@@ -176,7 +186,14 @@ describe('getProgram', () => {
             path: 'subPrograms',
             populate: {
               path: 'steps',
-              populate: [{ path: 'activities ', populate: 'cards' }, { path: 'courseSlotsCount' }],
+              populate: [
+                { path: 'activities ', populate: 'cards' },
+                {
+                  path: 'subPrograms',
+                  select: 'name -steps',
+                  populate: { path: 'program', select: 'name -subPrograms' },
+                },
+              ],
             },
           }],
         },

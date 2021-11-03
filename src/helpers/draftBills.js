@@ -11,6 +11,7 @@ const { HOURLY, MONTHLY, ONCE, FIXED, BILLING_DIRECT } = require('./constants');
 const UtilsHelper = require('./utils');
 const SurchargesHelper = require('./surcharges');
 const DatesHelper = require('./dates');
+const FundingsHelper = require('./fundings');
 
 const populateSurchargeAndBillingItem = (arr, surcharges, billingItems) => arr
   .map(v => ({
@@ -62,16 +63,6 @@ exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
     populatedFundings.push(funding);
   }
   return populatedFundings;
-};
-
-exports.getMatchingFunding = (date, fundings) => {
-  const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(date) &&
-    (!fund.endDate || moment(fund.endDate).isAfter(date)));
-  if (moment(date).startOf('d').isHoliday()) {
-    return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
-  }
-
-  return filteredByDateFundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
 
 exports.getSurchargedPrice = (event, eventSurcharges, price) => {
@@ -275,7 +266,9 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
 
   for (const event of events) {
     const matchingService = UtilsHelper.getMatchingVersion(event.startDate, service, 'startDate');
-    const matchingFunding = get(fundings, 'length') ? exports.getMatchingFunding(event.startDate, fundings) : null;
+    const matchingFunding = get(fundings, 'length')
+      ? FundingsHelper.getMatchingFunding(event.startDate, fundings)
+      : null;
 
     const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
@@ -384,37 +377,52 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
   return formattedBillingItems;
 };
 
-exports.getDraftBillsList = async (dates, billingStartDate, credentials, customerId = null) => {
-  const companyId = get(credentials, 'company._id', null);
-  const eventsToBill = await EventRepository.getEventsToBill(dates, customerId, companyId);
-  const thirdPartyPayers = await ThirdPartyPayer.find({ company: companyId }).lean();
-  const surcharges = await Surcharge.find({ company: companyId }).lean();
-  const billingItems = await BillingItem.find({ company: companyId }).lean();
+exports.formatCustomerBills = (customerBills, tppBills, query, customer) => {
+  const groupedByCustomerBills = {
+    customer,
+    endDate: query.endDate,
+    customerBills: { bills: customerBills, total: UtilsHelper.sumReduce(customerBills, 'inclTaxes') },
+  };
+
+  if (Object.values(tppBills).length) {
+    groupedByCustomerBills.thirdPartyPayerBills = [];
+    for (const bills of Object.values(tppBills)) {
+      groupedByCustomerBills.thirdPartyPayerBills.push({ bills, total: UtilsHelper.sumReduce(bills, 'inclTaxes') });
+    }
+  }
+
+  return groupedByCustomerBills;
+};
+
+exports.getDraftBillsList = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id');
+  const [eventsToBill, tpps, surcharges, billingItems] = await Promise.all([
+    EventRepository.getEventsToBill(query, companyId),
+    ThirdPartyPayer.find({ company: companyId }).lean(),
+    Surcharge.find({ company: companyId }).lean(),
+    BillingItem.find({ company: companyId }).lean(),
+  ]);
+
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const subscriptionsDraftBills = [];
     const tppBills = {};
-    const eventsByBillingItemBySubscriptions = [];
+    const eventsByItemBySubscriptions = [];
     const { customer, eventsBySubscriptions } = eventsToBill[i];
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
-      const subscription = await exports.populateAndFormatSubscription(
-        eventsBySubscriptions[k].subscription,
-        surcharges,
-        billingItems
-      );
-      const fundings = eventsBySubscriptions[k].fundings
-        ? await exports.populateFundings(eventsBySubscriptions[k].fundings, dates.endDate, thirdPartyPayers, companyId)
-        : null;
+      const { subscription, fundings, events } = eventsBySubscriptions[k];
+      const eventSubscription = await exports.populateAndFormatSubscription(subscription, surcharges, billingItems);
+      const eventFundings = fundings ? await exports.populateFundings(fundings, query.endDate, tpps, companyId) : null;
 
       const draftBills = exports.getDraftBillsPerSubscription(
-        eventsBySubscriptions[k].events,
-        subscription,
-        fundings,
-        billingStartDate,
-        dates.endDate
+        events,
+        eventSubscription,
+        eventFundings,
+        query.billingStartDate,
+        query.endDate
       );
       if (draftBills.customer) subscriptionsDraftBills.push(draftBills.customer);
-      if (draftBills.eventsByBillingItem) eventsByBillingItemBySubscriptions.push(draftBills.eventsByBillingItem);
+      if (draftBills.eventsByBillingItem) eventsByItemBySubscriptions.push(draftBills.eventsByBillingItem);
       if (draftBills.thirdPartyPayer) {
         for (const tpp of Object.keys(draftBills.thirdPartyPayer)) {
           if (!tppBills[tpp]) tppBills[tpp] = [draftBills.thirdPartyPayer[tpp]];
@@ -425,24 +433,9 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
 
     const customerBills = [
       ...subscriptionsDraftBills,
-      ...exports.formatBillingItems(eventsByBillingItemBySubscriptions, billingItems, billingStartDate, dates.endDate),
+      ...exports.formatBillingItems(eventsByItemBySubscriptions, billingItems, query.billingStartDate, query.endDate),
     ];
-    const groupedByCustomerBills = {
-      customer,
-      endDate: dates.endDate,
-      customerBills: { bills: customerBills, total: customerBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0) },
-    };
-    if (Object.values(tppBills).length) {
-      groupedByCustomerBills.thirdPartyPayerBills = [];
-      for (const bills of Object.values(tppBills)) {
-        groupedByCustomerBills.thirdPartyPayerBills.push({
-          bills,
-          total: bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0),
-        });
-      }
-    }
-
-    draftBillsList.push(groupedByCustomerBills);
+    draftBillsList.push(exports.formatCustomerBills(customerBills, tppBills, query, customer));
   }
 
   return draftBillsList;
