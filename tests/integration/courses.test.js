@@ -235,7 +235,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(6);
+      expect(response.result.data.courses.length).toEqual(10);
     });
 
     it('should get strictly e-learning courses', async () => {
@@ -246,7 +246,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.length).toEqual(4);
     });
 
     it('should return 400 if bad format', async () => {
@@ -270,7 +270,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(3);
+      expect(response.result.data.courses.length).toEqual(4);
     });
 
     it('should get courses for a specific company', async () => {
@@ -635,7 +635,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
     it('should return 404 if course is strictly e-learning', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${coursesList[4]._id.toHexString()}/questionnaires`,
+        url: `/courses/${coursesList[8]._id.toHexString()}/questionnaires`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -875,6 +875,121 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if trying to archive course without trainee', async () => {
+      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[13]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[13]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeFalsy();
+      expect(course.slots.length).toBeTruthy();
+      expect(course.slotsToPlan.length).toBe(0);
+      expect(course.format).toBe('blended');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
+    });
+
+    it('should return 403 if trying to archive course without slot', async () => {
+      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[4]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeTruthy();
+      expect(course.slots.length).toBeFalsy();
+      expect(course.slotsToPlan.length).toBe(0);
+      expect(course.format).toBe('blended');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
+    });
+
+    it('should return 403 if trying to archive course with slot to plan', async () => {
+      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[7]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[7]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeTruthy();
+      expect(course.slots.length).toBeTruthy();
+      expect(course.slotsToPlan.length).toBeTruthy();
+      expect(course.format).toBe('blended');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
+    });
+
+    it('should return 403 if trying to archive a not blended course', async () => {
+      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[8]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[8]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeTruthy();
+      expect(course.slots.length).toBeTruthy();
+      expect(course.slotsToPlan.length).toBe(0);
+      expect(course.format).toBe('strictly_e_learning');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
+    });
+
+    it('should return 403 if trying to archive a course in progress', async () => {
+      const payload = { archivedAt: new Date('2020-03-10T00:00:00') };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[5]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[5]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeTruthy();
+      expect(course.slots.length).toBeTruthy();
+      expect(course.slotsToPlan.length).toBe(0);
+      expect(course.format).toBe('blended');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeFalsy();
     });
   });
 
@@ -1434,7 +1549,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
 
 describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
   let authToken;
-  const course = coursesList[4];
 
   beforeEach(populateDB);
 
@@ -1444,6 +1558,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
     });
 
     it('should add trainee to e-learning course', async () => {
+      const course = coursesList[6];
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${course._id}/register-e-learning`,
@@ -1480,7 +1595,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${course._id}/register-e-learning`,
+        url: `/courses/${coursesList[4]._id}/register-e-learning`,
         headers: { 'x-access-token': authToken },
       });
 
