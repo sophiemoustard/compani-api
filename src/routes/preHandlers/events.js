@@ -184,9 +184,6 @@ exports.checkEventCreationOrUpdate = async (req) => {
 exports.authorizeEventDeletionList = async (req) => {
   const { credentials } = req.auth;
 
-  const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
-  if (isAuxiliary) throw Boom.forbidden();
-
   const customer = await Customer.countDocuments({ _id: req.query.customer, company: get(credentials, 'company._id') });
   if (!customer) throw Boom.notFound();
 

@@ -1747,10 +1747,10 @@ describe('DELETE /events/{_id}', () => {
 
 describe('DELETE /events', () => {
   let authToken;
-  describe('PLANNING_REFERENT', () => {
+  describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('planning_referent');
+      authToken = await getToken('auxiliary');
     });
 
     it('should delete all customer events from startDate including repetitions', async () => {
@@ -1834,7 +1834,6 @@ describe('DELETE /events', () => {
     const roles = [
       { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
     ];
