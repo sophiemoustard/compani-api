@@ -1834,6 +1834,7 @@ describe('DELETE /events', () => {
     const roles = [
       { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
     ];
