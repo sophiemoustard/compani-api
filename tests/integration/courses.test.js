@@ -887,6 +887,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[13]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeFalsy();
+      expect(course.slots.length).toBeTruthy();
+      expect(course.slotsToPlan.length).toBe(0);
+      expect(course.format).toBe('blended');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
     });
 
     it('should return 403 if trying to archive course without slot', async () => {
@@ -899,6 +910,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[4]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeTruthy();
+      expect(course.slots.length).toBeFalsy();
+      expect(course.slotsToPlan.length).toBe(0);
+      expect(course.format).toBe('blended');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
     });
 
     it('should return 403 if trying to archive course with slot to plan', async () => {
@@ -911,6 +933,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[7]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeTruthy();
+      expect(course.slots.length).toBeTruthy();
+      expect(course.slotsToPlan.length).toBeTruthy();
+      expect(course.format).toBe('blended');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
     });
 
     it('should return 403 if trying to archive a not blended course', async () => {
@@ -923,6 +956,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[8]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeTruthy();
+      expect(course.slots.length).toBeTruthy();
+      expect(course.slotsToPlan.length).toBe(0);
+      expect(course.format).toBe('strictly_e_learning');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeTruthy();
     });
 
     it('should return 403 if trying to archive a course in progress', async () => {
@@ -935,6 +979,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(coursesList[5]._id)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .lean();
+
+      expect(course.trainees.length).toBeTruthy();
+      expect(course.slots.length).toBeTruthy();
+      expect(course.slotsToPlan.length).toBe(0);
+      expect(course.format).toBe('blended');
+      expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeFalsy();
     });
   });
 
