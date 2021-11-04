@@ -126,7 +126,6 @@ const coursesList = [
     trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
     type: 'intra',
     salesRepresentative: vendorAdmin._id,
-    // format: 'strictly_e_learning',
   },
   { // 2
     _id: new ObjectID(),
