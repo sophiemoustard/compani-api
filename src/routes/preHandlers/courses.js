@@ -64,12 +64,12 @@ exports.authorizeCourseEdit = async (req) => {
     if (archivedAt) {
       const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
       const hasVendorRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
+      if (!hasVendorRole) return Boom.forbidden();
 
-      const isCompleted = course.slots.every(slot => moment(slot.endDate).isBefore(archivedAt));
-      const isBlended = course.format === BLENDED;
-      const isArchivable = course.trainees.length && course.slots.length && !course.slotsToPlan.length &&
-        isCompleted && isBlended;
-      if (!isArchivable || !hasVendorRole) return Boom.forbidden();
+      if (!course.trainees.length || !course.slots.length) return Boom.forbidden();
+      if (course.slotsToPlan.length) return Boom.forbidden();
+      if (course.format !== BLENDED) return Boom.forbidden();
+      if (course.slots.some(slot => moment(slot.endDate).isAfter(archivedAt))) return Boom.forbidden();
     }
 
     return null;
