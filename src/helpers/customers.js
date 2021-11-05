@@ -212,7 +212,7 @@ const formatPayload = async (customerId, customerPayload, company) => {
 exports.updateCustomer = async (customerId, payload, credentials) => {
   const { company } = credentials;
 
-  if (payload.stoppedAt) await EventsHelper.deleteCustomerEvents(customerId, payload.stoppedAt, null, credentials);
+  if (payload.stoppedAt) await EventsHelper.deleteCustomerEvents(customerId, payload.stoppedAt, null, '', credentials);
 
   if (has(payload, 'referent')) {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, payload.referent, company);

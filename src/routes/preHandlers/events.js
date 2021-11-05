@@ -8,6 +8,7 @@ const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
 const InternalHour = require('../../models/InternalHour');
+const CustomerAbsence = require('../../models/CustomerAbsence');
 const UserCompany = require('../../models/UserCompany');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -186,6 +187,24 @@ exports.authorizeEventDeletionList = async (req) => {
 
   const customer = await Customer.countDocuments({ _id: req.query.customer, company: get(credentials, 'company._id') });
   if (!customer) throw Boom.notFound();
+
+  if (req.query.absenceType) {
+    const customerCount = await Customer.countDocuments({
+      _id: req.query.customer,
+      $or: [
+        { $and: [{ stoppedAt: { $gte: req.query.startDate } }, { stoppedAt: { $lte: req.query.endDate } }] },
+        { stoppedAt: { $lte: req.query.startDate } },
+      ],
+      company: get(credentials, 'company._id'),
+    });
+    if (customerCount) throw Boom.forbidden(translate[language].stoppedCustomer);
+
+    const customerAbsence = await CustomerAbsence.countDocuments({
+      customer: req.query.customer,
+      $and: [{ endDate: { $gte: req.query.startDate } }, { startDate: { $lte: req.query.endDate } }],
+    });
+    if (customerAbsence) throw Boom.forbidden(translate[language].customerAlreadyAbsent);
+  }
 
   return null;
 };
