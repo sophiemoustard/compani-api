@@ -98,7 +98,6 @@ const UserSchema = mongoose.Schema({
     address: { type: mongoose.Schema(addressSchemaDefinition, { id: false, _id: false }) },
     phone: { type: String, validate: PHONE_VALIDATION },
   },
-  emergencyPhone: { type: String },
   mentor: { type: String },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   administrative: {
