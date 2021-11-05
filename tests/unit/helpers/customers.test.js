@@ -499,7 +499,13 @@ describe('getCustomer', () => {
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
-        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subscriptions.service',
+            populate: [{ path: 'versions.surcharge' }, { path: 'versions.billingItems' }],
+          }],
+        },
         { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer' }] },
         {
           query: 'populate',
@@ -529,7 +535,13 @@ describe('getCustomer', () => {
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
-        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subscriptions.service',
+            populate: [{ path: 'versions.surcharge' }, { path: 'versions.billingItems' }],
+          }],
+        },
         { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer' }] },
         {
           query: 'populate',
@@ -571,7 +583,13 @@ describe('getCustomer', () => {
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
-        { query: 'populate', args: [{ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subscriptions.service',
+            populate: [{ path: 'versions.surcharge' }, { path: 'versions.billingItems' }],
+          }],
+        },
         { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer' }] },
         {
           query: 'populate',
