@@ -241,7 +241,7 @@ exports.plugin = {
               }),
               socialSecurityNumber: Joi.number(),
               payment: Joi.object().keys({ rib: Joi.object().keys({ iban: Joi.string(), bic: Joi.string() }) }),
-              emergencyContact: Joi.object().keys({ name: Joi.string(), phoneNumber: Joi.string() }),
+              emergencyContact: Joi.object().keys({ name: Joi.string(), phoneNumber: phoneNumberValidation }),
             }),
             isActive: Joi.boolean(),
             establishment: Joi.objectId(),

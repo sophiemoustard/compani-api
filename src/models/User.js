@@ -136,7 +136,7 @@ const UserSchema = mongoose.Schema({
     medicalCertificate: driveResourceSchemaDefinition,
     emergencyContact: {
       name: { type: String },
-      phoneNumber: { type: String },
+      phoneNumber: { type: String, validate: PHONE_VALIDATION },
     },
   },
   isConfirmed: { type: Boolean, default: false },
