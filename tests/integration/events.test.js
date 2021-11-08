@@ -45,6 +45,7 @@ const DatesHelper = require('../../src/helpers/dates');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
+const CustomerAbsence = require('../../src/models/CustomerAbsence');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -1825,6 +1826,55 @@ describe('DELETE /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should create a customer absence', async () => {
+      const customer = customerAuxiliaries[0]._id;
+      const startDate = '2021-11-01T10:30:18.653';
+      const endDate = '2021-11-05T10:30:18.653';
+      const absenceType = 'leave';
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(200);
+      const customerAbsenceCount = await CustomerAbsence.countDocuments({
+        customer,
+        company: authCompany._id,
+        absenceType,
+        startDate,
+        endDate,
+      });
+      expect(customerAbsenceCount).toBe(1);
+    });
+
+    it('should return a 403 if customer is stopped', async () => {
+      const customer = customerAuxiliaries[2]._id;
+      const startDate = '2021-02-14T10:30:18.65';
+      const endDate = '2021-02-15T10:30:18.65';
+      const absenceType = 'leave';
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if a customer absence already exists on this period', async () => {
+      const customer = customerAuxiliaries[3]._id;
+      const startDate = '2021-11-12T10:30:18.653Z';
+      const endDate = '2021-11-14T10:30:18.653Z';
+      const absenceType = 'hospitalization';
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(403);
     });
   });
 
