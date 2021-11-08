@@ -26,6 +26,6 @@ describe('createAbsence', () => {
     };
     await CustomerAbsenceHelper.create(payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(create,{ ...payload, company: credentials.company._id });
+    sinon.assert.calledOnceWithExactly(create, { ...payload, company: credentials.company._id });
   });
 });

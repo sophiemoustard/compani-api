@@ -987,7 +987,7 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   });
 });
 
-describe('deleteCustomerEvents #tag', () => {
+describe('deleteCustomerEvents', () => {
   let deleteEventsAndRepetition;
   let customerAbsenceCreation;
   const customerId = new ObjectID();
@@ -1003,10 +1003,10 @@ describe('deleteCustomerEvents #tag', () => {
     customerAbsenceCreation.restore();
   });
 
-  it('should delete all events between start and end date and not delete the repetition #tag', async () => {
+  it('should delete all events between start and end date and not delete the repetition', async () => {
     const startDate = '2019-10-10';
     const endDate = '2019-10-19';
-    const absenceType= '';
+    const absenceType = '';
     const query = {
       customer: customerId,
       startDate: { $gte: moment(startDate).toDate(), $lte: moment(endDate).endOf('d').toDate() },
