@@ -1029,6 +1029,7 @@ describe('deleteCustomerEvents', () => {
 
     await EventHelper.deleteCustomerEvents(customerId, startDate, null, absenceType, credentials);
 
+    sinon.assert.notCalled(customerAbsenceCreation);
     sinon.assert.calledOnceWithExactly(deleteEventsAndRepetition, query, true, credentials);
   });
 

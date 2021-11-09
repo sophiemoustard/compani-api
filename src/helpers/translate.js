@@ -470,8 +470,8 @@ module.exports = {
     archivingNotAllowed: 'Archivage impossible : interventions non facturées.',
     archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver une personne avant sa date d\'arrêt.',
     /* Customer absence */
-    stoppedCustomer: 'Vous ne pouvez pas créer d\'absence sur une période où le bénéficiaire est arrêté.',
-    customerAlreadyAbsent: 'Impossible: une absence existe déjà sur la période.',
+    stoppedCustomer: 'Impossible: le bénéficiaire est arrêté sur cette période.',
+    customerAlreadyAbsent: 'Impossible: une absence existe déjà sur cette période.',
     customerAbsenceCreated: 'Absence créée.',
     endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
     /* Customer notes */

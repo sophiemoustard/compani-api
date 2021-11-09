@@ -189,14 +189,18 @@ exports.authorizeEventDeletionList = async (req) => {
   const customer = await Customer.countDocuments({ _id: req.query.customer, company: get(credentials, 'company._id') });
   if (!customer) throw Boom.notFound();
 
+  if (isBefore(req.query.endDate, req.query.startDate)) {
+    throw Boom.forbidden(translate[language].endDateBeforeStartDate);
+  }
+
   if (req.query.absenceType) {
     const customerCount = await Customer.countDocuments({
       _id: req.query.customer,
+      company: get(credentials, 'company._id'),
       $or: [
         { $and: [{ stoppedAt: { $gte: req.query.startDate } }, { stoppedAt: { $lte: req.query.endDate } }] },
         { stoppedAt: { $lte: req.query.startDate } },
       ],
-      company: get(credentials, 'company._id'),
     });
     if (customerCount) throw Boom.forbidden(translate[language].stoppedCustomer);
 
@@ -205,10 +209,6 @@ exports.authorizeEventDeletionList = async (req) => {
       $and: [{ endDate: { $gte: req.query.startDate } }, { startDate: { $lte: req.query.endDate } }],
     });
     if (customerAbsenceCount) throw Boom.forbidden(translate[language].customerAlreadyAbsent);
-  }
-
-  if (isBefore(req.query.endDate, req.query.startDate)) {
-    throw Boom.forbidden(translate[language].endDateBeforeStartDate);
   }
 
   return null;

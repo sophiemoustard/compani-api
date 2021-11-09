@@ -373,6 +373,13 @@ const customerAbsences = [
     endDate: '2021-11-15T10:30:18.653Z',
     absenceType: 'leave',
   },
+  {
+    company: authCompany._id,
+    customer: customerAuxiliaries[2],
+    startDate: '2019-11-11T10:30:18.653Z',
+    endDate: '2019-11-15T10:30:18.653Z',
+    absenceType: 'leave',
+  },
 ];
 
 const eventsList = [

@@ -368,7 +368,7 @@ exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType,
 
   if (absenceType) {
     const queryCustomerAbsence = { customer, startDate, endDate, absenceType };
-    await CustomerAbsencesHelper.create(queryCustomerAbsence, credentials);
+    await CustomerAbsencesHelper.create(queryCustomerAbsence, companyId);
   }
 
   await exports.deleteEventsAndRepetition(query, !endDate, credentials);
