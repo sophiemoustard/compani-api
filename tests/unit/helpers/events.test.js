@@ -1041,7 +1041,6 @@ describe('deleteCustomerEvents', () => {
       startDate: { $gte: moment(startDate).toDate(), $lte: moment(endDate).endOf('d').toDate() },
       company: credentials.company._id,
     };
-
     const queryCustomer = { customer: query.customer, startDate, endDate, absenceType };
 
     await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, absenceType, credentials);

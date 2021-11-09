@@ -123,6 +123,7 @@ module.exports = {
     stoppedCustomer: 'Can\'t create an absence on a period where customer is stopped.',
     customerAlreadyAbsent: 'Customer absence already exists on this period.',
     customerAbsenceCreated: 'Customer absence created.',
+    endDateBeforeStartDate: 'End date must be later than start date.',
     /* Customer notes */
     customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
@@ -469,9 +470,10 @@ module.exports = {
     archivingNotAllowed: 'Archivage impossible : interventions non facturées.',
     archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver une personne avant sa date d\'arrêt.',
     /* Customer absence */
-    stoppedCustomer: 'Vous ne pouvez pas créer d\'absence sur une période où le benéficiaire est arrêté.',
+    stoppedCustomer: 'Vous ne pouvez pas créer d\'absence sur une période où le bénéficiaire est arrêté.',
     customerAlreadyAbsent: 'Impossible: une absence existe déjà sur la période.',
     customerAbsenceCreated: 'Absence créée.',
+    endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
     /* Customer notes */
     customerNoteCreated: 'Note de suivi créée.',
     customerNotesFound: 'Notes de suivi trouvées.',

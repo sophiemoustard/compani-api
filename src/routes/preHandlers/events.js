@@ -22,6 +22,7 @@ const {
   ILLNESS,
   INTERVENTION,
 } = require('../../helpers/constants');
+const { isBefore } = require('../../helpers/dates');
 
 const { language } = translate;
 
@@ -199,11 +200,15 @@ exports.authorizeEventDeletionList = async (req) => {
     });
     if (customerCount) throw Boom.forbidden(translate[language].stoppedCustomer);
 
-    const customerAbsence = await CustomerAbsence.countDocuments({
+    const customerAbsenceCount = await CustomerAbsence.countDocuments({
       customer: req.query.customer,
       $and: [{ endDate: { $gte: req.query.startDate } }, { startDate: { $lte: req.query.endDate } }],
     });
-    if (customerAbsence) throw Boom.forbidden(translate[language].customerAlreadyAbsent);
+    if (customerAbsenceCount) throw Boom.forbidden(translate[language].customerAlreadyAbsent);
+  }
+
+  if (isBefore(req.query.endDate, req.query.startDate)) {
+    throw Boom.forbidden(translate[language].endDateBeforeStartDate);
   }
 
   return null;

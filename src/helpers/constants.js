@@ -71,6 +71,8 @@ module.exports = {
       [this.COUPLE]: 'Mme et M.',
     };
   },
+  // CUSTOMER ABSENCE
+  LEAVE: 'leave',
   // CUSTOMER FUNDINGS
   MONTHLY: 'monthly',
   ONCE: 'once',

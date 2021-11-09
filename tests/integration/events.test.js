@@ -1876,6 +1876,20 @@ describe('DELETE /events', () => {
       });
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 if endDate is before startDate', async () => {
+      const customer = customerAuxiliaries[0]._id;
+      const startDate = '2021-11-05T10:30:18.653';
+      const endDate = '2021-11-01T10:30:18.653';
+      const absenceType = 'leave';
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {

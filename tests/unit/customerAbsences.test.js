@@ -5,11 +5,9 @@ const CustomerAbsenceHelper = require('../../src/helpers/customerAbsences');
 
 describe('createAbsence', () => {
   let create;
-
   beforeEach(() => {
     create = sinon.stub(CustomerAbsence, 'create');
   });
-
   afterEach(() => {
     create.restore();
   });
