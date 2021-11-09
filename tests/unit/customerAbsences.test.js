@@ -14,16 +14,14 @@ describe('createAbsence', () => {
 
   it('should create customer absence', async () => {
     const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-
     const payload = {
       startDate: new Date(),
       endDate: new Date(),
       customer: new ObjectID(),
       absenceType: 'leave',
     };
-    await CustomerAbsenceHelper.create(payload, credentials);
+    await CustomerAbsenceHelper.create(payload, companyId);
 
-    sinon.assert.calledOnceWithExactly(create, { ...payload, company: credentials.company._id });
+    sinon.assert.calledOnceWithExactly(create, { ...payload, company: companyId });
   });
 });

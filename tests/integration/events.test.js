@@ -1840,8 +1840,14 @@ describe('DELETE /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
-      const customerAbsenceCount = await CustomerAbsence.countDocuments({ customer, company: authCompany._id });
-      expect(customerAbsenceCount).toBe(2);
+      const customerAbsenceCount = await CustomerAbsence.countDocuments({
+        customer,
+        company: authCompany._id,
+        absenceType,
+        startDate,
+        endDate,
+      });
+      expect(customerAbsenceCount).toBe(1);
     });
 
     it('should return a 403 if customer is stopped', async () => {

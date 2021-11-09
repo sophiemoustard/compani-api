@@ -1016,6 +1016,7 @@ describe('deleteCustomerEvents', () => {
     await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, absenceType, credentials);
 
     sinon.assert.calledOnceWithExactly(deleteEventsAndRepetition, query, false, credentials);
+    sinon.assert.notCalled(customerAbsenceCreation);
   });
 
   it('should delete all events and repetition as of start date', async () => {
@@ -1029,7 +1030,6 @@ describe('deleteCustomerEvents', () => {
 
     await EventHelper.deleteCustomerEvents(customerId, startDate, null, absenceType, credentials);
 
-    sinon.assert.notCalled(customerAbsenceCreation);
     sinon.assert.calledOnceWithExactly(deleteEventsAndRepetition, query, true, credentials);
   });
 
@@ -1046,7 +1046,7 @@ describe('deleteCustomerEvents', () => {
 
     await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, absenceType, credentials);
 
-    sinon.assert.calledOnceWithExactly(customerAbsenceCreation, queryCustomer, credentials);
+    sinon.assert.calledOnceWithExactly(customerAbsenceCreation, queryCustomer, credentials.company._id);
     sinon.assert.calledOnceWithExactly(deleteEventsAndRepetition, query, false, credentials);
   });
 });
