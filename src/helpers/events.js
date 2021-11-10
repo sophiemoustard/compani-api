@@ -21,6 +21,7 @@ const {
 } = require('./constants');
 const translate = require('./translate');
 const UtilsHelper = require('./utils');
+const CustomerAbsencesHelper = require('./customerAbsences');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
@@ -355,14 +356,20 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
   return Promise.all(promises);
 };
 
-exports.deleteCustomerEvents = async (customer, startDate, endDate, credentials) => {
+exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const query = {
     customer: new ObjectID(customer),
     startDate: { $gte: moment(startDate).toDate() },
     company: companyId,
   };
+
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
+
+  if (absenceType) {
+    const queryCustomerAbsence = { customer, startDate, endDate, absenceType };
+    await CustomerAbsencesHelper.create(queryCustomerAbsence, companyId);
+  }
 
   await exports.deleteEventsAndRepetition(query, !endDate, credentials);
 };

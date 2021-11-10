@@ -119,6 +119,11 @@ module.exports = {
     qrCodeCreated: 'QR code created.',
     archivingNotAllowed: 'Archiving not allowed : customer has non-billed interventions.',
     archivingNotAllowedBeforeStoppingDate: 'Archiving not allowed before stopping date.',
+    /* Customer absence */
+    stoppedCustomer: 'Can\'t create an absence on a period where customer is stopped.',
+    customerAlreadyAbsent: 'Customer absence already exists on this period.',
+    customerAbsenceCreated: 'Customer absence created.',
+    endDateBeforeStartDate: 'End date must be later than start date.',
     /* Customer notes */
     customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
@@ -464,6 +469,11 @@ module.exports = {
     qrCodeCreated: 'QR code créé.',
     archivingNotAllowed: 'Archivage impossible : interventions non facturées.',
     archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver une personne avant sa date d\'arrêt.',
+    /* Customer absence */
+    stoppedCustomer: 'Impossible: le bénéficiaire est arrêté sur cette période.',
+    customerAlreadyAbsent: 'Impossible: une absence existe déjà sur cette période.',
+    customerAbsenceCreated: 'Absence créée.',
+    endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
     /* Customer notes */
     customerNoteCreated: 'Note de suivi créée.',
     customerNotesFound: 'Notes de suivi trouvées.',

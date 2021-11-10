@@ -1033,7 +1033,14 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     expect(result).toBe(customerResult);
-    sinon.assert.calledOnceWithExactly(deleteCustomerEvents, customerId, '2019-06-25T16:34:04.144Z', null, credentials);
+    sinon.assert.calledOnceWithExactly(
+      deleteCustomerEvents,
+      customerId,
+      '2019-06-25T16:34:04.144Z',
+      null,
+      '',
+      credentials
+    );
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [

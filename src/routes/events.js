@@ -30,6 +30,7 @@ const {
   TIMESTAMPING_ACTION_TYPE_LIST,
   MANUAL_TIME_STAMPING,
 } = require('../helpers/constants');
+const { CUSTOMER_ABSENCE_TYPE } = require('../models/CustomerAbsence');
 const {
   EVENT_TYPES,
   ABSENCE_NATURES,
@@ -261,6 +262,7 @@ exports.plugin = {
             customer: Joi.objectId().required(),
             startDate: Joi.date().required(),
             endDate: Joi.date(),
+            absenceType: Joi.string().valid(...CUSTOMER_ABSENCE_TYPE),
           }),
         },
         pre: [{ method: authorizeEventDeletionList }],

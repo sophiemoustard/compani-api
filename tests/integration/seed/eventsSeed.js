@@ -12,6 +12,7 @@ const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const CreditNote = require('../../../src/models/CreditNote');
+const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Helper = require('../../../src/models/Helper');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
@@ -233,7 +234,7 @@ const serviceFromOtherCompany = {
 };
 
 const customerAuxiliaries = [
-  {
+  { // 0
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { firstname: 'Romain', lastname: 'Bardet' },
@@ -253,7 +254,7 @@ const customerAuxiliaries = [
       phone: '0612345678',
     },
   },
-  {
+  { // 1
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { firstname: 'Pierre', lastname: 'Rolland' },
@@ -273,7 +274,7 @@ const customerAuxiliaries = [
       phone: '0612345671',
     },
   },
-  {
+  { // 2
     _id: new ObjectID(),
     company: authCompany._id,
     identity: { firstname: 'Pierre', lastname: 'Jean' },
@@ -295,6 +296,22 @@ const customerAuxiliaries = [
     stoppedAt: '2021-01-16 17:58:15.519',
     stopReason: 'quality',
     archivedAt: '2021-09-16 17:58:15.519',
+  },
+  { // 3
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { firstname: 'Laurent', lastname: 'Charles' },
+    subscriptions: [{ _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id }],
+    contact: {
+      primaryAddress: {
+        street: '37 rue de Ponthieu',
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345671',
+    },
   },
 ];
 
@@ -347,6 +364,23 @@ const repetitions = [{
   repetition: { frequency: EVERY_WEEK },
   company: authCompany._id,
 }];
+
+const customerAbsences = [
+  {
+    company: authCompany._id,
+    customer: customerAuxiliaries[3],
+    startDate: '2021-11-11T10:30:18.653Z',
+    endDate: '2021-11-15T10:30:18.653Z',
+    absenceType: 'leave',
+  },
+  {
+    company: authCompany._id,
+    customer: customerAuxiliaries[2],
+    startDate: '2019-11-11T10:30:18.653Z',
+    endDate: '2019-11-15T10:30:18.653Z',
+    absenceType: 'leave',
+  },
+];
 
 const eventsList = [
   {
@@ -1035,6 +1069,7 @@ const populateDB = async () => {
   await EventHistory.insertMany(eventHistoriesList);
   await UserCompany.insertMany(userCompanies);
   await CreditNote.insertMany([creditNote, creditNoteFromOtherCompany]);
+  await CustomerAbsence.insertMany(customerAbsences);
 };
 
 const getUserToken = async (userCredentials) => {

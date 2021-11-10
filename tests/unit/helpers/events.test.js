@@ -16,6 +16,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
+const CustomerAbsenceHelper = require('../../../src/helpers/customerAbsences');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const {
@@ -988,42 +989,65 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
 
 describe('deleteCustomerEvents', () => {
   let deleteEventsAndRepetition;
+  let customerAbsenceCreation;
   const customerId = new ObjectID();
   const userId = new ObjectID();
   const credentials = { _id: userId, company: { _id: new ObjectID() } };
 
   beforeEach(() => {
     deleteEventsAndRepetition = sinon.stub(EventHelper, 'deleteEventsAndRepetition');
+    customerAbsenceCreation = sinon.stub(CustomerAbsenceHelper, 'create');
   });
   afterEach(() => {
     deleteEventsAndRepetition.restore();
+    customerAbsenceCreation.restore();
   });
 
   it('should delete all events between start and end date and not delete the repetition', async () => {
     const startDate = '2019-10-10';
     const endDate = '2019-10-19';
+    const absenceType = '';
     const query = {
       customer: customerId,
-      startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
+      startDate: { $gte: moment(startDate).toDate(), $lte: moment(endDate).endOf('d').toDate() },
       company: credentials.company._id,
     };
 
-    await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, credentials);
+    await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, absenceType, credentials);
 
     sinon.assert.calledOnceWithExactly(deleteEventsAndRepetition, query, false, credentials);
+    sinon.assert.notCalled(customerAbsenceCreation);
   });
 
   it('should delete all events and repetition as of start date', async () => {
     const startDate = '2019-10-07';
+    const absenceType = '';
     const query = {
       customer: customerId,
       startDate: { $gte: moment('2019-10-07').toDate() },
       company: credentials.company._id,
     };
 
-    await EventHelper.deleteCustomerEvents(customerId, startDate, null, credentials);
+    await EventHelper.deleteCustomerEvents(customerId, startDate, null, absenceType, credentials);
 
     sinon.assert.calledOnceWithExactly(deleteEventsAndRepetition, query, true, credentials);
+  });
+
+  it('should create customer absence if absenceType is in query', async () => {
+    const startDate = '2021-10-09T22:00:00.000Z';
+    const endDate = '2021-10-12T22:00:00.000Z';
+    const absenceType = 'leave';
+    const query = {
+      customer: customerId,
+      startDate: { $gte: moment(startDate).toDate(), $lte: moment(endDate).endOf('d').toDate() },
+      company: credentials.company._id,
+    };
+    const queryCustomer = { customer: query.customer, startDate, endDate, absenceType };
+
+    await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, absenceType, credentials);
+
+    sinon.assert.calledOnceWithExactly(customerAbsenceCreation, queryCustomer, credentials.company._id);
+    sinon.assert.calledOnceWithExactly(deleteEventsAndRepetition, query, false, credentials);
   });
 });
 
