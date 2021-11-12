@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const { authorizeCustomerAbsenceGet } = require('./preHandlers/customerAbsences');
 const { list } = require('../controllers/customerAbsenceController');
+const { objectIdOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-customer-absences',
@@ -12,7 +13,7 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object({
-            customer: Joi.objectId(),
+            customer: objectIdOrArray,
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
           }),

@@ -50,8 +50,6 @@ exports.getCustomersBySector = async (query, credentials) => {
       { auxiliary: { $in: UtilsHelper.formatObjectIdsArray(sectorHistories.map(sh => sh.auxiliary)) } },
       { sector: { $in: UtilsHelper.formatObjectIdsArray(query.sector) } },
     ],
-    startDate: { $lte: query.endDate },
-    endDate: { $gte: query.startDate },
     company: companyId,
   };
   const events = await Event

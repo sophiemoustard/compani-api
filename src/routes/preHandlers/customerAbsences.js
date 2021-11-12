@@ -1,13 +1,15 @@
 const get = require('lodash/get');
 const Boom = require('@hapi/boom');
+const UtilsHelper = require('../../helpers/utils');
 const Customer = require('../../models/Customer');
 
 exports.authorizeCustomerAbsenceGet = async (req) => {
-  const { query } = req;
   const { credentials } = req.auth;
+  companyId = get(credentials, 'company._id');
 
-  const customer = await Customer.countDocuments({ _id: query.customer, company: get(credentials, 'company._id') });
-  if (!customer) throw Boom.notFound();
+  const customers = UtilsHelper.formatIdsArray(req.query.customer);
+  const customerCount = await Customer.countDocuments({ _id: { $in: customers }, company: companyId });
+  if (customerCount !== customers.length) throw Boom.notFound('ici');
 
   return null;
 };

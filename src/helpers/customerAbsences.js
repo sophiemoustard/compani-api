@@ -5,7 +5,7 @@ exports.create = async (payload, companyId) => CustomerAbsence.create({ ...paylo
 
 exports.list = async (query, credentials) => CustomerAbsence
   .find({
-    customer: query.customer,
+    customer: { $in: query.customer },
     startDate: { $gte: query.startDate },
     endDate: { $lte: query.endDate },
     company: get(credentials, 'company._id'),

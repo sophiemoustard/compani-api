@@ -99,8 +99,6 @@ describe('getCustomersBySector', () => {
             {
               type: 'intervention',
               $or: [{ auxiliary: { $in: [auxiliaryIds[1], auxiliaryIds[0]] } }, { sector: { $in: [sectorId] } }],
-              startDate: { $lte: '2019-05-14T09:00:00' },
-              endDate: { $gte: '2019-04-14T09:00:00' },
               company: companyId,
             },
             { customer: 1 },
