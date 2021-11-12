@@ -41,14 +41,14 @@ const customerAbsences = [
     customer: customersList[0],
     startDate: '2021-10-01T00:00:00.000Z',
     endDate: '2021-10-15T00:00:00.000Z',
-    absenceType: 'leave'
+    absenceType: 'leave',
   },
   {
     company: authCompany._id,
     customer: customersList[0],
     startDate: '2021-11-01T00:00:00.000Z',
     endDate: '2021-11-05T00:00:00.000Z',
-    absenceType: 'other'
+    absenceType: 'other',
   },
 ];
 
