@@ -39,31 +39,39 @@ describe('list', () => {
   it('should get customer absences', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
-    const payload = { customer: new ObjectID() };
+    const query = { customer: new ObjectID(), startDate: '2021-09-09T00:00:00', endDate: '2021-12-09T00:00:00' };
     const customerAbsences = [
       {
         company: companyId,
-        customer: payload.customer,
-        startDate: new Date(),
-        endDate: new Date(),
+        customer: query.customer,
+        startDate: '2019-09-20T00:00:00',
+        endDate: '2019-09-22T00:00:00',
         absenceType: 'leave',
       },
       {
         company: companyId,
-        customer: payload.customer,
-        startDate: new Date(),
-        endDate: new Date(),
+        customer: query.customer,
+        startDate: '2021-11-20T00:00:00',
+        endDate: '2021-11-25T00:00:00',
         absenceType: 'other',
       },
     ];
 
     findCustomerAbsence.returns(SinonMongoose.stubChainedQueries([[customerAbsences], ['populate', 'lean']]));
-    await CustomerAbsenceHelper.list(payload, credentials);
+    await CustomerAbsenceHelper.list(query, credentials);
 
     SinonMongoose.calledWithExactly(
       findCustomerAbsence,
       [
-        { query: 'find', args: [{ customer: payload.customer, company: companyId }] },
+        {
+          query: 'find',
+          args: [{
+            customer: query.customer,
+            startDate: { $gte: query.startDate },
+            endDate: { $lte: query.endDate },
+            company: companyId,
+          }],
+        },
         { query: 'populate', args: [{ path: 'customer', select: 'contact identity' }] },
         { query: 'lean' },
       ]
