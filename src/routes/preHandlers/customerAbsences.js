@@ -5,11 +5,11 @@ const Customer = require('../../models/Customer');
 
 exports.authorizeCustomerAbsenceGet = async (req) => {
   const { credentials } = req.auth;
-  companyId = get(credentials, 'company._id');
+  const companyId = get(credentials, 'company._id');
 
   const customers = UtilsHelper.formatIdsArray(req.query.customer);
   const customerCount = await Customer.countDocuments({ _id: { $in: customers }, company: companyId });
-  if (customerCount !== customers.length) throw Boom.notFound('ici');
+  if (customerCount !== customers.length) throw Boom.notFound();
 
   return null;
 };

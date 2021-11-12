@@ -66,7 +66,7 @@ describe('list', () => {
         {
           query: 'find',
           args: [{
-            customer: query.customer,
+            customer: { $in: query.customer },
             startDate: { $gte: query.startDate },
             endDate: { $lte: query.endDate },
             company: companyId,
