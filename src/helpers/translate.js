@@ -125,7 +125,7 @@ module.exports = {
     customerAlreadyAbsent: 'Customer absence already exists on this period.',
     customerAbsenceCreated: 'Customer absence created.',
     endDateBeforeStartDate: 'End date must be later than start date.',
-    customerAbsencesNotFound: 'Customer absence not found.',
+    customerAbsenceNotFound: 'Customer absence not found.',
     customerAbsencesFound: 'Customer absence found.',
     /* Customer notes */
     customerNoteCreated: 'Customer note created.',
@@ -478,7 +478,7 @@ module.exports = {
     customerAlreadyAbsent: 'Impossible: une absence existe déjà sur cette période.',
     customerAbsenceCreated: 'Absence créée.',
     endDateBeforeStartDate: 'Impossible: la date de fin doit être postérieure à la date de début.',
-    customerAbsencesNotFound: 'Absence bénéficiaire non trouvée.',
+    customerAbsenceNotFound: 'Absence bénéficiaire non trouvée.',
     customerAbsencesFound: 'Absences bénéficiaire trouvées.',
     /* Customer notes */
     customerNoteCreated: 'Note de suivi créée.',

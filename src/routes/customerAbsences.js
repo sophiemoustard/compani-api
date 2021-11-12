@@ -13,9 +13,9 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object({
-            customer: objectIdOrArray,
+            customer: objectIdOrArray.required(),
             startDate: Joi.date().required(),
-            endDate: Joi.date().required(),
+            endDate: Joi.date().greater(Joi.ref('startDate')).required(),
           }),
         },
         pre: [{ method: authorizeCustomerAbsenceGet }],

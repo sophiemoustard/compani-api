@@ -1,16 +1,16 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
-const CustomerAbsenceHelper = require('../helpers/customerAbsences');
+const CustomerAbsencesHelper = require('../helpers/customerAbsences');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customerAbsences = await CustomerAbsenceHelper.list(req.query, req.auth.credentials);
+    const customerAbsences = await CustomerAbsencesHelper.list(req.query, req.auth.credentials);
 
     return {
       message: customerAbsences.length === 0
-        ? translate[language].customerAbsencesNotFound
+        ? translate[language].customerAbsenceNotFound
         : translate[language].customerAbsencesFound,
       data: { customerAbsences },
     };

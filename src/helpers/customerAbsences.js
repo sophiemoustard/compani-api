@@ -3,8 +3,7 @@ const CustomerAbsence = require('../models/CustomerAbsence');
 
 exports.create = async (payload, companyId) => CustomerAbsence.create({ ...payload, company: companyId });
 
-exports.list = async (query, credentials) => CustomerAbsence
-  .find({
+exports.list = async (query, credentials) => CustomerAbsence.find({
     customer: { $in: query.customer },
     startDate: { $gte: query.startDate },
     endDate: { $lte: query.endDate },

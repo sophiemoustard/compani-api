@@ -51,6 +51,8 @@ exports.getCustomersBySector = async (query, credentials) => {
       { sector: { $in: UtilsHelper.formatObjectIdsArray(query.sector) } },
     ],
     company: companyId,
+    startDate: { $lte: query.endDate },
+    endDate: { $gte: query.startDate },
   };
   const events = await Event
     .find(eventQuery, { customer: 1 })
