@@ -8,6 +8,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const EventHistory = require('../models/EventHistory');
 const ContractsHelper = require('./contracts');
+const CustomerAbsencesHelper = require('./customerAbsences');
 const EventRepository = require('../repositories/EventRepository');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
@@ -65,7 +66,14 @@ exports.isEditionAllowed = async (event) => {
     if (!isUserContractValidOnEventDates) return false;
   }
 
-  if (event.type === INTERVENTION) return exports.isCustomerSubscriptionValid(event);
+  if (event.type === INTERVENTION) {
+    if (event.customer) {
+      const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, event.startDate);
+      if (customerIsAbsent) throw Boom.conflict(translate[language].customerIsAbsent);
+    }
+
+    return exports.isCustomerSubscriptionValid(event);
+  }
 
   return true;
 };
