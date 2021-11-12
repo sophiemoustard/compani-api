@@ -58,7 +58,7 @@ describe('list', () => {
     ];
 
     findCustomerAbsence.returns(SinonMongoose.stubChainedQueries([[customerAbsences], ['populate', 'lean']]));
-  
+
     await CustomerAbsenceHelper.list(query, credentials);
 
     SinonMongoose.calledWithExactly(

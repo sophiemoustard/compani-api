@@ -33,6 +33,20 @@ const customersList = [
       },
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Gerars', lastname: 'Menvussa' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+  },
 ];
 
 const customerAbsences = [
@@ -42,6 +56,13 @@ const customerAbsences = [
     startDate: '2021-10-01T00:00:00.000Z',
     endDate: '2021-10-15T00:00:00.000Z',
     absenceType: 'leave',
+  },
+  {
+    company: authCompany._id,
+    customer: customersList[2],
+    startDate: '2021-10-04T00:00:00.000Z',
+    endDate: '2021-10-05T00:00:00.000Z',
+    absenceType: 'hospitalization',
   },
   {
     company: authCompany._id,
