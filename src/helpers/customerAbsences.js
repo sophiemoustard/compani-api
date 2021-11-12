@@ -4,7 +4,12 @@ const CustomerAbsence = require('../models/CustomerAbsence');
 exports.create = async (payload, companyId) => CustomerAbsence.create({ ...payload, company: companyId });
 
 exports.list = async (query, credentials) => CustomerAbsence
-  .find({ customer: query.customer, company: get(credentials, 'company._id') })
+  .find({
+    customer: query.customer,
+    startDate: { $gte: query.startDate },
+    endDate: { $lte: query.endDate },
+    company: get(credentials, 'company._id'),
+  })
   .populate({ path: 'customer', select: 'contact identity' })
   .lean();
 
