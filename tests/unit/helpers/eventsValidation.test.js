@@ -484,7 +484,7 @@ describe('isCreationAllowed', () => {
       await EventsValidationHelper.isCreationAllowed(event, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
-      expect(e.output.payload.message).toEqual('Evènement en conflit avec les évènements de l\'auxiliaire.');
+      expect(e.output.payload.message).toEqual('L\'évènement est en conflit avec les évènements de l\'auxiliaire.');
     } finally {
       sinon.assert.notCalled(isEditionAllowed);
       sinon.assert.calledWithExactly(hasConflicts, event);
