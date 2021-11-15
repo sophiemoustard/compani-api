@@ -71,6 +71,13 @@ const customerAbsences = [
     endDate: '2021-11-05T00:00:00.000Z',
     absenceType: 'other',
   },
+  {
+    company: otherCompany._id,
+    customer: customersList[1],
+    startDate: '2021-10-08T00:00:00.000Z',
+    endDate: '2021-10-09T00:00:00.000Z',
+    absenceType: 'other',
+  },
 ];
 
 const populateDB = async () => {
