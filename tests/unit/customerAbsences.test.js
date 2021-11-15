@@ -1,5 +1,6 @@
 const { ObjectID } = require('bson');
 const sinon = require('sinon');
+const expect = require('expect');
 const CustomerAbsence = require('../../src/models/CustomerAbsence');
 const CustomerAbsenceHelper = require('../../src/helpers/customerAbsences');
 
@@ -20,6 +21,7 @@ describe('createAbsence', () => {
       customer: new ObjectID(),
       absenceType: 'leave',
     };
+
     await CustomerAbsenceHelper.create(payload, companyId);
 
     sinon.assert.calledOnceWithExactly(create, { ...payload, company: companyId });
@@ -39,11 +41,25 @@ describe('isAbsent', () => {
     const customer = new ObjectID();
     const date = new Date('2019-11-01');
 
-    await CustomerAbsenceHelper.isAbsent(customer, date);
+    countDocuments.returns(1);
 
+    const result = await CustomerAbsenceHelper.isAbsent(customer, date);
+
+    expect(result).toEqual(true);
     sinon.assert.calledOnceWithExactly(
       countDocuments,
       { customer, startDate: { $lte: new Date('2019-11-01') }, endDate: { $gte: new Date('2019-11-01') } }
     );
+  });
+
+  it('should return false if customer is not absent', async () => {
+    const customer = new ObjectID();
+    const date = new Date('2019-11-01');
+
+    countDocuments.returns(0);
+
+    const result = await CustomerAbsenceHelper.isAbsent(customer, date);
+
+    expect(result).toEqual(false);
   });
 });

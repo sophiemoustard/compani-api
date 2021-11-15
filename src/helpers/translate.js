@@ -470,7 +470,7 @@ module.exports = {
     qrCodeCreated: 'QR code créé.',
     archivingNotAllowed: 'Archivage impossible : interventions non facturées.',
     archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver une personne avant sa date d\'arrêt.',
-    customerIsAbsent: 'Le bénéficiaire est absent à cette date',
+    customerIsAbsent: 'Le bénéficiaire est absent à cette date.',
     /* Customer absence */
     stoppedCustomer: 'Impossible: le bénéficiaire est arrêté sur cette période.',
     customerAlreadyAbsent: 'Impossible: une absence existe déjà sur cette période.',

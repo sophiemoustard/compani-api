@@ -67,10 +67,8 @@ exports.isEditionAllowed = async (event) => {
   }
 
   if (event.type === INTERVENTION) {
-    if (event.customer) {
-      const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, event.startDate);
-      if (customerIsAbsent) throw Boom.conflict(translate[language].customerIsAbsent);
-    }
+    const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, event.startDate);
+    if (customerIsAbsent) throw Boom.conflict(translate[language].customerIsAbsent);
 
     return exports.isCustomerSubscriptionValid(event);
   }
