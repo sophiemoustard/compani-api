@@ -62,6 +62,16 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
+  {
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    company: authCompany._id,
+    misc: 'old session',
+    type: 'intra',
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
+    archivedAt: '2021-11-15T09:00:00',
+  },
 ];
 
 const courseSlotsList = [
@@ -105,6 +115,13 @@ const courseSlotsList = [
     startDate: '2020-05-10T09:00:00',
     endDate: '2020-05-10T12:00:00',
     course: coursesList[1]._id,
+    step: stepsList[0]._id,
+  },
+  { // old session slot
+    _id: new ObjectID(),
+    startDate: '2020-05-10T09:00:00',
+    endDate: '2020-05-10T12:00:00',
+    course: coursesList[2]._id,
     step: stepsList[0]._id,
   },
 ];
