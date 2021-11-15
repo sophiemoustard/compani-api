@@ -45,6 +45,8 @@ exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const eventsQuery = exports.getListQuery(query, credentials);
 
+  // ATTENTION - Ne pas rajouter les virtuals start/endDateTimeStamp dans les populate des fonctions suivantes
+  // car cela créé des soucis de performance sur les plannings / agendas
   if (query.groupBy === CUSTOMER) return EventRepository.getEventsGroupedByCustomers(eventsQuery, companyId);
   if (query.groupBy === AUXILIARY) return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, companyId);
 
