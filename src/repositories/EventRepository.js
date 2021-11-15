@@ -74,8 +74,6 @@ exports.getEventList = (rules, companyId) => Event.find(rules)
   .populate({ path: 'internalHour', select: '-__v -createdAt -updatedAt' })
   .populate({ path: 'extension', select: '-__v -createdAt -updatedAt' })
   .populate({ path: 'histories', select: '-__v -updatedAt', match: { company: companyId } })
-  .populate({ path: 'startDateTimeStamp' })
-  .populate({ path: 'endDateTimeStamp' })
   .lean({ autopopulate: true, viruals: true });
 
 exports.formatEventsInConflictQuery = (dates, auxiliary, types, companyId, eventId = null) => {
