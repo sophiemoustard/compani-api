@@ -119,6 +119,7 @@ module.exports = {
     qrCodeCreated: 'QR code created.',
     archivingNotAllowed: 'Archiving not allowed : customer has non-billed interventions.',
     archivingNotAllowedBeforeStoppingDate: 'Archiving not allowed before stopping date.',
+    customerIsAbsent: 'Customer is absent at this date.',
     /* Customer absence */
     stoppedCustomer: 'Can\'t create an absence on a period where customer is stopped.',
     customerAlreadyAbsent: 'Customer absence already exists on this period.',
@@ -469,6 +470,7 @@ module.exports = {
     qrCodeCreated: 'QR code créé.',
     archivingNotAllowed: 'Archivage impossible : interventions non facturées.',
     archivingNotAllowedBeforeStoppingDate: 'Vous ne pouvez pas archiver une personne avant sa date d\'arrêt.',
+    customerIsAbsent: 'Le bénéficiaire est absent à cette date.',
     /* Customer absence */
     stoppedCustomer: 'Impossible: le bénéficiaire est arrêté sur cette période.',
     customerAlreadyAbsent: 'Impossible: une absence existe déjà sur cette période.',
@@ -496,7 +498,7 @@ module.exports = {
     eventDeleted: 'Evènement supprimé.',
     eventsDeleted: 'Evènements supprimé.',
     eventDatesNotOnSameDay: 'Les dates de début et de fin devraient être le même jour.',
-    eventsConflict: 'Evènement en conflit avec les évènements de l\'auxiliaire.',
+    eventsConflict: 'L\'évènement est en conflit avec les évènements de l\'auxiliaire.',
     eventTimeStamped: 'Evènement horodaté.',
     alreadyTimeStamped: 'L\'évènement est déja horodaté.',
     timeStampConflict: 'L\'horodatage est en conflit avec un évènement.',
