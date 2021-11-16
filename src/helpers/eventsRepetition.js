@@ -47,11 +47,12 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
     if (event.auxiliary && hasConflicts) {
       payload = { ...omit(payload, 'auxiliary'), 'repetition.frequency': NEVER, sector };
     }
-    if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
-  
+
     const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, payload.startDate);
     if (customerIsAbsent) return null;
   }
+  if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
+
   return new Event(payload);
 };
 
@@ -172,9 +173,11 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   }
 
   for (let i = 0, l = events.length; i < l; i++) {
-    const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(events[i].customer, events[i].startDate);
-    if (customerIsAbsent) continue;
-  
+    if (events[i].type === INTERVENTION) {
+      const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(events[i].customer, events[i].startDate);
+      if (customerIsAbsent) continue;
+    }
+
     const startDate = moment(events[i].startDate).hours(parentStartDate.hours())
       .minutes(parentStartDate.minutes()).toISOString();
     const endDate = moment(events[i].endDate).hours(parentEndDate.hours())

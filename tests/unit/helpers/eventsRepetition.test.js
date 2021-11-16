@@ -12,6 +12,7 @@ const EventsHelper = require('../../../src/helpers/events');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const DatesHelper = require('../../../src/helpers/dates');
+const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const RepetitionHelper = require('../../../src/helpers/repetitions');
 const {
   INTERVENTION,
@@ -27,11 +28,14 @@ momentRange.extendMoment(moment);
 
 describe('formatRepeatedPayload', () => {
   let hasConflicts;
+  let isAbsent;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
+    isAbsent = sinon.stub(CustomerAbsencesHelper, 'isAbsent');
   });
   afterEach(() => {
     hasConflicts.restore();
+    isAbsent.restore();
   });
 
   it('should format event with auxiliary', async () => {
@@ -51,6 +55,7 @@ describe('formatRepeatedPayload', () => {
       endDate: moment(event.endDate).add(step, 'd'),
     };
     hasConflicts.returns(false);
+    isAbsent.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
@@ -58,6 +63,7 @@ describe('formatRepeatedPayload', () => {
     expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
     expect(result.auxiliary).toEqual(auxiliaryId);
     sinon.assert.calledWithExactly(hasConflicts, payload);
+    sinon.assert.calledOnceWithExactly(isAbsent, event.customer, payload.startDate);
   });
 
   it('should format intervention without auxiliary', async () => {
@@ -78,6 +84,7 @@ describe('formatRepeatedPayload', () => {
       endDate: moment(event.endDate).add(step, 'd'),
     };
     hasConflicts.returns(true);
+    isAbsent.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
@@ -113,6 +120,7 @@ describe('formatRepeatedPayload', () => {
     expect(result.auxiliary).toBeDefined();
     expect(result.sector).toBeUndefined();
     sinon.assert.calledWithExactly(hasConflicts, payload);
+    sinon.assert.notCalled(isAbsent);
   });
 
   it('should not called hasConflicts if event is not affected', async () => {
@@ -130,8 +138,11 @@ describe('formatRepeatedPayload', () => {
       startDate: moment(event.startDate).add(step, 'd'),
       endDate: moment(event.endDate).add(step, 'd'),
     };
+
     hasConflicts.returns(false);
+    isAbsent.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
+
     expect(result).toBeDefined();
     expect(result.auxiliary).toBeUndefined();
     expect(result.sector).toEqual(sector);
@@ -152,6 +163,8 @@ describe('formatRepeatedPayload', () => {
       startDate: moment(event.startDate).add(step, 'd'),
       endDate: moment(event.endDate).add(step, 'd'),
     };
+    isAbsent.returns(false);
+
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
@@ -179,6 +192,7 @@ describe('formatRepeatedPayload', () => {
 
     expect(result).toBeNull();
     sinon.assert.calledWithExactly(hasConflicts, payload);
+    sinon.assert.notCalled(isAbsent);
   });
 
   it('should return null if event is an unavailability and auxiliary has conflict', async () => {
@@ -201,6 +215,32 @@ describe('formatRepeatedPayload', () => {
 
     expect(result).toBeNull();
     sinon.assert.calledWithExactly(hasConflicts, payload);
+    sinon.assert.notCalled(isAbsent);
+  });
+
+  it('should return null if customer is absent', async () => {
+    const sector = new ObjectID();
+    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const auxiliaryId = new ObjectID();
+    const event = {
+      startDate: moment('2019-07-14').startOf('d'),
+      endDate: moment('2019-07-15').startOf('d'),
+      auxiliary: auxiliaryId,
+      type: 'intervention',
+    };
+    const step = day.diff(event.startDate, 'd');
+    const payload = {
+      ...omit(event, '_id'),
+      startDate: moment(event.startDate).add(step, 'd'),
+      endDate: moment(event.endDate).add(step, 'd'),
+    };
+
+    hasConflicts.returns(false);
+    isAbsent.returns(true);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
+
+    expect(result).toBeNull();
+    sinon.assert.calledWithExactly(isAbsent, event.customer, payload.startDate);
   });
 });
 
@@ -669,6 +709,7 @@ describe('createRepetitions', () => {
 
 describe('updateRepetition', () => {
   let hasConflicts;
+  let isAbsent;
   let find;
   let updateOne;
   let deleteOne;
@@ -677,6 +718,7 @@ describe('updateRepetition', () => {
   let formatEditionPayload;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
+    isAbsent = sinon.stub(CustomerAbsencesHelper, 'isAbsent');
     find = sinon.stub(Event, 'find');
     updateOne = sinon.stub(Event, 'updateOne');
     deleteOne = sinon.stub(Event, 'deleteOne');
@@ -686,6 +728,7 @@ describe('updateRepetition', () => {
   });
   afterEach(() => {
     hasConflicts.restore();
+    isAbsent.restore();
     find.restore();
     updateOne.restore();
     deleteOne.restore();
@@ -698,10 +741,12 @@ describe('updateRepetition', () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
     const auxiliaryId = new ObjectID();
+    const customerId = new ObjectID();
     const event = {
       repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
       startDate: '2019-03-23T09:00:00.000Z',
       type: INTERVENTION,
+      customer: customerId,
       sector: new ObjectID(),
       auxiliary: auxiliaryId,
     };
@@ -721,6 +766,8 @@ describe('updateRepetition', () => {
         repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
         startDate: '2019-03-24T09:00:00.000Z',
         endDate: '2019-03-24T11:00:00.000Z',
+        type: INTERVENTION,
+        customer: customerId,
         _id: '123456',
       },
       {
@@ -733,6 +780,7 @@ describe('updateRepetition', () => {
 
     find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
     hasConflicts.returns(false);
+    isAbsent.returns(false);
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
@@ -768,6 +816,7 @@ describe('updateRepetition', () => {
       false
     );
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
+    sinon.assert.calledWithExactly(isAbsent, events[1].customer, events[1].startDate);
   });
 
   it('should unassign intervention in conflict', async () => {
@@ -874,6 +923,7 @@ describe('updateRepetition', () => {
       true
     );
     sinon.assert.notCalled(deleteOne);
+    sinon.assert.notCalled(isAbsent);
   });
 
   it('should unassign intervention if all the interventions are unassigned', async () => {
@@ -965,6 +1015,7 @@ describe('updateRepetition', () => {
       false
     );
     sinon.assert.notCalled(deleteOne);
+    sinon.assert.notCalled(isAbsent);
   });
 
   it('should delete internal hours in conflicts', async () => {
@@ -1028,6 +1079,87 @@ describe('updateRepetition', () => {
     sinon.assert.calledWithExactly(deleteOne, { _id: '123456' });
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
     sinon.assert.notCalled(formatEditionPayload);
+    sinon.assert.notCalled(isAbsent);
+  });
+  
+  it('should not update an event of a repetition if customer is absent during this period', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const auxiliaryId = new ObjectID();
+    const customerId = new ObjectID();
+    const customerAbsent = new ObjectID();
+    const event = {
+      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+      startDate: '2019-03-23T09:00:00.000Z',
+      type: INTERVENTION,
+      customer: customerId,
+      sector: new ObjectID(),
+      auxiliary: auxiliaryId,
+    };
+    const payload = {
+      startDate: '2019-03-24T10:00:00.000Z',
+      endDate: '2019-03-24T11:00:00.000Z',
+      auxiliary: '1234567890',
+    };
+    const events = [
+      {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-23T09:00:00.000Z',
+        endDate: '2019-03-23T11:00:00.000Z',
+        type: INTERVENTION,
+        customer: customerId,
+        _id: 'asdfghjk',
+      },
+      {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-24T09:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        type: INTERVENTION,
+        customer: customerId,
+        _id: '123456',
+      },
+      {
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-25T09:00:00.000Z',
+        endDate: '2019-03-25T11:00:00.000Z',
+        type: INTERVENTION,
+        customer: customerAbsent,
+        _id: '654321',
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    hasConflicts.returns(false);
+    isAbsent.onCall(0).returns(false);
+    isAbsent.onCall(1).returns(false);
+    isAbsent.onCall(2).returns(true);
+
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
+    
+    sinon.assert.notCalled(findOneUser);
+    SinonMongoose.calledWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{
+            'repetition.parentId': 'qwertyuiop',
+            'repetition.frequency': { $not: { $eq: 'never' } },
+            startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+            company: credentials.company._id,
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledTwice(hasConflicts);
+    sinon.assert.notCalled(deleteOne);
+    sinon.assert.calledTwice(updateOne);
+    sinon.assert.calledTwice(formatEditionPayload);
+    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
+    sinon.assert.calledWithExactly(isAbsent, events[0].customer, events[0].startDate);
+    sinon.assert.calledWithExactly(isAbsent, events[1].customer, events[1].startDate);
+    sinon.assert.calledWithExactly(isAbsent, events[2].customer, events[2].startDate);
   });
 });
 
