@@ -257,6 +257,17 @@ const coursesList = [
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
+  { // 14 archived course
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    company: authCompany._id,
+    misc: 'old session',
+    trainer: trainer._id,
+    trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
+    type: 'intra',
+    salesRepresentative: vendorAdmin._id,
+    archivedAt: '2021-01-01T00:00:00.000Z',
+  },
 ];
 
 const questionnaire = {
