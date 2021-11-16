@@ -14,6 +14,7 @@ const {
   INTERVENTION,
 } = require('../helpers/constants');
 const EventsRepetitionHelper = require('../helpers/eventsRepetition');
+const CustomerAbsencesHelper = require('../helpers/customerAbsences');
 const EmailHelper = require('../helpers/email');
 const DatesHelper = require('../helpers/dates');
 
@@ -73,12 +74,18 @@ const eventRepetitions = {
           ...repetitions.filter(rep => rep.type === UNAVAILABILITY),
           ...repetitions.filter(rep => rep.type === INTERVENTION),
         ];
-
       for (const repetition of orderedRepetitions) {
-        const stoppedAt = get(repetition, 'customer.stoppedAt');
+        const isIntervention = repetition.type === INTERVENTION;
         const newEventStartDate = moment(date).add(90, 'd')
           .set(pick(moment(repetition.startDate).toObject(), ['hours', 'minutes', 'seconds', 'milliseconds']));
-        const isCustomerStopped = repetition.type === INTERVENTION && DatesHelper.isAfter(newEventStartDate, stoppedAt);
+        const stoppedAt = get(repetition, 'customer.stoppedAt');
+        const isCustomerStopped = isIntervention && DatesHelper.isAfter(newEventStartDate, stoppedAt);
+
+        if (isIntervention) {
+          const isCustomerAbsent = await CustomerAbsencesHelper.isAbsent(repetition.customer, newEventStartDate);
+          if (isCustomerAbsent) continue;
+        }
+
         try {
           if (isCustomerStopped) {
             await Repetition.deleteOne({ _id: repetition._id });
