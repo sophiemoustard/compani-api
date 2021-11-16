@@ -172,6 +172,9 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   }
 
   for (let i = 0, l = events.length; i < l; i++) {
+    const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(events[i].customer, events[i].startDate);
+    if (customerIsAbsent) continue;
+  
     const startDate = moment(events[i].startDate).hours(parentStartDate.hours())
       .minutes(parentStartDate.minutes()).toISOString();
     const endDate = moment(events[i].endDate).hours(parentEndDate.hours())
