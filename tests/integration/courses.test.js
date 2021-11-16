@@ -235,7 +235,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(10);
+      expect(response.result.data.courses.length).toEqual(11);
     });
 
     it('should get strictly e-learning courses', async () => {
@@ -270,7 +270,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(4);
+      expect(response.result.data.courses.length).toEqual(5);
     });
 
     it('should get courses for a specific company', async () => {
@@ -282,7 +282,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(7);
+      expect(response.result.data.courses.length).toEqual(8);
     });
 
     const roles = [
@@ -1385,6 +1385,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
   let authToken;
   let sendNotificationToUser;
   const intraCourseIdFromAuthCompany = coursesList[0]._id;
+  const archivedCourse = coursesList[14]._id;
   const intraCourseIdFromOtherCompany = coursesList[1]._id;
   const intraCourseIdWithTrainee = coursesList[2]._id;
   const interb2bCourseIdFromAuthCompany = coursesList[4]._id;
@@ -1427,7 +1428,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
       expect(course).toEqual(1);
     });
 
-    it('should return a 403 if user is not from the course company', async () => {
+    it('should return a 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${archivedCourse}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 404 if user is not from the course company', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${intraCourseIdFromOtherCompany}/trainees`,
@@ -1620,6 +1632,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
+  const archivedCourse = coursesList[14]._id;
   const traineeId = coach._id;
 
   beforeEach(populateDB);
@@ -1646,6 +1659,16 @@ describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
         action: TRAINEE_DELETION,
       });
       expect(courseHistory).toEqual(1);
+    });
+
+    it('should return 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${archivedCourse.toHexString()}/trainees/${traineeId.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

@@ -30,6 +30,7 @@ const { phoneNumberValidation } = require('./validations/utils');
 const {
   getCourseTrainee,
   authorizeCourseEdit,
+  authorizeGetDocumentsAndSms,
   authorizeCourseDeletion,
   authorizeGetCourseList,
   authorizeCourseGetByTrainee,
@@ -230,7 +231,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
       },
       handler: getSMSHistory,
     });
@@ -283,7 +284,7 @@ exports.plugin = {
         },
         pre: [
           { method: authorizeAttendanceSheetsGetAndAssignCourse, assign: 'course' },
-          { method: authorizeCourseEdit },
+          { method: authorizeGetDocumentsAndSms },
         ],
       },
       handler: downloadAttendanceSheets,
@@ -297,7 +298,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
       },
       handler: downloadCompletionCertificates,
     });

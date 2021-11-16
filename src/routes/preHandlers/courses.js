@@ -49,10 +49,22 @@ exports.checkSalesRepresentativeExists = async (req) => {
   return null;
 };
 
+exports.authorizeGetDocumentsAndSms = async (req) => {
+  const { credentials } = req.auth;
+  const { course } = req.pre;
+
+  const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
+  const courseCompanyId = course.company ? course.company.toHexString() : null;
+  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+
+  return null;
+};
+
 exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
     const { course } = req.pre;
+    if (course.archivedAt) throw Boom.forbidden();
 
     const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
     const courseCompanyId = course.company ? course.company.toHexString() : null;
