@@ -827,6 +827,8 @@ describe('COURSES ROUTES - GET /courses/{_id}/user', () => {
 describe('COURSES ROUTES - PUT /courses/{_id}', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[0]._id;
+  const archivedCourse = coursesList[14]._id;
+
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -863,6 +865,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if course is archived', async () => {
+      const payload = { misc: 'new name' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${archivedCourse}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if invalid salesRepresentative', async () => {
