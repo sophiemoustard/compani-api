@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
+const moment = require('moment');
 const SinonMongoose = require('../sinonMongoose');
 const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
@@ -24,7 +25,10 @@ describe('createAbsence', () => {
     };
     await CustomerAbsencesHelper.create(payload, companyId);
 
-    sinon.assert.calledOnceWithExactly(create, { ...payload, company: companyId });
+    sinon.assert.calledOnceWithExactly(
+      create,
+      { ...payload, endDate: moment(payload.endDate).subtract(1, 'm').add(1, 'd'), company: companyId }
+    );
   });
 });
 

@@ -1,8 +1,13 @@
 const get = require('lodash/get');
+const moment = require('moment');
 const UtilsHelper = require('./utils');
 const CustomerAbsence = require('../models/CustomerAbsence');
 
-exports.create = async (payload, companyId) => CustomerAbsence.create({ ...payload, company: companyId });
+exports.create = async (payload, companyId) => CustomerAbsence.create({
+  ...payload,
+  endDate: moment(payload.endDate).subtract(1, 'm').add(1, 'd'),
+  company: companyId,
+});
 
 exports.list = async (query, credentials) => CustomerAbsence.find({
   customer: { $in: UtilsHelper.formatIdsArray(query.customer) },

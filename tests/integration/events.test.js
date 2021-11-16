@@ -1845,7 +1845,7 @@ describe('DELETE /events', () => {
         company: authCompany._id,
         absenceType,
         startDate,
-        endDate,
+        endDate: moment(endDate).subtract(1, 'm').add(1, 'd'),
       });
       expect(customerAbsenceCount).toBe(1);
     });
