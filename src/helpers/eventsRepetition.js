@@ -22,6 +22,7 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const Repetition = require('../models/Repetition');
 const Customer = require('../models/Customer');
+const CustomerAbsencesHelper = require('./customerAbsences');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
@@ -34,6 +35,7 @@ momentRange.extendMoment(moment);
 
 exports.formatRepeatedPayload = async (event, sector, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
+  const isIntervention = event.type === INTERVENTION;
   let payload = {
     ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
     startDate: moment(event.startDate).add(step, 'd'),
@@ -41,10 +43,15 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
   };
   const hasConflicts = await EventsValidationHelper.hasConflicts(payload);
 
-  if (event.type === INTERVENTION && event.auxiliary && hasConflicts) {
-    payload = { ...omit(payload, 'auxiliary'), 'repetition.frequency': NEVER, sector };
-  } else if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
-
+  if (isIntervention) {
+    if (event.auxiliary && hasConflicts) {
+      payload = { ...omit(payload, 'auxiliary'), 'repetition.frequency': NEVER, sector };
+    }
+    if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
+  
+    const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, payload.startDate);
+    if (customerIsAbsent) return null;
+  }
   return new Event(payload);
 };
 
