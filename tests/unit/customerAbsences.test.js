@@ -1,5 +1,6 @@
 const { ObjectID } = require('bson');
 const sinon = require('sinon');
+const moment = require('moment');
 const expect = require('expect');
 const CustomerAbsence = require('../../src/models/CustomerAbsence');
 const CustomerAbsenceHelper = require('../../src/helpers/customerAbsences');
@@ -24,7 +25,10 @@ describe('createAbsence', () => {
 
     await CustomerAbsenceHelper.create(payload, companyId);
 
-    sinon.assert.calledOnceWithExactly(create, { ...payload, company: companyId });
+    sinon.assert.calledOnceWithExactly(
+      create,
+      { ...payload, endDate: moment(payload.endDate).subtract(1, 'm').add(1, 'd'), company: companyId }
+    );
   });
 });
 
