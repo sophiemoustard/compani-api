@@ -96,42 +96,42 @@ const coursesList = [
 ];
 
 const slotsList = [
-  {
+  { // 0
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[0],
     step: new ObjectID(),
   },
-  {
+  { // 1
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[0],
     step: new ObjectID(),
   },
-  { // slot from other company's course
+  { // 2 - slot from other company's course
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[2],
     step: new ObjectID(),
   },
-  { // slot for coursesList[3]
+  { // 3 - slot for coursesList[3]
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[3],
     step: new ObjectID(),
   },
-  { // slot for coursesList[4]
+  { // 4 - slot for coursesList[4]
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[4],
     step: new ObjectID(),
   },
-  { // slot for coursesList[5]
+  { // 5 - slot for coursesList[5]
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
@@ -144,6 +144,7 @@ const attendancesList = [
   { _id: new ObjectID(), courseSlot: slotsList[0], trainee: coursesList[0].trainees[0] },
   { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[0] },
   { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[1] },
+  { _id: new ObjectID(), courseSlot: slotsList[5], trainee: coursesList[5].trainees[0] },
 ];
 
 const companyTraineesList = [

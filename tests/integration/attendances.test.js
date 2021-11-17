@@ -340,6 +340,16 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendances/${attendancesList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
