@@ -1081,7 +1081,7 @@ describe('updateRepetition', () => {
     sinon.assert.notCalled(formatEditionPayload);
     sinon.assert.notCalled(isAbsent);
   });
-  
+
   it('should not update an event of a repetition if customer is absent during this period', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
@@ -1135,7 +1135,7 @@ describe('updateRepetition', () => {
     isAbsent.onCall(2).returns(true);
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
-    
+
     sinon.assert.notCalled(findOneUser);
     SinonMongoose.calledWithExactly(
       find,

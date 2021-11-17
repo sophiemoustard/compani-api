@@ -82,7 +82,7 @@ const eventRepetitions = {
         const isCustomerStopped = isIntervention && DatesHelper.isAfter(newEventStartDate, stoppedAt);
 
         if (isIntervention) {
-          const isCustomerAbsent = await CustomerAbsencesHelper.isAbsent(repetition.customer, newEventStartDate);
+          const isCustomerAbsent = await CustomerAbsencesHelper.isAbsent(repetition.customer._id, newEventStartDate);
           if (isCustomerAbsent) continue;
         }
 
