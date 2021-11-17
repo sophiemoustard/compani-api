@@ -1193,6 +1193,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdArchived = coursesList[14]._id;
   let SmsHelperStub;
   const payload = { content: 'Ceci est un test', type: CONVOCATION };
 
@@ -1235,7 +1236,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     });
 
     it('should return a 400 error if type is invalid', async () => {
-      SmsHelperStub.returns('SMS SENT !');
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${courseIdFromAuthCompany}/sms`,
@@ -1247,9 +1247,20 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
+    it('should return a 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdArchived}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
     ['content', 'type'].forEach((param) => {
       it(`should return a 400 error if missing ${param} parameter`, async () => {
-        SmsHelperStub.returns('SMS SENT !');
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${courseIdFromAuthCompany}/sms`,
