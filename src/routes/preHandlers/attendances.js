@@ -58,7 +58,7 @@ exports.authorizeAttendanceCreation = async (req) => {
   if (attendance) throw Boom.conflict();
 
   const courseSlot = await CourseSlot.findOne({ _id: req.payload.courseSlot }, { course: 1 })
-    .populate({ path: 'course', select: 'trainer trainees type company' })
+    .populate({ path: 'course', select: 'trainer trainees type company archivedAt' })
     .lean();
   if (!courseSlot) throw Boom.notFound();
 
@@ -66,6 +66,7 @@ exports.authorizeAttendanceCreation = async (req) => {
   if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, courseSlot.course.trainer);
 
   const { course } = courseSlot;
+  if (course.archivedAt) throw Boom.forbidden();
   if (course.type === INTRA) {
     if (!course.company) throw Boom.badData();
 
@@ -81,9 +82,12 @@ exports.authorizeAttendanceCreation = async (req) => {
 
 exports.authorizeAttendanceDeletion = async (req) => {
   const attendance = await Attendance.findOne({ _id: req.params._id }, { courseSlot: 1 })
-    .populate({ path: 'courseSlot', select: 'course', populate: { path: 'course', select: 'trainer' } })
+    .populate({ path: 'courseSlot', select: 'course', populate: { path: 'course', select: 'trainer archivedAt' } })
     .lean();
   if (!attendance) throw Boom.notFound();
+
+  const { course } = attendance.courseSlot;
+  if (course.archivedAt) throw Boom.forbidden();
 
   const { credentials } = req.auth;
   if (get(credentials, 'role.vendor.name') === TRAINER) {
