@@ -38,7 +38,7 @@ const userList = [
 ];
 
 const coursesList = [
-  {
+  { // 0
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -47,7 +47,7 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
-  {
+  { // 1
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -56,7 +56,7 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
-  {
+  { // 2
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: otherCompany._id,
@@ -65,7 +65,7 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
-  { // interb2b
+  { // 3 interb2b
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -74,7 +74,7 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
-  { // interb2b with only trainees from otherCompany
+  { // 4 interb2b with only trainees from otherCompany
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -82,6 +82,16 @@ const coursesList = [
     trainees: [new ObjectID()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
+  },
+  { // 5 archived
+    _id: new ObjectID(),
+    subProgram: new ObjectID(),
+    company: authCompany._id,
+    type: 'intra',
+    trainees: [new ObjectID()],
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
+    archivedAt: '2021-11-17T23:00:00',
   },
 ];
 
@@ -119,6 +129,13 @@ const slotsList = [
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[4],
+    step: new ObjectID(),
+  },
+  { // slot for coursesList[5]
+    _id: new ObjectID(),
+    startDate: new Date('2020-01-23').toISOString(),
+    endDate: new Date('2020-01-23').toISOString(),
+    course: coursesList[5],
     step: new ObjectID(),
   },
 ];
