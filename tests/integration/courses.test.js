@@ -867,16 +867,25 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if course is archived', async () => {
-      const payload = { misc: 'new name' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${archivedCourse}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
+    const payloads = [
+      { misc: 'new name' },
+      { trainer: new ObjectID() },
+      { contact: { name: 'new name' } },
+      { contact: { phone: '0101010101' } },
+      { contact: { email: 'test@email.com' } },
+      { salesRepresentative: new ObjectID() },
+    ];
+    payloads.forEach((payload) => {
+      it(`should return 403 if course is archived (update ${Object.keys(payload)})`, async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/courses/${archivedCourse}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
 
-      expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(403);
+      });
     });
 
     it('should return 403 if invalid salesRepresentative', async () => {
