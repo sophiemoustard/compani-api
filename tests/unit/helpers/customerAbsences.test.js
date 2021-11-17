@@ -19,16 +19,13 @@ describe('createAbsence', () => {
     const companyId = new ObjectID();
     const payload = {
       startDate: new Date(),
-      endDate: new Date(),
+      endDate: moment(new Date()).subtract(1, 'm').add(1, 'd'),
       customer: new ObjectID(),
       absenceType: 'leave',
     };
     await CustomerAbsencesHelper.create(payload, companyId);
 
-    sinon.assert.calledOnceWithExactly(
-      create,
-      { ...payload, endDate: moment(payload.endDate).subtract(1, 'm').add(1, 'd'), company: companyId }
-    );
+    sinon.assert.calledOnceWithExactly(create, { ...payload, company: companyId });
   });
 });
 
