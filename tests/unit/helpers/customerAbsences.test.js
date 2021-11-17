@@ -19,7 +19,7 @@ describe('createAbsence', () => {
     const companyId = new ObjectID();
     const payload = {
       startDate: new Date(),
-      endDate: moment(new Date()).subtract(1, 'm').add(1, 'd'),
+      endDate: moment(new Date()).endOf('d').toDate(),
       customer: new ObjectID(),
       absenceType: 'leave',
     };

@@ -1034,9 +1034,9 @@ describe('deleteCustomerEvents', () => {
   });
 
   it('should create customer absence if absenceType is in query', async () => {
-    const startDate = '2021-10-09T22:00:00.000Z';
-    const endDate = '2021-10-12T22:00:00.000Z';
-    const formattedEndDate = moment(endDate).endOf('day').toDate();
+    const startDate = new Date('2021-10-09T22:00:00.000Z');
+    const endDate = new Date('2021-10-12T22:00:00.000Z');
+    const formattedEndDate = new Date('2021-10-13T21:59:59.999Z');
     const absenceType = 'leave';
     const query = {
       customer: customerId,
