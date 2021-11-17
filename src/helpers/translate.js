@@ -126,7 +126,7 @@ module.exports = {
     customerAbsenceCreated: 'Customer absence created.',
     endDateBeforeStartDate: 'End date must be later than start date.',
     customerAbsenceNotFound: 'Customer absence not found.',
-    customerAbsencesFound: 'Customer absence found.',
+    customerAbsencesFound: 'Customer absences found.',
     /* Customer notes */
     customerNoteCreated: 'Customer note created.',
     customerNotesFound: 'Customer notes found.',
