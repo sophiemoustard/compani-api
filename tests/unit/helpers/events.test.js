@@ -1034,15 +1034,16 @@ describe('deleteCustomerEvents', () => {
   });
 
   it('should create customer absence if absenceType is in query', async () => {
-    const startDate = '2021-10-09T22:00:00.000Z';
-    const endDate = '2021-10-12T22:00:00.000Z';
+    const startDate = new Date('2021-10-09T22:00:00.000Z');
+    const endDate = new Date('2021-10-12T22:00:00.000Z');
+    const formattedEndDate = new Date('2021-10-13T21:59:59.999Z');
     const absenceType = 'leave';
     const query = {
       customer: customerId,
       startDate: { $gte: moment(startDate).toDate(), $lte: moment(endDate).endOf('d').toDate() },
       company: credentials.company._id,
     };
-    const queryCustomer = { customer: query.customer, startDate, endDate, absenceType };
+    const queryCustomer = { customer: query.customer, startDate, endDate: formattedEndDate, absenceType };
 
     await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, absenceType, credentials);
 

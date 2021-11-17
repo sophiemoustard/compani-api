@@ -293,9 +293,9 @@ const customerAuxiliaries = [
       },
       phone: '0612345671',
     },
-    stoppedAt: '2021-01-16 17:58:15.519',
+    stoppedAt: '2021-01-16T17:58:15.519Z',
     stopReason: 'quality',
-    archivedAt: '2021-09-16 17:58:15.519',
+    archivedAt: '2021-09-16T17:58:15.519Z',
   },
   { // 3
     _id: new ObjectID(),

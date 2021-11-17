@@ -1830,9 +1830,14 @@ describe('DELETE /events', () => {
 
     it('should create a customer absence', async () => {
       const customer = customerAuxiliaries[2]._id;
-      const startDate = '2020-12-01T10:30:18.653';
-      const endDate = '2020-12-26T10:30:18.653';
+      const startDate = new Date('2020-12-01');
+      const endDate = new Date('2020-12-26');
       const absenceType = 'leave';
+      const customerAbsenceCountBefore = await CustomerAbsence.countDocuments({
+        customer,
+        company: authCompany._id,
+        absenceType: 'leave',
+      });
 
       const response = await app.inject({
         method: 'DELETE',
@@ -1840,14 +1845,12 @@ describe('DELETE /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
-      const customerAbsenceCount = await CustomerAbsence.countDocuments({
+      const customerAbsenceCountAfter = await CustomerAbsence.countDocuments({
         customer,
         company: authCompany._id,
-        absenceType,
-        startDate,
-        endDate,
+        absenceType: 'leave',
       });
-      expect(customerAbsenceCount).toBe(1);
+      expect(customerAbsenceCountAfter).toBe(customerAbsenceCountBefore + 1);
     });
 
     it('should return a 403 if customer is stopped', async () => {
