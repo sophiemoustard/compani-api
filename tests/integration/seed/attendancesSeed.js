@@ -88,7 +88,7 @@ const coursesList = [
     subProgram: new ObjectID(),
     company: authCompany._id,
     type: 'intra',
-    trainees: [new ObjectID()],
+    trainees: [new ObjectID(), new ObjectID()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
     archivedAt: '2021-11-17T23:00:00',
@@ -144,7 +144,7 @@ const attendancesList = [
   { _id: new ObjectID(), courseSlot: slotsList[0], trainee: coursesList[0].trainees[0] },
   { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[0] },
   { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[1] },
-  { _id: new ObjectID(), courseSlot: slotsList[5], trainee: coursesList[5].trainees[0] },
+  { _id: new ObjectID(), courseSlot: slotsList[5], trainee: coursesList[5].trainees[1] },
 ];
 
 const companyTraineesList = [
