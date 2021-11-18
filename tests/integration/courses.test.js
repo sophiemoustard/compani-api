@@ -1195,6 +1195,10 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
   const archivedCourseId = coursesList[14]._id;
+  const courseIdWithNoReceiver = coursesList[7]._id;
+  const courseIdWithoutContactName = coursesList[9]._id;
+  const courseIdWithoutContactPhone = coursesList[1]._id;
+  const courseIdWithoutTrainer = coursesList[8]._id;
   let SmsHelperStub;
   let momentIsBefore;
   const payload = { content: 'Ceci est un test', type: CONVOCATION };
@@ -1209,7 +1213,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     momentIsBefore.restore();
   });
 
-  describe('TRAINING_ORGANISATION_MANAGER #tag', () => {
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -1251,7 +1255,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
-    it('should return a 403 if course is finished or has no slot', async () => {
+    it('should return a 403 if course has no slot to come', async () => {
       momentIsBefore.returns(false);
       const response = await app.inject({
         method: 'POST',
@@ -1261,6 +1265,59 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       });
 
       expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBe('no slot to come');
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if sms have no receiver', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithNoReceiver}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBe('no receiver');
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if course has no contact name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithoutContactName}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBe('no contact name');
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if course has no contact phone', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithoutContactPhone}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBe('no contact phone');
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if course has no trainer', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithoutTrainer}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBe('no trainer');
       sinon.assert.notCalled(SmsHelperStub);
     });
 
@@ -1273,6 +1330,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       });
 
       expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBe('archived');
       sinon.assert.notCalled(SmsHelperStub);
     });
 

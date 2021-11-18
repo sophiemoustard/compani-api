@@ -130,6 +130,7 @@ const coursesList = [
   { // 1
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Johnny' },
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
@@ -140,6 +141,7 @@ const coursesList = [
   { // 2
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Slim Shady', phone: '0987654433' },
     company: authCompany._id,
     misc: 'second session',
     trainer: trainer._id,
@@ -203,6 +205,7 @@ const coursesList = [
   { // 8 course with access rules
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Edith Piaf', phone: '0987654321' },
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
@@ -341,6 +344,12 @@ const slots = [
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
     course: coursesList[8],
+    step: stepList[0]._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    course: coursesList[9],
     step: stepList[0]._id,
   },
   {

@@ -64,7 +64,7 @@ exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
     const { course } = req.pre;
-    if (course.archivedAt) throw Boom.forbidden();
+    if (course.archivedAt) throw Boom.forbidden('archived');
 
     const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
     const courseCompanyId = course.company ? course.company.toHexString() : null;
@@ -231,6 +231,7 @@ exports.getCourse = async (req) => {
   const course = await Course.findById(req.params._id)
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'slotsToPlan' })
+    .populate({ path: 'trainees', select: 'contact.phone' })
     .lean();
   if (!course) throw Boom.notFound();
 
@@ -325,8 +326,13 @@ exports.authorizeAttendanceSheetsGetAndAssignCourse = async (req) => {
 exports.authorizeSmsSending = async (req) => {
   const { course } = req.pre;
 
-  const slotsToCome = course.slots.filter(slot => moment().isBefore(slot.startDate));
-  if (!slotsToCome.length && !course.slotsToPlan.length) throw Boom.forbidden();
+  const noSlotToCome = !course.slots || !course.slots.some(slot => moment().isBefore(slot.startDate));
+  const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
+  if (noSlotToCome) throw Boom.forbidden('no slot to come');
+  if (noReceiver) throw Boom.forbidden('no receiver');
+  if (!get(course, 'contact.name')) throw Boom.forbidden('no contact name');
+  if (!get(course, 'contact.phone')) throw Boom.forbidden('no contact phone');
+  if (!course.trainer) throw Boom.forbidden('no trainer');
 
   return null;
 };
