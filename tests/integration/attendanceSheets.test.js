@@ -152,6 +152,26 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBe('no matching date');
+    });
+
+    it('should return 403 if course is archived', async () => {
+      const formData = {
+        course: coursesList[3]._id.toHexString(),
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        trainee: coursesList[3].trainees[0].toHexString(),
+      };
+
+      const form = generateFormData(formData);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/attendancesheets',
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.result.message).toBe('archived');
     });
   });
 
@@ -311,6 +331,16 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if attendance sheet is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/attendancesheets/${attendanceSheetsList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
