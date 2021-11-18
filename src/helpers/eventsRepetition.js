@@ -51,6 +51,7 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
     const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, payload.startDate);
     if (customerIsAbsent) return null;
   }
+
   if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
 
   return new Event(payload);

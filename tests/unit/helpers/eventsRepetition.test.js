@@ -237,10 +237,11 @@ describe('formatRepeatedPayload', () => {
 
     hasConflicts.returns(false);
     isAbsent.returns(true);
+
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeNull();
-    sinon.assert.calledWithExactly(isAbsent, event.customer, payload.startDate);
+    sinon.assert.calledOnceWithExactly(isAbsent, event.customer, payload.startDate);
   });
 });
 
@@ -816,7 +817,7 @@ describe('updateRepetition', () => {
       false
     );
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
-    sinon.assert.calledWithExactly(isAbsent, events[1].customer, events[1].startDate);
+    sinon.assert.calledOnceWithExactly(isAbsent, events[1].customer, events[1].startDate);
   });
 
   it('should unassign intervention in conflict', async () => {

@@ -66,6 +66,8 @@ describe('method', () => {
 
     it(`should create a J+90 event for ${freq.type} repetition object`, async () => {
       const companyId = new ObjectID();
+      const newEventStartDate = moment(new Date()).add(90, 'd')
+        .set({ hours: 8, minutes: 0, seconds: 0, milliseconds: 0 });
 
       const futureEvent = {
         type: 'intervention',
@@ -74,7 +76,7 @@ describe('method', () => {
         subscription: '5d4422b306ab3d00147caf13',
         auxiliary: '5d121abe9ff937001403b6c6',
         sector: '5d1a40b7ecb0da251cfa4ff2',
-        startDate: moment(new Date()).add(90, 'd').set({ hours: 8, minutes: 0, seconds: 0, milliseconds: 0 }),
+        startDate: newEventStartDate,
         endDate: moment(new Date()).add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }),
         repetition: {
           frequency: freq,
@@ -105,7 +107,7 @@ describe('method', () => {
         findCompany,
         [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
       );
-      sinon.assert.calledOnceWithExactly(isAbsent, repetition[0].customer._id, futureEvent.startDate);
+      sinon.assert.calledOnceWithExactly(isAbsent, repetition[0].customer._id, newEventStartDate);
       sinon.assert.calledOnceWithExactly(create, futureEvent);
       sinon.assert.notCalled(deleteOneRepetition);
     });
@@ -265,6 +267,8 @@ describe('method', () => {
       frequency: 'every_day',
       parentId: '5d84f869b7e67963c65236a9',
     }];
+    const newEventStartDate = moment(new Date()).add(90, 'd')
+      .set({ hours: 8, minutes: 0, seconds: 0, milliseconds: 0 });
     const futureEvent = {
       type: 'intervention',
       company: new ObjectID(),
@@ -272,7 +276,7 @@ describe('method', () => {
       subscription: '5d4422b306ab3d00147caf13',
       auxiliary: '5d121abe9ff937001403b6c6',
       sector: '5d1a40b7ecb0da251cfa4ff2',
-      startDate: moment(new Date()).add(90, 'd').set({ hours: 8, minutes: 0, seconds: 0, milliseconds: 0 }),
+      startDate: newEventStartDate,
       endDate: moment(new Date()).add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }),
       repetition: {
         frequency: 'every_day',
@@ -303,6 +307,6 @@ describe('method', () => {
     sinon.assert.notCalled(formatEventBasedOnRepetitionStub);
     sinon.assert.notCalled(create);
     sinon.assert.notCalled(deleteOneRepetition);
-    sinon.assert.calledOnceWithExactly(isAbsent, repetition[0].customer._id, futureEvent.startDate);
+    sinon.assert.calledOnceWithExactly(isAbsent, repetition[0].customer._id, newEventStartDate);
   });
 });
