@@ -170,3 +170,30 @@ describe('isAbsent', () => {
     expect(result).toEqual(false);
   });
 });
+
+describe('updateCustomerAbsencesOnCustomerStop', () => {
+  let deleteMany;
+  let updateMany;
+  beforeEach(() => {
+    deleteMany = sinon.stub(CustomerAbsence, 'deleteMany');
+    updateMany = sinon.stub(CustomerAbsence, 'updateMany');
+  });
+  afterEach(() => {
+    deleteMany.restore();
+    updateMany.restore();
+  });
+
+  it('should delete absence after stoppedDate and update absences before ', async () => {
+    const customer = new ObjectID();
+    const stoppedAt = new Date('2019-11-01');
+
+    await CustomerAbsencesHelper.updateCustomerAbsencesOnCustomerStop(customer, stoppedAt);
+
+    sinon.assert.calledOnceWithExactly(deleteMany, { customer, startDate: { $gte: new Date('2019-11-01') } });
+    sinon.assert.calledOnceWithExactly(
+      updateMany,
+      { customer, startDate: { $lte: new Date('2019-11-01') }, endDate: { $gte: new Date('2019-11-01') } },
+      { endDate: new Date('2019-11-01') }
+    );
+  });
+});

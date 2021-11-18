@@ -22,6 +22,8 @@ const {
   sectorsList,
 } = require('./seed/customersSeed');
 const Customer = require('../../src/models/Customer');
+const CustomerAbsence = require('../../src/models/CustomerAbsence');
+const Event = require('../../src/models/Event');
 const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const Helper = require('../../src/models/Helper');
@@ -669,7 +671,7 @@ describe('CUSTOMERS ROUTES', () => {
         expect(result.result.data.customer.contact.secondaryAddress).not.toBeUndefined();
       });
 
-      it('should update status', async () => {
+      it('should update status and delete customer\'s events and absences', async () => {
         const customer = customersList[0];
 
         const res = await app.inject({
@@ -680,6 +682,14 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
+        const eventsAfterStoppedDate = await Event.countDocuments(
+          { customer: customer._id, startDate: { $gte: new Date() } }
+        );
+        const customerAbsencesAfterStoppedDate = await CustomerAbsence.countDocuments(
+          { customer: customer._id, startDate: { $gte: new Date() } }
+        );
+        expect(eventsAfterStoppedDate).toBe(0);
+        expect(customerAbsencesAfterStoppedDate).toBe(0);
       });
 
       it('should archive a customer if all interventions are billed', async () => {
