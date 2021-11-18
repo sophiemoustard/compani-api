@@ -1,8 +1,8 @@
 const expect = require('expect');
 const qs = require('qs');
 const omit = require('lodash/omit');
-const { getToken } = require('./helpers/authentication');
-const { customersList, populateDB } = require('./seed/customerAbsencesSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { customersList, helperCustomer, populateDB } = require('./seed/customerAbsencesSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
@@ -88,15 +88,23 @@ describe('Other roles', () => {
     { name: 'coach', expectedCode: 200 },
     { name: 'vendor_admin', expectedCode: 403 },
     { name: 'helper', expectedCode: 403 },
+    {
+      name: 'helper\'s customer',
+      expectedCode: 200,
+      url: `/customerAbsences?customer=${customersList[1]._id.toHexString()}&startDate=${startDate}&endDate=${endDate}`,
+      customCredentials: { ...helperCustomer.local },
+    },
     { name: 'auxiliary_without_company', expectedCode: 403 },
   ];
 
   roles.forEach((role) => {
     it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-      authToken = await getToken(role.name);
+      authToken = role.customCredentials
+        ? await getTokenByCredentials(role.customCredentials)
+        : await getToken(role.name);
       const response = await app.inject({
         method: 'GET',
-        url: `/customerabsences?customer=${customersList[0]._id}&startDate=${startDate}&endDate=${endDate}`,
+        url: role.url || `/customerabsences?customer=${customersList[0]._id}&startDate=${startDate}&endDate=${endDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

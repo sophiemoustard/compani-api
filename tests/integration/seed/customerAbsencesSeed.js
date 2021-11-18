@@ -1,7 +1,11 @@
 const { ObjectID } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const Customer = require('../../../src/models/Customer');
 const CustomerAbsence = require('../../../src/models/CustomerAbsence');
+const User = require('../../../src/models/User');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { helperRoleId } = require('../../seed/authRolesSeed');
+const { WEBAPP } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const customersList = [
@@ -49,6 +53,16 @@ const customersList = [
   },
 ];
 
+const helperCustomer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Nicolo', lastname: 'Potable' },
+  local: { email: 'dsfgag@tt.com', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  customers: [customersList[1]._id],
+  role: { client: helperRoleId },
+  origin: WEBAPP,
+};
+
 const customerAbsences = [
   {
     company: authCompany._id,
@@ -83,7 +97,11 @@ const customerAbsences = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([Customer.create(customersList), CustomerAbsence.create(customerAbsences)]);
+  await Promise.all([
+    Customer.create(customersList),
+    CustomerAbsence.create(customerAbsences),
+    User.create([helperCustomer]),
+  ]);
 };
 
-module.exports = { populateDB, customerAbsences, customersList };
+module.exports = { populateDB, customerAbsences, customersList, helperCustomer };
