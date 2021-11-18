@@ -321,3 +321,12 @@ exports.authorizeAttendanceSheetsGetAndAssignCourse = async (req) => {
 
   return course;
 };
+
+exports.authorizeSmsSending = async (req) => {
+  const { course } = req.pre;
+
+  const slotsToCome = course.slots.filter(slot => moment().isBefore(slot.startDate));
+  if (!slotsToCome.length && !course.slotsToPlan.length) throw Boom.forbidden();
+
+  return null;
+};

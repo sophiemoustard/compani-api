@@ -2,6 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const path = require('path');
 const moment = require('moment');
+const { fn: momentProto } = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
@@ -1195,17 +1196,20 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   const courseIdFromOtherCompany = coursesList[3]._id;
   const archivedCourseId = coursesList[14]._id;
   let SmsHelperStub;
+  let momentIsBefore;
   const payload = { content: 'Ceci est un test', type: CONVOCATION };
 
   beforeEach(populateDB);
   beforeEach(async () => {
     SmsHelperStub = sinon.stub(SmsHelper, 'send');
+    momentIsBefore = sinon.stub(momentProto, 'isBefore').returns(true);
   });
   afterEach(() => {
     SmsHelperStub.restore();
+    momentIsBefore.restore();
   });
 
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
+  describe('TRAINING_ORGANISATION_MANAGER #tag', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
     });
@@ -1244,6 +1248,19 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       });
 
       expect(response.statusCode).toBe(400);
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if course is finished or has no slot', async () => {
+      momentIsBefore.returns(false);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
       sinon.assert.notCalled(SmsHelperStub);
     });
 
