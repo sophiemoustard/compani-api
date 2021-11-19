@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
 const GetStream = require('get-stream');
+const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
@@ -10,6 +11,7 @@ const { populateDB, coursesList, attendanceSheetsList } = require('./seed/attend
 const { getToken } = require('./helpers/authentication');
 const { generateFormData } = require('./utils');
 const AttendanceSheet = require('../../src/models/AttendanceSheet');
+const Course = require('../../src/models/Course');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -136,8 +138,9 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
     });
 
     it('should return 403 trying to pass date outside course dates', async () => {
+      const course = coursesList[0];
       const formData = {
-        course: coursesList[0]._id.toHexString(),
+        course: course._id.toHexString(),
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         date: new Date('2018-01-23').toISOString(),
       };
@@ -152,17 +155,22 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(403);
-      expect(response.result.message).toBe('no matching date');
+
+      const courseInDb = await Course.findById(course._id).populate('slots').lean();
+      const matchingDates = courseInDb.slots.filter(slot => moment(slot.startDate).isSame(formData.date, 'day'));
+      expect(matchingDates.length).toBeFalsy();
     });
 
     it('should return 403 if course is archived', async () => {
+      const course = coursesList[3];
       const formData = {
-        course: coursesList[3]._id.toHexString(),
+        course: course._id.toHexString(),
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-        trainee: coursesList[3].trainees[0].toHexString(),
+        trainee: course.trainees[0].toHexString(),
       };
 
       const form = generateFormData(formData);
+
       const response = await app.inject({
         method: 'POST',
         url: '/attendancesheets',
@@ -171,7 +179,9 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       });
 
       expect(response.statusCode).toBe(403);
-      expect(response.result.message).toBe('archived');
+
+      const isCourseArchived = !!await Course.findById(course._id);
+      expect(isCourseArchived).toBeTruthy();
     });
   });
 
