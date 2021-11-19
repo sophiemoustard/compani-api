@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const PdfPrinter = require('pdfmake');
-const PdfDocument = require('pdfkit');
 const getStream = require('get-stream');
 const PdfHelper = require('../../../src/helpers/pdf');
 const FileHelper = require('../../../src/helpers/file');
@@ -69,7 +68,7 @@ describe('generatePdf', () => {
 
   it('should generate pdf', async () => {
     const template = { content: [{ text: 'test' }] };
-    const doc = new PdfDocument();
+    const doc = { end: sinon.stub() };
     const pdf = Buffer;
 
     createPdfKitDocument.returns(doc);
