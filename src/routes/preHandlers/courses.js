@@ -64,7 +64,7 @@ exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
     const { course } = req.pre;
-    if (course.archivedAt) throw Boom.forbidden('archived');
+    if (course.archivedAt) throw Boom.forbidden();
 
     const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
     const courseCompanyId = course.company ? course.company.toHexString() : null;
