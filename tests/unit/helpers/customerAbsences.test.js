@@ -192,7 +192,7 @@ describe('updateCustomerAbsencesOnCustomerStop', () => {
     sinon.assert.calledOnceWithExactly(deleteMany, { customer, startDate: { $gte: new Date('2019-11-01') } });
     sinon.assert.calledOnceWithExactly(
       updateMany,
-      { customer, startDate: { $lte: new Date('2019-11-01') }, endDate: { $gte: new Date('2019-11-01') } },
+      { customer, startDate: { $lt: new Date('2019-11-01') }, endDate: { $gt: new Date('2019-11-01') } },
       { endDate: new Date('2019-11-01') }
     );
   });

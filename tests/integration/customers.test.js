@@ -673,6 +673,14 @@ describe('CUSTOMERS ROUTES', () => {
 
       it('should update status and delete customer\'s events and absences', async () => {
         const customer = customersList[0];
+        let eventsAfterStoppedDate = await Event.countDocuments(
+          { customer: customer._id, startDate: { $gt: new Date() } }
+        );
+        let customerAbsencesAfterStoppedDate = await CustomerAbsence.countDocuments(
+          { customer: customer._id, startDate: { $gt: new Date() } }
+        );
+        expect(eventsAfterStoppedDate).not.toEqual(0);
+        expect(customerAbsencesAfterStoppedDate).not.toEqual(0);
 
         const res = await app.inject({
           method: 'PUT',
@@ -682,11 +690,11 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        const eventsAfterStoppedDate = await Event.countDocuments(
-          { customer: customer._id, startDate: { $gte: new Date() } }
+        eventsAfterStoppedDate = await Event.countDocuments(
+          { customer: customer._id, startDate: { $gt: new Date() } }
         );
-        const customerAbsencesAfterStoppedDate = await CustomerAbsence.countDocuments(
-          { customer: customer._id, startDate: { $gte: new Date() } }
+        customerAbsencesAfterStoppedDate = await CustomerAbsence.countDocuments(
+          { customer: customer._id, startDate: { $gt: new Date() } }
         );
         expect(eventsAfterStoppedDate).toBe(0);
         expect(customerAbsencesAfterStoppedDate).toBe(0);

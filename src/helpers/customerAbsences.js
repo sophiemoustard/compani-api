@@ -23,7 +23,7 @@ exports.updateCustomerAbsencesOnCustomerStop = async (customer, stoppedDate) => 
   await CustomerAbsence.deleteMany({ customer, startDate: { $gte: stoppedDate } });
 
   await CustomerAbsence.updateMany(
-    { customer, startDate: { $lte: stoppedDate }, endDate: { $gte: stoppedDate } },
+    { customer, startDate: { $lt: stoppedDate }, endDate: { $gt: stoppedDate } },
     { endDate: stoppedDate }
   );
 };
