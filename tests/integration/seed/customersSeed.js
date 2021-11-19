@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
+const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Repetition = require('../../../src/models/Repetition');
@@ -16,7 +17,16 @@ const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
-const { FIXED, ONCE, HOURLY, WEBAPP, DEATH, QUALITY, EVERY_WEEK } = require('../../../src/helpers/constants');
+const {
+  FIXED,
+  ONCE,
+  HOURLY,
+  WEBAPP,
+  DEATH,
+  QUALITY,
+  EVERY_WEEK,
+  HOSPITALIZATION,
+} = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
@@ -907,7 +917,7 @@ const sectorHistoriesList = [
 ];
 
 const eventList = [
-  {
+  { // 0
     _id: new ObjectID(),
     company: authCompany._id,
     isBilled: true,
@@ -925,7 +935,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 1
     _id: new ObjectID(),
     company: authCompany._id,
     isBilled: true,
@@ -943,7 +953,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 2
     _id: new ObjectID(),
     isBilled: false,
     company: authCompany._id,
@@ -961,7 +971,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 3
     _id: new ObjectID(),
     sector: new ObjectID(),
     company: authCompany._id,
@@ -979,7 +989,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 4
     _id: new ObjectID(),
     sector: new ObjectID(),
     company: authCompany._id,
@@ -1008,7 +1018,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 5
     _id: new ObjectID(),
     company: otherCompany._id,
     isBilled: true,
@@ -1036,7 +1046,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 6
     _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[1]._id,
@@ -1053,7 +1063,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 7
     _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[2]._id,
@@ -1070,7 +1080,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 8
     _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[12]._id,
@@ -1087,7 +1097,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 9
     _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[9]._id,
@@ -1105,7 +1115,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 10
     _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[13]._id,
@@ -1126,7 +1136,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 11
     _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[15]._id,
@@ -1147,7 +1157,32 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  { // 12
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: customersList[0]._id,
+    type: 'intervention',
+    sector: sectorsList[0]._id,
+    subscription: subId5,
+    startDate: new Date().setDate(new Date().getDate() + 1, 0, 0),
+    endDate: new Date().setDate(new Date().getDate() + 1, 1, 0),
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
+
+const customerAbsenceList = [{
+  company: authCompany._id,
+  customer: customersList[0]._id,
+  startDate: new Date().setDate(new Date().getDate() + 1, 0, 0),
+  endDate: new Date().setDate(new Date().getDate() + 1, 1, 0),
+  absenceType: HOSPITALIZATION,
+}];
 
 const repetitionParentId = new ObjectID();
 const repetition = {
@@ -1182,6 +1217,7 @@ const populateDB = async () => {
     Bill.create(billList),
     CreditNote.create(creditNote),
     Customer.create([...customersList, otherCompanyCustomer]),
+    CustomerAbsence.create(customerAbsenceList),
     Event.create(eventList),
     Helper.create(helpersList),
     Payment.create(payment),
