@@ -328,11 +328,11 @@ exports.authorizeSmsSending = async (req) => {
 
   const noSlotToCome = !course.slots || !course.slots.some(slot => moment().isBefore(slot.startDate));
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
-  if (noSlotToCome) throw Boom.forbidden('no slot to come');
-  if (noReceiver) throw Boom.forbidden('no receiver');
-  if (!get(course, 'contact.name')) throw Boom.forbidden('no contact name');
-  if (!get(course, 'contact.phone')) throw Boom.forbidden('no contact phone');
-  if (!course.trainer) throw Boom.forbidden('no trainer');
+  if (noSlotToCome) throw Boom.forbidden();
+  if (noReceiver) throw Boom.forbidden();
+  if (!get(course, 'contact.name')) throw Boom.forbidden();
+  if (!get(course, 'contact.phone')) throw Boom.forbidden();
+  if (!course.trainer) throw Boom.forbidden();
 
   return null;
 };

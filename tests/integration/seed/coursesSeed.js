@@ -196,10 +196,12 @@ const coursesList = [
   { // 7 course with slots to plan
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Alain Bashung', phone: '0191166745' },
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'blended',
     trainees: [trainer._id],
+    trainer: coach._id,
     salesRepresentative: vendorAdmin._id,
   },
   { // 8 course with access rules
@@ -216,6 +218,8 @@ const coursesList = [
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { phone: '0127274124' },
+    trainer: trainer._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
