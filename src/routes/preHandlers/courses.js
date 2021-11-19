@@ -231,6 +231,7 @@ exports.getCourse = async (req) => {
   const course = await Course.findById(req.params._id)
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'slotsToPlan' })
+    .populate({ path: 'trainees', select: 'contact.phone' })
     .lean();
   if (!course) throw Boom.notFound();
 
@@ -320,4 +321,18 @@ exports.authorizeAttendanceSheetsGetAndAssignCourse = async (req) => {
   if (!slots.some(s => s.step.type === ON_SITE)) throw Boom.notFound(translate[language].courseAttendanceNotGenerated);
 
   return course;
+};
+
+exports.authorizeSmsSending = async (req) => {
+  const { course } = req.pre;
+
+  const noSlotToCome = !course.slots || !course.slots.some(slot => moment().isBefore(slot.startDate));
+  const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
+  if (noSlotToCome) throw Boom.forbidden();
+  if (noReceiver) throw Boom.forbidden();
+  if (!get(course, 'contact.name')) throw Boom.forbidden();
+  if (!get(course, 'contact.phone')) throw Boom.forbidden();
+  if (!course.trainer) throw Boom.forbidden();
+
+  return null;
 };

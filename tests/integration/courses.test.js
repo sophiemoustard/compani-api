@@ -2,9 +2,11 @@ const expect = require('expect');
 const sinon = require('sinon');
 const path = require('path');
 const moment = require('moment');
+const { fn: momentProto } = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
+const get = require('lodash/get');
 const app = require('../../server');
 const Course = require('../../src/models/Course');
 const drive = require('../../src/models/Google/Drive');
@@ -270,7 +272,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(5);
+      expect(response.result.data.courses.length).toEqual(6);
     });
 
     it('should get courses for a specific company', async () => {
@@ -1193,15 +1195,23 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdFromOtherCompany = coursesList[3]._id;
+  const archivedCourseId = coursesList[14]._id;
+  const courseIdWithoutReceiver = coursesList[7]._id;
+  const courseIdWithoutContactName = coursesList[9]._id;
+  const courseIdWithoutContactPhone = coursesList[1]._id;
+  const courseIdWithoutTrainer = coursesList[8]._id;
   let SmsHelperStub;
+  let momentIsBefore;
   const payload = { content: 'Ceci est un test', type: CONVOCATION };
 
   beforeEach(populateDB);
   beforeEach(async () => {
     SmsHelperStub = sinon.stub(SmsHelper, 'send');
+    momentIsBefore = sinon.stub(momentProto, 'isBefore').returns(true);
   });
   afterEach(() => {
     SmsHelperStub.restore();
+    momentIsBefore.restore();
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -1235,7 +1245,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
     });
 
     it('should return a 400 error if type is invalid', async () => {
-      SmsHelperStub.returns('SMS SENT !');
       const response = await app.inject({
         method: 'POST',
         url: `/courses/${courseIdFromAuthCompany}/sms`,
@@ -1247,9 +1256,159 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       sinon.assert.notCalled(SmsHelperStub);
     });
 
+    it('should return a 403 if course has no slot to come', async () => {
+      momentIsBefore.returns(false);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdFromAuthCompany}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(courseIdFromAuthCompany)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(hasSlotToCome).toBeFalsy();
+      expect(hasReceiver).toBeTruthy();
+      expect(get(course, 'contact.name')).toBeTruthy();
+      expect(get(course, 'contact.phone')).toBeTruthy();
+      expect(course.trainer).toBeTruthy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if sms have no receiver', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithoutReceiver}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(courseIdWithoutReceiver)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(hasSlotToCome).toBeTruthy();
+      expect(hasReceiver).toBeFalsy();
+      expect(get(course, 'contact.name')).toBeTruthy();
+      expect(get(course, 'contact.phone')).toBeTruthy();
+      expect(course.trainer).toBeTruthy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if course has no contact name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithoutContactName}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(courseIdWithoutContactName)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(hasSlotToCome).toBeTruthy();
+      expect(hasReceiver).toBeTruthy();
+      expect(get(course, 'contact.name')).toBeFalsy();
+      expect(get(course, 'contact.phone')).toBeTruthy();
+      expect(course.trainer).toBeTruthy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if course has no contact phone', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithoutContactPhone}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(courseIdWithoutContactPhone)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(hasSlotToCome).toBeTruthy();
+      expect(hasReceiver).toBeTruthy();
+      expect(get(course, 'contact.name')).toBeTruthy();
+      expect(get(course, 'contact.phone')).toBeFalsy();
+      expect(course.trainer).toBeTruthy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if course has no trainer', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${courseIdWithoutTrainer}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+
+      const course = await Course.findById(courseIdWithoutTrainer)
+        .populate({ path: 'slots', select: 'startDate endDate' })
+        .populate({ path: 'slotsToPlan' })
+        .populate({ path: 'trainees', select: 'contact.phone' })
+        .lean();
+
+      const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
+      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
+      expect(hasSlotToCome).toBeTruthy();
+      expect(hasReceiver).toBeTruthy();
+      expect(get(course, 'contact.name')).toBeTruthy();
+      expect(get(course, 'contact.phone')).toBeTruthy();
+      expect(course.trainer).toBeFalsy();
+
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
+    it('should return a 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/courses/${archivedCourseId}/sms`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      const courseIsArchived = !!await Course.findById(archivedCourseId, { archivedAt: 1 }).lean();
+
+      expect(courseIsArchived).toBeTruthy();
+      sinon.assert.notCalled(SmsHelperStub);
+    });
+
     ['content', 'type'].forEach((param) => {
       it(`should return a 400 error if missing ${param} parameter`, async () => {
-        SmsHelperStub.returns('SMS SENT !');
         const response = await app.inject({
           method: 'POST',
           url: `/courses/${courseIdFromAuthCompany}/sms`,

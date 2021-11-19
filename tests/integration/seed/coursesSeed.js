@@ -130,6 +130,7 @@ const coursesList = [
   { // 1
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Johnny' },
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
@@ -140,6 +141,7 @@ const coursesList = [
   { // 2
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Slim Shady', phone: '0987654433' },
     company: authCompany._id,
     misc: 'second session',
     trainer: trainer._id,
@@ -194,15 +196,18 @@ const coursesList = [
   { // 7 course with slots to plan
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Alain Bashung', phone: '0191166745' },
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'blended',
     trainees: [trainer._id],
+    trainer: coach._id,
     salesRepresentative: vendorAdmin._id,
   },
   { // 8 course with access rules
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Edith Piaf', phone: '0987654321' },
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
@@ -213,6 +218,8 @@ const coursesList = [
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { phone: '0127274124' },
+    trainer: trainer._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
@@ -341,6 +348,12 @@ const slots = [
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
     course: coursesList[8],
+    step: stepList[0]._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    course: coursesList[9],
     step: stepList[0]._id,
   },
   {

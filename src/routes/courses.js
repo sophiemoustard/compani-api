@@ -44,6 +44,7 @@ const {
   checkSalesRepresentativeExists,
   authorizeGetQuestionnaires,
   authorizeAttendanceSheetsGetAndAssignCourse,
+  authorizeSmsSending,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -218,7 +219,11 @@ exports.plugin = {
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [
+          { method: getCourse, assign: 'course' },
+          { method: authorizeCourseEdit },
+          { method: authorizeSmsSending },
+        ],
       },
       handler: sendSMS,
     });
