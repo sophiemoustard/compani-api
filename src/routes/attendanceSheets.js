@@ -5,8 +5,8 @@ Joi.objectId = require('joi-objectid')(Joi);
 const { list, create, deleteAttendanceSheet } = require('../controllers/attendanceSheetController');
 const { formDataPayload } = require('./validations/utils');
 const {
-  checkCourseType,
-  attendanceSheetExists,
+  authorizeAttendanceSheetCreation,
+  authorizeAttendanceSheetDeletion,
   authorizeAttendanceSheetsGet,
 } = require('./preHandlers/attendanceSheets');
 
@@ -40,7 +40,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['attendancesheets:edit'] },
-        pre: [{ method: checkCourseType }],
+        pre: [{ method: authorizeAttendanceSheetCreation }],
       },
       handler: create,
     });
@@ -53,7 +53,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['attendancesheets:edit'] },
-        pre: [{ method: attendanceSheetExists, assign: 'attendanceSheet' }],
+        pre: [{ method: authorizeAttendanceSheetDeletion, assign: 'attendanceSheet' }],
       },
       handler: deleteAttendanceSheet,
     });
