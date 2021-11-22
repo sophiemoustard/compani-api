@@ -255,17 +255,21 @@ describe('method', () => {
 
   it('should not create an event of a repetition if customer is absent', async () => {
     const companyId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
+    const parentId = new ObjectID();
     const repetition = [{
       _id: '5d84f869b7e67963c6523704',
       type: 'intervention',
       customer: { _id: new ObjectID() },
-      subscription: '5d4422b306ab3d00147caf13',
-      auxiliary: '5d121abe9ff937001403b6c6',
-      sector: '5d1a40b7ecb0da251cfa4ff2',
+      subscription: subscriptionId,
+      auxiliary: auxiliaryId,
+      sector: sectorId,
       startDate: '2019-09-16T06:00:00.000Z',
       endDate: '2019-09-16T06:00:00.000Z',
       frequency: 'every_day',
-      parentId: '5d84f869b7e67963c65236a9',
+      parentId,
     }];
     const newEventStartDate = moment(new Date()).add(90, 'd')
       .set({ hours: 8, minutes: 0, seconds: 0, milliseconds: 0 });
@@ -273,15 +277,12 @@ describe('method', () => {
       type: 'intervention',
       company: new ObjectID(),
       customer: { _id: new ObjectID() },
-      subscription: '5d4422b306ab3d00147caf13',
-      auxiliary: '5d121abe9ff937001403b6c6',
-      sector: '5d1a40b7ecb0da251cfa4ff2',
+      subscription: subscriptionId,
+      auxiliary: auxiliaryId,
+      sector: sectorId,
       startDate: newEventStartDate,
       endDate: moment(new Date()).add(90, 'd').set({ hours: 9, minutes: 0, seconds: 0, milliseconds: 0 }),
-      repetition: {
-        frequency: 'every_day',
-        parentId: '5d84f869b7e67963c65236a9',
-      },
+      repetition: { frequency: 'every_day', parentId },
     };
 
     findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));

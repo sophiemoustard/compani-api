@@ -50,9 +50,7 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
 
     const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, payload.startDate);
     if (customerIsAbsent) return null;
-  }
-
-  if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
+  } else if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
 
   return new Event(payload);
 };
@@ -174,16 +172,23 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   }
 
   for (let i = 0, l = events.length; i < l; i++) {
-    if (events[i].type === INTERVENTION) {
-      const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(events[i].customer, events[i].startDate);
-      if (customerIsAbsent) continue;
-    }
-
     const startDate = moment(events[i].startDate).hours(parentStartDate.hours())
       .minutes(parentStartDate.minutes()).toISOString();
     const endDate = moment(events[i].endDate).hours(parentEndDate.hours())
       .minutes(parentEndDate.minutes()).toISOString();
-    let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
+    let eventToSet = {
+      ...eventPayload,
+      startDate,
+      endDate,
+      _id: events[i]._id,
+      type: events[i].type,
+      customer: events[i].customer,
+    };
+
+    if (eventToSet.type === INTERVENTION) {
+      const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(eventToSet.customer, eventToSet.startDate);
+      if (customerIsAbsent) continue;
+    }
 
     const hasConflicts = await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId });
     if (eventFromDb.type !== INTERVENTION && hasConflicts) promises.push(Event.deleteOne({ _id: events[i]._id }));
