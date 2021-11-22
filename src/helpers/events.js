@@ -369,12 +369,12 @@ exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType,
 
   if (endDate) query.startDate.$lte = formattedEndDate;
 
+  await exports.deleteEventsAndRepetition(query, !endDate, credentials);
+
   if (absenceType) {
     const queryCustomerAbsence = { customer, startDate, endDate: formattedEndDate, absenceType };
     await CustomerAbsencesHelper.create(queryCustomerAbsence, companyId);
   }
-
-  await exports.deleteEventsAndRepetition(query, !endDate, credentials);
 };
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
