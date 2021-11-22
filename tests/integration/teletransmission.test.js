@@ -3,7 +3,7 @@ const app = require('../../server');
 const { populateDB, teletransmissionTppList } = require('./seed/teletransmissionSeed');
 const { getToken } = require('./helpers/authentication');
 
-describe('TELETRANSMISSION ROUTES - GET /teletransmission/delivery #tag', () => {
+describe('TELETRANSMISSION ROUTES - GET /teletransmission/delivery', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
@@ -22,7 +22,7 @@ describe('TELETRANSMISSION ROUTES - GET /teletransmission/delivery #tag', () => 
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 404 if tpp if tpp is not from the same company', async () => {
+    it('should return a 404 if tpp is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/teletransmission/delivery?thirdPartyPayers=${teletransmissionTppList[2]._id}&month=09-2021`,

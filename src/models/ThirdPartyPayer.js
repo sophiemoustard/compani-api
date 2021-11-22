@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
-const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+const { BILLING_DIRECT, BILLING_INDIRECT, APA, AM, PCH } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const Customer = require('./Customer');
 
-const TELETRANSMISSION_TYPES = ['APA', 'AM', 'PCH'];
+const TELETRANSMISSION_TYPES = [APA, AM, PCH];
 
 const ThirdPartyPayerSchema = mongoose.Schema({
   name: { type: String, required: true },
