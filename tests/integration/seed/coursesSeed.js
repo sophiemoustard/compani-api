@@ -117,7 +117,7 @@ const programsList = [
 ];
 
 const coursesList = [
-  {
+  { // 0
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
@@ -127,9 +127,10 @@ const coursesList = [
     type: 'intra',
     salesRepresentative: vendorAdmin._id,
   },
-  {
+  { // 1
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Johnny' },
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
@@ -137,9 +138,10 @@ const coursesList = [
     type: 'intra',
     salesRepresentative: vendorAdmin._id,
   },
-  {
+  { // 2
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Slim Shady', phone: '0987654433' },
     company: authCompany._id,
     misc: 'second session',
     trainer: trainer._id,
@@ -154,7 +156,7 @@ const coursesList = [
     ],
     salesRepresentative: vendorAdmin._id,
   },
-  {
+  { // 3
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
@@ -164,26 +166,26 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     trainer: trainerAndCoach._id,
   },
-  { // course without slots
+  { // 4 course without slots
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id, coach._id],
-    format: 'strictly_e_learning',
+    format: 'blended',
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
-  { // course with slots
+  { // 5 course with slots
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
-    format: 'strictly_e_learning',
+    format: 'blended',
     trainees: [noRoleNoCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
-  { // course without trainees and slots
+  { // 6 course without trainees and slots
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
@@ -191,17 +193,21 @@ const coursesList = [
     format: 'strictly_e_learning',
     salesRepresentative: vendorAdmin._id,
   },
-  { // course with slots to plan
+  { // 7 course with slots to plan
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Alain Bashung', phone: '0191166745' },
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
-    format: 'strictly_e_learning',
+    format: 'blended',
+    trainees: [trainer._id],
+    trainer: coach._id,
     salesRepresentative: vendorAdmin._id,
   },
-  { // course with access rules
+  { // 8 course with access rules
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { name: 'Edith Piaf', phone: '0987654321' },
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
@@ -209,9 +215,11 @@ const coursesList = [
     accessRules: [authCompany._id, new ObjectID()],
     salesRepresentative: vendorAdmin._id,
   },
-  { // course with access rules and trainee that can't have access to the course but has already suscribed
+  { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
+    contact: { phone: '0127274124' },
+    trainer: trainer._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
@@ -219,7 +227,7 @@ const coursesList = [
     accessRules: [authCompany._id, new ObjectID()],
     salesRepresentative: vendorAdmin._id,
   },
-  { // course with contact
+  { // 10 course with contact
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     trainer: coach._id,
@@ -229,7 +237,7 @@ const coursesList = [
     contact: { name: 'Romain Delendarroze', email: 'romainlebg77@gmail.com', phone: '0123456789' },
     salesRepresentative: vendorAdmin._id,
   },
-  { // course without authCompany in access rules (11ème position)
+  { // 11 course without authCompany in access rules (11ème position)
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter_b2b',
@@ -239,13 +247,33 @@ const coursesList = [
     accessRules: [otherCompany._id],
     salesRepresentative: vendorAdmin._id,
   },
-  { // course with no on-site slot
+  { // 12 course with no on-site slot
     _id: new ObjectID(),
     subProgram: subProgramsList[1]._id,
     misc: 'inter_b2b',
     type: 'inter_b2b',
     trainees: [coach._id],
     salesRepresentative: vendorAdmin._id,
+  },
+  { // 13 course without trainee
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    misc: '',
+    type: 'inter_b2b',
+    format: 'blended',
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
+  },
+  { // 14 archived course
+    _id: new ObjectID(),
+    subProgram: subProgramsList[0]._id,
+    company: authCompany._id,
+    misc: 'old session',
+    trainer: trainer._id,
+    trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
+    type: 'intra',
+    salesRepresentative: vendorAdmin._id,
+    archivedAt: '2021-01-01T00:00:00.000Z',
   },
 ];
 
@@ -310,6 +338,30 @@ const slots = [
     step: stepList[0]._id,
   },
   { course: coursesList[7] },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    course: coursesList[7],
+    step: stepList[0]._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    course: coursesList[8],
+    step: stepList[0]._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    course: coursesList[9],
+    step: stepList[0]._id,
+  },
+  {
+    startDate: moment('2020-03-20T09:00:00').toDate(),
+    endDate: moment('2020-03-20T11:00:00').toDate(),
+    course: coursesList[13],
+    step: stepList[0]._id,
+  },
 ];
 
 const populateDB = async () => {

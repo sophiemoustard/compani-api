@@ -60,6 +60,9 @@ module.exports = {
   // COMPANY THIRD PARTY PAYERS
   BILLING_INDIRECT: 'indirect',
   BILLING_DIRECT: 'direct',
+  APA: 'APA',
+  AM: 'AM',
+  PCH: 'PCH',
   // CUSTOMER
   MISTER: 'mr',
   MRS: 'mrs',
@@ -71,6 +74,8 @@ module.exports = {
       [this.COUPLE]: 'Mme et M.',
     };
   },
+  // CUSTOMER ABSENCE
+  LEAVE: 'leave',
   // CUSTOMER FUNDINGS
   MONTHLY: 'monthly',
   ONCE: 'once',

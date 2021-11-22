@@ -41,7 +41,7 @@ const userCompaniesList = [
 ];
 
 const coursesList = [
-  {
+  { // 0
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -49,7 +49,7 @@ const coursesList = [
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
   },
-  {
+  { // 1
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -57,10 +57,19 @@ const coursesList = [
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
   },
-  {
+  { // 2
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     type: 'intra',
+    company: otherCompany._id,
+    trainees: [userList[1]._id],
+    salesRepresentative: userList[0]._id,
+  },
+  { // 3 - archived
+    _id: new ObjectID(),
+    subProgram: new ObjectID(),
+    type: 'inter_b2b',
+    archivedAt: new Date(),
     company: otherCompany._id,
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
@@ -91,6 +100,12 @@ const attendanceSheetsList = [
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[2]._id,
+  },
+  {
+    _id: new ObjectID(),
+    course: coursesList[3],
+    file: { publicId: 'mon upload', link: 'www.test.com' },
+    trainee: userList[1]._id,
   },
 ];
 

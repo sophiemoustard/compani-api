@@ -25,8 +25,10 @@ exports.authorizeAttendanceSheetsGet = async (req) => {
   return null;
 };
 
-exports.checkCourseType = async (req) => {
+exports.authorizeAttendanceSheetCreation = async (req) => {
   const course = await Course.findOne({ _id: req.payload.course }).populate('slots').lean();
+
+  if (course.archivedAt) throw Boom.forbidden();
 
   if (course.type === INTRA) {
     if (req.payload.trainee) return Boom.badRequest();
@@ -41,8 +43,13 @@ exports.checkCourseType = async (req) => {
   return null;
 };
 
-exports.attendanceSheetExists = async (req) => {
-  const attendanceSheet = await AttendanceSheet.findOne({ _id: req.params._id }).lean();
+exports.authorizeAttendanceSheetDeletion = async (req) => {
+  const attendanceSheet = await AttendanceSheet
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'course', select: 'archivedAt' })
+    .lean();
+
+  if (get(attendanceSheet, 'course.archivedAt')) throw Boom.forbidden();
 
   return attendanceSheet || Boom.notFound();
 };

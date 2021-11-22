@@ -248,7 +248,7 @@ exports.formatBilledEvents = async (events, credentials) => {
 
 exports.getEvents = async (query, credentials) => {
   const companyId = get(credentials, 'company._id');
-  const tpps = UtilsHelper.formatObjectIdsArray(query.thirdPartyPayer);
+  const tpps = UtilsHelper.formatObjectIdsArray(query.thirdPartyPayers);
   const customersWithFundings = await Customer
     .find({ 'fundings.thirdPartyPayer': { $in: tpps }, company: companyId }, { fundings: 1 })
     .lean();
@@ -293,8 +293,9 @@ exports.getCrossIndustryDespatchAdvice = async (query, credentials) => {
 };
 
 exports.getFileName = async (query) => {
+  const tppsQuery = UtilsHelper.formatObjectIdsArray(query.thirdPartyPayers);
   const tpp = await ThirdPartyPayer
-    .findOne({ _id: query.thirdPartyPayer }, { teletransmissionType: 1, companyCode: 1 })
+    .findOne({ _id: tppsQuery[0] }, { teletransmissionType: 1, companyCode: 1 })
     .lean();
 
   const month = moment(query.month, 'MM-YYYY').format('YYYYMM');

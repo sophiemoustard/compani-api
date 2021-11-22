@@ -6,6 +6,7 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const EventHistory = require('../../../src/models/EventHistory');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
+const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const { INTERVENTION, ABSENCE, INTERNAL_HOUR, UNAVAILABILITY } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
@@ -303,13 +304,16 @@ describe('hasConflicts', () => {
 describe('isEditionAllowed', () => {
   let isUserContractValidOnEventDates;
   let isCustomerSubscriptionValid;
+  let isAbsent;
   beforeEach(() => {
     isUserContractValidOnEventDates = sinon.stub(EventsValidationHelper, 'isUserContractValidOnEventDates');
     isCustomerSubscriptionValid = sinon.stub(EventsValidationHelper, 'isCustomerSubscriptionValid');
+    isAbsent = sinon.stub(CustomerAbsencesHelper, 'isAbsent');
   });
   afterEach(() => {
     isUserContractValidOnEventDates.restore();
     isCustomerSubscriptionValid.restore();
+    isAbsent.restore();
   });
 
   it('should return false as event is not absence and not on one day', async () => {
@@ -364,6 +368,31 @@ describe('isEditionAllowed', () => {
     expect(result).toBeFalsy();
     sinon.assert.calledWithExactly(isUserContractValidOnEventDates, event);
     sinon.assert.notCalled(isCustomerSubscriptionValid);
+  });
+
+  it('should return false if event is intervention and customer is absent', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const customerId = new ObjectID();
+    const event = {
+      customer: customerId.toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+
+    isAbsent.returns(true);
+
+    try {
+      await EventsValidationHelper.isEditionAllowed(event, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toBe(409);
+      expect(e.output.payload.message).toBe('Le bénéficiaire est absent à cette date.');
+    } finally {
+      sinon.assert.calledOnceWithExactly(isAbsent, event.customer, event.startDate);
+      sinon.assert.notCalled(isUserContractValidOnEventDates);
+      sinon.assert.notCalled(isCustomerSubscriptionValid);
+    }
   });
 
   it('should return false if event is intervention and customer subscription is not valid', async () => {
@@ -455,7 +484,7 @@ describe('isCreationAllowed', () => {
       await EventsValidationHelper.isCreationAllowed(event, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
-      expect(e.output.payload.message).toEqual('Evènement en conflit avec les évènements de l\'auxiliaire.');
+      expect(e.output.payload.message).toEqual('L\'évènement est en conflit avec les évènements de l\'auxiliaire.');
     } finally {
       sinon.assert.notCalled(isEditionAllowed);
       sinon.assert.calledWithExactly(hasConflicts, event);

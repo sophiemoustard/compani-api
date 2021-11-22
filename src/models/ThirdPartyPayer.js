@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 
 const { validateQuery, validateAggregation } = require('./preHooks/validate');
-const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+const { BILLING_DIRECT, BILLING_INDIRECT, APA, AM, PCH } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const Customer = require('./Customer');
+
+const TELETRANSMISSION_TYPES = [APA, AM, PCH];
 
 const ThirdPartyPayerSchema = mongoose.Schema({
   name: { type: String, required: true },
@@ -15,7 +17,7 @@ const ThirdPartyPayerSchema = mongoose.Schema({
   isApa: { type: Boolean, required: true },
   teletransmissionId: { type: String },
   companyCode: { type: String },
-  teletransmissionType: { type: String },
+  teletransmissionType: { type: String, enum: TELETRANSMISSION_TYPES },
 }, { timestamps: true });
 
 const countFundings = async (docs) => {
@@ -33,3 +35,4 @@ ThirdPartyPayerSchema.pre('aggregate', validateAggregation);
 ThirdPartyPayerSchema.post('find', countFundings);
 
 module.exports = mongoose.model('ThirdPartyPayer', ThirdPartyPayerSchema);
+module.exports.TELETRANSMISSION_TYPES = TELETRANSMISSION_TYPES;

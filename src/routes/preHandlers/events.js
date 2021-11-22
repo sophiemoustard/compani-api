@@ -8,6 +8,7 @@ const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
 const InternalHour = require('../../models/InternalHour');
+const CustomerAbsence = require('../../models/CustomerAbsence');
 const UserCompany = require('../../models/UserCompany');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -21,6 +22,7 @@ const {
   ILLNESS,
   INTERVENTION,
 } = require('../../helpers/constants');
+const { isBefore } = require('../../helpers/dates');
 
 const { language } = translate;
 
@@ -184,11 +186,27 @@ exports.checkEventCreationOrUpdate = async (req) => {
 exports.authorizeEventDeletionList = async (req) => {
   const { credentials } = req.auth;
 
-  const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
-  if (isAuxiliary) throw Boom.forbidden();
-
   const customer = await Customer.countDocuments({ _id: req.query.customer, company: get(credentials, 'company._id') });
   if (!customer) throw Boom.notFound();
+
+  if (isBefore(req.query.endDate, req.query.startDate)) {
+    throw Boom.forbidden(translate[language].endDateBeforeStartDate);
+  }
+
+  if (req.query.absenceType) {
+    const customerCount = await Customer.countDocuments({
+      _id: req.query.customer,
+      company: get(credentials, 'company._id'),
+      stoppedAt: { $lte: req.query.endDate },
+    });
+    if (customerCount) throw Boom.forbidden(translate[language].stoppedCustomer);
+
+    const customerAbsenceCount = await CustomerAbsence.countDocuments({
+      customer: req.query.customer,
+      $and: [{ endDate: { $gte: req.query.startDate } }, { startDate: { $lte: req.query.endDate } }],
+    });
+    if (customerAbsenceCount) throw Boom.forbidden(translate[language].customerAlreadyAbsent);
+  }
 
   return null;
 };

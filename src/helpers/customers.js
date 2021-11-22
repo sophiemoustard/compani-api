@@ -23,6 +23,7 @@ const UserCompany = require('../models/UserCompany');
 const EventRepository = require('../repositories/EventRepository');
 const translate = require('./translate');
 const { INTERVENTION } = require('./constants');
+const CustomerAbsencesHelper = require('./customerAbsences');
 const GDriveStorageHelper = require('./gDriveStorage');
 const SubscriptionsHelper = require('./subscriptions');
 const ReferentHistoriesHelper = require('./referentHistories');
@@ -50,9 +51,9 @@ exports.getCustomersBySector = async (query, credentials) => {
       { auxiliary: { $in: UtilsHelper.formatObjectIdsArray(sectorHistories.map(sh => sh.auxiliary)) } },
       { sector: { $in: UtilsHelper.formatObjectIdsArray(query.sector) } },
     ],
+    company: companyId,
     startDate: { $lte: query.endDate },
     endDate: { $gte: query.startDate },
-    company: companyId,
   };
   const events = await Event
     .find(eventQuery, { customer: 1 })
@@ -212,7 +213,10 @@ const formatPayload = async (customerId, customerPayload, company) => {
 exports.updateCustomer = async (customerId, payload, credentials) => {
   const { company } = credentials;
 
-  if (payload.stoppedAt) await EventsHelper.deleteCustomerEvents(customerId, payload.stoppedAt, null, credentials);
+  if (payload.stoppedAt) {
+    await CustomerAbsencesHelper.updateCustomerAbsencesOnCustomerStop(customerId, payload.stoppedAt);
+    await EventsHelper.deleteCustomerEvents(customerId, payload.stoppedAt, null, '', credentials);
+  }
 
   if (has(payload, 'referent')) {
     await ReferentHistoriesHelper.updateCustomerReferent(customerId, payload.referent, company);

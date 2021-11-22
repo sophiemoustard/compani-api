@@ -237,7 +237,7 @@ describe('getEvents', () => {
     const companyId = new ObjectID();
     const tpp1 = new ObjectID();
     const tpp2 = new ObjectID();
-    const query = { thirdPartyPayer: [tpp1.toHexString(), tpp2.toHexString()], month: '09-2021' };
+    const query = { thirdPartyPayers: [tpp1.toHexString(), tpp2.toHexString()], month: '09-2021' };
     const customers = [
       {
         _id: '098',
@@ -320,7 +320,7 @@ describe('getFileName', () => {
 
   it('should return file name', async () => {
     const tppId = new ObjectID();
-    const query = { thirdPartyPayer: tppId, month: '09-2021' };
+    const query = { thirdPartyPayers: [tppId], month: '09-2021' };
     const thirdPartyPayer = { teletransmissionType: 'APA', companyCode: '440' };
     findOne.returns(SinonMongoose.stubChainedQueries([thirdPartyPayer], ['lean']));
 

@@ -45,6 +45,7 @@ const DatesHelper = require('../../src/helpers/dates');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
+const CustomerAbsence = require('../../src/models/CustomerAbsence');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -1747,10 +1748,10 @@ describe('DELETE /events/{_id}', () => {
 
 describe('DELETE /events', () => {
   let authToken;
-  describe('PLANNING_REFERENT', () => {
+  describe('AUXILIARY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('planning_referent');
+      authToken = await getToken('auxiliary');
     });
 
     it('should delete all customer events from startDate including repetitions', async () => {
@@ -1826,6 +1827,72 @@ describe('DELETE /events', () => {
       });
       expect(response.statusCode).toBe(404);
     });
+
+    it('should create a customer absence', async () => {
+      const customer = customerAuxiliaries[2]._id;
+      const startDate = new Date('2020-12-01');
+      const endDate = new Date('2020-12-26');
+      const absenceType = 'leave';
+      const customerAbsenceCountBefore = await CustomerAbsence.countDocuments({
+        customer,
+        company: authCompany._id,
+        absenceType: 'leave',
+      });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(200);
+      const customerAbsenceCountAfter = await CustomerAbsence.countDocuments({
+        customer,
+        company: authCompany._id,
+        absenceType: 'leave',
+      });
+      expect(customerAbsenceCountAfter).toBe(customerAbsenceCountBefore + 1);
+    });
+
+    it('should return a 403 if customer is stopped', async () => {
+      const customer = customerAuxiliaries[2]._id;
+      const startDate = '2021-02-14T10:30:18.65';
+      const endDate = '2021-02-15T10:30:18.65';
+      const absenceType = 'leave';
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if a customer absence already exists on this period', async () => {
+      const customer = customerAuxiliaries[3]._id;
+      const startDate = '2021-11-12T10:30:18.653Z';
+      const endDate = '2021-11-14T10:30:18.653Z';
+      const absenceType = 'hospitalization';
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if endDate is before startDate', async () => {
+      const customer = customerAuxiliaries[0]._id;
+      const startDate = '2021-11-05T10:30:18.653';
+      const endDate = '2021-11-01T10:30:18.653';
+      const absenceType = 'leave';
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -1834,7 +1901,7 @@ describe('DELETE /events', () => {
     const roles = [
       { name: 'coach', expectedCode: 200 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
     ];
