@@ -16,7 +16,7 @@ exports.plugin = {
         auth: { scope: ['bills:edit'] },
         validate: {
           query: Joi.object({
-            thirdPartyPayer: objectIdOrArray.required(),
+            thirdPartyPayers: objectIdOrArray.required(),
             month: monthValidation.required(),
           }),
         },
