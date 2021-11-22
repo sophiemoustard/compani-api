@@ -762,6 +762,7 @@ describe('updateRepetition', () => {
         startDate: '2019-03-23T09:00:00.000Z',
         endDate: '2019-03-23T11:00:00.000Z',
         _id: 'asdfghjk',
+        type: ABSENCE,
       },
       {
         repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
@@ -813,11 +814,12 @@ describe('updateRepetition', () => {
         endDate: '2019-03-23T11:00:00.000Z',
         auxiliary: '1234567890',
         _id: 'asdfghjk',
+        type: ABSENCE,
       },
       false
     );
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
-    sinon.assert.calledOnceWithExactly(isAbsent, events[1].customer, events[1].startDate);
+    sinon.assert.calledOnceWithExactly(isAbsent, events[1].customer, '2019-03-24T10:00:00.000Z');
   });
 
   it('should unassign intervention in conflict', async () => {
@@ -842,6 +844,7 @@ describe('updateRepetition', () => {
         startDate: '2019-03-24T09:00:00.000Z',
         endDate: '2019-03-24T11:00:00.000Z',
         _id: '123456',
+        type: ABSENCE,
       },
     ];
 
@@ -895,6 +898,7 @@ describe('updateRepetition', () => {
         startDate: '2019-03-24T10:00:00.000Z',
         endDate: '2019-03-24T11:00:00.000Z',
         company: companyId,
+        type: ABSENCE,
       }
     );
     sinon.assert.calledWithExactly(
@@ -920,6 +924,7 @@ describe('updateRepetition', () => {
         endDate: '2019-03-24T11:00:00.000Z',
         sector: sectorId,
         _id: '123456',
+        type: ABSENCE,
       },
       true
     );
@@ -945,6 +950,7 @@ describe('updateRepetition', () => {
         startDate: '2019-03-24T09:00:00.000Z',
         endDate: '2019-03-24T11:00:00.000Z',
         _id: '123456',
+        type: ABSENCE,
       },
     ];
 
@@ -992,7 +998,13 @@ describe('updateRepetition', () => {
     );
     sinon.assert.calledWithExactly(
       hasConflicts,
-      { _id: '123456', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', company: companyId }
+      {
+        _id: '123456',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        company: companyId,
+        type: ABSENCE,
+      }
     );
     sinon.assert.calledWithExactly(
       updateOne,
@@ -1012,7 +1024,13 @@ describe('updateRepetition', () => {
     sinon.assert.calledOnceWithExactly(
       formatEditionPayload,
       events[0],
-      { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', sector: sectorId, _id: '123456' },
+      {
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        sector: sectorId,
+        _id: '123456',
+        type: ABSENCE,
+      },
       false
     );
     sinon.assert.notCalled(deleteOne);
@@ -1037,6 +1055,7 @@ describe('updateRepetition', () => {
         startDate: '2019-03-24T09:00:00.000Z',
         endDate: '2019-03-24T11:00:00.000Z',
         _id: '123456',
+        type: ABSENCE,
       },
     ];
 
@@ -1074,7 +1093,13 @@ describe('updateRepetition', () => {
     );
     sinon.assert.calledWithExactly(
       hasConflicts,
-      { _id: '123456', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', company: companyId }
+      {
+        _id: '123456',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        company: companyId,
+        type: ABSENCE,
+      }
     );
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(deleteOne, { _id: '123456' });
@@ -1158,9 +1183,9 @@ describe('updateRepetition', () => {
     sinon.assert.calledTwice(updateOne);
     sinon.assert.calledTwice(formatEditionPayload);
     sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
-    sinon.assert.calledWithExactly(isAbsent, events[0].customer, events[0].startDate);
-    sinon.assert.calledWithExactly(isAbsent, events[1].customer, events[1].startDate);
-    sinon.assert.calledWithExactly(isAbsent, events[2].customer, events[2].startDate);
+    sinon.assert.calledWithExactly(isAbsent.getCall(0), events[0].customer, '2019-03-23T10:00:00.000Z');
+    sinon.assert.calledWithExactly(isAbsent.getCall(1), events[1].customer, '2019-03-24T10:00:00.000Z');
+    sinon.assert.calledWithExactly(isAbsent.getCall(2), events[2].customer, '2019-03-25T10:00:00.000Z');
   });
 });
 

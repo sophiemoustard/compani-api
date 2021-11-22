@@ -182,7 +182,7 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
       endDate,
       _id: events[i]._id,
       type: events[i].type,
-      customer: events[i].customer,
+      ...(events[i].customer && { customer: events[i].customer }),
     };
 
     if (eventToSet.type === INTERVENTION) {
