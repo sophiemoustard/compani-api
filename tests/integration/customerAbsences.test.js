@@ -13,8 +13,6 @@ describe('NODE ENV', () => {
 
 describe('CUSTOMER ABSENCES ROUTES - GET /customerabsences', () => {
   let authToken;
-  let startDate;
-  let endDate;
   beforeEach(populateDB);
 
   describe('AUXILIARY', () => {
@@ -23,8 +21,8 @@ describe('CUSTOMER ABSENCES ROUTES - GET /customerabsences', () => {
     });
 
     it('should get all customer absences', async () => {
-      startDate = '2021-09-30T23:59:59.999Z';
-      endDate = '2021-10-30T23:59:59.999Z';
+      const startDate = '2021-09-30T23:59:59.999Z';
+      const endDate = '2021-10-30T23:59:59.999Z';
 
       const response = await app.inject({
         method: 'GET',
@@ -38,8 +36,8 @@ describe('CUSTOMER ABSENCES ROUTES - GET /customerabsences', () => {
     });
 
     it('should return 400 if startDate is after endDate', async () => {
-      startDate = '2021-10-30T23:59:59.999Z';
-      endDate = '2021-10-25T23:59:59.999Z';
+      const startDate = '2021-10-30T23:59:59.999Z';
+      const endDate = '2021-10-25T23:59:59.999Z';
       const response = await app.inject({
         method: 'GET',
         url: `/customerabsences?customer=${customersList[0]._id}&customer=${customersList[2]._id}`
@@ -68,8 +66,8 @@ describe('CUSTOMER ABSENCES ROUTES - GET /customerabsences', () => {
     });
 
     it('should return 404 if customer and logged user have different companies', async () => {
-      startDate = '2021-10-01T23:59:59.999Z';
-      endDate = '2021-10-30T23:59:59.999Z';
+      const startDate = '2021-10-01T23:59:59.999Z';
+      const endDate = '2021-10-30T23:59:59.999Z';
       const response = await app.inject({
         method: 'GET',
         url: `/customerabsences?customer=${customersList[1]._id}&customer=${customersList[2]._id}`
@@ -82,12 +80,10 @@ describe('CUSTOMER ABSENCES ROUTES - GET /customerabsences', () => {
   });
 
   describe('Other roles', () => {
-    startDate = '2021-10-01T23:59:59.999Z';
-    endDate = '2021-10-30T23:59:59.999Z';
+    const startDate = '2021-10-01T23:59:59.999Z';
+    const endDate = '2021-10-30T23:59:59.999Z';
 
     it('should return 200 as user is customer\'s helper', async () => {
-      startDate = '2021-10-01T23:59:59.999Z';
-      endDate = '2021-10-30T23:59:59.999Z';
       authToken = await getTokenByCredentials(usersList[0].local);
 
       const response = await app.inject({
