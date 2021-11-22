@@ -22,6 +22,7 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const Repetition = require('../models/Repetition');
 const Customer = require('../models/Customer');
+const CustomerAbsencesHelper = require('./customerAbsences');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
@@ -34,6 +35,7 @@ momentRange.extendMoment(moment);
 
 exports.formatRepeatedPayload = async (event, sector, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
+  const isIntervention = event.type === INTERVENTION;
   let payload = {
     ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
     startDate: moment(event.startDate).add(step, 'd'),
@@ -41,8 +43,13 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
   };
   const hasConflicts = await EventsValidationHelper.hasConflicts(payload);
 
-  if (event.type === INTERVENTION && event.auxiliary && hasConflicts) {
-    payload = { ...omit(payload, 'auxiliary'), 'repetition.frequency': NEVER, sector };
+  if (isIntervention) {
+    if (event.auxiliary && hasConflicts) {
+      payload = { ...omit(payload, 'auxiliary'), 'repetition.frequency': NEVER, sector };
+    }
+
+    const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(event.customer, payload.startDate);
+    if (customerIsAbsent) return null;
   } else if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
 
   return new Event(payload);
@@ -169,7 +176,19 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
       .minutes(parentStartDate.minutes()).toISOString();
     const endDate = moment(events[i].endDate).hours(parentEndDate.hours())
       .minutes(parentEndDate.minutes()).toISOString();
-    let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
+    let eventToSet = {
+      ...eventPayload,
+      startDate,
+      endDate,
+      _id: events[i]._id,
+      type: events[i].type,
+      ...(events[i].customer && { customer: events[i].customer }),
+    };
+
+    if (eventToSet.type === INTERVENTION) {
+      const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(eventToSet.customer, eventToSet.startDate);
+      if (customerIsAbsent) continue;
+    }
 
     const hasConflicts = await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId });
     if (eventFromDb.type !== INTERVENTION && hasConflicts) promises.push(Event.deleteOne({ _id: events[i]._id }));
