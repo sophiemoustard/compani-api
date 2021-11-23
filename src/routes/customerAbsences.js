@@ -10,7 +10,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['events:read'] },
+        auth: { scope: ['events:read', 'customer-{query.customer}'] },
         validate: {
           query: Joi.object({
             customer: objectIdOrArray.required(),

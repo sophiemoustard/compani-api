@@ -1793,17 +1793,22 @@ describe('DELETE /events', () => {
       expect(countEventAfterCreation).toBe(0);
     });
 
-    it('should not delete events if one event is billed', async () => {
+    it('should not delete events and not create absence if one event is billed', async () => {
       const customer = customerAuxiliaries[0]._id;
       const startDate = '2019-01-01';
       const endDate = '2019-10-16';
+      const absenceType = 'leave';
+      const customerAbsencesBefore = await CustomerAbsence.countDocuments({ customer });
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+        url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}&absenceType=${absenceType}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
+
       expect(response.statusCode).toBe(409);
+      const customerAbsencesAfter = await CustomerAbsence.countDocuments({ customer });
+      expect(customerAbsencesAfter).toEqual(customerAbsencesBefore);
     });
 
     it('should not delete events if one event is timestamped', async () => {

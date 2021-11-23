@@ -1,8 +1,8 @@
 const expect = require('expect');
 const qs = require('qs');
 const omit = require('lodash/omit');
-const { getToken } = require('./helpers/authentication');
-const { customersList, populateDB } = require('./seed/customerAbsencesSeed');
+const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { customersList, usersList, populateDB } = require('./seed/customerAbsencesSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
@@ -78,29 +78,41 @@ describe('CUSTOMER ABSENCES ROUTES - GET /customerabsences', () => {
       expect(response.statusCode).toBe(404);
     });
   });
-});
 
-describe('Other roles', () => {
-  let authToken;
-  const startDate = '2021-10-01T23:59:59.999Z';
-  const endDate = '2021-10-30T23:59:59.999Z';
-  const roles = [
-    { name: 'coach', expectedCode: 200 },
-    { name: 'vendor_admin', expectedCode: 403 },
-    { name: 'helper', expectedCode: 403 },
-    { name: 'auxiliary_without_company', expectedCode: 403 },
-  ];
+  describe('Other roles', () => {
+    const startDate = '2021-10-01T23:59:59.999Z';
+    const endDate = '2021-10-30T23:59:59.999Z';
 
-  roles.forEach((role) => {
-    it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-      authToken = await getToken(role.name);
+    it('should return 200 as user is customer\'s helper', async () => {
+      authToken = await getTokenByCredentials(usersList[0].local);
+
       const response = await app.inject({
         method: 'GET',
-        url: `/customerabsences?customer=${customersList[0]._id}&startDate=${startDate}&endDate=${endDate}`,
+        url: `/customerabsences?customer=${customersList[3]._id}&startDate=${startDate}&endDate=${endDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(role.expectedCode);
+      expect(response.statusCode).toBe(200);
+    });
+
+    const roles = [
+      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/customerabsences?customer=${customersList[0]._id}&startDate=${startDate}&endDate=${endDate}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });
