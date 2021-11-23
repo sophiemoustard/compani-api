@@ -1,7 +1,13 @@
 const { ObjectID } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 const Customer = require('../../../src/models/Customer');
+const UserCompany = require('../../../src/models/UserCompany');
+const Helper = require('../../../src/models/Helper');
 const CustomerAbsence = require('../../../src/models/CustomerAbsence');
+const User = require('../../../src/models/User');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
+const { helperRoleId } = require('../../seed/authRolesSeed');
+const { WEBAPP } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const customersList = [
@@ -47,9 +53,38 @@ const customersList = [
       },
     },
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Pierre', lastname: 'Poirot' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+  },
 ];
 
-const customerAbsences = [
+const usersList = [{
+  _id: new ObjectID(),
+  identity: { firstname: 'Mike', lastname: 'ElJackson' },
+  local: { email: 'dsfgag@tt.com', password: '123456!eR' },
+  refreshToken: uuidv4(),
+  role: { client: helperRoleId },
+  origin: WEBAPP,
+}];
+
+const userCompanyList = [{ user: usersList[0]._id, company: authCompany._id }];
+
+const helpersList = [
+  { customer: customersList[3]._id, user: usersList[0]._id, company: authCompany._id, referent: true },
+];
+
+const customerAbsencesList = [
   {
     company: authCompany._id,
     customer: customersList[0],
@@ -83,7 +118,13 @@ const customerAbsences = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([Customer.create(customersList), CustomerAbsence.create(customerAbsences)]);
+  await Promise.all([
+    Customer.create(customersList),
+    CustomerAbsence.create(customerAbsencesList),
+    Helper.create(helpersList),
+    User.create(usersList),
+    UserCompany.create(userCompanyList),
+  ]);
 };
 
-module.exports = { populateDB, customerAbsences, customersList };
+module.exports = { populateDB, customerAbsencesList, customersList, helpersList, usersList };
