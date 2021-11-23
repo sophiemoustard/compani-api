@@ -39,7 +39,7 @@
     "bignumber.js": "^9.0.1",
     "cron": "^1.7.2",
     "date-holidays": "^3.12.1",
-    "docxtemplater": "^3.26.2",
+    "docxtemplater": "^3.27.1",
     "dotenv": "^10.0.0",
     "feedparser-promised": "^2.0.1",
     "flat": "^5.0.2",
