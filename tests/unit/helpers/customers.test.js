@@ -23,6 +23,7 @@ const CustomerHelper = require('../../../src/helpers/customers');
 const ReferentHistoriesHelper = require('../../../src/helpers/referentHistories');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
+const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventsHelper = require('../../../src/helpers/events');
 const PdfHelper = require('../../../src/helpers/pdf');
@@ -99,9 +100,9 @@ describe('getCustomersBySector', () => {
             {
               type: 'intervention',
               $or: [{ auxiliary: { $in: [auxiliaryIds[1], auxiliaryIds[0]] } }, { sector: { $in: [sectorId] } }],
+              company: companyId,
               startDate: { $lte: '2019-05-14T09:00:00' },
               endDate: { $gte: '2019-04-14T09:00:00' },
-              company: companyId,
             },
             { customer: 1 },
           ],
@@ -807,6 +808,7 @@ describe('updateCustomer', () => {
   let updateCustomerEvents;
   let updateCustomerReferent;
   let deleteCustomerEvents;
+  let updateCustomerAbsencesOnCustomerStop;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
@@ -814,6 +816,7 @@ describe('updateCustomer', () => {
     updateCustomerEvents = sinon.stub(CustomerHelper, 'updateCustomerEvents');
     updateCustomerReferent = sinon.stub(ReferentHistoriesHelper, 'updateCustomerReferent');
     deleteCustomerEvents = sinon.stub(EventsHelper, 'deleteCustomerEvents');
+    updateCustomerAbsencesOnCustomerStop = sinon.stub(CustomerAbsencesHelper, 'updateCustomerAbsencesOnCustomerStop');
   });
   afterEach(() => {
     findOneAndUpdateCustomer.restore();
@@ -821,6 +824,7 @@ describe('updateCustomer', () => {
     updateCustomerEvents.restore();
     updateCustomerReferent.restore();
     deleteCustomerEvents.restore();
+    updateCustomerAbsencesOnCustomerStop.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -1023,7 +1027,7 @@ describe('updateCustomer', () => {
     );
   });
 
-  it('should deleted customer\'s events when customer is stopped', async () => {
+  it('should delete customer\'s events and absences when customer is stopped', async () => {
     const customerId = new ObjectID();
     const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
     const payload = { stoppedAt: '2019-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
@@ -1033,7 +1037,15 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     expect(result).toBe(customerResult);
-    sinon.assert.calledOnceWithExactly(deleteCustomerEvents, customerId, '2019-06-25T16:34:04.144Z', null, credentials);
+    sinon.assert.calledOnceWithExactly(
+      deleteCustomerEvents,
+      customerId,
+      '2019-06-25T16:34:04.144Z',
+      null,
+      '',
+      credentials
+    );
+    sinon.assert.calledOnceWithExactly(updateCustomerAbsencesOnCustomerStop, customerId, '2019-06-25T16:34:04.144Z');
     SinonMongoose.calledWithExactly(
       findOneAndUpdateCustomer,
       [

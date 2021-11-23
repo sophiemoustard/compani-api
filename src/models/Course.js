@@ -25,6 +25,7 @@ const CourseSchema = mongoose.Schema({
     ref: 'User',
     required() { return this.format === BLENDED; },
   },
+  archivedAt: { type: Date },
 }, { timestamps: true });
 
 // eslint-disable-next-line consistent-return

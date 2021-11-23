@@ -94,6 +94,24 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 403 if course is archived', async () => {
+      const payload = {
+        startDate: '2020-01-04T17:00:00',
+        endDate: '2020-01-04T20:00:00',
+        course: courseSlotsList[5].course,
+        step: stepsList[4]._id,
+        meetingLink: 'meet.google.com',
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courseslots',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 409 if slots conflict', async () => {
       const payload = {
         startDate: courseSlotsList[0].startDate,
@@ -421,6 +439,22 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(courseHistory).toEqual(1);
     });
 
+    it('should return 403 if course is archived', async () => {
+      const payload = {
+        startDate: '2020-03-04T09:00:00',
+        endDate: '2020-03-04T11:00:00',
+        step: stepsList[0]._id,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[5]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 400 if endDate without startDate', async () => {
       const payload = {
         endDate: '2020-03-04T09:00:00',
@@ -679,6 +713,16 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
       });
 
       expect(courseHistory).toEqual(1);
+    });
+
+    it('should return 403 if course is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courseslots/${courseSlotsList[5]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 404 if slot not found', async () => {

@@ -21,6 +21,7 @@ const {
 } = require('./constants');
 const translate = require('./translate');
 const UtilsHelper = require('./utils');
+const CustomerAbsencesHelper = require('./customerAbsences');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
@@ -44,6 +45,8 @@ exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const eventsQuery = exports.getListQuery(query, credentials);
 
+  // ATTENTION - Ne pas rajouter les virtuals start/endDateTimeStamp dans les populate des fonctions suivantes
+  // car cela créé des soucis de performance sur les plannings / agendas
   if (query.groupBy === CUSTOMER) return EventRepository.getEventsGroupedByCustomers(eventsQuery, companyId);
   if (query.groupBy === AUXILIARY) return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, companyId);
 
@@ -355,16 +358,23 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
   return Promise.all(promises);
 };
 
-exports.deleteCustomerEvents = async (customer, startDate, endDate, credentials) => {
+exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType, credentials) => {
   const companyId = get(credentials, 'company._id', null);
+  const formattedEndDate = moment(endDate).endOf('day').toDate();
   const query = {
     customer: new ObjectID(customer),
     startDate: { $gte: moment(startDate).toDate() },
     company: companyId,
   };
-  if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
+
+  if (endDate) query.startDate.$lte = formattedEndDate;
 
   await exports.deleteEventsAndRepetition(query, !endDate, credentials);
+
+  if (absenceType) {
+    const queryCustomerAbsence = { customer, startDate, endDate: formattedEndDate, absenceType };
+    await CustomerAbsencesHelper.create(queryCustomerAbsence, companyId);
+  }
 };
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {

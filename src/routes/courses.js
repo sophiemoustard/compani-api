@@ -30,6 +30,7 @@ const { phoneNumberValidation } = require('./validations/utils');
 const {
   getCourseTrainee,
   authorizeCourseEdit,
+  authorizeGetDocumentsAndSms,
   authorizeCourseDeletion,
   authorizeGetCourseList,
   authorizeCourseGetByTrainee,
@@ -43,6 +44,7 @@ const {
   checkSalesRepresentativeExists,
   authorizeGetQuestionnaires,
   authorizeAttendanceSheetsGetAndAssignCourse,
+  authorizeSmsSending,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 
@@ -183,6 +185,7 @@ exports.plugin = {
               email: Joi.string().allow('', null),
             }).min(1),
             salesRepresentative: Joi.objectId(),
+            archivedAt: Joi.date(),
           }),
         },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
@@ -216,7 +219,11 @@ exports.plugin = {
             type: Joi.string().required().valid(...MESSAGE_TYPE),
           }).required(),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [
+          { method: getCourse, assign: 'course' },
+          { method: authorizeCourseEdit },
+          { method: authorizeSmsSending },
+        ],
       },
       handler: sendSMS,
     });
@@ -229,7 +236,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
       },
       handler: getSMSHistory,
     });
@@ -282,7 +289,7 @@ exports.plugin = {
         },
         pre: [
           { method: authorizeAttendanceSheetsGetAndAssignCourse, assign: 'course' },
-          { method: authorizeCourseEdit },
+          { method: authorizeGetDocumentsAndSms },
         ],
       },
       handler: downloadAttendanceSheets,
@@ -296,7 +303,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],
+        pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
       },
       handler: downloadCompletionCertificates,
     });

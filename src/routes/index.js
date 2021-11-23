@@ -55,4 +55,5 @@ exports.routes = [
   { plugin: require('./billingItems'), routes: { prefix: '/billingitems' } },
   { plugin: require('./companyLinkRequests'), routes: { prefix: '/companylinkrequests' } },
   { plugin: require('./teletransmission'), routes: { prefix: '/teletransmission' } },
+  { plugin: require('./customerAbsences'), routes: { prefix: '/customerabsences' } },
 ];

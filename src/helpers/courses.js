@@ -19,7 +19,16 @@ const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
 const drive = require('../models/Google/Drive');
-const { INTRA, INTER_B2B, COURSE_SMS, STRICTLY_E_LEARNING, DRAFT, REJECTED, ON_SITE } = require('./constants');
+const {
+  INTRA,
+  INTER_B2B,
+  COURSE_SMS,
+  STRICTLY_E_LEARNING,
+  DRAFT,
+  REJECTED,
+  ON_SITE,
+  E_LEARNING,
+} = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
@@ -222,7 +231,7 @@ exports.getCourseFollowUp = async (course, company) => {
       .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company))
       .map(t => ({
         ...t,
-        ...exports.getTraineeProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+        ...exports.getTraineeElearningProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
       })),
   };
 };
@@ -254,20 +263,22 @@ exports.getQuestionnaireAnswers = async (courseId) => {
   return activitiesWithFollowUp.filter(act => act.followUp.length).map(act => act.followUp).flat();
 };
 
-exports.getTraineeProgress = (traineeId, steps, slots) => {
-  const formattedSteps = steps.map((s) => {
-    const traineeStep = {
-      ...s,
-      activities: s.activities.map(a => ({
-        ...a,
-        activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
-      })),
-    };
+exports.getTraineeElearningProgress = (traineeId, steps, slots) => {
+  const formattedSteps = steps
+    .filter(step => step.type === E_LEARNING)
+    .map((s) => {
+      const traineeStep = {
+        ...s,
+        activities: s.activities.map(a => ({
+          ...a,
+          activityHistories: a.activityHistories.filter(ah => UtilsHelper.areObjectIdsEquals(ah.user, traineeId)),
+        })),
+      };
 
-    return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
-  });
+      return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
+    });
 
-  return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
+  return { steps: formattedSteps, elearningProgress: exports.getCourseProgress(formattedSteps) };
 };
 
 exports.getTraineeCourse = async (courseId, credentials) => {

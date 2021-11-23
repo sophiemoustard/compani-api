@@ -26,6 +26,8 @@ exports.getCourseSlot = async (req) => {
 const formatAndCheckAuthorization = async (courseId, credentials) => {
   const course = await Course.findById(courseId).lean();
   if (!course) throw Boom.notFound();
+  if (course.archivedAt) throw Boom.forbidden();
+
   const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
   const courseCompanyId = course.company ? course.company.toHexString() : null;
 

@@ -38,7 +38,7 @@ const userList = [
 ];
 
 const coursesList = [
-  {
+  { // 0
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -47,7 +47,7 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
-  {
+  { // 1
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -56,7 +56,7 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
-  {
+  { // 2
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: otherCompany._id,
@@ -65,7 +65,7 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
-  { // interb2b
+  { // 3 interb2b
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -74,7 +74,7 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
-  { // interb2b with only trainees from otherCompany
+  { // 4 interb2b with only trainees from otherCompany
     _id: new ObjectID(),
     subProgram: new ObjectID(),
     company: authCompany._id,
@@ -83,42 +83,59 @@ const coursesList = [
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
+  { // 5 archived
+    _id: new ObjectID(),
+    subProgram: new ObjectID(),
+    company: authCompany._id,
+    type: 'intra',
+    trainees: [new ObjectID(), new ObjectID()],
+    trainer: userList[0]._id,
+    salesRepresentative: userList[2]._id,
+    archivedAt: '2021-11-17T23:00:00',
+  },
 ];
 
 const slotsList = [
-  {
+  { // 0
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[0],
     step: new ObjectID(),
   },
-  {
+  { // 1
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[0],
     step: new ObjectID(),
   },
-  { // slot from other company's course
+  { // 2 - slot from other company's course
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[2],
     step: new ObjectID(),
   },
-  { // slot for coursesList[3]
+  { // 3 - slot for coursesList[3]
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[3],
     step: new ObjectID(),
   },
-  { // slot for coursesList[4]
+  { // 4 - slot for coursesList[4]
     _id: new ObjectID(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[4],
+    step: new ObjectID(),
+  },
+  { // 5 - slot for coursesList[5]
+    _id: new ObjectID(),
+    startDate: new Date('2020-01-23').toISOString(),
+    endDate: new Date('2020-01-23').toISOString(),
+    course: coursesList[5],
     step: new ObjectID(),
   },
 ];
@@ -127,6 +144,7 @@ const attendancesList = [
   { _id: new ObjectID(), courseSlot: slotsList[0], trainee: coursesList[0].trainees[0] },
   { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[0] },
   { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[1] },
+  { _id: new ObjectID(), courseSlot: slotsList[5], trainee: coursesList[5].trainees[1] },
 ];
 
 const companyTraineesList = [
