@@ -1403,7 +1403,8 @@ describe('formatAndCreateList', () => {
     );
     sinon.assert.calledOnceWithExactly(
       updateOneBillNumber,
-      { prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 3 } }
+      { prefix: number.prefix, company: credentials.company._id },
+      { $set: { seq: 3 } }
     );
     sinon.assert.calledOnceWithExactly(
       updateManyCreditNote,
@@ -1569,7 +1570,8 @@ describe('formatAndCreateList', () => {
     sinon.assert.calledWithExactly(updateEventsStub, { ...customerBillingInfo.billedEvents });
     sinon.assert.calledOnceWithExactly(
       updateOneBillNumber,
-      { prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 2 } }
+      { prefix: number.prefix, company: credentials.company._id },
+      { $set: { seq: 2 } }
     );
     sinon.assert.calledOnceWithExactly(
       updateManyCreditNote,
@@ -1637,7 +1639,8 @@ describe('formatAndCreateList', () => {
     sinon.assert.calledWithExactly(updateEventsStub, { ...tppBillingInfo.billedEvents });
     sinon.assert.calledOnceWithExactly(
       updateOneBillNumber,
-      { prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 2 } }
+      { prefix: number.prefix, company: credentials.company._id },
+      { $set: { seq: 2 } }
     );
     sinon.assert.calledOnceWithExactly(
       updateManyCreditNote,
@@ -1790,7 +1793,8 @@ describe('formatAndCreateList', () => {
         sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
         sinon.assert.calledOnceWithExactly(
           updateOneBillNumber,
-          { prefix: number.prefix, company: companyId }, { $set: { seq: number.seq } }
+          { prefix: number.prefix, company: companyId },
+          { $set: { seq: number.seq } }
         );
       }
     });
@@ -1818,7 +1822,8 @@ describe('formatAndCreateList', () => {
         sinon.assert.calledOnceWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
         sinon.assert.calledOnceWithExactly(
           updateOneBillNumber,
-          { prefix: number.prefix, company: companyId }, { $set: { seq: number.seq } }
+          { prefix: number.prefix, company: companyId },
+          { $set: { seq: number.seq } }
         );
       }
     });

@@ -1250,7 +1250,8 @@ describe('updateVersion', () => {
     sinon.assert.notCalled(updateHistoryOnContractUpdateStub);
     sinon.assert.calledOnceWithExactly(
       updateOneContract,
-      { _id: contractId.toHexString() }, { $unset: { auxiliaryDoc: '' } }
+      { _id: contractId.toHexString() },
+      { $unset: { auxiliaryDoc: '' } }
     );
     SinonMongoose.calledWithExactly(
       findOneContract,
