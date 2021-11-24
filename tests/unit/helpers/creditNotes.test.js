@@ -410,13 +410,16 @@ describe('createCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(insertManyCreditNote, [{ inclTaxesCustomer: 1234 }]);
     sinon.assert.calledOnceWithExactly(
       createBillSlips,
-      [{ inclTaxesCustomer: 1234 }], payload.date, credentials.company
+      [{ inclTaxesCustomer: 1234 }],
+      payload.date,
+      credentials.company
     );
     sinon.assert.notCalled(updateEventAndFundingHistory);
     sinon.assert.calledOnceWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledOnceWithExactly(
       updateOneNumber,
-      { prefix, company: credentials.company._id }, { $set: { seq: 2 } }
+      { prefix, company: credentials.company._id },
+      { $set: { seq: 2 } }
     );
   });
 
@@ -453,7 +456,8 @@ describe('createCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledOnceWithExactly(
       updateOneNumber,
-      { prefix, company: credentials.company._id }, { $set: { seq: 2 } }
+      { prefix, company: credentials.company._id },
+      { $set: { seq: 2 } }
     );
   });
 
@@ -517,7 +521,8 @@ describe('createCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledOnceWithExactly(
       updateOneNumber,
-      { prefix, company: credentials.company._id }, { $set: { seq: 3 } }
+      { prefix, company: credentials.company._id },
+      { $set: { seq: 3 } }
     );
   });
 });
