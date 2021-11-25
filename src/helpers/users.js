@@ -134,6 +134,7 @@ exports.getUser = async (userId, credentials) => {
       },
     })
     .populate({ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } })
+    .populate({ path: 'establishment', select: 'siret' })
     .lean({ autopopulate: true, virtuals: true });
 
   if (!user) throw Boom.notFound(translate[language].userNotFound);
