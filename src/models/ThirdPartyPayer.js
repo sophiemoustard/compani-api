@@ -18,6 +18,7 @@ const ThirdPartyPayerSchema = mongoose.Schema({
   teletransmissionId: { type: String },
   companyCode: { type: String },
   teletransmissionType: { type: String, enum: TELETRANSMISSION_TYPES },
+  deliveryRound: { type: Number, default: 0 },
 }, { timestamps: true });
 
 const countFundings = async (docs) => {

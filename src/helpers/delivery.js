@@ -138,10 +138,15 @@ const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
  * Domatel ne tient pas compte des secondes sur les horodatages et calcule les durées à facturer au tiers-payeur
  * à la minute près
 */
-const computeBilledQuantity = (event) => {
-  const minutes = (event.endDate - event.startDate) / (60 * 1000);
+exports.computeBilledQuantity = (event, thirdPartyPayer) => {
+  const minutes = (new Date(event.endDate) - new Date(event.startDate)) / (60 * 1000);
 
-  return Math.round((Math.round(minutes) * 100) / 60) / 100;
+  let billedMinutes = minutes;
+  if (thirdPartyPayer.deliveryRound) {
+    billedMinutes = Math.round(minutes / thirdPartyPayer.deliveryRound) * thirdPartyPayer.deliveryRound;
+  }
+
+  return Math.round((Math.round(billedMinutes) * 100) / 60) / 100;
 };
 
 // Prestation à effectuer
@@ -156,7 +161,7 @@ const getIncludedCIDDLSupplyChainTradeLineItem = (event, funding, transactionId)
       OrderLineID: funding.fundingPlanId,
     },
     SpecifiedCIDDLSupplyChainTradeDelivery: {
-      BilledQuantity: { '#text': computeBilledQuantity(event), '@unitCode': 'HUR' },
+      BilledQuantity: { '#text': exports.computeBilledQuantity(event, funding.thirdPartyPayer), '@unitCode': 'HUR' },
     },
     SpecifiedCIDDLSupplyChainTradeSettlement: {
       CadreIntervention: { '@listID': 'ESPPADOM_CADRE', '@listAgencyName': 'EDESS', '#text': CADRE_PRESTATAIRE },
@@ -205,7 +210,7 @@ exports.formatEvents = async (events, companyId) => {
       { _id: { $in: events.map(ev => ev.customer) }, company: companyId },
       { 'contact.primaryAddress': 1, identity: 1, fundings: 1, serialNumber: 1, subscriptions: 1 }
     )
-    .populate({ path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type' })
+    .populate({ path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type deliveryRound' })
     .populate({ path: 'subscriptions.service' })
     .lean();
   const eventHistories = await EventHistory

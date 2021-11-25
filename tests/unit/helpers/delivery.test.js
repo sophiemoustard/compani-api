@@ -12,6 +12,26 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
 const { NOT_INVOICED_AND_NOT_PAID } = require('../../../src/helpers/constants');
 
+describe('computeBilledQuantity', () => {
+  it('should round event duration if third party payer has specific rule', () => {
+    const event = { startDate: '2021-11-02T13:39:16', endDate: '2021-11-02T15:06:22' };
+    const thirdPartyPayer = { deliveryRound: 15 };
+
+    const result = DeliveryHelper.computeBilledQuantity(event, thirdPartyPayer);
+
+    expect(result).toEqual(1.5);
+  });
+
+  it('should return exact event duration if third party payer does not have specific rule', () => {
+    const event = { startDate: '2021-11-02T13:39:16', endDate: '2021-11-02T15:06:22' };
+    const thirdPartyPayer = {};
+
+    const result = DeliveryHelper.computeBilledQuantity(event, thirdPartyPayer);
+
+    expect(result).toEqual(1.45);
+  });
+});
+
 describe('formatEvents', () => {
   let findUsers;
   let findCustomers;
@@ -92,7 +112,10 @@ describe('formatEvents', () => {
             { 'contact.primaryAddress': 1, identity: 1, fundings: 1, serialNumber: 1, subscriptions: 1 },
           ],
         },
-        { query: 'populate', args: [{ path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type deliveryRound' }],
+        },
         { query: 'populate', args: [{ path: 'subscriptions.service' }] },
         { query: 'lean' },
       ]
