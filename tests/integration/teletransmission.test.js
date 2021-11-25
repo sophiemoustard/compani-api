@@ -22,16 +22,6 @@ describe('TELETRANSMISSION ROUTES - GET /teletransmission/delivery', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 404 if tpp is not from the same company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/teletransmission/delivery?thirdPartyPayers=${teletransmissionTppList[2]._id}&month=09-2021`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
     it('should return a 400 if thirdPartyPayers is missing in query', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -50,6 +40,16 @@ describe('TELETRANSMISSION ROUTES - GET /teletransmission/delivery', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 404 if tpp is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/teletransmission/delivery?thirdPartyPayers=${teletransmissionTppList[2]._id}&month=09-2021`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 403 if missing teletransmissionId', async () => {

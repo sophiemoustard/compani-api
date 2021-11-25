@@ -11,7 +11,7 @@ exports.authorizeDelivery = async (req) => {
   if (tppsQuery.length !== tpps.length) return Boom.notFound();
 
   if (tpps.some(t => !t.teletransmissionId)) return Boom.forbidden();
-  if (tpps.some(t => !t.teletransmissionType) || tpps.some(t => !t.companyCode)) return Boom.forbidden();
+  if (tpps.some(t => !t.teletransmissionType || !t.companyCode)) return Boom.forbidden();
 
   if ([...new Set(tpps.map(t => t.teletransmissionType))].length !== 1) return Boom.conflict();
   if ([...new Set(tpps.map(t => t.companyCode))].length !== 1) return Boom.conflict();
