@@ -4,55 +4,49 @@ const sinon = require('sinon');
 const CompaniDatesHelper = require('../../../src/helpers/companiDates');
 
 describe('isSame', () => {
-  let _instantiateDateTimeFromMisc;
+  let _formatMiscToCompanyDate;
   const date = new Date('2021-11-24T07:00:00.000Z');
   const otherDate = new Date('2021-11-24T10:00:00.000Z');
 
   beforeEach(() => {
-    _instantiateDateTimeFromMisc = sinon.stub(CompaniDatesHelper, '_instantiateDateTimeFromMisc');
+    _formatMiscToCompanyDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompanyDate');
   });
 
   afterEach(() => {
-    _instantiateDateTimeFromMisc.restore();
+    _formatMiscToCompanyDate.restore();
   });
 
   it('should return true if same day', () => {
-    _instantiateDateTimeFromMisc.onCall(0).returns(luxon.DateTime.fromJSDate(date));
-    _instantiateDateTimeFromMisc.onCall(1).returns(luxon.DateTime.fromJSDate(otherDate));
-
     const result = CompaniDatesHelper.CompaniDate(date).isSame(otherDate, 'day');
 
     expect(result).toBe(true);
-    sinon.assert.calledWithExactly(_instantiateDateTimeFromMisc.getCall(0), date);
-    sinon.assert.calledWithExactly(_instantiateDateTimeFromMisc.getCall(1), otherDate);
+    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(0), date);
+    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(1), otherDate);
   });
 
   it('should return false if different minute', () => {
-    _instantiateDateTimeFromMisc.onCall(0).returns(luxon.DateTime.fromJSDate(date));
-    _instantiateDateTimeFromMisc.onCall(1).returns(luxon.DateTime.fromJSDate(otherDate));
-
     const result = CompaniDatesHelper.CompaniDate(date).isSame(otherDate, 'minute');
 
     expect(result).toBe(false);
-    sinon.assert.calledWithExactly(_instantiateDateTimeFromMisc.getCall(0), date);
-    sinon.assert.calledWithExactly(_instantiateDateTimeFromMisc.getCall(1), otherDate);
+    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(0), date);
+    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(1), otherDate);
   });
 });
 
-describe('_instantiateDateTimeFromMisc', () => {
+describe('_formatMiscToCompanyDate', () => {
   let now;
   let fromJSDate;
   let fromISO;
   let fromFormat;
   let invalid;
-  const date = new luxon.DateTime('');
+  const date = luxon.DateTime.fromISO('2021-11-24T07:00:00.000Z');
 
   beforeEach(() => {
-    now = sinon.stub(luxon.DateTime, 'now');
-    fromJSDate = sinon.stub(luxon.DateTime, 'fromJSDate');
-    fromISO = sinon.stub(luxon.DateTime, 'fromISO');
-    fromFormat = sinon.stub(luxon.DateTime, 'fromFormat');
-    invalid = sinon.stub(luxon.DateTime, 'invalid');
+    now = sinon.spy(luxon.DateTime, 'now');
+    fromJSDate = sinon.spy(luxon.DateTime, 'fromJSDate');
+    fromISO = sinon.spy(luxon.DateTime, 'fromISO');
+    fromFormat = sinon.spy(luxon.DateTime, 'fromFormat');
+    invalid = sinon.spy(luxon.DateTime, 'invalid');
   });
 
   afterEach(() => {
@@ -64,11 +58,10 @@ describe('_instantiateDateTimeFromMisc', () => {
   });
 
   it('should return dateTime.now if no arg', () => {
-    now.returns(date);
+    const result = CompaniDatesHelper._formatMiscToCompanyDate();
 
-    const result = CompaniDatesHelper._instantiateDateTimeFromMisc();
-
-    expect(result).toMatchObject(date);
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate() - new Date()).toBeLessThan(100);
     sinon.assert.calledOnceWithExactly(now);
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromISO);
@@ -79,13 +72,14 @@ describe('_instantiateDateTimeFromMisc', () => {
   const dates = [
     { type: 'object with dateTime', date: { _date: date } },
     { type: 'dateTime', date },
-    { type: 'date', date: new Date() },
+    { type: 'date', date: new Date('2021-11-24T07:00:00.000Z') },
     { type: 'string', date: '2021-11-24T07:00:00.000Z' },
   ];
   it(`should return dateTime if arg is ${dates[0].type}`, () => {
-    const result = CompaniDatesHelper._instantiateDateTimeFromMisc(dates[0].date);
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(dates[0].date);
 
-    expect(result).toMatchObject(dates[0].date._date);
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
     sinon.assert.notCalled(now);
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromISO);
@@ -94,9 +88,10 @@ describe('_instantiateDateTimeFromMisc', () => {
   });
 
   it(`should return dateTime if arg is ${dates[1].type}`, () => {
-    const result = CompaniDatesHelper._instantiateDateTimeFromMisc(dates[1].date);
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(dates[1].date);
 
-    expect(result).toMatchObject(dates[1].date);
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
     sinon.assert.notCalled(now);
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromISO);
@@ -105,11 +100,10 @@ describe('_instantiateDateTimeFromMisc', () => {
   });
 
   it(`should return dateTime if arg is ${dates[2].type}`, () => {
-    fromJSDate.returns(date);
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(dates[2].date);
 
-    const result = CompaniDatesHelper._instantiateDateTimeFromMisc(dates[2].date);
-
-    expect(result).toMatchObject(date);
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
     sinon.assert.calledOnceWithExactly(fromJSDate, dates[2].date);
     sinon.assert.notCalled(now);
     sinon.assert.notCalled(fromISO);
@@ -118,11 +112,10 @@ describe('_instantiateDateTimeFromMisc', () => {
   });
 
   it(`should return dateTime if arg is ${dates[3].type}`, () => {
-    fromISO.returns(date);
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(dates[3].date);
 
-    const result = CompaniDatesHelper._instantiateDateTimeFromMisc(dates[3].date);
-
-    expect(result).toMatchObject(date);
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
     sinon.assert.calledOnceWithExactly(fromISO, dates[3].date);
     sinon.assert.notCalled(now);
     sinon.assert.notCalled(fromJSDate);
@@ -131,12 +124,19 @@ describe('_instantiateDateTimeFromMisc', () => {
   });
 
   it('should return dateTime if 2 args', () => {
-    fromFormat.returns(date);
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(
+      '2021-11-24T07:00:00.000Z',
+      'yyyy-MM-dd\'T\'hh:mm:ss.SSS\'Z\''
+    );
 
-    const result = CompaniDatesHelper._instantiateDateTimeFromMisc('2021-11-24T07:00:00.000Z', 'MMMM dd yyyy');
-
-    expect(result).toMatchObject(date);
-    sinon.assert.calledOnceWithExactly(fromFormat, '2021-11-24T07:00:00.000Z', 'MMMM dd yyyy');
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
+    sinon.assert.calledOnceWithExactly(
+      fromFormat,
+      '2021-11-24T07:00:00.000Z',
+      'yyyy-MM-dd\'T\'hh:mm:ss.SSS\'Z\'',
+      { zone: 'utc' }
+    );
     sinon.assert.notCalled(now);
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromISO);
@@ -144,12 +144,10 @@ describe('_instantiateDateTimeFromMisc', () => {
   });
 
   it('should return dateTime if too many args', () => {
-    invalid.returns({ invalid: { reason: 'wrong arguments', explanation: null } });
-
     const result = CompaniDatesHelper
-      ._instantiateDateTimeFromMisc('2021-11-24T07:00:00.000Z', 'MMMM dd yyyy', { locale: 'fr' });
+      ._formatMiscToCompanyDate('2021-11-24T07:00:00.000Z', 'MMMM dd yyyy', { locale: 'fr' });
 
-    expect(result).toMatchObject({ invalid: { reason: 'wrong arguments', explanation: null } });
+    expect(result instanceof luxon.DateTime).toBe(true);
     sinon.assert.calledOnceWithExactly(invalid, 'wrong arguments');
     sinon.assert.notCalled(now);
     sinon.assert.notCalled(fromJSDate);

@@ -1,18 +1,18 @@
 const luxon = require('luxon');
 
-exports.CompaniDate = (...args) => companiDateFactory(exports._instantiateDateTimeFromMisc(...args));
+exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompanyDate(...args));
 
 const companiDateFactory = _date => ({
   _date,
 
   isSame(miscTypeOtherDate, unit) {
-    const otherDate = exports._instantiateDateTimeFromMisc(miscTypeOtherDate);
+    const otherDate = exports._formatMiscToCompanyDate(miscTypeOtherDate);
 
     return this._date.hasSame(otherDate, unit);
   },
 });
 
-exports._instantiateDateTimeFromMisc = (...args) => {
+exports._formatMiscToCompanyDate = (...args) => {
   if (!args.length) return luxon.DateTime.now();
 
   if (args.length === 1) {
@@ -23,7 +23,7 @@ exports._instantiateDateTimeFromMisc = (...args) => {
   }
 
   if (args.length === 2 && typeof args[0] === 'string' && typeof args[1] === 'string') {
-    return luxon.DateTime.fromFormat(args[0], args[1]);
+    return luxon.DateTime.fromFormat(args[0], args[1], { zone: 'utc' });
   }
 
   return luxon.DateTime.invalid('wrong arguments');
