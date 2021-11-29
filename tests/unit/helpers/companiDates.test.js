@@ -27,7 +27,7 @@ describe('CompaniDate', () => {
 
 describe('isSame', () => {
   let _formatMiscToCompanyDate;
-  const date = new Date('2021-11-24T07:00:00.000Z');
+  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
   const otherDate = new Date('2021-11-24T10:00:00.000Z');
 
   beforeEach(() => {
@@ -39,19 +39,17 @@ describe('isSame', () => {
   });
 
   it('should return true if same day', () => {
-    const result = CompaniDatesHelper.CompaniDate(date).isSame(otherDate, 'day');
+    const result = companiDate.isSame(otherDate, 'day');
 
     expect(result).toBe(true);
-    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(0), date);
-    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(1), otherDate);
+    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(0), otherDate);
   });
 
   it('should return false if different minute', () => {
-    const result = CompaniDatesHelper.CompaniDate(date).isSame(otherDate, 'minute');
+    const result = companiDate.isSame(otherDate, 'minute');
 
     expect(result).toBe(false);
-    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(0), date);
-    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(1), otherDate);
+    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(0), otherDate);
   });
 });
 
