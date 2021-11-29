@@ -15,8 +15,9 @@ exports.authorizeServiceCreation = async (req) => {
 
   for (const version of req.payload.versions) {
     if (get(version, 'billingItems')) {
-      const billingItemsCount = await BillingItem
-        .countDocuments({ _id: { $in: version.billingItems }, company: companyId, type: PER_INTERVENTION });
+      const billingItemsCount = await BillingItem.countDocuments(
+        { _id: { $in: version.billingItems }, company: companyId, type: PER_INTERVENTION }
+      );
       if (billingItemsCount !== version.billingItems.length) throw Boom.forbidden();
     }
   }
