@@ -69,14 +69,9 @@ describe('_formatMiscToCompanyDate', () => {
     sinon.assert.notCalled(invalid);
   });
 
-  const dates = [
-    { type: 'object with dateTime', date: { _date: date } },
-    { type: 'dateTime', date },
-    { type: 'date', date: new Date('2021-11-24T07:00:00.000Z') },
-    { type: 'string', date: '2021-11-24T07:00:00.000Z' },
-  ];
-  it(`should return dateTime if arg is ${dates[0].type}`, () => {
-    const result = CompaniDatesHelper._formatMiscToCompanyDate(dates[0].date);
+  it('should return dateTime if arg is object with dateTime', () => {
+    const payload = { _date: date };
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(payload);
 
     expect(result instanceof luxon.DateTime).toBe(true);
     expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
@@ -87,8 +82,9 @@ describe('_formatMiscToCompanyDate', () => {
     sinon.assert.notCalled(invalid);
   });
 
-  it(`should return dateTime if arg is ${dates[1].type}`, () => {
-    const result = CompaniDatesHelper._formatMiscToCompanyDate(dates[1].date);
+  it('should return dateTime if arg is dateTime', () => {
+    const payload = date;
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(payload);
 
     expect(result instanceof luxon.DateTime).toBe(true);
     expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
@@ -99,24 +95,26 @@ describe('_formatMiscToCompanyDate', () => {
     sinon.assert.notCalled(invalid);
   });
 
-  it(`should return dateTime if arg is ${dates[2].type}`, () => {
-    const result = CompaniDatesHelper._formatMiscToCompanyDate(dates[2].date);
+  it('should return dateTime if arg is date', () => {
+    const payload = new Date('2021-11-24T07:00:00.000Z');
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(payload);
 
     expect(result instanceof luxon.DateTime).toBe(true);
     expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
-    sinon.assert.calledOnceWithExactly(fromJSDate, dates[2].date);
+    sinon.assert.calledOnceWithExactly(fromJSDate, payload);
     sinon.assert.notCalled(now);
     sinon.assert.notCalled(fromISO);
     sinon.assert.notCalled(fromFormat);
     sinon.assert.notCalled(invalid);
   });
 
-  it(`should return dateTime if arg is ${dates[3].type}`, () => {
-    const result = CompaniDatesHelper._formatMiscToCompanyDate(dates[3].date);
+  it('should return dateTime if arg is string', () => {
+    const payload = '2021-11-24T07:00:00.000Z';
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(payload);
 
     expect(result instanceof luxon.DateTime).toBe(true);
     expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
-    sinon.assert.calledOnceWithExactly(fromISO, dates[3].date);
+    sinon.assert.calledOnceWithExactly(fromISO, payload);
     sinon.assert.notCalled(now);
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromFormat);
@@ -143,7 +141,7 @@ describe('_formatMiscToCompanyDate', () => {
     sinon.assert.notCalled(invalid);
   });
 
-  it('should return dateTime if too many args', () => {
+  it('should return invalid if too many args', () => {
     const result = CompaniDatesHelper
       ._formatMiscToCompanyDate('2021-11-24T07:00:00.000Z', 'MMMM dd yyyy', { locale: 'fr' });
 
