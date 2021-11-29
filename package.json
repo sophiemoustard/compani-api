@@ -52,6 +52,7 @@
     "jsonwebtoken": "^8.5.1",
     "jszip": "^3.7.1",
     "lodash": "^4.17.21",
+    "luxon": "^2.1.1",
     "moment": "^2.29.1",
     "moment-business-days": "^1.2.0",
     "moment-range": "^4.0.2",
