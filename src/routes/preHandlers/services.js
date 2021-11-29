@@ -10,6 +10,20 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
+exports.authorizeServiceCreation = async (req) => {
+  const companyId = req.auth.credentials.company._id;
+
+  for (const version of req.payload.versions) {
+    if (get(version, 'billingItems')) {
+      const billingItemsCount = await BillingItem
+        .countDocuments({ _id: { $in: version.billingItems }, company: companyId, type: PER_INTERVENTION });
+      if (billingItemsCount !== version.billingItems.length) throw Boom.forbidden();
+    }
+  }
+
+  return null;
+};
+
 const authorizeServiceEdit = async (req) => {
   const serviceId = req.params._id;
   const companyId = req.auth.credentials.company._id;

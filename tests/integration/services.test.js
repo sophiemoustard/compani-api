@@ -29,6 +29,7 @@ describe('POST /services', () => {
           vat: 12,
           exemptFromCharges: true,
           startDate: '2019-09-19T09:00:00',
+          billingItems: [billingItemList[0]._id],
         }],
         nature: HOURLY,
       };
@@ -66,6 +67,52 @@ describe('POST /services', () => {
         });
         expect(res.statusCode).toBe(400);
       });
+    });
+
+    it('should return a 403 error if some billingItem doesn\'t exist in company', async () => {
+      const payload = {
+        versions: [{
+          name: 'Service',
+          defaultUnitAmount: 12,
+          vat: 12,
+          exemptFromCharges: true,
+          startDate: '2019-09-19T09:00:00',
+          billingItems: [billingItemList[0]._id, billingItemList[1]._id],
+        }],
+        nature: HOURLY,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/services',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if a billingItem is manual', async () => {
+      const payload = {
+        versions: [{
+          name: 'Service',
+          defaultUnitAmount: 12,
+          vat: 12,
+          exemptFromCharges: true,
+          startDate: '2019-09-19T09:00:00',
+          billingItems: [billingItemList[0]._id, billingItemList[2]._id],
+        }],
+        nature: HOURLY,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/services',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
