@@ -10,16 +10,22 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizeServiceCreation = async (req) => {
-  const companyId = req.auth.credentials.company._id;
+const checkBillingItemsCount = async (payload, auth) => {
+  const companyId = get(auth, 'credentials.company._id', null);
 
-  for (const version of req.payload.versions) {
-    if (get(version, 'billingItems')) {
-      const billingItemsCount = await BillingItem.countDocuments(
-        { _id: { $in: version.billingItems }, company: companyId, type: PER_INTERVENTION }
-      );
-      if (billingItemsCount !== version.billingItems.length) throw Boom.forbidden();
-    }
+  if (get(payload, 'billingItems')) {
+    const billingItemsCount = await BillingItem.countDocuments(
+      { _id: { $in: payload.billingItems }, company: companyId, type: PER_INTERVENTION }
+    );
+    if (billingItemsCount !== payload.billingItems.length) throw Boom.forbidden();
+  }
+};
+
+exports.authorizeServiceCreation = async (req) => {
+  const { auth, payload } = req;
+
+  for (const version of payload.versions) {
+    await checkBillingItemsCount(version, auth);
   }
 
   return null;
@@ -27,20 +33,18 @@ exports.authorizeServiceCreation = async (req) => {
 
 const authorizeServiceEdit = async (req) => {
   const serviceId = req.params._id;
-  const companyId = req.auth.credentials.company._id;
+  const { auth, payload } = req;
+  const companyId = get(auth, 'credentials.company._id', null);
+
   const service = await Service.findOne({ _id: serviceId, company: companyId }, { isArchived: 1, versions: 1 }).lean();
   if (!service) throw Boom.notFound(translate[language].serviceNotFound);
   if (service.isArchived) throw Boom.forbidden();
 
-  if (get(req, 'payload.billingItems')) {
-    const billingItemsCount = await BillingItem
-      .countDocuments({ _id: { $in: req.payload.billingItems }, company: companyId, type: PER_INTERVENTION });
-    if (billingItemsCount !== req.payload.billingItems.length) throw Boom.forbidden();
-  }
+  await checkBillingItemsCount(payload, auth);
 
-  if (get(req, 'payload.startDate')) {
+  if (get(payload, 'startDate')) {
     const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
-    if (DatesHelper.isSameOrBefore(req.payload.startDate, lastVersion.startDate)) throw Boom.forbidden();
+    if (DatesHelper.isSameOrBefore(payload.startDate, lastVersion.startDate)) throw Boom.forbidden();
   }
 };
 
