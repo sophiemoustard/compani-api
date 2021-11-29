@@ -3,6 +3,28 @@ const luxon = require('luxon');
 const sinon = require('sinon');
 const CompaniDatesHelper = require('../../../src/helpers/companiDates');
 
+describe('CompaniDate', () => {
+  let _formatMiscToCompanyDate;
+
+  beforeEach(() => {
+    _formatMiscToCompanyDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompanyDate');
+  });
+
+  afterEach(() => {
+    _formatMiscToCompanyDate.restore();
+  });
+
+  it('should return dateTime', () => {
+    const date = new Date('2021-11-24T07:00:00.000Z');
+
+    const result = CompaniDatesHelper.CompaniDate(date);
+
+    expect(result)
+      .toEqual(expect.objectContaining({ _date: expect.any(luxon.DateTime), isSame: expect.any(Function) }));
+    sinon.assert.calledWithExactly(_formatMiscToCompanyDate.getCall(0), date);
+  });
+});
+
 describe('isSame', () => {
   let _formatMiscToCompanyDate;
   const date = new Date('2021-11-24T07:00:00.000Z');
