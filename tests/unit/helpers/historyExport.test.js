@@ -838,7 +838,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     );
     sinon.assert.callCount(formatPriceStub, 0);
     sinon.assert.callCount(formatHourStub, 0);
-    sinon.assert.callCount(formatFloatForExportStub, 4);
+    sinon.assert.callCount(formatFloatForExportStub, 5);
   });
 
   it('should return an array with the header and 2 rows', async () => {

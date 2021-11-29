@@ -303,16 +303,20 @@ const formatBillsForExport = (bills) => {
 
   for (const bill of bills) {
     const tppId = get(bill.thirdPartyPayer, '_id');
-    let totalExclTaxesFormatted = '';
     let hours = 0;
 
+    let totalExclTaxes = 0;
     if (bill.subscriptions) {
-      let totalExclTaxes = 0;
       for (const sub of bill.subscriptions) {
-        totalExclTaxes += sub.exclTaxes;
+        totalExclTaxes += (sub.exclTaxes - (sub.discount ? UtilsHelper.getExclTaxes(sub.discount, sub.vat) : 0));
         hours += sub.hours;
       }
-      totalExclTaxesFormatted = UtilsHelper.formatFloatForExport(totalExclTaxes);
+    }
+
+    if (bill.billingItemList) {
+      for (const bi of bill.billingItemList) {
+        totalExclTaxes += (bi.exclTaxes - (bi.discount ? UtilsHelper.getExclTaxes(bi.discount, bi.vat) : 0));
+      }
     }
 
     const createdAt = get(bill, 'createdAt', null);
@@ -321,7 +325,7 @@ const formatBillsForExport = (bills) => {
       ...formatRowCommonsForExport(bill),
       tppId ? tppId.toHexString() : '',
       get(bill.thirdPartyPayer, 'name') || '',
-      totalExclTaxesFormatted,
+      UtilsHelper.formatFloatForExport(totalExclTaxes),
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       UtilsHelper.formatFloatForExport(hours),
       exportBillSubscriptions(bill),
