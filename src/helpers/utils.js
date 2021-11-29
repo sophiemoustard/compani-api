@@ -194,3 +194,11 @@ exports.getExclTaxes = (inclTaxes, vat) => (vat ? inclTaxes / (1 + (vat / 100)) 
 exports.getInclTaxes = (exclTaxes, vat) => (vat ? exclTaxes * (1 + (vat / 100)) : exclTaxes);
 
 exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.add(sum, (b[key] || 0)), 0);
+
+exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
+  if (!discount) return exclTaxes;
+
+  const discountExclTaxes = exports.getExclTaxes(discount, vat);
+
+  return NumbersHelper.subtract(exclTaxes, discountExclTaxes);
+};

@@ -24,6 +24,7 @@ const {
 } = require('./constants');
 const DatesHelper = require('./dates');
 const UtilsHelper = require('./utils');
+const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
@@ -308,14 +309,16 @@ const formatBillsForExport = (bills) => {
     let totalExclTaxes = 0;
     if (bill.subscriptions) {
       for (const sub of bill.subscriptions) {
-        totalExclTaxes += (sub.exclTaxes - (sub.discount ? UtilsHelper.getExclTaxes(sub.discount, sub.vat) : 0));
-        hours += sub.hours;
+        const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
+        totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
+        hours = NumbersHelper.add(hours, sub.hours);
       }
     }
 
     if (bill.billingItemList) {
       for (const bi of bill.billingItemList) {
-        totalExclTaxes += (bi.exclTaxes - (bi.discount ? UtilsHelper.getExclTaxes(bi.discount, bi.vat) : 0));
+        const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
+        totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
       }
     }
 
