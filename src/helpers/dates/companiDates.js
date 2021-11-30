@@ -1,5 +1,7 @@
 const luxon = require('luxon');
 
+luxon.Settings.defaultLocale = 'fr';
+
 exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompanyDate(...args));
 
 const companiDateFactory = _date => ({
@@ -23,7 +25,8 @@ exports._formatMiscToCompanyDate = (...args) => {
   }
 
   if (args.length === 2 && typeof args[0] === 'string' && typeof args[1] === 'string') {
-    return luxon.DateTime.fromFormat(args[0], args[1], { zone: 'utc' });
+    const options = args[0].endsWith('Z') ? { zone: 'utc' } : {};
+    return luxon.DateTime.fromFormat(args[0], args[1], options);
   }
 
   return luxon.DateTime.invalid('wrong arguments');

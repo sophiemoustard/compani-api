@@ -1,7 +1,7 @@
 const expect = require('expect');
 const luxon = require('luxon');
 const sinon = require('sinon');
-const CompaniDatesHelper = require('../../../src/helpers/companiDates');
+const CompaniDatesHelper = require('../../../../src/helpers/dates/companiDates');
 
 describe('CompaniDate', () => {
   let _formatMiscToCompanyDate;
@@ -141,7 +141,27 @@ describe('_formatMiscToCompanyDate', () => {
     sinon.assert.notCalled(invalid);
   });
 
-  it('should return dateTime if 2 args', () => {
+  it('should return dateTime if 2 args, first argument doesn\'t finish with Z', () => {
+    const result = CompaniDatesHelper._formatMiscToCompanyDate(
+      '2021-11-24T07:00:00.000+03:00',
+      'yyyy-MM-dd\'T\'hh:mm:ss.SSSZZ'
+    );
+
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000+03:00'));
+    sinon.assert.calledOnceWithExactly(
+      fromFormat,
+      '2021-11-24T07:00:00.000+03:00',
+      'yyyy-MM-dd\'T\'hh:mm:ss.SSSZZ',
+      {}
+    );
+    sinon.assert.notCalled(now);
+    sinon.assert.notCalled(fromJSDate);
+    sinon.assert.notCalled(fromISO);
+    sinon.assert.notCalled(invalid);
+  });
+
+  it('should return dateTime if 2 args, first arguments finish with Z', () => {
     const result = CompaniDatesHelper._formatMiscToCompanyDate(
       '2021-11-24T07:00:00.000Z',
       'yyyy-MM-dd\'T\'hh:mm:ss.SSS\'Z\''

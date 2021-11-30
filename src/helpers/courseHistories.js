@@ -1,5 +1,5 @@
 const pick = require('lodash/pick');
-const { CompaniDate } = require('./companiDates');
+const { CompaniDate } = require('./dates/companiDates');
 const CourseHistory = require('../models/CourseHistory');
 const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION, TRAINEE_DELETION } = require('./constants');
 
