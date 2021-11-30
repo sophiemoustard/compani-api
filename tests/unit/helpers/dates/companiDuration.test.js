@@ -4,14 +4,14 @@ const sinon = require('sinon');
 const CompaniDurationsHelper = require('../../../../src/helpers/dates/companiDurations');
 
 describe('CompaniDuration', () => {
-  let _formatMiscToCompanyDuration;
+  let _formatMiscToCompaniDuration;
 
   beforeEach(() => {
-    _formatMiscToCompanyDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompanyDuration');
+    _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
   });
 
   afterEach(() => {
-    _formatMiscToCompanyDuration.restore();
+    _formatMiscToCompaniDuration.restore();
   });
 
   it('should return duration', () => {
@@ -21,11 +21,11 @@ describe('CompaniDuration', () => {
 
     expect(result)
       .toEqual(expect.objectContaining({ _duration: expect.any(luxon.Duration) }));
-    sinon.assert.calledWithExactly(_formatMiscToCompanyDuration.getCall(0), duration);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
   });
 });
 
-describe('_formatMiscToCompanyDuration', () => {
+describe('_formatMiscToCompaniDuration', () => {
   let fromMillis;
   let invalid;
 
@@ -41,7 +41,7 @@ describe('_formatMiscToCompanyDuration', () => {
 
   it('should return duration if arg is number', () => {
     const payload = 3000000000;
-    const result = CompaniDurationsHelper._formatMiscToCompanyDuration(payload);
+    const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
     expect(result instanceof luxon.Duration).toBe(true);
     expect(new luxon.Duration(result).toMillis()).toBe(payload);
@@ -50,7 +50,7 @@ describe('_formatMiscToCompanyDuration', () => {
   });
 
   it('should return invalid if wrong input', () => {
-    const result = CompaniDurationsHelper._formatMiscToCompanyDuration(23232323, 'minutes');
+    const result = CompaniDurationsHelper._formatMiscToCompaniDuration(23232323, 'minutes');
 
     expect(result instanceof luxon.Duration).toBe(true);
     sinon.assert.calledOnceWithExactly(invalid, 'wrong arguments');
