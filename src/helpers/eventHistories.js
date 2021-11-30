@@ -1,5 +1,6 @@
 const moment = require('moment');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const pickBy = require('lodash/pickBy');
 const omit = require('lodash/omit');
 const EventHistory = require('../models/EventHistory');
@@ -21,6 +22,8 @@ exports.list = async (query, credentials) => {
     return EventHistoryRepository.paginate({
       'event.eventId': query.eventId,
       company: get(credentials, 'company._id'),
+      ...(query.action && { action: { $in: query.action } }),
+      ...(has(query, 'isCancelled') && { isCancelled: get(query, 'isCancelled') }),
     });
   }
 

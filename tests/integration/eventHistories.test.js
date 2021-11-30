@@ -7,6 +7,7 @@ const {
   auxiliaryFromOtherCompany,
   sectorFromOtherCompany,
   sectors,
+  events,
 } = require('./seed/eventHistoriesSeed');
 const { getToken } = require('./helpers/authentication');
 const UtilsHelper = require('../../src/helpers/utils');
@@ -69,7 +70,7 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
   });
 
   it('should return a list of event histories for one event', async () => {
-    const eventId = eventHistoryList[0]._id;
+    const eventId = events[0]._id;
 
     const response = await app.inject({
       method: 'GET',
@@ -82,7 +83,7 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
       UtilsHelper.areObjectIdsEquals(history.event.eventId, eventId))).toBeTruthy();
   });
 
-  it('should return a list of all event histories with action type', async () => {
+  it('should return a list of all event histories from multiple action type', async () => {
     const actions = ['event_creation', 'event_update'];
     const response = await app.inject({
       method: 'GET',
@@ -93,6 +94,38 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
     expect(response.statusCode).toEqual(200);
     expect(response.result.data.eventHistories.length).toBe(2);
     expect(response.result.data.eventHistories.every(history => actions.includes(history.action))).toBeTruthy();
+  });
+
+  it('should return a list of all event histories with one action type', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/eventhistories?action=event_update',
+      headers: { Cookie: `alenvi_token=${authToken}` },
+    });
+
+    expect(response.statusCode).toEqual(200);
+  });
+
+  it('should return a 400 if invalid action in query', async () => {
+    const response = await app.inject({
+      method: 'GET',
+      url: '/eventhistories?action=event_update&action=mauvaiseaction',
+      headers: { Cookie: `alenvi_token=${authToken}` },
+    });
+
+    expect(response.statusCode).toEqual(400);
+  });
+
+  it('should return 400 if isCancelled is invalid', async () => {
+    const eventId = events[0]._id;
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/eventhistories?eventId=${eventId}&isCancelled=true`,
+      headers: { Cookie: `alenvi_token=${authToken}` },
+    });
+
+    expect(response.statusCode).toEqual(400);
   });
 
   it('should return a 404 if at least one auxiliary is not from the same company', async () => {
@@ -113,16 +146,6 @@ describe('EVENT HISTORIES ROUTES - GET /eventhistories', () => {
     });
 
     expect(response.statusCode).toEqual(404);
-  });
-
-  it('should return a 400 if invalid action in query', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/eventhistories?action=event_update&action=mauvaiseaction',
-      headers: { Cookie: `alenvi_token=${authToken}` },
-    });
-
-    expect(response.statusCode).toEqual(400);
   });
 
   describe('Other roles', () => {
