@@ -20,7 +20,11 @@ describe('CompaniDate', () => {
     const result = CompaniDatesHelper.CompaniDate(date);
 
     expect(result)
-      .toEqual(expect.objectContaining({ _date: expect.any(luxon.DateTime), isSame: expect.any(Function) }));
+      .toEqual(expect.objectContaining({
+        _date: expect.any(luxon.DateTime),
+        isSame: expect.any(Function),
+        diff: expect.any(Function),
+      }));
     sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
   });
 });
@@ -49,6 +53,70 @@ describe('isSame', () => {
     const result = companiDate.isSame(otherDate, 'minute');
 
     expect(result).toBe(false);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+});
+
+describe('diff', () => {
+  let _formatMiscToCompaniDate;
+  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
+
+  beforeEach(() => {
+    _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+  });
+
+  afterEach(() => {
+    _formatMiscToCompaniDate.restore();
+  });
+
+  it('should return diff in milliseconds, if no unit specified', () => {
+    const otherDate = new Date('2021-11-24T08:29:48.000Z');
+    const result = companiDate.diff(otherDate);
+    const expectedDiffInMillis = 1 * 60 * 60 * 1000 + 30 * 60 * 1000 + 12 * 1000;
+
+    expect(result).toBe(expectedDiffInMillis);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+
+  it('should return difference in positive days', () => {
+    const otherDate = new Date('2021-11-20T08:00:00.000Z');
+    const result = companiDate.diff(otherDate, 'days');
+
+    expect(result).toBe(4);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+
+  it('should return difference in days. Result should be 0 if difference is less then 24h', () => {
+    const otherDate = new Date('2021-11-23T21:00:00.000Z');
+    const result = companiDate.diff(otherDate, 'days');
+
+    expect(result).toBe(0);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+
+  it('should return difference in positive floated days', () => {
+    const otherDate = new Date('2021-11-22T21:00:00.000Z');
+    const result = companiDate.diff(otherDate, 'days', true);
+
+    expect(result).toBeGreaterThan(0);
+    expect(result - 1.54).toBeLessThan(0.01);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+
+  it('should return difference in negative days', () => {
+    const otherDate = new Date('2021-11-30T08:00:00.000Z');
+    const result = companiDate.diff(otherDate, 'days');
+
+    expect(result).toBe(-5);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+
+  it('should return difference in negative floated days', () => {
+    const otherDate = new Date('2021-11-30T08:00:00.000Z');
+    const result = companiDate.diff(otherDate, 'days', true);
+
+    expect(result).toBeLessThan(0);
+    expect(Math.abs(result) - 5.91).toBeLessThan(0.01);
     sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
   });
 });
