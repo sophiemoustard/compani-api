@@ -2,19 +2,19 @@ const luxon = require('luxon');
 
 luxon.Settings.defaultLocale = 'fr';
 
-exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompanyDate(...args));
+exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompaniDate(...args));
 
 const companiDateFactory = _date => ({
   _date,
 
   isSame(miscTypeOtherDate, unit) {
-    const otherDate = exports._formatMiscToCompanyDate(miscTypeOtherDate);
+    const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
     return this._date.hasSame(otherDate, unit);
   },
 });
 
-exports._formatMiscToCompanyDate = (...args) => {
+exports._formatMiscToCompaniDate = (...args) => {
   if (!args.length) return luxon.DateTime.now();
 
   if (args.length === 1) {
