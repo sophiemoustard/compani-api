@@ -324,7 +324,7 @@ describe('POST /users', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
     beforeEach(populateDB);
 
@@ -336,6 +336,7 @@ describe('POST /users', () => {
           local: { email: 'kirk@alenvi.io' },
           origin: MOBILE,
           contact: { phone: '0712345678' },
+          company: otherCompany._id,
         };
 
         const response = await app.inject({
@@ -1155,8 +1156,8 @@ describe('PUT /users/:id', () => {
 
     it('should not update a user if phone number is not correct', async () => {
       const response = await app.inject({
-        method: 'POST',
-        url: '/users',
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
         payload: { contact: { phone: '09876' } },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1166,8 +1167,8 @@ describe('PUT /users/:id', () => {
 
     it('should not update a user if trying to update password', async () => {
       const response = await app.inject({
-        method: 'POST',
-        url: '/users',
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
         payload: { local: { password: '123456!eR' } },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1261,7 +1262,7 @@ describe('PUT /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -1270,8 +1271,8 @@ describe('PUT /users/:id', () => {
 
         const response = await app.inject({
           method: 'PUT',
-          url: `/users/${userList[1]._id.toHexString()}`,
-          payload: { identity: { firstname: 'Riri' } },
+          url: `/users/${userList[11]._id.toHexString()}`,
+          payload: { identity: { firstname: 'Riri' }, company: otherCompany._id },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

@@ -210,6 +210,8 @@ exports.createUser = async (userPayload, credentials) => {
   const companyId = payload.company || get(credentials, 'company._id');
   if (!userPayload.role) return createUserCompany(payload, companyId);
 
+  if (get(credentials, 'role.vendor.name') === TRAINER) throw Boom.forbidden();
+
   const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();
   if (!role) throw Boom.badRequest(translate[language].unknownRole);
 

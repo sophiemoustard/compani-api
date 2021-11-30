@@ -18,6 +18,7 @@ const {
   CLIENT,
   VENDOR,
   AUXILIARY_WITHOUT_COMPANY,
+  TRAINER,
 } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -41,6 +42,10 @@ exports.authorizeUserUpdate = async (req) => {
   const userCompany = userFromDB.company || get(req, 'payload.company');
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
+  if (get(credentials, 'role.vendor.name') === TRAINER && (credentials._id !== req.params._id &&
+    Object.keys(req.payload).some(elem => !['company', 'identity', 'contact'].includes(elem)))) {
+    throw Boom.forbidden();
+  }
 
   checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
@@ -135,6 +140,7 @@ exports.authorizeUserGetById = async (req) => {
   const isClientFromDifferentCompany = !isLoggedUserVendor && user.company &&
     !UtilsHelper.areObjectIdsEquals(user.company, loggedCompanyId);
   if (isClientFromDifferentCompany) throw Boom.notFound();
+  if (get(credentials, 'role.vendor.name') === TRAINER && credentials._id !== req.params._id) throw Boom.forbidden();
 
   return null;
 };
@@ -145,7 +151,7 @@ exports.authorizeUserDeletion = async (req) => {
   const companyId = get(credentials, 'company._id') || null;
 
   const clientRoleId = get(user, 'role.client');
-  if (!clientRoleId) throw Boom.forbidden();
+  if (!clientRoleId || get(credentials, 'role.vendor.name') === TRAINER) throw Boom.forbidden();
 
   const role = await Role.findById(clientRoleId).lean();
   if (role.name !== HELPER) throw Boom.forbidden();
@@ -173,7 +179,7 @@ exports.authorizeUserCreation = async (req) => {
   const vendorRole = get(credentials, 'role.vendor.name');
   const loggedUserCompany = get(credentials, 'company._id');
   if (req.payload.company && !UtilsHelper.areObjectIdsEquals(req.payload.company, loggedUserCompany) &&
-    ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) {
+    ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(vendorRole)) {
     throw Boom.forbidden();
   }
 
@@ -232,6 +238,22 @@ exports.checkExpoToken = async (req) => {
 
 exports.authorizeExpoTokenEdit = async (req) => {
   if (!UtilsHelper.areObjectIdsEquals(req.params._id, req.auth.credentials._id)) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeUploadEdit = async (req) => {
+  const { credentials } = req.auth;
+
+  if (get(credentials, 'role.vendor.name') === TRAINER && credentials._id !== req.params._id) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeDriveFolderCreation = async (req) => {
+  const { credentials } = req.auth;
+
+  if (get(credentials, 'role.vendor.name') === TRAINER) throw Boom.forbidden();
 
   return null;
 };
