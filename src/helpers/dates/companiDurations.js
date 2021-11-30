@@ -4,6 +4,13 @@ exports.CompaniDuration = (...args) => companiDurationFactory(exports._formatMis
 
 const companiDurationFactory = _duration => ({
   _duration,
+
+  format() {
+    const durationInHoursAndMinutes = this._duration.shiftTo('hours', 'minutes');
+    const format = Math.floor(durationInHoursAndMinutes.get('minutes')) > 0 ? 'h\'h\'mm' : 'h\'h\'';
+
+    return _duration.toFormat(format);
+  },
 });
 
 exports._formatMiscToCompaniDuration = (...args) => {
