@@ -7,6 +7,8 @@ const os = require('os');
 const moment = require('moment');
 const flat = require('flat');
 const Boom = require('@hapi/boom');
+const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
@@ -389,28 +391,28 @@ exports.formatIntraCourseSlotsForPdf = slot => ({
 });
 
 exports.formatInterCourseSlotsForPdf = (slot) => {
-  const duration = moment.duration(moment(slot.endDate).diff(slot.startDate));
+  const duration = CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate));
 
   return {
     address: get(slot, 'address.fullAddress') || null,
-    date: moment(slot.startDate).format('DD/MM/YYYY'),
-    startHour: moment(slot.startDate).format('HH:mm'),
-    endHour: moment(slot.endDate).format('HH:mm'),
-    duration: UtilsHelper.formatDuration(duration),
+    date: CompaniDate(slot.startDate).format('dd/LL/yyyy'),
+    startHour: CompaniDate(slot.startDate).format('HH:mm'),
+    endHour: CompaniDate(slot.endDate).format('HH:mm'),
+    duration: duration.format(),
   };
 };
 
 exports.getCourseDuration = (slots) => {
   const duration = slots.reduce(
-    (acc, slot) => acc.add(moment.duration(moment(slot.endDate).diff(slot.startDate))),
-    moment.duration()
+    (acc, slot) => acc.add(CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate))),
+    CompaniDuration()
   );
 
-  return UtilsHelper.formatDuration(duration);
+  return duration.format();
 };
 
 exports.groupSlotsByDate = (slots) => {
-  const group = groupBy(slots, slot => moment(slot.startDate).format('DD/MM/YYYY'));
+  const group = groupBy(slots, slot => CompaniDate(slot.startDate).format('dd/LL/yyyy'));
 
   return Object.values(group).sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
 };
@@ -433,7 +435,7 @@ exports.formatIntraCourseForPdf = (course) => {
       course: { ...courseData },
       address: get(groupedSlots[0], 'address.fullAddress') || '',
       slots: groupedSlots.map(slot => exports.formatIntraCourseSlotsForPdf(slot)),
-      date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
+      date: CompaniDate(groupedSlots[0].startDate).format('dd/LL/yyyy'),
     })),
   };
 };
@@ -451,9 +453,9 @@ exports.formatInterCourseForPdf = (course) => {
     name,
     slots: filteredSlots.map(exports.formatInterCourseSlotsForPdf),
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
-    firstDate: filteredSlots.length ? moment(filteredSlots[0].startDate).format('DD/MM/YYYY') : '',
+    firstDate: filteredSlots.length ? CompaniDate(filteredSlots[0].startDate).format('dd/LL/yyyy') : '',
     lastDate: filteredSlots.length
-      ? moment(filteredSlots[filteredSlots.length - 1].startDate).format('DD/MM/YYYY')
+      ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format('dd/LL/yyyy')
       : '',
     duration: exports.getCourseDuration(filteredSlots),
   };
