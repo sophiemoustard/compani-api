@@ -22,10 +22,21 @@ describe('CompaniDate', () => {
     expect(result)
       .toEqual(expect.objectContaining({
         _date: expect.any(luxon.DateTime),
+        format: expect.any(Function),
         isSame: expect.any(Function),
         diff: expect.any(Function),
       }));
     sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
+  });
+});
+
+describe('format', () => {
+  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
+
+  it('should return formated date in a string', () => {
+    const result = companiDate.format('\'Le\' cccc dd LLLL y');
+
+    expect(result).toBe('Le mercredi 24 novembre 2021');
   });
 });
 

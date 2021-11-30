@@ -7,6 +7,9 @@ exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompa
 const companiDateFactory = _date => ({
   _date,
 
+  format(fmt) {
+    return this._date.toFormat(fmt);
+  },
   isSame(miscTypeOtherDate, unit) {
     const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 

@@ -9,12 +9,12 @@ const companiDurationFactory = _duration => ({
     const durationInHoursAndMinutes = this._duration.shiftTo('hours', 'minutes');
     const format = Math.floor(durationInHoursAndMinutes.get('minutes')) > 0 ? 'h\'h\'mm' : 'h\'h\'';
 
-    return _duration.toFormat(format);
+    return this._duration.toFormat(format);
   },
   add(miscTypeOtherDuration) {
     const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
 
-    return companiDurationFactory(_duration.plus(otherDuration));
+    return companiDurationFactory(this._duration.plus(otherDuration));
   },
 });
 
