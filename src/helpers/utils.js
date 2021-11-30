@@ -189,8 +189,28 @@ exports.computeHoursWithDiff = (pay, key) => {
   return hours + diff;
 };
 
-exports.getExclTaxes = (inclTaxes, vat) => (vat ? inclTaxes / (1 + (vat / 100)) : inclTaxes);
+exports.getExclTaxes = (inclTaxes, vat) => {
+  if (!vat) return inclTaxes;
 
-exports.getInclTaxes = (exclTaxes, vat) => (vat ? exclTaxes * (1 + (vat / 100)) : exclTaxes);
+  const decimalVat = NumbersHelper.add(1, NumbersHelper.divide(vat, 100));
+
+  return NumbersHelper.divide(inclTaxes, decimalVat);
+};
+
+exports.getInclTaxes = (exclTaxes, vat) => {
+  if (!vat) return exclTaxes;
+
+  const decimalVat = NumbersHelper.add(1, NumbersHelper.divide(vat, 100));
+
+  return NumbersHelper.multiply(exclTaxes, decimalVat);
+};
 
 exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.add(sum, (b[key] || 0)), 0);
+
+exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
+  if (!discount) return exclTaxes;
+
+  const discountExclTaxes = exports.getExclTaxes(discount, vat);
+
+  return NumbersHelper.subtract(exclTaxes, discountExclTaxes);
+};

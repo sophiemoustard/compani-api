@@ -24,6 +24,7 @@ const {
 } = require('./constants');
 const DatesHelper = require('./dates');
 const UtilsHelper = require('./utils');
+const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
@@ -303,16 +304,22 @@ const formatBillsForExport = (bills) => {
 
   for (const bill of bills) {
     const tppId = get(bill.thirdPartyPayer, '_id');
-    let totalExclTaxesFormatted = '';
     let hours = 0;
 
+    let totalExclTaxes = 0;
     if (bill.subscriptions) {
-      let totalExclTaxes = 0;
       for (const sub of bill.subscriptions) {
-        totalExclTaxes += sub.exclTaxes;
-        hours += sub.hours;
+        const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
+        totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
+        hours = NumbersHelper.add(hours, sub.hours);
       }
-      totalExclTaxesFormatted = UtilsHelper.formatFloatForExport(totalExclTaxes);
+    }
+
+    if (bill.billingItemList) {
+      for (const bi of bill.billingItemList) {
+        const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
+        totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
+      }
     }
 
     const createdAt = get(bill, 'createdAt', null);
@@ -321,7 +328,7 @@ const formatBillsForExport = (bills) => {
       ...formatRowCommonsForExport(bill),
       tppId ? tppId.toHexString() : '',
       get(bill.thirdPartyPayer, 'name') || '',
-      totalExclTaxesFormatted,
+      UtilsHelper.formatFloatForExport(totalExclTaxes),
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       UtilsHelper.formatFloatForExport(hours),
       exportBillSubscriptions(bill),

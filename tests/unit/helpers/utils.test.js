@@ -353,3 +353,10 @@ describe('sumReduce', () => {
     expect(UtilsHelper.sumReduce([{ incl: 20 }, { incl: 12, excl: 23 }], 'incl')).toEqual(32);
   });
 });
+
+describe('computeExclTaxesWithDiscount', () => {
+  it('should return excluded taxes price with discount', () => {
+    const result = UtilsHelper.computeExclTaxesWithDiscount(18, 1.2, 20);
+    expect(result).toEqual(17);
+  });
+});
