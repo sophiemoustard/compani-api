@@ -86,17 +86,30 @@ describe('format', () => {
 });
 
 describe('_formatMiscToCompaniDuration', () => {
+  let fromObject;
   let fromMillis;
   let invalid;
 
   beforeEach(() => {
+    fromObject = sinon.spy(luxon.Duration, 'fromObject');
     fromMillis = sinon.spy(luxon.Duration, 'fromMillis');
     invalid = sinon.spy(luxon.Duration, 'invalid');
   });
 
   afterEach(() => {
+    fromObject.restore();
     fromMillis.restore();
     invalid.restore();
+  });
+
+  it('should return duration being worth 0 if no args', () => {
+    const result = CompaniDurationsHelper._formatMiscToCompaniDuration();
+
+    expect(result instanceof luxon.Duration).toBe(true);
+    expect(new luxon.Duration(result).toMillis()).toBe(0);
+    sinon.assert.calledOnceWithExactly(fromObject, {});
+    sinon.assert.notCalled(fromMillis);
+    sinon.assert.notCalled(invalid);
   });
 
   it('should return duration if arg is number', () => {
@@ -106,6 +119,7 @@ describe('_formatMiscToCompaniDuration', () => {
     expect(result instanceof luxon.Duration).toBe(true);
     expect(new luxon.Duration(result).toMillis()).toBe(payload);
     sinon.assert.calledOnceWithExactly(fromMillis, payload);
+    sinon.assert.calledOnce(fromObject); // fromMillis calls fromObject
     sinon.assert.notCalled(invalid);
   });
 
@@ -114,6 +128,7 @@ describe('_formatMiscToCompaniDuration', () => {
 
     expect(result instanceof luxon.Duration).toBe(true);
     sinon.assert.calledOnceWithExactly(invalid, 'wrong arguments');
+    sinon.assert.notCalled(fromObject);
     sinon.assert.notCalled(fromMillis);
   });
 });

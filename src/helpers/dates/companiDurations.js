@@ -14,6 +14,8 @@ const companiDurationFactory = _duration => ({
 });
 
 exports._formatMiscToCompaniDuration = (...args) => {
+  if (args.length === 0) return luxon.Duration.fromObject({});
+
   if (args.length === 1) {
     if (typeof args[0] === 'number') {
       return luxon.Duration.fromMillis(args[0]);
