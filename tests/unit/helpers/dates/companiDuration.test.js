@@ -20,22 +20,16 @@ describe('CompaniDuration', () => {
     const result = CompaniDurationsHelper.CompaniDuration(duration);
 
     expect(result)
-      .toEqual(expect.objectContaining({ _duration: expect.any(luxon.Duration), format: expect.any(Function) }));
+      .toEqual(expect.objectContaining({
+        _duration: expect.any(luxon.Duration),
+        format: expect.any(Function),
+        add: expect.any(Function),
+      }));
     sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
   });
 });
 
 describe('format', () => {
-  let _formatMiscToCompaniDuration;
-
-  beforeEach(() => {
-    _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
-  });
-
-  afterEach(() => {
-    _formatMiscToCompaniDuration.restore();
-  });
-
   it('should return formatted duration with minutes', () => {
     const durationAmount = 5 * 60 * 60 * 1000 + 16 * 60 * 1000;
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
@@ -85,10 +79,34 @@ describe('format', () => {
   });
 });
 
+describe('add', () => {
+  let _formatMiscToCompaniDuration;
+  const durationAmountInMillis = 60 * 60 * 1000;
+  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmountInMillis);
+
+  beforeEach(() => {
+    _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
+  });
+
+  afterEach(() => {
+    _formatMiscToCompaniDuration.restore();
+  });
+
+  it('should add duration', () => {
+    const addedAmountInMillis = 2 * 60 * 60 * 1000 + 5 * 60 * 1000;
+    const result = companiDuration.add(addedAmountInMillis);
+
+    expect(result instanceof Object && result._duration && result._duration instanceof luxon.Duration).toBe(true);
+    expect(result._duration.toMillis()).toBe(durationAmountInMillis + addedAmountInMillis);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmountInMillis);
+  });
+});
+
 describe('_formatMiscToCompaniDuration', () => {
   let fromObject;
   let fromMillis;
   let invalid;
+  const duration = luxon.Duration.fromMillis(123456789);
 
   beforeEach(() => {
     fromObject = sinon.spy(luxon.Duration, 'fromObject');
@@ -109,6 +127,17 @@ describe('_formatMiscToCompaniDuration', () => {
     expect(new luxon.Duration(result).toMillis()).toBe(0);
     sinon.assert.calledOnceWithExactly(fromObject, {});
     sinon.assert.notCalled(fromMillis);
+    sinon.assert.notCalled(invalid);
+  });
+
+  it('should return duration if arg is object with duration', () => {
+    const payload = { _duration: duration };
+    const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
+
+    expect(result instanceof luxon.Duration).toBe(true);
+    expect(new luxon.Duration(result).toMillis()).toEqual(123456789);
+    sinon.assert.notCalled(fromMillis);
+    sinon.assert.notCalled(fromObject);
     sinon.assert.notCalled(invalid);
   });
 

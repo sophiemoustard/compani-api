@@ -11,12 +11,20 @@ const companiDurationFactory = _duration => ({
 
     return _duration.toFormat(format);
   },
+  add(miscTypeOtherDuration) {
+    const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
+
+    return companiDurationFactory(_duration.plus(otherDuration));
+  },
 });
 
 exports._formatMiscToCompaniDuration = (...args) => {
   if (args.length === 0) return luxon.Duration.fromObject({});
 
   if (args.length === 1) {
+    if (args[0] instanceof Object && args[0]._duration && args[0]._duration instanceof luxon.Duration) {
+      return args[0]._duration;
+    }
     if (typeof args[0] === 'number') {
       return luxon.Duration.fromMillis(args[0]);
     }
