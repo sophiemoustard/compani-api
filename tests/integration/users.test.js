@@ -320,11 +320,72 @@ describe('POST /users', () => {
     });
   });
 
+  describe('TRAINER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should create a user with company and without role', async () => {
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        origin: WEBAPP,
+        contact: { phone: '0712345678' },
+        company: otherCompany._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if create user without company', async () => {
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        origin: WEBAPP,
+        contact: { phone: '0712345678' },
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if create user with role', async () => {
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        role: trainerRoleId,
+        origin: WEBAPP,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 200 },
     ];
     beforeEach(populateDB);
 
@@ -336,7 +397,6 @@ describe('POST /users', () => {
           local: { email: 'kirk@alenvi.io' },
           origin: MOBILE,
           contact: { phone: '0712345678' },
-          company: otherCompany._id,
         };
 
         const response = await app.inject({
@@ -1216,6 +1276,50 @@ describe('PUT /users/:id', () => {
     });
   });
 
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should update allowed field of user', async () => {
+      const updatePayload = {
+        identity: { firstname: 'Riri' },
+        contact: { phone: '0102030405' },
+        company: otherCompany._id,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userList[11]._id.toHexString()}`,
+        payload: updatePayload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const userUpdated = await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
+      expect(userUpdated).toBeTruthy();
+    });
+
+    it('should not update another field than allowed ones', async () => {
+      const userId = noRoleNoCompany._id;
+      const payload = {
+        identity: { firstname: 'No', lastname: 'Body' },
+        contact: { phone: '0344543932' },
+        local: { email: 'newemail@mail.com' },
+        picture: { link: 'test' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(async () => {
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
@@ -1262,7 +1366,6 @@ describe('PUT /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -1272,7 +1375,7 @@ describe('PUT /users/:id', () => {
         const response = await app.inject({
           method: 'PUT',
           url: `/users/${userList[11]._id.toHexString()}`,
-          payload: { identity: { firstname: 'Riri' }, company: otherCompany._id },
+          payload: { identity: { firstname: 'Riri' } },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

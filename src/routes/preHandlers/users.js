@@ -42,8 +42,8 @@ exports.authorizeUserUpdate = async (req) => {
   const userCompany = userFromDB.company || get(req, 'payload.company');
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
-  if (get(credentials, 'role.vendor.name') === TRAINER && (credentials._id !== req.params._id &&
-    Object.keys(req.payload).some(elem => !['company', 'identity', 'contact'].includes(elem)))) {
+  if (get(credentials, 'role.vendor.name') === TRAINER && credentials._id !== req.params._id &&
+  updateRestrictedKeysOnTrainee(req.payload)) {
     throw Boom.forbidden();
   }
 
@@ -52,7 +52,7 @@ exports.authorizeUserUpdate = async (req) => {
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
   if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
-    checkUpdateRestrictions(req.payload);
+    checkUpdateAndCreateRestrictions(req.payload);
   }
 
   return null;
@@ -111,7 +111,7 @@ const checkCustomer = async (userCompany, payload) => {
   if (!customerCount) throw Boom.forbidden();
 };
 
-const checkUpdateRestrictions = (payload) => {
+const checkUpdateAndCreateRestrictions = (payload) => {
   const allowedUpdateKeys = [
     'identity.firstname',
     'identity.lastname',
@@ -124,6 +124,9 @@ const checkUpdateRestrictions = (payload) => {
 
   if (payloadKeys.some(key => !allowedUpdateKeys.includes(key))) throw Boom.forbidden();
 };
+
+const updateRestrictedKeysOnTrainee = payload =>
+  Object.keys(payload).some(elem => !['company', 'identity', 'contact'].includes(elem));
 
 exports.authorizeUserGetById = async (req) => {
   const { credentials } = req.auth;
@@ -163,7 +166,7 @@ exports.authorizeUserDeletion = async (req) => {
 
 exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
-  if (!credentials) checkUpdateRestrictions(req.payload);
+  if (!credentials) checkUpdateAndCreateRestrictions(req.payload);
 
   if (credentials && req.payload.local.password) throw Boom.forbidden();
 

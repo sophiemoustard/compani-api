@@ -1132,6 +1132,27 @@ describe('createUser', () => {
     }
   });
 
+  it('trainer - should return 403 if no company', async () => {
+    const credentialsCompanyId = new ObjectID();
+    const payload = {
+      identity: { lastname: 'Test', firstname: 'Toto' },
+      local: { email: 'toto@test.com' },
+      origin: WEBAPP,
+    };
+    try {
+      await UsersHelper
+        .createUser(payload, { company: { _id: credentialsCompanyId }, role: { vendor: { name: TRAINER } } });
+    } catch (e) {
+      expect(e).toEqual(Boom.forbidden());
+    } finally {
+      sinon.assert.notCalled(createHistoryStub);
+      sinon.assert.notCalled(userCreate);
+      sinon.assert.notCalled(roleFindById);
+      sinon.assert.notCalled(userFindOne);
+      sinon.assert.notCalled(userCompanyCreate);
+    }
+  });
+
   it('should return a 400 error if role does not exist', async () => {
     const companyId = new ObjectID();
     const payload = {
