@@ -92,12 +92,12 @@ describe('add', () => {
     _formatMiscToCompaniDuration.restore();
   });
 
-  it('should add duration', () => {
+  it('should increase companiDuration, and return a reference', () => {
     const addedAmountInMillis = 2 * 60 * 60 * 1000 + 5 * 60 * 1000;
     const result = companiDuration.add(addedAmountInMillis);
 
-    expect(result instanceof Object && result._duration && result._duration instanceof luxon.Duration).toBe(true);
-    expect(result._duration.toMillis()).toBe(durationAmountInMillis + addedAmountInMillis);
+    expect(companiDuration._duration.toMillis()).toBe(durationAmountInMillis + addedAmountInMillis);
+    expect(result).toBe(companiDuration);
     sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmountInMillis);
   });
 });
