@@ -31,12 +31,12 @@ describe('CompaniDate', () => {
 });
 
 describe('format', () => {
-  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
+  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
 
   it('should return formated date in a string', () => {
-    const result = companiDate.format('\'Le\' cccc dd LLLL y');
+    const result = companiDate.format('\'Le\' cccc dd LLLL y \'à\' HH\'h\'mm \'et\' s \'secondes\'');
 
-    expect(result).toBe('Le mercredi 24 novembre 2021');
+    expect(result).toBe('Le mercredi 24 novembre 2021 à 08h12 et 8 secondes');
   });
 });
 
@@ -90,7 +90,7 @@ describe('diff', () => {
   });
 
   it('should return difference in positive days', () => {
-    const otherDate = new Date('2021-11-20T08:00:00.000Z');
+    const otherDate = new Date('2021-11-20T10:00:00.000Z');
     const result = companiDate.diff(otherDate, 'days');
 
     expect(result).toBe(4);
@@ -110,15 +110,15 @@ describe('diff', () => {
     const result = companiDate.diff(otherDate, 'days', true);
 
     expect(result).toBeGreaterThan(0);
-    expect(result - 1.54).toBeLessThan(0.01);
+    expect(result - 1.54).toBeLessThan(0.01); // 1.54 days = 1 day and 13 hours
     sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
   });
 
   it('should return difference in negative days', () => {
-    const otherDate = new Date('2021-11-30T08:00:00.000Z');
+    const otherDate = new Date('2021-11-30T10:00:00.000Z');
     const result = companiDate.diff(otherDate, 'days');
 
-    expect(result).toBe(-5);
+    expect(result).toBe(-6);
     sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
   });
 
@@ -127,7 +127,7 @@ describe('diff', () => {
     const result = companiDate.diff(otherDate, 'days', true);
 
     expect(result).toBeLessThan(0);
-    expect(Math.abs(result) - 5.91).toBeLessThan(0.01);
+    expect(Math.abs(result) - 5.91).toBeLessThan(0.01); // 5.91 days = 5 days and 22 hours
     sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
   });
 });
