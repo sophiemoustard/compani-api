@@ -859,9 +859,9 @@ describe('GET /users/:id', () => {
     });
   });
 
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
+  describe('TRAINER', () => {
     beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
+      authToken = await getToken('trainer');
     });
 
     it('should return trainer', async () => {
@@ -907,7 +907,6 @@ describe('GET /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {

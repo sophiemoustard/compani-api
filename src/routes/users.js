@@ -34,7 +34,7 @@ const {
   getPicturePublicId,
   authorizeExpoTokenEdit,
   checkExpoToken,
-  authorizeUploadEdit,
+  authorizeUploadEdition,
   authorizeDriveFolderCreation,
 } = require('./preHandlers/users');
 const { addressValidation, phoneNumberValidation, expoTokenValidation } = require('./validations/utils');
@@ -337,7 +337,7 @@ exports.plugin = {
           payload: Joi.object({ fileName: Joi.string().required(), file: Joi.any().required() }),
         },
         payload: formDataPayload(),
-        pre: [{ method: authorizeUploadEdit }],
+        pre: [{ method: authorizeUploadEdition }],
       },
     });
 
@@ -350,7 +350,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
-        pre: [{ method: getPicturePublicId, assign: 'publicId' }, { method: authorizeUploadEdit }],
+        pre: [{ method: getPicturePublicId, assign: 'publicId' }, { method: authorizeUploadEdition }],
       },
     });
 
