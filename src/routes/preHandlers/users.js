@@ -42,8 +42,11 @@ const isOnlyTrainer = role => get(role, 'vendor.name') === TRAINER &&
 const isTrainerAccessingOtherUser = req => isOnlyTrainer(get(req, 'auth.credentials.role')) &&
   !UtilsHelper.areObjectIdsEquals(get(req, 'auth.credentials._id'), req.params._id);
 
-const updateForbiddenKeysOnTrainee = payload =>
-  Object.keys(payload).some(elem => !['company', 'identity', 'contact'].includes(elem));
+const updateForbiddenKeysOnTrainee = (payload, user) => {
+  if (get(payload, 'local.email') && payload.local.email !== user.local.email) return true;
+
+  return Object.keys(payload).some(elem => !['company', 'identity', 'contact', 'local'].includes(elem));
+};
 
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
@@ -51,7 +54,7 @@ exports.authorizeUserUpdate = async (req) => {
   const userCompany = userFromDB.company || get(req, 'payload.company');
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
-  if (isTrainerAccessingOtherUser(req) && updateForbiddenKeysOnTrainee(req.payload)) throw Boom.forbidden();
+  if (isTrainerAccessingOtherUser(req) && updateForbiddenKeysOnTrainee(req.payload, userFromDB)) throw Boom.forbidden();
 
   checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);

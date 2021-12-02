@@ -1287,6 +1287,7 @@ describe('PUT /users/:id', () => {
       const updatePayload = {
         identity: { firstname: 'Riri' },
         contact: { phone: '0102030405' },
+        local: { email: 'norole.nocompany@alenvi.io' },
         company: otherCompany._id,
       };
 
@@ -1307,8 +1308,26 @@ describe('PUT /users/:id', () => {
       const payload = {
         identity: { firstname: 'No', lastname: 'Body' },
         contact: { phone: '0344543932' },
-        local: { email: 'newemail@mail.com' },
+        local: { email: 'norole.nocompany@alenvi.io' },
         picture: { link: 'test' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not update email with new value', async () => {
+      const userId = noRoleNoCompany._id;
+      const payload = {
+        identity: { firstname: 'No', lastname: 'Body' },
+        contact: { phone: '0344543932' },
+        local: { email: 'newemail@mail.com' },
       };
 
       const response = await app.inject({
