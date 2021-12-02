@@ -1280,6 +1280,8 @@ describe('PUT /events/{_id}', () => {
         endDate: '2019-01-23T12:00:00.000Z',
         sector: sectors[0]._id.toHexString(),
         subscription: subscriptionId,
+        cancel: { condition: '', reason: '' },
+        isCancelled: false,
       };
 
       const response = await app.inject({
