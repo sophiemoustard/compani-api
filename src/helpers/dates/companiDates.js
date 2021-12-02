@@ -11,11 +11,13 @@ const companiDateFactory = _date => ({
   format(fmt) {
     return this._date.toFormat(fmt);
   },
+
   isSame(miscTypeOtherDate, unit) {
     const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
     return this._date.hasSame(otherDate, unit);
   },
+
   diff(miscTypeOtherDate, unit = 'milliseconds', typeFloat = false) {
     const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
     const floatDiff = this._date.diff(otherDate, unit).as(unit);

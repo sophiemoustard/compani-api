@@ -11,6 +11,7 @@ const companiDurationFactory = _duration => ({
 
     return this._duration.toFormat(format);
   },
+
   add(miscTypeOtherDuration) {
     const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
 
