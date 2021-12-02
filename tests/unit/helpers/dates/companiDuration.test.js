@@ -96,8 +96,8 @@ describe('add', () => {
     const addedAmountInMillis = 2 * 60 * 60 * 1000 + 5 * 60 * 1000;
     const result = companiDuration.add(addedAmountInMillis);
 
-    expect(companiDuration._duration.toMillis()).toBe(durationAmountInMillis + addedAmountInMillis);
     expect(result).toBe(companiDuration);
+    expect(companiDuration._duration.toMillis()).toBe(durationAmountInMillis + addedAmountInMillis);
     sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmountInMillis);
   });
 });
