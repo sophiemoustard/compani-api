@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const get = require('lodash/get');
+const { CompaniDate } = require('../../helpers/dates/companiDates');
 const UtilsHelper = require('../../helpers/utils');
 const Course = require('../../models/Course');
 const AttendanceSheet = require('../../models/AttendanceSheet');
@@ -32,7 +32,7 @@ exports.authorizeAttendanceSheetCreation = async (req) => {
 
   if (course.type === INTRA) {
     if (req.payload.trainee) return Boom.badRequest();
-    const courseDates = course.slots.filter(slot => moment(slot.startDate).isSame(req.payload.date, 'day'));
+    const courseDates = course.slots.filter(slot => CompaniDate(slot.startDate).isSame(req.payload.date, 'day'));
     if (!courseDates.length) return Boom.forbidden();
 
     return null;
