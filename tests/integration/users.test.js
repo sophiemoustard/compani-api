@@ -1306,10 +1306,9 @@ describe('PUT /users/:id', () => {
     it('should not update another field than allowed ones', async () => {
       const userId = noRoleNoCompany._id;
       const payload = {
-        identity: { firstname: 'No', lastname: 'Body' },
+        identity: { firstname: 'No', lastname: 'Body', socialSecurityNumber: 133333131 },
         contact: { phone: '0344543932' },
         local: { email: 'norole.nocompany@alenvi.io' },
-        picture: { link: 'test' },
       };
 
       const response = await app.inject({
