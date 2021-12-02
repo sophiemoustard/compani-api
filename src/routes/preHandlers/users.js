@@ -43,7 +43,7 @@ exports.authorizeUserUpdate = async (req) => {
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
   if (get(credentials, 'role.vendor.name') === TRAINER && credentials._id !== req.params._id &&
-  updateRestrictedKeysOnTrainee(req.payload)) {
+  updateForbiddenKeysOnTrainee(req.payload)) {
     throw Boom.forbidden();
   }
 
@@ -125,7 +125,7 @@ const checkUpdateAndCreateRestrictions = (payload) => {
   if (payloadKeys.some(key => !allowedUpdateKeys.includes(key))) throw Boom.forbidden();
 };
 
-const updateRestrictedKeysOnTrainee = payload =>
+const updateForbiddenKeysOnTrainee = payload =>
   Object.keys(payload).some(elem => !['company', 'identity', 'contact'].includes(elem));
 
 exports.authorizeUserGetById = async (req) => {
@@ -172,6 +172,9 @@ exports.authorizeUserCreation = async (req) => {
 
   const scope = get(credentials, 'scope');
   if (scope && !scope.includes('users:edit')) throw Boom.forbidden();
+  if (get(credentials, 'role.vendor.name') === TRAINER && (!req.payload.company || req.payload.role)) {
+    throw Boom.forbidden();
+  }
 
   if (req.payload.customer) {
     const { customer } = req.payload;

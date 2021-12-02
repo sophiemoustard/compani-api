@@ -208,9 +208,6 @@ exports.createUser = async (userPayload, credentials) => {
   if (!credentials) return User.create(payload);
 
   const companyId = payload.company || get(credentials, 'company._id');
-  if (get(credentials, 'role.vendor.name') === TRAINER && (!payload.company || userPayload.role)) {
-    throw Boom.forbidden();
-  }
   if (!userPayload.role) return createUserCompany(payload, companyId);
 
   const role = await Role.findById(userPayload.role, { name: 1, interface: 1 }).lean();

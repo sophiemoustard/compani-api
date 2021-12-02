@@ -343,6 +343,9 @@ describe('POST /users', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const userCount = await User.countDocuments({ 'local.email': 'kirk@alenvi.io' });
+      expect(userCount).toEqual(1);
     });
 
     it('should return 403 if create user without company', async () => {
@@ -1374,7 +1377,7 @@ describe('PUT /users/:id', () => {
 
         const response = await app.inject({
           method: 'PUT',
-          url: `/users/${userList[11]._id.toHexString()}`,
+          url: `/users/${userList[1]._id.toHexString()}`,
           payload: { identity: { firstname: 'Riri' } },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });

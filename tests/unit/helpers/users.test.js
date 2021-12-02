@@ -20,7 +20,7 @@ const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
 const UserCompany = require('../../../src/models/UserCompany');
-const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP, TRAINER } = require('../../../src/helpers/constants');
+const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP } = require('../../../src/helpers/constants');
 
 const { language } = translate;
 
@@ -1106,51 +1106,6 @@ describe('createUser', () => {
     sinon.assert.notCalled(userFindOne);
     sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, userCompanyId);
     sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
-  });
-
-  it('trainer - should return 403 if role', async () => {
-    const credentialsCompanyId = new ObjectID();
-    const userCompanyId = new ObjectID();
-    const payload = {
-      identity: { lastname: 'Test', firstname: 'Toto' },
-      local: { email: 'toto@test.com' },
-      company: userCompanyId,
-      role: roleId,
-      origin: WEBAPP,
-    };
-    try {
-      await UsersHelper
-        .createUser(payload, { company: { _id: credentialsCompanyId }, role: { vendor: { name: TRAINER } } });
-    } catch (e) {
-      expect(e).toEqual(Boom.forbidden());
-    } finally {
-      sinon.assert.notCalled(createHistoryStub);
-      sinon.assert.notCalled(userCreate);
-      sinon.assert.notCalled(roleFindById);
-      sinon.assert.notCalled(userFindOne);
-      sinon.assert.notCalled(userCompanyCreate);
-    }
-  });
-
-  it('trainer - should return 403 if no company', async () => {
-    const credentialsCompanyId = new ObjectID();
-    const payload = {
-      identity: { lastname: 'Test', firstname: 'Toto' },
-      local: { email: 'toto@test.com' },
-      origin: WEBAPP,
-    };
-    try {
-      await UsersHelper
-        .createUser(payload, { company: { _id: credentialsCompanyId }, role: { vendor: { name: TRAINER } } });
-    } catch (e) {
-      expect(e).toEqual(Boom.forbidden());
-    } finally {
-      sinon.assert.notCalled(createHistoryStub);
-      sinon.assert.notCalled(userCreate);
-      sinon.assert.notCalled(roleFindById);
-      sinon.assert.notCalled(userFindOne);
-      sinon.assert.notCalled(userCompanyCreate);
-    }
   });
 
   it('should return a 400 error if role does not exist', async () => {
