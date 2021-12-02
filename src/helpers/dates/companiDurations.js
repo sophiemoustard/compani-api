@@ -1,4 +1,4 @@
-const luxon = require('luxon');
+const luxon = require('./luxon');
 
 exports.CompaniDuration = (...args) => companiDurationFactory(exports._formatMiscToCompaniDuration(...args));
 

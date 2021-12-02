@@ -1,7 +1,4 @@
-const luxon = require('luxon');
-
-luxon.Settings.defaultLocale = 'fr';
-luxon.Settings.defaultZone = 'Europe/Paris';
+const luxon = require('./luxon');
 
 exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompaniDate(...args));
 

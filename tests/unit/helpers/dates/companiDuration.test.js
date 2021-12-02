@@ -1,6 +1,6 @@
 const expect = require('expect');
-const luxon = require('luxon');
 const sinon = require('sinon');
+const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDurationsHelper = require('../../../../src/helpers/dates/companiDurations');
 
 describe('CompaniDuration', () => {
