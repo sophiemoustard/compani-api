@@ -173,7 +173,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     );
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
     const pickTransportDuration = breakDuration > (transport.duration + 15);
-    paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
+    paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
     paidKm = transportMode.shouldPayKm ? transport.distance : 0;
     travelledKm = transport.distance;
   }
