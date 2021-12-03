@@ -79,7 +79,7 @@ exports.updateFunding = async (customerId, fundingId, payload) => {
     versions: [versionPayload],
   };
   const check = await exports.checkSubscriptionFunding(customerId, checkFundingPayload);
-  if (!check) return Boom.conflict(translate[language].customerFundingConflict);
+  if (!check) throw Boom.conflict(translate[language].customerFundingConflict);
 
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, 'fundings._id': fundingId },
