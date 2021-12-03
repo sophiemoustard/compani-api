@@ -320,11 +320,75 @@ describe('POST /users', () => {
     });
   });
 
+  describe('TRAINER', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should create a user with company and without role', async () => {
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        origin: WEBAPP,
+        contact: { phone: '0712345678' },
+        company: otherCompany._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const userCount = await User.countDocuments({ 'local.email': 'kirk@alenvi.io' });
+      expect(userCount).toEqual(1);
+    });
+
+    it('should return 403 if create user without company', async () => {
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        origin: WEBAPP,
+        contact: { phone: '0712345678' },
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if create user with role', async () => {
+      const payload = {
+        identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+        local: { email: 'kirk@alenvi.io' },
+        role: trainerRoleId,
+        origin: WEBAPP,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
     ];
     beforeEach(populateDB);
 
@@ -795,9 +859,9 @@ describe('GET /users/:id', () => {
     });
   });
 
-  describe('TRAINING_ORGANISATION_MANAGER', () => {
+  describe('TRAINER', () => {
     beforeEach(async () => {
-      authToken = await getToken('training_organisation_manager');
+      authToken = await getToken('trainer');
     });
 
     it('should return trainer', async () => {
@@ -843,7 +907,6 @@ describe('GET /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -1155,8 +1218,8 @@ describe('PUT /users/:id', () => {
 
     it('should not update a user if phone number is not correct', async () => {
       const response = await app.inject({
-        method: 'POST',
-        url: '/users',
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
         payload: { contact: { phone: '09876' } },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1166,8 +1229,8 @@ describe('PUT /users/:id', () => {
 
     it('should not update a user if trying to update password', async () => {
       const response = await app.inject({
-        method: 'POST',
-        url: '/users',
+        method: 'PUT',
+        url: `/users/${usersSeedList[0]._id}`,
         payload: { local: { password: '123456!eR' } },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1212,6 +1275,68 @@ describe('PUT /users/:id', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(res.statusCode).toBe(403);
+    });
+  });
+
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should update allowed field of user', async () => {
+      const updatePayload = {
+        identity: { firstname: 'Riri' },
+        contact: { phone: '0102030405' },
+        local: { email: 'norole.nocompany@alenvi.io' },
+        company: otherCompany._id,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userList[11]._id.toHexString()}`,
+        payload: updatePayload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const userUpdated = await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
+      expect(userUpdated).toBeTruthy();
+    });
+
+    it('should not update another field than allowed ones', async () => {
+      const userId = noRoleNoCompany._id;
+      const payload = {
+        identity: { firstname: 'No', lastname: 'Body', socialSecurityNumber: 133333131 },
+        contact: { phone: '0344543932' },
+        local: { email: 'norole.nocompany@alenvi.io' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not update email with new value', async () => {
+      const userId = noRoleNoCompany._id;
+      const payload = {
+        identity: { firstname: 'No', lastname: 'Body' },
+        contact: { phone: '0344543932' },
+        local: { email: 'newemail@mail.com' },
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/users/${userId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -1261,7 +1386,6 @@ describe('PUT /users/:id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'trainer', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
