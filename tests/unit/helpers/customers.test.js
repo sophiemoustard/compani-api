@@ -140,7 +140,8 @@ describe('getCustomersWithBilledEvents', () => {
 
     sinon.assert.calledWithExactly(
       getCustomersWithBilledEvents,
-      { isBilled: true, type: 'intervention' }, credentials.company._id
+      { isBilled: true, type: 'intervention' },
+      credentials.company._id
     );
   });
 });

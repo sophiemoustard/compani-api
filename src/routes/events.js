@@ -203,10 +203,10 @@ exports.plugin = {
             shouldUpdateRepetition: Joi.boolean(),
             cancel: Joi.object().keys({
               condition: Joi.string()
-                .valid(...EVENT_CANCELLATION_CONDITIONS)
+                .valid(...EVENT_CANCELLATION_CONDITIONS, '')
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
               reason: Joi.string()
-                .valid(...EVENT_CANCELLATION_REASONS)
+                .valid(...EVENT_CANCELLATION_REASONS, '')
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
             isBilled: Joi.boolean(),

@@ -17,6 +17,11 @@ const addressValidation = Joi.object().keys({
 
 const objectIdOrArray = Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId()));
 
+const stringOrArray = valid => (valid
+  ? Joi.alternatives().try(Joi.string().valid(...valid), Joi.array().items(Joi.string().valid(...valid)))
+  : Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string()))
+);
+
 const expoTokenValidation = Joi.string().custom((value, helper) => (
   value.substring(0, 18) === 'ExponentPushToken['
     ? value
@@ -36,6 +41,7 @@ module.exports = {
   phoneNumberValidation,
   addressValidation,
   objectIdOrArray,
+  stringOrArray,
   expoTokenValidation,
   formDataPayload,
 };

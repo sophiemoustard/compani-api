@@ -475,6 +475,7 @@ describe('getUser', () => {
           query: 'populate',
           args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
+        { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -520,6 +521,7 @@ describe('getUser', () => {
           query: 'populate',
           args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
+        { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -565,6 +567,7 @@ describe('getUser', () => {
           query: 'populate',
           args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
+        { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -610,6 +613,7 @@ describe('getUser', () => {
           query: 'populate',
           args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
         },
+        { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
@@ -661,6 +665,7 @@ describe('getUser', () => {
             query: 'populate',
             args: [{ path: 'companyLinkRequest', populate: { path: 'company', select: '_id name' } }],
           },
+          { query: 'populate', args: [{ path: 'establishment', select: 'siret' }] },
           { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
         ]
       );

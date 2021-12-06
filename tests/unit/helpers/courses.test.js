@@ -5,7 +5,6 @@ const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
 const { fn: momentProto } = require('moment');
-const moment = require('moment');
 const Boom = require('@hapi/boom');
 const Course = require('../../../src/models/Course');
 const User = require('../../../src/models/User');
@@ -1399,61 +1398,45 @@ describe('formatInterCourseSlotsForPdf', () => {
 });
 
 describe('getCourseDuration', () => {
-  let formatDuration;
-  beforeEach(() => {
-    formatDuration = sinon.stub(UtilsHelper, 'formatDuration');
-  });
-  afterEach(() => {
-    formatDuration.restore();
-  });
-
   it('should return course duration with minutes', () => {
     const slots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
       { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
     ];
-    formatDuration.returns('4h30');
 
     const result = CourseHelper.getCourseDuration(slots);
 
     expect(result).toEqual('4h30');
-    sinon.assert.calledOnceWithExactly(formatDuration, moment.duration({ hours: 4, minutes: 30 }));
   });
   it('should return course duration with leading zero minutes', () => {
     const slots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:08:00' },
       { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:00:00' },
     ];
-    formatDuration.returns('4h08');
 
     const result = CourseHelper.getCourseDuration(slots);
 
     expect(result).toEqual('4h08');
-    sinon.assert.calledOnceWithExactly(formatDuration, moment.duration({ hours: 4, minutes: 8 }));
   });
   it('should return course duration without minutes', () => {
     const slots = [
       { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
       { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:00:00' },
     ];
-    formatDuration.returns('4h');
 
     const result = CourseHelper.getCourseDuration(slots);
 
     expect(result).toEqual('4h');
-    sinon.assert.calledOnceWithExactly(formatDuration, moment.duration({ hours: 4 }));
   });
   it('should return course duration with days', () => {
     const slots = [
       { startDate: '2020-03-20T07:00:00', endDate: '2020-03-20T22:00:00' },
       { startDate: '2020-04-21T07:00:00', endDate: '2020-04-21T22:00:00' },
     ];
-    formatDuration.returns('30h');
 
     const result = CourseHelper.getCourseDuration(slots);
 
     expect(result).toEqual('30h');
-    sinon.assert.calledOnceWithExactly(formatDuration, moment.duration({ hours: 30 }));
   });
 });
 

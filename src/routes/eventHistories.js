@@ -5,7 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const { list, update } = require('../controllers/eventHistoryController');
 const { EVENTS_HISTORY_ACTIONS } = require('../models/EventHistory');
 const { authorizeEventsHistoriesGet, authorizeEventHistoryCancellation } = require('./preHandlers/eventHistories');
-const { objectIdOrArray } = require('./validations/utils');
+const { objectIdOrArray, stringOrArray } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-event-history',
@@ -21,7 +21,8 @@ exports.plugin = {
             sectors: objectIdOrArray,
             createdAt: Joi.date(),
             eventId: Joi.objectId(),
-            action: Joi.array().items(Joi.string().valid(...EVENTS_HISTORY_ACTIONS)),
+            action: stringOrArray(EVENTS_HISTORY_ACTIONS),
+            isCancelled: Joi.boolean().valid(false),
           }),
         },
         pre: [{ method: authorizeEventsHistoriesGet }],

@@ -352,8 +352,7 @@ exports.formatBillDetailsForPdf = (bill) => {
   const formattedDetails = [];
 
   for (const sub of bill.subscriptions) {
-    const discountExclTaxes = UtilsHelper.getExclTaxes(sub.discount, sub.vat);
-    const subExclTaxesWithDiscount = NumbersHelper.subtract(sub.exclTaxes, discountExclTaxes);
+    const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
     totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
 
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
@@ -377,8 +376,7 @@ exports.formatBillDetailsForPdf = (bill) => {
   let totalBillingItem = 0;
   if (bill.billingItemList) {
     for (const bi of bill.billingItemList) {
-      const discountExclTaxes = UtilsHelper.getExclTaxes(bi.discount, bi.vat);
-      const biExclTaxesWithDiscount = NumbersHelper.subtract(bi.exclTaxes, discountExclTaxes);
+      const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
       totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
       totalBillingItem = NumbersHelper.add(totalBillingItem, bi.inclTaxes);
       totalDiscount = NumbersHelper.add(totalDiscount, bi.discount);

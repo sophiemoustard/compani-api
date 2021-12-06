@@ -138,7 +138,8 @@ describe('updateHistoryOnSectorUpdate', () => {
     );
     sinon.assert.calledOnceWithExactly(
       createHistoryStub,
-      { _id: auxiliaryId, sector: sector.toHexString() }, companyId
+      { _id: auxiliaryId, sector: sector.toHexString() },
+      companyId
     );
   });
 
