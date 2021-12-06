@@ -44,7 +44,7 @@ const traineeFromOtherCompany = {
 const traineeFromAuthCompanyWithFormationExpoToken = {
   _id: new ObjectID(),
   identity: { firstname: 'Trainee', lastname: 'WithExpoToken' },
-  local: { email: 'traineeWithExpoToken@alenvi.io', password: '123456!eR' },
+  local: { email: 'traineeWithExpoToken@alenvi.io' },
   role: { client: auxiliaryRoleId },
   contact: { phone: '0734856751' },
   refreshToken: uuidv4(),
@@ -55,7 +55,7 @@ const traineeFromAuthCompanyWithFormationExpoToken = {
 const traineeWithoutCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Salut', lastname: 'Toi' },
-  local: { email: 'traineeWithoutCompany@alenvi.io', password: '123456!eR' },
+  local: { email: 'traineeWithoutCompany@alenvi.io' },
   role: { vendor: trainerRoleId },
   refreshToken: uuidv4(),
   origin: WEBAPP,
