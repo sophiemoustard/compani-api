@@ -45,5 +45,6 @@ module.exports = {
     'object-curly-newline': ['error', { consistent: true, multiline: true }],
     'operator-linebreak': ['error', 'before', { overrides: { '&&': 'after', '||': 'after', '=': 'after' } }],
     strict: 0,
+    'function-paren-newline': 0,
   },
 };

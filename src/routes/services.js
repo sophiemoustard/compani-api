@@ -12,7 +12,11 @@ const {
   remove,
 } = require('../controllers/serviceController');
 
-const { authorizeServicesUpdate, authorizeServicesDeletion } = require('./preHandlers/services');
+const {
+  authorizeServiceCreation,
+  authorizeServicesUpdate,
+  authorizeServicesDeletion,
+} = require('./preHandlers/services');
 
 exports.plugin = {
   name: 'routes-services',
@@ -32,10 +36,12 @@ exports.plugin = {
               vat: Joi.number().default(0),
               surcharge: Joi.objectId(),
               exemptFromCharges: Joi.boolean().required(),
+              billingItems: Joi.array().items(Joi.objectId()),
             }),
             nature: Joi.string().required().valid(...SERVICE_NATURES),
           }),
         },
+        pre: [{ method: authorizeServiceCreation }],
       },
     });
 

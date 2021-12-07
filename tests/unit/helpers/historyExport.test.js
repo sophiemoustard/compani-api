@@ -709,6 +709,15 @@ describe('exportBillsAndCreditNotesHistory', () => {
           inclTaxes: 410686.201944,
         },
       ],
+      billingItemList: [{
+        billingItem: new ObjectID(),
+        unitInclTaxes: 10,
+        name: 'article de factu',
+        count: 2,
+        inclTaxes: 20,
+        exclTaxes: 18,
+        vat: 5,
+      }],
       createdAt: '2019-10-11',
     },
     {
@@ -716,9 +725,9 @@ describe('exportBillsAndCreditNotesHistory', () => {
       date: '2019-05-22T06:00:00.000+00:00',
       customer: { _id: customerIdList[1], identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' } },
       thirdPartyPayer: { _id: tppIdList[1], name: 'The Sherif' },
-      netInclTaxes: 1057.1319439,
+      netInclTaxes: 957.1319439,
       subscriptions: [
-        { service: { name: 'Forfait nuit' }, hours: 15, exclTaxes: 700.0208, inclTaxes: 738.521944 },
+        { service: { name: 'Forfait' }, hours: 15, exclTaxes: 700.0208, inclTaxes: 738.521944, discount: 100, vat: 10 },
         { service: { name: 'Forfait nuit' }, hours: 7, inclTaxes: 302, exclTaxes: 318.6099999 },
       ],
       createdAt: '2019-10-12',
@@ -838,7 +847,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     );
     sinon.assert.callCount(formatPriceStub, 0);
     sinon.assert.callCount(formatHourStub, 0);
-    sinon.assert.callCount(formatFloatForExportStub, 4);
+    sinon.assert.callCount(formatFloatForExportStub, 5);
   });
 
   it('should return an array with the header and 2 rows', async () => {
@@ -866,7 +875,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'Mimi',
         tppIdList[0].toHexString(),
         'TF1',
-        'F-389276.0208',
+        'F-389294.0208',
         'F-389276.023',
         'F-20',
         'Temps de qualité - autonomie - 20h - P-410686.201944 TTC',
@@ -882,10 +891,10 @@ describe('exportBillsAndCreditNotesHistory', () => {
         'Bojack',
         tppIdList[1].toHexString(),
         'The Sherif',
-        'F-1018.6307999',
-        'F-1057.1319439',
+        'F-927.7217089909091',
+        'F-957.1319439',
         'F-22',
-        'Forfait nuit - 15h - P-738.521944 TTC\r\nForfait nuit - 7h - P-302 TTC',
+        'Forfait - 15h - P-738.521944 TTC\r\nForfait nuit - 7h - P-302 TTC',
         '12/10/2019',
       ],
       [

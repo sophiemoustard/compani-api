@@ -24,6 +24,7 @@ const {
 } = require('./constants');
 const DatesHelper = require('./dates');
 const UtilsHelper = require('./utils');
+const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
@@ -80,7 +81,7 @@ const getMatchingSector = (histories, event) => histories
   .filter(sh => moment(sh.startDate).isBefore(event.startDate))
   .sort(DatesHelper.descendingSort('startDate'))[0];
 
-const displayDate = (timestamp = null, path, scheduledDate = null) => {
+const displayDate = (path, timestamp = null, scheduledDate = null) => {
   if (timestamp) return DatesHelper.formatDateAndTime(get(timestamp, path), 'DD MM YYYY hh mm ss');
   if (scheduledDate) return DatesHelper.formatDateAndTime(scheduledDate, 'DD MM YYYY hh mm ss');
   return '';
@@ -140,13 +141,13 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       EVENT_TYPE_LIST[event.type],
       get(event, 'internalHour.name', ''),
       event.subscription ? getServiceName(event.subscription.service) : '',
-      displayDate(startHourTimeStamping, 'update.startHour.from', event.startDate),
-      displayDate(startHourTimeStamping, 'update.startHour.to'),
+      displayDate('update.startHour.from', startHourTimeStamping, event.startDate),
+      displayDate('update.startHour.to', startHourTimeStamping),
       TIMESTAMPING_ACTION_TYPE_LIST[get(startHourTimeStamping, 'action')] || '',
       get(startHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(startHourTimeStamping, 'manualTimeStampingReason')] : '',
-      displayDate(endHourTimeStamping, 'update.endHour.from', event.endDate),
-      displayDate(endHourTimeStamping, 'update.endHour.to'),
+      displayDate('update.endHour.from', endHourTimeStamping, event.endDate),
+      displayDate('update.endHour.to', endHourTimeStamping),
       TIMESTAMPING_ACTION_TYPE_LIST[get(endHourTimeStamping, 'action')] || '',
       get(endHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
@@ -303,16 +304,22 @@ const formatBillsForExport = (bills) => {
 
   for (const bill of bills) {
     const tppId = get(bill.thirdPartyPayer, '_id');
-    let totalExclTaxesFormatted = '';
     let hours = 0;
 
+    let totalExclTaxes = 0;
     if (bill.subscriptions) {
-      let totalExclTaxes = 0;
       for (const sub of bill.subscriptions) {
-        totalExclTaxes += sub.exclTaxes;
-        hours += sub.hours;
+        const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
+        totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
+        hours = NumbersHelper.add(hours, sub.hours);
       }
-      totalExclTaxesFormatted = UtilsHelper.formatFloatForExport(totalExclTaxes);
+    }
+
+    if (bill.billingItemList) {
+      for (const bi of bill.billingItemList) {
+        const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
+        totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
+      }
     }
 
     const createdAt = get(bill, 'createdAt', null);
@@ -321,7 +328,7 @@ const formatBillsForExport = (bills) => {
       ...formatRowCommonsForExport(bill),
       tppId ? tppId.toHexString() : '',
       get(bill.thirdPartyPayer, 'name') || '',
-      totalExclTaxesFormatted,
+      UtilsHelper.formatFloatForExport(totalExclTaxes),
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       UtilsHelper.formatFloatForExport(hours),
       exportBillSubscriptions(bill),

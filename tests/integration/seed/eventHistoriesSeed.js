@@ -287,4 +287,5 @@ module.exports = {
   auxiliaryFromOtherCompany,
   sectorFromOtherCompany,
   sectors,
+  events,
 };

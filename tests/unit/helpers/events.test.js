@@ -798,7 +798,8 @@ describe('removeRepetitionsOnContractEnd', () => {
     await EventHelper.removeRepetitionsOnContractEnd(contract);
     sinon.assert.calledOnceWithExactly(
       updateManyRepetition,
-      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
+      { auxiliary: userId, type: 'intervention' },
+      { $unset: { auxiliary: '' }, $set: { sector: sectorId } }
     );
     sinon.assert.calledOnceWithExactly(
       deleteManyRepetition,
@@ -1143,7 +1144,8 @@ describe('updateAbsencesOnContractEnd', () => {
     sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, payload, absences[0], credentials);
     sinon.assert.calledOnceWithExactly(
       updateMany,
-      { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } }
+      { _id: { $in: [absences[0]._id] } },
+      { $set: { endDate: maxEndDate } }
     );
   });
 });
@@ -2178,7 +2180,8 @@ describe('getPaidTransportStatsBySector', () => {
     sinon.assert.calledOnceWithExactly(
       getPaidTransportStatsBySector,
       [query.sector],
-      query.month, credentials.company._id
+      query.month,
+      credentials.company._id
     );
     sinon.assert.notCalled(getPaidTransportInfo);
   });

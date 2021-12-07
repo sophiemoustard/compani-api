@@ -46,7 +46,7 @@ describe('list', () => {
     const eventId = new ObjectID();
     const companyId = new ObjectID();
 
-    const query = { eventId };
+    const query = { eventId, action: [EVENT_CREATION], isCancelled: false };
     const credentials = { company: { _id: companyId } };
     paginateStub.returns([{ type: INTERVENTION }]);
 
@@ -54,7 +54,15 @@ describe('list', () => {
 
     expect(result).toEqual([{ type: INTERVENTION }]);
     sinon.assert.notCalled(getListQueryStub);
-    sinon.assert.calledOnceWithExactly(paginateStub, { 'event.eventId': eventId, company: companyId });
+    sinon.assert.calledOnceWithExactly(
+      paginateStub,
+      {
+        'event.eventId': eventId,
+        company: companyId,
+        action: { $in: [EVENT_CREATION] },
+        isCancelled: false,
+      }
+    );
   });
 });
 

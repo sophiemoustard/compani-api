@@ -18,6 +18,7 @@ const {
   CLIENT,
   VENDOR,
   AUXILIARY_WITHOUT_COMPANY,
+  TRAINER,
 } = require('../../helpers/constants');
 
 const { language } = translate;
@@ -35,19 +36,43 @@ exports.getUser = async (req) => {
   }
 };
 
+const isOnlyTrainer = role => get(role, 'vendor.name') === TRAINER &&
+  ![COACH, CLIENT_ADMIN].includes(get(role, 'client.name'));
+
+const isTrainerAccessingOtherUser = req => isOnlyTrainer(get(req, 'auth.credentials.role')) &&
+  !UtilsHelper.areObjectIdsEquals(get(req, 'auth.credentials._id'), req.params._id);
+
+const trainerUpdatesForbiddenKeys = (req, user) => {
+  if (!isTrainerAccessingOtherUser(req)) return false;
+
+  if (get(req, 'payload.local.email') && req.payload.local.email !== user.local.email) return true;
+
+  const payloadKeys = Object.entries(req.payload).reduce((acc, [key, value]) => {
+    if (typeof value === 'object' && Object.keys(value).length) {
+      return [...acc, ...Object.keys(value).map(k => `${key}.${k}`)];
+    }
+
+    return [...acc, key];
+  }, []);
+  const allowedKeys = ['company', 'identity.firstname', 'identity.lastname', 'contact.phone', 'local.email'];
+
+  return payloadKeys.some(elem => !allowedKeys.includes(elem));
+};
+
 exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
   const userFromDB = req.pre.user;
   const userCompany = userFromDB.company || get(req, 'payload.company');
   const isLoggedUserVendor = !!get(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
+  if (trainerUpdatesForbiddenKeys(req, userFromDB)) throw Boom.forbidden();
 
   checkCompany(credentials, userFromDB, req.payload, isLoggedUserVendor);
   if (get(req, 'payload.establishment')) await checkEstablishment(userCompany, req.payload);
   if (get(req, 'payload.role')) await checkRole(userFromDB, req.payload);
   if (get(req, 'payload.customer')) await checkCustomer(userCompany, req.payload);
   if (!isLoggedUserVendor && (!loggedUserClientRole || loggedUserClientRole === AUXILIARY_WITHOUT_COMPANY)) {
-    checkUpdateRestrictions(req.payload);
+    checkUpdateAndCreateRestrictions(req.payload);
   }
 
   return null;
@@ -106,7 +131,7 @@ const checkCustomer = async (userCompany, payload) => {
   if (!customerCount) throw Boom.forbidden();
 };
 
-const checkUpdateRestrictions = (payload) => {
+const checkUpdateAndCreateRestrictions = (payload) => {
   const allowedUpdateKeys = [
     'identity.firstname',
     'identity.lastname',
@@ -145,7 +170,7 @@ exports.authorizeUserDeletion = async (req) => {
   const companyId = get(credentials, 'company._id') || null;
 
   const clientRoleId = get(user, 'role.client');
-  if (!clientRoleId) throw Boom.forbidden();
+  if (!clientRoleId || isOnlyTrainer(credentials.role)) throw Boom.forbidden();
 
   const role = await Role.findById(clientRoleId).lean();
   if (role.name !== HELPER) throw Boom.forbidden();
@@ -157,12 +182,15 @@ exports.authorizeUserDeletion = async (req) => {
 
 exports.authorizeUserCreation = async (req) => {
   const { credentials } = req.auth;
-  if (!credentials) checkUpdateRestrictions(req.payload);
+  if (!credentials) checkUpdateAndCreateRestrictions(req.payload);
 
   if (credentials && req.payload.local.password) throw Boom.forbidden();
 
   const scope = get(credentials, 'scope');
   if (scope && !scope.includes('users:edit')) throw Boom.forbidden();
+  if (isOnlyTrainer(get(credentials, 'role')) && (!get(req, 'payload.company') || get(req, 'payload.role'))) {
+    throw Boom.forbidden();
+  }
 
   if (req.payload.customer) {
     const { customer } = req.payload;
@@ -172,8 +200,7 @@ exports.authorizeUserCreation = async (req) => {
 
   const vendorRole = get(credentials, 'role.vendor.name');
   const loggedUserCompany = get(credentials, 'company._id');
-  if (req.payload.company && !UtilsHelper.areObjectIdsEquals(req.payload.company, loggedUserCompany) &&
-    ![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(vendorRole)) {
+  if (req.payload.company && !UtilsHelper.areObjectIdsEquals(req.payload.company, loggedUserCompany) && !vendorRole) {
     throw Boom.forbidden();
   }
 
@@ -232,6 +259,20 @@ exports.checkExpoToken = async (req) => {
 
 exports.authorizeExpoTokenEdit = async (req) => {
   if (!UtilsHelper.areObjectIdsEquals(req.params._id, req.auth.credentials._id)) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeUploadEdition = async (req) => {
+  if (isTrainerAccessingOtherUser(req)) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeDriveFolderCreation = async (req) => {
+  const { credentials } = req.auth;
+
+  if (isOnlyTrainer(credentials.role)) throw Boom.forbidden();
 
   return null;
 };

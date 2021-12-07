@@ -10,22 +10,38 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
+const checkBillingItemsExist = async (billingItems, companyId) => {
+  const billingItemsCount = await BillingItem.countDocuments(
+    { _id: { $in: billingItems }, company: companyId, type: PER_INTERVENTION }
+  );
+  if (billingItemsCount !== billingItems.length) throw Boom.forbidden();
+};
+
+exports.authorizeServiceCreation = async (req) => {
+  const { auth, payload } = req;
+  const companyId = get(auth, 'credentials.company._id', null);
+
+  for (const version of payload.versions) {
+    if (get(version, 'billingItems')) await checkBillingItemsExist(version.billingItems, companyId);
+  }
+
+  return null;
+};
+
 const authorizeServiceEdit = async (req) => {
   const serviceId = req.params._id;
-  const companyId = req.auth.credentials.company._id;
+  const { auth, payload } = req;
+  const companyId = get(auth, 'credentials.company._id', null);
+
   const service = await Service.findOne({ _id: serviceId, company: companyId }, { isArchived: 1, versions: 1 }).lean();
   if (!service) throw Boom.notFound(translate[language].serviceNotFound);
   if (service.isArchived) throw Boom.forbidden();
 
-  if (get(req, 'payload.billingItems')) {
-    const billingItemsCount = await BillingItem
-      .countDocuments({ _id: { $in: req.payload.billingItems }, company: companyId, type: PER_INTERVENTION });
-    if (billingItemsCount !== req.payload.billingItems.length) throw Boom.forbidden();
-  }
+  if (get(payload, 'billingItems')) await checkBillingItemsExist(payload.billingItems, companyId);
 
-  if (get(req, 'payload.startDate')) {
+  if (get(payload, 'startDate')) {
     const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
-    if (DatesHelper.isSameOrBefore(req.payload.startDate, lastVersion.startDate)) throw Boom.forbidden();
+    if (DatesHelper.isSameOrBefore(payload.startDate, lastVersion.startDate)) throw Boom.forbidden();
   }
 };
 

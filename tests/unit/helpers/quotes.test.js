@@ -132,7 +132,8 @@ describe('createQuote', () => {
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { prefix: 'pre', company: credentials.company._id }, { $set: { seq: 3 } }
+      { prefix: 'pre', company: credentials.company._id },
+      { $set: { seq: 3 } }
     );
   });
 });

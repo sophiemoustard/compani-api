@@ -1188,11 +1188,11 @@ describe('formatBillingItems', () => {
       expect.objectContaining({
         billingItem: { _id: new ObjectID('d00000000000000000000002'), name: 'EPI' },
         discount: 0,
-        unitExclTaxes: 4.545454545454545,
+        unitExclTaxes: 4.545454545454546,
         unitInclTaxes: 5,
         vat: 10,
         eventsList: [{ event: eventId1 }, { event: eventId2 }],
-        exclTaxes: 9.09090909090909,
+        exclTaxes: 9.090909090909092,
         inclTaxes: 10,
         startDate: '2019-12-31T07:00:00',
         endDate: '2019-12-25T07:00:00',

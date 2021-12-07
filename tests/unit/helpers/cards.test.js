@@ -80,7 +80,8 @@ describe('addCardAnswer', () => {
 
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { _id: card._id }, { $push: { qcAnswers: { text: '', correct: false } } }
+      { _id: card._id },
+      { $push: { qcAnswers: { text: '', correct: false } } }
     );
   });
 });

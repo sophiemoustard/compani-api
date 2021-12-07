@@ -642,6 +642,26 @@ describe('getPaidTransportInfo', () => {
     expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 70 });
   });
 
+  it('should return 0 if break duration is selected but is negative', async () => {
+    const event = {
+      hasFixedService: false,
+      startDate: '2019-01-18T16:10:00',
+      type: 'intervention',
+      auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
+      address: { fullAddress: 'jébobolà' },
+    };
+    const prevEvent = {
+      hasFixedService: false,
+      type: 'intervention',
+      endDate: '2019-01-18T17:00:00',
+      address: { fullAddress: 'tamalou' },
+    };
+    getTransportInfo.resolves({ distance: 10, duration: 60 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 0 });
+  });
+
   it('should return transport duration if transport duration is shorter than break duration', async () => {
     const event = {
       startDate: '2019-01-18T18:00:00',
