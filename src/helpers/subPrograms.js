@@ -4,6 +4,7 @@ const Step = require('../models/Step');
 const Activity = require('../models/Activity');
 const Course = require('../models/Course');
 const { INTER_B2C, STRICTLY_E_LEARNING, DRAFT } = require('./constants');
+const NotificationHelper = require('./notifications');
 
 exports.addSubProgram = async (programId, payload) => {
   const subProgram = await SubProgram.create(payload);
@@ -19,12 +20,13 @@ exports.updateSubProgram = async (subProgramId, payload) => {
     .lean({ virtuals: true });
 
   if (subProgram.isStrictlyELearning) {
-    await Course.create({
+    const course = await Course.create({
       subProgram: subProgramId,
       type: INTER_B2C,
       format: STRICTLY_E_LEARNING,
       accessRules: payload.accessCompany ? [payload.accessCompany] : [],
     });
+    if (!payload.accessCompany) NotificationHelper.sendNewElearningCourseNotification(course._id);
   }
 
   await Step.updateMany({ _id: { $in: subProgram.steps.map(step => step._id) } }, { status: payload.status });

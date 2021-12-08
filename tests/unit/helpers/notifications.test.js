@@ -1,9 +1,10 @@
 const axios = require('axios');
 const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
-const { BLENDED_COURSE_REGISTRATION } = require('../../../src/helpers/constants');
+const { BLENDED_COURSE_REGISTRATION, NEW_ELEARNING_COURSE } = require('../../../src/helpers/constants');
 const NotificationHelper = require('../../../src/helpers/notifications');
 const Course = require('../../../src/models/Course');
+const User = require('../../../src/models/User');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('sendNotificationToAPI', () => {
@@ -140,6 +141,117 @@ describe('sendBlendedCourseRegistrationNotification', () => {
     await NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId);
 
     sinon.assert.notCalled(findOne);
+    sinon.assert.notCalled(sendNotificationToUser);
+  });
+});
+
+describe('sendNewElearningCourseNotification', () => {
+  let sendNotificationToUser;
+  let courseFindOne;
+  let userFind;
+
+  beforeEach(() => {
+    sendNotificationToUser = sinon.stub(NotificationHelper, 'sendNotificationToUser');
+    courseFindOne = sinon.stub(Course, 'findOne');
+    userFind = sinon.stub(User, 'find');
+  });
+
+  afterEach(() => {
+    sendNotificationToUser.restore();
+    courseFindOne.restore();
+    userFind.restore();
+  });
+
+  it('should format payload and call sendNotificationToUser', async () => {
+    const trainees = [{
+      formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
+    }];
+    const courseId = new ObjectID();
+    const course = {
+      _id: courseId,
+      subProgram: { program: { name: 'La communication avec Patrick' } },
+      misc: 'skusku',
+      slots: [{ startDate: '2020-01-02' }],
+    };
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
+    userFind.returns(SinonMongoose.stubChainedQueries([trainees], ['lean']));
+
+    await NotificationHelper.sendNewElearningCourseNotification(courseId);
+
+    SinonMongoose.calledWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      userFind,
+      [
+        { query: 'find', args: [{ formationExpoTokenList: { $exists: true } }] },
+        { query: 'lean', args: [] },
+      ]
+    );
+    sinon.assert.calledWithExactly(
+      sendNotificationToUser.getCall(0),
+      {
+        title: 'Une nouvelle formation est disponible',
+        body: 'Rendez-vous dans l\'onglet Explorer pour découvrir la nouvelle formation '
+        + 'La communication avec Patrick - skusku.',
+        data: { _id: courseId, type: NEW_ELEARNING_COURSE },
+        expoToken: 'ExponentPushToken[jeSuisUnTokenExpo]',
+      }
+    );
+    sinon.assert.calledWithExactly(
+      sendNotificationToUser.getCall(1),
+      {
+        title: 'Une nouvelle formation est disponible',
+        body: 'Rendez-vous dans l\'onglet Explorer pour découvrir la nouvelle formation '
+        + 'La communication avec Patrick - skusku.',
+        data: { _id: courseId, type: NEW_ELEARNING_COURSE },
+        expoToken: 'ExponentPushToken[jeSuisUnAutreTokenExpo]',
+      }
+    );
+  });
+
+  it('should do nothing if trainee has no formationExpoTokenList', async () => {
+    const trainees = [{ formationExpoTokenList: [] }];
+    const courseId = new ObjectID();
+    const course = {
+      _id: courseId,
+      subProgram: { program: { name: 'La communication avec Patrick' } },
+      misc: 'skusku',
+      slots: [{ startDate: '2020-01-02' }],
+    };
+
+    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
+    userFind.returns(SinonMongoose.stubChainedQueries([trainees], ['lean']));
+
+    await NotificationHelper.sendNewElearningCourseNotification(courseId);
+
+    SinonMongoose.calledWithExactly(
+      courseFindOne,
+      [
+        { query: 'findOne', args: [{ _id: courseId }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      userFind,
+      [
+        { query: 'find', args: [{ formationExpoTokenList: { $exists: true } }] },
+        { query: 'lean', args: [] },
+      ]
+    );
     sinon.assert.notCalled(sendNotificationToUser);
   });
 });

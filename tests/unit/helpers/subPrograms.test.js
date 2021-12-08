@@ -7,6 +7,7 @@ const Step = require('../../../src/models/Step');
 const Activity = require('../../../src/models/Activity');
 const Course = require('../../../src/models/Course');
 const SubProgramHelper = require('../../../src/helpers/subPrograms');
+const NotificationHelper = require('../../../src/helpers/notifications');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('addSubProgram', () => {
@@ -43,6 +44,7 @@ describe('updatedSubProgram', () => {
   let stepUpdateManyStub;
   let activityUpdateManyStub;
   let courseCreateStub;
+  let sendNewElearningCourseNotification;
 
   beforeEach(() => {
     updateOne = sinon.stub(SubProgram, 'updateOne');
@@ -50,6 +52,7 @@ describe('updatedSubProgram', () => {
     stepUpdateManyStub = sinon.stub(Step, 'updateMany');
     activityUpdateManyStub = sinon.stub(Activity, 'updateMany');
     courseCreateStub = sinon.stub(Course, 'create');
+    sendNewElearningCourseNotification = sinon.stub(NotificationHelper, 'sendNewElearningCourseNotification');
   });
 
   afterEach(() => {
@@ -58,6 +61,7 @@ describe('updatedSubProgram', () => {
     stepUpdateManyStub.restore();
     activityUpdateManyStub.restore();
     courseCreateStub.restore();
+    sendNewElearningCourseNotification.restore();
   });
 
   it('should update a subProgram name', async () => {
@@ -70,6 +74,7 @@ describe('updatedSubProgram', () => {
     sinon.assert.notCalled(stepUpdateManyStub);
     sinon.assert.notCalled(activityUpdateManyStub);
     sinon.assert.notCalled(courseCreateStub);
+    sinon.assert.notCalled(sendNewElearningCourseNotification);
   });
 
   describe('update status', () => {
@@ -109,6 +114,7 @@ describe('updatedSubProgram', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]);
       sinon.assert.notCalled(courseCreateStub);
+      sinon.assert.notCalled(sendNewElearningCourseNotification);
     });
 
     it('if subProgram is strictly e-learning, should also create new course', async () => {
@@ -129,8 +135,17 @@ describe('updatedSubProgram', () => {
           { _id: subProgram.steps[1], activities: [], type: 'e_learning' },
         ],
       };
+      const course = {
+        _id: new ObjectID(),
+        subProgram: subProgram._id,
+        type: 'inter_b2c',
+        format: 'strictly_e_learning',
+        accessRules: [],
+      };
+
       findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedSubProgram]));
       stepUpdateManyStub.returns({ activities });
+      courseCreateStub.returns(course);
 
       await SubProgramHelper.updateSubProgram(subProgram._id, payload);
 
@@ -149,6 +164,7 @@ describe('updatedSubProgram', () => {
         courseCreateStub,
         { subProgram: subProgram._id, type: 'inter_b2c', format: 'strictly_e_learning', accessRules: [] }
       );
+      sinon.assert.calledWithExactly(sendNewElearningCourseNotification, course._id);
     });
 
     it('should create course with restricted access if subProgram is strictly e-learning and payload has accessCompany',
@@ -170,8 +186,17 @@ describe('updatedSubProgram', () => {
             { _id: subProgram.steps[1], activities: [], type: 'e_learning' },
           ],
         };
+        const course = {
+          _id: new ObjectID(),
+          subProgram: subProgram._id,
+          type: 'inter_b2c',
+          format: 'strictly_e_learning',
+          accessRules: [payload.accessCompany],
+        };
+
         findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedSubProgram]));
         stepUpdateManyStub.returns({ activities });
+        courseCreateStub.returns(course);
 
         await SubProgramHelper.updateSubProgram(subProgram._id, payload);
 
@@ -199,6 +224,7 @@ describe('updatedSubProgram', () => {
             accessRules: [payload.accessCompany],
           }
         );
+        sinon.assert.notCalled(sendNewElearningCourseNotification);
       });
   });
 });
