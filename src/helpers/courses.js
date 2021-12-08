@@ -150,6 +150,7 @@ exports.getCourse = async (course, loggedUser) => {
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .populate({ path: 'accessRules', select: 'name' })
     .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
+    .populate({ path: 'contact', select: 'identity.firstname identity.lastname' })
     .lean();
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -316,8 +317,11 @@ exports.getTraineeCourse = async (courseId, credentials) => {
   return exports.formatCourseWithProgress(course);
 };
 
-exports.updateCourse = async (courseId, payload) =>
-  Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
+exports.updateCourse = async (courseId, payload) => {
+  const params = payload.contact === '' ? { $unset: { contact: '' } } : { $set: flat(payload) };
+
+  return Course.findOneAndUpdate({ _id: courseId }, params).lean();
+};
 
 exports.deleteCourse = async courseId => Promise.all([
   Course.deleteOne({ _id: courseId }),

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { INTRA, INTER_B2B, INTER_B2C, STRICTLY_E_LEARNING, BLENDED } = require('../helpers/constants');
-const { PHONE_VALIDATION } = require('./utils');
 
 const COURSE_TYPES = [INTRA, INTER_B2B, INTER_B2C];
 const COURSE_FORMATS = [STRICTLY_E_LEARNING, BLENDED];
@@ -14,11 +13,7 @@ const CourseSchema = mongoose.Schema({
   format: { type: String, enum: COURSE_FORMATS, default: BLENDED },
   trainer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   trainees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  contact: {
-    name: { type: String, default: '' },
-    email: { type: String },
-    phone: { type: String, validate: PHONE_VALIDATION },
-  },
+  contact: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   accessRules: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Company' }],
   salesRepresentative: {
     type: mongoose.Schema.Types.ObjectId,
