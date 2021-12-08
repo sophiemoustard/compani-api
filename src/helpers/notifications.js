@@ -55,7 +55,7 @@ exports.sendNewElearningCourseNotification = async (courseId) => {
         this.sendNotificationToUser({
           title: 'Une nouvelle formation est disponible',
           body: `Rendez-vous dans l'onglet Explorer pour découvrir la nouvelle formation ${courseName}.`,
-          data: { _id: courseId, type: NEW_ELEARNING_COURSE },
+          data: { _id: course.subProgram.program._id, type: NEW_ELEARNING_COURSE },
           expoToken,
         })
       );

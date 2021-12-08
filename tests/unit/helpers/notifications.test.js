@@ -169,7 +169,7 @@ describe('sendNewElearningCourseNotification', () => {
     const courseId = new ObjectID();
     const course = {
       _id: courseId,
-      subProgram: { program: { name: 'La communication avec Patrick' } },
+      subProgram: { program: { _id: new ObjectID(), name: 'La communication avec Patrick' } },
       misc: 'skusku',
       slots: [{ startDate: '2020-01-02' }],
     };
@@ -203,7 +203,7 @@ describe('sendNewElearningCourseNotification', () => {
         title: 'Une nouvelle formation est disponible',
         body: 'Rendez-vous dans l\'onglet Explorer pour découvrir la nouvelle formation '
         + 'La communication avec Patrick - skusku.',
-        data: { _id: courseId, type: NEW_ELEARNING_COURSE },
+        data: { _id: course.subProgram.program._id, type: NEW_ELEARNING_COURSE },
         expoToken: 'ExponentPushToken[jeSuisUnTokenExpo]',
       }
     );
@@ -213,7 +213,7 @@ describe('sendNewElearningCourseNotification', () => {
         title: 'Une nouvelle formation est disponible',
         body: 'Rendez-vous dans l\'onglet Explorer pour découvrir la nouvelle formation '
         + 'La communication avec Patrick - skusku.',
-        data: { _id: courseId, type: NEW_ELEARNING_COURSE },
+        data: { _id: course.subProgram.program._id, type: NEW_ELEARNING_COURSE },
         expoToken: 'ExponentPushToken[jeSuisUnAutreTokenExpo]',
       }
     );

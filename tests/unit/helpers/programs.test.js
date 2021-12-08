@@ -117,6 +117,59 @@ describe('listELearning', () => {
       ]
     );
   });
+
+  it('should return a specific program with elearning subprogram', async () => {
+    const programId = new ObjectID();
+    const programsList = [{ _id: programId, name: 'name' }];
+    const subPrograms = [new ObjectID()];
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+
+    courseFind.returns(SinonMongoose.stubChainedQueries([[{ subProgram: subPrograms[0] }]], ['lean']));
+    programFind.returns(SinonMongoose.stubChainedQueries([programsList]));
+
+    const result = await ProgramHelper.listELearning(credentials, { _id: programId });
+    expect(result).toMatchObject([{ _id: programId, name: 'name' }]);
+
+    SinonMongoose.calledWithExactly(
+      courseFind,
+      [
+        {
+          query: 'find',
+          args: [{ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledWithExactly(
+      programFind,
+      [
+        { query: 'find', args: [{ _id: programId, subPrograms: { $in: subPrograms } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'subPrograms',
+            select: 'name',
+            match: { _id: { $in: subPrograms } },
+            populate: [
+              { path: 'courses', select: '_id trainees', match: { format: 'strictly_e_learning' } },
+              {
+                path: 'steps',
+                select: 'activities',
+                populate: {
+                  path: 'activities',
+                  select: 'activityHistories',
+                  populate: { path: 'activityHistories', match: { user: credentials._id } },
+                },
+              },
+            ],
+          }],
+        },
+        { query: 'populate', args: ['categories'] },
+        { query: 'lean' },
+      ]
+    );
+  });
 });
 
 describe('getProgram', () => {
