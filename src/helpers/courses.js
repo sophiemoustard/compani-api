@@ -544,7 +544,8 @@ exports.formatHoursForConvocation = slots => slots.reduce((acc, slot) => {
 
 exports.formatCourseForConvocationPdf = (course) => {
   const trainerIdentity = UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL');
-  const contactPhoneNumber = UtilsHelper.formatPhoneNumber(get(course, 'contact.phone'));
+  const contactIdentity = UtilsHelper.formatIdentity(get(course, 'contact.identity'), 'FL');
+  const contactPhoneNumber = UtilsHelper.formatPhoneNumber(get(course, 'contact.contact.phone'));
   const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
 
   const slots = slotsGroupedByDate.map(groupedSlots => ({
@@ -554,10 +555,16 @@ exports.formatCourseForConvocationPdf = (course) => {
     date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
   }));
 
+  const contact = {
+    formattedIdentity: contactIdentity,
+    email: get(course, 'contact.local.email'),
+    formattedPhone: contactPhoneNumber,
+  };
+
   return {
     ...course,
     trainer: { ...course.trainer, formattedIdentity: trainerIdentity },
-    contact: { ...course.contact, formattedPhone: contactPhoneNumber },
+    contact,
     slots,
   };
 };
@@ -571,6 +578,7 @@ exports.generateConvocationPdf = async (courseId) => {
     })
     .populate('slots')
     .populate({ path: 'slotsToPlan', select: '_id' })
+    .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
     .lean();
 
