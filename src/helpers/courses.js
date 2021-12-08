@@ -150,7 +150,7 @@ exports.getCourse = async (course, loggedUser) => {
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .populate({ path: 'accessRules', select: 'name' })
     .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
-    .populate({ path: 'contact', select: 'identity.firstname identity.lastname' })
+    .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' })
     .lean();
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
