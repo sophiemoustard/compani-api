@@ -19,6 +19,11 @@ exports.isAbsent = async (customer, date) => !!await CustomerAbsence.countDocume
   endDate: { $gte: date },
 });
 
+exports.updateCustomerAbsence = async (customerAbsence, payload, companyId) => CustomerAbsence.updateOne(
+  { _id: customerAbsence, company: companyId },
+  { ...payload }
+);
+
 exports.updateCustomerAbsencesOnCustomerStop = async (customer, stoppedDate) => {
   await CustomerAbsence.deleteMany({ customer, startDate: { $gte: stoppedDate } });
 
