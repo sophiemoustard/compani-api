@@ -207,8 +207,7 @@ describe('sendNewElearningCourseNotification', () => {
       sendNotificationToUser.getCall(0),
       {
         title: 'Une nouvelle formation est disponible',
-        body: 'Rendez-vous dans l\'onglet Explorer pour découvrir la nouvelle formation '
-        + 'La communication avec Patrick - skusku.',
+        body: 'Découvrez notre nouvelle formation : La communication avec Patrick - skusku.',
         data: { _id: course.subProgram.program._id, type: NEW_ELEARNING_COURSE },
         expoToken: 'ExponentPushToken[jeSuisUnTokenExpo]',
       }
@@ -217,16 +216,14 @@ describe('sendNewElearningCourseNotification', () => {
       sendNotificationToUser.getCall(1),
       {
         title: 'Une nouvelle formation est disponible',
-        body: 'Rendez-vous dans l\'onglet Explorer pour découvrir la nouvelle formation '
-        + 'La communication avec Patrick - skusku.',
+        body: 'Découvrez notre nouvelle formation : La communication avec Patrick - skusku.',
         data: { _id: course.subProgram.program._id, type: NEW_ELEARNING_COURSE },
         expoToken: 'ExponentPushToken[jeSuisUnAutreTokenExpo]',
       }
     );
   });
 
-  it('should do nothing if trainee has no formationExpoTokenList', async () => {
-    const trainees = [{ formationExpoTokenList: [] }];
+  it('should do nothing if no trainee', async () => {
     const courseId = new ObjectID();
     const course = {
       _id: courseId,
@@ -236,7 +233,7 @@ describe('sendNewElearningCourseNotification', () => {
     };
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
-    userFind.returns(SinonMongoose.stubChainedQueries([trainees], ['lean']));
+    userFind.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     await NotificationHelper.sendNewElearningCourseNotification(courseId);
 
