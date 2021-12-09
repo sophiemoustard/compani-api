@@ -42,6 +42,9 @@ exports.plugin = {
       path: '/e-learning',
       options: {
         auth: { mode: 'required' },
+        validate: {
+          query: Joi.object({ _id: Joi.objectId() }),
+        },
       },
       handler: listELearning,
     });
