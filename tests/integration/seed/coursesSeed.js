@@ -157,7 +157,7 @@ const coursesList = [
   { // 1
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { _id: contactWithoutPhone._id },
+    contact: contactWithoutPhone._id,
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
@@ -168,7 +168,7 @@ const coursesList = [
   { // 2
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { _id: contact._id },
+    contact: contact._id,
     company: authCompany._id,
     misc: 'second session',
     trainer: trainer._id,
@@ -223,7 +223,7 @@ const coursesList = [
   { // 7 course with slots to plan
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { _id: contact._id },
+    contact: contact._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'blended',
@@ -234,7 +234,7 @@ const coursesList = [
   { // 8 course with access rules
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { _id: contact._id },
+    contact: contact._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
