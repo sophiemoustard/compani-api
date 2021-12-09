@@ -181,7 +181,7 @@ describe('getEventSurcharges', () => {
     getCustomSurchargeStub.restore();
   });
 
-  it('should return no surcharges if the surcharge is empty', () => {
+  it('should return the matching surcharge, even if surcharge values are all 0', () => {
     const event = {
       startDate: '2019-05-01T16:00:00.000',
       endDate: '2019-05-01T23:00:00.000',
@@ -190,7 +190,10 @@ describe('getEventSurcharges', () => {
     getCustomSurchargeStub.returnsArg(4);
     getCustomSurchargeStub.returns();
 
-    expect(SurchargesHelper.getEventSurcharges(event, emptySurcharge)).toEqual([]);
+    expect(SurchargesHelper.getEventSurcharges(event, emptySurcharge)).toEqual([{
+      percentage: 0,
+      name: '1er Mai',
+    }]);
   });
 
   it('should return no surcharges if none match', () => {
@@ -244,15 +247,27 @@ describe('getEventSurcharges', () => {
     });
   });
 
-  it('should return holiday and not sunday surcharge', () => {
-    const event = { startDate: '2022-07-14T07:00:00', endDate: '2022-07-14T09:00:00' };
-    const surcharge = { sunday: 10, publicHoliday: 20 };
+  it('should return the surchage with the highest level', () => {
+    const event = { startDate: '2021-12-25T07:00:00', endDate: '2021-12-25T09:00:00' };
+    const surcharge = { saturday: 10, twentyFifthOfDecember: 30 };
 
     getCustomSurchargeStub.returnsArg(4);
 
     expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
-      percentage: 20,
-      name: 'Jour férié',
+      percentage: 30,
+      name: '25 Décembre',
+    }]);
+  });
+
+  it('should return the surchage with the highest level, even if percentage is 0', () => {
+    const event = { startDate: '2021-12-25T07:00:00', endDate: '2021-12-25T09:00:00' };
+    const surcharge = { saturday: 10, twentyFifthOfDecember: 0 };
+
+    getCustomSurchargeStub.returnsArg(4);
+
+    expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
+      percentage: 0,
+      name: '25 Décembre',
     }]);
   });
 
