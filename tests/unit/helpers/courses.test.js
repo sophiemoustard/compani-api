@@ -1131,7 +1131,7 @@ describe('updateCourse', () => {
     courseFindOneAndUpdate.restore();
   });
 
-  it('should update a field an intra course ', async () => {
+  it('should update a field an intra course', async () => {
     const courseId = new ObjectID();
     const payload = { misc: 'groupe 4' };
 
@@ -1987,7 +1987,7 @@ describe('formatHoursForConvocation', () => {
   });
 });
 
-describe('formatCourseForConvocationPdf #tag', () => {
+describe('formatCourseForConvocationPdf', () => {
   let formatIdentity;
   let formatHoursForConvocation;
   let groupSlotsByDate;
