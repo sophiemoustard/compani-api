@@ -15,7 +15,10 @@ exports.list = async () => Program.find({})
 
 exports.listELearning = async (credentials, query) => {
   const eLearningCourse = await Course
-    .find({ format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: get(credentials, 'company._id') }] })
+    .find(
+      { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: get(credentials, 'company._id') }] },
+      'subProgram'
+    )
     .lean();
   const subPrograms = eLearningCourse.map(course => course.subProgram);
 

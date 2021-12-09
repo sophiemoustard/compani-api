@@ -26,7 +26,7 @@ exports.updateSubProgram = async (subProgramId, payload) => {
       format: STRICTLY_E_LEARNING,
       accessRules: payload.accessCompany ? [payload.accessCompany] : [],
     });
-    if (!payload.accessCompany) NotificationHelper.sendNewElearningCourseNotification(course._id);
+    if (!payload.accessCompany) await NotificationHelper.sendNewElearningCourseNotification(course._id);
   }
 
   await Step.updateMany({ _id: { $in: subProgram.steps.map(step => step._id) } }, { status: payload.status });

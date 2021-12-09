@@ -83,7 +83,10 @@ describe('listELearning', () => {
       [
         {
           query: 'find',
-          args: [{ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] }],
+          args: [
+            { format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] },
+            'subProgram',
+          ],
         },
         { query: 'lean' },
       ]
@@ -136,7 +139,10 @@ describe('listELearning', () => {
       [
         {
           query: 'find',
-          args: [{ format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] }],
+          args: [
+            { format: 'strictly_e_learning', $or: [{ accessRules: [] }, { accessRules: companyId }] },
+            'subProgram',
+          ],
         },
         { query: 'lean' },
       ]

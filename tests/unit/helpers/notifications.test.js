@@ -109,7 +109,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
         },
-        { query: 'lean', args: [{ virtuals: true }] },
+        { query: 'lean', args: [] },
       ]
     );
     sinon.assert.calledWithExactly(
@@ -187,13 +187,19 @@ describe('sendNewElearningCourseNotification', () => {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
         },
-        { query: 'lean', args: [{ virtuals: true }] },
+        { query: 'lean', args: [] },
       ]
     );
     SinonMongoose.calledWithExactly(
       userFind,
       [
-        { query: 'find', args: [{ formationExpoTokenList: { $exists: true } }] },
+        {
+          query: 'find',
+          args: [
+            { formationExpoTokenList: { $exists: true }, $where: 'this.formationExpoTokenList.length > 0' },
+            'formationExpoTokenList',
+          ],
+        },
         { query: 'lean', args: [] },
       ]
     );
@@ -242,13 +248,19 @@ describe('sendNewElearningCourseNotification', () => {
           query: 'populate',
           args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
         },
-        { query: 'lean', args: [{ virtuals: true }] },
+        { query: 'lean', args: [] },
       ]
     );
     SinonMongoose.calledWithExactly(
       userFind,
       [
-        { query: 'find', args: [{ formationExpoTokenList: { $exists: true } }] },
+        {
+          query: 'find',
+          args: [
+            { formationExpoTokenList: { $exists: true }, $where: 'this.formationExpoTokenList.length > 0' },
+            'formationExpoTokenList',
+          ],
+        },
         { query: 'lean', args: [] },
       ]
     );

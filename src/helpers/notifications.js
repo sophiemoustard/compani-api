@@ -20,7 +20,7 @@ exports.sendBlendedCourseRegistrationNotification = async (trainee, courseId) =>
 
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
-    .lean({ virtuals: true });
+    .lean();
 
   const courseName = getCourseName(course);
 
@@ -42,14 +42,18 @@ exports.sendBlendedCourseRegistrationNotification = async (trainee, courseId) =>
 exports.sendNewElearningCourseNotification = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
-    .lean({ virtuals: true });
-  const trainees = await User.find({ formationExpoTokenList: { $exists: true } }).lean();
+    .lean();
+  const trainees = await User
+    .find(
+      { formationExpoTokenList: { $exists: true }, $where: 'this.formationExpoTokenList.length > 0' },
+      'formationExpoTokenList'
+    )
+    .lean();
 
   const courseName = getCourseName(course);
 
   const notifications = [];
   for (const trainee of trainees) {
-    if (!get(trainee, 'formationExpoTokenList.length')) continue;
     for (const expoToken of trainee.formationExpoTokenList) {
       notifications.push(
         this.sendNotificationToUser({
