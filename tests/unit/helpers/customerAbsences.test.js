@@ -6,6 +6,7 @@ const SinonMongoose = require('../sinonMongoose');
 const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const UtilsHelper = require('../../../src/helpers/utils');
+const EventsHelper = require('../../../src/helpers/events');
 
 describe('createAbsence', () => {
   let create;
@@ -168,6 +169,51 @@ describe('isAbsent', () => {
     const result = await CustomerAbsencesHelper.isAbsent(customer, date);
 
     expect(result).toEqual(false);
+  });
+});
+
+describe('updateCustomerAbsence #tag', () => {
+  let findOne;
+  let deleteCustomerEvents;
+  let updateOne;
+  beforeEach(() => {
+    findOne = sinon.stub(CustomerAbsence, 'findOne');
+    deleteCustomerEvents = sinon.stub(EventsHelper, 'deleteCustomerEvents');
+    updateOne = sinon.stub(CustomerAbsence, 'updateOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+    deleteCustomerEvents.restore();
+    updateOne.restore();
+  });
+
+  it('should update absence and remove events on this period ', async () => {
+    const customerAbsenceId = new ObjectID();
+    const customer = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const startDate = new Date('2021-11-28');
+    const endDate = new Date('2021-12-10');
+    const customerAbsence = {
+      _id: customerAbsenceId,
+      customer,
+      startDate: new Date('2021-11-24'),
+      endDate: new Date('2021-12-06'),
+      absenceType: 'hospitalization',
+    };
+    const payload = { absenceType: 'hospitalization', startDate, endDate };
+
+    findOne.returns(customerAbsence);
+
+    await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, companyId);
+
+    sinon.assert.calledOnceWithExactly(findOne, { _id: customerAbsenceId, company: companyId });
+    sinon.assert.calledOnceWithExactly(deleteCustomerEvents, customer, startDate, endDate, '', credentials);
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: customerAbsenceId, company: companyId },
+      { absenceType: 'hospitalization', startDate, endDate }
+    );
   });
 });
 
