@@ -61,6 +61,33 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
+const contact = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Roberto', lastname: 'Benigni' },
+  local: { email: 'contact@trainer.io' },
+  contact: { phone: '0123456789' },
+  role: { vendor: trainerRoleId },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
+const contactWithoutPhone = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Cathy', lastname: 'Palenne' },
+  local: { email: 'contact_withoutphone@trainer.io' },
+  role: { vendor: trainerRoleId },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
+const userList = [
+  traineeFromOtherCompany,
+  traineeFromAuthCompanyWithFormationExpoToken,
+  traineeWithoutCompany,
+  contact,
+  contactWithoutPhone,
+];
+
 const userCompanies = [
   { _id: new ObjectID(), user: traineeFromOtherCompany._id, company: otherCompany._id },
   { _id: new ObjectID(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
@@ -130,7 +157,7 @@ const coursesList = [
   { // 1
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { name: 'Johnny' },
+    contact: { _id: contactWithoutPhone._id },
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectID(),
@@ -141,7 +168,7 @@ const coursesList = [
   { // 2
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { name: 'Slim Shady', phone: '0987654433' },
+    contact: { _id: contact._id },
     company: authCompany._id,
     misc: 'second session',
     trainer: trainer._id,
@@ -196,7 +223,7 @@ const coursesList = [
   { // 7 course with slots to plan
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { name: 'Alain Bashung', phone: '0191166745' },
+    contact: { _id: contact._id },
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'blended',
@@ -207,7 +234,7 @@ const coursesList = [
   { // 8 course with access rules
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { name: 'Edith Piaf', phone: '0987654321' },
+    contact: { _id: contact._id },
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
@@ -218,7 +245,6 @@ const coursesList = [
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
     _id: new ObjectID(),
     subProgram: subProgramsList[0]._id,
-    contact: { phone: '0127274124' },
     trainer: trainer._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
@@ -234,7 +260,7 @@ const coursesList = [
     misc: 'inter_b2b',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
-    contact: { name: 'Romain Delendarroze', email: 'romainlebg77@gmail.com', phone: '0123456789' },
+    contact: contact._id,
     salesRepresentative: vendorAdmin._id,
   },
   { // 11 course without authCompany in access rules (11ème position)
@@ -379,7 +405,7 @@ const populateDB = async () => {
     QuestionnaireHistory.create(questionnaireHistory),
     Step.create(stepList),
     SubProgram.create(subProgramsList),
-    User.create([traineeFromOtherCompany, traineeWithoutCompany, traineeFromAuthCompanyWithFormationExpoToken]),
+    User.create(userList),
     UserCompany.create(userCompanies),
   ]);
 };

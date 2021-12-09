@@ -331,7 +331,7 @@ exports.authorizeSmsSending = async (req) => {
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
   if (noSlotToCome) throw Boom.forbidden();
   if (noReceiver) throw Boom.forbidden();
-  if (!get(course, 'contact.identity.lastname')) throw Boom.forbidden();
+  if (!get(course, 'contact._id')) throw Boom.forbidden();
   if (!get(course, 'contact.contact.phone')) throw Boom.forbidden();
   if (!course.trainer) throw Boom.forbidden();
 
