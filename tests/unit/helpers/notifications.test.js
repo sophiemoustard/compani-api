@@ -196,7 +196,7 @@ describe('sendNewElearningCourseNotification', () => {
         {
           query: 'find',
           args: [
-            { formationExpoTokenList: { $exists: true }, $where: 'this.formationExpoTokenList.length > 0' },
+            { formationExpoTokenList: { $exists: true, $not: { $size: 0 } } },
             'formationExpoTokenList',
           ],
         },
@@ -254,7 +254,7 @@ describe('sendNewElearningCourseNotification', () => {
         {
           query: 'find',
           args: [
-            { formationExpoTokenList: { $exists: true }, $where: 'this.formationExpoTokenList.length > 0' },
+            { formationExpoTokenList: { $exists: true, $not: { $size: 0 } } },
             'formationExpoTokenList',
           ],
         },
