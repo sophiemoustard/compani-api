@@ -387,7 +387,7 @@ describe('isEditionAllowed', () => {
       await EventsValidationHelper.isEditionAllowed(event, credentials);
     } catch (e) {
       expect(e.output.statusCode).toBe(409);
-      expect(e.output.payload.message).toBe('Le bénéficiaire est absent à cette date.');
+      expect(e.output.payload.message).toBe('La personne est absente à cette date.');
     } finally {
       sinon.assert.calledOnceWithExactly(isAbsent, event.customer, event.startDate);
       sinon.assert.notCalled(isUserContractValidOnEventDates);
