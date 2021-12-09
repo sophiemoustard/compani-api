@@ -1,6 +1,7 @@
 const get = require('lodash/get');
 const UtilsHelper = require('./utils');
 const CustomerAbsence = require('../models/CustomerAbsence');
+const EventsHelper = require('./events');
 
 exports.create = async (payload, companyId) => CustomerAbsence.create({ ...payload, company: companyId });
 
@@ -19,10 +20,25 @@ exports.isAbsent = async (customer, date) => !!await CustomerAbsence.countDocume
   endDate: { $gte: date },
 });
 
-exports.updateCustomerAbsence = async (customerAbsence, payload, companyId) => CustomerAbsence.updateOne(
-  { _id: customerAbsence, company: companyId },
-  { ...payload }
-);
+exports.updateCustomerAbsence = async (customerAbsence, payload, companyId) => {
+  const credentials = { company: { _id: companyId } };
+  const customerAbsenceFind = await CustomerAbsence.findOne({ _id: customerAbsence, company: companyId });
+  const deleteEventsQuery = {
+    customer: customerAbsenceFind.customer,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    absenceType: '',
+  };
+
+  await EventsHelper.deleteCustomerEvents(
+    deleteEventsQuery.customer,
+    deleteEventsQuery.startDate,
+    deleteEventsQuery.endDate,
+    deleteEventsQuery.absenceType,
+    credentials
+  );
+  await CustomerAbsence.updateOne({ _id: customerAbsence, company: companyId }, { ...payload });
+};
 
 exports.updateCustomerAbsencesOnCustomerStop = async (customer, stoppedDate) => {
   await CustomerAbsence.deleteMany({ customer, startDate: { $gte: stoppedDate } });

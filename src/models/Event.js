@@ -160,6 +160,7 @@ EventSchema.virtual(
 );
 
 EventSchema.pre('find', validateQuery);
+EventSchema.pre('findOne', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Event', EventSchema);
