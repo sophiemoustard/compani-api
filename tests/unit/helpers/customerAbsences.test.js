@@ -172,7 +172,7 @@ describe('isAbsent', () => {
   });
 });
 
-describe('updateCustomerAbsence #tag', () => {
+describe('updateCustomerAbsence', () => {
   let findOne;
   let deleteCustomerEvents;
   let updateOne;
