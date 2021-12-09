@@ -232,6 +232,7 @@ exports.getCourse = async (req) => {
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'slotsToPlan' })
     .populate({ path: 'trainees', select: 'contact.phone' })
+    .populate({ path: 'contact', select: 'identity.lastname contact.phone' })
     .lean();
   if (!course) throw Boom.notFound();
 
@@ -330,8 +331,8 @@ exports.authorizeSmsSending = async (req) => {
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
   if (noSlotToCome) throw Boom.forbidden();
   if (noReceiver) throw Boom.forbidden();
-  if (!get(course, 'contact.name')) throw Boom.forbidden();
-  if (!get(course, 'contact.phone')) throw Boom.forbidden();
+  if (!get(course, 'contact.identity.lastname')) throw Boom.forbidden();
+  if (!get(course, 'contact.contact.phone')) throw Boom.forbidden();
   if (!course.trainer) throw Boom.forbidden();
 
   return null;
