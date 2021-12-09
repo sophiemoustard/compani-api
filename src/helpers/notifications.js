@@ -45,7 +45,7 @@ exports.sendNewElearningCourseNotification = async (courseId) => {
     .lean();
   const trainees = await User
     .find(
-      { formationExpoTokenList: { $exists: true }, $where: 'this.formationExpoTokenList.length > 0' },
+      { formationExpoTokenList: { $exists: true, $not: { $size: 0 } } },
       'formationExpoTokenList'
     )
     .lean();
