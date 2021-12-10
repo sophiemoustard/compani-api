@@ -5,7 +5,6 @@ const groupBy = require('lodash/groupBy');
 const fs = require('fs');
 const os = require('os');
 const moment = require('moment');
-const flat = require('flat');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -319,7 +318,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
 };
 
 exports.updateCourse = async (courseId, payload) => {
-  const params = payload.contact === '' ? { $unset: { contact: '' } } : { $set: flat(payload) };
+  const params = payload.contact === '' ? { $unset: { contact: '' } } : { $set: payload };
 
   return Course.findOneAndUpdate({ _id: courseId }, params).lean();
 };

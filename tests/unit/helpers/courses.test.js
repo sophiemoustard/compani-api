@@ -1131,7 +1131,7 @@ describe('updateCourse', () => {
     courseFindOneAndUpdate.restore();
   });
 
-  it('should update a field an intra course', async () => {
+  it('should update a field in intra course', async () => {
     const courseId = new ObjectID();
     const payload = { misc: 'groupe 4' };
 
@@ -1149,7 +1149,7 @@ describe('updateCourse', () => {
     );
   });
 
-  it('should remove contact field an intra course', async () => {
+  it('should remove contact field in intra course', async () => {
     const courseId = new ObjectID();
     const payload = { contact: '' };
     const updatedCourse = { _id: courseId };
