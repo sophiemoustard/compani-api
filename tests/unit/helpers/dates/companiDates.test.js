@@ -66,6 +66,13 @@ describe('isSame', () => {
     expect(result).toBe(false);
     sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
   });
+
+  it('should return false if wrong argument', () => {
+    const result = companiDate.isSame('', 'day');
+
+    expect(result).toBe(false);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), '');
+  });
 });
 
 describe('diff', () => {
@@ -220,6 +227,18 @@ describe('_formatMiscToCompaniDate', () => {
     sinon.assert.notCalled(invalid);
   });
 
+  it('should return dateTime.now if arg is undefined', () => {
+    const result = CompaniDatesHelper._formatMiscToCompaniDate(undefined);
+
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate() - new Date()).toBeLessThan(100);
+    sinon.assert.calledOnceWithExactly(now);
+    sinon.assert.notCalled(fromJSDate);
+    sinon.assert.notCalled(fromISO);
+    sinon.assert.notCalled(fromFormat);
+    sinon.assert.notCalled(invalid);
+  });
+
   it('should return dateTime if 2 args, first argument doesn\'t finish with Z', () => {
     const result = CompaniDatesHelper._formatMiscToCompaniDate(
       '2021-11-24T07:00:00.000+03:00',
@@ -270,5 +289,62 @@ describe('_formatMiscToCompaniDate', () => {
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromISO);
     sinon.assert.notCalled(fromFormat);
+  });
+
+  it('should return invalid if wrong type of argument', () => {
+    const result = CompaniDatesHelper._formatMiscToCompaniDate(null);
+
+    expect(result instanceof luxon.DateTime).toBe(true);
+    sinon.assert.calledOnceWithExactly(invalid, 'wrong arguments');
+    sinon.assert.notCalled(now);
+    sinon.assert.notCalled(fromJSDate);
+    sinon.assert.notCalled(fromISO);
+    sinon.assert.notCalled(fromFormat);
+  });
+});
+
+describe('isSameOrBefore', () => {
+  let _formatMiscToCompaniDate;
+  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
+  let otherDate = new Date('2021-11-25T10:00:00.000Z');
+
+  beforeEach(() => {
+    _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+  });
+
+  afterEach(() => {
+    _formatMiscToCompaniDate.restore();
+  });
+
+  it('should return true if same moment', () => {
+    otherDate = new Date('2021-11-24T07:00:00.000Z');
+
+    const result = companiDate.isSameOrBefore(otherDate);
+
+    expect(result).toBe(true);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+
+  it('should return true if before', () => {
+    const result = companiDate.isSameOrBefore(otherDate);
+
+    expect(result).toBe(true);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+
+  it('should return false if after', () => {
+    otherDate = new Date('2021-11-23T10:00:00.000Z');
+
+    const result = companiDate.isSameOrBefore(otherDate);
+
+    expect(result).toBe(false);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+  });
+
+  it('should return false if wrong argument', () => {
+    const result = companiDate.isSameOrBefore(null);
+
+    expect(result).toBe(false);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
   });
 });

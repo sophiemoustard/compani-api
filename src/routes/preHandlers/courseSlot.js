@@ -1,6 +1,5 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const moment = require('moment');
 const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
 const Step = require('../../models/Step');
@@ -8,6 +7,7 @@ const Attendance = require('../../models/Attendance');
 const translate = require('../../helpers/translate');
 const { checkAuthorization } = require('./courses');
 const { E_LEARNING, ON_SITE, REMOTE } = require('../../helpers/constants');
+const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
@@ -37,8 +37,8 @@ const formatAndCheckAuthorization = async (courseId, credentials) => {
 const checkPayload = async (courseId, payload) => {
   const { startDate, endDate, step: stepId } = payload;
   const hasBothOrNeitherDates = (startDate && endDate) || (!startDate && !endDate);
-  const sameDay = moment(startDate).isSame(endDate, 'day');
-  const startDateBeforeEndDate = moment(startDate).isSameOrBefore(endDate);
+  const sameDay = CompaniDate(startDate).isSame(endDate, 'day');
+  const startDateBeforeEndDate = CompaniDate(startDate).isSameOrBefore(endDate);
   if (!(hasBothOrNeitherDates && sameDay && startDateBeforeEndDate)) throw Boom.badRequest();
 
   if (stepId) {
