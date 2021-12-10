@@ -1113,7 +1113,7 @@ describe('getTraineeCourse', () => {
             select: 'identity.firstname identity.lastname contact.phone local.email',
           }],
         },
-        { query: 'select', args: ['_id misc contact'] },
+        { query: 'select', args: ['_id misc'] },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
@@ -2027,8 +2027,8 @@ describe('formatCourseForConvocationPdf', () => {
       ],
     };
 
-    formatIdentity.onCall(0).returns('Ash Ketchum');
-    formatIdentity.onCall(1).returns('Pika Chu');
+    formatIdentity.onCall(0).returns('Pika Chu');
+    formatIdentity.onCall(1).returns('Ash Ketchum');
     formatHoursForConvocation.onCall(0).returns('13:30 - 14:30');
     formatHoursForConvocation.onCall(1).returns('18:30 - 20:30');
     groupSlotsByDate.returns([
@@ -2057,8 +2057,8 @@ describe('formatCourseForConvocationPdf', () => {
       ],
     });
 
-    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
-    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { firstname: 'Pika', lastname: 'CHU' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { firstname: 'Pika', lastname: 'CHU' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
     sinon.assert.calledWithExactly(
       formatHoursForConvocation.getCall(0),
       [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]
