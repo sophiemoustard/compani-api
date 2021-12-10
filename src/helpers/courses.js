@@ -311,7 +311,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
-    .select('_id misc contact')
+    .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
   return exports.formatCourseWithProgress(course);
@@ -561,12 +561,7 @@ exports.formatCourseForConvocationPdf = (course) => {
     formattedIdentity: UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL'),
   };
 
-  return {
-    ...course,
-    trainer,
-    contact,
-    slots,
-  };
+  return { ...course, trainer, contact, slots };
 };
 
 exports.generateConvocationPdf = async (courseId) => {
