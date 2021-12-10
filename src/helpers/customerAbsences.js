@@ -22,19 +22,18 @@ exports.isAbsent = async (customer, date) => !!await CustomerAbsence.countDocume
 
 exports.updateCustomerAbsence = async (customerAbsenceId, payload, credentials) => {
   const companyId = get(credentials, 'company._id');
-  const customerAbsence = await CustomerAbsence.findOne(
-    { _id: customerAbsenceId, company: companyId },
-    { customer: 1 }
-  ).lean();
+  const customerAbsence = await CustomerAbsence
+    .findOne({ _id: customerAbsenceId, company: companyId }, { customer: 1 })
+    .lean();
 
   await EventsHelper.deleteCustomerEvents(
     customerAbsence.customer,
     payload.startDate,
     payload.endDate,
-    '',
+    null,
     credentials
   );
-  await CustomerAbsence.updateOne({ _id: customerAbsenceId, company: companyId }, { ...payload });
+  await CustomerAbsence.updateOne({ _id: customerAbsenceId, company: companyId }, payload);
 };
 
 exports.updateCustomerAbsencesOnCustomerStop = async (customer, stoppedDate) => {

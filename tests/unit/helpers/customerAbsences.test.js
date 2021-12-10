@@ -208,7 +208,7 @@ describe('updateCustomerAbsence', () => {
         { query: 'lean' },
       ]
     );
-    sinon.assert.calledOnceWithExactly(deleteCustomerEvents, customer, startDate, endDate, '', credentials);
+    sinon.assert.calledOnceWithExactly(deleteCustomerEvents, customer, startDate, endDate, null, credentials);
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: customerAbsenceId, company: companyId },

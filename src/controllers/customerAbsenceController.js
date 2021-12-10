@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const CustomerAbsencesHelper = require('../helpers/customerAbsences');
 
@@ -23,12 +22,7 @@ const list = async (req) => {
 
 const update = async (req) => {
   try {
-    const { payload, params, auth } = req;
-    const credentials = get(auth, 'credentials');
-
-    const customerAbsenceId = params._id;
-
-    await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, credentials);
+    await CustomerAbsencesHelper.updateCustomerAbsence(req.params._id, req.payload, req.auth.credentials);
 
     return { message: translate[language].customerAbsenceUpdated };
   } catch (e) {

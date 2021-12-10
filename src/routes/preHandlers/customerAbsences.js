@@ -22,25 +22,22 @@ exports.authorizeCustomerAbsenceUpdate = async (req) => {
   const { auth, params, payload } = req;
   const companyId = get(auth, 'credentials.company._id');
 
-  const customerAbsence = await CustomerAbsence.findOne(
-    { _id: params._id, company: companyId },
-    { customer: 1 }
-  ).lean();
+  const customerAbsence = await CustomerAbsence
+    .findOne({ _id: params._id, company: companyId }, { customer: 1 })
+    .lean();
   if (!customerAbsence) throw Boom.notFound();
 
   const customerAbsenceCount = await CustomerAbsence.countDocuments({
     _id: { $ne: customerAbsence._id },
     customer: customerAbsence.customer,
-    $and: [{ startDate: { $lte: payload.endDate } }, { endDate: { $gte: payload.startDate } }],
+    startDate: { $lte: payload.endDate },
+    endDate: { $gte: payload.startDate },
     company: companyId,
   });
   if (customerAbsenceCount) throw Boom.forbidden(translate[language].customerAbsencesConflict);
 
-  const customerCount = await Customer.countDocuments({
-    _id: customerAbsence.customer,
-    company: companyId,
-    stoppedAt: { $lte: payload.endDate },
-  });
+  const customerCount = await Customer
+    .countDocuments({ _id: customerAbsence.customer, company: companyId, stoppedAt: { $lte: payload.endDate } });
   if (customerCount) throw Boom.forbidden(translate[language].stoppedCustomer);
 
   return null;
