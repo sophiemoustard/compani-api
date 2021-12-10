@@ -543,9 +543,6 @@ exports.formatHoursForConvocation = slots => slots.reduce((acc, slot) => {
 }, '');
 
 exports.formatCourseForConvocationPdf = (course) => {
-  const trainerIdentity = UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL');
-  const contactIdentity = UtilsHelper.formatIdentity(get(course, 'contact.identity'), 'FL');
-  const contactPhoneNumber = UtilsHelper.formatPhoneNumber(get(course, 'contact.contact.phone'));
   const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
 
   const slots = slotsGroupedByDate.map(groupedSlots => ({
@@ -554,16 +551,19 @@ exports.formatCourseForConvocationPdf = (course) => {
     hours: exports.formatHoursForConvocation(groupedSlots),
     date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
   }));
-
   const contact = {
-    formattedIdentity: contactIdentity,
+    formattedIdentity: UtilsHelper.formatIdentity(get(course, 'contact.identity'), 'FL'),
     email: get(course, 'contact.local.email'),
-    formattedPhone: contactPhoneNumber,
+    formattedPhone: UtilsHelper.formatPhoneNumber(get(course, 'contact.contact.phone')),
+  };
+  const trainer = {
+    ...course.trainer,
+    formattedIdentity: UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL'),
   };
 
   return {
     ...course,
-    trainer: { ...course.trainer, formattedIdentity: trainerIdentity },
+    trainer,
     contact,
     slots,
   };
