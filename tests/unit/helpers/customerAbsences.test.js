@@ -187,27 +187,27 @@ describe('updateCustomerAbsence', () => {
     updateOne.restore();
   });
 
-  it('should update absence and remove events on this period ', async () => {
+  it('should update absence and remove events on this period', async () => {
     const customerAbsenceId = new ObjectID();
     const customer = new ObjectID();
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
     const startDate = new Date('2021-11-28');
     const endDate = new Date('2021-12-10');
-    const customerAbsence = {
-      _id: customerAbsenceId,
-      customer,
-      startDate: new Date('2021-11-24'),
-      endDate: new Date('2021-12-06'),
-      absenceType: 'hospitalization',
-    };
+    const customerAbsence = { _id: customerAbsenceId, customer };
     const payload = { absenceType: 'hospitalization', startDate, endDate };
 
-    findOne.returns(customerAbsence);
+    findOne.returns(SinonMongoose.stubChainedQueries([customerAbsence]));
 
-    await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, companyId);
+    await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, credentials);
 
-    sinon.assert.calledOnceWithExactly(findOne, { _id: customerAbsenceId, company: companyId });
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: customerAbsenceId, company: companyId }, { customer: 1 }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(deleteCustomerEvents, customer, startDate, endDate, '', credentials);
     sinon.assert.calledOnceWithExactly(
       updateOne,

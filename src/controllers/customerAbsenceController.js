@@ -24,11 +24,11 @@ const list = async (req) => {
 const update = async (req) => {
   try {
     const { payload, params, auth } = req;
-    const companyId = get(auth, 'credentials.company._id');
+    const credentials = get(auth, 'credentials');
 
     const customerAbsenceId = params._id;
 
-    await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, companyId);
+    await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, credentials);
 
     return { message: translate[language].customerAbsenceUpdated };
   } catch (e) {

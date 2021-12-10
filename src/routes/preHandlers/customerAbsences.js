@@ -22,7 +22,10 @@ exports.authorizeCustomerAbsenceUpdate = async (req) => {
   const { auth, params, payload } = req;
   const companyId = get(auth, 'credentials.company._id');
 
-  const customerAbsence = await CustomerAbsence.findOne({ _id: params._id, company: companyId }).lean();
+  const customerAbsence = await CustomerAbsence.findOne(
+    { _id: params._id, company: companyId },
+    { customer: 1 }
+  ).lean();
   if (!customerAbsence) throw Boom.notFound();
 
   const customerAbsenceCount = await CustomerAbsence.countDocuments({
