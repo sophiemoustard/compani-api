@@ -5,28 +5,31 @@ exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompa
 const companiDateFactory = _date => ({
   _date,
 
+  // DISPLAY
   format(fmt) {
     return this._date.toFormat(fmt);
   },
 
+  // QUERY
   isSame(miscTypeOtherDate, unit) {
     const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
     return this._date.hasSame(otherDate, unit);
   },
 
+  isSameOrBefore(miscTypeOtherDate) {
+    const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+
+    return this._date <= otherDate;
+  },
+
+  // MANIPULATE
   diff(miscTypeOtherDate, unit = 'milliseconds', typeFloat = false) {
     const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
     const floatDiff = this._date.diff(otherDate, unit).as(unit);
 
     if (typeFloat) return floatDiff;
     return floatDiff > 0 ? Math.floor(floatDiff) : Math.ceil(floatDiff);
-  },
-
-  isSameOrBefore(miscTypeOtherDate) {
-    const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
-
-    return this._date <= otherDate;
   },
 });
 

@@ -68,10 +68,10 @@ describe('isSame', () => {
   });
 
   it('should return false if wrong argument', () => {
-    const result = companiDate.isSame('', 'day');
+    const result = companiDate.isSame(null, 'day');
 
     expect(result).toBe(false);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), '');
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
   });
 });
 
@@ -225,6 +225,17 @@ describe('_formatMiscToCompaniDate', () => {
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromFormat);
     sinon.assert.notCalled(invalid);
+  });
+
+  it('should return dateTime if arg is empty string', () => {
+    const result = CompaniDatesHelper._formatMiscToCompaniDate('');
+
+    expect(result instanceof luxon.DateTime).toBe(true);
+    sinon.assert.calledOnceWithExactly(invalid, 'wrong arguments');
+    sinon.assert.notCalled(now);
+    sinon.assert.notCalled(fromJSDate);
+    sinon.assert.notCalled(fromISO);
+    sinon.assert.notCalled(fromFormat);
   });
 
   it('should return dateTime.now if arg is undefined', () => {
