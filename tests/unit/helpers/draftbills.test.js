@@ -583,6 +583,25 @@ describe('getEventBilling', () => {
     sinon.assert.notCalled(getEventSurcharges);
     sinon.assert.notCalled(getSurchargedPrice);
   });
+
+  it('should not bill third party payer if event is cancelled', () => {
+    const cancelledEvent = { ...event, isCancelled: true };
+    const service = { vat: 20, nature: 'hourly' };
+    const funding = {
+      nature: 'fixed',
+      history: { amountTTC: 50 },
+      amountTTC: 100,
+      thirdPartyPayer: { _id: new ObjectID() },
+    };
+    getExclTaxes.returns(17.5);
+    const result = DraftBillsHelper.getEventBilling(cancelledEvent, unitTTCRate, service, funding);
+
+    expect(result).toEqual({ customerPrice: 35, thirdPartyPayerPrice: 0 });
+    sinon.assert.notCalled(getHourlyFundingSplit);
+    sinon.assert.notCalled(getFixedFundingSplit);
+    sinon.assert.notCalled(getEventSurcharges);
+    sinon.assert.notCalled(getSurchargedPrice);
+  });
 });
 
 describe('formatDraftBillsForCustomer', () => {
