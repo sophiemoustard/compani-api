@@ -67,6 +67,22 @@ const customersList = [
       },
     },
   },
+  { // stopped Customer
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { title: 'mr', firstname: 'Jesuis', lastname: 'Arrete' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    },
+    stoppedAt: '2022-01-04T00:00:00.000Z',
+    stopReason: 'hospitalization',
+  },
 ];
 
 const usersList = [{
@@ -86,6 +102,7 @@ const helpersList = [
 
 const customerAbsencesList = [
   {
+    _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[0],
     startDate: '2021-10-01T00:00:00.000Z',
@@ -93,6 +110,7 @@ const customerAbsencesList = [
     absenceType: 'leave',
   },
   {
+    _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[2],
     startDate: '2021-10-04T00:00:00.000Z',
@@ -100,6 +118,7 @@ const customerAbsencesList = [
     absenceType: 'hospitalization',
   },
   {
+    _id: new ObjectID(),
     company: authCompany._id,
     customer: customersList[0],
     startDate: '2021-11-01T00:00:00.000Z',
@@ -107,8 +126,17 @@ const customerAbsencesList = [
     absenceType: 'other',
   },
   {
+    _id: new ObjectID(),
     company: otherCompany._id,
     customer: customersList[1],
+    startDate: '2021-10-08T00:00:00.000Z',
+    endDate: '2021-10-09T00:00:00.000Z',
+    absenceType: 'other',
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: customersList[4],
     startDate: '2021-10-08T00:00:00.000Z',
     endDate: '2021-10-09T00:00:00.000Z',
     absenceType: 'other',

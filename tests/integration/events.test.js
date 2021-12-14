@@ -1716,6 +1716,16 @@ describe('DELETE /events/{_id}', () => {
 
       expect(response.statusCode).toEqual(404);
     });
+
+    it('should return a 403 if customer is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events/${eventsList[26]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -1836,7 +1846,7 @@ describe('DELETE /events', () => {
     });
 
     it('should create a customer absence', async () => {
-      const customer = customerAuxiliaries[2]._id;
+      const customer = customerAuxiliaries[0]._id;
       const startDate = new Date('2020-12-01');
       const endDate = new Date('2020-12-26');
       const absenceType = 'leave';
@@ -1899,6 +1909,19 @@ describe('DELETE /events', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if customer is archived', async () => {
+      const customer = customerAuxiliaries[2]._id;
+      const startDate = '2021-11-05T10:30:18.653';
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events?customer=${customer}&startDate=${startDate}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
     });
   });
 
@@ -1963,6 +1986,16 @@ describe('DELETE /{_id}/repetition', () => {
       });
 
       expect(response.statusCode).toBe(422);
+    });
+
+    it('should return a 403 if customer is archived', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/events/${eventsList[26]._id}/repetition`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(403);
     });
   });
 

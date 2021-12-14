@@ -34,7 +34,7 @@ describe('getPdfContent', () => {
       ],
       slotsToPlan: [{ _id: new ObjectID() }],
       trainer: { formattedIdentity: 'test OK', biography: 'Voici ma bio' },
-      contact: { formattedPhone: '09 87 65 43 21', email: 'test@test.fr' },
+      contact: { formattedIdentity: 'Ca roule', formattedPhone: '09 87 65 43 21', email: 'test@test.fr' },
     };
 
     const result = await CourseConvocation.getPdfContent(data);
@@ -128,6 +128,7 @@ describe('getPdfContent', () => {
             { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
             [
               { text: 'Votre contact pour la formation', style: 'infoTitle' },
+              { text: 'Ca roule', style: 'infoSubTitle' },
               { text: '09 87 65 43 21', style: 'infoSubTitle' },
               { text: 'test@test.fr', style: 'infoSubTitle' },
             ],
@@ -180,7 +181,6 @@ describe('getPdfContent', () => {
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
         { date: '22/01/2020', hours: '12h - 14h', meetingLink: 'https://mondrianandme.com/' },
       ],
-      contact: { formattedPhone: '09 87 65 43 21' },
     };
 
     const result = await CourseConvocation.getPdfContent(data);
@@ -275,7 +275,8 @@ describe('getPdfContent', () => {
             { image: 'src/data/pdf/tmp/aux-perplexite.png', width: 64, style: 'img' },
             [
               { text: 'Votre contact pour la formation', style: 'infoTitle' },
-              { text: '09 87 65 43 21', style: 'infoSubTitle' },
+              { text: '', style: 'infoSubTitle' },
+              { text: '', style: 'infoSubTitle' },
               { text: '', style: 'infoSubTitle' },
             ],
           ],

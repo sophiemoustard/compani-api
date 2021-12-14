@@ -452,6 +452,10 @@ describe('getCourse', () => {
         { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
         { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
         { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' }],
+        },
         { query: 'lean' },
       ]
     );
@@ -1102,7 +1106,14 @@ describe('getTraineeCourse', () => {
             select: 'identity.firstname identity.lastname biography picture',
           }],
         },
-        { query: 'select', args: ['_id misc contact'] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'contact',
+            select: 'identity.firstname identity.lastname contact.phone local.email',
+          }],
+        },
+        { query: 'select', args: ['_id misc'] },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
     );
@@ -1120,7 +1131,7 @@ describe('updateCourse', () => {
     courseFindOneAndUpdate.restore();
   });
 
-  it('should update an intra course', async () => {
+  it('should update a field in intra course', async () => {
     const courseId = new ObjectID();
     const payload = { misc: 'groupe 4' };
 
@@ -1133,6 +1144,26 @@ describe('updateCourse', () => {
       courseFindOneAndUpdate,
       [
         { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $set: payload }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should remove contact field in intra course', async () => {
+    const courseId = new ObjectID();
+    const payload = { contact: '' };
+    const updatedCourse = { _id: courseId };
+
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedCourse], ['lean']));
+
+    const result = await CourseHelper.updateCourse(courseId, payload);
+    expect(result._id).toBe(courseId);
+    expect(result.contact).toBeUndefined();
+
+    SinonMongoose.calledWithExactly(
+      courseFindOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $unset: payload }] },
         { query: 'lean' },
       ]
     );
@@ -1977,7 +2008,11 @@ describe('formatCourseForConvocationPdf', () => {
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
-      contact: { phone: '0123456789' },
+      contact: {
+        identity: { firstname: 'Pika', lastname: 'CHU' },
+        contact: { phone: '0123456789' },
+        local: { email: 'pikachu@coucou.fr' },
+      },
       slots: [
         {
           startDate: '2020-10-12T12:30:00',
@@ -1992,7 +2027,8 @@ describe('formatCourseForConvocationPdf', () => {
       ],
     };
 
-    formatIdentity.returns('Ash Ketchum');
+    formatIdentity.onCall(0).returns('Pika Chu');
+    formatIdentity.onCall(1).returns('Ash Ketchum');
     formatHoursForConvocation.onCall(0).returns('13:30 - 14:30');
     formatHoursForConvocation.onCall(1).returns('18:30 - 20:30');
     groupSlotsByDate.returns([
@@ -2014,14 +2050,15 @@ describe('formatCourseForConvocationPdf', () => {
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
       trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' }, formattedIdentity: 'Ash Ketchum' },
-      contact: { phone: '0123456789', formattedPhone: '01 23 45 67 89' },
+      contact: { formattedIdentity: 'Pika Chu', formattedPhone: '01 23 45 67 89', email: 'pikachu@coucou.fr' },
       slots: [
         { date: '12/10/2020', hours: '13:30 - 14:30', address: '3 rue T' },
         { date: '14/10/2020', hours: '18:30 - 20:30', meetingLink: 'http://eelslap.com/' },
       ],
     });
 
-    sinon.assert.calledOnceWithExactly(formatIdentity, { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(0), { firstname: 'Pika', lastname: 'CHU' }, 'FL');
+    sinon.assert.calledWithExactly(formatIdentity.getCall(1), { firstname: 'Ash', lastname: 'Ketchum' }, 'FL');
     sinon.assert.calledWithExactly(
       formatHoursForConvocation.getCall(0),
       [{ startDate: '2020-10-12T12:30:00', endDate: '2020-10-12T13:30:00', address: { fullAddress: '3 rue T' } }]

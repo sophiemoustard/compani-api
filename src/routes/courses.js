@@ -26,7 +26,6 @@ const {
 } = require('../controllers/courseController');
 const { MESSAGE_TYPE } = require('../models/CourseSmsHistory');
 const { COURSE_TYPES, COURSE_FORMATS } = require('../models/Course');
-const { phoneNumberValidation } = require('./validations/utils');
 const {
   getCourseTrainee,
   authorizeCourseEdit,
@@ -179,11 +178,7 @@ exports.plugin = {
           payload: Joi.object({
             misc: Joi.string().allow('', null),
             trainer: Joi.objectId(),
-            contact: Joi.object({
-              name: Joi.string(),
-              phone: phoneNumberValidation,
-              email: Joi.string().allow('', null),
-            }).min(1),
+            contact: Joi.objectId().allow(''),
             salesRepresentative: Joi.objectId(),
             archivedAt: Joi.date(),
           }),
