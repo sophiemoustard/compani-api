@@ -24,6 +24,7 @@ describe('CompaniDate', () => {
         _date: expect.any(luxon.DateTime),
         format: expect.any(Function),
         isSame: expect.any(Function),
+        isSameOrBefore: expect.any(Function),
         diff: expect.any(Function),
       }));
     sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), date);
@@ -49,7 +50,7 @@ describe('DISPLAY', () => {
       expect(result).toBe('Le mercredi 24 novembre 2021 à 08h12 et 8 secondes');
     });
 
-    it('should return Invalid DateTime if wrong _date', () => {
+    it('should return Invalid DateTime if invalid _date', () => {
       const result = CompaniDatesHelper.CompaniDate(null)
         .format('\'Le\' cccc dd LLLL y \'à\' HH\'h\'mm \'et\' s \'secondes\'');
 
@@ -87,7 +88,7 @@ describe('QUERY', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
     });
 
-    it('should return false if wrong _date', () => {
+    it('should return false if invalid _date', () => {
       const result = CompaniDatesHelper.CompaniDate(null).isSame(otherDate, 'day');
 
       expect(result).toBe(false);
@@ -95,7 +96,7 @@ describe('QUERY', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
     });
 
-    it('should return false if wrong argument', () => {
+    it('should return false if invalid argument', () => {
       const result = companiDate.isSame(null, 'day');
 
       expect(result).toBe(false);
@@ -141,7 +142,7 @@ describe('QUERY', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
     });
 
-    it('should return false if wrong _date', () => {
+    it('should return false if invalid _date', () => {
       const result = CompaniDatesHelper.CompaniDate(null).isSameOrBefore(otherDate);
 
       expect(result).toBe(false);
@@ -149,7 +150,7 @@ describe('QUERY', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
     });
 
-    it('should return false if wrong argument', () => {
+    it('should return false if invalid argument', () => {
       const result = companiDate.isSameOrBefore(null);
 
       expect(result).toBe(false);
@@ -221,7 +222,7 @@ describe('MANIPULATE', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
     });
 
-    it('should return NaN if wrong _date', () => {
+    it('should return NaN if invalid _date', () => {
       const otherDate = new Date('2021-11-30T08:00:00.000Z');
       const result = CompaniDatesHelper.CompaniDate(null).diff(otherDate, 'days', true);
 
@@ -319,7 +320,7 @@ describe('_formatMiscToCompaniDate', () => {
     sinon.assert.notCalled(invalid);
   });
 
-  it('should return dateTime if arg is empty string', () => {
+  it('should return invalid if arg is empty string', () => {
     const result = CompaniDatesHelper._formatMiscToCompaniDate('');
 
     expect(result instanceof luxon.DateTime).toBe(true);
@@ -332,6 +333,18 @@ describe('_formatMiscToCompaniDate', () => {
 
   it('should return dateTime.now if arg is undefined', () => {
     const result = CompaniDatesHelper._formatMiscToCompaniDate(undefined);
+
+    expect(result instanceof luxon.DateTime).toBe(true);
+    expect(new luxon.DateTime(result).toJSDate() - new Date()).toBeLessThan(100);
+    sinon.assert.calledOnceWithExactly(now);
+    sinon.assert.notCalled(fromJSDate);
+    sinon.assert.notCalled(fromISO);
+    sinon.assert.notCalled(fromFormat);
+    sinon.assert.notCalled(invalid);
+  });
+
+  it('should return dateTime.now if arg is []', () => {
+    const result = CompaniDatesHelper._formatMiscToCompaniDate([]);
 
     expect(result instanceof luxon.DateTime).toBe(true);
     expect(new luxon.DateTime(result).toJSDate() - new Date()).toBeLessThan(100);
@@ -394,7 +407,7 @@ describe('_formatMiscToCompaniDate', () => {
     sinon.assert.notCalled(fromFormat);
   });
 
-  it('should return invalid if wrong type of argument', () => {
+  it('should return invalid if invalid type of argument', () => {
     const result = CompaniDatesHelper._formatMiscToCompaniDate(null);
 
     expect(result instanceof luxon.DateTime).toBe(true);
