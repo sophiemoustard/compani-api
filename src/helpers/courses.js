@@ -549,7 +549,7 @@ exports.formatCourseForConvocationPdf = (course) => {
     ...(get(groupedSlots[0], 'address.fullAddress') && { address: get(groupedSlots[0], 'address.fullAddress') }),
     ...(groupedSlots[0].meetingLink && { meetingLink: groupedSlots[0].meetingLink }),
     hours: exports.formatHoursForConvocation(groupedSlots),
-    date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
+    date: CompaniDate(groupedSlots[0].startDate).format('dd/LL/yyyy'),
   }));
   const contact = {
     formattedIdentity: UtilsHelper.formatIdentity(get(course, 'contact.identity'), 'FL'),
