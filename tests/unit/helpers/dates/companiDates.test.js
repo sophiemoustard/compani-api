@@ -30,112 +30,204 @@ describe('CompaniDate', () => {
   });
 });
 
-describe('format', () => {
-  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
+describe('DISPLAY', () => {
+  describe('format', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
 
-  it('should return formated date in a string', () => {
-    const result = companiDate.format('\'Le\' cccc dd LLLL y \'à\' HH\'h\'mm \'et\' s \'secondes\'');
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
 
-    expect(result).toBe('Le mercredi 24 novembre 2021 à 08h12 et 8 secondes');
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return formated date in a string', () => {
+      const result = companiDate.format('\'Le\' cccc dd LLLL y \'à\' HH\'h\'mm \'et\' s \'secondes\'');
+
+      expect(result).toBe('Le mercredi 24 novembre 2021 à 08h12 et 8 secondes');
+    });
+
+    it('should return Invalid DateTime if wrong _date', () => {
+      const result = CompaniDatesHelper.CompaniDate(null)
+        .format('\'Le\' cccc dd LLLL y \'à\' HH\'h\'mm \'et\' s \'secondes\'');
+
+      expect(result).toBe('Invalid DateTime');
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
+    });
   });
 });
 
-describe('isSame', () => {
-  let _formatMiscToCompaniDate;
-  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
-  const otherDate = new Date('2021-11-24T10:00:00.000Z');
+describe('QUERY', () => {
+  describe('isSame', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
+    const otherDate = new Date('2021-11-24T10:00:00.000Z');
 
-  beforeEach(() => {
-    _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return true if same day', () => {
+      const result = companiDate.isSame(otherDate, 'day');
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
+
+    it('should return false if different minute', () => {
+      const result = companiDate.isSame(otherDate, 'minute');
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
+
+    it('should return false if wrong _date', () => {
+      const result = CompaniDatesHelper.CompaniDate(null).isSame(otherDate, 'day');
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+    });
+
+    it('should return false if wrong argument', () => {
+      const result = companiDate.isSame(null, 'day');
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
+    });
   });
 
-  afterEach(() => {
-    _formatMiscToCompaniDate.restore();
-  });
+  describe('isSameOrBefore', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
+    let otherDate = new Date('2021-11-25T10:00:00.000Z');
 
-  it('should return true if same day', () => {
-    const result = companiDate.isSame(otherDate, 'day');
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
 
-    expect(result).toBe(true);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
 
-  it('should return false if different minute', () => {
-    const result = companiDate.isSame(otherDate, 'minute');
+    it('should return true if same moment', () => {
+      otherDate = new Date('2021-11-24T07:00:00.000Z');
 
-    expect(result).toBe(false);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
+      const result = companiDate.isSameOrBefore(otherDate);
 
-  it('should return false if wrong argument', () => {
-    const result = companiDate.isSame(null, 'day');
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
 
-    expect(result).toBe(false);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
+    it('should return true if before', () => {
+      const result = companiDate.isSameOrBefore(otherDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
+
+    it('should return false if after', () => {
+      otherDate = new Date('2021-11-23T10:00:00.000Z');
+
+      const result = companiDate.isSameOrBefore(otherDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
+
+    it('should return false if wrong _date', () => {
+      const result = CompaniDatesHelper.CompaniDate(null).isSameOrBefore(otherDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), otherDate);
+    });
+
+    it('should return false if wrong argument', () => {
+      const result = companiDate.isSameOrBefore(null);
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
+    });
   });
 });
+describe('MANIPULATE', () => {
+  describe('diff', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
 
-describe('diff', () => {
-  let _formatMiscToCompaniDate;
-  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
 
-  beforeEach(() => {
-    _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
-  });
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
 
-  afterEach(() => {
-    _formatMiscToCompaniDate.restore();
-  });
+    it('should return diff in milliseconds, if no unit specified', () => {
+      const otherDate = new Date('2021-11-24T08:29:48.000Z');
+      const result = companiDate.diff(otherDate);
+      const expectedDiffInMillis = 1 * 60 * 60 * 1000 + 30 * 60 * 1000 + 12 * 1000;
 
-  it('should return diff in milliseconds, if no unit specified', () => {
-    const otherDate = new Date('2021-11-24T08:29:48.000Z');
-    const result = companiDate.diff(otherDate);
-    const expectedDiffInMillis = 1 * 60 * 60 * 1000 + 30 * 60 * 1000 + 12 * 1000;
+      expect(result).toBe(expectedDiffInMillis);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
 
-    expect(result).toBe(expectedDiffInMillis);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
+    it('should return difference in positive days', () => {
+      const otherDate = new Date('2021-11-20T10:00:00.000Z');
+      const result = companiDate.diff(otherDate, 'days');
 
-  it('should return difference in positive days', () => {
-    const otherDate = new Date('2021-11-20T10:00:00.000Z');
-    const result = companiDate.diff(otherDate, 'days');
+      expect(result).toBe(4);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
 
-    expect(result).toBe(4);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
+    it('should return difference in days. Result should be 0 if difference is less then 24h', () => {
+      const otherDate = new Date('2021-11-23T21:00:00.000Z');
+      const result = companiDate.diff(otherDate, 'days');
 
-  it('should return difference in days. Result should be 0 if difference is less then 24h', () => {
-    const otherDate = new Date('2021-11-23T21:00:00.000Z');
-    const result = companiDate.diff(otherDate, 'days');
+      expect(result).toBe(0);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
 
-    expect(result).toBe(0);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
+    it('should return difference in positive floated days', () => {
+      const otherDate = new Date('2021-11-22T21:00:00.000Z');
+      const result = companiDate.diff(otherDate, 'days', true);
 
-  it('should return difference in positive floated days', () => {
-    const otherDate = new Date('2021-11-22T21:00:00.000Z');
-    const result = companiDate.diff(otherDate, 'days', true);
+      expect(result).toBeGreaterThan(0);
+      expect(result - 1.54).toBeLessThan(0.01); // 1.54 days = 1 day and 13 hours
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
 
-    expect(result).toBeGreaterThan(0);
-    expect(result - 1.54).toBeLessThan(0.01); // 1.54 days = 1 day and 13 hours
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
+    it('should return difference in negative days', () => {
+      const otherDate = new Date('2021-11-30T10:00:00.000Z');
+      const result = companiDate.diff(otherDate, 'days');
 
-  it('should return difference in negative days', () => {
-    const otherDate = new Date('2021-11-30T10:00:00.000Z');
-    const result = companiDate.diff(otherDate, 'days');
+      expect(result).toBe(-6);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
 
-    expect(result).toBe(-6);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
+    it('should return difference in negative floated days', () => {
+      const otherDate = new Date('2021-11-30T08:00:00.000Z');
+      const result = companiDate.diff(otherDate, 'days', true);
 
-  it('should return difference in negative floated days', () => {
-    const otherDate = new Date('2021-11-30T08:00:00.000Z');
-    const result = companiDate.diff(otherDate, 'days', true);
+      expect(result).toBeLessThan(0);
+      expect(Math.abs(result) - 5.91).toBeLessThan(0.01); // 5.91 days = 5 days and 22 hours
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
 
-    expect(result).toBeLessThan(0);
-    expect(Math.abs(result) - 5.91).toBeLessThan(0.01); // 5.91 days = 5 days and 22 hours
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    it('should return NaN if wrong _date', () => {
+      const otherDate = new Date('2021-11-30T08:00:00.000Z');
+      const result = CompaniDatesHelper.CompaniDate(null).diff(otherDate, 'days', true);
+
+      expect(result).toBeNaN();
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
+    });
   });
 });
 
@@ -311,51 +403,5 @@ describe('_formatMiscToCompaniDate', () => {
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromISO);
     sinon.assert.notCalled(fromFormat);
-  });
-});
-
-describe('isSameOrBefore', () => {
-  let _formatMiscToCompaniDate;
-  const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
-  let otherDate = new Date('2021-11-25T10:00:00.000Z');
-
-  beforeEach(() => {
-    _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
-  });
-
-  afterEach(() => {
-    _formatMiscToCompaniDate.restore();
-  });
-
-  it('should return true if same moment', () => {
-    otherDate = new Date('2021-11-24T07:00:00.000Z');
-
-    const result = companiDate.isSameOrBefore(otherDate);
-
-    expect(result).toBe(true);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
-
-  it('should return true if before', () => {
-    const result = companiDate.isSameOrBefore(otherDate);
-
-    expect(result).toBe(true);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
-
-  it('should return false if after', () => {
-    otherDate = new Date('2021-11-23T10:00:00.000Z');
-
-    const result = companiDate.isSameOrBefore(otherDate);
-
-    expect(result).toBe(false);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-  });
-
-  it('should return false if wrong argument', () => {
-    const result = companiDate.isSameOrBefore(null);
-
-    expect(result).toBe(false);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
   });
 });
