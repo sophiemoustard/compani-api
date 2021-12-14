@@ -190,7 +190,7 @@ exports.getEventBilling = (event, unitTTCRate, service, funding) => {
     }
   }
 
-  if (funding) {
+  if (funding && !event.isCancelled) {
     let fundingBilling;
     if (funding.nature === HOURLY) fundingBilling = exports.getHourlyFundingSplit(event, funding, service, price);
     else fundingBilling = exports.getFixedFundingSplit(event, funding, service, price);
