@@ -1,33 +1,33 @@
-### TESTS 💻
-- [ ] J'ai codé les tests unitaires
+### TESTS  :computer:
+- :ballot_box_with_check: :x: J'ai codé les tests unitaires
 
-- [ ] J'ai codé les tests d'intégrations :
-  - C'est une ancienne route utilisée par les apps mobiles [ ] Oui  [ ] Non
-     - J'ai fait de nouveaux tests sans modifier les anciens [ ] Oui [ ] Non
+- :ballot_box_with_check: :x: J'ai codé les tests d'intégrations :
+  - :ballot_box_with_check: :x: C'est une ancienne route utilisée par les apps mobiles
+     - :ballot_box_with_check: :x: J'ai fait de nouveaux tests sans modifier les anciens
 
-### POINTS D'ATTENTION POUR CETTE PR ❕
-- J'ai fait des modifications sur une route utilisée sur plusieurs plateformes [ ] Oui [ ] Non
-Slite indiquant les points d'attention :
+### POINTS D'ATTENTION POUR CETTE PR  :warning:
+- :ballot_box_with_check: :x: J'ai fait des modifications sur une route utilisée sur plusieurs plateformes
+Slite indiquant les points d'attention : https://alenvi.slite.com/app/channels/K4ziWiq5eN/notes/n3bq2hr9Ia
 
-- J'ai modifié un modèle utilisée en mobile [ ] Oui [ ] Non
-Slite indiquant les points d'attention :
+- :ballot_box_with_check: :x: J'ai modifié un modèle utilisée en mobile
+Slite indiquant les points d'attention : https://alenvi.slite.com/app/channels/K4ziWiq5eN/notes/rqTfwpUib
 
-- J'ai ajouté un modèle spécifique à une structure [ ] Oui [ ] Non
-  - J'ai ajouté le champs company ainsi que les prehooks associé [ ] Oui [ ] Non
+- :ballot_box_with_check: :x: J'ai ajouté un modèle spécifique à une structure
+  - :ballot_box_with_check: :x: J'ai ajouté le champs company ainsi que les prehooks associé
 
-- J'ai ajouté/modifié une constante qui est utilisé sur les apps mobile [ ] Oui [ ] Non
-  - J'ai précisé sur le slite de MEP qu'il faut forcer la mise à jour [ ] Oui [ ] Non
+- :ballot_box_with_check: :x: J'ai ajouté/modifié une constante qui est utilisé sur les apps mobile
+  - :ballot_box_with_check: :x: J'ai précisé sur le slite de MEP qu'il faut forcer la mise à jour
 
-- J'ai ajouté une variable d'environnement [ ] Oui [ ] Non
-  - J'ai précisé sur le slite de MES et MEP les modifications faites [ ] Oui [ ] Non
+- :ballot_box_with_check: :x: J'ai ajouté une variable d'environnement
+  - :ballot_box_with_check: :x: J'ai précisé sur le slite de MES et MEP les modifications faites
 
-### FONCTIONNALITÉS APPS MOBILES 📱
+### FONCTIONNALITÉS APPS MOBILES  :iphone:
 - Si mes changements impactent l'application formation :
-  - [ ] J'ai testé que les anciennes versions maintenues fonctionnent toujours (a minima):
+  - :ballot_box_with_check: :x: J'ai testé que les anciennes versions maintenues fonctionnent toujours (a minima):
 - Si mes changements impactent l'application erp :
-  - [ ] J'ai testé que les anciennes versions maintenues fonctionnent toujours
+  - :ballot_box_with_check: :x: J'ai testé que les anciennes versions maintenues fonctionnent toujours
 
-### POUR TESTER LA PR ✅
+### POUR TESTER LA PR  :white_check_mark:
 - Périmetre roles :
 
 - Cas d'usage :
