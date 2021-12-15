@@ -48,4 +48,6 @@ exports.authorizeCustomerAbsenceDeletion = async (req) => {
 
   const customerAbsence = await CustomerAbsence.countDocuments({ _id: req.params._id, company: companyId }).lean();
   if (!customerAbsence) throw Boom.notFound();
+
+  return null;
 };

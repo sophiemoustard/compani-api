@@ -51,9 +51,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         auth: { scope: ['events:edit'] },
-        validate: {
-          params: Joi.object({ _id: Joi.objectId().required() }),
-        },
+        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
         pre: [{ method: authorizeCustomerAbsenceDeletion }],
       },
       handler: remove,
