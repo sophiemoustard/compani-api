@@ -33,3 +33,7 @@ Slite indiquant les points d'attention : https://alenvi.slite.com/app/channels/K
 - Cas d'usage :
 
 - Comment tester ? :
+
+J'ai bien relu cette description :
+- [ ] lecteur 1
+- [ ] lecteur 2
