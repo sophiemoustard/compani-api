@@ -243,3 +243,21 @@ describe('updateCustomerAbsencesOnCustomerStop', () => {
     );
   });
 });
+
+describe('delete', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(CustomerAbsence, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should delete customer absence', async () => {
+    const customerAbsenceId = new ObjectID();
+
+    await CustomerAbsencesHelper.delete(customerAbsenceId);
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: customerAbsenceId });
+  });
+});
