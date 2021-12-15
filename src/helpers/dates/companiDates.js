@@ -5,16 +5,25 @@ exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompa
 const companiDateFactory = _date => ({
   _date,
 
+  // DISPLAY
   format(fmt) {
     return this._date.toFormat(fmt);
   },
 
+  // QUERY
   isSame(miscTypeOtherDate, unit) {
     const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
     return this._date.hasSame(otherDate, unit);
   },
 
+  isSameOrBefore(miscTypeOtherDate, unit = 'millisecond') {
+    const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+
+    return (this._date.hasSame(otherDate, unit) || this._date.startOf(unit) < otherDate.startOf(unit));
+  },
+
+  // MANIPULATE
   diff(miscTypeOtherDate, unit = 'milliseconds', typeFloat = false) {
     const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
     const floatDiff = this._date.diff(otherDate, unit).as(unit);
@@ -31,7 +40,8 @@ exports._formatMiscToCompaniDate = (...args) => {
     if (args[0] instanceof Object && args[0]._date && args[0]._date instanceof luxon.DateTime) return args[0]._date;
     if (args[0] instanceof luxon.DateTime) return args[0];
     if (args[0] instanceof Date) return luxon.DateTime.fromJSDate(args[0]);
-    if (typeof args[0] === 'string') return luxon.DateTime.fromISO(args[0]);
+    if (typeof args[0] === 'string' && args[0] !== '') return luxon.DateTime.fromISO(args[0]);
+    if (typeof args[0] === 'undefined' || (args[0] instanceof Array && !args[0].length)) return luxon.DateTime.now();
   }
 
   if (args.length === 2 && typeof args[0] === 'string' && typeof args[1] === 'string') {
