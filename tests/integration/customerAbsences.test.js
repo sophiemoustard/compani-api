@@ -243,10 +243,10 @@ describe('CUSTOMER ABSENCES ROUTE - DELETE /customerabsences/{_id}', () => {
       expect(customerAbsenceCountAfter).toEqual(customerAbsenceCountBefore - 1);
     });
 
-    it('should return a 404 if customer absence doesn\'t exist', async () => {
+    it('should return a 404 if customer absence doesn\'t exist in user\'s company', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/customerabsences/${new ObjectID()}`,
+        url: `/customerabsences/${customerAbsencesList[3]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
