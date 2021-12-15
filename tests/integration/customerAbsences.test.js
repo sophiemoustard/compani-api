@@ -217,3 +217,62 @@ describe('CUSTOMER ABSENCES ROUTE - PUT /customerabsences/{_id}', () => {
     });
   });
 });
+
+describe('CUSTOMER ABSENCES ROUTE - DELETE /customerabsences/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('AUXILIARY', () => {
+    beforeEach(async () => {
+      authToken = await getToken('auxiliary');
+    });
+
+    it('should delete a customer absence', async () => {
+      const customerAbsenceCountBefore = await CustomerAbsence
+        .countDocuments({ customer: customerAbsencesList[0].customer });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/customerabsences/${customerAbsencesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const customerAbsenceCountAfter = await CustomerAbsence
+        .countDocuments({ customer: customerAbsencesList[0].customer });
+      expect(customerAbsenceCountAfter).toEqual(customerAbsenceCountBefore - 1);
+    });
+
+    it('should return a 404 if customer absence doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/customerabsences/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/customerabsences/${customerAbsencesList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
