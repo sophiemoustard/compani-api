@@ -2,36 +2,43 @@ const luxon = require('./luxon');
 
 exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompaniDate(...args));
 
-const companiDateFactory = _date => ({
-  _date,
+const companiDateFactory = (inputDate) => {
+  const _date = inputDate;
 
-  // DISPLAY
-  format(fmt) {
-    return this._date.toFormat(fmt);
-  },
+  return ({
+    // GETTER
+    get _date() {
+      return _date;
+    },
 
-  // QUERY
-  isSame(miscTypeOtherDate, unit) {
-    const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+    // DISPLAY
+    format(fmt) {
+      return _date.toFormat(fmt);
+    },
 
-    return this._date.hasSame(otherDate, unit);
-  },
+    // QUERY
+    isSame(miscTypeOtherDate, unit) {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
-  isSameOrBefore(miscTypeOtherDate, unit = 'millisecond') {
-    const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+      return _date.hasSame(otherDate, unit);
+    },
 
-    return (this._date.hasSame(otherDate, unit) || this._date.startOf(unit) < otherDate.startOf(unit));
-  },
+    isSameOrBefore(miscTypeOtherDate, unit = 'millisecond') {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
-  // MANIPULATE
-  diff(miscTypeOtherDate, unit = 'milliseconds', typeFloat = false) {
-    const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
-    const floatDiff = this._date.diff(otherDate, unit).as(unit);
+      return (_date.hasSame(otherDate, unit) || _date.startOf(unit) < otherDate.startOf(unit));
+    },
 
-    if (typeFloat) return floatDiff;
-    return floatDiff > 0 ? Math.floor(floatDiff) : Math.ceil(floatDiff);
-  },
-});
+    // MANIPULATE
+    diff(miscTypeOtherDate, unit = 'milliseconds', typeFloat = false) {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+      const floatDiff = _date.diff(otherDate, unit).as(unit);
+
+      if (typeFloat) return floatDiff;
+      return floatDiff > 0 ? Math.floor(floatDiff) : Math.ceil(floatDiff);
+    },
+  });
+};
 
 exports._formatMiscToCompaniDate = (...args) => {
   if (!args.length) return luxon.DateTime.now();
