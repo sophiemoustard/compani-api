@@ -17,10 +17,10 @@ const companiDateFactory = _date => ({
     return this._date.hasSame(otherDate, unit);
   },
 
-  isSameOrBefore(miscTypeOtherDate) {
+  isSameOrBefore(miscTypeOtherDate, unit = 'millisecond') {
     const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
-    return this._date <= otherDate;
+    return (this._date.hasSame(otherDate, unit) || this._date.startOf(unit) < otherDate.startOf(unit));
   },
 
   // MANIPULATE

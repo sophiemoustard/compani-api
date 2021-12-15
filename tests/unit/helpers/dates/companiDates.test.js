@@ -133,10 +133,28 @@ describe('QUERY', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
     });
 
+    it('should return true if after but same as specified unit', () => {
+      otherDate = new Date('2021-11-24T06:00:00.000Z');
+
+      const result = companiDate.isSameOrBefore(otherDate, 'day');
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
+
     it('should return false if after', () => {
       otherDate = new Date('2021-11-23T10:00:00.000Z');
 
       const result = companiDate.isSameOrBefore(otherDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+    });
+
+    it('should return false if after specified unit', () => {
+      otherDate = new Date('2021-11-24T06:00:00.000Z');
+
+      const result = companiDate.isSameOrBefore(otherDate, 'minute');
 
       expect(result).toBe(false);
       sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
@@ -158,6 +176,7 @@ describe('QUERY', () => {
     });
   });
 });
+
 describe('MANIPULATE', () => {
   describe('diff', () => {
     let _formatMiscToCompaniDate;
