@@ -4,8 +4,8 @@ const { ObjectID } = require('mongodb');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
-const { fn: momentProto } = require('moment');
 const Boom = require('@hapi/boom');
+const luxon = require('../../../src/helpers/dates/luxon');
 const Course = require('../../../src/models/Course');
 const User = require('../../../src/models/User');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
@@ -1802,7 +1802,7 @@ describe('generateCompletionCertificate', () => {
   let formatIdentity;
   let createDocx;
   let generateZip;
-  let momentFormat;
+  let luxonNow;
   let createReadStream;
   let downloadFileById;
   let tmpDir;
@@ -1812,7 +1812,7 @@ describe('generateCompletionCertificate', () => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
     createDocx = sinon.stub(DocxHelper, 'createDocx');
     generateZip = sinon.stub(ZipHelper, 'generateZip');
-    momentFormat = sinon.stub(momentProto, 'format').returns('20/01/2020');
+    luxonNow = sinon.stub(luxon.DateTime, 'now');
     createReadStream = sinon.stub(fs, 'createReadStream');
     downloadFileById = sinon.stub(Drive, 'downloadFileById');
     tmpDir = sinon.stub(os, 'tmpdir').returns('/path');
@@ -1823,13 +1823,14 @@ describe('generateCompletionCertificate', () => {
     formatIdentity.restore();
     createDocx.restore();
     generateZip.restore();
-    momentFormat.restore();
+    luxonNow.restore();
     createReadStream.restore();
     downloadFileById.restore();
     tmpDir.restore();
   });
 
   it('should download completion certificates', async () => {
+    const currentTimeISO = '2020-01-20T07:00:00.000Z';
     const courseId = new ObjectID();
     const readable1 = new PassThrough();
     const readable2 = new PassThrough();
@@ -1851,7 +1852,7 @@ describe('generateCompletionCertificate', () => {
     createDocx.onCall(0).returns('1.docx');
     createDocx.onCall(1).returns('2.docx');
     createDocx.onCall(2).returns('3.docx');
-    momentFormat.returns('20/01/2020');
+    luxonNow.returns(luxon.DateTime.fromISO(currentTimeISO));
     formatIdentity.onCall(0).returns('trainee 1');
     formatIdentity.onCall(1).returns('trainee 2');
     formatIdentity.onCall(2).returns('trainee 3');
