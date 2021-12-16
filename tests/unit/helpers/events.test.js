@@ -1005,12 +1005,12 @@ describe('deleteCustomerEvents', () => {
   });
 
   it('should delete all events between start and end date and not delete the repetition', async () => {
-    const startDate = '2019-10-10';
-    const endDate = '2019-10-19';
+    const startDate = '2019-10-09T00:00:00.000Z';
+    const endDate = '2019-10-11T23:59:59.999Z';
     const absenceType = '';
     const query = {
       customer: customerId,
-      startDate: { $gte: moment(startDate).toDate(), $lte: moment(endDate).endOf('d').toDate() },
+      startDate: { $gte: moment(startDate).toDate(), $lte: endDate },
       company: credentials.company._id,
     };
 
@@ -1036,15 +1036,14 @@ describe('deleteCustomerEvents', () => {
 
   it('should create customer absence if absenceType is in query', async () => {
     const startDate = new Date('2021-10-09T22:00:00.000Z');
-    const endDate = new Date('2021-10-12T22:00:00.000Z');
-    const formattedEndDate = new Date('2021-10-13T21:59:59.999Z');
+    const endDate = new Date('2021-10-13T21:59:59.999Z');
     const absenceType = 'leave';
     const query = {
       customer: customerId,
-      startDate: { $gte: moment(startDate).toDate(), $lte: moment(endDate).endOf('d').toDate() },
+      startDate: { $gte: moment(startDate).toDate(), $lte: endDate },
       company: credentials.company._id,
     };
-    const queryCustomer = { customer: query.customer, startDate, endDate: formattedEndDate, absenceType };
+    const queryCustomer = { customer: query.customer, startDate, endDate, absenceType };
 
     await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, absenceType, credentials);
 
