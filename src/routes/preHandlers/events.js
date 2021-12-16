@@ -202,7 +202,7 @@ exports.authorizeEventDeletionList = async (req) => {
     const customerCount = await Customer.countDocuments({
       _id: req.query.customer,
       company: get(credentials, 'company._id'),
-      stoppedAt: { $lte: req.query.endDate },
+      stoppedAt: { $lt: req.query.endDate },
     });
     if (customerCount) throw Boom.forbidden(translate[language].stoppedCustomer);
 
