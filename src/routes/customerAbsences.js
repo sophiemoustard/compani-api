@@ -1,6 +1,10 @@
 const Joi = require('joi');
-const { authorizeCustomerAbsenceGet, authorizeCustomerAbsenceUpdate } = require('./preHandlers/customerAbsences');
-const { list, update } = require('../controllers/customerAbsenceController');
+const {
+  authorizeCustomerAbsenceGet,
+  authorizeCustomerAbsenceUpdate,
+  authorizeCustomerAbsenceDeletion,
+} = require('./preHandlers/customerAbsences');
+const { list, update, remove } = require('../controllers/customerAbsenceController');
 const { objectIdOrArray } = require('./validations/utils');
 const { CUSTOMER_ABSENCE_TYPE } = require('../models/CustomerAbsence');
 
@@ -40,6 +44,17 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerAbsenceUpdate }],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['events:edit'] },
+        validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
+        pre: [{ method: authorizeCustomerAbsenceDeletion }],
+      },
+      handler: remove,
     });
   },
 };

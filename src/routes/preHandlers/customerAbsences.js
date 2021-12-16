@@ -42,3 +42,12 @@ exports.authorizeCustomerAbsenceUpdate = async (req) => {
 
   return null;
 };
+
+exports.authorizeCustomerAbsenceDeletion = async (req) => {
+  const companyId = get(req.auth, 'credentials.company._id');
+
+  const customerAbsence = await CustomerAbsence.countDocuments({ _id: req.params._id, company: companyId });
+  if (!customerAbsence) throw Boom.notFound();
+
+  return null;
+};
