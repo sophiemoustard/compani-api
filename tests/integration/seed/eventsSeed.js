@@ -293,7 +293,7 @@ const customerAuxiliaries = [
       },
       phone: '0612345671',
     },
-    stoppedAt: '2021-01-16T17:58:15.519Z',
+    stoppedAt: '2021-01-16T23:59:59.999Z',
     stopReason: 'quality',
     archivedAt: '2021-09-16T17:58:15.519Z',
   },
@@ -312,6 +312,28 @@ const customerAuxiliaries = [
       },
       phone: '0612345671',
     },
+  },
+  { // 4 - stopped not archived
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { firstname: 'Pierre', lastname: 'Jean' },
+    subscriptions: [
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
+      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
+    ],
+    contact: {
+      primaryAddress: {
+        street: '37 rue de Ponthieu',
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0612345671',
+    },
+    stoppedAt: '2021-01-16T23:59:59.999Z',
+    stopReason: 'quality',
   },
 ];
 
