@@ -140,15 +140,12 @@ describe('QUERY', () => {
     });
 
     it('should return false if after', () => {
-      try {
-        otherDate = new Date('2021-11-23T10:00:00.000Z');
+      otherDate = new Date('2021-11-23T10:00:00.000Z');
 
-        companiDate.isSameOrBefore(otherDate);
-      } catch (e) {
-        expect(e).toBe(new Error('Invalid DateTime: wrong arguments'));
-      } finally {
-        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
-      }
+      const result = companiDate.isSameOrBefore(otherDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
     it('should return false if after specified unit', () => {
@@ -157,7 +154,7 @@ describe('QUERY', () => {
       const result = companiDate.isSameOrBefore(otherDate, 'minute');
 
       expect(result).toBe(false);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
     it('should return error if invalid argument', () => {
@@ -191,7 +188,7 @@ describe('MANIPULATE', () => {
       const expectedDiffInMillis = 1 * 60 * 60 * 1000 + 30 * 60 * 1000 + 12 * 1000;
 
       expect(result).toBe(expectedDiffInMillis);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
     it('should return difference in positive days', () => {
@@ -199,7 +196,7 @@ describe('MANIPULATE', () => {
       const result = companiDate.diff(otherDate, 'days');
 
       expect(result).toBe(4);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
     it('should return difference in days. Result should be 0 if difference is less then 24h', () => {
@@ -207,7 +204,7 @@ describe('MANIPULATE', () => {
       const result = companiDate.diff(otherDate, 'days');
 
       expect(result).toBe(0);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
     it('should return difference in positive floated days', () => {
@@ -216,7 +213,7 @@ describe('MANIPULATE', () => {
 
       expect(result).toBeGreaterThan(0);
       expect(result - 1.54).toBeLessThan(0.01); // 1.54 days = 1 day and 13 hours
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
     it('should return difference in negative days', () => {
@@ -224,7 +221,7 @@ describe('MANIPULATE', () => {
       const result = companiDate.diff(otherDate, 'days');
 
       expect(result).toBe(-6);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
     it('should return difference in negative floated days', () => {
@@ -233,7 +230,7 @@ describe('MANIPULATE', () => {
 
       expect(result).toBeLessThan(0);
       expect(Math.abs(result) - 5.91).toBeLessThan(0.01); // 5.91 days = 5 days and 22 hours
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), otherDate);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
     it('should return error if invalid argument', () => {
@@ -242,7 +239,7 @@ describe('MANIPULATE', () => {
       } catch (e) {
         expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
       } finally {
-        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), null);
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
       }
     });
   });
