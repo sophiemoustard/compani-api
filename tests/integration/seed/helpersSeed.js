@@ -44,7 +44,7 @@ const customerFromOtherCompany = {
 const helperFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Guigui', lastname: 'toto' },
-  local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
+  local: { email: 'othercompany@alenvi.io' },
   role: { client: helperRoleId },
   refreshToken: uuidv4(),
   inactivityDate: null,
@@ -54,7 +54,7 @@ const helperFromOtherCompany = {
 const usersSeedList = [{
   _id: new ObjectID(),
   identity: { firstname: 'Helper1', lastname: 'Carolyn' },
-  local: { email: 'carolyn@alenvi.io', password: '123456!eR' },
+  local: { email: 'carolyn@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: helperRoleId },
   origin: WEBAPP,
@@ -85,17 +85,17 @@ const helpersList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create([...usersSeedList, helperFromOtherCompany]);
-  await Customer.create([customerFromOtherCompany, customer]);
-  await Helper.create(helpersList);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([
+    User.create([...usersSeedList, helperFromOtherCompany]),
+    Customer.create([customerFromOtherCompany, customer]),
+    Helper.create(helpersList),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {
-  usersSeedList,
   populateDB,
   customer,
   customerFromOtherCompany,
-  helperFromOtherCompany,
   helpersList,
 };
