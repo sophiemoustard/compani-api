@@ -20,7 +20,7 @@ const internalHourUsers = [{
 }, {
   _id: new ObjectID(),
   identity: { firstname: 'internal', lastname: 'Test' },
-  local: { email: 'auxiliary_internal_hour@alenvi.io', password: '123456!eR' },
+  local: { email: 'auxiliary_internal_hour@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: auxiliaryRoleId },
   origin: WEBAPP,
@@ -73,10 +73,12 @@ const eventList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Event.insertMany(eventList);
-  await InternalHour.insertMany([...internalHoursList, ...authInternalHoursList]);
-  await User.create(internalHourUsers);
-  await UserCompany.insertMany(internalHourUserCompanies);
+  await Promise.all([
+    Event.create(eventList),
+    InternalHour.create([...internalHoursList, ...authInternalHoursList]),
+    User.create(internalHourUsers),
+    UserCompany.create(internalHourUserCompanies),
+  ]);
 };
 
 module.exports = {
