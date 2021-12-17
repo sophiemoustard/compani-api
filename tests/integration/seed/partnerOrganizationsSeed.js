@@ -24,7 +24,7 @@ const partnerOrganizationsList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await PartnerOrganization.insertMany(partnerOrganizationsList);
+  await PartnerOrganization.create(partnerOrganizationsList);
 };
 
 module.exports = {
