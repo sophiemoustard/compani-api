@@ -316,12 +316,8 @@ const customerAuxiliaries = [
   { // 4 - stopped not archived
     _id: new ObjectID(),
     company: authCompany._id,
-    identity: { firstname: 'Pierre', lastname: 'Jean' },
-    subscriptions: [
-      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
-      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
-      { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
-    ],
+    identity: { firstname: 'Hassan', lastname: 'Cehef' },
+    subscriptions: [{ _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id }],
     contact: {
       primaryAddress: {
         street: '37 rue de Ponthieu',
@@ -330,7 +326,7 @@ const customerAuxiliaries = [
         city: 'Paris',
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
-      phone: '0612345671',
+      phone: '0712345678',
     },
     stoppedAt: '2021-01-16T23:59:59.999Z',
     stopReason: 'quality',
