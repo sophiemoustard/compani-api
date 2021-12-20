@@ -36,10 +36,14 @@ const formatAndCheckAuthorization = async (courseId, credentials) => {
 
 const checkPayload = async (courseId, payload) => {
   const { startDate, endDate, step: stepId } = payload;
-  const hasBothOrNeitherDates = (startDate && endDate) || (!startDate && !endDate);
-  const sameDay = CompaniDate(startDate).isSame(endDate, 'day');
-  const startDateBeforeEndDate = CompaniDate(startDate).isSameOrBefore(endDate);
-  if (!(hasBothOrNeitherDates && sameDay && startDateBeforeEndDate)) throw Boom.badRequest();
+  const hasBothDates = !!(startDate && endDate);
+  const hasOneDate = !!(startDate || endDate);
+  if (hasOneDate) {
+    if (!hasBothDates) throw Boom.badRequest();
+    const sameDay = CompaniDate(startDate).isSame(endDate, 'day');
+    const startDateBeforeEndDate = CompaniDate(startDate).isSameOrBefore(endDate);
+    if (!(sameDay && startDateBeforeEndDate)) throw Boom.badRequest();
+  }
 
   if (stepId) {
     const course = await Course.findById(courseId).populate({ path: 'subProgram', select: 'steps' }).lean();
