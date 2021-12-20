@@ -12,7 +12,7 @@ const payDocumentUsers = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Bob', lastname: 'Marley' },
-    local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456!eR' },
+    local: { email: 'paydocumentauxiliary@alenvi.io' },
     role: { client: auxiliaryRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
@@ -38,7 +38,7 @@ const userFromOtherCompany = {
   company: otherCompanyId,
   _id: new ObjectID(),
   identity: { firstname: 'test', lastname: 'toto' },
-  local: { email: 'test@alenvi.io', password: '123456!eR' },
+  local: { email: 'test@alenvi.io' },
   role: { client: clientAdminRoleId },
   refreshToken: uuidv4(),
   origin: WEBAPP,
@@ -93,9 +93,11 @@ const payDocumentsList = [{
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create([...payDocumentUsers, userFromOtherCompany]);
-  await UserCompany.insertMany(payDocumentUserCompanies);
-  await PayDocument.insertMany(payDocumentsList);
+  await Promise.all([
+    User.create([...payDocumentUsers, userFromOtherCompany]),
+    UserCompany.create(payDocumentUserCompanies),
+    PayDocument.create(payDocumentsList),
+  ]);
 };
 
 module.exports = {

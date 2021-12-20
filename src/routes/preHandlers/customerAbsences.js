@@ -37,8 +37,17 @@ exports.authorizeCustomerAbsenceUpdate = async (req) => {
   if (customerAbsenceCount) throw Boom.forbidden(translate[language].customerAbsencesConflict);
 
   const customerCount = await Customer
-    .countDocuments({ _id: customerAbsence.customer, company: companyId, stoppedAt: { $lte: payload.endDate } });
+    .countDocuments({ _id: customerAbsence.customer, company: companyId, stoppedAt: { $lt: payload.endDate } });
   if (customerCount) throw Boom.forbidden(translate[language].stoppedCustomer);
+
+  return null;
+};
+
+exports.authorizeCustomerAbsenceDeletion = async (req) => {
+  const companyId = get(req.auth, 'credentials.company._id');
+
+  const customerAbsence = await CustomerAbsence.countDocuments({ _id: req.params._id, company: companyId });
+  if (!customerAbsence) throw Boom.notFound();
 
   return null;
 };

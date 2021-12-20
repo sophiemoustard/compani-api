@@ -44,3 +44,5 @@ exports.updateCustomerAbsencesOnCustomerStop = async (customer, stoppedDate) => 
     { endDate: stoppedDate }
   );
 };
+
+exports.delete = async customerAbsenceId => CustomerAbsence.deleteOne({ _id: customerAbsenceId });

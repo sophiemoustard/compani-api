@@ -173,7 +173,7 @@ const paymentNumberList = [
 const paymentUser = {
   _id: new ObjectID(),
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-  local: { email: 'helper_for_customer_payment@alenvi.io', password: '123456!eR' },
+  local: { email: 'helper_for_customer_payment@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: helperRoleId },
   company: authCompany._id,
@@ -229,22 +229,23 @@ const tppFromOtherCompany = {
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Customer.insertMany(paymentCustomerList);
-  await ThirdPartyPayer.insertMany(paymentTppList);
-  await Payment.insertMany(paymentsList);
-  await PaymentNumber.insertMany(paymentNumberList);
-  await UserCompany.insertMany(userCompanies);
-  await Helper.insertMany(helpersList);
-  await User.create(paymentUser, userFromOtherCompany);
-  await Customer.create(customerFromOtherCompany);
-  await ThirdPartyPayer.create(tppFromOtherCompany);
+  await Promise.all([
+    Customer.create(paymentCustomerList),
+    ThirdPartyPayer.create(paymentTppList),
+    Payment.create(paymentsList),
+    PaymentNumber.create(paymentNumberList),
+    UserCompany.create(userCompanies),
+    Helper.create(helpersList),
+    User.create(paymentUser, userFromOtherCompany),
+    Customer.create(customerFromOtherCompany),
+    ThirdPartyPayer.create(tppFromOtherCompany),
+  ]);
 };
 
 module.exports = {
   paymentsList,
   populateDB,
   paymentCustomerList,
-  paymentUser,
   userFromOtherCompany,
   customerFromOtherCompany,
   tppFromOtherCompany,

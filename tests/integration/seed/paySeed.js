@@ -30,7 +30,7 @@ const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: oth
 
 const user = {
   _id: new ObjectID(),
-  local: { email: 'test4@alenvi.io', password: '123456!eR' },
+  local: { email: 'test4@alenvi.io' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
   role: { client: coachRoleId },
@@ -41,7 +41,7 @@ const auxiliaries = [
   {
     _id: auxiliaryId0,
     identity: { firstname: 'Test7', lastname: 'auxiliary' },
-    local: { email: 'test7@alenvi.io', password: '123456!eR' },
+    local: { email: 'test7@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [contractId0],
@@ -50,7 +50,7 @@ const auxiliaries = [
   {
     _id: auxiliaryId1,
     identity: { firstname: 'OtherTest', lastname: 'Test8' },
-    local: { email: 'test8@alenvi.io', password: '123456!eR' },
+    local: { email: 'test8@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     contracts: [contractId1],
@@ -61,7 +61,7 @@ const auxiliaries = [
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'otherCompany', lastname: 'Chloe' },
-  local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
+  local: { email: 'othercompany@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: auxiliaryRoleId },
   contracts: [contractId1],
@@ -343,15 +343,17 @@ const payList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Sector.create([...sectors, sectorFromOtherCompany]);
-  await SectorHistory.create(sectorHistories);
-  await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
-  await Customer.create(customer);
-  await Service.create(service);
-  await Event.create([event, ...absences]);
-  await Contract.insertMany(contracts);
-  await Pay.insertMany(payList);
-  await UserCompany.insertMany(userCompanyList);
+  await Promise.all([
+    Sector.create([...sectors, sectorFromOtherCompany]),
+    SectorHistory.create(sectorHistories),
+    User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]),
+    Customer.create(customer),
+    Service.create(service),
+    Event.create([event, ...absences]),
+    Contract.create(contracts),
+    Pay.create(payList),
+    UserCompany.create(userCompanyList),
+  ]);
 };
 
 module.exports = {

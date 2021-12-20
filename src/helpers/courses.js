@@ -4,7 +4,6 @@ const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const fs = require('fs');
 const os = require('os');
-const moment = require('moment');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -494,8 +493,8 @@ exports.formatCourseForDocx = course => ({
   duration: exports.getCourseDuration(course.slots),
   learningGoals: get(course, 'subProgram.program.learningGoals') || '',
   programName: get(course, 'subProgram.program.name').toUpperCase() || '',
-  startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
-  endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
+  startDate: CompaniDate(course.slots[0].startDate).format('dd/LL/yyyy'),
+  endDate: CompaniDate(course.slots[course.slots.length - 1].endDate).format('dd/LL/yyyy'),
 });
 
 exports.generateCompletionCertificates = async (courseId) => {
@@ -516,7 +515,7 @@ exports.generateCompletionCertificates = async (courseId) => {
     const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
     const filePath = await DocxHelper.createDocx(
       certificateTemplatePath,
-      { ...courseData, traineeIdentity, date: moment().format('DD/MM/YYYY') }
+      { ...courseData, traineeIdentity, date: CompaniDate().format('dd/LL/yyyy') }
     );
 
     return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
@@ -549,7 +548,7 @@ exports.formatCourseForConvocationPdf = (course) => {
     ...(get(groupedSlots[0], 'address.fullAddress') && { address: get(groupedSlots[0], 'address.fullAddress') }),
     ...(groupedSlots[0].meetingLink && { meetingLink: groupedSlots[0].meetingLink }),
     hours: exports.formatHoursForConvocation(groupedSlots),
-    date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
+    date: CompaniDate(groupedSlots[0].startDate).format('dd/LL/yyyy'),
   }));
   const contact = {
     formattedIdentity: UtilsHelper.formatIdentity(get(course, 'contact.identity'), 'FL'),

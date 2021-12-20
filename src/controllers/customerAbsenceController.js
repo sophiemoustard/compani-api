@@ -31,4 +31,15 @@ const update = async (req) => {
   }
 };
 
-module.exports = { list, update };
+const remove = async (req) => {
+  try {
+    await CustomerAbsencesHelper.delete(req.params._id);
+
+    return { message: translate[language].customerAbsenceDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, update, remove };

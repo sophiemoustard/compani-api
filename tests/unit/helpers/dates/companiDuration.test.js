@@ -153,11 +153,14 @@ describe('_formatMiscToCompaniDuration', () => {
   });
 
   it('should return invalid if wrong input', () => {
-    const result = CompaniDurationsHelper._formatMiscToCompaniDuration(23232323, 'minutes');
-
-    expect(result instanceof luxon.Duration).toBe(true);
-    sinon.assert.calledOnceWithExactly(invalid, 'wrong arguments');
-    sinon.assert.notCalled(fromObject);
-    sinon.assert.notCalled(fromMillis);
+    try {
+      CompaniDurationsHelper._formatMiscToCompaniDuration(23232323, 'minutes');
+    } catch (e) {
+      expect(e).toEqual(new Error('Invalid Duration: wrong arguments'));
+    } finally {
+      sinon.assert.calledOnceWithExactly(invalid, 'wrong arguments');
+      sinon.assert.notCalled(fromObject);
+      sinon.assert.notCalled(fromMillis);
+    }
   });
 });

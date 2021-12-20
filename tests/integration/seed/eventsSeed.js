@@ -149,7 +149,7 @@ const sectorHistories = [
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Jean', lastname: 'Martin' },
-  local: { email: 'j@m.com', password: '123456!eR' },
+  local: { email: 'j@m.com' },
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
   role: { client: clientAdminRoleId },
@@ -293,7 +293,7 @@ const customerAuxiliaries = [
       },
       phone: '0612345671',
     },
-    stoppedAt: '2021-01-16T17:58:15.519Z',
+    stoppedAt: '2021-01-16T23:59:59.999Z',
     stopReason: 'quality',
     archivedAt: '2021-09-16T17:58:15.519Z',
   },
@@ -312,6 +312,24 @@ const customerAuxiliaries = [
       },
       phone: '0612345671',
     },
+  },
+  { // 4 - stopped not archived
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { firstname: 'Hassan', lastname: 'Cehef' },
+    subscriptions: [{ _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: services[0]._id }],
+    contact: {
+      primaryAddress: {
+        street: '37 rue de Ponthieu',
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0712345678',
+    },
+    stoppedAt: '2021-01-16T23:59:59.999Z',
+    stopReason: 'quality',
   },
 ];
 
@@ -1054,22 +1072,24 @@ const creditNoteFromOtherCompany = {
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Event.insertMany([...eventsList, eventFromOtherCompany]);
-  await Repetition.insertMany(repetitions);
-  await Sector.insertMany(sectors);
-  await SectorHistory.insertMany([...sectorHistories, sectorHistoryFromOtherCompany]);
-  await DistanceMatrix.insertMany(distanceMatrixList);
-  await User.create([...auxiliaries, helpersCustomer, auxiliaryFromOtherCompany]);
-  await Contract.insertMany(contracts);
-  await Customer.insertMany([...customerAuxiliaries, customerFromOtherCompany]);
-  await ThirdPartyPayer.insertMany([thirdPartyPayer, thirdPartyPayerFromOtherCompany]);
-  await Service.insertMany([...services, serviceFromOtherCompany]);
-  await InternalHour.insertMany([internalHour, internalHourFromOtherCompany]);
-  await Helper.insertMany(helpersList);
-  await EventHistory.insertMany(eventHistoriesList);
-  await UserCompany.insertMany(userCompanies);
-  await CreditNote.insertMany([creditNote, creditNoteFromOtherCompany]);
-  await CustomerAbsence.insertMany(customerAbsences);
+  await Promise.all([
+    Event.create([...eventsList, eventFromOtherCompany]),
+    Repetition.create(repetitions),
+    Sector.create(sectors),
+    SectorHistory.create([...sectorHistories, sectorHistoryFromOtherCompany]),
+    DistanceMatrix.create(distanceMatrixList),
+    User.create([...auxiliaries, helpersCustomer, auxiliaryFromOtherCompany]),
+    Contract.create(contracts),
+    Customer.create([...customerAuxiliaries, customerFromOtherCompany]),
+    ThirdPartyPayer.create([thirdPartyPayer, thirdPartyPayerFromOtherCompany]),
+    Service.create([...services, serviceFromOtherCompany]),
+    InternalHour.create([internalHour, internalHourFromOtherCompany]),
+    Helper.create(helpersList),
+    EventHistory.create(eventHistoriesList),
+    UserCompany.create(userCompanies),
+    CreditNote.create([creditNote, creditNoteFromOtherCompany]),
+    CustomerAbsence.create(customerAbsences),
+  ]);
 };
 
 const getUserToken = async (userCredentials) => {
