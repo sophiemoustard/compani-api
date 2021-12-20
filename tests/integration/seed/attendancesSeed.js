@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Attendance = require('../../../src/models/Attendance');
 const Course = require('../../../src/models/Course');
@@ -12,7 +12,7 @@ const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed')
 
 const userList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'course', lastname: 'Trainer' },
     refreshToken: uuidv4(),
     local: { email: 'trainerWithCourse@alenvi.io', password: '123456!eR' },
@@ -20,7 +20,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'trainer', lastname: 'noCourse' },
     refreshToken: uuidv4(),
     local: { email: 'trainerNoCourse@alenvi.io', password: '123456!eR' },
@@ -28,7 +28,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'salesrep', lastname: 'noCourse' },
     refreshToken: uuidv4(),
     local: { email: 'salerep@compani.fr' },
@@ -39,56 +39,56 @@ const userList = [
 
 const coursesList = [
   { // 0
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'intra',
-    trainees: [new ObjectID(), new ObjectID()],
+    trainees: [new ObjectId(), new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
   { // 1
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'intra',
-    trainees: [new ObjectID()],
+    trainees: [new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
   { // 2
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     company: otherCompany._id,
     type: 'intra',
-    trainees: [new ObjectID()],
+    trainees: [new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
   { // 3 interb2b
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'inter_b2b',
-    trainees: [new ObjectID(), new ObjectID()],
+    trainees: [new ObjectId(), new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
   { // 4 interb2b with only trainees from otherCompany
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'inter_b2b',
-    trainees: [new ObjectID()],
+    trainees: [new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
   { // 5 archived
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'intra',
-    trainees: [new ObjectID(), new ObjectID()],
+    trainees: [new ObjectId(), new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
     archivedAt: '2021-11-17T23:00:00',
@@ -97,54 +97,54 @@ const coursesList = [
 
 const slotsList = [
   { // 0
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[0],
-    step: new ObjectID(),
+    step: new ObjectId(),
   },
   { // 1
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[0],
-    step: new ObjectID(),
+    step: new ObjectId(),
   },
   { // 2 - slot from other company's course
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[2],
-    step: new ObjectID(),
+    step: new ObjectId(),
   },
   { // 3 - slot for coursesList[3]
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[3],
-    step: new ObjectID(),
+    step: new ObjectId(),
   },
   { // 4 - slot for coursesList[4]
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[4],
-    step: new ObjectID(),
+    step: new ObjectId(),
   },
   { // 5 - slot for coursesList[5]
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: new Date('2020-01-23').toISOString(),
     endDate: new Date('2020-01-23').toISOString(),
     course: coursesList[5],
-    step: new ObjectID(),
+    step: new ObjectId(),
   },
 ];
 
 const attendancesList = [
-  { _id: new ObjectID(), courseSlot: slotsList[0], trainee: coursesList[0].trainees[0] },
-  { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[0] },
-  { _id: new ObjectID(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[1] },
-  { _id: new ObjectID(), courseSlot: slotsList[5], trainee: coursesList[5].trainees[1] },
+  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: coursesList[0].trainees[0] },
+  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[0] },
+  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[1] },
+  { _id: new ObjectId(), courseSlot: slotsList[5], trainee: coursesList[5].trainees[1] },
 ];
 
 const companyTraineesList = [
@@ -155,7 +155,7 @@ const companyTraineesList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Player', lastname: 'withoutCompany' },
     local: { email: 'traineeWithoutCompany@alenvi.io' },
     origin: WEBAPP,

@@ -1,7 +1,7 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 const authCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Test SAS',
   tradeName: 'Test',
   prefixNumber: 101,
@@ -37,7 +37,7 @@ const authCompany = {
 };
 
 const otherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Un autre SAS',
   tradeName: 'Paslameme',
   prefixNumber: 106,
@@ -64,7 +64,7 @@ const otherCompany = {
 };
 
 const companyWithoutSubscription = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Test SAS withtout subscription',
   tradeName: 'ehohehoh',
   prefixNumber: 103,

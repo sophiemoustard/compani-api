@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const {
   VENDOR_ADMIN,
   CLIENT_ADMIN,
@@ -14,15 +14,15 @@ const {
 } = require('../../src/helpers/constants');
 
 const rolesList = [
-  { _id: new ObjectID(), name: VENDOR_ADMIN, interface: VENDOR },
-  { _id: new ObjectID(), name: CLIENT_ADMIN, interface: CLIENT },
-  { _id: new ObjectID(), name: COACH, interface: CLIENT },
-  { _id: new ObjectID(), name: AUXILIARY, interface: CLIENT },
-  { _id: new ObjectID(), name: AUXILIARY_WITHOUT_COMPANY, interface: CLIENT },
-  { _id: new ObjectID(), name: PLANNING_REFERENT, interface: CLIENT },
-  { _id: new ObjectID(), name: HELPER, interface: CLIENT },
-  { _id: new ObjectID(), name: TRAINING_ORGANISATION_MANAGER, interface: VENDOR },
-  { _id: new ObjectID(), name: TRAINER, interface: VENDOR },
+  { _id: new ObjectId(), name: VENDOR_ADMIN, interface: VENDOR },
+  { _id: new ObjectId(), name: CLIENT_ADMIN, interface: CLIENT },
+  { _id: new ObjectId(), name: COACH, interface: CLIENT },
+  { _id: new ObjectId(), name: AUXILIARY, interface: CLIENT },
+  { _id: new ObjectId(), name: AUXILIARY_WITHOUT_COMPANY, interface: CLIENT },
+  { _id: new ObjectId(), name: PLANNING_REFERENT, interface: CLIENT },
+  { _id: new ObjectId(), name: HELPER, interface: CLIENT },
+  { _id: new ObjectId(), name: TRAINING_ORGANISATION_MANAGER, interface: VENDOR },
+  { _id: new ObjectId(), name: TRAINER, interface: VENDOR },
 ];
 
 const trainerRoleId = rolesList.find(r => r.name === TRAINER)._id;

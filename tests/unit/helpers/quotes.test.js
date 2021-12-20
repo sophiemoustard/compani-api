@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const expect = require('expect');
 const SinonMongoose = require('../sinonMongoose');
@@ -49,7 +49,7 @@ describe('getQuoteNumber', () => {
   });
 
   it('should return quote number', async () => {
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
@@ -106,7 +106,7 @@ describe('createQuote', () => {
     const payload = {
       subscriptions: [{ service: { name: 'Autonomie' }, unitTTCRate: 24, estimatedWeeklyVolume: 12 }],
     };
-    const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
+    const credentials = { company: { _id: new ObjectId(), prefixNumber: 101 } };
 
     getQuoteNumberStub.returns({ prefix: 'pre', seq: 2 });
     formatQuoteNumberStub.returns('pre-002');

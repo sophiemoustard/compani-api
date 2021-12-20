@@ -2,7 +2,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Event = require('../../../../src/models/Event');
 const Pay = require('../../../../src/models/Pay');
 const Absences123PayHelper = require('../../../../src/helpers/123paie/absences');
@@ -34,8 +34,8 @@ describe('getAbsences', () => {
   });
 
   it('should return absence from previous month pay date', async () => {
-    const companyId = new ObjectID();
-    const absences = [{ _id: new ObjectID() }];
+    const companyId = new ObjectId();
+    const absences = [{ _id: new ObjectId() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
 
     findPay.returns(
@@ -84,8 +84,8 @@ describe('getAbsences', () => {
   });
 
   it('should return absence from query start date', async () => {
-    const companyId = new ObjectID();
-    const absences = [{ _id: new ObjectID() }];
+    const companyId = new ObjectId();
+    const absences = [{ _id: new ObjectId() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
 
     findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'limit', 'lean']));
@@ -151,7 +151,7 @@ describe('exportsAbsence', () => {
   });
 
   it('should export daily absence for auxiliary with contract', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
     const absences = [{
       absenceNature: 'daily',
@@ -166,7 +166,7 @@ describe('exportsAbsence', () => {
         serialNumber: '0987654321',
         identity: { lastname: 'Compani' },
       },
-      extension: { _id: new ObjectID(), startDate: '2020-11-19T00:00:00' },
+      extension: { _id: new ObjectId(), startDate: '2020-11-19T00:00:00' },
     }];
 
     getAbsences.returns(absences);
@@ -207,7 +207,7 @@ describe('exportsAbsence', () => {
   });
 
   it('should export hourly absence for auxiliary with contract', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
     const absences = [{
       absenceNature: 'hourly',

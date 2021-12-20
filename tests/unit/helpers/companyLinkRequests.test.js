@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const CompanyLinkRequestsHelper = require('../../../src/helpers/companyLinkRequests');
 const SinonMongoose = require('../sinonMongoose');
@@ -15,8 +15,8 @@ describe('create', () => {
   });
 
   it('should create a company link request', async () => {
-    const credentials = { _id: new ObjectID() };
-    const payload = { company: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
+    const payload = { company: new ObjectId() };
 
     await CompanyLinkRequestsHelper.create(payload, credentials);
 
@@ -34,11 +34,11 @@ describe('list', () => {
   });
 
   it('should get all company link requests', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const companyLinkRequestList = [
-      { user: new ObjectID(), company: companyId },
-      { user: new ObjectID(), company: companyId },
+      { user: new ObjectId(), company: companyId },
+      { user: new ObjectId(), company: companyId },
     ];
 
     find.returns(SinonMongoose.stubChainedQueries([companyLinkRequestList]));
@@ -71,7 +71,7 @@ describe('removeCompanyLinkRequest', () => {
   });
 
   it('should remove a company link request', async () => {
-    const companyLinkRequestId = new ObjectID();
+    const companyLinkRequestId = new ObjectId();
 
     await CompanyLinkRequestsHelper.removeCompanyLinkRequest(companyLinkRequestId);
 

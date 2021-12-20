@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Activity = require('../../src/models/Activity');
 const Card = require('../../src/models/Card');
@@ -108,7 +108,7 @@ describe('ACTIVITIES ROUTES - PUT /activity/{_id}', () => {
     });
 
     it('should return a 400 if cards from payload and from db are not the same', async () => {
-      const payload = { cards: [activitiesList[0].cards[1], new ObjectID()] };
+      const payload = { cards: [activitiesList[0].cards[1], new ObjectId()] };
       const response = await app.inject({
         method: 'PUT',
         url: `/activities/${activitiesList[0]._id}`,
@@ -206,7 +206,7 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
     it('should return a 404 if activity does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/activities/${new ObjectID()}/cards`,
+        url: `/activities/${new ObjectId()}/cards`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -281,7 +281,7 @@ describe('ACTIVITIES ROUTES - DELETE /activities/cards/{cardId}', () => {
     it('should return 404 if card not found', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/activities/cards/${new ObjectID()}`,
+        url: `/activities/cards/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

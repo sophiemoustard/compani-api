@@ -1,7 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const DraftFinalPayHelper = require('../../../src/helpers/draftFinalPay');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const ContractHelper = require('../../../src/helpers/contracts');
@@ -224,9 +224,9 @@ describe('computeDraftFinalPay', () => {
 
   it('should compute draft final pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
     const payData = [
       {
@@ -235,16 +235,16 @@ describe('computeDraftFinalPay', () => {
         auxiliary: { _id: auxiliaryId },
       },
       {
-        events: [{ _id: new ObjectID(), events: [{ startDate: '2019-05-04T10:00:00' }] }],
-        absences: [{ _id: new ObjectID(), events: [{ startDate: '2019-05-07T10:00:00' }] }],
-        auxiliary: { _id: new ObjectID() },
+        events: [{ _id: new ObjectId(), events: [{ startDate: '2019-05-04T10:00:00' }] }],
+        absences: [{ _id: new ObjectId(), events: [{ startDate: '2019-05-07T10:00:00' }] }],
+        auxiliary: { _id: new ObjectId() },
       },
     ];
     const prevPay = [
       { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
-      { auxiliary: new ObjectID(), hoursCounter: 25, diff: -3 },
+      { auxiliary: new ObjectId(), hoursCounter: 25, diff: -3 },
     ];
-    const existingPay = [{ auxiliary: new ObjectID() }];
+    const existingPay = [{ auxiliary: new ObjectId() }];
 
     getEventsToPay.returns(payData);
     surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'surcharge' }]], ['lean']));
@@ -296,9 +296,9 @@ describe('computeDraftFinalPay', () => {
 
   it('should compute draft pay on january', async () => {
     const query = { startDate: '2019-01-01T00:00:00', endDate: '2019-01-31T23:59:59' };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
     const payData = [
       {
@@ -307,16 +307,16 @@ describe('computeDraftFinalPay', () => {
         auxiliary: { _id: auxiliaryId },
       },
       {
-        events: [{ _id: new ObjectID(), events: [{ startDate: '2019-01-04T10:00:00' }] }],
-        absences: [{ _id: new ObjectID(), events: [{ startDate: '2019-01-07T10:00:00' }] }],
-        auxiliary: { _id: new ObjectID() },
+        events: [{ _id: new ObjectId(), events: [{ startDate: '2019-01-04T10:00:00' }] }],
+        absences: [{ _id: new ObjectId(), events: [{ startDate: '2019-01-07T10:00:00' }] }],
+        auxiliary: { _id: new ObjectId() },
       },
     ];
     const prevPay = [
       { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
-      { auxiliary: new ObjectID(), hoursCounter: 25, diff: -3 },
+      { auxiliary: new ObjectId(), hoursCounter: 25, diff: -3 },
     ];
-    const existingPay = [{ auxiliary: new ObjectID() }];
+    const existingPay = [{ auxiliary: new ObjectId() }];
 
     getEventsToPay.returns(payData);
     surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'surcharge' }]], ['lean']));
@@ -374,8 +374,8 @@ describe('getDraftPay', () => {
 
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const credentials = { company: { _id: new ObjectID() } };
-    const auxiliaryId = new ObjectID();
+    const credentials = { company: { _id: new ObjectId() } };
+    const auxiliaryId = new ObjectId();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
 
     getAuxiliariesToPay.returns(auxiliaries);

@@ -1,7 +1,7 @@
 const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 
@@ -270,7 +270,7 @@ describe('formatDuration', () => {
 
 describe('areObjectIdsEquals', () => {
   it('should return true if object ids are the same', () => {
-    const id1 = new ObjectID();
+    const id1 = new ObjectId();
     const id2 = id1.toHexString();
 
     const result = UtilsHelper.areObjectIdsEquals(id1, id2);
@@ -279,8 +279,8 @@ describe('areObjectIdsEquals', () => {
   });
 
   it('should return false if object ids are not the same', () => {
-    const id1 = new ObjectID();
-    const id2 = new ObjectID().toHexString();
+    const id1 = new ObjectId();
+    const id2 = new ObjectId().toHexString();
 
     const result = UtilsHelper.areObjectIdsEquals(id1, id2);
 
@@ -289,7 +289,7 @@ describe('areObjectIdsEquals', () => {
 
   it('should return false if one object id is missing', () => {
     const id1 = '';
-    const id2 = new ObjectID().toHexString();
+    const id2 = new ObjectId().toHexString();
 
     const result = UtilsHelper.areObjectIdsEquals(id1, id2);
 
@@ -314,8 +314,8 @@ describe('doesArrayIncludeId', () => {
   afterEach(() => { areObjectIdsEqualStub.restore(); });
 
   it('should return true if the array includes the id', () => {
-    const correctId = new ObjectID();
-    const incorrectId = new ObjectID();
+    const correctId = new ObjectId();
+    const incorrectId = new ObjectId();
     areObjectIdsEqualStub.onCall(0).returns(false);
     areObjectIdsEqualStub.onCall(1).returns(true);
 
@@ -330,7 +330,7 @@ describe('doesArrayIncludeId', () => {
     areObjectIdsEqualStub.onCall(0).returns(false);
     areObjectIdsEqualStub.onCall(1).returns(false);
 
-    const result = UtilsHelper.doesArrayIncludeId([new ObjectID(), new ObjectID()], new ObjectID());
+    const result = UtilsHelper.doesArrayIncludeId([new ObjectId(), new ObjectId()], new ObjectId());
 
     expect(result).toBe(false);
   });

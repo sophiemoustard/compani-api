@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Step = require('../../../src/models/Step');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
@@ -21,7 +21,7 @@ describe('getActivity', () => {
   it('should return the requested activity - with checkSinon and stubChainedQueries', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries([{ _id: 'skusku' }]));
 
-    const activity = { _id: new ObjectID() };
+    const activity = { _id: new ObjectId() };
 
     const result = await ActivityHelper.getActivity(activity._id);
 
@@ -55,7 +55,7 @@ describe('updateActivity', () => {
   });
 
   it('should update an activity\'s name', async () => {
-    const activity = { _id: new ObjectID(), name: 'faire du pedalo' };
+    const activity = { _id: new ObjectId(), name: 'faire du pedalo' };
     const payload = { name: 'faire dodo' };
 
     await ActivityHelper.updateActivity(activity._id, payload);
@@ -83,9 +83,9 @@ describe('addActivity', () => {
   });
 
   it('should create an activity', async () => {
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     const newActivity = { name: 'c\'est une activité !' };
-    const createdActivityId = new ObjectID();
+    const createdActivityId = new ObjectId();
     create.returns({ _id: createdActivityId });
 
     await ActivityHelper.addActivity(stepId, newActivity);
@@ -97,23 +97,23 @@ describe('addActivity', () => {
   });
 
   it('should duplicate an activity', async () => {
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     const activity = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       name: 'danser',
       type: 'quiz',
       cards: [
-        { _id: new ObjectID(), template: 'transition', title: 'coucou' },
-        { _id: new ObjectID(), template: 'title_text', title: 'ok' },
+        { _id: new ObjectId(), template: 'transition', title: 'coucou' },
+        { _id: new ObjectId(), template: 'title_text', title: 'ok' },
       ],
     };
     const newActivity = {
       ...activity,
-      _id: new ObjectID(),
-      cards: activity.cards.map(c => ({ ...c, _id: new ObjectID() })),
+      _id: new ObjectId(),
+      cards: activity.cards.map(c => ({ ...c, _id: new ObjectId() })),
     };
     getActivity.returns(activity);
-    const cards = activity.cards.map(a => ({ ...a, _id: sinon.match(ObjectID) }));
+    const cards = activity.cards.map(a => ({ ...a, _id: sinon.match(ObjectId) }));
     create.returns({ _id: newActivity._id });
 
     await ActivityHelper.addActivity(stepId, { activityId: activity._id });
@@ -139,8 +139,8 @@ describe('detachActivity', () => {
   });
 
   it('should detach activity', async () => {
-    const stepId = new ObjectID();
-    const activityId = new ObjectID();
+    const stepId = new ObjectId();
+    const activityId = new ObjectId();
 
     await ActivityHelper.detachActivity(stepId, activityId);
 
@@ -161,9 +161,9 @@ describe('addCard', () => {
   });
 
   it('should add card to activity', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
     const payload = { template: 'transition' };
-    const activity = { _id: new ObjectID(), name: 'faire du jetski' };
+    const activity = { _id: new ObjectId(), name: 'faire du jetski' };
 
     createCard.returns({ _id: cardId });
 
@@ -190,7 +190,7 @@ describe('removeCard', () => {
   });
 
   it('should remove card without media from activity', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
 
     findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
@@ -208,7 +208,7 @@ describe('removeCard', () => {
   });
 
   it('should remove card with media from activity', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
     const card = { _id: cardId, media: { publicId: 'publicId' } };
 
     findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([card], ['lean']));

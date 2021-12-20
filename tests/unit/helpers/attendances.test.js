@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceHelper = require('../../../src/helpers/attendances');
 const SinonMongoose = require('../sinonMongoose');
@@ -15,7 +15,7 @@ describe('create', () => {
   });
 
   it('should add an attendance', async () => {
-    const newAttendance = { trainee: new ObjectID(), courseSlot: new ObjectID() };
+    const newAttendance = { trainee: new ObjectId(), courseSlot: new ObjectId() };
     const result = await AttendanceHelper.create(newAttendance);
 
     expect(result).toMatchObject(newAttendance);
@@ -32,10 +32,10 @@ describe('list', () => {
   });
 
   it('should return courseSlots\' attendances', async () => {
-    const courseSlots = [new ObjectID(), new ObjectID()];
+    const courseSlots = [new ObjectId(), new ObjectId()];
     const attendancesList = [
-      { trainee: { _id: new ObjectID(), company: new ObjectID() }, courseSlot: courseSlots[0] },
-      { trainee: { _id: new ObjectID(), company: new ObjectID() }, courseSlot: courseSlots[1] },
+      { trainee: { _id: new ObjectId(), company: new ObjectId() }, courseSlot: courseSlots[0] },
+      { trainee: { _id: new ObjectId(), company: new ObjectId() }, courseSlot: courseSlots[1] },
     ];
 
     find.returns(SinonMongoose.stubChainedQueries([attendancesList]));
@@ -54,12 +54,12 @@ describe('list', () => {
   });
 
   it('should return all courseSlots attendances for a company', async () => {
-    const companyId = new ObjectID();
-    const otherCompanyId = new ObjectID();
-    const courseSlots = [new ObjectID(), new ObjectID()];
+    const companyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
+    const courseSlots = [new ObjectId(), new ObjectId()];
     const attendancesList = [
-      { trainee: { _id: new ObjectID(), company: companyId }, courseSlot: courseSlots[0] },
-      { trainee: { _id: new ObjectID(), company: otherCompanyId }, courseSlot: courseSlots[1] },
+      { trainee: { _id: new ObjectId(), company: companyId }, courseSlot: courseSlots[0] },
+      { trainee: { _id: new ObjectId(), company: otherCompanyId }, courseSlot: courseSlots[1] },
     ];
 
     find.returns(SinonMongoose.stubChainedQueries([attendancesList]));
@@ -88,7 +88,7 @@ describe('delete', () => {
   });
 
   it('should remove a category', async () => {
-    const attendanceId = new ObjectID();
+    const attendanceId = new ObjectId();
     await AttendanceHelper.delete(attendanceId);
 
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: attendanceId });

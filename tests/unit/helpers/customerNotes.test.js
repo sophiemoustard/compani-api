@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const CustomerNote = require('../../../src/models/CustomerNote');
 const CustomerNoteHistory = require('../../../src/models/CustomerNoteHistory');
 const CustomerNotesHelper = require('../../../src/helpers/customerNotes');
@@ -20,9 +20,9 @@ describe('create', () => {
   });
 
   it('should create customer note', async () => {
-    const payload = { title: 'title', description: 'description', customer: new ObjectID() };
-    const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-    const customerNote = { _id: new ObjectID(), title: 'title', description: 'description' };
+    const payload = { title: 'title', description: 'description', customer: new ObjectId() };
+    const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId() };
+    const customerNote = { _id: new ObjectId(), title: 'title', description: 'description' };
 
     create.returns(customerNote);
 
@@ -53,11 +53,11 @@ describe('list', () => {
   });
 
   it('should return customer notes', async () => {
-    const customer = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const customer = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const customerNotes = [
-      { _id: new ObjectID(), title: 'test', histories: [{ title: 'title', description: 'description' }] },
-      { _id: new ObjectID(), title: 'test 2' },
+      { _id: new ObjectId(), title: 'test', histories: [{ title: 'title', description: 'description' }] },
+      { _id: new ObjectId(), title: 'test 2' },
     ];
 
     find.returns(SinonMongoose.stubChainedQueries([customerNotes], ['populate', 'sort', 'lean']));
@@ -102,8 +102,8 @@ describe('update', () => {
   });
 
   it('should update customer note and create an history', async () => {
-    const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
-    const customerNote = { _id: new ObjectID(), title: 'test', description: 'description', customer: credentials._id };
+    const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId() };
+    const customerNote = { _id: new ObjectId(), title: 'test', description: 'description', customer: credentials._id };
     const payload = { title: 'titre mis a jour', description: 'description mise a jour' };
 
     findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
@@ -147,9 +147,9 @@ describe('update', () => {
   });
 
   it('should not update note or create history if neither description nor title are changed', async () => {
-    const credentials = { company: { _id: new ObjectID() }, _id: new ObjectID() };
+    const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId() };
     const customerNote = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       title: 'test',
       description: 'description',
       customer: credentials._id,

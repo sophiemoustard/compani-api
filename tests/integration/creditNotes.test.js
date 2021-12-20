@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const omit = require('lodash/omit');
 const app = require('../../server');
@@ -62,7 +62,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
     inclTaxesCustomer: 112,
     subscription: {
       _id: creditNoteCustomer.subscriptions[0]._id,
-      service: { serviceId: new ObjectID(), nature: FIXED, name: 'toto' },
+      service: { serviceId: new ObjectId(), nature: FIXED, name: 'toto' },
       vat: 5.5,
     },
   };
@@ -155,7 +155,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
           ...payloadWithSubscription,
           subscription: {
             _id: otherCompanyCustomer.subscriptions[0]._id,
-            service: { serviceId: new ObjectID(), nature: FIXED, name: 'titi' },
+            service: { serviceId: new ObjectId(), nature: FIXED, name: 'titi' },
             vat: 5.5,
           },
         },
@@ -194,7 +194,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
             endDate: creditNoteEvent.endDate,
             serviceName: 'toto',
             bills: {
-              billingItems: [{ billingItem: new ObjectID(), exclTaxes: 12, inclTaxes: 14 }],
+              billingItems: [{ billingItem: new ObjectId(), exclTaxes: 12, inclTaxes: 14 }],
               inclTaxesCustomer: 10,
               exclTaxesCustomer: 8,
             },
@@ -222,7 +222,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
           },
           {
             eventId: otherCompanyEvent._id,
-            auxiliary: new ObjectID(),
+            auxiliary: new ObjectId(),
             startDate: otherCompanyEvent.startDate,
             endDate: otherCompanyEvent.endDate,
             serviceName: 'tata',
@@ -447,7 +447,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     it('should return a 404 error if credit note does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/creditNotes/${new ObjectID()}`,
+        url: `/creditNotes/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -481,7 +481,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       payload = {
         events: [{
           eventId: otherCompanyEvent._id,
-          auxiliary: new ObjectID(),
+          auxiliary: new ObjectId(),
           startDate: otherCompanyEvent.startDate,
           endDate: otherCompanyEvent.endDate,
           serviceName: 'tata',
@@ -508,7 +508,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         date: '2019-07-19T14:00:18',
         subscription: {
           _id: otherCompanyCustomer.subscriptions[0]._id,
-          service: { serviceId: new ObjectID(), nature: FIXED, name: 'titi' },
+          service: { serviceId: new ObjectId(), nature: FIXED, name: 'titi' },
           vat: 5.5,
         },
       };

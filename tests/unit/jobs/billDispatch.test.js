@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 const Bill = require('../../../src/models/Bill');
 const Company = require('../../../src/models/Company');
@@ -38,8 +38,8 @@ describe('method', () => {
 
   it('should email a bill to customers helpers', async () => {
     const server = 'server';
-    const billsIds = [new ObjectID()];
-    const companyId = new ObjectID();
+    const billsIds = [new ObjectId()];
+    const companyId = new ObjectId();
     const customers = [
       {
         helpers: [
@@ -71,9 +71,9 @@ describe('method', () => {
   it('should log emails which can not be sent', async () => {
     const server = { log: (tags, text) => `${tags}, ${text}` };
     const serverLogStub = sinon.stub(server, 'log');
-    const billsIds = [new ObjectID()];
+    const billsIds = [new ObjectId()];
     const error = new Error('Test error.');
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const customers = [
       {
         helpers: [

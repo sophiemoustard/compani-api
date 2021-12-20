@@ -1,9 +1,9 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { authCompany } = require('./authCompaniesSeed');
 const { helper } = require('./authUsersSeed');
 
 const authCustomer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { title: 'mr', lastname: 'lacordée', firstname: 'vian' },
   company: authCompany._id,
   contact: {
@@ -18,7 +18,7 @@ const authCustomer = {
 };
 
 const helperCustomer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   user: helper._id,
   customer: authCustomer._id,
   company: authCompany._id,

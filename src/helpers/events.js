@@ -8,7 +8,7 @@ const isEqual = require('lodash/isEqual');
 const groupBy = require('lodash/groupBy');
 const cloneDeep = require('lodash/cloneDeep');
 const momentRange = require('moment-range');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const {
   INTERVENTION,
   INTERNAL_HOUR,
@@ -125,7 +125,7 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
 };
 
 exports.getListQuery = (query, credentials) => {
-  const rules = [{ company: new ObjectID(get(credentials, 'company._id', null)) }];
+  const rules = [{ company: new ObjectId(get(credentials, 'company._id', null)) }];
   const { auxiliary, type, customer, sector, startDate, endDate, isCancelled } = query;
 
   if (type) rules.push({ type });
@@ -361,7 +361,7 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
 exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const query = {
-    customer: new ObjectID(customer),
+    customer: new ObjectId(customer),
     startDate: { $gte: moment(startDate).toDate() },
     company: companyId,
   };

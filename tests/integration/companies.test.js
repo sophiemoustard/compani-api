@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const GetStream = require('get-stream');
 const { MONTH } = require('../../src/helpers/constants');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
@@ -77,7 +77,7 @@ describe('PUT /companies/:id', () => {
       const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${new ObjectID()}`,
+        url: `/companies/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });

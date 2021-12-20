@@ -1,6 +1,6 @@
 const expect = require('expect');
 const GetStream = require('get-stream');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
@@ -50,7 +50,7 @@ describe('PROGRAMS ROUTES - POST /programs', () => {
         method: 'POST',
         url: '/programs',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'program', categories: [new ObjectID()] },
+        payload: { name: 'program', categories: [new ObjectId()] },
       });
 
       expect(response.statusCode).toBe(404);
@@ -293,7 +293,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
     it('should return 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/programs/${new ObjectID()}`,
+        url: `/programs/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -355,7 +355,7 @@ describe('PROGRAMS ROUTES - PUT /programs/{_id}', () => {
       const payload = { name: 'new name', description: 'On apprend des trucs\nc\'est chouette' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/programs/${new ObjectID()}`,
+        url: `/programs/${new ObjectId()}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -443,7 +443,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/subprogram', () => {
     it('should return 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${new ObjectID()}/subprograms`,
+        url: `/programs/${new ObjectId()}/subprograms`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -531,7 +531,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
       const form = generateFormData({ fileName: 'program_image_test', file: 'true' });
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${new ObjectID()}/upload`,
+        url: `/programs/${new ObjectId()}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -619,7 +619,7 @@ describe('PROGRAMS ROUTES - DELETE /programs/:id/upload', () => {
     it('should return a 404 if program doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${new ObjectID()}/upload`,
+        url: `/programs/${new ObjectId()}/upload`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -678,7 +678,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
     it('should return 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${new ObjectID()}/categories`,
+        url: `/programs/${new ObjectId()}/categories`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -690,7 +690,7 @@ describe('PROGRAMS ROUTES - POST /programs/{_id}/categories', () => {
       const response = await app.inject({
         method: 'POST',
         url: `/programs/${programsList[0]._id}/categories`,
-        payload: { categoryId: new ObjectID() },
+        payload: { categoryId: new ObjectId() },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -749,7 +749,7 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
     it('should return a 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${new ObjectID()}/categories/${programsList[0].categories[0]._id}`,
+        url: `/programs/${new ObjectId()}/categories/${programsList[0].categories[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -759,7 +759,7 @@ describe('PROGRAMS ROUTES - DELETE /programs/{_id}/categories/{_id}', () => {
     it('should return a 404 if category doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${programsList[0]._id}/categories/${new ObjectID()}`,
+        url: `/programs/${programsList[0]._id}/categories/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -845,7 +845,7 @@ describe('PROGRAMS ROUTES - POST /{_id}/testers', () => {
 
       const response = await app.inject({
         method: 'POST',
-        url: `/programs/${new ObjectID()}/testers`,
+        url: `/programs/${new ObjectId()}/testers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -969,7 +969,7 @@ describe('PROGRAMS ROUTES - DELETE /{_id}/testers/{testerId}', () => {
     it('should return a 404 if program does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/programs/${new ObjectID()}/testers/${trainerOrganisationManager._id}`,
+        url: `/programs/${new ObjectId()}/testers/${trainerOrganisationManager._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

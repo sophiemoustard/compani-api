@@ -1,7 +1,7 @@
 const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 
@@ -373,8 +373,8 @@ describe('formatSubscriptionData', () => {
 
 describe('formatBillingItemData', () => {
   it('should return formatted data for bill with billing item', () => {
-    const billingItemId = new ObjectID();
-    const eventId = new ObjectID();
+    const billingItemId = new ObjectId();
+    const eventId = new ObjectId();
     const bill = {
       billingItem: { _id: billingItemId, name: 'skusku' },
       unitInclTaxes: 24.64,
@@ -437,7 +437,7 @@ describe('formatCustomerBills', () => {
   });
 
   it('Case 1 : 1 bill with subscription', () => {
-    const company = { prefixNumber: 1234, _id: new ObjectID() };
+    const company = { prefixNumber: 1234, _id: new ObjectId() };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
@@ -511,7 +511,7 @@ describe('formatCustomerBills', () => {
   });
 
   it('Case 1bis : 1 bill with billing items', () => {
-    const company = { prefixNumber: 1234, _id: new ObjectID() };
+    const company = { prefixNumber: 1234, _id: new ObjectId() };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
@@ -570,7 +570,7 @@ describe('formatCustomerBills', () => {
   });
 
   it('Case 2 : multiple bills', () => {
-    const company = { prefixNumber: 1234, _id: new ObjectID() };
+    const company = { prefixNumber: 1234, _id: new ObjectId() };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
@@ -757,7 +757,7 @@ describe('formatThirdPartyPayerBills', () => {
   });
 
   it('Case 1 : 1 third party payer - 1 bill - Funding monthly and hourly', () => {
-    const company = { prefixNumber: 1234, _id: new ObjectID() };
+    const company = { prefixNumber: 1234, _id: new ObjectId() };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -824,7 +824,7 @@ describe('formatThirdPartyPayerBills', () => {
     sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
   it('Case 2 : 1 third party payer - 1 bill - Funding once and hourly', () => {
-    const company = { prefixNumber: 1234, _id: new ObjectID() };
+    const company = { prefixNumber: 1234, _id: new ObjectId() };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -888,7 +888,7 @@ describe('formatThirdPartyPayerBills', () => {
     sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
   it('Case 3 : 1 third party payer - 1 bill - Funding once and fixed', () => {
-    const company = { prefixNumber: 1234, _id: new ObjectID() };
+    const company = { prefixNumber: 1234, _id: new ObjectId() };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -952,7 +952,7 @@ describe('formatThirdPartyPayerBills', () => {
     sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
   it('Case 4 : 1 third party payer - multiple bills', () => {
-    const company = { _id: new ObjectID(), prefixNumber: 1234 };
+    const company = { _id: new ObjectId(), prefixNumber: 1234 };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -1049,7 +1049,7 @@ describe('formatThirdPartyPayerBills', () => {
     sinon.assert.calledWithExactly(formatSubscriptionData.getCall(1), thirdPartyPayerBills[0].bills[1]);
   });
   it('Case 5 : multiple third party payers', () => {
-    const company = { _id: new ObjectID(), prefixNumber: 1234 };
+    const company = { _id: new ObjectId(), prefixNumber: 1234 };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -1114,7 +1114,7 @@ describe('updateEvents', () => {
     sinon.assert.notCalled(updateOne);
   });
   it('should update one event', async () => {
-    const eventId = (new ObjectID()).toHexString();
+    const eventId = (new ObjectId()).toHexString();
     await BillHelper.updateEvents({ [eventId]: { _id: '_id' } });
 
     sinon.assert.calledWithExactly(updateOne, { _id: eventId }, { $set: { isBilled: true, bills: { _id: '_id' } } });
@@ -1151,14 +1151,14 @@ describe('updateFundingHistories', () => {
   });
 
   it('should not update history as list is empty', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     await BillHelper.updateFundingHistories([], companyId);
 
     sinon.assert.notCalled(updateOne);
   });
   it('should update history of fixed funding', async () => {
-    const companyId = new ObjectID();
-    const fundingId = new ObjectID();
+    const companyId = new ObjectId();
+    const fundingId = new ObjectId();
     const histories = { [fundingId.toHexString()]: { amountTTC: 12 } };
 
     await BillHelper.updateFundingHistories(histories, companyId);
@@ -1171,8 +1171,8 @@ describe('updateFundingHistories', () => {
     );
   });
   it('should update history of hourly and once funding', async () => {
-    const companyId = new ObjectID();
-    const fundingId = new ObjectID();
+    const companyId = new ObjectId();
+    const fundingId = new ObjectId();
     const histories = { [fundingId.toHexString()]: { careHours: 12 } };
 
     await BillHelper.updateFundingHistories(histories, companyId);
@@ -1185,8 +1185,8 @@ describe('updateFundingHistories', () => {
     );
   });
   it('should update history of hourly and monthly funding', async () => {
-    const companyId = new ObjectID();
-    const fundingId = new ObjectID();
+    const companyId = new ObjectId();
+    const fundingId = new ObjectId();
     const histories = { [fundingId]: { 11: { careHours: 12 }, 12: { careHours: 18 } } };
 
     await BillHelper.updateFundingHistories(histories, companyId);
@@ -1206,7 +1206,7 @@ describe('updateFundingHistories', () => {
     );
   });
   it('should update list of histories', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const histories = {
       1: { amountTTC: 12 },
       2: { careHours: 12 },
@@ -1253,7 +1253,7 @@ describe('getBillNumber', () => {
   });
 
   it('should return a bill number', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const prefix = '1119';
     const billNumber = { prefix, seq: 1 };
 
@@ -1305,7 +1305,7 @@ describe('formatAndCreateList', () => {
   });
 
   it('should create customer and third party payer bills', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const number = { prefix: 'FACT-1911', seq: 1 };
     const customerBill = billsData[0].customerBills.bills[0];
@@ -1415,13 +1415,13 @@ describe('formatAndCreateList', () => {
   });
 
   it('should create a customer bill with billingItem and a third party payer bills', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const customerId = new ObjectID();
-    const subscriptionId = new ObjectID();
-    const billingItemId = new ObjectID();
-    const tppId = new ObjectID();
-    const auxiliaryId = new ObjectID();
+    const customerId = new ObjectId();
+    const subscriptionId = new ObjectId();
+    const billingItemId = new ObjectId();
+    const tppId = new ObjectId();
+    const auxiliaryId = new ObjectId();
     const groupByCustomerBills = [{
       customer: { _id: customerId, identity: { title: 'mrs', lastname: 'Test', firstname: 'Aman' } },
       endDate: '2021-09-30T21:59:59.999Z',
@@ -1514,7 +1514,7 @@ describe('formatAndCreateList', () => {
   });
 
   it('should create customer bill', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const number = { prefix: 'FACT-1911', seq: 1 };
     const customerBill = billsData[0].customerBills.bills[0];
@@ -1582,7 +1582,7 @@ describe('formatAndCreateList', () => {
   });
 
   it('should create third party payer bill', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const number = { prefix: 'FACT-1911', seq: 1 };
     const tppBill = billsData[0].thirdPartyPayerBills[0].bills[0];
@@ -1651,7 +1651,7 @@ describe('formatAndCreateList', () => {
   });
 
   describe('Functions not called', () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const number = { prefix: 'FACT-1911', seq: 1 };
     const customerBill = billsData[0].customerBills.bills[0];
@@ -1840,12 +1840,12 @@ describe('list', () => {
   });
 
   it('should get a list of manual bills', async () => {
-    const authCompanyId = new ObjectID();
+    const authCompanyId = new ObjectId();
     const query = { type: 'manual' };
     const credentials = { company: authCompanyId };
     const bills = [
-      { _id: new ObjectID(), type: 'manual', billingItemList: [] },
-      { _id: new ObjectID(), type: 'manual', billingItemList: [] },
+      { _id: new ObjectId(), type: 'manual', billingItemList: [] },
+      { _id: new ObjectId(), type: 'manual', billingItemList: [] },
     ];
 
     findBill.returns(SinonMongoose.stubChainedQueries([bills]));
@@ -1866,11 +1866,11 @@ describe('list', () => {
 
 describe('formatBillingItem', () => {
   it('should format billing item', () => {
-    const billingItemId = new ObjectID();
+    const billingItemId = new ObjectId();
     const billingItem = { billingItem: billingItemId, count: 3, unitInclTaxes: 60 };
     const list = [
       { _id: billingItemId, name: 'bonjour', vat: 20 },
-      { _id: new ObjectID(), name: 'au revoir', vat: 40 },
+      { _id: new ObjectId(), name: 'au revoir', vat: 40 },
     ];
 
     const result = BillHelper.formatBillingItem(billingItem, list);
@@ -1913,12 +1913,12 @@ describe('formatAndCreateBill', () => {
   });
 
   it('should format and create a bill', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId, prefixNumber: '101' } };
-    const billingItemId1 = new ObjectID();
-    const billingItemId2 = new ObjectID();
+    const billingItemId1 = new ObjectId();
+    const billingItemId2 = new ObjectId();
     const payload = {
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       date: '2021-09-01',
       billingItemList: [
         { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
@@ -1978,8 +1978,8 @@ describe('formatAndCreateBill', () => {
 describe('getBills', () => {
   let findBill;
   let getDateQueryStub;
-  const credentials = { company: { _id: new ObjectID() } };
-  const bills = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+  const credentials = { company: { _id: new ObjectId() } };
+  const bills = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
 
   beforeEach(() => {
     findBill = sinon.stub(Bill, 'find');
@@ -2063,8 +2063,8 @@ describe('getUnitInclTaxes', () => {
 
   it('should return 0 if no matching funding found', () => {
     const bill = {
-      thirdPartyPayer: { _id: new ObjectID() },
-      customer: { fundings: [{ thirdPartyPayer: new ObjectID() }] },
+      thirdPartyPayer: { _id: new ObjectId() },
+      customer: { fundings: [{ thirdPartyPayer: new ObjectId() }] },
     };
     const subscription = { unitInclTaxes: 20 };
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
@@ -2075,7 +2075,7 @@ describe('getUnitInclTaxes', () => {
   });
 
   it('should return subscription unitInclTaxes for FIXED funding', () => {
-    const tppId = new ObjectID();
+    const tppId = new ObjectId();
     const bill = {
       thirdPartyPayer: { _id: tppId },
       customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] },
@@ -2092,7 +2092,7 @@ describe('getUnitInclTaxes', () => {
   });
 
   it('should return unit incl taxes from funding if HOURLY funding', () => {
-    const tppId = new ObjectID();
+    const tppId = new ObjectId();
     const bill = {
       thirdPartyPayer: { _id: tppId },
       customer: {
@@ -2124,10 +2124,10 @@ describe('computeSurcharge', () => {
       vat: 5.5,
       service: { name: 'Temps de qualité - autonomie', nature: 'hourly' },
       events: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         startDate: '2019-09-15T05:00:00.000+00:00',
         endDate: '2019-09-15T07:00:00.000+00:00',
-        surcharges: [{ _id: new ObjectID(), percentage: 25, name: 'Dimanche' }],
+        surcharges: [{ _id: new ObjectId(), percentage: 25, name: 'Dimanche' }],
       }],
     };
 
@@ -2142,11 +2142,11 @@ describe('computeSurcharge', () => {
       vat: 5.5,
       service: { name: 'Temps de qualité - autonomie', nature: 'hourly' },
       events: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         startDate: '2019-09-15T19:00:00.000+00:00',
         endDate: '2019-09-15T21:15:00.000+00:00',
         surcharges: [{
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           startHour: '2019-09-15T20:00:00.000+00:00',
           endHour: '2019-09-15T21:15:00.000+00:00',
           percentage: 25,
@@ -2166,7 +2166,7 @@ describe('computeSurcharge', () => {
       vat: 5.5,
       service: { name: 'Temps de qualité - autonomie', nature: 'hourly' },
       events: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         startDate: '2019-09-15T05:00:00.000+00:00',
         endDate: '2019-09-15T07:00:00.000+00:00',
       }],
@@ -2249,10 +2249,10 @@ describe('formatBillDetailsForPdf', () => {
         inclTaxes: 22,
         discount: 5,
         events: [{
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           startDate: '2019-09-15T05:00:00.000+00:00',
           endDate: '2019-09-15T07:00:00.000+00:00',
-          surcharges: [{ _id: new ObjectID(), percentage: 25, name: 'Dimanche' }],
+          surcharges: [{ _id: new ObjectId(), percentage: 25, name: 'Dimanche' }],
         }],
       }],
       billingItemList: [
@@ -2538,9 +2538,9 @@ describe('generateBillPdf', async () => {
   });
 
   it('should generate pdf', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const bill = { _id: new ObjectID(), number: 'number' };
+    const bill = { _id: new ObjectId(), number: 'number' };
     findOneBill.returns(SinonMongoose.stubChainedQueries([bill]));
     findOneCompany.returns(SinonMongoose.stubChainedQueries([credentials.company], ['lean']));
     formatPdf.returns({ data: 'data' });

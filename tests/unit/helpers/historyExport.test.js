@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -20,10 +20,10 @@ const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
 
 describe('getWorkingEventsForExport', () => {
-  const auxiliaryId = new ObjectID();
-  const customerId = new ObjectID();
-  const subId1 = new ObjectID();
-  const subId2 = new ObjectID();
+  const auxiliaryId = new ObjectId();
+  const customerId = new ObjectId();
+  const subId1 = new ObjectId();
+  const subId2 = new ObjectId();
 
   const events = [
     {
@@ -126,7 +126,7 @@ describe('getWorkingEventsForExport', () => {
       misc: 'brbr',
     },
   ];
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const startDate = moment('2019-05-20T08:00:00').toDate();
   const endDate = moment('2019-05-20T10:00:00').toDate();
 
@@ -200,7 +200,7 @@ describe('exportWorkingEventsHistory', () => {
     'Statut de l\'annulation',
     'Raison de l\'annulation',
   ];
-  const auxiliaryId = new ObjectID();
+  const auxiliaryId = new ObjectId();
   const auxiliaries = [
     {
       _id: auxiliaryId,
@@ -223,7 +223,7 @@ describe('exportWorkingEventsHistory', () => {
         service: { versions: [{ name: 'Lala' }] },
       },
       customer: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: auxiliaryId,
@@ -249,7 +249,7 @@ describe('exportWorkingEventsHistory', () => {
         service: { versions: [{ name: 'Lala' }] },
       },
       customer: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
@@ -283,7 +283,7 @@ describe('exportWorkingEventsHistory', () => {
       repetition: { frequency: 'never' },
       sector: { name: 'Etoiles - 75' },
       customer: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
       startDate: '2019-05-20T08:00:00',
@@ -339,14 +339,14 @@ describe('exportWorkingEventsHistory', () => {
       header,
       ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
         '20/05/2019 12:00:00', '', '', '', '2,00', 'Une fois par semaine', '667', 'Transports en commun / À pied',
-        'Girafes - 75', expect.any(ObjectID), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme',
+        'Girafes - 75', expect.any(ObjectId), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectId), 'Mme',
         'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
       ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
         '20/05/2019 12:00:00', '20/05/2019 12:03:24', 'Manuel', 'Problème de caméra', '2,00', 'Une fois par semaine',
-        '', '', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
+        '', '', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectId), 'Mme', 'MATHY', 'Mimi', '',
         'Oui', 'Non', '', ''],
       ['Heure interne', 'Formation', '', '20/05/2019 10:00:00', '', '', '', '20/05/2019 12:00:00', '', '', '',
-        '2,00', '', '4124', 'Véhicule d\'entreprise', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'M.',
+        '2,00', '', '4124', 'Véhicule d\'entreprise', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectId), 'M.',
         'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant(e)'],
     ]);
   });
@@ -437,7 +437,7 @@ describe('formatAbsence', () => {
       absence: 'unjustified_absence',
       absenceNature: 'hourly',
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
         contracts: [
@@ -452,7 +452,7 @@ describe('formatAbsence', () => {
     const exportArray = await ExportHelper.formatAbsence(event);
 
     expect(exportArray).toEqual([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'Jean-Claude',
       'VAN DAMME',
       '',
@@ -476,7 +476,7 @@ describe('formatAbsence', () => {
       absenceNature: 'daily',
       internalHour: { name: 'Formation' },
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
         contracts: [
@@ -485,14 +485,14 @@ describe('formatAbsence', () => {
       },
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-20T22:00:00',
-      extension: { _id: new ObjectID(), startDate: '2019-04-20T08:00:00' },
+      extension: { _id: new ObjectId(), startDate: '2019-04-20T08:00:00' },
       misc: 'brbr',
     };
     getAbsenceHours.returns(4);
     const exportArray = await ExportHelper.formatAbsence(event);
 
     expect(exportArray).toEqual([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'Princess',
       'CAROLYN',
       '',
@@ -554,7 +554,7 @@ describe('exportAbsencesHistory', () => {
       absence: 'unjustified_absence',
       absenceNature: 'hourly',
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
         contracts: [
@@ -565,7 +565,7 @@ describe('exportAbsencesHistory', () => {
       endDate: '2019-05-21T10:00:00',
     };
     const credentials = { company: { _id: '1234567890' } };
-    const formattedAbsence = [new ObjectID(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée',
+    const formattedAbsence = [new ObjectId(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée',
       'Horaire',
       '20/05/2019 08:00', '21/05/2019 10:00', '26,00', 'non', '', ''];
 
@@ -588,7 +588,7 @@ describe('exportAbsencesHistory', () => {
       absenceNature: 'daily',
       internalHour: { name: 'Formation' },
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
         contracts: [
@@ -631,7 +631,7 @@ describe('exportAbsencesHistory', () => {
       absenceNature: 'daily',
       internalHour: { name: 'Formation' },
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
         contracts: [
@@ -640,7 +640,7 @@ describe('exportAbsencesHistory', () => {
       },
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-07-01T22:00:00',
-      extension: { _id: new ObjectID(), startDate: '2019-04-20T08:00:00' },
+      extension: { _id: new ObjectId(), startDate: '2019-04-20T08:00:00' },
       misc: 'brbr',
     };
     const credentials = { company: { _id: '1234567890' } };
@@ -691,8 +691,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
     'Services',
     'Date de création',
   ];
-  const customerIdList = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
-  const tppIdList = [new ObjectID(), new ObjectID(), new ObjectID()];
+  const customerIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+  const tppIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
 
   const bills = [
     {
@@ -710,7 +710,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         },
       ],
       billingItemList: [{
-        billingItem: new ObjectID(),
+        billingItem: new ObjectId(),
         unitInclTaxes: 10,
         name: 'article de factu',
         count: 2,
@@ -756,7 +756,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       createdAt: '2019-10-16',
     },
   ];
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   const findQuery = { date: { $lte: null, $gte: null }, company: credentials.company._id };
   const sortQuery = { date: 'desc' };
   const populateCustomerQuery = { path: 'customer', select: 'identity' };
@@ -966,7 +966,7 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     find.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
@@ -993,8 +993,8 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array containing the header and one row', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }], user: { _id: new ObjectID() } }];
+    const credentials = { company: { _id: new ObjectId() } };
+    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }], user: { _id: new ObjectId() } }];
 
     find.returns(SinonMongoose.stubChainedQueries([contracts]));
 
@@ -1015,14 +1015,14 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const contracts = [
       {
-        user: { identity: { title: 'mr', lastname: 'Patate' }, _id: new ObjectID() },
+        user: { identity: { title: 'mr', lastname: 'Patate' }, _id: new ObjectId() },
         versions: [{ startDate: '2019-10-10T00:00:00', weeklyHours: 12, grossHourlyRate: 10.45 }],
       },
       {
-        user: { identity: { title: 'mrs', firstname: 'Patate' }, _id: new ObjectID() },
+        user: { identity: { title: 'mrs', firstname: 'Patate' }, _id: new ObjectId() },
         versions: [
           { startDate: '2019-09-08T00:00:00', endDate: '2019-10-07T00:00:00', weeklyHours: 10, grossHourlyRate: 10 },
           { startDate: '2019-10-08T00:00:00', endDate: '2019-11-07T00:00:00', weeklyHours: 14, grossHourlyRate: 2 },
@@ -1192,7 +1192,7 @@ describe('exportPayAndFinalPayHistory', () => {
   const pays = [
     {
       auxiliary: {
-        _id: ObjectID(),
+        _id: ObjectId(),
         identity: { firstname: 'Tata', lastname: 'Toto', title: 'mrs' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-05-04T00:00:00' }],
@@ -1219,7 +1219,7 @@ describe('exportPayAndFinalPayHistory', () => {
       paidKm: 12.3,
       phoneFees: 18,
       bonus: 0,
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       diff: {
         paidTransportHours: 2,
         hoursBalance: 8,
@@ -1236,7 +1236,7 @@ describe('exportPayAndFinalPayHistory', () => {
     },
     {
       auxiliary: {
-        _id: ObjectID(),
+        _id: ObjectId(),
         identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
       },
@@ -1280,7 +1280,7 @@ describe('exportPayAndFinalPayHistory', () => {
   const finalPays = [
     {
       auxiliary: {
-        _id: ObjectID(),
+        _id: ObjectId(),
         identity: { firstname: 'Tata', lastname: 'Toto', title: 'mr' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }],
@@ -1326,7 +1326,7 @@ describe('exportPayAndFinalPayHistory', () => {
     },
     {
       auxiliary: {
-        _id: ObjectID(),
+        _id: ObjectId(),
         identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }, { startDate: '2019-01-19T00:00:00' }],
@@ -1389,7 +1389,7 @@ describe('exportPayAndFinalPayHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const startDate = '2019-11-10';
     const endDate = '2019-12-10';
     const query = {
@@ -1445,7 +1445,7 @@ describe('exportPayAndFinalPayHistory', () => {
   });
 
   it('should return an array with the header and 4 rows', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const startDate = '2019-11-10';
     const endDate = '2019-12-10';
     const query = {
@@ -1464,18 +1464,18 @@ describe('exportPayAndFinalPayHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      [expect.any(ObjectID), 'Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94',
+      [expect.any(ObjectId), 'Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94',
         '10,00', '30,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
         'surchargedAndNotExemptDetails', '8,00', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '12,30',
         '12,30', '18,00', '0,00', '0,00'],
-      [expect.any(ObjectID), '', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '8,00',
+      [expect.any(ObjectId), '', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '8,00',
         '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00', 'surchargedAndNotExemptDetails',
         '2,00', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '15,10', '15,10', '20,00', '100,00', '0,00'],
-      [expect.any(ObjectID), 'M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission',
+      [expect.any(ObjectId), 'M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission',
         '31/05/2019', '77,94', '3,00', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
         'surchargedAndNotExemptDetails', '12,00', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '0,00',
         '15,10', '18,00', '0,00', '156,00'],
-      [expect.any(ObjectID), '', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation',
+      [expect.any(ObjectId), '', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation',
         '31/05/2019', '97,94', '0,00', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
         'surchargedAndNotExemptDetails', '0,00', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '15,10',
         '15,10', '20,00', '100,00', '0,00'],
@@ -1536,8 +1536,8 @@ describe('exportPaymentsHistory', () => {
     'Moyen de paiement',
     'Montant TTC en €',
   ];
-  const customerIdList = [new ObjectID(), new ObjectID()];
-  const tppIdList = [new ObjectID(), new ObjectID()];
+  const customerIdList = [new ObjectId(), new ObjectId()];
+  const tppIdList = [new ObjectId(), new ObjectId()];
 
   const paymentsList = [
     {
@@ -1586,7 +1586,7 @@ describe('exportPaymentsHistory', () => {
   it('should return an array containing just the header', async () => {
     find.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
 
-    const credentials = { company: new ObjectID() };
+    const credentials = { company: new ObjectId() };
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
@@ -1605,7 +1605,7 @@ describe('exportPaymentsHistory', () => {
   it('should return an array with the header and 2 rows', async () => {
     find.returns(SinonMongoose.stubChainedQueries([paymentsList], ['sort', 'populate', 'lean']));
 
-    const credentials = { company: new ObjectID() };
+    const credentials = { company: new ObjectId() };
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([

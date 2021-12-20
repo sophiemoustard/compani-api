@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const { populateDB, activitiesList, userList, cardsList, activityHistories } = require('./seed/activityHistoriesSeed');
@@ -20,8 +20,8 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
     questionnaireAnswersList: [
       { card: cardsList[0]._id, answerList: ['blabla'] },
       { card: cardsList[3]._id, answerList: ['blebleble'] },
-      { card: cardsList[4]._id, answerList: [new ObjectID(), new ObjectID()] },
-      { card: cardsList[5]._id, answerList: [new ObjectID()] },
+      { card: cardsList[4]._id, answerList: [new ObjectId(), new ObjectId()] },
+      { card: cardsList[5]._id, answerList: [new ObjectId()] },
     ],
     score: 1,
   };
@@ -62,7 +62,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, user: new ObjectID() },
+        payload: { ...payload, user: new ObjectId() },
         headers: { 'x-access-token': authToken },
       });
 
@@ -73,7 +73,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, activity: new ObjectID() },
+        payload: { ...payload, activity: new ObjectId() },
         headers: { 'x-access-token': authToken },
       });
 
@@ -95,7 +95,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ answerList: [new ObjectID(), new ObjectID()] }] },
+        payload: { ...payload, questionnaireAnswersList: [{ answerList: [new ObjectId(), new ObjectId()] }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -117,7 +117,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',
-        payload: { ...payload, questionnaireAnswersList: [{ card: new ObjectID(), answerList: ['blabla'] }] },
+        payload: { ...payload, questionnaireAnswersList: [{ card: new ObjectId(), answerList: ['blabla'] }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -174,7 +174,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
         url: '/activityhistories',
         payload: {
           ...payload,
-          questionnaireAnswersList: [{ card: cardsList[5]._id, answerList: [new ObjectID(), new ObjectID()] }],
+          questionnaireAnswersList: [{ card: cardsList[5]._id, answerList: [new ObjectId(), new ObjectId()] }],
         },
         headers: { 'x-access-token': authToken },
       });
@@ -182,7 +182,7 @@ describe('ACTIVITY HISTORIES ROUTES - POST /activityhistories', () => {
       expect(response.statusCode).toBe(422);
     });
 
-    it('should return 422 if is a q/a and items in answerList are not ObjectID', async () => {
+    it('should return 422 if is a q/a and items in answerList are not ObjectId', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/activityhistories',

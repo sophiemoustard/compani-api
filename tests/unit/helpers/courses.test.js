@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
@@ -39,10 +39,10 @@ describe('createCourse', () => {
   it('should create an intra course', async () => {
     const newCourse = {
       misc: 'name',
-      company: new ObjectID(),
-      subProgram: new ObjectID(),
+      company: new ObjectId(),
+      subProgram: new ObjectId(),
       type: 'intra',
-      salesRepresentative: new ObjectID(),
+      salesRepresentative: new ObjectId(),
     };
 
     const result = await CourseHelper.createCourse(newCourse);
@@ -58,7 +58,7 @@ describe('createCourse', () => {
 
 describe('list', () => {
   let findCourseAndPopulate;
-  const authCompany = new ObjectID();
+  const authCompany = new ObjectId();
 
   beforeEach(() => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
@@ -94,7 +94,7 @@ describe('list', () => {
         companies: ['1234567890abcdef12345678', authCompany.toHexString()],
         trainees: [
           { identity: { firstname: 'Bonjour' }, company: { _id: authCompany } },
-          { identity: { firstname: 'Au revoir' }, company: { _id: new ObjectID() } },
+          { identity: { firstname: 'Au revoir' }, company: { _id: new ObjectId() } },
         ],
       },
     ];
@@ -122,16 +122,16 @@ describe('list', () => {
   });
 
   it('should return company eLearning courses', async () => {
-    const companyId = new ObjectID();
-    const traineeId = new ObjectID();
+    const companyId = new ObjectId();
+    const traineeId = new ObjectId();
     const coursesList = [
       {
         accessRules: [],
         format: 'strictly_e_learning',
         trainees: [
           { _id: traineeId, company: { _id: companyId } },
-          { _id: new ObjectID(), company: { _id: new ObjectID() } },
-          { _id: new ObjectID() },
+          { _id: new ObjectId(), company: { _id: new ObjectId() } },
+          { _id: new ObjectId() },
         ],
       },
       { accessRules: [companyId], format: 'strictly_e_learning', trainees: [] },
@@ -162,7 +162,7 @@ describe('list', () => {
 describe('getCourseProgress', () => {
   it('should get progress for course', async () => {
     const steps = [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       activities: [{ activityHistories: [{}, {}] }],
       name: 'Développement personnel full stack',
       type: E_LEARNING,
@@ -170,7 +170,7 @@ describe('getCourseProgress', () => {
       progress: 1,
     },
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       activities: [{ activityHistories: [{}, {}] }],
       name: 'Développement personnel full stack',
       type: ON_SITE,
@@ -202,13 +202,13 @@ describe('formatCourseWithProgress', () => {
     getProgress.restore();
   });
   it('should format course', async () => {
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     const course = {
       misc: 'name',
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       subProgram: {
         steps: [{
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           activities: [{ activityHistories: [{}, {}] }],
           name: 'Développement personnel full stack',
           type: 'e_learning',
@@ -262,16 +262,16 @@ describe('listUserCourses', () => {
   });
 
   it('should return courses', async () => {
-    const trainee = { _id: new ObjectID(), company: new ObjectID() };
-    const stepId = new ObjectID();
+    const trainee = { _id: new ObjectId(), company: new ObjectId() };
+    const stepId = new ObjectId();
     const coursesList = [
       {
         misc: 'name',
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         format: BLENDED,
         subProgram: {
           steps: [{
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             activities: [{ activityHistories: [{}, {}] }],
             name: 'Développement personnel full stack',
             type: 'e_learning',
@@ -293,11 +293,11 @@ describe('listUserCourses', () => {
       },
       {
         misc: 'program',
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         format: BLENDED,
         subProgram: {
           steps: [{
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             activities: [{ activityHistories: [{}, {}] }],
             name: 'Brochure : le mal de dos',
             type: 'e_learning',
@@ -405,15 +405,15 @@ describe('getCourse', () => {
 
   it('should return inter b2b course without trainees filtering', async () => {
     const course = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       type: 'inter_b2b',
-      trainees: [{ _id: new ObjectID(), company: new ObjectID() }, { _id: new ObjectID(), company: new ObjectID() }],
+      trainees: [{ _id: new ObjectId(), company: new ObjectId() }, { _id: new ObjectId(), company: new ObjectId() }],
     };
     findOne.returns(SinonMongoose.stubChainedQueries([course]));
 
     const result = await CourseHelper.getCourse(
       { _id: course._id },
-      { role: { vendor: { name: 'vendor_admin' } }, company: { _id: new ObjectID() } }
+      { role: { vendor: { name: 'vendor_admin' } }, company: { _id: new ObjectId() } }
     );
     expect(result).toMatchObject(course);
 
@@ -462,13 +462,13 @@ describe('getCourse', () => {
   });
 
   it('should return inter b2b course with trainees filtering', async () => {
-    const authCompanyId = new ObjectID();
-    const otherCompanyId = new ObjectID();
+    const authCompanyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
     const loggedUser = { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } };
     const course = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       type: 'inter_b2b',
-      trainees: [{ _id: new ObjectID(), company: authCompanyId }, { _id: new ObjectID(), company: otherCompanyId }],
+      trainees: [{ _id: new ObjectId(), company: authCompanyId }, { _id: new ObjectId(), company: otherCompanyId }],
     };
     const courseWithAllTrainees = {
       type: 'inter_b2b',
@@ -522,8 +522,8 @@ describe('getCourse', () => {
 
 describe('selectUserHistory', () => {
   it('should return only the last history for each user', () => {
-    const user1 = new ObjectID();
-    const user2 = new ObjectID();
+    const user1 = new ObjectId();
+    const user2 = new ObjectId();
     const histories = [
       { user: user2.toHexString(), createdAt: '2020-10-03T10:00:00' },
       { user: user1.toHexString(), createdAt: '2020-09-03T10:00:00' },
@@ -639,7 +639,7 @@ describe('getCourseFollowUp', () => {
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1, company: new ObjectID() }],
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1, company: new ObjectId() }],
       slots: [{ _id: '123456789' }],
     };
     const trainees = [1, 2, 3, 4, 5];
@@ -700,13 +700,13 @@ describe('getCourseFollowUp', () => {
   });
 
   it('should return course follow up with trainees from company', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const course = {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
       trainees: [
         { _id: '123213123', steps: { progress: 1 }, elearningProgress: 1, company: companyId },
-        { _id: '123213342', steps: { progress: 1 }, elearningProgress: 1, company: new ObjectID() },
+        { _id: '123213342', steps: { progress: 1 }, elearningProgress: 1, company: new ObjectId() },
       ],
       slots: [{ _id: '123456789' }],
     };
@@ -786,11 +786,11 @@ describe('getQuestionnaireAnswers', () => {
   });
 
   it('should return questionnaire answers', async () => {
-    const courseId = new ObjectID();
-    const userId = new ObjectID();
+    const courseId = new ObjectId();
+    const userId = new ObjectId();
     const activities = [
-      { activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }] },
-      { activityHistories: [{ _id: new ObjectID(), user: userId, questionnaireAnswersList: { card: {} } }] },
+      { activityHistories: [{ _id: new ObjectId(), user: userId, questionnaireAnswersList: { card: {} } }] },
+      { activityHistories: [{ _id: new ObjectId(), user: userId, questionnaireAnswersList: { card: {} } }] },
     ];
 
     const followUps = [
@@ -804,8 +804,8 @@ describe('getQuestionnaireAnswers', () => {
       trainees: [userId],
       subProgram: {
         steps: [
-          { _id: new ObjectID(), program: { name: 'nom du programme' }, activities: [activities[0]] },
-          { _id: new ObjectID(), program: { name: 'nom du programme' }, activities: [activities[1]] },
+          { _id: new ObjectId(), program: { name: 'nom du programme' }, activities: [activities[0]] },
+          { _id: new ObjectId(), program: { name: 'nom du programme' }, activities: [activities[1]] },
         ],
       },
     };
@@ -847,8 +847,8 @@ describe('getQuestionnaireAnswers', () => {
   });
 
   it('should return [] if no followUp', async () => {
-    const courseId = new ObjectID();
-    const userId = new ObjectID();
+    const courseId = new ObjectId();
+    const userId = new ObjectId();
     const activities = [{ activityHistories: [] }, { activityHistories: [] }];
 
     const course = {
@@ -857,8 +857,8 @@ describe('getQuestionnaireAnswers', () => {
       trainees: [userId],
       subProgram: {
         steps: [
-          { _id: new ObjectID(), program: { name: 'nom du programme' }, activities: [activities[0]] },
-          { _id: new ObjectID(), program: { name: 'nom du programme' }, activities: [activities[1]] },
+          { _id: new ObjectId(), program: { name: 'nom du programme' }, activities: [activities[0]] },
+          { _id: new ObjectId(), program: { name: 'nom du programme' }, activities: [activities[1]] },
         ],
       },
     };
@@ -900,8 +900,8 @@ describe('getQuestionnaireAnswers', () => {
   });
 
   it('should return [] if no step', async () => {
-    const courseId = new ObjectID();
-    const userId = new ObjectID();
+    const courseId = new ObjectId();
+    const userId = new ObjectId();
 
     const course = {
       _id: courseId,
@@ -960,8 +960,8 @@ describe('getTraineeElearningProgress', () => {
   });
 
   it('should return formatted steps and course progress', () => {
-    const traineeId = new ObjectID();
-    const otherTraineeId = new ObjectID();
+    const traineeId = new ObjectId();
+    const otherTraineeId = new ObjectId();
     const steps = [
       {
         activities: [{ activityHistories: [{ user: traineeId }, { user: otherTraineeId }] }],
@@ -1015,12 +1015,12 @@ describe('getTraineeCourse', () => {
   });
 
   it('should return courses', async () => {
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     const course = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       subProgram: {
         steps: [{
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           activities: [{ activityHistories: [{}, {}] }],
           name: 'Développement personnel full stack',
           type: 'e_learning',
@@ -1040,7 +1040,7 @@ describe('getTraineeCourse', () => {
         { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
       ],
     };
-    const credentials = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['populate', 'select', 'lean']));
 
@@ -1132,7 +1132,7 @@ describe('updateCourse', () => {
   });
 
   it('should update a field in intra course', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const payload = { misc: 'groupe 4' };
 
     courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([payload], ['lean']));
@@ -1150,7 +1150,7 @@ describe('updateCourse', () => {
   });
 
   it('should remove contact field in intra course', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const payload = { contact: '' };
     const updatedCourse = { _id: courseId };
 
@@ -1183,7 +1183,7 @@ describe('deleteCourse', () => {
   });
 
   it('should delete course and sms history', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     await CourseHelper.deleteCourse(courseId);
 
     sinon.assert.calledOnceWithExactly(deleteCourse, { _id: courseId });
@@ -1192,14 +1192,14 @@ describe('deleteCourse', () => {
 });
 
 describe('sendSMS', () => {
-  const courseId = new ObjectID();
+  const courseId = new ObjectId();
   const trainees = [
     { contact: { phone: '0123456789' }, identity: { firstname: 'non', lasname: 'ok' }, _id: 'qwertyuio' },
     { contact: { phone: '0987654321' }, identity: { firstname: 'test', lasname: 'ok' }, _id: 'asdfghjkl' },
     { contact: {}, identity: { firstname: 'test', lasname: 'ko' }, _id: 'poiuytrewq' },
   ];
   const payload = { content: 'Ceci est un test.' };
-  const credentials = { _id: new ObjectID() };
+  const credentials = { _id: new ObjectId() };
 
   let courseFindById;
   let courseSmsHistoryCreate;
@@ -1291,7 +1291,7 @@ describe('sendSMS', () => {
 });
 
 describe('getSMSHistory', () => {
-  const courseId = new ObjectID();
+  const courseId = new ObjectId();
   const sms = [{ type: 'convocation', message: 'Hello, this is a test' }];
   let courseSmsHistoryFind;
   beforeEach(() => {
@@ -1341,10 +1341,10 @@ describe('addCourseTrainee', () => {
   });
 
   it('should add a course trainee using existing user', async () => {
-    const user = { _id: new ObjectID(), formationExpoTokenList: 'ExponentPushToken[bla]' };
-    const course = { _id: new ObjectID(), misc: 'Test' };
+    const user = { _id: new ObjectId(), formationExpoTokenList: 'ExponentPushToken[bla]' };
+    const course = { _id: new ObjectId(), misc: 'Test' };
     const payload = { trainee: user._id };
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
 
     userFindOne.returns(user);
     userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
@@ -1378,8 +1378,8 @@ describe('registerToELearningCourse', () => {
   });
 
   it('should add a course trainee using existing user', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     await CourseHelper.registerToELearningCourse(courseId, credentials);
     sinon.assert.calledWithExactly(updateOne, { _id: courseId }, { $addToSet: { trainees: credentials._id } });
   });
@@ -1398,9 +1398,9 @@ describe('removeCourseTrainee', () => {
   });
 
   it('should remove a course trainee', async () => {
-    const course = new ObjectID();
-    const traineeId = new ObjectID();
-    const removedBy = { _id: new ObjectID() };
+    const course = new ObjectId();
+    const traineeId = new ObjectId();
+    const removedBy = { _id: new ObjectId() };
 
     await CourseHelper.removeCourseTrainee(course, traineeId, removedBy);
     sinon.assert.calledWithExactly(updateOne, { _id: course }, { $pull: { trainees: traineeId } });
@@ -1689,7 +1689,7 @@ describe('generateAttendanceSheets', () => {
   });
 
   it('should download attendance sheet for inter b2b course', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const course = { misc: 'des infos en plus', type: 'inter_b2b' };
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
@@ -1723,7 +1723,7 @@ describe('generateAttendanceSheets', () => {
   });
 
   it('should download attendance sheet for intra course', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const course = { misc: 'des infos en plus', type: 'intra' };
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
@@ -1831,7 +1831,7 @@ describe('generateCompletionCertificate', () => {
 
   it('should download completion certificates', async () => {
     const currentTimeISO = '2020-01-20T07:00:00.000Z';
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const readable1 = new PassThrough();
     const readable2 = new PassThrough();
     const readable3 = new PassThrough();
@@ -1939,8 +1939,8 @@ describe('addAccessRule', () => {
   });
 
   it('should add access rule to course', async () => {
-    const courseId = new ObjectID();
-    const payload = { company: new ObjectID() };
+    const courseId = new ObjectId();
+    const payload = { company: new ObjectId() };
 
     await CourseHelper.addAccessRule(courseId, payload);
 
@@ -1958,8 +1958,8 @@ describe('deleteAccessRule', () => {
   });
 
   it('should add access rule to course', async () => {
-    const courseId = new ObjectID();
-    const accessRuleId = new ObjectID();
+    const courseId = new ObjectId();
+    const accessRuleId = new ObjectId();
 
     await CourseHelper.deleteAccessRule(courseId, accessRuleId);
 
@@ -2004,7 +2004,7 @@ describe('formatCourseForConvocationPdf', () => {
   });
 
   it('should return formatted course', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const course = {
       _id: courseId,
       subProgram: { program: { name: 'Comment attraper des Pokemons' } },
@@ -2090,7 +2090,7 @@ describe('generateConvocationPdf', () => {
   });
 
   it('should return pdf', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries(
       [{
@@ -2189,7 +2189,7 @@ describe('getQuestionnaires', () => {
   });
 
   it('should return questionnaires with answers', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const questionnaires = [
       { name: 'test', type: 'expectations', historiesCount: 1 },
       { name: 'test2', type: 'expectations', historiesCount: 0 },

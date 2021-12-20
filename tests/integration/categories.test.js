@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Category = require('../../src/models/Category');
 const app = require('../../server');
 const { populateDB, categoriesList } = require('./seed/categoriesSeed');
@@ -149,7 +149,7 @@ describe('CATEGORIES ROUTES - PUT /categories/{_id}', () => {
     it('should return 404 if category does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/categories/${new ObjectID()}`,
+        url: `/categories/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'nouveau nom' },
       });
@@ -227,7 +227,7 @@ describe('CATEGORIES ROUTES - DELETE /categories/{_id}', () => {
     it('should return a 404 if category does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/categories/${new ObjectID()}`,
+        url: `/categories/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -25,9 +25,9 @@ describe('addSubProgram', () => {
   });
 
   it('should create a subProgram', async () => {
-    const program = { _id: new ObjectID() };
+    const program = { _id: new ObjectId() };
     const newSubProgram = { name: 'nouveau sous programme' };
-    const subProgramId = new ObjectID();
+    const subProgramId = new ObjectId();
 
     create.returns({ _id: subProgramId });
 
@@ -65,7 +65,7 @@ describe('updatedSubProgram', () => {
   });
 
   it('should update a subProgram name', async () => {
-    const subProgram = { _id: new ObjectID(), name: 'non' };
+    const subProgram = { _id: new ObjectId(), name: 'non' };
     const payload = { name: 'si' };
 
     await SubProgramHelper.updateSubProgram(subProgram._id, payload);
@@ -81,13 +81,13 @@ describe('updatedSubProgram', () => {
     it('if subProgram is blended, should only update status', async () => {
       const payload = { status: 'published' };
       const subProgram = {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         name: 'non',
         status: 'draft',
-        steps: [new ObjectID(), new ObjectID()],
+        steps: [new ObjectId(), new ObjectId()],
         isStrictlyELearning: false,
       };
-      const activities = [new ObjectID()];
+      const activities = [new ObjectId()];
       const updatedSubProgram = {
         ...subProgram,
         status: 'published',
@@ -120,13 +120,13 @@ describe('updatedSubProgram', () => {
     it('if subProgram is strictly e-learning, should also create new course', async () => {
       const payload = { status: 'published' };
       const subProgram = {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         name: 'non',
         status: 'draft',
-        steps: [new ObjectID(), new ObjectID()],
+        steps: [new ObjectId(), new ObjectId()],
         isStrictlyELearning: true,
       };
-      const activities = [new ObjectID()];
+      const activities = [new ObjectId()];
       const updatedSubProgram = {
         ...subProgram,
         status: 'published',
@@ -136,7 +136,7 @@ describe('updatedSubProgram', () => {
         ],
       };
       const course = {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         subProgram: subProgram._id,
         type: 'inter_b2c',
         format: 'strictly_e_learning',
@@ -169,15 +169,15 @@ describe('updatedSubProgram', () => {
 
     it('should create course with restricted access if subProgram is strictly e-learning and payload has accessCompany',
       async () => {
-        const payload = { status: 'published', accessCompany: new ObjectID() };
+        const payload = { status: 'published', accessCompany: new ObjectId() };
         const subProgram = {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           name: 'non',
           status: 'draft',
-          steps: [new ObjectID(), new ObjectID()],
+          steps: [new ObjectId(), new ObjectId()],
           isStrictlyELearning: true,
         };
-        const activities = [new ObjectID()];
+        const activities = [new ObjectId()];
         const updatedSubProgram = {
           ...subProgram,
           status: 'published',
@@ -187,7 +187,7 @@ describe('updatedSubProgram', () => {
           ],
         };
         const course = {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           subProgram: subProgram._id,
           type: 'inter_b2c',
           format: 'strictly_e_learning',
@@ -241,17 +241,17 @@ describe('listELearningDraft', () => {
   it('should return draft subprograms with elearning steps for vendor_admin', async () => {
     const subProgramsList = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         status: 'draft',
         steps: [{ type: 'e_learning' }],
         isStrictlyELearning: true,
-        program: [{ _id: new ObjectID(), name: 'name' }],
+        program: [{ _id: new ObjectId(), name: 'name' }],
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         status: 'draft',
         steps: [{ type: 'on_site' }],
-        program: [{ _id: new ObjectID(), name: 'test' }],
+        program: [{ _id: new ObjectId(), name: 'test' }],
       },
     ];
 
@@ -269,23 +269,23 @@ describe('listELearningDraft', () => {
   });
 
   it('should return draft subprograms with elearning steps for tester', async () => {
-    const testerRestrictedPrograms = [new ObjectID()];
+    const testerRestrictedPrograms = [new ObjectId()];
     const subProgramsList = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         status: 'draft',
         steps: [{ type: 'e_learning' }],
         isStrictlyELearning: true,
-        program: [{ _id: new ObjectID(), name: 'name' }],
+        program: [{ _id: new ObjectId(), name: 'name' }],
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         status: 'draft',
         steps: [{ type: 'on_site' }],
-        program: [{ _id: new ObjectID(), name: 'test' }],
+        program: [{ _id: new ObjectId(), name: 'test' }],
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         status: 'draft',
         steps: [{ type: 'e_learning' }],
       },
@@ -323,11 +323,11 @@ describe('getSubProgram', () => {
 
   it('should return the requested subprogram', async () => {
     const subProgram = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       program: [{
         name: 'program',
         image: 'link',
-        steps: [{ _id: new ObjectID(), activities: [{ _id: new ObjectID() }] }],
+        steps: [{ _id: new ObjectId(), activities: [{ _id: new ObjectId() }] }],
       }],
     };
 
@@ -355,10 +355,10 @@ describe('reuseStep', () => {
   });
 
   it('should link an already existing step to the subProgram', async () => {
-    const reusedStepId = new ObjectID();
+    const reusedStepId = new ObjectId();
     const subProgram = {
-      _id: new ObjectID(),
-      steps: [new ObjectID(), reusedStepId],
+      _id: new ObjectId(),
+      steps: [new ObjectId(), reusedStepId],
     };
 
     updateOne.returns(subProgram);

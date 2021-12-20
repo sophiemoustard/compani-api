@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const QuestionnaireHistoryHelper = require('../../../src/helpers/questionnaireHistories');
 
@@ -15,10 +15,10 @@ describe('addQuestionnaireHistory', () => {
   });
 
   it('should create an questionnaireHistory', async () => {
-    const questionnaireId = new ObjectID();
-    const userId = new ObjectID();
-    const courseId = new ObjectID();
-    const questionnaireAnswersList = [{ card: new ObjectID(), answerList: ['blabla'] }];
+    const questionnaireId = new ObjectId();
+    const userId = new ObjectId();
+    const courseId = new ObjectId();
+    const questionnaireAnswersList = [{ card: new ObjectId(), answerList: ['blabla'] }];
 
     await QuestionnaireHistoryHelper.addQuestionnaireHistory({
       course: courseId,

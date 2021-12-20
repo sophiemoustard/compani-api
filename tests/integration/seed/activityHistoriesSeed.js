@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Activity = require('../../../src/models/Activity');
 const Step = require('../../../src/models/Step');
@@ -15,7 +15,7 @@ const { authCompany } = require('../../seed/authCompaniesSeed');
 
 const userList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'sales', lastname: 'representative' },
     refreshToken: uuidv4(),
     local: { email: 'salesrep@compani.fr' },
@@ -23,7 +23,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'learner', lastname: 'nocompany' },
     refreshToken: uuidv4(),
     local: { email: 'learner@compani.fr', password: '123456!eR' },
@@ -37,17 +37,17 @@ const userCompaniesList = [
 ];
 
 const cardsList = [
-  { _id: new ObjectID(), template: 'survey', question: 'test?' },
-  { _id: new ObjectID(), template: 'survey', question: 'test2?' },
-  { _id: new ObjectID(), template: 'single_choice_question', question: 'test3?' },
-  { _id: new ObjectID(), template: 'open_question', question: 'test4?' },
-  { _id: new ObjectID(), template: 'question_answer', question: 'test5?', isQuestionAnswerMultipleChoiced: true },
-  { _id: new ObjectID(), template: 'question_answer', question: 'test6?', isQuestionAnswerMultipleChoiced: false },
+  { _id: new ObjectId(), template: 'survey', question: 'test?' },
+  { _id: new ObjectId(), template: 'survey', question: 'test2?' },
+  { _id: new ObjectId(), template: 'single_choice_question', question: 'test3?' },
+  { _id: new ObjectId(), template: 'open_question', question: 'test4?' },
+  { _id: new ObjectId(), template: 'question_answer', question: 'test5?', isQuestionAnswerMultipleChoiced: true },
+  { _id: new ObjectId(), template: 'question_answer', question: 'test6?', isQuestionAnswerMultipleChoiced: false },
 ];
 
 const activitiesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'bouger',
     type: 'lesson',
     cards: [cardsList[0]._id, cardsList[2]._id, cardsList[3]._id, cardsList[4]._id, cardsList[5]._id],
@@ -55,22 +55,22 @@ const activitiesList = [
 ];
 
 const stepsList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   type: 'on_site',
   name: 'c\'est une étape',
   activities: [activitiesList[0]._id],
 }];
 
-const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [stepsList[0]._id] }];
+const subProgramsList = [{ _id: new ObjectId(), name: 'sous-programme A', steps: [stepsList[0]._id] }];
 
 const coursesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    company: new ObjectID(),
+    company: new ObjectId(),
     misc: 'first session',
     type: 'intra',
-    trainer: new ObjectID(),
+    trainer: new ObjectId(),
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
     format: STRICTLY_E_LEARNING,
@@ -79,7 +79,7 @@ const coursesList = [
 
 const activityHistories = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     user: userList[1]._id,
     activity: activitiesList[0]._id,
     date: new Date('2020-12-15T23:00:00'),

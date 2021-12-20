@@ -1,6 +1,6 @@
 const omit = require('lodash/omit');
 const isEmpty = require('lodash/isEmpty');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
 const { CIVILITY_LIST } = require('./constants');
@@ -160,7 +160,7 @@ exports.formatIdentity = (identity, format) => {
   return values.join(' ');
 };
 
-exports.formatObjectIdsArray = ids => (Array.isArray(ids) ? ids.map(id => new ObjectID(id)) : [new ObjectID(ids)]);
+exports.formatObjectIdsArray = ids => (Array.isArray(ids) ? ids.map(id => new ObjectId(id)) : [new ObjectId(ids)]);
 
 exports.formatIdsArray = ids => (Array.isArray(ids) ? ids : [ids]);
 
@@ -174,7 +174,7 @@ exports.formatDuration = (duration) => {
 };
 
 exports.areObjectIdsEquals = (id1, id2) => !!id1 && !!id2 &&
-  new ObjectID(id1).toHexString() === new ObjectID(id2).toHexString();
+  new ObjectId(id1).toHexString() === new ObjectId(id2).toHexString();
 
 exports.doesArrayIncludeId = (array, id) => array.some(item => exports.areObjectIdsEquals(item, id));
 

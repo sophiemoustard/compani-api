@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Questionnaire = require('../../src/models/Questionnaire');
 const Card = require('../../src/models/Card');
@@ -162,7 +162,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/{_id}', () => {
     it('should return 404 if questionnaire does not exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires/${new ObjectID()}`,
+        url: `/questionnaires/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -244,7 +244,7 @@ describe('QUESTIONNAIRES ROUTES - GET /questionnaires/user', () => {
     it('should return 404 if course not found', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires/user?course=${(new ObjectID()).toHexString()}`,
+        url: `/questionnaires/user?course=${(new ObjectId()).toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -281,7 +281,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires/${new ObjectID()}/follow-up?course=${courseId.toHexString()}`,
+        url: `/questionnaires/${new ObjectId()}/follow-up?course=${courseId.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -293,7 +293,7 @@ describe('QUESTIONNAIRE ROUTES - GET /questionnaires/{_id}/follow-up', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=${new ObjectID()}`,
+        url: `/questionnaires/${questionnaireId.toHexString()}/follow-up?course=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -498,7 +498,7 @@ describe('QUESTIONNAIRES ROUTES - PUT /questionnaires/{_id}', () => {
       const payload = { name: 'test2' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/questionnaires/${new ObjectID()}`,
+        url: `/questionnaires/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -610,7 +610,7 @@ describe('QUESTIONNAIRES ROUTES - POST /questionnaires/{_id}/card', () => {
     it('should return a 404 if questionnaire does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/questionnaires/${new ObjectID()}/cards`,
+        url: `/questionnaires/${new ObjectId()}/cards`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -685,7 +685,7 @@ describe('QUESTIONNAIRES ROUTES - DELETE /questionnaires/cards/{cardId}', () => 
     it('should return 404 if card not found', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/questionnaires/cards/${(new ObjectID()).toHexString()}`,
+        url: `/questionnaires/cards/${(new ObjectId()).toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

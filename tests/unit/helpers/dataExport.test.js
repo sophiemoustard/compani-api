@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
 const Customer = require('../../../src/models/Customer');
@@ -30,7 +30,7 @@ describe('exportCustomers', () => {
 
   it('should return csv header', async () => {
     const customers = [];
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
@@ -82,7 +82,7 @@ describe('exportCustomers', () => {
   it('should return customer info', async () => {
     const customers = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         email: 'papi@mamie.pp',
         identity: {
           lastname: 'Papi',
@@ -92,8 +92,8 @@ describe('exportCustomers', () => {
         },
         contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris', city: 'Paris' } },
         followUp: { situation: 'home', misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
-        firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
-        referent: { _id: new ObjectID(), identity: { firstname: 'Toto', lastname: 'Test' } },
+        firstIntervention: { _id: new ObjectId(), startDate: '2019-08-08T10:00:00' },
+        referent: { _id: new ObjectId(), identity: { firstname: 'Toto', lastname: 'Test' } },
         payment: {
           bankAccountOwner: 'Lui',
           iban: 'Boom Ba Da Boom',
@@ -109,7 +109,7 @@ describe('exportCustomers', () => {
         createdAt: '2012-12-12T00:00:00.000+00:00',
       },
     ];
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
@@ -119,7 +119,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'M.',
       'PAPI',
       'Grand Père',
@@ -127,7 +127,7 @@ describe('exportCustomers', () => {
       '9 rue du paradis 70015 Paris',
       'Paris',
       '08/08/2019',
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'Toto Test',
       'Domicile',
       'Père Castor',
@@ -161,7 +161,7 @@ describe('exportCustomers', () => {
 
   it('should return empty strings if missing data', async () => {
     const customers = [{}];
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
@@ -209,7 +209,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return csv header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     findUserCompany.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
@@ -230,9 +230,9 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    const userCompanies = [{ user: new ObjectID() }, { user: new ObjectID() }];
+    const credentials = { company: { _id: new ObjectId() } };
+    const roleIds = [new ObjectId(), new ObjectId()];
+    const userCompanies = [{ user: new ObjectId() }, { user: new ObjectId() }];
     const auxiliaries = [
       {
         _id: userCompanies[0].user,
@@ -324,9 +324,9 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary with 2 contracts', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleIds = [new ObjectID(), new ObjectID()];
-    const userCompanies = [{ user: new ObjectID() }, { user: new ObjectID() }];
+    const credentials = { company: { _id: new ObjectId() } };
+    const roleIds = [new ObjectId(), new ObjectId()];
+    const userCompanies = [{ user: new ObjectId() }, { user: new ObjectId() }];
     const auxiliaries = [
       {
         _id: userCompanies[0].user,
@@ -408,7 +408,7 @@ describe('exportHelpers', () => {
   });
 
   it('should return csv header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     findUserCompany.returns(SinonMongoose.stubChainedQueries([[]]));
 
     const result = await ExportHelper.exportHelpers(credentials);
@@ -438,9 +438,9 @@ describe('exportHelpers', () => {
   });
 
   it('should return helper info', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const roleId = new ObjectID();
-    const userCompanies = [{ user: new ObjectID() }, { user: new ObjectID() }];
+    const credentials = { company: { _id: new ObjectId() } };
+    const roleId = new ObjectId();
+    const userCompanies = [{ user: new ObjectId() }, { user: new ObjectId() }];
     const helpers = [{
       _id: userCompanies[0].user,
       local: { email: 'aide@sos.io' },
@@ -449,7 +449,7 @@ describe('exportHelpers', () => {
       createdAt: '2019-02-01T09:38:18.653Z',
       customers: {
         customer: {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           identity: { title: 'mr', lastname: 'Patate' },
           local: { phone: '' },
           contact: {
@@ -476,10 +476,10 @@ describe('exportHelpers', () => {
       [
         'aide@sos.io',
         '+33123456789',
-        expect.any(ObjectID),
+        expect.any(ObjectId),
         'JE',
         'suis',
-        expect.any(ObjectID),
+        expect.any(ObjectId),
         'M.',
         'PATATE',
         '',
@@ -526,7 +526,7 @@ describe('exportSectors', () => {
   });
 
   it('should return csv header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     findSectorHistory.returns(SinonMongoose.stubChainedQueries([[]]));
 
@@ -553,15 +553,15 @@ describe('exportSectors', () => {
   });
 
   it('should return sector info', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const sectorHistories = [{
       sector: { name: 'test' },
-      auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'Tutu' } },
+      auxiliary: { _id: new ObjectId(), identity: { firstname: 'toto', lastname: 'Tutu' } },
       startDate: '2019-11-10',
     },
     {
       sector: { name: 'test2' },
-      auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto2', lastname: 'Tutu2' } },
+      auxiliary: { _id: new ObjectId(), identity: { firstname: 'toto2', lastname: 'Tutu2' } },
       startDate: '2019-11-10',
       endDate: '2019-12-10',
     }];
@@ -610,7 +610,7 @@ describe('exportReferents', () => {
   });
 
   it('should return csv header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     findReferentHistory.returns(SinonMongoose.stubChainedQueries([[]]));
 
@@ -641,18 +641,18 @@ describe('exportReferents', () => {
   });
 
   it('should return referent info', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const referentHistories = [
       {
-        auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto', title: 'mr' } },
-        customer: { _id: new ObjectID(), identity: { firstname: 'titi', lastname: 'Tata', title: 'mr' } },
+        auxiliary: { _id: new ObjectId(), identity: { firstname: 'toto', title: 'mr' } },
+        customer: { _id: new ObjectId(), identity: { firstname: 'titi', lastname: 'Tata', title: 'mr' } },
         startDate: '2019-11-10',
         endDate: '2020-01-21',
       },
       {
-        _id: new ObjectID(),
-        auxiliary: { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'Tutu' } },
-        customer: { _id: new ObjectID(), identity: { lastname: 'Tata', title: 'mr' } },
+        _id: new ObjectId(),
+        auxiliary: { _id: new ObjectId(), identity: { firstname: 'toto', lastname: 'Tutu' } },
+        customer: { _id: new ObjectId(), identity: { lastname: 'Tata', title: 'mr' } },
         startDate: '2020-11-10',
       },
     ];
@@ -663,11 +663,11 @@ describe('exportReferents', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toMatchObject([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'M.',
       'TATA',
       'titi',
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'M.',
       '',
       'toto',
@@ -675,11 +675,11 @@ describe('exportReferents', () => {
       '21/01/2020',
     ]);
     expect(result[2]).toMatchObject([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'M.',
       'TATA',
       '',
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       '',
       'TUTU',
       'toto',
@@ -709,7 +709,7 @@ describe('exportStaffRegister', () => {
   });
 
   it('should return csv header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     getStaffRegister.returns([]);
 
     const result = await ExportHelper.exportStaffRegister(credentials);
@@ -731,10 +731,10 @@ describe('exportStaffRegister', () => {
   });
 
   it('should return staff registerg info', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const staffRegister = [{
       user: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: {
           firstname: 'toto',
           lastname: 'Tutu',
@@ -747,7 +747,7 @@ describe('exportStaffRegister', () => {
     },
     {
       user: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: {
           firstname: 'toto2',
           lastname: 'Tutu2',
@@ -765,7 +765,7 @@ describe('exportStaffRegister', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toMatchObject([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'TUTU',
       'toto',
       'M.',
@@ -777,7 +777,7 @@ describe('exportStaffRegister', () => {
       '',
     ]);
     expect(result[2]).toMatchObject([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'TUTU2',
       'toto2',
       'Mme',
@@ -810,7 +810,7 @@ describe('exportServices', () => {
 
   it('should return csv header', async () => {
     const services = [];
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     findService.returns(SinonMongoose.stubChainedQueries([services]));
 
@@ -865,7 +865,7 @@ describe('exportServices', () => {
         createdAt: '2019-01-21T09:38:18.653Z',
       },
     ];
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     findService.returns(SinonMongoose.stubChainedQueries([services]));
 
@@ -912,7 +912,7 @@ describe('exportSubscriptions', () => {
 
   it('should return csv header', async () => {
     const customers = [];
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
@@ -944,7 +944,7 @@ describe('exportSubscriptions', () => {
   it('should return subscriptions info', async () => {
     const customers = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { lastname: 'Autonomie', title: 'mr' },
         subscriptions: [{
           service: { versions: [{ name: 'Service' }] },
@@ -952,7 +952,7 @@ describe('exportSubscriptions', () => {
         }],
       },
     ];
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
 
@@ -963,7 +963,7 @@ describe('exportSubscriptions', () => {
     sinon.assert.calledTwice(formatFloatForExport);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject([expect.any(ObjectID), 'M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
+    expect(result[1]).toMatchObject([expect.any(ObjectId), 'M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
     SinonMongoose.calledWithExactly(
       findCustomer,
       [
@@ -980,7 +980,7 @@ describe('exportFundings', () => {
   let getLastVersion;
   let formatFloatForExport;
   let mergeLastVersionWithBaseObject;
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
 
   beforeEach(() => {
     getCustomerFundings = sinon.stub(CustomerRepository, 'getCustomerFundings');
@@ -1032,10 +1032,10 @@ describe('exportFundings', () => {
   it('should return funding info', async () => {
     const customerFundings = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { lastname: 'Autonomie', title: 'mr' },
         funding: {
-          thirdPartyPayer: { _id: new ObjectID(), name: 'tpp' },
+          thirdPartyPayer: { _id: new ObjectId(), name: 'tpp' },
           subscription: { service: { versions: [{ name: 'Toto' }] } },
           nature: 'fixed',
           frequency: 'once',
@@ -1062,11 +1062,11 @@ describe('exportFundings', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'M.',
       'AUTONOMIE',
       '',
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'tpp',
       '12345678',
       'Forfaitaire',

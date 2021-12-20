@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
@@ -15,7 +15,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 
 const trainer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'trainer', lastname: 'trainer' },
   refreshToken: uuidv4(),
   local: { email: 'course_slot_trainer@alenvi.io', password: '123456!eR' },
@@ -23,38 +23,38 @@ const trainer = {
   origin: WEBAPP,
 };
 
-const userCompanies = [{ _id: new ObjectID(), user: trainer._id, company: authCompany._id }];
+const userCompanies = [{ _id: new ObjectId(), user: trainer._id, company: authCompany._id }];
 
 const stepsList = [
-  { _id: new ObjectID(), type: 'on_site', name: 'c\'est une étape' },
-  { _id: new ObjectID(), type: 'e_learning', name: 'toujours une étape' },
-  { _id: new ObjectID(), type: 'e_learning', name: 'encore une étape' },
-  { _id: new ObjectID(), type: 'on_site', name: 'encore une étape' },
-  { _id: new ObjectID(), type: 'remote', name: 'une étape de plus' },
+  { _id: new ObjectId(), type: 'on_site', name: 'c\'est une étape' },
+  { _id: new ObjectId(), type: 'e_learning', name: 'toujours une étape' },
+  { _id: new ObjectId(), type: 'e_learning', name: 'encore une étape' },
+  { _id: new ObjectId(), type: 'on_site', name: 'encore une étape' },
+  { _id: new ObjectId(), type: 'remote', name: 'une étape de plus' },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectID(), name: 'sous-programme A', steps: [stepsList[0]._id, stepsList[1]._id, stepsList[4]._id] },
-  { _id: new ObjectID(), name: 'sous-programme B', steps: [stepsList[2]._id, stepsList[3]._id] },
+  { _id: new ObjectId(), name: 'sous-programme A', steps: [stepsList[0]._id, stepsList[1]._id, stepsList[4]._id] },
+  { _id: new ObjectId(), name: 'sous-programme B', steps: [stepsList[2]._id, stepsList[3]._id] },
 ];
 
 const programsList = [
-  { _id: new ObjectID(), name: 'program', subPrograms: [subProgramsList[0]] },
-  { _id: new ObjectID(), name: 'training program', subPrograms: [subProgramsList[1]] },
+  { _id: new ObjectId(), name: 'program', subPrograms: [subProgramsList[0]] },
+  { _id: new ObjectId(), name: 'training program', subPrograms: [subProgramsList[1]] },
 ];
 
 const coursesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'first session',
     type: 'intra',
-    trainer: new ObjectID(),
+    trainer: new ObjectId(),
     salesRepresentative: vendorAdmin._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
     misc: 'team formation',
@@ -63,7 +63,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'old session',
@@ -76,7 +76,7 @@ const coursesList = [
 
 const courseSlotsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: '2020-03-10T09:00:00',
     endDate: '2020-03-10T12:00:00',
     course: coursesList[0]._id,
@@ -90,35 +90,35 @@ const courseSlotsList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: '2020-04-10T09:00:00',
     endDate: '2020-04-10T12:00:00',
     course: coursesList[0]._id,
     step: stepsList[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: '2020-03-10T09:00:00',
     endDate: '2020-03-10T12:00:00',
     course: coursesList[1]._id,
     step: stepsList[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: '2020-04-10T09:00:00',
     endDate: '2020-04-10T12:00:00',
     course: coursesList[1]._id,
     step: stepsList[0]._id,
   },
   { // slot with attendance
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: '2020-05-10T09:00:00',
     endDate: '2020-05-10T12:00:00',
     course: coursesList[1]._id,
     step: stepsList[0]._id,
   },
   { // old session slot
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: '2020-05-10T09:00:00',
     endDate: '2020-05-10T12:00:00',
     course: coursesList[2]._id,
@@ -126,7 +126,7 @@ const courseSlotsList = [
   },
 ];
 
-const attendance = { _id: new ObjectID(), trainee: new ObjectID(), courseSlot: courseSlotsList[4]._id };
+const attendance = { _id: new ObjectId(), trainee: new ObjectId(), courseSlot: courseSlotsList[4]._id };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();

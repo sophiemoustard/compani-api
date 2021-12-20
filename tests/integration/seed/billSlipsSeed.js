@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Bill = require('../../../src/models/Bill');
 const BillSlip = require('../../../src/models/BillSlip');
 const CreditNote = require('../../../src/models/CreditNote');
@@ -7,34 +7,34 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const tppList = [
-  { _id: new ObjectID(), name: 'third party payer', company: authCompany._id, isApa: true, billingMode: 'direct' },
-  { _id: new ObjectID(), name: 'tpp', company: authCompany._id, isApa: false, billingMode: 'direct' },
+  { _id: new ObjectId(), name: 'third party payer', company: authCompany._id, isApa: true, billingMode: 'direct' },
+  { _id: new ObjectId(), name: 'tpp', company: authCompany._id, isApa: false, billingMode: 'direct' },
 ];
 
 const billSlipList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     month: '11-2019',
     thirdPartyPayer: tppList[0]._id,
     company: authCompany._id,
     number: 'BORD-123456789009',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     month: '11-2019',
     thirdPartyPayer: tppList[1]._id,
     company: authCompany._id,
     number: 'BORD-123456789001',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     month: '12-2019',
     thirdPartyPayer: tppList[0]._id,
     company: authCompany._id,
     number: 'BORD-123456789002',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     month: '12-2019',
     thirdPartyPayer: tppList[1]._id,
     company: authCompany._id,
@@ -49,7 +49,7 @@ const billList = [
     date: '2019-12-12T09:00:00',
     netInclTaxes: 100,
     company: authCompany._id,
-    customer: new ObjectID(),
+    customer: new ObjectId(),
     number: '123456',
   },
   {
@@ -58,7 +58,7 @@ const billList = [
     date: '2019-12-12T09:00:00',
     netInclTaxes: 20,
     company: authCompany._id,
-    customer: new ObjectID(),
+    customer: new ObjectId(),
     number: '123454',
   },
   {
@@ -67,7 +67,7 @@ const billList = [
     date: '2019-11-12T09:00:00',
     netInclTaxes: 50,
     company: authCompany._id,
-    customer: new ObjectID(),
+    customer: new ObjectId(),
     number: '123453',
   },
   {
@@ -76,7 +76,7 @@ const billList = [
     date: '2019-12-12T09:00:00',
     netInclTaxes: 70,
     company: authCompany._id,
-    customer: new ObjectID(),
+    customer: new ObjectId(),
     number: '123452',
   },
   {
@@ -85,7 +85,7 @@ const billList = [
     date: '2019-11-12T09:00:00',
     netInclTaxes: 100,
     company: authCompany._id,
-    customer: new ObjectID(),
+    customer: new ObjectId(),
     number: '123451',
   },
 ];
@@ -112,9 +112,9 @@ const creditNotesList = [
 ];
 
 const billSlipFromAnotherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   month: '11-2019',
-  thirdPartyPayer: new ObjectID(),
+  thirdPartyPayer: new ObjectId(),
   company: otherCompany._id,
   number: 'BORD-123456745009',
 };

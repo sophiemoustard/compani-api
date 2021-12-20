@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Payment = require('../../../src/models/Payment');
 const Bill = require('../../../src/models/Bill');
@@ -25,10 +25,10 @@ const {
   WEBAPP,
 } = require('../../../src/helpers/constants');
 
-const subscriptions = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+const subscriptions = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
 
 const services = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -39,7 +39,7 @@ const services = [{
   }],
   nature: HOURLY,
 }, {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -52,7 +52,7 @@ const services = [{
 }];
 
 const thirdPartyPayer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
@@ -60,7 +60,7 @@ const thirdPartyPayer = {
 };
 
 const billAuthcustomer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   email: 'fake@test.com',
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
@@ -89,7 +89,7 @@ const billAuthcustomer = {
   },
   fundings: [
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       nature: FIXED,
       thirdPartyPayer: thirdPartyPayer._id,
       subscription: subscriptions[0]._id,
@@ -117,7 +117,7 @@ const billAuthcustomer = {
 
 const customerList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Hugues', lastname: 'Aufray' },
     contact: {
@@ -134,10 +134,10 @@ const customerList = [
       bankAccountOwner: 'Thierry Omeyer',
       iban: 'FR3514508000505917721779B43',
       bic: 'BNMDHISOBD',
-      mandates: [{ rum: 'R09876543456765443', _id: new ObjectID(), signedAt: '2021-07-13T00:00:00' }],
+      mandates: [{ rum: 'R09876543456765443', _id: new ObjectId(), signedAt: '2021-07-13T00:00:00' }],
     },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: services[0]._id,
       versions: [{
         unitTTCRate: 10,
@@ -147,7 +147,7 @@ const customerList = [
         startDate: '2018-01-01T10:00:00.000+01:00',
       }],
     }, {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: services[1]._id,
       versions: [{
         unitTTCRate: 11,
@@ -159,7 +159,7 @@ const customerList = [
     }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Elie', lastname: 'Yaffa' },
     contact: {
@@ -185,11 +185,11 @@ const customerList = [
     }],
     payment: {
       bankAccountOwner: 'Tchoupi',
-      mandates: [{ rum: 'R012345678903456789', _id: new ObjectID() }],
+      mandates: [{ rum: 'R012345678903456789', _id: new ObjectId() }],
     },
     fundings: [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayer._id,
         subscription: subscriptions[1]._id,
@@ -207,7 +207,7 @@ const customerList = [
     ],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: otherCompany._id,
     identity: { title: 'mr', firstname: 'Christine', lastname: 'AndTheQueens' },
     contact: {
@@ -221,7 +221,7 @@ const customerList = [
       phone: '0612345678',
     },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: services[1]._id,
       versions: [{
         unitTTCRate: 12,
@@ -233,13 +233,13 @@ const customerList = [
     }],
     payment: {
       bankAccountOwner: 'Roberto Alagna',
-      mandates: [{ rum: 'R014345658903456780', _id: new ObjectID() }],
+      mandates: [{ rum: 'R014345658903456780', _id: new ObjectId() }],
     },
   },
 ];
 
 const customerTaxCertificateList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   customer: billAuthcustomer._id,
   year: '2019',
@@ -248,7 +248,7 @@ const customerTaxCertificateList = [{
 
 const customerPaymentList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-101081900101',
     date: '2019-08-21T00:00:00',
@@ -258,7 +258,7 @@ const customerPaymentList = [
     type: 'direct_debit',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-101072000201',
     date: '2020-07-23T00:00:00',
@@ -268,7 +268,7 @@ const customerPaymentList = [
     type: 'direct_debit',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REMB-101072000201',
     date: '2020-07-23T00:00:00',
@@ -278,7 +278,7 @@ const customerPaymentList = [
     type: 'bank_transfer',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-101072000202',
     date: '2020-07-23T00:00:00',
@@ -289,7 +289,7 @@ const customerPaymentList = [
     type: 'direct_debit',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-101072000205',
     date: '2020-07-23T00:00:00',
@@ -303,23 +303,23 @@ const customerPaymentList = [
 
 const billUserList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Louise', lastname: 'Michel' },
     local: { email: 'louise@michel.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: authCompany._id,
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Murielle', lastname: 'Penicaud' },
     local: { email: 'mumu@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: rolesList.find(role => role.name === 'auxiliary')._id },
     company: otherCompany._id,
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     origin: WEBAPP,
   },
 ];
@@ -337,7 +337,7 @@ const contracts = [
       grossHourlyRate: 10.28,
       startDate: '2018-12-03T23:00:00.000Z',
       weeklyHours: 9,
-      _id: new ObjectID(),
+      _id: new ObjectId(),
     }],
   },
   {
@@ -352,16 +352,16 @@ const contracts = [
       grossHourlyRate: 10.28,
       startDate: '2018-12-03T23:00:00.000Z',
       weeklyHours: 9,
-      _id: new ObjectID(),
+      _id: new ObjectId(),
     }],
   },
 ];
 
-const eventId = new ObjectID();
+const eventId = new ObjectId();
 const billService = { serviceId: services[0]._id, name: services[0].versions[0].name, nature: services[0].nature };
 const authBillList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
     company: authCompany._id,
     number: 'FACT-101062000001',
@@ -394,7 +394,7 @@ const authBillList = [
     ],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
     company: authCompany._id,
     number: 'FACT-101081900004',
@@ -423,7 +423,7 @@ const authBillList = [
     }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'automatic',
     number: 'FACT-101062000002',
@@ -455,9 +455,9 @@ const authBillList = [
 
 const eventList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: 'intervention',
     startDate: '2019-01-16T09:00:00.543Z',
     endDate: '2019-01-16T10:00:00.653Z',
@@ -474,9 +474,9 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: 'intervention',
     startDate: '2019-01-17T16:00:19.543Z',
     endDate: '2019-01-17T18:00:19.543Z',
@@ -493,9 +493,9 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: 'intervention',
     startDate: '2019-01-18T14:00:19.543Z',
     endDate: '2019-01-18T18:00:19.543Z',
@@ -512,9 +512,9 @@ const eventList = [
     subscription: customerList[1].subscriptions[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: 'intervention',
     startDate: '2019-01-19T14:30:00.543Z',
     endDate: '2019-01-19T19:30:00.543Z',
@@ -533,8 +533,8 @@ const eventList = [
 ];
 
 const fundingHistory = {
-  _id: new ObjectID(),
-  fundingId: new ObjectID(),
+  _id: new ObjectId(),
+  fundingId: new ObjectId(),
   amountTTC: 12,
   nature: 'fixed',
   company: authCompany._id,

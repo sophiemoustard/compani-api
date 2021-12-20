@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 const Partner = require('../../../src/models/Partner');
 const PartnerOrganizationsHelper = require('../../../src/helpers/partnerOrganizations');
@@ -16,7 +16,7 @@ describe('create', () => {
   });
 
   it('should create partner organization', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const payload = {
       name: 'Etchebest Corporation',
       phone: '0123456789',
@@ -61,8 +61,8 @@ describe('list', () => {
   });
 
   it('should list partner organizations from my company', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const partnerOrganizationId = new ObjectID();
+    const credentials = { company: { _id: new ObjectId() } };
+    const partnerOrganizationId = new ObjectId();
 
     find.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku', partners: [] }]]));
 
@@ -89,10 +89,10 @@ describe('list', () => {
   });
 
   it('should list partner organizations and the number of customers prescribed by each partner', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const partnerOrganizationIds = [new ObjectID(), new ObjectID()];
-    const partnersIds = [new ObjectID()];
-    const customerPartnersIds = [new ObjectID()];
+    const credentials = { company: { _id: new ObjectId() } };
+    const partnerOrganizationIds = [new ObjectId(), new ObjectId()];
+    const partnersIds = [new ObjectId()];
+    const customerPartnersIds = [new ObjectId()];
 
     const partnerOrganizations = [
       { _id: partnerOrganizationIds[0], partners: [] },
@@ -146,8 +146,8 @@ describe('getPartnerOrganization', () => {
   });
 
   it('should update a partner organizations', async () => {
-    const partnerOrganizationId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const partnerOrganizationId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
 
     findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]]));
 
@@ -187,7 +187,7 @@ describe('update', () => {
 
   it('should update a partner organizations', async () => {
     const payload = { name: 'skusku' };
-    const partnerOrganizationId = new ObjectID();
+    const partnerOrganizationId = new ObjectId();
 
     await PartnerOrganizationsHelper.update(partnerOrganizationId, payload);
 
@@ -208,10 +208,10 @@ describe('createPartner', () => {
   });
 
   it('should update a partner and add it to partnerOrganization', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const payload = { identity: { firstname: 'Manon', lastname: 'Palindrome' } };
-    const partnerOrganizationId = new ObjectID();
-    const partner = { _id: new ObjectID() };
+    const partnerOrganizationId = new ObjectId();
+    const partner = { _id: new ObjectId() };
 
     createPartner.returns(partner);
 

@@ -2,7 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const Boom = require('@hapi/boom');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
@@ -55,7 +55,7 @@ describe('list', () => {
     getEventListStub.restore();
     getListQueryStub.restore();
   });
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
 
   it('should list events grouped by customer', async () => {
@@ -92,11 +92,11 @@ describe('list', () => {
 
   it('should list events', async () => {
     const query = {};
-    const eventsQuery = { customer: new ObjectID(), type: 'intervention', isCancelled: false };
+    const eventsQuery = { customer: new ObjectId(), type: 'intervention', isCancelled: false };
     getListQueryStub.returns(eventsQuery);
     const events = [{ type: 'intervention' }];
     getEventListStub.returns(events);
-    const populatedEvents = [{ type: 'intervention', customer: new ObjectID() }];
+    const populatedEvents = [{ type: 'intervention', customer: new ObjectId() }];
     populateEventsStub.returns(populatedEvents);
 
     const result = await EventHelper.list(query, credentials);
@@ -133,7 +133,7 @@ describe('isRepetition', () => {
 
 describe('formatEditionPayload', () => {
   it('Case 1: event is detached from repetition', () => {
-    const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectID(), misc: 'lalalal' };
+    const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectId(), misc: 'lalalal' };
     const event = { repetition: { frequency: EVERY_WEEK } };
 
     const result = EventHelper.formatEditionPayload(event, payload, true);
@@ -151,7 +151,7 @@ describe('formatEditionPayload', () => {
   });
 
   it('Case 4: auxiliary is in payload', () => {
-    const payload = { startDate: '2019-01-10T10:00:00', auxiliary: new ObjectID() };
+    const payload = { startDate: '2019-01-10T10:00:00', auxiliary: new ObjectId() };
     const event = {};
 
     const result = EventHelper.formatEditionPayload(event, payload, false);
@@ -159,7 +159,7 @@ describe('formatEditionPayload', () => {
     expect(result).toEqual({ $set: payload, $unset: { sector: '' } });
   });
   it('Case 5: remove cancellation', () => {
-    const payload = { isCancelled: false, startDate: '2019-01-10T10:00:00', sector: new ObjectID() };
+    const payload = { isCancelled: false, startDate: '2019-01-10T10:00:00', sector: new ObjectId() };
     const event = { isCancelled: true, cancel: { reason: AUXILIARY_INITIATIVE } };
 
     const result = EventHelper.formatEditionPayload(event, payload, false);
@@ -167,7 +167,7 @@ describe('formatEditionPayload', () => {
     expect(result).toEqual({ $set: { ...payload, isCancelled: false }, $unset: { auxiliary: '', cancel: '' } });
   });
   it('Case 5: remove address', () => {
-    const auxiliary = new ObjectID();
+    const auxiliary = new ObjectId();
     const payload = { address: {}, auxiliary };
     const event = { auxiliary };
 
@@ -224,9 +224,9 @@ describe('updateEvent', () => {
   });
 
   it('should throw 400 if event is not absence and not on one day', async () => {
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
-    const auxiliaryId = new ObjectID();
-    const event = { _id: new ObjectID(), type: INTERVENTION, auxiliary: { _id: auxiliaryId } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
+    const auxiliaryId = new ObjectId();
+    const event = { _id: new ObjectId(), type: INTERVENTION, auxiliary: { _id: auxiliaryId } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T10:38:18',
@@ -256,9 +256,9 @@ describe('updateEvent', () => {
 
   it('shouldUpdateRepetition = true - should throw 422 if invalid repetition', async () => {
     try {
-      const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
-      const auxiliary = new ObjectID();
-      const event = { _id: new ObjectID(), type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
+      const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
+      const auxiliary = new ObjectId();
+      const event = { _id: new ObjectId(), type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
       const payload = {
         startDate: '2019-01-21T09:38:18',
         endDate: '2019-01-21T10:38:18',
@@ -288,9 +288,9 @@ describe('updateEvent', () => {
   });
 
   it('shouldUpdateRepetition = true - should throw 422 if update is not allowed', async () => {
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
-    const auxiliary = new ObjectID();
-    const event = { _id: new ObjectID(), type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
+    const auxiliary = new ObjectId();
+    const event = { _id: new ObjectId(), type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T10:38:18',
@@ -322,11 +322,11 @@ describe('updateEvent', () => {
   });
 
   it('shouldUpdateRepetition = true - should update repetition', async () => {
-    const companyId = new ObjectID();
-    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const parentId = new ObjectID();
+    const companyId = new ObjectId();
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
+    const eventId = new ObjectId();
+    const auxiliary = new ObjectId();
+    const parentId = new ObjectId();
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week', parentId } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
@@ -372,9 +372,9 @@ describe('updateEvent', () => {
   });
 
   it('shouldUpdateRepetition = false - should throw 422 if update is not allowed', async () => {
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
-    const auxiliary = new ObjectID();
-    const eventId = new ObjectID();
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
+    const auxiliary = new ObjectId();
+    const eventId = new ObjectId();
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
@@ -409,10 +409,10 @@ describe('updateEvent', () => {
   });
 
   it('shouldUpdateRepetition = false - should update event', async () => {
-    const companyId = new ObjectID();
-    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
-    const eventId = new ObjectID();
-    const auxiliaryId = new ObjectID();
+    const companyId = new ObjectId();
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
+    const eventId = new ObjectId();
+    const auxiliaryId = new ObjectId();
     const event = { _id: eventId, type: INTERVENTION, auxiliary: { _id: auxiliaryId } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
@@ -460,10 +460,10 @@ describe('updateEvent', () => {
   });
 
   it('shouldUpdateRepetition = false - should update absence', async () => {
-    const companyId = new ObjectID();
-    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
-    const eventId = new ObjectID();
-    const auxiliaryId = new ObjectID();
+    const companyId = new ObjectId();
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
+    const eventId = new ObjectId();
+    const auxiliaryId = new ObjectId();
     const event = {
       _id: eventId,
       type: ABSENCE,
@@ -535,8 +535,8 @@ describe('listForCreditNotes', () => {
   });
   it('should return events with creditNotes at creation', async () => {
     const events = [{ type: 'intervention' }];
-    const companyId = new ObjectID();
-    const payload = { customer: new ObjectID() };
+    const companyId = new ObjectId();
+    const payload = { customer: new ObjectId() };
 
     const query = {
       startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
@@ -567,8 +567,8 @@ describe('listForCreditNotes', () => {
   });
 
   it('should query with thirdPartyPayer', async () => {
-    const companyId = new ObjectID();
-    const payload = { thirdPartyPayer: new ObjectID(), customer: new ObjectID() };
+    const companyId = new ObjectId();
+    const payload = { thirdPartyPayer: new ObjectId(), customer: new ObjectId() };
 
     const query = {
       startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
@@ -599,9 +599,9 @@ describe('listForCreditNotes', () => {
 
   it('should return events with creditNotes at edition', async () => {
     const events = [{ type: 'intervention' }];
-    const companyId = new ObjectID();
-    const payload = { customer: new ObjectID() };
-    const creditNote = { events: [{ eventId: new ObjectID() }] };
+    const companyId = new ObjectId();
+    const payload = { customer: new ObjectId() };
+    const creditNote = { events: [{ eventId: new ObjectId() }] };
 
     const query = {
       startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
@@ -634,7 +634,7 @@ describe('listForCreditNotes', () => {
 
 describe('populateEventSubscription', () => {
   it('should populate subscription as event is an intervention', async () => {
-    const subId = new ObjectID();
+    const subId = new ObjectId();
     const event = {
       type: 'intervention',
       customer: {
@@ -642,15 +642,15 @@ describe('populateEventSubscription', () => {
           {
             createdAt: '2019-01-11T08:38:18.653Z',
             _id: subId,
-            service: new ObjectID(),
+            service: new ObjectId(),
             unitTTCRate: 25,
             estimatedWeeklyVolume: 12,
             sundays: 2,
           },
           {
             createdAt: '2019-01-21T09:38:18',
-            _id: new ObjectID(),
-            service: new ObjectID(),
+            _id: new ObjectId(),
+            service: new ObjectId(),
             unitTTCRate: 25,
             estimatedWeeklyVolume: 12,
             sundays: 2,
@@ -690,15 +690,15 @@ describe('populateEventSubscription', () => {
         subscriptions: [
           {
             createdAt: '2019-01-21T09:38:18',
-            _id: new ObjectID(),
-            service: new ObjectID(),
+            _id: new ObjectId(),
+            service: new ObjectId(),
             unitTTCRate: 25,
             estimatedWeeklyVolume: 12,
             sundays: 2,
           },
         ],
       },
-      subscription: new ObjectID(),
+      subscription: new ObjectId(),
     };
 
     try {
@@ -719,7 +719,7 @@ describe('populateEvents', () => {
   });
 
   it('should populate subscription as event is an intervention', async () => {
-    const subIdList = [new ObjectID(), new ObjectID()];
+    const subIdList = [new ObjectId(), new ObjectId()];
     const events = [
       {
         type: 'intervention',
@@ -728,15 +728,15 @@ describe('populateEvents', () => {
             {
               createdAt: '2019-01-11T08:38:18.653Z',
               _id: subIdList[0],
-              service: new ObjectID(),
+              service: new ObjectId(),
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
             },
             {
               createdAt: '2019-01-21T09:38:18',
-              _id: new ObjectID(),
-              service: new ObjectID(),
+              _id: new ObjectId(),
+              service: new ObjectId(),
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
@@ -752,15 +752,15 @@ describe('populateEvents', () => {
             {
               createdAt: '2019-01-12T08:38:18.653Z',
               _id: subIdList,
-              service: new ObjectID(),
+              service: new ObjectId(),
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
             },
             {
               createdAt: '2019-01-22T09:38:18.653Z',
-              _id: new ObjectID(),
-              service: new ObjectID(),
+              _id: new ObjectId(),
+              service: new ObjectId(),
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
@@ -780,8 +780,8 @@ describe('removeRepetitionsOnContractEnd', () => {
   let updateManyRepetition;
   let deleteManyRepetition;
 
-  const userId = new ObjectID();
-  const sectorId = new ObjectID();
+  const userId = new ObjectId();
+  const sectorId = new ObjectId();
 
   beforeEach(() => {
     updateManyRepetition = sinon.stub(Repetition, 'updateMany');
@@ -813,16 +813,16 @@ describe('unassignInterventionsOnContractEnd', () => {
   let createEventHistoryOnUpdate;
   let updateManyEvent;
 
-  const userId = new ObjectID();
-  const sectorId = new ObjectID();
-  const companyId = new ObjectID();
+  const userId = new ObjectId();
+  const sectorId = new ObjectId();
+  const companyId = new ObjectId();
   const credentials = { _id: userId, company: { _id: companyId } };
 
   const interventions = [
     {
       _id: null,
       events: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         type: 'intervention',
         startDate: '2019-10-02T10:00:00.000Z',
         endDate: '2019-10-02T12:00:00.000Z',
@@ -830,9 +830,9 @@ describe('unassignInterventionsOnContractEnd', () => {
       }],
     },
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       events: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         misc: 'toto',
         type: 'intervention',
         startDate: '2019-10-02T11:00:00.000Z',
@@ -918,15 +918,15 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   let getEventsExceptInterventions;
   let createEventHistoryOnDelete;
   let deleteMany;
-  const userId = new ObjectID();
-  const sectorId = new ObjectID();
-  const companyId = new ObjectID();
+  const userId = new ObjectId();
+  const sectorId = new ObjectId();
+  const companyId = new ObjectId();
   const credentials = { _id: userId, company: { _id: companyId } };
   const events = [
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       events: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         type: 'internal_hour',
         startDate: '2019-10-02T10:00:00.000Z',
         endDate: '2019-10-02T12:00:00.000Z',
@@ -934,9 +934,9 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
       }],
     },
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       events: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         type: 'unavailability',
         startDate: '2019-10-02T11:00:00.000Z',
         endDate: '2019-10-02T13:00:00.000Z',
@@ -991,9 +991,9 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
 describe('deleteCustomerEvents', () => {
   let deleteEventsAndRepetition;
   let customerAbsenceCreation;
-  const customerId = new ObjectID();
-  const userId = new ObjectID();
-  const credentials = { _id: userId, company: { _id: new ObjectID() } };
+  const customerId = new ObjectId();
+  const userId = new ObjectId();
+  const credentials = { _id: userId, company: { _id: new ObjectId() } };
 
   beforeEach(() => {
     deleteEventsAndRepetition = sinon.stub(EventHelper, 'deleteEventsAndRepetition');
@@ -1064,12 +1064,12 @@ describe('createEventHistoryOnDeleteList', () => {
   });
 
   it('should create event histories for each deleted event', async () => {
-    const customerId = new ObjectID();
-    const userId = new ObjectID();
-    const credentials = { _id: userId, company: { _id: new ObjectID() } };
+    const customerId = new ObjectId();
+    const userId = new ObjectId();
+    const credentials = { _id: userId, company: { _id: new ObjectId() } };
     const events = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         customer: customerId,
         type: 'internal_hour',
         repetition: { frequency: NEVER },
@@ -1078,10 +1078,10 @@ describe('createEventHistoryOnDeleteList', () => {
         auxiliary: userId,
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         customer: customerId,
         type: 'unavailability',
-        repetition: { frequency: NEVER, parentId: new ObjectID() },
+        repetition: { frequency: NEVER, parentId: new ObjectId() },
         startDate: '2019-10-7T11:30:00.000Z',
         endDate: '2019-10-7T13:00:00.000Z',
         auxiliary: userId,
@@ -1100,13 +1100,13 @@ describe('updateAbsencesOnContractEnd', () => {
   let createEventHistoryOnUpdate = null;
   let updateMany = null;
 
-  const userId = new ObjectID();
-  const companyId = new ObjectID();
+  const userId = new ObjectId();
+  const companyId = new ObjectId();
   const credentials = { _id: userId, company: { _id: companyId } };
 
   const absences = [
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       type: 'absences',
       startDate: '2019-10-02T10:00:00.000Z',
       endDate: '2019-10-04T12:00:00.000Z',
@@ -1161,8 +1161,8 @@ describe('detachAuxiliaryFromEvent', () => {
   });
 
   it('should detach auxiliary from event', async () => {
-    const event = { auxiliary: new ObjectID(), repetition: { frequency: 'every_week' } };
-    const companyId = new ObjectID();
+    const event = { auxiliary: new ObjectId(), repetition: { frequency: 'every_week' } };
+    const companyId = new ObjectId();
 
     const auxiliary = { sector: 'sector' };
     findOneUser.returns(SinonMongoose.stubChainedQueries([auxiliary]));
@@ -1195,7 +1195,7 @@ describe('createEvent', () => {
   let detachAuxiliaryFromEvent;
   let isRepetition;
 
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { _id: 'qwertyuiop', company: { _id: companyId } };
   beforeEach(() => {
     createEvent = sinon.stub(Event, 'create');
@@ -1243,7 +1243,7 @@ describe('createEvent', () => {
 
   it('should create event as creation is allowed', async () => {
     const payload = { type: INTERNAL_HOUR };
-    const event = { ...payload, _id: new ObjectID() };
+    const event = { ...payload, _id: new ObjectId() };
 
     isCreationAllowed.returns(true);
     isRepetition.returns(false);
@@ -1266,12 +1266,12 @@ describe('createEvent', () => {
   });
 
   it('should detach auxiliary as event is a repeated intervention with conflicts', async () => {
-    const eventId = new ObjectID();
+    const eventId = new ObjectId();
     const detachedEvent = { _id: eventId, type: INTERVENTION, repetition: { frequency: 'never' } };
     const newEvent = {
       _id: eventId,
       type: INTERVENTION,
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       repetition: { frequency: 'every_week' },
     };
 
@@ -1305,7 +1305,7 @@ describe('createEvent', () => {
 
   it('should create repetitions as event is a repetition', async () => {
     const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK } };
-    const event = { ...payload, _id: new ObjectID() };
+    const event = { ...payload, _id: new ObjectId() };
 
     isCreationAllowed.returns(true);
     hasConflicts.returns(false);
@@ -1335,17 +1335,17 @@ describe('createEvent', () => {
   });
 
   it('should unassign intervention and delete other event in conflict on absence creation', async () => {
-    const eventId = new ObjectID();
-    const auxiliaryId = new ObjectID();
+    const eventId = new ObjectId();
+    const auxiliaryId = new ObjectId();
     const payload = {
       type: ABSENCE,
       startDate: '2019-03-20T10:00:00',
       endDate: '2019-03-20T12:00:00',
       auxiliary: auxiliaryId,
-      company: new ObjectID(),
+      company: new ObjectId(),
     };
     const event = { ...payload, _id: eventId };
-    const auxiliary = { _id: auxiliaryId, sector: new ObjectID() };
+    const auxiliary = { _id: auxiliaryId, sector: new ObjectId() };
 
     isCreationAllowed.returns(true);
     isRepetition.returns(false);
@@ -1398,9 +1398,9 @@ describe('deleteConflictInternalHoursAndUnavailabilities', () => {
 
   it('should delete conflict events except interventions', async () => {
     const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
-    const auxiliary = { _id: new ObjectID() };
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
-    const event = { _id: new ObjectID(), startDate: dates.startDate, endDate: dates.endDate };
+    const auxiliary = { _id: new ObjectId() };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
+    const event = { _id: new ObjectId(), startDate: dates.startDate, endDate: dates.endDate };
     const companyId = credentials.company._id;
     const query = {
       startDate: { $lt: dates.endDate },
@@ -1444,8 +1444,8 @@ describe('unassignConflictInterventions', () => {
 
   it('should delete conflict events except interventions', async () => {
     const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
-    const auxiliaryId = new ObjectID();
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const auxiliaryId = new ObjectId();
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const companyId = credentials.company._id;
     const query = {
       startDate: { $lt: dates.endDate },
@@ -1454,7 +1454,7 @@ describe('unassignConflictInterventions', () => {
       type: { $in: [INTERVENTION] },
       company: companyId,
     };
-    const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
+    const events = [new Event({ _id: new ObjectId() }), new Event({ _id: new ObjectId() })];
 
     formatEventsInConflictQuery.returns(query);
     findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
@@ -1470,7 +1470,7 @@ describe('unassignConflictInterventions', () => {
 describe('getListQuery', () => {
   it('should return only company in rules if query is empty', () => {
     const query = {};
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const listQuery = EventHelper.getListQuery(query, credentials);
 
@@ -1480,14 +1480,14 @@ describe('getListQuery', () => {
   it('should return all conditions in rules that are in query', () => {
     const query = {
       type: 'intervention',
-      auxiliary: new ObjectID(),
-      sector: [new ObjectID()],
-      customer: [new ObjectID()],
+      auxiliary: new ObjectId(),
+      sector: [new ObjectId()],
+      customer: [new ObjectId()],
       startDate: '2021-04-28T10:00:00.000Z',
       endDate: '2021-04-28T12:00:00.000Z',
       isCancelled: false,
     };
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const listQuery = EventHelper.getListQuery(query, credentials);
 
@@ -1515,8 +1515,8 @@ describe('deleteEvent', () => {
   });
 
   it('should delete event', async () => {
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
-    const eventId = new ObjectID();
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
+    const eventId = new ObjectId();
 
     await EventHelper.deleteEvent(eventId, credentials);
 
@@ -1536,7 +1536,7 @@ describe('deleteEventsAndRepetition', () => {
   let createEventHistoryOnDelete;
   let repetitionDeleteOne;
   let deleteMany;
-  const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+  const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
   beforeEach(() => {
     find = sinon.stub(Event, 'find');
     checkDeletionIsAllowed = sinon.stub(EventsValidationHelper, 'checkDeletionIsAllowed');
@@ -1556,7 +1556,7 @@ describe('deleteEventsAndRepetition', () => {
 
   it('should delete events without repetition', async () => {
     const query = {
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
       company: credentials.company._id,
     };
@@ -1576,16 +1576,16 @@ describe('deleteEventsAndRepetition', () => {
 
   it('should delete events with repetitions', async () => {
     const query = {
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
       company: credentials.company._id,
     };
-    const customerId = new ObjectID();
-    const userId = new ObjectID();
+    const customerId = new ObjectId();
+    const userId = new ObjectId();
     const parentId = 'azerty';
     const events = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         customer: customerId,
         type: 'internal_hour',
         repetition: { frequency: NEVER },
@@ -1594,7 +1594,7 @@ describe('deleteEventsAndRepetition', () => {
         auxiliary: userId,
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         customer: customerId,
         type: 'unavailability',
         repetition: { frequency: EVERY_WEEK, parentId },
@@ -1603,7 +1603,7 @@ describe('deleteEventsAndRepetition', () => {
         auxiliary: userId,
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         customer: customerId,
         type: 'unavailability',
         repetition: { frequency: EVERY_WEEK, parentId },
@@ -1612,7 +1612,7 @@ describe('deleteEventsAndRepetition', () => {
         auxiliary: userId,
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         customer: customerId,
         type: 'unavailability',
         startDate: '2019-10-20T11:00:00.000Z',
@@ -1639,7 +1639,7 @@ describe('deleteEventsAndRepetition', () => {
 
   it('should not delete event if at least one is billed', async () => {
     const query = {
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
       company: credentials.company._id,
     };
@@ -1668,7 +1668,7 @@ describe('deleteEventsAndRepetition', () => {
 
   it('should not delete event if at least one is timestamped', async () => {
     const query = {
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
       company: credentials.company._id,
     };
@@ -1700,9 +1700,9 @@ describe('shouldDetachFromRepetition', () => {
   it('should return false if main fields are not updated', () => {
     const event = {
       type: INTERVENTION,
-      sector: new ObjectID(),
-      auxiliary: new ObjectID(),
-      subscription: new ObjectID(),
+      sector: new ObjectId(),
+      auxiliary: new ObjectId(),
+      subscription: new ObjectId(),
       startDate: '2019-01-21T09:30:00',
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
@@ -1721,14 +1721,14 @@ describe('shouldDetachFromRepetition', () => {
   const idKeys = ['sector', 'auxiliary', 'subscription'];
   idKeys.map(key => it(`should return true if ${key} is updated `, () => {
     const event = {
-      sector: new ObjectID(),
-      auxiliary: new ObjectID(),
-      subscription: new ObjectID(),
+      sector: new ObjectId(),
+      auxiliary: new ObjectId(),
+      subscription: new ObjectId(),
       startDate: '2019-01-21T09:30:00',
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
     };
-    const updatedEventPayload = { ...event, [key]: new ObjectID().toHexString() };
+    const updatedEventPayload = { ...event, [key]: new ObjectId().toHexString() };
 
     expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
   }));
@@ -1736,9 +1736,9 @@ describe('shouldDetachFromRepetition', () => {
   const dateKeys = ['startDate', 'endDate'];
   dateKeys.map(key => it(`should return true if ${key} is updated `, () => {
     const event = {
-      sector: new ObjectID(),
-      auxiliary: new ObjectID(),
-      subscription: new ObjectID(),
+      sector: new ObjectId(),
+      auxiliary: new ObjectId(),
+      subscription: new ObjectId(),
       startDate: '2019-01-21T09:30:00',
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
@@ -1750,9 +1750,9 @@ describe('shouldDetachFromRepetition', () => {
 
   it('should return true if isCancelled is updated ', () => {
     const event = {
-      sector: new ObjectID(),
-      auxiliary: new ObjectID(),
-      subscription: new ObjectID(),
+      sector: new ObjectId(),
+      auxiliary: new ObjectId(),
+      subscription: new ObjectId(),
       startDate: '2019-01-21T09:30:00',
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
@@ -1764,9 +1764,9 @@ describe('shouldDetachFromRepetition', () => {
 
   it('should return true if internalHour is updated ', () => {
     const event = {
-      sector: new ObjectID(),
-      auxiliary: new ObjectID(),
-      subscription: new ObjectID(),
+      sector: new ObjectId(),
+      auxiliary: new ObjectId(),
+      subscription: new ObjectId(),
       startDate: '2019-01-21T09:30:00',
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
@@ -1779,9 +1779,9 @@ describe('shouldDetachFromRepetition', () => {
 
   it('should return true if isCancelled is updated ', () => {
     const event = {
-      sector: new ObjectID(),
-      auxiliary: new ObjectID(),
-      subscription: new ObjectID(),
+      sector: new ObjectId(),
+      auxiliary: new ObjectId(),
+      subscription: new ObjectId(),
       startDate: '2019-01-21T09:30:00',
       endDate: '2019-01-21T11:30:00',
       isCancelled: false,
@@ -1834,7 +1834,7 @@ describe('getContractWeekInfo', () => {
 });
 
 describe('workingStats', () => {
-  const auxiliaryId = new ObjectID();
+  const auxiliaryId = new ObjectId();
   const query = {
     auxiliary: [auxiliaryId],
     startDate: '2019-12-12',
@@ -1851,7 +1851,7 @@ describe('workingStats', () => {
     },
     status: 200,
   };
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
   let findUser;
   let findUserCompany;
@@ -1883,7 +1883,7 @@ describe('workingStats', () => {
   });
 
   it('should return working stats', async () => {
-    const contractId = new ObjectID();
+    const contractId = new ObjectId();
     const contracts = [{ _id: contractId }];
     const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
     const contract = { startDate: '2018-11-11', _id: contractId };
@@ -1929,7 +1929,7 @@ describe('workingStats', () => {
   });
 
   it('should return workingstats for all auxiliaries if no auxiliary is specified', async () => {
-    const contractId = new ObjectID();
+    const contractId = new ObjectId();
     const contracts = [{ _id: contractId }];
     const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
     const queryWithoutAuxiliary = omit(query, 'auxiliary');
@@ -1937,7 +1937,7 @@ describe('workingStats', () => {
     const contractInfo = { contractHours: 10, holidaysHours: 7 };
     const hours = { workedHours: 12 };
     const absencesHours = 3;
-    const users = [{ _id: new ObjectID(), user: auxiliaries[0]._id }];
+    const users = [{ _id: new ObjectId(), user: auxiliaries[0]._id }];
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
     getContractStub.returns(contract);
@@ -2017,7 +2017,7 @@ describe('workingStats', () => {
   });
 
   it('should return {} if contract not found', async () => {
-    const contracts = [{ _id: new ObjectID() }];
+    const contracts = [{ _id: new ObjectId() }];
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     getContractStub.returns();
@@ -2065,8 +2065,8 @@ describe('getPaidTransportStatsBySector', () => {
   });
 
   it('should return an empty array if there is no event', async () => {
-    const query = { sector: new ObjectID(), month: '01-2020' };
-    const credentials = { company: { _id: new ObjectID() } };
+    const query = { sector: new ObjectId(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectId() } };
 
     getDistanceMatrix.returns([{ duration: 10 }]);
     getPaidTransportStatsBySector.returns([]);
@@ -2078,8 +2078,8 @@ describe('getPaidTransportStatsBySector', () => {
   });
 
   it('should return paid transport stats', async () => {
-    const query = { sector: new ObjectID(), month: '01-2020' };
-    const credentials = { company: { _id: new ObjectID() } };
+    const query = { sector: new ObjectId(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const distanceMatrix = [{ duration: 3600 }];
     const events = [
@@ -2088,7 +2088,7 @@ describe('getPaidTransportStatsBySector', () => {
     ];
     const paidTransportStatsBySector = [{
       _id: query.sector,
-      auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events }] }],
+      auxiliaries: [{ auxiliary: new ObjectId(), days: [{ day: '2020-01-02', events }] }],
     }];
 
     getDistanceMatrix.returns(distanceMatrix);
@@ -2109,8 +2109,8 @@ describe('getPaidTransportStatsBySector', () => {
   });
 
   it('should return paid transport stats for many sectors', async () => {
-    const query = { sector: [new ObjectID(), new ObjectID()], month: '01-2020' };
-    const credentials = { company: { _id: new ObjectID() } };
+    const query = { sector: [new ObjectId(), new ObjectId()], month: '01-2020' };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const distanceMatrix = [{ duration: 3600 }, { duration: 5400 }];
     const eventsFirstSector = [
@@ -2124,11 +2124,11 @@ describe('getPaidTransportStatsBySector', () => {
     const paidTransportStatsBySector = [
       {
         _id: query.sector[0],
-        auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events: eventsFirstSector }] }],
+        auxiliaries: [{ auxiliary: new ObjectId(), days: [{ day: '2020-01-02', events: eventsFirstSector }] }],
       },
       {
         _id: query.sector[1],
-        auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events: eventsSecondSector }] }],
+        auxiliaries: [{ auxiliary: new ObjectId(), days: [{ day: '2020-01-02', events: eventsSecondSector }] }],
       },
     ];
 
@@ -2157,8 +2157,8 @@ describe('getPaidTransportStatsBySector', () => {
   });
 
   it('should not call getPaidTransportInfo if only one event for one day', async () => {
-    const query = { sector: new ObjectID(), month: '01-2020' };
-    const credentials = { company: { _id: new ObjectID() } };
+    const query = { sector: new ObjectId(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const distanceMatrix = [{ duration: 3600 }];
     const events = [
@@ -2166,7 +2166,7 @@ describe('getPaidTransportStatsBySector', () => {
     ];
     const paidTransportStatsBySector = [{
       _id: query.sector,
-      auxiliaries: [{ auxiliary: new ObjectID(), days: [{ day: '2020-01-02', events }] }],
+      auxiliaries: [{ auxiliary: new ObjectId(), days: [{ day: '2020-01-02', events }] }],
     }];
 
     getDistanceMatrix.returns(distanceMatrix);
@@ -2197,8 +2197,8 @@ describe('getUnassignedHoursBySector', () => {
   });
 
   it('should return an empty array if there is no unassigned event', async () => {
-    const query = { sector: new ObjectID(), month: '01-2020' };
-    const credentials = { company: { _id: new ObjectID() } };
+    const query = { sector: new ObjectId(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectId() } };
 
     getUnassignedHoursBySector.returns([]);
 
@@ -2214,8 +2214,8 @@ describe('getUnassignedHoursBySector', () => {
   });
 
   it('should return unassigned hours', async () => {
-    const query = { sector: new ObjectID(), month: '01-2020' };
-    const credentials = { company: { _id: new ObjectID() } };
+    const query = { sector: new ObjectId(), month: '01-2020' };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const unassignedhours = [{ sector: query.sector, duration: 12 }];
 
@@ -2233,8 +2233,8 @@ describe('getUnassignedHoursBySector', () => {
   });
 
   it('should return unassigned hours for many sectors', async () => {
-    const query = { sector: [new ObjectID(), new ObjectID()], month: '01-2020' };
-    const credentials = { company: { _id: new ObjectID() } };
+    const query = { sector: [new ObjectId(), new ObjectId()], month: '01-2020' };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const unassignedHours = [{ sector: query.sector[0], duration: 12 }, { sector: query.sector[1], duration: 5 }];
 

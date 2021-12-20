@@ -4,7 +4,7 @@ const GetStream = require('get-stream');
 const path = require('path');
 const fs = require('fs');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const DriveHelper = require('../../src/helpers/drive');
 const DocxHelper = require('../../src/helpers/docx');
@@ -115,7 +115,7 @@ describe('DELETE /gdrive/file/:id', () => {
     });
 
     it('should return 200 even if document is missing ', async () => {
-      const missingFileId = new ObjectID();
+      const missingFileId = new ObjectId();
 
       const response = await app.inject({
         method: 'DELETE',

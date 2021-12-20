@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
 const GetStream = require('get-stream');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
 const app = require('../../server');
 const { populateDB, coursesList, attendanceSheetsList } = require('./seed/attendanceSheetsSeed');
@@ -120,7 +120,7 @@ describe('ATTENDANCE SHEETS ROUTES - POST /attendancesheets', () => {
       const formData = {
         course: coursesList[1]._id.toHexString(),
         file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-        trainee: new ObjectID().toHexString(),
+        trainee: new ObjectId().toHexString(),
       };
 
       const form = generateFormData(formData);
@@ -238,7 +238,7 @@ describe('ATTENDANCE SHEETS ROUTES - GET /attendancesheets', () => {
     it('should return a 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/attendancesheets?course=${new ObjectID()}`,
+        url: `/attendancesheets?course=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -326,7 +326,7 @@ describe('ATTENDANCE SHEETS ROUTES - DELETE /attendancesheets/{_id}', () => {
     it('should return a 404 if attendance sheet does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendancesheets/${new ObjectID()}`,
+        url: `/attendancesheets/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

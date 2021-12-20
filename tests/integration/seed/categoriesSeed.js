@@ -1,18 +1,18 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Category = require('../../../src/models/Category');
 const Program = require('../../../src/models/Program');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const categoriesList = [
-  { _id: new ObjectID(), name: 'ma première catégorie' },
-  { _id: new ObjectID(), name: 'ma seconde catégorie' },
-  { _id: new ObjectID(), name: 'ma troisième catégorie' },
-  { _id: new ObjectID(), name: 'ce nom de catégorie est déja pris!' },
-  { _id: new ObjectID(), name: 'cette catégorie est utilisée' },
+  { _id: new ObjectId(), name: 'ma première catégorie' },
+  { _id: new ObjectId(), name: 'ma seconde catégorie' },
+  { _id: new ObjectId(), name: 'ma troisième catégorie' },
+  { _id: new ObjectId(), name: 'ce nom de catégorie est déja pris!' },
+  { _id: new ObjectId(), name: 'cette catégorie est utilisée' },
 ];
 
 const programsList = [
-  { _id: new ObjectID(), name: 'program 1', categories: [categoriesList[4]._id] },
+  { _id: new ObjectId(), name: 'program 1', categories: [categoriesList[4]._id] },
 ];
 
 const populateDB = async () => {

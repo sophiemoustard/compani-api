@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Pay = require('../../../../src/models/Pay');
 const Pay123PayHelper = require('../../../../src/helpers/123paie/pay');
 const FileHelper = require('../../../../src/helpers/file');
@@ -23,7 +23,7 @@ describe('exportPay', () => {
 
   it('should export pay hours for not ended contract', async () => {
     const query = { startDate: '2021-03-01T00:00:00', endDate: '2021-03-31T23:59:59' };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const payList = [
       {
         auxiliary: {
@@ -126,7 +126,7 @@ describe('exportPay', () => {
 
   it('should export pay hours for ended contract', async () => {
     const query = { startDate: '2021-03-01T00:00:00', endDate: '2021-03-31T23:59:59' };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const payList = [
       {
         auxiliary: {

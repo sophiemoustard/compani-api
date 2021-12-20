@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const EventHelper = require('../../../src/helpers/events');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
@@ -23,7 +23,7 @@ const ContractRepository = require('../../../src/repositories/ContractRepository
 const SinonMongoose = require('../sinonMongoose');
 
 describe('getContractList', () => {
-  const contracts = [{ _id: new ObjectID() }];
+  const contracts = [{ _id: new ObjectId() }];
   let findContract;
   beforeEach(() => {
     findContract = sinon.stub(Contract, 'find');
@@ -112,11 +112,11 @@ describe('allContractsEnded', () => {
   });
 
   it('should return true if contract not ended', async () => {
-    const companyId = new ObjectID();
-    const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
+    const companyId = new ObjectId();
+    const contract = { user: new ObjectId(), startDate: '2020-01-15T00:00:00' };
     getUserContracts.returns([
-      { _id: new ObjectID() },
-      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
+      { _id: new ObjectId() },
+      { _id: new ObjectId(), endDate: '2019-02-01T23:59:59' },
     ]);
     const result = await ContractHelper.allContractsEnded(contract, companyId);
 
@@ -124,11 +124,11 @@ describe('allContractsEnded', () => {
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return true if contract startDate before existing contracts end date', async () => {
-    const companyId = new ObjectID();
-    const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
+    const companyId = new ObjectId();
+    const contract = { user: new ObjectId(), startDate: '2020-01-15T00:00:00' };
     getUserContracts.returns([
-      { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
-      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
+      { _id: new ObjectId(), endDate: '2020-02-01T23:59:59' },
+      { _id: new ObjectId(), endDate: '2019-02-01T23:59:59' },
     ]);
     const result = await ContractHelper.allContractsEnded(contract, companyId);
 
@@ -136,8 +136,8 @@ describe('allContractsEnded', () => {
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return false if no contract', async () => {
-    const companyId = new ObjectID();
-    const contract = { user: new ObjectID() };
+    const companyId = new ObjectId();
+    const contract = { user: new ObjectId() };
     getUserContracts.returns([]);
     const result = await ContractHelper.allContractsEnded(contract, companyId);
 
@@ -145,11 +145,11 @@ describe('allContractsEnded', () => {
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return false if startDate after existing contracts end date', async () => {
-    const companyId = new ObjectID();
-    const contract = { user: new ObjectID(), startDate: '2020-04-15T00:00:00' };
+    const companyId = new ObjectId();
+    const contract = { user: new ObjectId(), startDate: '2020-04-15T00:00:00' };
     getUserContracts.returns([
-      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
-      { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
+      { _id: new ObjectId(), endDate: '2019-02-01T23:59:59' },
+      { _id: new ObjectId(), endDate: '2020-02-01T23:59:59' },
     ]);
     const result = await ContractHelper.allContractsEnded(contract, companyId);
 
@@ -168,7 +168,7 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false if not ended contract', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const contract = { user: userId };
     const user = { _id: userId, contractCreationMissingInfo: [] };
     allContractsEnded.returns(false);
@@ -179,9 +179,9 @@ describe('isCreationAllowed', () => {
     sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
   it('should return false if user does not have mandatoy info', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const contract = { user: userId };
-    const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
+    const user = { _id: new ObjectId(), contractCreationMissingInfo: ['establishment'] };
     allContractsEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
@@ -190,9 +190,9 @@ describe('isCreationAllowed', () => {
     sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
   it('should return true if all contract ended and user has mandatoy info', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const contract = { user: userId };
-    const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
+    const user = { _id: new ObjectId(), contractCreationMissingInfo: [] };
     allContractsEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
@@ -236,14 +236,14 @@ describe('createContract', () => {
 
   it('should create a new contract', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
-    const role = { _id: new ObjectID(), interface: 'client' };
+    const role = { _id: new ObjectId(), interface: 'client' };
     const user = { name: 'toto', contracts: [] };
     const contract = { ...payload, company: '1234567890', serialNumber: 'CT1234567890' };
 
@@ -285,9 +285,9 @@ describe('createContract', () => {
 
   it('should create a new contract and generate a signature request', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       versions: [
         {
@@ -304,7 +304,7 @@ describe('createContract', () => {
       ...contract,
       versions: [{ ...contract.versions[0], signature: { eversignId: '1234567890' } }],
     };
-    const role = { _id: new ObjectID(), interface: 'client' };
+    const role = { _id: new ObjectId(), interface: 'client' };
 
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
@@ -346,19 +346,19 @@ describe('createContract', () => {
 
   it('should create a new contract and create sector history', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890', serialNumber: 'CT1234567890' };
-    const role = { _id: new ObjectID(), interface: 'client' };
+    const role = { _id: new ObjectId(), interface: 'client' };
     const user = {
       name: 'toto',
-      sector: new ObjectID(),
-      _id: new ObjectID(),
+      sector: new ObjectId(),
+      _id: new ObjectId(),
       contracts: [],
     };
 
@@ -400,9 +400,9 @@ describe('createContract', () => {
 
   it('should throw a 400 error if new contract startDate is before last ended contract', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
@@ -486,19 +486,19 @@ describe('endContract', () => {
       otherMisc: 'test',
     };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: '2018-12-03T23:00:00',
-      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+      versions: [{ _id: new ObjectId(), startDate: '2018-12-03T23:00:00' }],
     };
     const updatedContract = {
       ...contract,
       ...payload,
-      user: { _id: new ObjectID(), sector: new ObjectID() },
+      user: { _id: new ObjectId(), sector: new ObjectId() },
       versions: [{ ...contract.versions[0], endDate: payload.endDate }],
     };
-    const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
+    const credentials = { _id: new ObjectId(), company: { _id: '1234567890' } };
 
     findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
     findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
@@ -579,16 +579,16 @@ describe('endContract', () => {
   });
 
   it('should throw a 403 error if there are timestamped events after contract end date', async () => {
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
-    const credential = { _id: new ObjectID(), company: { _id: companyId } };
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
+    const credential = { _id: new ObjectId(), company: { _id: companyId } };
 
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
       user: auxiliaryId,
       startDate: '2018-12-03T23:00:00',
-      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+      versions: [{ _id: new ObjectId(), startDate: '2018-12-03T23:00:00' }],
     };
 
     const contractToEnd = {
@@ -601,7 +601,7 @@ describe('endContract', () => {
     const updatedContract = {
       ...contract,
       ...contractToEnd,
-      user: { _id: auxiliaryId, sector: new ObjectID() },
+      user: { _id: auxiliaryId, sector: new ObjectId() },
       versions: [{ ...contract.versions[0], endDate: contractToEnd.endDate }],
     };
 
@@ -663,16 +663,16 @@ describe('endContract', () => {
   });
 
   it('should throw a 403 error if there are billed events after contract end date', async () => {
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
-    const credential = { _id: new ObjectID(), company: { _id: companyId } };
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
+    const credential = { _id: new ObjectId(), company: { _id: companyId } };
 
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
       user: auxiliaryId,
       startDate: '2018-12-03T23:00:00',
-      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+      versions: [{ _id: new ObjectId(), startDate: '2018-12-03T23:00:00' }],
     };
 
     const contractToEnd = {
@@ -685,7 +685,7 @@ describe('endContract', () => {
     const updatedContract = {
       ...contract,
       ...contractToEnd,
-      user: { _id: auxiliaryId, sector: new ObjectID() },
+      user: { _id: auxiliaryId, sector: new ObjectId() },
       versions: [{ ...contract.versions[0], endDate: contractToEnd.endDate }],
     };
 
@@ -730,7 +730,7 @@ describe('endContract', () => {
   });
 
   it('should throw an error if contract end date is before last version start date', async () => {
-    const contractId = new ObjectID();
+    const contractId = new ObjectId();
     const payload = {
       endDate: '2018-12-03T23:00:00',
       endNotificationDate: '2018-12-02T23:00:00',
@@ -738,13 +738,13 @@ describe('endContract', () => {
       otherMisc: 'test',
     };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: '2018-12-05T23:00:00',
-      versions: [{ _id: new ObjectID(), startDate: '2018-12-05T23:00:00' }],
+      versions: [{ _id: new ObjectId(), startDate: '2018-12-05T23:00:00' }],
     };
-    const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
+    const credentials = { _id: new ObjectId(), company: { _id: '1234567890' } };
     try {
       findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
 
@@ -796,11 +796,11 @@ describe('createVersion', () => {
   it('should create version and update previous one', async () => {
     const newVersion = { startDate: new Date('2019-09-13T00:00:00') };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-09-09T00:00:00',
       versions: [{ startDate: '2019-09-01T00:00:00' }, { startDate: '2019-09-10T00:00:00' }],
     };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
@@ -828,8 +828,8 @@ describe('createVersion', () => {
 
   it('should generate signature request', async () => {
     const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
-    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
-    const companyId = new ObjectID();
+    const contract = { _id: new ObjectId(), startDate: '2019-09-09T00:00:00' };
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
@@ -859,9 +859,9 @@ describe('createVersion', () => {
   });
 
   it('should throw on signature generation error', async () => {
-    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const contract = { _id: new ObjectId(), startDate: '2019-09-09T00:00:00' };
     const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     try {
@@ -885,9 +885,9 @@ describe('createVersion', () => {
   });
 
   it('should throw if creation not allowed', async () => {
-    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const contract = { _id: new ObjectId(), startDate: '2019-09-09T00:00:00' };
     const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     try {
@@ -919,7 +919,7 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if contract is ended', async () => {
-    const contract = { _id: new ObjectID(), endDate: '2020-08-12T00:00:00', versions: [{ _id: new ObjectID() }] };
+    const contract = { _id: new ObjectId(), endDate: '2020-08-12T00:00:00', versions: [{ _id: new ObjectId() }] };
     const versionToUpdate = { startDate: '2020-12-03T00:00:00' };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
@@ -931,7 +931,7 @@ describe('canUpdateVersion', () => {
   it('should return false if not last version', async () => {
     const versionToUpdate = { startDate: '2020-01-03T00:00:00' };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [versionToUpdate, { startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
@@ -943,7 +943,7 @@ describe('canUpdateVersion', () => {
 
   it('should return true if contract not ended and start date is after previous version startDate', async () => {
     const versionToUpdate = { startDate: '2020-12-03T00:00:00' };
-    const contract = { _id: new ObjectID(), versions: [{ startDate: '2020-09-03T00:00:00' }, versionToUpdate] };
+    const contract = { _id: new ObjectId(), versions: [{ startDate: '2020-09-03T00:00:00' }, versionToUpdate] };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
     expect(result).toBeTruthy();
@@ -954,7 +954,7 @@ describe('canUpdateVersion', () => {
   it('should return false if contract not ended and start date is before previous version startDate', async () => {
     const versionToUpdate = { startDate: '2018-01-03T00:00:00' };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [{ startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }, versionToUpdate],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
@@ -967,7 +967,7 @@ describe('canUpdateVersion', () => {
   it('should return false if  start date is before previous contract startDate', async () => {
     const versionToUpdate = { startDate: '2018-01-03T00:00:00' };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [{ startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }, versionToUpdate],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
@@ -978,7 +978,7 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return true if first version and no event', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID(), versions: [{ _id: new ObjectID() }] };
+    const contract = { _id: new ObjectId(), user: new ObjectId(), versions: [{ _id: new ObjectId() }] };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(0);
@@ -1003,10 +1003,10 @@ describe('canUpdateVersion', () => {
 
   it('should return true if first version and no event since last contract', async () => {
     const contract = {
-      _id: new ObjectID(),
-      user: new ObjectID(),
+      _id: new ObjectId(),
+      user: new ObjectId(),
       startDate: '2020-06-02T00:00:00',
-      versions: [{ _id: new ObjectID() }],
+      versions: [{ _id: new ObjectId() }],
     };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
@@ -1039,7 +1039,7 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if first version and existing events', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID(), versions: [{ _id: new ObjectID() }] };
+    const contract = { _id: new ObjectId(), user: new ObjectId(), versions: [{ _id: new ObjectId() }] };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(5);
@@ -1142,9 +1142,9 @@ describe('formatVersionEditionPayload', () => {
 });
 
 describe('updateVersion', () => {
-  const contractId = new ObjectID();
-  const versionId = new ObjectID();
-  const credentials = { company: { _id: new ObjectID() } };
+  const contractId = new ObjectId();
+  const versionId = new ObjectId();
+  const credentials = { company: { _id: new ObjectId() } };
   const companyId = credentials.company._id;
   let findOneContract;
   let findOneAndUpdateContract;
@@ -1228,7 +1228,7 @@ describe('updateVersion', () => {
     const contract = {
       startDate: '2019-09-09T00:00:00',
       versions: [
-        { _id: new ObjectID(), startDate: '2019-07-10T00:00:00', auxiliaryDoc: 'Tutu' },
+        { _id: new ObjectId(), startDate: '2019-07-10T00:00:00', auxiliaryDoc: 'Tutu' },
         { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' },
       ],
     };
@@ -1319,9 +1319,9 @@ describe('deleteVersion', () => {
   let deleteFile;
   let countAuxiliaryEventsBetweenDates;
   let updateHistoryOnContractDeletionStub;
-  const versionId = new ObjectID();
-  const contractId = new ObjectID();
-  const credentials = { company: { _id: new ObjectID() } };
+  const versionId = new ObjectId();
+  const contractId = new ObjectId();
+  const credentials = { company: { _id: new ObjectId() } };
   beforeEach(() => {
     findOneContract = sinon.stub(Contract, 'findOne');
     saveContract = sinon.stub(Contract.prototype, 'save');
@@ -1400,7 +1400,7 @@ describe('deleteVersion', () => {
     const contract = new Contract({
       _id: contractId,
       user: 'toot',
-      versions: [{ _id: new ObjectID() }, { _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
+      versions: [{ _id: new ObjectId() }, { _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     });
     findOneContract.returns(contract);
 
@@ -1502,7 +1502,7 @@ describe('uploadFile', () => {
   });
 
   it('should upload a file', async () => {
-    const params = { driveId: 'fakeDriveId', _id: new ObjectID() };
+    const params = { driveId: 'fakeDriveId', _id: new ObjectId() };
     const payload = {
       file: 'test',
       type: 'signedContract',
@@ -1579,15 +1579,15 @@ describe('getStaffRegister', () => {
   });
 
   it('should get staff register ', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const staffRegister = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         serialNumber: '123',
-        user: { _id: new ObjectID() },
+        user: { _id: new ObjectId() },
         startDate: new Date(),
         company: companyId,
-        versions: [{ _id: new ObjectID() }],
+        versions: [{ _id: new ObjectId() }],
       },
     ];
 

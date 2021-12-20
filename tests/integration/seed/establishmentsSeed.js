@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const Establishment = require('../../../src/models/Establishment');
@@ -10,7 +10,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const establishmentsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Toto',
     siret: '12345678901234',
     address: {
@@ -26,7 +26,7 @@ const establishmentsList = [
     company: authCompany,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Tata',
     siret: '09876543210987',
     address: {
@@ -44,7 +44,7 @@ const establishmentsList = [
 ];
 
 const establishmentFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Test',
   siret: '19836443210989',
   address: {
@@ -61,7 +61,7 @@ const establishmentFromOtherCompany = {
 };
 
 const userFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
   local: { email: 'other_admin@alenvi.io', password: '123456!eR' },
@@ -70,7 +70,7 @@ const userFromOtherCompany = {
 };
 
 const user = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'User', lastname: 'Test' },
   local: { email: 'auxiliary_establishment@alenvi.io' },
   refreshToken: uuidv4(),
@@ -80,8 +80,8 @@ const user = {
 };
 
 const userCompanies = [
-  { _id: new ObjectID(), user: user._id, company: authCompany._id },
-  { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: user._id, company: authCompany._id },
+  { _id: new ObjectId(), user: userFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const populateDB = async () => {

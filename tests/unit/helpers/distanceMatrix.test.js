@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
@@ -14,7 +14,7 @@ describe('getDistanceMatrices', () => {
     },
     status: 200,
   };
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let find;
 
   beforeEach(() => {
@@ -68,7 +68,7 @@ describe('createDistanceMatrix', () => {
     },
     status: 200,
   };
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let save;
   let getDistanceMatrix;
 

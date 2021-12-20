@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
 const BillingItem = require('../../../src/models/BillingItem');
@@ -8,7 +8,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const servicesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
@@ -20,7 +20,7 @@ const servicesList = [
     nature: HOURLY,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
@@ -32,7 +32,7 @@ const servicesList = [
     nature: HOURLY,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 150,
@@ -44,7 +44,7 @@ const servicesList = [
     nature: FIXED,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 150,
@@ -59,7 +59,7 @@ const servicesList = [
 ];
 
 const serviceFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 150,
@@ -72,12 +72,12 @@ const serviceFromOtherCompany = {
 };
 
 const customer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   identity: { title: 'mr', firstname: 'withBills', lastname: 'customer' },
   driveFolder: { driveId: '1234567890' },
   subscriptions: [{
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     service: servicesList[2]._id,
     versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
   }],
@@ -95,15 +95,15 @@ const customer = {
 
 const billingItemList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Kill Billing',
     type: 'per_intervention',
     defaultUnitAmount: 2,
     company: authCompany._id,
     vat: 2,
   },
-  { _id: new ObjectID(), name: 'Bill', type: 'manual', defaultUnitAmount: 25, company: otherCompany._id, vat: 2 },
-  { _id: new ObjectID(), name: 'bil', type: 'manual', defaultUnitAmount: 25, company: authCompany._id, vat: 2 },
+  { _id: new ObjectId(), name: 'Bill', type: 'manual', defaultUnitAmount: 25, company: otherCompany._id, vat: 2 },
+  { _id: new ObjectId(), name: 'bil', type: 'manual', defaultUnitAmount: 25, company: authCompany._id, vat: 2 },
 ];
 
 const populateDB = async () => {

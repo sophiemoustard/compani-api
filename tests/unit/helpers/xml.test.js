@@ -2,7 +2,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const fs = require('fs').promises;
 const {
   generateSEPAHeader,
@@ -160,22 +160,22 @@ describe('XML helper', () => {
       };
 
       const customersList = [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
         payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }], bic: '', iban: '' },
       }, {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
         payment: {
           bankAccountOwner: 'Lance Amstrong',
           iban: 'FR3514508000505917721779B12',
           bic: 'BNMDHISOBD',
-          mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+          mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
         },
       }];
       const payments = [
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           date: moment().toDate(),
           number: 'REG-1904001',
           customer: customersList[0]._id,
@@ -185,7 +185,7 @@ describe('XML helper', () => {
           type: 'direct_debit',
         },
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           date: moment().toDate(),
           number: 'REG-1904002',
           customer: customersList[1]._id,

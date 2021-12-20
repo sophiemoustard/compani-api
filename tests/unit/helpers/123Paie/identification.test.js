@@ -1,7 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const User = require('../../../../src/models/User');
 const Contract = require('../../../../src/models/Contract');
 const Identification123PayHelper = require('../../../../src/helpers/123paie/identification');
@@ -231,7 +231,7 @@ describe('exportIdentification', () => {
 
   it('should export contracts', async () => {
     const endDate = moment('2020-01-11T14:00:00').toDate();
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
     findContract.returns(SinonMongoose.stubChainedQueries([[{ user: 'first user' }, { user: 'second user' }]]));
     formatIdentificationInfo.onFirstCall().returns({ identity: 1 }).onSecondCall().returns({ identity: 2 });

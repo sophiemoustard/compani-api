@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Establishment = require('../../../src/models/Establishment');
 const EstablishmentsHelper = require('../../../src/helpers/establishments');
 const SinonMongoose = require('../sinonMongoose');
@@ -16,7 +16,7 @@ describe('create', () => {
 
   it('should create an establishment', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       name: 'Titi',
       siret: '13605658901234',
       address: {
@@ -33,7 +33,7 @@ describe('create', () => {
       workHealthService: 'MT01',
       urssafCode: '117',
     };
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const payloadWithCompany = { ...payload, company: credentials.company._id };
 
     create.returns(SinonMongoose.stubChainedQueries([payloadWithCompany], ['toObject']));
@@ -56,7 +56,7 @@ describe('update', () => {
 
   it('should update an establishment', async () => {
     const payload = { siret: '13605658901234' };
-    const establishmentId = new ObjectID();
+    const establishmentId = new ObjectId();
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: establishmentId }], ['lean']));
 
@@ -83,8 +83,8 @@ describe('list', () => {
   });
 
   it('should list establishments', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const establishments = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const credentials = { company: { _id: new ObjectId() } };
+    const establishments = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
 
     find.returns(SinonMongoose.stubChainedQueries([establishments]));
 
@@ -111,7 +111,7 @@ describe('remove', () => {
   });
 
   it('should remove an establishment', async () => {
-    const id = new ObjectID();
+    const id = new ObjectId();
 
     await EstablishmentsHelper.remove(id);
 

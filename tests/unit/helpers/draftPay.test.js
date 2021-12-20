@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
@@ -115,7 +115,7 @@ describe('applyCustomSurcharge', () => {
 });
 
 describe('getSurchargeDetails', () => {
-  const surchargeId = new ObjectID();
+  const surchargeId = new ObjectId();
   it('Case 1. surcharge plan and type included in details', () => {
     const surcharge = { _id: surchargeId, name: 'Super Mario', Noel: 35 };
     const details = { [surchargeId]: { Noel: { hours: 3 } } };
@@ -139,7 +139,7 @@ describe('getSurchargeDetails', () => {
   });
 
   it('Case 3. surcharge plan and type not included in details', () => {
-    const detailsId = new ObjectID();
+    const detailsId = new ObjectId();
     const surcharge = { _id: surchargeId, name: 'Luigi', Noel: 35 };
     const details = { [detailsId]: { 10: { hours: 3 } } };
     const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
@@ -163,7 +163,7 @@ describe('applySurcharge', () => {
 
   it('should apply surcharge', () => {
     getSurchargeDetails.returns({});
-    const surcharge = { _id: new ObjectID(), name: 'Luigi', Noel: 35 };
+    const surcharge = { _id: new ObjectId(), name: 'Luigi', Noel: 35 };
     const details = { planId: { 10: { hours: 3 } } };
     const result = DraftPayHelper.applySurcharge(2.8, surcharge, 'name', details);
 
@@ -384,7 +384,7 @@ describe('getSurchargeSplit', () => {
 });
 
 describe('getTransportInfo', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let createDistanceMatrix;
   beforeEach(() => {
     createDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'createDistanceMatrix');
@@ -542,7 +542,7 @@ describe('getPaidTransportInfo', () => {
       startDate: '2019-01-18T16:46:30',
       auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
       address: { fullAddress: 'jébobolà' },
-      company: new ObjectID(),
+      company: new ObjectId(),
     };
     const prevEvent = {
       hasFixedService: false,
@@ -931,7 +931,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should get matching service version for intervention', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
@@ -948,7 +948,7 @@ describe('getPayFromEvents', () => {
     ];
     const surcharges = [
       { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
+      { _id: new ObjectId(), sunday: 14 },
     ];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
@@ -966,7 +966,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return pay for event exempted from charge service', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
@@ -983,7 +983,7 @@ describe('getPayFromEvents', () => {
     ];
     const surcharges = [
       { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
+      { _id: new ObjectId(), sunday: 14 },
     ];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
@@ -1023,7 +1023,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return pay for not exempted from charge service', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
@@ -1040,7 +1040,7 @@ describe('getPayFromEvents', () => {
     ];
     const surcharges = [
       { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
+      { _id: new ObjectId(), sunday: 14 },
     ];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
@@ -1080,9 +1080,9 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return pay for internal hour', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [[{ startDate: '2019-07-12T09:00:00', endDate: '2019-07-01T11:00:00', type: INTERNAL_HOUR }]];
-    const surcharges = [{ _id: surchargeId, sunday: 10 }, { _id: new ObjectID(), sunday: 14 }];
+    const surcharges = [{ _id: surchargeId, sunday: 10 }, { _id: new ObjectId(), sunday: 14 }];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
     getEventHours.returns({
@@ -1114,7 +1114,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return pay from multiple events', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
@@ -1155,7 +1155,7 @@ describe('getPayFromEvents', () => {
     ];
     const surcharges = [
       { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
+      { _id: new ObjectId(), sunday: 14 },
     ];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
@@ -1777,7 +1777,7 @@ describe('computePrevPayDiff', () => {
   it('should return diff without prevPay', async () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
     const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
-    const events = [{ _id: new ObjectID() }];
+    const events = [{ _id: new ObjectId() }];
     const hours = {
       workedHours: 24,
       notSurchargedAndNotExempt: 12,
@@ -1820,7 +1820,7 @@ describe('computePrevPayDiff', () => {
   it('should return diff with prevPay', async () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
     const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
-    const events = [{ _id: new ObjectID() }];
+    const events = [{ _id: new ObjectId() }];
     const prevPay = {
       contractHours: 34,
       workedHours: 26,
@@ -1882,7 +1882,7 @@ describe('computePrevPayDiff', () => {
 });
 
 describe('getPreviousMonthPay', () => {
-  const auxiliaryId = new ObjectID();
+  const auxiliaryId = new ObjectId();
   let getEventsToPay;
   let computePrevPayDiff;
   beforeEach(() => {
@@ -1917,12 +1917,12 @@ describe('getPreviousMonthPay', () => {
       }, {
         events: [{ startDate: '2019-05-04T10:00:00' }],
         absences: [{ startDate: '2019-05-07T10:00:00' }],
-        auxiliary: { _id: new ObjectID() },
+        auxiliary: { _id: new ObjectId() },
       },
     ];
-    const dm = [{ _id: new ObjectID() }];
-    const surcharges = [{ _id: new ObjectID() }];
-    const companyId = new ObjectID();
+    const dm = [{ _id: new ObjectId() }];
+    const surcharges = [{ _id: new ObjectId() }];
+    const companyId = new ObjectId();
 
     getEventsToPay.returns(payData);
 
@@ -1979,7 +1979,7 @@ describe('computeDraftPay', () => {
   });
 
   it('should return an empty array if no auxiliary', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
@@ -2006,9 +2006,9 @@ describe('computeDraftPay', () => {
   });
 
   it('should not return draft pay as no matching contracts', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const aux = {
       _id: auxiliaryId,
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
@@ -2047,10 +2047,10 @@ describe('computeDraftPay', () => {
   });
 
   it('should return draft pay by auxiliary', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] }];
     const payData = [
       {
@@ -2059,14 +2059,14 @@ describe('computeDraftPay', () => {
         auxiliary: { _id: auxiliaryId },
       },
       {
-        events: [{ _id: new ObjectID(), events: [{ startDate: '2019-05-04T10:00:00' }] }],
-        absences: [{ _id: new ObjectID(), events: [{ startDate: '2019-05-07T10:00:00' }] }],
-        auxiliary: { _id: new ObjectID() },
+        events: [{ _id: new ObjectId(), events: [{ startDate: '2019-05-04T10:00:00' }] }],
+        absences: [{ _id: new ObjectId(), events: [{ startDate: '2019-05-07T10:00:00' }] }],
+        auxiliary: { _id: new ObjectId() },
       },
     ];
     const prevPay = [
       { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
-      { auxiliary: new ObjectID(), hoursCounter: 25, diff: -3 },
+      { auxiliary: new ObjectId(), hoursCounter: 25, diff: -3 },
     ];
 
     getEventsToPay.returns(payData);
@@ -2107,10 +2107,10 @@ describe('computeDraftPay', () => {
   });
 
   it('should return draft pay by auxiliary on january without computing previous pay', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-01-01T00:00:00', endDate: '2019-01-31T23:59:59' };
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] }];
     const payData = [{
       events: [{ _id: auxiliaryId, events: [{ startDate: '2019-01-03T10:00:00' }] }],
@@ -2183,7 +2183,7 @@ describe('getDraftPay', () => {
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const end = moment(query.endDate).endOf('d').toDate();
-    const auxiliaries = [{ _id: new ObjectID(), sector: { name: 'Abeilles' } }];
+    const auxiliaries = [{ _id: new ObjectId(), sector: { name: 'Abeilles' } }];
     const credentials = { company: { _id: '1234567890' } };
     getAuxiliariesToPay.returns(auxiliaries);
     await DraftPayHelper.getDraftPay(query, credentials);

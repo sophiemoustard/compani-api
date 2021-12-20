@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
 module.exports = {
   validateQuery(next) {
@@ -19,7 +19,7 @@ module.exports = {
     else {
       const companyId = get(this, 'options.company', null);
       if (!companyId) next(Boom.badRequest());
-      this.pipeline().unshift({ $match: { company: new ObjectID(companyId) } });
+      this.pipeline().unshift({ $match: { company: new ObjectId(companyId) } });
       next();
     }
   },

@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const moment = require('../../../src/extensions/moment');
 const StatsHelper = require('../../../src/helpers/stats');
@@ -17,14 +17,14 @@ describe('getCustomerFollowUp', () => {
   });
 
   it('should get customer follow up ', async () => {
-    const customerId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const customerId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
 
     const customerFollowUp = {
       followUp: [
         {
-          _id: new ObjectID(),
-          contracts: [{ _id: new ObjectID() }],
+          _id: new ObjectId(),
+          contracts: [{ _id: new ObjectId() }],
           inactivityDate: null,
           identity: { firstname: 'Auxiliary', lastname: 'White' },
           role: { client: { name: 'auxiliary' } },
@@ -64,8 +64,8 @@ describe('getCustomerFundingsMonitoring', () => {
   });
 
   it('should return empty array if no fundings', async () => {
-    const customerId = new ObjectID();
-    const companyId = new ObjectID();
+    const customerId = new ObjectId();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     getEventsGroupedByFundingsStub.returns([]);
@@ -81,8 +81,8 @@ describe('getCustomerFundingsMonitoring', () => {
   });
 
   it('should return info if no events', async () => {
-    const customerId = new ObjectID();
-    const companyId = new ObjectID();
+    const customerId = new ObjectId();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     getEventsGroupedByFundingsStub.returns([{
@@ -150,8 +150,8 @@ describe('getCustomerFundingsMonitoring', () => {
         },
       ],
     }];
-    const customerId = new ObjectID();
-    const companyId = new ObjectID();
+    const customerId = new ObjectId();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     getEventsGroupedByFundingsStub.returns(eventsGroupedByFundings);
@@ -220,8 +220,8 @@ describe('getCustomerFundingsMonitoring', () => {
         },
       ],
     }];
-    const customerId = new ObjectID();
-    const companyId = new ObjectID();
+    const customerId = new ObjectId();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     getEventsGroupedByFundingsStub.returns(eventsGroupedByFundings);
@@ -252,7 +252,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
     minDate: moment().subtract(1, 'month').startOf('month').toDate(),
     maxDate: moment().add(1, 'month').endOf('month').toDate(),
   };
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
 
   let getEventsGroupedByFundingsforAllCustomersStub;
@@ -278,8 +278,8 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 
   it('should return info if no events', async () => {
-    const tppId = new ObjectID();
-    const sectorId = new ObjectID();
+    const tppId = new ObjectId();
+    const sectorId = new ObjectId();
     getEventsGroupedByFundingsforAllCustomersStub.returns([{
       thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
@@ -318,8 +318,8 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 
   it('should return stats on care hours', async () => {
-    const tppId = new ObjectID();
-    const sectorId = new ObjectID();
+    const tppId = new ObjectId();
+    const sectorId = new ObjectId();
     const eventsGroupedByFundings = [{
       thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
@@ -408,8 +408,8 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 
   it('should return -1 for previous month if funding starts on current month', async () => {
-    const tppId = new ObjectID();
-    const sectorId = new ObjectID();
+    const tppId = new ObjectId();
+    const sectorId = new ObjectId();
     const eventsGroupedByFundings = [{
       unitTTCRate: 12,
       customerParticipationRate: 10,
@@ -498,8 +498,8 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 
   it('should return -1 for next month if funding ends on current month', async () => {
-    const tppId = new ObjectID();
-    const sectorId = new ObjectID();
+    const tppId = new ObjectId();
+    const sectorId = new ObjectId();
     const eventsGroupedByFundings = [{
       thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
@@ -593,7 +593,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
 describe('getPaidInterventionStats', () => {
   let getPaidInterventionStats;
   let getUsersFromSectorHistoriesStub;
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   beforeEach(() => {
     getPaidInterventionStats = sinon.stub(SectorHistoryRepository, 'getPaidInterventionStats');
     getUsersFromSectorHistoriesStub = sinon.stub(SectorHistoryRepository, 'getUsersFromSectorHistories');
@@ -604,8 +604,8 @@ describe('getPaidInterventionStats', () => {
   });
 
   it('Case sector : should format sector as array', async () => {
-    const query = { sector: new ObjectID(), month: '102019' };
-    const auxiliaries = [{ auxiliaryId: new ObjectID() }];
+    const query = { sector: new ObjectId(), month: '102019' };
+    const auxiliaries = [{ auxiliaryId: new ObjectId() }];
     getUsersFromSectorHistoriesStub.returns(auxiliaries);
     const getPaidInterventionStatsResult = [{
       auxiliary: auxiliaries[0]._id,
@@ -623,7 +623,7 @@ describe('getPaidInterventionStats', () => {
       getUsersFromSectorHistoriesStub,
       startOfMonth,
       endOfMonth,
-      [new ObjectID(query.sector)],
+      [new ObjectId(query.sector)],
       credentials.company._id
     );
     sinon.assert.calledWithExactly(
@@ -635,8 +635,8 @@ describe('getPaidInterventionStats', () => {
   });
 
   it('Case sector : should format array sector with objectId', async () => {
-    const query = { sector: [new ObjectID(), new ObjectID()], month: '102019' };
-    const auxiliaries = [{ auxiliaryId: new ObjectID() }, { auxiliaryId: new ObjectID() }];
+    const query = { sector: [new ObjectId(), new ObjectId()], month: '102019' };
+    const auxiliaries = [{ auxiliaryId: new ObjectId() }, { auxiliaryId: new ObjectId() }];
     const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
     const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
 
@@ -654,7 +654,7 @@ describe('getPaidInterventionStats', () => {
       getUsersFromSectorHistoriesStub,
       startOfMonth,
       endOfMonth,
-      [new ObjectID(query.sector[0]), new ObjectID(query.sector[1])],
+      [new ObjectId(query.sector[0]), new ObjectId(query.sector[1])],
       credentials.company._id
     );
     sinon.assert.calledWithExactly(
@@ -666,7 +666,7 @@ describe('getPaidInterventionStats', () => {
   });
 
   it('Case auxiliary', async () => {
-    const query = { auxiliary: new ObjectID(), month: '102019' };
+    const query = { auxiliary: new ObjectId(), month: '102019' };
     getPaidInterventionStats.returns({ customerCount: 9 });
     const result = await StatsHelper.getPaidInterventionStats(query, credentials);
 
@@ -683,7 +683,7 @@ describe('getPaidInterventionStats', () => {
 
 describe('getCustomersAndDurationBySector', () => {
   let getCustomersAndDurationBySector;
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   beforeEach(() => {
     getCustomersAndDurationBySector = sinon.stub(StatRepository, 'getCustomersAndDurationBySector');
   });
@@ -692,7 +692,7 @@ describe('getCustomersAndDurationBySector', () => {
   });
 
   it('Case sector : should format sector as array', async () => {
-    const sectorId = new ObjectID();
+    const sectorId = new ObjectId();
     const query = { sector: sectorId, month: '102019' };
     getCustomersAndDurationBySector.returns({ customerCount: 9 });
     const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
@@ -707,7 +707,7 @@ describe('getCustomersAndDurationBySector', () => {
   });
 
   it('Case sector : should format array sector with objectId', async () => {
-    const sectors = [new ObjectID(), new ObjectID()];
+    const sectors = [new ObjectId(), new ObjectId()];
     const query = { sector: sectors, month: '102019' };
     getCustomersAndDurationBySector.returns({ customerCount: 9 });
     const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
@@ -724,7 +724,7 @@ describe('getCustomersAndDurationBySector', () => {
 
 describe('getIntenalAndBilledHoursBySector', () => {
   let getIntenalAndBilledHoursBySector;
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   beforeEach(() => {
     getIntenalAndBilledHoursBySector = sinon.stub(StatRepository, 'getIntenalAndBilledHoursBySector');
   });
@@ -733,7 +733,7 @@ describe('getIntenalAndBilledHoursBySector', () => {
   });
 
   it('Case sector : should format sector as array', async () => {
-    const sectorId = new ObjectID();
+    const sectorId = new ObjectId();
     const query = { sector: sectorId, month: '102019' };
     getIntenalAndBilledHoursBySector.returns({ interventions: 9 });
     const result = await StatsHelper.getIntenalAndBilledHoursBySector(query, credentials);
@@ -748,7 +748,7 @@ describe('getIntenalAndBilledHoursBySector', () => {
   });
 
   it('Case sector : should format array sector with objectId', async () => {
-    const sectors = [new ObjectID(), new ObjectID()];
+    const sectors = [new ObjectId(), new ObjectId()];
     const query = { sector: sectors, month: '102019' };
     getIntenalAndBilledHoursBySector.returns({ interventions: 9 });
     const result = await StatsHelper.getIntenalAndBilledHoursBySector(query, credentials);

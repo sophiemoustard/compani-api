@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
 const CustomerPartnersHelper = require('../../../src/helpers/customerPartners');
 const SinonMongoose = require('../sinonMongoose');
@@ -15,8 +15,8 @@ describe('createCustomerPartner', () => {
   });
 
   it('should create customer partner', async () => {
-    const payload = { partner: new ObjectID(), customer: new ObjectID() };
-    const credentials = { company: { _id: new ObjectID() } };
+    const payload = { partner: new ObjectId(), customer: new ObjectId() };
+    const credentials = { company: { _id: new ObjectId() } };
     await CustomerPartnersHelper.createCustomerPartner(payload, credentials);
 
     sinon.assert.calledOnceWithExactly(create, { ...payload, company: credentials.company._id });
@@ -33,11 +33,11 @@ describe('list', () => {
   });
 
   it('should return customer partners', async () => {
-    const customer = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const customer = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const customerPartners = [
-      { _id: new ObjectID(), partner: { _id: new ObjectID() } },
-      { _id: new ObjectID(), partner: { _id: new ObjectID() } },
+      { _id: new ObjectId(), partner: { _id: new ObjectId() } },
+      { _id: new ObjectId(), partner: { _id: new ObjectId() } },
     ];
 
     find.returns(SinonMongoose.stubChainedQueries([customerPartners]));
@@ -76,8 +76,8 @@ describe('update', () => {
   });
 
   it('should update the prescriber partner', async () => {
-    const customerPartnerId = new ObjectID();
-    const customerPartner = { _id: customerPartnerId, customer: new ObjectID() };
+    const customerPartnerId = new ObjectId();
+    const customerPartner = { _id: customerPartnerId, customer: new ObjectId() };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customerPartner], ['lean']));
 
@@ -88,7 +88,7 @@ describe('update', () => {
       [
         {
           query: 'findOneAndUpdate',
-          args: [{ _id: customerPartnerId }, { $set: { prescriber: true } }, { fields: { customer: 1 } }],
+          args: [{ _id: customerPartnerId }, { $set: { prescriber: true } }, { projection: { customer: 1 } }],
         },
         { query: 'lean' },
       ]
@@ -100,8 +100,8 @@ describe('update', () => {
     );
   });
   it('should remove the prescriber partner', async () => {
-    const customerPartnerId = new ObjectID();
-    const customerPartner = { _id: customerPartnerId, customer: new ObjectID() };
+    const customerPartnerId = new ObjectId();
+    const customerPartner = { _id: customerPartnerId, customer: new ObjectId() };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customerPartner], ['lean']));
 
@@ -113,7 +113,7 @@ describe('update', () => {
       [
         {
           query: 'findOneAndUpdate',
-          args: [{ _id: customerPartnerId }, { $set: { prescriber: false } }, { fields: { customer: 1 } }],
+          args: [{ _id: customerPartnerId }, { $set: { prescriber: false } }, { projection: { customer: 1 } }],
         },
         { query: 'lean' },
       ]
@@ -131,7 +131,7 @@ describe('remove', () => {
   });
 
   it('should delete a customer partner', async () => {
-    const customerPartnerId = new ObjectID();
+    const customerPartnerId = new ObjectId();
 
     await CustomerPartnersHelper.remove(customerPartnerId);
 

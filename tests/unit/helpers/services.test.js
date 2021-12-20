@@ -1,12 +1,12 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const ServiceHelper = require('../../../src/helpers/services');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('list', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let find;
 
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe('list', () => {
 });
 
 describe('create', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let save;
 
   beforeEach(() => {
@@ -66,7 +66,7 @@ describe('update', () => {
   });
 
   it('should update a service', async () => {
-    const serviceId = new ObjectID();
+    const serviceId = new ObjectId();
 
     await ServiceHelper.update(serviceId, { vat: 2 });
 
@@ -74,7 +74,7 @@ describe('update', () => {
   });
 
   it('should archive a service', async () => {
-    const serviceId = new ObjectID();
+    const serviceId = new ObjectId();
 
     await ServiceHelper.update(serviceId, { isArchived: true });
 
@@ -83,7 +83,7 @@ describe('update', () => {
 });
 
 describe('remove', () => {
-  const serviceId = new ObjectID();
+  const serviceId = new ObjectId();
   let deleteOne;
 
   beforeEach(() => {

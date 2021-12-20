@@ -1,6 +1,6 @@
 const expect = require('expect');
 const qs = require('qs');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { customersList, usersList, customerAbsencesList, populateDB } = require('./seed/customerAbsencesSeed');
@@ -153,7 +153,7 @@ describe('CUSTOMER ABSENCES ROUTE - PUT /customerabsences/{_id}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/customerabsences/${new ObjectID()}`,
+        url: `/customerabsences/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });

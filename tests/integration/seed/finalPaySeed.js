@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
@@ -15,15 +15,15 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, coachRoleId } = require('../../seed/authRolesSeed');
 
-const contractId = new ObjectID();
-const auxiliaryId = new ObjectID();
-const customerId = new ObjectID();
-const subscriptionIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
-const serviceIds = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
-const sectorId = new ObjectID();
+const contractId = new ObjectId();
+const auxiliaryId = new ObjectId();
+const customerId = new ObjectId();
+const subscriptionIds = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+const serviceIds = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+const sectorId = new ObjectId();
 
 const user = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   local: { email: 'test4@alenvi.io' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
@@ -45,7 +45,7 @@ const auxiliary = {
 };
 
 const auxiliaryFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Cricri', lastname: 'test' },
   local: { email: 'othercompany@alenvi.io' },
   refreshToken: uuidv4(),
@@ -55,9 +55,9 @@ const auxiliaryFromOtherCompany = {
 };
 
 const userCompanyList = [
-  { _id: new ObjectID(), user: user._id, company: authCompany._id },
-  { _id: new ObjectID(), user: auxiliaryId, company: authCompany._id },
-  { _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: user._id, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryId, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const contract = {
@@ -77,14 +77,14 @@ const contract = {
       grossHourlyRate: 10.28,
       startDate: '2018-12-03T00:00:00.000Z',
       weeklyHours: 9,
-      _id: new ObjectID(),
+      _id: new ObjectId(),
     },
   ],
 };
 
 const eventList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'intervention',
     startDate: '2022-05-12T09:00:00.000Z',
@@ -92,7 +92,7 @@ const eventList = [
     auxiliary: auxiliaryId,
     customer: customerId,
     createdAt: '2022-05-01T09:00:00.000Z',
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionIds[0],
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -103,7 +103,7 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'intervention',
     startDate: '2022-05-08T09:00:00.000Z',
@@ -111,7 +111,7 @@ const eventList = [
     auxiliary: auxiliaryId,
     customer: customerId,
     createdAt: '2022-05-01T09:00:00.000Z',
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionIds[1],
     address: {
       fullAddress: '30 Rue Traversière 75012 Paris',
@@ -122,7 +122,7 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'intervention',
     startDate: '2022-05-08T15:00:00.000Z',
@@ -130,7 +130,7 @@ const eventList = [
     auxiliary: auxiliaryId,
     customer: customerId,
     createdAt: '2022-05-01T10:00:00.000Z',
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionIds[2],
     address: {
       fullAddress: '62 Rue Brancion 75015 Paris',
@@ -141,16 +141,16 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'internal_hour',
     startDate: '2022-05-09T09:00:00.000Z',
     endDate: '2022-05-09T12:00:00.000Z',
     auxiliary: auxiliaryId,
-    internalHour: { _id: new ObjectID(), name: 'Formation' },
+    internalHour: { _id: new ObjectId(), name: 'Formation' },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'absence',
     absenceNature: 'hourly',
@@ -158,11 +158,11 @@ const eventList = [
     startDate: '2022-05-08T09:00:00.000Z',
     endDate: '2022-05-08T10:00:00.000Z',
     auxiliary: auxiliaryId,
-    internalHour: { _id: new ObjectID(), name: 'Formation' },
+    internalHour: { _id: new ObjectId(), name: 'Formation' },
   },
   // previous month
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'intervention',
     startDate: '2022-04-12T09:00:00.000Z',
@@ -170,7 +170,7 @@ const eventList = [
     auxiliary: auxiliaryId,
     customer: customerId,
     createdAt: '2022-05-01T09:00:00.000Z',
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionIds[0],
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -181,7 +181,7 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'intervention',
     startDate: '2022-04-08T15:00:00.000Z',
@@ -189,7 +189,7 @@ const eventList = [
     auxiliary: auxiliaryId,
     customer: customerId,
     createdAt: '2022-05-01T10:00:00.000Z',
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionIds[1],
     address: {
       fullAddress: '30 Rue Traversière 75012 Paris',
@@ -200,7 +200,7 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'intervention',
     startDate: '2022-04-08T15:00:00.000Z',
@@ -208,7 +208,7 @@ const eventList = [
     auxiliary: auxiliaryId,
     customer: customerId,
     createdAt: '2022-05-01T10:00:00.000Z',
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionIds[3],
     address: {
       fullAddress: '62 Rue Brancion 75015 Paris',
@@ -219,13 +219,13 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: 'internal_hour',
     startDate: '2022-04-09T09:00:00.000Z',
     endDate: '2022-04-09T12:00:00.000Z',
     auxiliary: auxiliaryId,
-    internalHour: { _id: new ObjectID(), name: 'Formation' },
+    internalHour: { _id: new ObjectId(), name: 'Formation' },
   },
 ];
 
@@ -292,7 +292,7 @@ const customer = {
 };
 
 const surcharge = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'surplus',
   sunday: 30,
   company: authCompany._id,
@@ -352,7 +352,7 @@ const serviceList = [
 ];
 
 const distanceMatrix = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   origins: '30 Rue Traversière 75012 Paris',
   destinations: '62 Rue Brancion 75015 Paris',

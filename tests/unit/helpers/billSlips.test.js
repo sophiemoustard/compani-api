@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const moment = require('moment');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const path = require('path');
 const BillSlipHelper = require('../../../src/helpers/billSlips');
 const BillSlipNumber = require('../../../src/models/BillSlipNumber');
@@ -25,10 +25,10 @@ describe('getBillSlips', () => {
   });
 
   it('should return bill slips list', async () => {
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
     const billsSlipList = [
-      { thirdPartyPayer: { _id: new ObjectID() }, month: '2020-01', netInclTaxes: 120 },
+      { thirdPartyPayer: { _id: new ObjectId() }, month: '2020-01', netInclTaxes: 120 },
     ];
     getBillsSlipList.returns(billsSlipList);
     const creditNotesSlipList = [
@@ -44,10 +44,10 @@ describe('getBillSlips', () => {
   });
 
   it('should not take credit notes into account if not same month', async () => {
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
     const billsSlipList = [
-      { thirdPartyPayer: { _id: new ObjectID() }, month: '2020-01', netInclTaxes: 120 },
+      { thirdPartyPayer: { _id: new ObjectId() }, month: '2020-01', netInclTaxes: 120 },
     ];
     getBillsSlipList.returns(billsSlipList);
     const creditNotesSlipList = [
@@ -63,10 +63,10 @@ describe('getBillSlips', () => {
   });
 
   it('should add credit note if not same thirdPartyPayer as bills', async () => {
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
     const billsSlipList = [
-      { thirdPartyPayer: { _id: new ObjectID() }, month: '2020-01', netInclTaxes: 120 },
+      { thirdPartyPayer: { _id: new ObjectId() }, month: '2020-01', netInclTaxes: 120 },
     ];
     getBillsSlipList.returns(billsSlipList);
     const creditNotesSlipList = [
@@ -99,7 +99,7 @@ describe('getBillSlipNumber', () => {
 
   it('should return bill slip number', async () => {
     const endDate = '2019-09-12T06:00:00';
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(['1234567890'], ['lean']));
 
@@ -142,13 +142,13 @@ describe('createBillSlips', () => {
   });
 
   it('should not create new bill slip', async () => {
-    const thirdPartyPayer1 = new ObjectID();
-    const thirdPartyPayer2 = new ObjectID();
+    const thirdPartyPayer1 = new ObjectId();
+    const thirdPartyPayer2 = new ObjectId();
     const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
     findBillSlip.returns(SinonMongoose.stubChainedQueries(
-      [[{ _id: new ObjectID() }, { _id: new ObjectID() }]],
+      [[{ _id: new ObjectId() }, { _id: new ObjectId() }]],
       ['lean']
     ));
 
@@ -176,10 +176,10 @@ describe('createBillSlips', () => {
   });
 
   it('should create new bill slips', async () => {
-    const thirdPartyPayer1 = new ObjectID();
-    const thirdPartyPayer2 = new ObjectID();
+    const thirdPartyPayer1 = new ObjectId();
+    const thirdPartyPayer2 = new ObjectId();
     const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
-    const company = { _id: new ObjectID(), prefixNumber: 129 };
+    const company = { _id: new ObjectId(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
 
     findBillSlip.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
@@ -219,10 +219,10 @@ describe('createBillSlips', () => {
   });
 
   it('should create new bill slips from a creditNote', async () => {
-    const thirdPartyPayer1 = new ObjectID();
-    const thirdPartyPayer2 = new ObjectID();
+    const thirdPartyPayer1 = new ObjectId();
+    const thirdPartyPayer2 = new ObjectId();
     const billList = [{ thirdPartyPayer: thirdPartyPayer1 }, { thirdPartyPayer: thirdPartyPayer2 }];
-    const company = { _id: new ObjectID(), prefixNumber: 129 };
+    const company = { _id: new ObjectId(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
 
     findBillSlip.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
@@ -281,14 +281,14 @@ describe('formatFundingInfo', () => {
     mergeLastVersionWithBaseObject.restore();
   });
   it('should format funding and bill info', () => {
-    const fundingId = new ObjectID();
+    const fundingId = new ObjectId();
     const bill = {
       number: 'FACT-1234567890',
       date: '2019-09-18T09:00:00',
       createdAt: '2019-09-12T09:00:00',
       customer: {
         identity: { lastname: 'Toto' },
-        fundings: [{ _id: fundingId, versions: [{ _id: new ObjectID() }], frequency: 'monthly' }],
+        fundings: [{ _id: fundingId, versions: [{ _id: new ObjectId() }], frequency: 'monthly' }],
       },
     };
     const billingDoc = { fundingId, careHours: 2, inclTaxesTpp: 12 };
@@ -347,8 +347,8 @@ describe('formatBillingDataForFile', () => {
   });
 
   it('should format bills for pdf', () => {
-    const fundingId = new ObjectID();
-    const fundings = [{ _id: fundingId, versions: [{ _id: new ObjectID() }], frequency: 'monthly' }];
+    const fundingId = new ObjectId();
+    const fundings = [{ _id: fundingId, versions: [{ _id: new ObjectId() }], frequency: 'monthly' }];
     const event = { fundingId, careHours: 2, inclTaxesTpp: 12 };
     const billList = [
       {
@@ -370,7 +370,7 @@ describe('formatBillingDataForFile', () => {
         createdAt: moment('2020-01-03').toDate(),
         number: 'numberCreditNote2',
         customer: { fundings, identity: { firstname: 'zyx' } },
-        events: [{ bills: { fundingId: new ObjectID(), inclTaxesTpp: 10, careHours: 1 } }],
+        events: [{ bills: { fundingId: new ObjectId(), inclTaxesTpp: 10, careHours: 1 } }],
       },
     ];
 
@@ -459,8 +459,8 @@ describe('formatFile', () => {
       thirdPartyPayer: { name: 'Diocèse de Paris' },
       month: '12-2019',
     };
-    const billList = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-    const creditNoteList = [{ _id: new ObjectID() }];
+    const billList = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
+    const creditNoteList = [{ _id: new ObjectId() }];
     formatBillingDataForFile.returns({ total: 100, formattedBills: [{ bills: 'bills' }] });
 
     const result = await BillSlipHelper.formatFile(billSlip, billList, creditNoteList, company);
@@ -500,8 +500,8 @@ describe('formatFile', () => {
       thirdPartyPayer: { name: 'Diocèse de Paris' },
       month: '12-2019',
     };
-    const billList = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-    const creditNoteList = [{ _id: new ObjectID() }];
+    const billList = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
+    const creditNoteList = [{ _id: new ObjectId() }];
     formatBillingDataForFile.returns({ total: 100, formattedBills: [{ bills: 'bills' }] });
 
     const result = await BillSlipHelper.formatFile(billSlip, billList, creditNoteList, company);
@@ -535,12 +535,12 @@ describe('generateFile', () => {
   let formatFileStub;
   let getBillsFromBillSlip;
   let getCreditNoteFromBillSlip;
-  const billSlip = { _id: new ObjectID(), number: 'BORD-1234567890' };
+  const billSlip = { _id: new ObjectId(), number: 'BORD-1234567890' };
   const billSlipData = { billSlip: { number: '123467890' } };
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   const docx = 'This is a docx file';
-  const billList = [{ _id: new ObjectID() }];
-  const creditNoteList = [{ _id: new ObjectID() }];
+  const billList = [{ _id: new ObjectId() }];
+  const creditNoteList = [{ _id: new ObjectId() }];
   beforeEach(() => {
     findByIdBillSlip = sinon.stub(BillSlip, 'findById');
     getBillsFromBillSlip = sinon.stub(BillRepository, 'getBillsFromBillSlip');

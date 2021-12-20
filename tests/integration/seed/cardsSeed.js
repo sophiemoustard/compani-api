@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const Activity = require('../../../src/models/Activity');
 const Questionnaire = require('../../../src/models/Questionnaire');
@@ -19,97 +19,97 @@ const {
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const cardsList = [
-  { _id: new ObjectID(), template: TRANSITION, title: 'Lala' },
-  { _id: new ObjectID(), template: TITLE_TEXT_MEDIA, media: { type: 'video', link: 'link', publicId: 'publicId' } },
-  { _id: new ObjectID(), template: TITLE_TEXT },
-  { _id: new ObjectID(), template: TEXT_MEDIA },
-  { _id: new ObjectID(), template: FLASHCARD },
+  { _id: new ObjectId(), template: TRANSITION, title: 'Lala' },
+  { _id: new ObjectId(), template: TITLE_TEXT_MEDIA, media: { type: 'video', link: 'link', publicId: 'publicId' } },
+  { _id: new ObjectId(), template: TITLE_TEXT },
+  { _id: new ObjectId(), template: TEXT_MEDIA },
+  { _id: new ObjectId(), template: FLASHCARD },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: FILL_THE_GAPS,
-    falsyGapAnswers: [{ _id: new ObjectID(), text: 'ase' }, { _id: new ObjectID(), text: 'énué' }],
+    falsyGapAnswers: [{ _id: new ObjectId(), text: 'ase' }, { _id: new ObjectId(), text: 'énué' }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: MULTIPLE_CHOICE_QUESTION,
     qcAnswers: [
-      { _id: new ObjectID(), correct: false, text: 'mex' },
-      { _id: new ObjectID(), correct: true, text: 'Avery' },
-      { _id: new ObjectID(), correct: true, text: 'erne' },
-      { _id: new ObjectID(), correct: true, text: 'j\'ai pas d\'autres jeux de mots' },
+      { _id: new ObjectId(), correct: false, text: 'mex' },
+      { _id: new ObjectId(), correct: true, text: 'Avery' },
+      { _id: new ObjectId(), correct: true, text: 'erne' },
+      { _id: new ObjectId(), correct: true, text: 'j\'ai pas d\'autres jeux de mots' },
     ],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: SINGLE_CHOICE_QUESTION,
     qcAnswers: [
-      { _id: new ObjectID(), text: 'uel' },
-      { _id: new ObjectID(), text: 'ile' },
-      { _id: new ObjectID(), text: 'o' },
+      { _id: new ObjectId(), text: 'uel' },
+      { _id: new ObjectId(), text: 'ile' },
+      { _id: new ObjectId(), text: 'o' },
     ],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: ORDER_THE_SEQUENCE,
     orderedAnswers: [
-      { _id: new ObjectID(), text: 'rien' },
-      { _id: new ObjectID(), text: 'des trucs' },
-      { _id: new ObjectID(), text: 'encore des trucs' },
+      { _id: new ObjectId(), text: 'rien' },
+      { _id: new ObjectId(), text: 'des trucs' },
+      { _id: new ObjectId(), text: 'encore des trucs' },
     ],
   },
-  { _id: new ObjectID(), template: SURVEY },
-  { _id: new ObjectID(), template: OPEN_QUESTION },
+  { _id: new ObjectId(), template: SURVEY },
+  { _id: new ObjectId(), template: OPEN_QUESTION },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: QUESTION_ANSWER,
-    qcAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
+    qcAnswers: [{ text: 'hallo', _id: new ObjectId() }, { text: 'shalom', _id: new ObjectId() }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: QUESTION_ANSWER,
     qcAnswers: [
-      { text: 'bye bye', _id: new ObjectID() },
-      { text: 'bye bye', _id: new ObjectID() },
-      { text: 'bye bye', _id: new ObjectID() },
-      { text: 'bye bye', _id: new ObjectID() },
+      { text: 'bye bye', _id: new ObjectId() },
+      { text: 'bye bye', _id: new ObjectId() },
+      { text: 'bye bye', _id: new ObjectId() },
+      { text: 'bye bye', _id: new ObjectId() },
     ],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: QUESTION_ANSWER,
-    qcAnswers: [{ text: 'hallo', _id: new ObjectID() }, { text: 'shalom', _id: new ObjectID() }],
+    qcAnswers: [{ text: 'hallo', _id: new ObjectId() }, { text: 'shalom', _id: new ObjectId() }],
   },
-  { _id: new ObjectID(), template: SINGLE_CHOICE_QUESTION, qcAnswers: [{ _id: new ObjectID(), text: 'uel' }] },
+  { _id: new ObjectId(), template: SINGLE_CHOICE_QUESTION, qcAnswers: [{ _id: new ObjectId(), text: 'uel' }] },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: MULTIPLE_CHOICE_QUESTION,
     qcAnswers: [
-      { _id: new ObjectID(), correct: false, text: 'mex' },
-      { _id: new ObjectID(), correct: true, text: 'Avery' },
+      { _id: new ObjectId(), correct: false, text: 'mex' },
+      { _id: new ObjectId(), correct: true, text: 'Avery' },
     ],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: ORDER_THE_SEQUENCE,
-    orderedAnswers: [{ _id: new ObjectID(), text: 'rien' }, { _id: new ObjectID(), text: 'des trucs' }],
+    orderedAnswers: [{ _id: new ObjectId(), text: 'rien' }, { _id: new ObjectId(), text: 'des trucs' }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: FILL_THE_GAPS,
     falsyGapAnswers: [
-      { _id: new ObjectID(), text: 'ase' },
-      { _id: new ObjectID(), text: 'énué' },
-      { _id: new ObjectID(), text: 'olard' },
-      { _id: new ObjectID(), text: 'ension' },
-      { _id: new ObjectID(), text: 'rien' },
-      { _id: new ObjectID(), text: 'des trucs' },
+      { _id: new ObjectId(), text: 'ase' },
+      { _id: new ObjectId(), text: 'énué' },
+      { _id: new ObjectId(), text: 'olard' },
+      { _id: new ObjectId(), text: 'ension' },
+      { _id: new ObjectId(), text: 'rien' },
+      { _id: new ObjectId(), text: 'des trucs' },
     ],
   },
 ];
 
 const activitiesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Coucou toi',
     cards: [
       cardsList[0]._id,
@@ -125,7 +125,7 @@ const activitiesList = [
     status: 'draft',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'la peche',
     cards: [cardsList[4]._id, cardsList[13]._id],
     type: 'quiz',
@@ -135,7 +135,7 @@ const activitiesList = [
 
 const questionnairesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'test',
     status: 'published',
     type: 'expectations',

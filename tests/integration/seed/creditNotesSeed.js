@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
 const BillingItem = require('../../../src/models/BillingItem');
@@ -16,7 +16,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const billingItem = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   defaultUnitAmount: 12,
   company: authCompany._id,
   type: 'per_intervention',
@@ -25,7 +25,7 @@ const billingItem = {
 };
 
 const creditNoteThirdPartyPayer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
@@ -33,7 +33,7 @@ const creditNoteThirdPartyPayer = {
 };
 
 const creditNoteService = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -46,7 +46,7 @@ const creditNoteService = {
 };
 
 const creditNoteCustomer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
   contact: {
@@ -63,11 +63,11 @@ const creditNoteCustomer = {
     bankAccountOwner: 'Lance Amstrong',
     iban: 'FR3514508000505917721779B12',
     bic: 'BNMDHISOBD',
-    mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+    mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
   },
   subscriptions: [
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: creditNoteService._id,
       versions: [{
         unitTTCRate: 12,
@@ -81,7 +81,7 @@ const creditNoteCustomer = {
 };
 
 const archivedCustomer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   identity: { title: 'mr', firstname: 'Gérard', lastname: 'Chivé' },
   stopReason: 'hospitalization',
@@ -101,11 +101,11 @@ const archivedCustomer = {
     bankAccountOwner: 'Gérard Chivé',
     iban: 'FR3514508000505917721779B12',
     bic: 'BNMDHISOBD',
-    mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+    mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
   },
   subscriptions: [
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: creditNoteService._id,
       versions: [{
         unitTTCRate: 12,
@@ -120,7 +120,7 @@ const archivedCustomer = {
 
 const creditNoteUserList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
     local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -128,7 +128,7 @@ const creditNoteUserList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io' },
     refreshToken: uuidv4(),
@@ -138,9 +138,9 @@ const creditNoteUserList = [
 ];
 
 const creditNoteEvent = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
-  sector: new ObjectID(),
+  sector: new ObjectId(),
   type: 'intervention',
   startDate: '2019-01-16T09:30:19.543Z',
   endDate: '2019-01-16T11:30:21.653Z',
@@ -155,7 +155,7 @@ const creditNoteEvent = {
     exclTaxesCustomer: 15,
     inclTaxesTpp: 10,
     exclTaxesTpp: 5,
-    fundingId: new ObjectID(),
+    fundingId: new ObjectId(),
     nature: 'hourly',
     careHours: 2,
   },
@@ -171,7 +171,7 @@ const creditNoteEvent = {
 
 const creditNotesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     date: moment().toDate(),
     startDate: moment().startOf('month').toDate(),
     endDate: moment().set('date', 15).toDate(),
@@ -195,7 +195,7 @@ const creditNotesList = [
     company: authCompany._id,
   },
   { // 1
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     date: moment().toDate(),
     startDate: moment().startOf('month').toDate(),
     endDate: moment().set('date', 15).toDate(),
@@ -222,7 +222,7 @@ const creditNotesList = [
     company: authCompany._id,
   },
   { // 2
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     date: '2020-01-01',
     startDate: '2020-01-01',
     endDate: '2020-01-12',
@@ -247,7 +247,7 @@ const creditNotesList = [
     company: authCompany._id,
   },
   { // 3 - with archived customer
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     date: moment().toDate(),
     startDate: moment().startOf('month').toDate(),
     endDate: moment().set('date', 15).toDate(),
@@ -274,7 +274,7 @@ const creditNotesList = [
 ];
 
 const otherCompanyThirdPartyPayer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Titi',
   company: otherCompany._id,
   isApa: false,
@@ -282,7 +282,7 @@ const otherCompanyThirdPartyPayer = {
 };
 
 const otherCompanyService = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   versions: [{
     defaultUnitAmount: 24,
@@ -295,7 +295,7 @@ const otherCompanyService = {
 };
 
 const otherCompanyCustomer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   identity: { title: 'mr', firstname: 'Jean', lastname: 'Bonbeurre' },
   contact: {
@@ -312,10 +312,10 @@ const otherCompanyCustomer = {
     bankAccountOwner: 'Jean Bonbeurre',
     iban: 'FR9514708000505917721779B13',
     bic: 'AGMDHISOBD',
-    mandates: [{ rum: 'R19879533456767438', _id: new ObjectID(), signedAt: moment().toDate() }],
+    mandates: [{ rum: 'R19879533456767438', _id: new ObjectId(), signedAt: moment().toDate() }],
   },
   subscriptions: [{
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     service: otherCompanyService._id,
     versions: [{
       unitTTCRate: 24,
@@ -328,7 +328,7 @@ const otherCompanyCustomer = {
 };
 
 const otherCompanyUser = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Renégat', lastname: 'Toto' },
   local: { email: 'other_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
@@ -337,13 +337,13 @@ const otherCompanyUser = {
 };
 
 const otherCompanyEvent = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
-  sector: new ObjectID(),
+  sector: new ObjectId(),
   type: 'intervention',
   startDate: '2019-01-16T09:30:19.543Z',
   endDate: '2019-01-16T11:30:21.653Z',
-  auxiliary: new ObjectID(),
+  auxiliary: new ObjectId(),
   customer: otherCompanyCustomer._id,
   createdAt: '2019-01-15T11:33:14.343Z',
   subscription: otherCompanyCustomer.subscriptions[0]._id,
@@ -361,7 +361,7 @@ const otherCompanyEvent = {
     exclTaxesCustomer: 15,
     inclTaxesTpp: 10,
     exclTaxesTpp: 5,
-    fundingId: new ObjectID(),
+    fundingId: new ObjectId(),
     nature: 'hourly',
     careHours: 2,
   },
@@ -369,7 +369,7 @@ const otherCompanyEvent = {
 };
 
 const otherCompanyCreditNote = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   date: moment().toDate(),
   startDate: moment().startOf('month').toDate(),
   endDate: moment().set('date', 15).toDate(),
@@ -378,7 +378,7 @@ const otherCompanyCreditNote = {
   inclTaxesCustomer: 112,
   events: [{
     eventId: otherCompanyEvent._id,
-    auxiliary: new ObjectID(),
+    auxiliary: new ObjectId(),
     startDate: otherCompanyEvent.startDate,
     endDate: otherCompanyEvent.endDate,
     serviceName: 'titi',
@@ -401,9 +401,9 @@ const helpersList = [{
 }];
 
 const userCompanies = [
-  { _id: new ObjectID(), user: creditNoteUserList[0]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: creditNoteUserList[1]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: otherCompanyUser._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: creditNoteUserList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: creditNoteUserList[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: otherCompanyUser._id, company: otherCompany._id },
 ];
 
 const populateDB = async () => {
