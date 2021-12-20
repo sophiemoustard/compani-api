@@ -106,6 +106,10 @@ exports.authorizeEventDeletion = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (!UtilsHelper.areObjectIdsEquals(event.company, companyId)) throw Boom.forbidden();
 
+  if (event.customer) {
+    const customer = await Customer.countDocuments({ _id: event.customer, archivedAt: { $exists: true, $ne: null } });
+    if (customer) throw Boom.forbidden();
+  }
   return event;
 };
 
@@ -186,8 +190,9 @@ exports.checkEventCreationOrUpdate = async (req) => {
 exports.authorizeEventDeletionList = async (req) => {
   const { credentials } = req.auth;
 
-  const customer = await Customer.countDocuments({ _id: req.query.customer, company: get(credentials, 'company._id') });
+  const customer = await Customer.findOne({ _id: req.query.customer, company: get(credentials, 'company._id') });
   if (!customer) throw Boom.notFound();
+  if (customer.archivedAt) throw Boom.forbidden(translate[language].archivedCustomer);
 
   if (isBefore(req.query.endDate, req.query.startDate)) {
     throw Boom.forbidden(translate[language].endDateBeforeStartDate);
@@ -197,7 +202,7 @@ exports.authorizeEventDeletionList = async (req) => {
     const customerCount = await Customer.countDocuments({
       _id: req.query.customer,
       company: get(credentials, 'company._id'),
-      stoppedAt: { $lte: req.query.endDate },
+      stoppedAt: { $lt: req.query.endDate },
     });
     if (customerCount) throw Boom.forbidden(translate[language].stoppedCustomer);
 

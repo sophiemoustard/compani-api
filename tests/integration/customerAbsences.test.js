@@ -1,9 +1,11 @@
 const expect = require('expect');
 const qs = require('qs');
+const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { customersList, usersList, populateDB } = require('./seed/customerAbsencesSeed');
+const { customersList, usersList, customerAbsencesList, populateDB } = require('./seed/customerAbsencesSeed');
 const app = require('../../server');
+const CustomerAbsence = require('../../src/models/CustomerAbsence');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -108,6 +110,164 @@ describe('CUSTOMER ABSENCES ROUTES - GET /customerabsences', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/customerabsences?customer=${customersList[0]._id}&startDate=${startDate}&endDate=${endDate}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CUSTOMER ABSENCES ROUTE - PUT /customerabsences/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('AUXILIARY', () => {
+    beforeEach(async () => {
+      authToken = await getToken('auxiliary');
+    });
+
+    it('should update a customer absence', async () => {
+      const payload = {
+        startDate: '2021-11-30T00:00:00.000Z',
+        endDate: '2021-12-14T23:59:59.999Z',
+        absenceType: 'hospitalization',
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/customerabsences/${customerAbsencesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const customerAbsenceUpdated = await CustomerAbsence
+        .countDocuments({ _id: customerAbsencesList[0]._id, ...payload });
+      expect(customerAbsenceUpdated).toEqual(1);
+    });
+
+    it('should return a 404 if customer absence in query doesn\'t exist', async () => {
+      const payload = { startDate: '2022-01-09T00:00:00.000Z', endDate: '2022-01-09T23:59:59.999Z' };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/customerabsences/${new ObjectID()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if a customer absence already exists on this period', async () => {
+      const payload = { startDate: '2021-11-02T00:00:00.000Z', endDate: '2021-11-03T00:00:00.000Z' };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/customerabsences/${customerAbsencesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if customer is stopped on this period', async () => {
+      const payload = { startDate: '2022-01-06T00:00:00.000Z', endDate: '2022-01-08T00:00:00.000Z' };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/customerabsences/${customerAbsencesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+    ];
+
+    const payload = {
+      startDate: '2021-11-30T00:00:00.000Z',
+      endDate: '2021-12-14T23:59:59.999Z',
+      absenceType: 'hospitalization',
+    };
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/customerabsences/${customerAbsencesList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CUSTOMER ABSENCES ROUTE - DELETE /customerabsences/{_id}', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('AUXILIARY', () => {
+    beforeEach(async () => {
+      authToken = await getToken('auxiliary');
+    });
+
+    it('should delete a customer absence', async () => {
+      const customerAbsenceCountBefore = await CustomerAbsence
+        .countDocuments({ customer: customerAbsencesList[0].customer });
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/customerabsences/${customerAbsencesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const customerAbsenceCountAfter = await CustomerAbsence
+        .countDocuments({ customer: customerAbsencesList[0].customer });
+      expect(customerAbsenceCountAfter).toEqual(customerAbsenceCountBefore - 1);
+    });
+
+    it('should return a 404 if customer absence doesn\'t exist in user\'s company', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/customerabsences/${customerAbsencesList[3]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'coach', expectedCode: 200 },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/customerabsences/${customerAbsencesList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

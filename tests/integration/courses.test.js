@@ -842,7 +842,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const payload = {
         misc: 'new name',
         trainer: new ObjectID(),
-        contact: { name: 'name new contact', email: 'test@toto.aa', phone: '0777228811' },
+        contact: new ObjectID(),
       };
       const response = await app.inject({
         method: 'PUT',
@@ -857,24 +857,10 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(course).toEqual(1);
     });
 
-    it('should return 400 error if contact phone number is invalid', async () => {
-      const payload = { contact: { phone: '07772211' } };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courses/${courseIdFromAuthCompany}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
     const payloads = [
       { misc: 'new name' },
       { trainer: new ObjectID() },
-      { contact: { name: 'new name' } },
-      { contact: { phone: '0101010101' } },
-      { contact: { email: 'test@email.com' } },
+      { contact: new ObjectID() },
       { salesRepresentative: new ObjectID() },
     ];
     payloads.forEach((payload) => {
@@ -1069,7 +1055,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const payload = {
         misc: 'new name',
         trainer: new ObjectID(),
-        contact: { name: 'name new contact', email: 'test@toto.aa', phone: '0777228811' },
+        contact: new ObjectID(),
       };
       authToken = await getToken('coach');
 
@@ -1087,7 +1073,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const payload = {
         misc: 'new name',
         trainer: new ObjectID(),
-        contact: { name: 'name new contact', email: 'test@toto.aa', phone: '0777228811' },
+        contact: new ObjectID(),
       };
       authToken = await getToken('client_admin');
 
@@ -1197,7 +1183,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   const courseIdFromOtherCompany = coursesList[3]._id;
   const archivedCourseId = coursesList[14]._id;
   const courseIdWithoutReceiver = coursesList[7]._id;
-  const courseIdWithoutContactName = coursesList[9]._id;
+  const courseIdWithoutContact = coursesList[9]._id;
   const courseIdWithoutContactPhone = coursesList[1]._id;
   const courseIdWithoutTrainer = coursesList[8]._id;
   let SmsHelperStub;
@@ -1271,14 +1257,15 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
+        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeFalsy();
       expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact.name')).toBeTruthy();
-      expect(get(course, 'contact.phone')).toBeTruthy();
+      expect(get(course, 'contact._id')).toBeTruthy();
+      expect(get(course, 'contact.contact.phone')).toBeTruthy();
       expect(course.trainer).toBeTruthy();
 
       sinon.assert.notCalled(SmsHelperStub);
@@ -1298,41 +1285,43 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
+        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeTruthy();
       expect(hasReceiver).toBeFalsy();
-      expect(get(course, 'contact.name')).toBeTruthy();
-      expect(get(course, 'contact.phone')).toBeTruthy();
+      expect(get(course, 'contact._id')).toBeTruthy();
+      expect(get(course, 'contact.contact.phone')).toBeTruthy();
       expect(course.trainer).toBeTruthy();
 
       sinon.assert.notCalled(SmsHelperStub);
     });
 
-    it('should return a 403 if course has no contact name', async () => {
+    it('should return a 403 if course has no contact', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${courseIdWithoutContactName}/sms`,
+        url: `/courses/${courseIdWithoutContact}/sms`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
 
-      const course = await Course.findById(courseIdWithoutContactName)
+      const course = await Course.findById(courseIdWithoutContact)
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
+        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeTruthy();
       expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact.name')).toBeFalsy();
-      expect(get(course, 'contact.phone')).toBeTruthy();
+      expect(get(course, 'contact._id')).toBeFalsy();
+      expect(get(course, 'contact.contact.phone')).toBeFalsy();
       expect(course.trainer).toBeTruthy();
 
       sinon.assert.notCalled(SmsHelperStub);
@@ -1352,14 +1341,15 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
+        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeTruthy();
       expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact.name')).toBeTruthy();
-      expect(get(course, 'contact.phone')).toBeFalsy();
+      expect(get(course, 'contact._id')).toBeTruthy();
+      expect(get(course, 'contact.contact.phone')).toBe();
       expect(course.trainer).toBeTruthy();
 
       sinon.assert.notCalled(SmsHelperStub);
@@ -1379,14 +1369,15 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
+        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeTruthy();
       expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact.name')).toBeTruthy();
-      expect(get(course, 'contact.phone')).toBeTruthy();
+      expect(get(course, 'contact._id')).toBeTruthy();
+      expect(get(course, 'contact.contact.phone')).toBeTruthy();
       expect(course.trainer).toBeFalsy();
 
       sinon.assert.notCalled(SmsHelperStub);

@@ -4,8 +4,6 @@ const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const fs = require('fs');
 const os = require('os');
-const moment = require('moment');
-const flat = require('flat');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -150,6 +148,7 @@ exports.getCourse = async (course, loggedUser) => {
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .populate({ path: 'accessRules', select: 'name' })
     .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
+    .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' })
     .lean();
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
@@ -310,14 +309,18 @@ exports.getTraineeCourse = async (courseId, credentials) => {
       populate: { path: 'step', select: 'type' },
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
-    .select('_id misc contact')
+    .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
+    .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
   return exports.formatCourseWithProgress(course);
 };
 
-exports.updateCourse = async (courseId, payload) =>
-  Course.findOneAndUpdate({ _id: courseId }, { $set: flat(payload) }).lean();
+exports.updateCourse = async (courseId, payload) => {
+  const params = payload.contact === '' ? { $unset: { contact: '' } } : { $set: payload };
+
+  return Course.findOneAndUpdate({ _id: courseId }, params).lean();
+};
 
 exports.deleteCourse = async courseId => Promise.all([
   Course.deleteOne({ _id: courseId }),
@@ -490,8 +493,8 @@ exports.formatCourseForDocx = course => ({
   duration: exports.getCourseDuration(course.slots),
   learningGoals: get(course, 'subProgram.program.learningGoals') || '',
   programName: get(course, 'subProgram.program.name').toUpperCase() || '',
-  startDate: moment(course.slots[0].startDate).format('DD/MM/YYYY'),
-  endDate: moment(course.slots[course.slots.length - 1].endDate).format('DD/MM/YYYY'),
+  startDate: CompaniDate(course.slots[0].startDate).format('dd/LL/yyyy'),
+  endDate: CompaniDate(course.slots[course.slots.length - 1].endDate).format('dd/LL/yyyy'),
 });
 
 exports.generateCompletionCertificates = async (courseId) => {
@@ -512,7 +515,7 @@ exports.generateCompletionCertificates = async (courseId) => {
     const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
     const filePath = await DocxHelper.createDocx(
       certificateTemplatePath,
-      { ...courseData, traineeIdentity, date: moment().format('DD/MM/YYYY') }
+      { ...courseData, traineeIdentity, date: CompaniDate().format('dd/LL/yyyy') }
     );
 
     return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
@@ -539,23 +542,25 @@ exports.formatHoursForConvocation = slots => slots.reduce((acc, slot) => {
 }, '');
 
 exports.formatCourseForConvocationPdf = (course) => {
-  const trainerIdentity = UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL');
-  const contactPhoneNumber = UtilsHelper.formatPhoneNumber(get(course, 'contact.phone'));
   const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
 
   const slots = slotsGroupedByDate.map(groupedSlots => ({
     ...(get(groupedSlots[0], 'address.fullAddress') && { address: get(groupedSlots[0], 'address.fullAddress') }),
     ...(groupedSlots[0].meetingLink && { meetingLink: groupedSlots[0].meetingLink }),
     hours: exports.formatHoursForConvocation(groupedSlots),
-    date: moment(groupedSlots[0].startDate).format('DD/MM/YYYY'),
+    date: CompaniDate(groupedSlots[0].startDate).format('dd/LL/yyyy'),
   }));
-
-  return {
-    ...course,
-    trainer: { ...course.trainer, formattedIdentity: trainerIdentity },
-    contact: { ...course.contact, formattedPhone: contactPhoneNumber },
-    slots,
+  const contact = {
+    formattedIdentity: UtilsHelper.formatIdentity(get(course, 'contact.identity'), 'FL'),
+    email: get(course, 'contact.local.email'),
+    formattedPhone: UtilsHelper.formatPhoneNumber(get(course, 'contact.contact.phone')),
   };
+  const trainer = {
+    ...course.trainer,
+    formattedIdentity: UtilsHelper.formatIdentity(get(course, 'trainer.identity'), 'FL'),
+  };
+
+  return { ...course, trainer, contact, slots };
 };
 
 exports.generateConvocationPdf = async (courseId) => {
@@ -567,6 +572,7 @@ exports.generateConvocationPdf = async (courseId) => {
     })
     .populate('slots')
     .populate({ path: 'slotsToPlan', select: '_id' })
+    .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
     .lean();
 

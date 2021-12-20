@@ -24,6 +24,7 @@ const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const CreditNote = require('../../../src/models/CreditNote');
+const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const CustomerNoteHistory = require('../../../src/models/CustomerNoteHistory');
 const CustomerNote = require('../../../src/models/CustomerNote');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
@@ -125,6 +126,7 @@ const deleteNonAuthenticationSeeds = async () => {
     CourseSmsHistory.deleteMany(),
     CreditNoteNumber.deleteMany(),
     CreditNote.deleteMany(),
+    CustomerAbsence.deleteMany(),
     CustomerNoteHistory.deleteMany(),
     CustomerNote.deleteMany(),
     CustomerPartner.deleteMany(),

@@ -156,6 +156,18 @@ describe('PROGRAMS ROUTES - GET /programs/e-learning', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.programs.length).toEqual(2);
     });
+
+    it('should get a specific e-learning program', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/programs/e-learning?_id=${programsList[2]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.programs.length).toEqual(1);
+      expect(response.result.data.programs[0]._id).toEqual(programsList[2]._id);
+    });
   });
 });
 

@@ -360,19 +360,18 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
 
 exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const formattedEndDate = moment(endDate).endOf('day').toDate();
   const query = {
     customer: new ObjectID(customer),
     startDate: { $gte: moment(startDate).toDate() },
     company: companyId,
   };
 
-  if (endDate) query.startDate.$lte = formattedEndDate;
+  if (endDate) query.startDate.$lte = endDate;
 
   await exports.deleteEventsAndRepetition(query, !endDate, credentials);
 
   if (absenceType) {
-    const queryCustomerAbsence = { customer, startDate, endDate: formattedEndDate, absenceType };
+    const queryCustomerAbsence = { customer, startDate, endDate, absenceType };
     await CustomerAbsencesHelper.create(queryCustomerAbsence, companyId);
   }
 };

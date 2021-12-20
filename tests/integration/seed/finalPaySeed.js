@@ -24,7 +24,7 @@ const sectorId = new ObjectID();
 
 const user = {
   _id: new ObjectID(),
-  local: { email: 'test4@alenvi.io', password: '123456!eR' },
+  local: { email: 'test4@alenvi.io' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
   role: { client: coachRoleId },
@@ -35,7 +35,7 @@ const user = {
 const auxiliary = {
   _id: auxiliaryId,
   identity: { firstname: 'Test7', lastname: 'Test7' },
-  local: { email: 'test7@alenvi.io', password: '123456!eR' },
+  local: { email: 'test7@alenvi.io' },
   inactivityDate: '2019-06-01T00:00:00',
   refreshToken: uuidv4(),
   role: { client: auxiliaryRoleId },
@@ -47,7 +47,7 @@ const auxiliary = {
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'Cricri', lastname: 'test' },
-  local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
+  local: { email: 'othercompany@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: auxiliaryRoleId },
   contracts: contractId,
@@ -378,7 +378,7 @@ const populateDB = async () => {
     Service.create(serviceList),
     Surcharge.create(surcharge),
     User.create([user, auxiliary, auxiliaryFromOtherCompany]),
-    UserCompany.insertMany(userCompanyList),
+    UserCompany.create(userCompanyList),
   ]);
 };
 

@@ -51,10 +51,9 @@ exports.getEventSurcharges = (event, surcharge) => {
   const start = moment(event.startDate);
 
   for (const surchargeCondition of surchargeConditions) {
-    const percentage = surcharge[surchargeCondition.key];
-    if (percentage && percentage > 0 && surchargeCondition.condition(start)) {
-      return [{ percentage, name: surchargeCondition.name }];
-    }
+    const percentage = surcharge[surchargeCondition.key] || 0;
+
+    if (surchargeCondition.condition(start)) return [{ percentage, name: surchargeCondition.name }];
   }
 
   const {

@@ -20,4 +20,26 @@ const list = async (req) => {
   }
 };
 
-module.exports = { list };
+const update = async (req) => {
+  try {
+    await CustomerAbsencesHelper.updateCustomerAbsence(req.params._id, req.payload, req.auth.credentials);
+
+    return { message: translate[language].customerAbsenceUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const remove = async (req) => {
+  try {
+    await CustomerAbsencesHelper.delete(req.params._id);
+
+    return { message: translate[language].customerAbsenceDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, update, remove };

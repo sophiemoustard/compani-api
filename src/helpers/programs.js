@@ -13,13 +13,16 @@ exports.list = async () => Program.find({})
   .populate({ path: 'subPrograms', select: 'name' })
   .lean();
 
-exports.listELearning = async (credentials) => {
+exports.listELearning = async (credentials, query) => {
   const eLearningCourse = await Course
-    .find({ format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: get(credentials, 'company._id') }] })
+    .find(
+      { format: STRICTLY_E_LEARNING, $or: [{ accessRules: [] }, { accessRules: get(credentials, 'company._id') }] },
+      'subProgram'
+    )
     .lean();
   const subPrograms = eLearningCourse.map(course => course.subProgram);
 
-  return Program.find({ subPrograms: { $in: subPrograms } })
+  return Program.find({ ...query, subPrograms: { $in: subPrograms } })
     .populate({
       path: 'subPrograms',
       select: 'name',

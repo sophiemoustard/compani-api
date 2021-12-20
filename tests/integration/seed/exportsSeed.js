@@ -126,7 +126,7 @@ const auxiliaryList = [{
     phone: '0123456789',
   },
   role: { client: auxiliaryRoleId },
-  local: { email: 'export_auxiliary_1@alenvi.io', password: '123456!eR' },
+  local: { email: 'export_auxiliary_1@alenvi.io' },
   refreshToken: uuidv4(),
   contracts: [contract1Id, contract2Id],
   origin: WEBAPP,
@@ -155,7 +155,7 @@ const auxiliaryList = [{
     phone: '0123456789',
   },
   role: { client: auxiliaryRoleId },
-  local: { email: 'export_auxiliary_2@alenvi.io', password: '123456!eR' },
+  local: { email: 'export_auxiliary_2@alenvi.io' },
   refreshToken: uuidv4(),
   contracts: [contract3Id],
   origin: WEBAPP,
@@ -825,7 +825,7 @@ const user = {
   _id: new ObjectID(),
   contact: { phone: '0123456789' },
   identity: { firstname: 'test', lastname: 'Toto' },
-  local: { email: 'toto@alenvi.io', password: '123456!eR' },
+  local: { email: 'toto@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: helperRoleId },
   origin: WEBAPP,
@@ -844,26 +844,28 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Bill.insertMany(billsList);
-  await Contract.insertMany(contractList);
-  await CreditNote.insertMany(creditNotesList);
-  await Customer.insertMany(customersList);
-  await Establishment.create(establishment);
-  await Event.insertMany(eventList);
-  await EventHistory.insertMany(eventHistoriesList);
-  await FinalPay.insertMany(finalPayList);
-  await Helper.insertMany(helpersList);
-  await InternalHour.create(internalHour);
-  await Payment.insertMany(paymentsList);
-  await Pay.insertMany(payList);
-  await ReferentHistory.insertMany(referentList);
-  await Sector.create(sector);
-  await SectorHistory.insertMany(sectorHistories);
-  await Service.insertMany(serviceList);
-  await ThirdPartyPayer.create(thirdPartyPayer);
-  await User.create(user);
-  await User.insertMany(auxiliaryList);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([
+    Bill.create(billsList),
+    Contract.create(contractList),
+    CreditNote.create(creditNotesList),
+    Customer.create(customersList),
+    Establishment.create(establishment),
+    Event.create(eventList),
+    EventHistory.create(eventHistoriesList),
+    FinalPay.create(finalPayList),
+    Helper.create(helpersList),
+    InternalHour.create(internalHour),
+    Payment.create(paymentsList),
+    Pay.create(payList),
+    ReferentHistory.create(referentList),
+    Sector.create(sector),
+    SectorHistory.create(sectorHistories),
+    Service.create(serviceList),
+    ThirdPartyPayer.create(thirdPartyPayer),
+    User.create(user),
+    User.create(auxiliaryList),
+    UserCompany.create(userCompanies),
+  ]);
 };
 
 module.exports = {

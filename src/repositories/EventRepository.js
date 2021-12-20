@@ -336,7 +336,7 @@ exports.getEventsToBill = async (query, companyId) => {
       $project: {
         idCustomer: '$_id.CUSTOMER',
         subId: '$_id.SUBS',
-        events: { startDate: 1, subscription: 1, endDate: 1, auxiliary: 1, _id: 1 },
+        events: { startDate: 1, subscription: 1, endDate: 1, auxiliary: 1, _id: 1, isCancelled: 1 },
         customer: 1,
         sub: 1,
         fund: 1,
@@ -434,7 +434,7 @@ exports.getCustomersWithIntervention = async companyId => Event.aggregate([
   { $lookup: { from: 'customers', localField: '_id.customer', foreignField: '_id', as: 'customer' } },
   { $unwind: { path: '$customer' } },
   { $replaceRoot: { newRoot: '$customer' } },
-  { $project: { _id: 1, identity: { firstname: 1, lastname: 1 }, stoppedAt: 1 } },
+  { $project: { _id: 1, identity: { firstname: 1, lastname: 1 }, stoppedAt: 1, archivedAt: 1 } },
 ]).option({ company: companyId });
 
 exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {

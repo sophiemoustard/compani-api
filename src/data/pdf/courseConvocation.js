@@ -121,6 +121,7 @@ const getTrainerAndContactInfo = (trainerImg, trainer, contactImg, contact) => (
         { image: contactImg, width: 64, style: 'img' },
         [
           { text: 'Votre contact pour la formation', style: 'infoTitle' },
+          { text: get(contact, 'formattedIdentity') || '', style: 'infoSubTitle' },
           { text: get(contact, 'formattedPhone') || '', style: 'infoSubTitle' },
           { text: get(contact, 'email') || '', style: 'infoSubTitle' },
         ],
