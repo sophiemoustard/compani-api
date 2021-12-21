@@ -15,7 +15,7 @@ const updateRole = {
         { inactivityDate: moment().startOf('M').toDate() },
         { $set: { 'role.client': role._id } }
       );
-      updatedUsersCount = updatedUsers.nModified;
+      updatedUsersCount = updatedUsers.modifiedCount;
     } catch (e) {
       error = e.message;
     }

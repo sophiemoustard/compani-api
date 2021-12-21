@@ -246,7 +246,7 @@ describe('getProgram', () => {
             populate: {
               path: 'steps',
               populate: [
-                { path: 'activities ', populate: 'cards' },
+                { path: 'activities', populate: 'cards' },
                 {
                   path: 'subPrograms',
                   select: 'name -steps',

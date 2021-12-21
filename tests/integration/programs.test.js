@@ -1,3 +1,4 @@
+const flat = require('flat');
 const expect = require('expect');
 const GetStream = require('get-stream');
 const { ObjectId } = require('mongodb');
@@ -518,9 +519,8 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
-      const programUpdated = await Program.countDocuments(
-        { _id: program._id, image: { link: 'https://alenvi.io', publicId: 'abcdefgh' } }
-      );
+      const mediaQuery = flat({ image: { link: 'https://alenvi.io', publicId: 'abcdefgh' } });
+      const programUpdated = await Program.countDocuments({ _id: program._id, mediaQuery });
 
       expect(response.statusCode).toBe(200);
       expect(programUpdated).toEqual(1);

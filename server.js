@@ -52,7 +52,7 @@ const init = async () => {
     domain: process.env.TOKEN_DOMAIN,
   });
 
-  mongooseConnection(server);
+  await mongooseConnection(server);
 
   await server.start();
   server.log('info', `Server running at: ${server.info.uri}`);
