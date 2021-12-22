@@ -528,6 +528,7 @@ exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {
       },
     },
     { $unwind: { path: '$events' } },
+    { $sort: { 'events.startDate': 1 } },
   ];
 
   const formatAndGroup = [

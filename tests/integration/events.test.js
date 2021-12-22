@@ -1972,7 +1972,7 @@ describe('DELETE /events', () => {
   });
 });
 
-describe('DELETE /{_id}/repetition', () => {
+describe('DELETE /events/{_id}/repetition', () => {
   let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
@@ -2071,7 +2071,7 @@ describe('DELETE /{_id}/repetition', () => {
   });
 });
 
-describe('PUT /{_id}/timestamping', () => {
+describe('PUT /events/{_id}/timestamping', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);

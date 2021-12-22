@@ -41,41 +41,41 @@ const contracts = [
     _id: new ObjectId(),
     serialNumber: 'sdfklasdkljfjsldfjksdss',
     user: auxiliariesIds[0],
-    startDate: '2010-09-03T00:00:00',
+    startDate: '2010-09-03T00:00:00.000Z',
     company: authCompany._id,
-    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
+    versions: [{ startDate: '2010-09-03T00:00:00.000Z', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
   {
     _id: new ObjectId(),
     serialNumber: 'dskfajdksjf',
     user: auxiliariesIds[1],
     company: authCompany._id,
-    startDate: '2010-09-03T00:00:00',
-    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
+    startDate: '2010-09-03T00:00:00.000Z',
+    versions: [{ startDate: '2010-09-03T00:00:00.000Z', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
   {
     _id: new ObjectId(),
     serialNumber: 'dskfajdksjfkjhg',
     user: auxiliariesIds[2],
     company: authCompany._id,
-    startDate: '2010-09-03T00:00:00',
-    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
+    startDate: '2010-09-03T00:00:00.000Z',
+    versions: [{ startDate: '2010-09-03T00:00:00.000Z', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
   {
     _id: new ObjectId(),
     serialNumber: 'dskfajdksjwefkjhg',
     user: auxiliariesIds[3],
     company: authCompany._id,
-    startDate: '2010-09-03T00:00:00',
-    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
+    startDate: '2010-09-03T00:00:00.000Z',
+    versions: [{ startDate: '2010-09-03T00:00:00.000Z', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
   {
     _id: new ObjectId(),
     serialNumber: 'skuskuksuksuksu',
     user: auxiliariesIds[4],
     company: authCompany._id,
-    startDate: '2010-09-03T00:00:00',
-    versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
+    startDate: '2010-09-03T00:00:00.000Z',
+    versions: [{ startDate: '2010-09-03T00:00:00.000Z', grossHourlyRate: 10.43, weeklyHours: 12 }],
   },
 ];
 
@@ -139,11 +139,36 @@ const auxiliaries = [
 ];
 
 const sectorHistories = [
-  { auxiliary: auxiliariesIds[0], sector: sectors[0]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
-  { auxiliary: auxiliaries[1]._id, sector: sectors[1]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
-  { auxiliary: auxiliaries[2]._id, sector: sectors[1]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
-  { auxiliary: auxiliaries[3]._id, sector: sectors[2]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
-  { auxiliary: auxiliaries[4]._id, sector: sectors[0]._id, company: authCompany._id, startDate: '2018-12-10T09:00:00' },
+  {
+    auxiliary: auxiliaries[0]._id,
+    sector: sectors[0]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T09:00:00.000Z',
+  },
+  {
+    auxiliary: auxiliaries[1]._id,
+    sector: sectors[1]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T09:00:00.000Z',
+  },
+  {
+    auxiliary: auxiliaries[2]._id,
+    sector: sectors[1]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T09:00:00.000Z',
+  },
+  {
+    auxiliary: auxiliaries[3]._id,
+    sector: sectors[2]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T09:00:00.000Z',
+  },
+  {
+    auxiliary: auxiliaries[4]._id,
+    sector: sectors[0]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T09:00:00.000Z',
+  },
 ];
 
 const auxiliaryFromOtherCompany = {
@@ -188,7 +213,7 @@ const services = [
       defaultUnitAmount: 12,
       exemptFromCharges: false,
       name: 'Service 1',
-      startDate: '2019-01-16 17:58:15.519',
+      startDate: '2019-01-16T17:58:15.519Z',
       vat: 12,
     }],
   },
@@ -200,7 +225,7 @@ const services = [
       defaultUnitAmount: 12,
       exemptFromCharges: false,
       name: 'Service 2',
-      startDate: '2019-01-16 17:58:15.519',
+      startDate: '2019-01-16T17:58:15.519Z',
       vat: 12,
     }],
   },
@@ -212,7 +237,7 @@ const services = [
       defaultUnitAmount: 12,
       exemptFromCharges: false,
       name: 'Service archived',
-      startDate: '2019-01-16 17:58:15.519',
+      startDate: '2019-01-16T17:58:15.519Z',
       vat: 12,
     }],
     isArchived: true,
@@ -228,7 +253,7 @@ const serviceFromOtherCompany = {
     defaultUnitAmount: 12,
     exemptFromCharges: false,
     name: 'Service 1',
-    startDate: '2019-01-16 17:58:15.519',
+    startDate: '2019-01-16T17:58:15.519Z',
     vat: 12,
   }],
 };
@@ -239,9 +264,9 @@ const customerAuxiliaries = [
     company: authCompany._id,
     identity: { firstname: 'Romain', lastname: 'Bardet' },
     subscriptions: [
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[0]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[1]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[2]._id },
     ],
     contact: {
       primaryAddress: {
@@ -259,9 +284,9 @@ const customerAuxiliaries = [
     company: authCompany._id,
     identity: { firstname: 'Pierre', lastname: 'Rolland' },
     subscriptions: [
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[0]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[1]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[2]._id },
     ],
     contact: {
       primaryAddress: {
@@ -279,9 +304,9 @@ const customerAuxiliaries = [
     company: authCompany._id,
     identity: { firstname: 'Pierre', lastname: 'Jean' },
     subscriptions: [
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[1]._id },
-      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[2]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[0]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[1]._id },
+      { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[2]._id },
     ],
     contact: {
       primaryAddress: {
@@ -301,7 +326,7 @@ const customerAuxiliaries = [
     _id: new ObjectId(),
     company: authCompany._id,
     identity: { firstname: 'Laurent', lastname: 'Charles' },
-    subscriptions: [{ _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[0]._id }],
+    subscriptions: [{ _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[0]._id }],
     contact: {
       primaryAddress: {
         street: '37 rue de Ponthieu',
@@ -317,7 +342,7 @@ const customerAuxiliaries = [
     _id: new ObjectId(),
     company: authCompany._id,
     identity: { firstname: 'Hassan', lastname: 'Cehef' },
-    subscriptions: [{ _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[0]._id }],
+    subscriptions: [{ _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[0]._id }],
     contact: {
       primaryAddress: {
         street: '37 rue de Ponthieu',
@@ -338,7 +363,7 @@ const customerFromOtherCompany = {
   company: otherCompany._id,
   identity: { firstname: 'test', lastname: 'toto' },
   subscriptions: [
-    { _id: new ObjectId(), startDate: '2019-09-03T00:00:00', service: services[0]._id },
+    { _id: new ObjectId(), startDate: '2019-09-03T00:00:00.000Z', service: services[0]._id },
   ],
   contact: {
     primaryAddress: {
