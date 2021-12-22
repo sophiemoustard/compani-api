@@ -88,7 +88,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const creditNotes = await CreditNote.find({ company: authCompany }).lean();
+      const creditNotes = await CreditNote.find({ company: authCompany._id }).lean();
       const cnWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
       expect(cnWithlinkedCreditNotes.length).toEqual(2);
       expect(cnWithlinkedCreditNotes).toEqual(expect.arrayContaining([
@@ -114,7 +114,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const creditNotes = await CreditNote.find({ company: authCompany }).lean();
+      const creditNotes = await CreditNote.find({ company: authCompany._id }).lean();
       const cnWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
       expect(cnWithlinkedCreditNotes.length).toEqual(2);
       expect(cnWithlinkedCreditNotes).toEqual(expect.arrayContaining([

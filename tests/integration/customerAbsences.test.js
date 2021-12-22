@@ -229,7 +229,7 @@ describe('CUSTOMER ABSENCES ROUTE - DELETE /customerabsences/{_id}', () => {
 
     it('should delete a customer absence', async () => {
       const customerAbsenceCountBefore = await CustomerAbsence
-        .countDocuments({ customer: customerAbsencesList[0].customer });
+        .countDocuments({ customer: customerAbsencesList[0].customer._id });
 
       const response = await app.inject({
         method: 'DELETE',
@@ -239,7 +239,7 @@ describe('CUSTOMER ABSENCES ROUTE - DELETE /customerabsences/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
       const customerAbsenceCountAfter = await CustomerAbsence
-        .countDocuments({ customer: customerAbsencesList[0].customer });
+        .countDocuments({ customer: customerAbsencesList[0].customer._id });
       expect(customerAbsenceCountAfter).toEqual(customerAbsenceCountBefore - 1);
     });
 
