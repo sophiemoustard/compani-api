@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 const { FIXED, HOURLY } = require('../helpers/constants');
 const Customer = require('./Customer');
 
@@ -31,6 +31,9 @@ const countServiceUsage = async (docs) => {
 };
 
 ServiceSchema.pre('find', validateQuery);
+ServiceSchema.pre('countDocuments', formatQuery);
+ServiceSchema.pre('find', formatQuery);
+ServiceSchema.pre('findOne', formatQuery);
 ServiceSchema.pre('aggregate', validateAggregation);
 ServiceSchema.post('find', countServiceUsage);
 

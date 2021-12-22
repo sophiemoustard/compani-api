@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 
 const CustomerPartnerSchema = mongoose.Schema({
   partner: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', required: true },
@@ -9,6 +9,9 @@ const CustomerPartnerSchema = mongoose.Schema({
 }, { timestamps: true });
 
 CustomerPartnerSchema.pre('find', validateQuery);
+CustomerPartnerSchema.pre('countDocuments', formatQuery);
+CustomerPartnerSchema.pre('find', formatQuery);
+CustomerPartnerSchema.pre('findOne', formatQuery);
 CustomerPartnerSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('CustomerPartner', CustomerPartnerSchema);

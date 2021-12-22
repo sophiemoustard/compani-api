@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 const { BILLING_DIRECT, BILLING_INDIRECT, APA, AM, PCH } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const Customer = require('./Customer');
@@ -31,6 +31,9 @@ const countFundings = async (docs) => {
 };
 
 ThirdPartyPayerSchema.pre('find', validateQuery);
+ThirdPartyPayerSchema.pre('countDocuments', formatQuery);
+ThirdPartyPayerSchema.pre('find', formatQuery);
+ThirdPartyPayerSchema.pre('findOne', formatQuery);
 ThirdPartyPayerSchema.pre('aggregate', validateAggregation);
 ThirdPartyPayerSchema.post('find', countFundings);
 

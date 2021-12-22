@@ -35,7 +35,7 @@ const {
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { billEventSurchargesSchemaDefinition, billingItemsInEventDefinition } = require('./schemaDefinitions/billing');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 const { TIME_STAMPING_ACTIONS } = require('./EventHistory');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
@@ -160,6 +160,9 @@ EventSchema.virtual(
 );
 
 EventSchema.pre('find', validateQuery);
+EventSchema.pre('countDocuments', formatQuery);
+EventSchema.pre('find', formatQuery);
+EventSchema.pre('findOne', formatQuery);
 EventSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Event', EventSchema);

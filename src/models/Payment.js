@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 
 const {
   PAYMENT,
@@ -28,6 +28,9 @@ const PaymentSchema = mongoose.Schema({
 }, { timestamps: true });
 
 PaymentSchema.pre('find', validateQuery);
+PaymentSchema.pre('countDocuments', formatQuery);
+PaymentSchema.pre('find', formatQuery);
+PaymentSchema.pre('findOne', formatQuery);
 PaymentSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Payment', PaymentSchema);

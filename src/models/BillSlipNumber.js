@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, validateUpdateOne } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, validateUpdateOne, formatQuery } = require('./preHooks/validate');
 
 const BillSlipNumberSchema = mongoose.Schema({
   prefix: { type: String, required: true },
@@ -8,6 +8,9 @@ const BillSlipNumberSchema = mongoose.Schema({
 }, { timestamps: true });
 
 BillSlipNumberSchema.pre('find', validateQuery);
+BillSlipNumberSchema.pre('countDocuments', formatQuery);
+BillSlipNumberSchema.pre('find', formatQuery);
+BillSlipNumberSchema.pre('findOne', formatQuery);
 BillSlipNumberSchema.pre('aggregate', validateAggregation);
 BillSlipNumberSchema.pre('updateOne', validateUpdateOne);
 

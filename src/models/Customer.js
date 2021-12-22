@@ -4,7 +4,7 @@ const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const moment = require('../extensions/moment');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 const {
   MONTHLY,
   ONCE,
@@ -241,6 +241,9 @@ CustomerSchema.virtual('helpers', { ref: 'Helper', localField: '_id', foreignFie
 CustomerSchema.pre('validate', validate);
 CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
+CustomerSchema.pre('countDocuments', formatQuery);
+CustomerSchema.pre('find', formatQuery);
+CustomerSchema.pre('findOne', formatQuery);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);
 CustomerSchema.post('findOne', countSubscriptionUsage);
 

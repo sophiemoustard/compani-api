@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { JOBS } = require('../helpers/constants');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 
 const JOBS_ENUM = [...JOBS, ''];
 
@@ -21,6 +21,9 @@ const PartnerSchema = mongoose.Schema({
 PartnerSchema.virtual('customerPartners', { ref: 'CustomerPartner', localField: '_id', foreignField: 'partner' });
 
 PartnerSchema.pre('find', validateQuery);
+PartnerSchema.pre('countDocuments', formatQuery);
+PartnerSchema.pre('find', formatQuery);
+PartnerSchema.pre('findOne', formatQuery);
 PartnerSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Partner', PartnerSchema);

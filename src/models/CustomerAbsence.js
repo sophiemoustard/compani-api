@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { HOSPITALIZATION, LEAVE, OTHER } = require('../helpers/constants');
-const { validateQuery, validateAggregation, validateUpdateOne } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, validateUpdateOne, formatQuery } = require('./preHooks/validate');
 
 const CUSTOMER_ABSENCE_TYPE = [HOSPITALIZATION, LEAVE, OTHER];
 
@@ -13,6 +13,9 @@ const CustomerAbsenceSchema = mongoose.Schema({
 }, { timestamps: true });
 
 CustomerAbsenceSchema.pre('find', validateQuery);
+CustomerAbsenceSchema.pre('countDocuments', formatQuery);
+CustomerAbsenceSchema.pre('find', formatQuery);
+CustomerAbsenceSchema.pre('findOne', formatQuery);
 CustomerAbsenceSchema.pre('aggregate', validateAggregation);
 CustomerAbsenceSchema.pre('updateOne', validateUpdateOne);
 

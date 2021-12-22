@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { INTRA, INTER_B2B, INTER_B2C, STRICTLY_E_LEARNING, BLENDED } = require('../helpers/constants');
+const { formatQuery } = require('./preHooks/validate');
 
 const COURSE_TYPES = [INTRA, INTER_B2B, INTER_B2C];
 const COURSE_FORMATS = [STRICTLY_E_LEARNING, BLENDED];
@@ -46,6 +47,9 @@ CourseSchema.virtual('slotsToPlan', {
 });
 
 CourseSchema.virtual('companies').get(getCompanies);
+CourseSchema.pre('countDocuments', formatQuery);
+CourseSchema.pre('find', formatQuery);
+CourseSchema.pre('findOne', formatQuery);
 
 CourseSchema.plugin(mongooseLeanVirtuals);
 

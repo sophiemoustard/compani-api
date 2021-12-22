@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const autopopulate = require('mongoose-autopopulate');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 
 const ReferentHistorySchema = mongoose.Schema({
   auxiliary: {
@@ -17,6 +17,9 @@ const ReferentHistorySchema = mongoose.Schema({
 
 ReferentHistorySchema.pre('aggregate', validateAggregation);
 ReferentHistorySchema.pre('find', validateQuery);
+ReferentHistorySchema.pre('countDocuments', formatQuery);
+ReferentHistorySchema.pre('find', formatQuery);
+ReferentHistorySchema.pre('findOne', formatQuery);
 
 ReferentHistorySchema.plugin(autopopulate);
 

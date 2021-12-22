@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
 
 const HelperSchema = mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -9,6 +9,9 @@ const HelperSchema = mongoose.Schema({
 }, { timestamps: true });
 
 HelperSchema.pre('find', validateQuery);
+HelperSchema.pre('countDocuments', formatQuery);
+HelperSchema.pre('find', formatQuery);
+HelperSchema.pre('findOne', formatQuery);
 HelperSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Helper', HelperSchema);
