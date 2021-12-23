@@ -140,7 +140,7 @@ const billCustomerList = [
   { // 1
     _id: new ObjectId(),
     company: authCompany._id,
-    identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+    identity: { title: 'mr', firstname: 'Pere', lastname: 'Noel' },
     contact: {
       primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',

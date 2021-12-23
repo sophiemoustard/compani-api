@@ -40,7 +40,7 @@ const activitiesList = [
     cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id, cardsList[3]._id],
   },
   { _id: new ObjectId(), name: 'bouger', type: 'lesson' },
-  { _id: new ObjectId(), name: 'fumer', type: 'video', cards: [cardsList[0]._id, cardsList[6]._id, cardsList[7]._id] },
+  { _id: new ObjectId(), name: 'fumer', type: 'video', cards: [cardsList[6]._id, cardsList[7]._id] },
   {
     _id: new ObjectId(),
     name: 'publiée',

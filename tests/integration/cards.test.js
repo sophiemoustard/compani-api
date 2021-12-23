@@ -830,7 +830,7 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
       expect(response.statusCode).toBe(200);
 
       const mediaQuery = flat({ media: { link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' } });
-      const cardUpdated = await Card.countDocuments({ _id: cardsList[0]._id, mediaQuery });
+      const cardUpdated = await Card.countDocuments({ _id: cardsList[0]._id, ...mediaQuery });
       expect(cardUpdated).toEqual(1);
       sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'title_text_media', file: 'true' });
     });

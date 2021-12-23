@@ -25,6 +25,7 @@ const {
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 const ContractHelper = require('./contracts');
+const DatesHelper = require('./dates');
 
 exports.getContractMonthInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('M').toDate();
@@ -259,7 +260,7 @@ const incrementHours = (total, hours, surchargedKey) => {
 exports.getPayFromEvents = async (events, auxiliary, dm, surcharges, query) => {
   let paidHours = exports.initializePaidHours();
   for (const eventsPerDay of events) {
-    const sortedEvents = [...eventsPerDay].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    const sortedEvents = [...eventsPerDay].sort(DatesHelper.ascendingSort('startDate'));
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
       const paidEvent = {
         ...sortedEvents[i],

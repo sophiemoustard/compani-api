@@ -520,7 +520,7 @@ describe('PROGRAMS ROUTES - POST /programs/:id/upload', () => {
       });
 
       const mediaQuery = flat({ image: { link: 'https://alenvi.io', publicId: 'abcdefgh' } });
-      const programUpdated = await Program.countDocuments({ _id: program._id, mediaQuery });
+      const programUpdated = await Program.countDocuments({ _id: program._id, ...mediaQuery });
 
       expect(response.statusCode).toBe(200);
       expect(programUpdated).toEqual(1);
