@@ -28,6 +28,7 @@ const EventsRepetitionHelper = require('./eventsRepetition');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
+const DatesHelper = require('./dates');
 const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
@@ -496,9 +497,10 @@ exports.getPaidTransportStatsBySector = async (query, credentials) => {
     const promises = [];
     for (const auxiliary of sector.auxiliaries) {
       for (const day of auxiliary.days) {
-        if (day.events.length > 1) {
-          for (let i = 1; i < day.events.length; i++) {
-            promises.push(DraftPayHelper.getPaidTransportInfo(day.events[i], day.events[i - 1], distanceMatrix));
+        const dayEventList = [...day.events].sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
+        if (dayEventList.length > 1) {
+          for (let i = 1; i < dayEventList.length; i++) {
+            promises.push(DraftPayHelper.getPaidTransportInfo(dayEventList[i], dayEventList[i - 1], distanceMatrix));
           }
         }
       }

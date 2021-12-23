@@ -234,3 +234,37 @@ describe('format', () => {
     expect(formattedDate).toEqual('2021');
   });
 });
+
+describe('descendingSort', () => {
+  it('should return a positive value if b > a', () => {
+    const result = DatesHelper.descendingSort('date')({ date: '2020-12-01' }, { date: '2021-01-01' });
+    expect(result > 0).toBe(true);
+  });
+
+  it('should return a positive value if b < a', () => {
+    const result = DatesHelper.descendingSort('date')({ date: '2021-01-01' }, { date: '2020-12-01' });
+    expect(result < 0).toBe(true);
+  });
+
+  it('should return 0 if b = a', () => {
+    const result = DatesHelper.descendingSort('date')({ date: '2021-01-01' }, { date: '2021-01-01' });
+    expect(result).toBe(0);
+  });
+});
+
+describe('ascendingSort', () => {
+  it('should return a positive value if b < a', () => {
+    const result = DatesHelper.ascendingSort('date')({ date: '2021-01-01' }, { date: '2020-12-01' });
+    expect(result > 0).toBe(true);
+  });
+
+  it('should return a positive value if b > a', () => {
+    const result = DatesHelper.ascendingSort('date')({ date: '2020-12-01' }, { date: '2021-01-01' });
+    expect(result < 0).toBe(true);
+  });
+
+  it('should return 0 if b = a', () => {
+    const result = DatesHelper.ascendingSort('date')({ date: '2021-01-01' }, { date: '2021-01-01' });
+    expect(result).toBe(0);
+  });
+});
