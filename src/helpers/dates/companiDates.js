@@ -16,6 +16,14 @@ const CompaniDateFactory = (inputDate) => {
       return _date.toFormat(fmt);
     },
 
+    toDate() {
+      return _date.toUTC().toJSDate();
+    },
+
+    toISO() {
+      return _date.toUTC().toISO();
+    },
+
     // QUERY
     isBefore(miscTypeOtherDate) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
@@ -42,6 +50,14 @@ const CompaniDateFactory = (inputDate) => {
     },
 
     // MANIPULATE
+    startOf(unit) {
+      return CompaniDateFactory(_date.startOf(unit));
+    },
+
+    endOf(unit) {
+      return CompaniDateFactory(_date.endOf(unit));
+    },
+
     diff(miscTypeOtherDate, unit = 'milliseconds', typeFloat = false) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
       const floatDiff = _date.diff(otherDate, unit).as(unit);
