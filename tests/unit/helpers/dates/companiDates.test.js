@@ -21,7 +21,7 @@ describe('CompaniDate', () => {
 
     expect(result)
       .toEqual(expect.objectContaining({
-        _date: expect.any(luxon.DateTime),
+        _getDate: expect.any(luxon.DateTime),
         format: expect.any(Function),
         isSame: expect.any(Function),
         isSameOrBefore: expect.any(Function),
@@ -63,6 +63,84 @@ describe('DISPLAY', () => {
 });
 
 describe('QUERY', () => {
+  describe('isBefore', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-08-01T07:00:00.000Z');
+
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return true if date is before other date', () => {
+      const dateBefore = new Date('2021-08-01T10:00:00.000Z');
+      const result = companiDate.isBefore(dateBefore);
+
+      expect(result).toBe(true);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, dateBefore);
+    });
+
+    it('should return false is date is not before other date', () => {
+      const dateAfter = new Date('2021-08-01T05:00:00.000Z');
+      const result = companiDate.isBefore(dateAfter);
+
+      expect(result).toBe(false);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, dateAfter);
+    });
+
+    it('should return error if invalid argument', () => {
+      try {
+        companiDate.isBefore(null, 'day');
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
+      }
+    });
+  });
+
+  describe('isAfter', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-08-01T07:00:00.000Z');
+
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return true if date is after other date', () => {
+      const dateBefore = new Date('2021-08-01T05:00:00.000Z');
+      const result = companiDate.isAfter(dateBefore);
+
+      expect(result).toBe(true);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, dateBefore);
+    });
+
+    it('should return false is date is not after other date', () => {
+      const dateAfter = new Date('2021-08-01T10:00:00.000Z');
+      const result = companiDate.isAfter(dateAfter);
+
+      expect(result).toBe(false);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, dateAfter);
+    });
+
+    it('should return error if invalid argument', () => {
+      try {
+        companiDate.isAfter(null, 'day');
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
+      }
+    });
+  });
+
   describe('isSame', () => {
     let _formatMiscToCompaniDate;
     const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
@@ -282,7 +360,7 @@ describe('_formatMiscToCompaniDate', () => {
   });
 
   it('should return dateTime if arg is object with dateTime', () => {
-    const payload = { _date: date };
+    const payload = { _getDate: date };
     const result = CompaniDatesHelper._formatMiscToCompaniDate(payload);
 
     expect(result instanceof luxon.DateTime).toBe(true);

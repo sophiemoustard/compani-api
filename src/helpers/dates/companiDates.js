@@ -1,14 +1,13 @@
-const pick = require('lodash/pick');
 const luxon = require('./luxon');
 
-exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompaniDate(...args));
+exports.CompaniDate = (...args) => CompaniDateFactory(exports._formatMiscToCompaniDate(...args));
 
-const companiDateFactory = (inputDate) => {
+const CompaniDateFactory = (inputDate) => {
   const _date = inputDate;
 
   return ({
     // GETTER
-    get _date() {
+    get _getDate() {
       return _date;
     },
 
@@ -18,6 +17,18 @@ const companiDateFactory = (inputDate) => {
     },
 
     // QUERY
+    isBefore(miscTypeOtherDate) {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+
+      return _date < otherDate;
+    },
+
+    isAfter(miscTypeOtherDate) {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+
+      return _date > otherDate;
+    },
+
     isSame(miscTypeOtherDate, unit) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
@@ -45,7 +56,9 @@ exports._formatMiscToCompaniDate = (...args) => {
   if (!args.length) return luxon.DateTime.now();
 
   if (args.length === 1) {
-    if (args[0] instanceof Object && args[0]._date && args[0]._date instanceof luxon.DateTime) return args[0]._date;
+    if (args[0] instanceof Object && args[0]._getDate && args[0]._getDate instanceof luxon.DateTime) {
+      return args[0]._getDate;
+    }
     if (args[0] instanceof Date) return luxon.DateTime.fromJSDate(args[0]);
     if (typeof args[0] === 'string' && args[0] !== '') return luxon.DateTime.fromISO(args[0]);
   }
