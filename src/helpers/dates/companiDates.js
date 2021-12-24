@@ -1,3 +1,4 @@
+const pick = require('lodash/pick');
 const luxon = require('./luxon');
 
 exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompaniDate(...args));
@@ -45,7 +46,6 @@ exports._formatMiscToCompaniDate = (...args) => {
 
   if (args.length === 1) {
     if (args[0] instanceof Object && args[0]._date && args[0]._date instanceof luxon.DateTime) return args[0]._date;
-    if (args[0] instanceof luxon.DateTime) return args[0];
     if (args[0] instanceof Date) return luxon.DateTime.fromJSDate(args[0]);
     if (typeof args[0] === 'string' && args[0] !== '') return luxon.DateTime.fromISO(args[0]);
   }

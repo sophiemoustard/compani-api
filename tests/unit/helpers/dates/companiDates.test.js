@@ -294,19 +294,6 @@ describe('_formatMiscToCompaniDate', () => {
     sinon.assert.notCalled(invalid);
   });
 
-  it('should return dateTime if arg is dateTime', () => {
-    const payload = date;
-    const result = CompaniDatesHelper._formatMiscToCompaniDate(payload);
-
-    expect(result instanceof luxon.DateTime).toBe(true);
-    expect(new luxon.DateTime(result).toJSDate()).toEqual(new Date('2021-11-24T07:00:00.000Z'));
-    sinon.assert.notCalled(now);
-    sinon.assert.notCalled(fromJSDate);
-    sinon.assert.notCalled(fromISO);
-    sinon.assert.notCalled(fromFormat);
-    sinon.assert.notCalled(invalid);
-  });
-
   it('should return dateTime if arg is date', () => {
     const payload = new Date('2021-11-24T07:00:00.000Z');
     const result = CompaniDatesHelper._formatMiscToCompaniDate(payload);
@@ -385,6 +372,20 @@ describe('_formatMiscToCompaniDate', () => {
     sinon.assert.notCalled(fromJSDate);
     sinon.assert.notCalled(fromISO);
     sinon.assert.notCalled(invalid);
+  });
+
+  it('should return error if arg is dateTime', () => {
+    try {
+      const payload = date;
+      CompaniDatesHelper._formatMiscToCompaniDate(payload);
+    } catch (e) {
+      expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
+    } finally {
+      sinon.assert.notCalled(now);
+      sinon.assert.notCalled(fromJSDate);
+      sinon.assert.notCalled(fromISO);
+      sinon.assert.notCalled(fromFormat);
+    }
   });
 
   it('should return error if too many args', () => {
