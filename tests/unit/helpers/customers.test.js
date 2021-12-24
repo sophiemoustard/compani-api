@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
@@ -45,12 +45,12 @@ describe('getCustomersBySector', () => {
   });
 
   it('should return customer by sector', async () => {
-    const sectorId = new ObjectID();
+    const sectorId = new ObjectId();
     const query = { startDate: '2019-04-14T09:00:00', endDate: '2019-05-14T09:00:00', sector: sectorId.toHexString() };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryIds = [new ObjectID(), new ObjectID()];
-    const customerIds = [new ObjectID(), new ObjectID()];
+    const auxiliaryIds = [new ObjectId(), new ObjectId()];
+    const customerIds = [new ObjectId(), new ObjectId()];
 
     findSectorHistories.returns(SinonMongoose.stubChainedQueries(
       [[{ auxiliary: auxiliaryIds[1] }, { auxiliary: auxiliaryIds[0] }]],
@@ -134,7 +134,7 @@ describe('getCustomersWithBilledEvents', () => {
   });
 
   it('should return customer by sector', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     await CustomerHelper.getCustomersWithBilledEvents(credentials);
 
@@ -162,7 +162,7 @@ describe('getCustomers', () => {
   });
 
   it('should return empty array if no customer', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     findCustomer.returns(SinonMongoose.stubChainedQueries([[]]));
@@ -183,7 +183,7 @@ describe('getCustomers', () => {
   });
 
   it('should return customers', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const customers = [{ identity: { firstname: 'Emmanuel' }, company: companyId }, { company: companyId }];
 
@@ -237,7 +237,7 @@ describe('getCustomers', () => {
   });
 
   it('should return only archived customer', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { archived: true };
     const customers = [
@@ -291,7 +291,7 @@ describe('getCustomers', () => {
   });
 
   it('should return only non-archived customer', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { archived: false };
     const customers = [
@@ -358,7 +358,7 @@ describe('getCustomersFirstIntervention', () => {
       { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
     ];
 
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { company: companyId };
 
@@ -394,9 +394,9 @@ describe('getCustomersWithIntervention', () => {
   });
 
   it('should return an array of customers', async () => {
-    const customer = { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'test' } };
+    const customer = { _id: new ObjectId(), identity: { firstname: 'toto', lastname: 'test' } };
     getCustomersWithInterventionStub.returns([customer]);
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const result = await CustomerHelper.getCustomersWithIntervention(credentials);
 
@@ -409,7 +409,7 @@ describe('getCustomersWithIntervention', () => {
 describe('formatSubscriptionInPopulate', () => {
   it('should return subscription with last version only', () => {
     const subscription = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [{ startDate: '2021-01-10' }, { startDate: '2021-09-20' }, { startDate: '2020-12-10' }],
     };
 
@@ -434,8 +434,8 @@ describe('getCustomersWithSubscriptions', () => {
   });
 
   it('should return customers with subscriptions', async () => {
-    const companyId = new ObjectID();
-    const customersWithSubscriptions = [{ identity: { lastname: 'Fred' }, subscriptions: [{ _id: new ObjectID() }] }];
+    const companyId = new ObjectId();
+    const customersWithSubscriptions = [{ identity: { lastname: 'Fred' }, subscriptions: [{ _id: new ObjectId() }] }];
     findCustomer.returns(SinonMongoose.stubChainedQueries(
       [customersWithSubscriptions],
       ['find', 'populate', 'select', 'lean']
@@ -490,7 +490,7 @@ describe('getCustomer', () => {
 
   it('should return null if no customer', async () => {
     const customerId = 'qwertyuiop';
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     findOneCustomer.returns(SinonMongoose.stubChainedQueries([null]));
 
@@ -515,7 +515,7 @@ describe('getCustomer', () => {
 
   it('should return customer', async () => {
     const customerId = 'qwertyuiop';
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const customer = { identity: { firstname: 'Emmanuel' } };
 
     findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
@@ -545,7 +545,7 @@ describe('getCustomer', () => {
 
   it('should return customer with fundings', async () => {
     const customerId = 'qwertyuiop';
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const customer = { identity: { firstname: 'Emmanuel' }, fundings: [{ _id: '1234' }, { _id: '09876' }] };
 
     findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
@@ -595,7 +595,7 @@ describe('getRumNumber', () => {
     findOneAndUpdateRum.restore();
   });
   it('should get RUM number', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
     findOneAndUpdateRum.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
@@ -664,10 +664,10 @@ describe('formatPaymentPayload', () => {
   });
 
   it('should generate a new mandate', async () => {
-    const company = { _id: new ObjectID(), prefixNumber: 101 };
+    const company = { _id: new ObjectId(), prefixNumber: 101 };
     const rumNumber = { prefix: '1219', seq: 1 };
     const formattedRumNumber = 'R-1011219000010987654321';
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const customer = { payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] } };
     const payload = { payment: { iban: 'FR8312739000501844178231W37' } };
 
@@ -689,8 +689,8 @@ describe('formatPaymentPayload', () => {
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
-    const company = { _id: new ObjectID(), prefixNumber: 101 };
-    const customerId = new ObjectID();
+    const company = { _id: new ObjectId(), prefixNumber: 101 };
+    const customerId = new ObjectId();
     const customer = { payment: { bankAccountNumber: '', iban: '', bic: '', mandates: [] } };
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
 
@@ -709,7 +709,7 @@ describe('formatPaymentPayload', () => {
 describe('updateCustomerEvents', () => {
   let updateMany;
   let findByIdCustomer;
-  const customerId = new ObjectID();
+  const customerId = new ObjectId();
   beforeEach(() => {
     updateMany = sinon.stub(Event, 'updateMany');
     findByIdCustomer = sinon.stub(Customer, 'findById');
@@ -810,7 +810,7 @@ describe('updateCustomer', () => {
   let updateCustomerReferent;
   let deleteCustomerEvents;
   let updateCustomerAbsencesOnCustomerStop;
-  const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
+  const credentials = { company: { _id: new ObjectId(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
     formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
@@ -829,7 +829,7 @@ describe('updateCustomer', () => {
   });
 
   it('should unset the referent of a customer', async () => {
-    const customer = { _id: new ObjectID(), referent: 'asdfghjkl' };
+    const customer = { _id: new ObjectId(), referent: 'asdfghjkl' };
     const payload = { referent: '' };
 
     const customerResult = { _id: customer._id };
@@ -854,7 +854,7 @@ describe('updateCustomer', () => {
 
   it('should generate a new mandate', async () => {
     const formattedRumNumber = 'R-1011219000010987654321';
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { payment: { iban: 'FR8312739000501844178231W37' } };
     const customerResult = {
       payment: { bankAccountNumber: '', iban: 'FR8312739000501844178231W37', bic: '', mandates: [formattedRumNumber] },
@@ -896,7 +896,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
     const customerResult = {
       payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] },
@@ -920,7 +920,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if primaryAddress is changed', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -946,7 +946,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if secondaryAddress is changed', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -972,7 +972,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
@@ -998,7 +998,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { contact: { secondaryAddress: { fullAddress: '' } } };
     const customerResult = {
       contact: {
@@ -1029,7 +1029,7 @@ describe('updateCustomer', () => {
   });
 
   it('should delete customer\'s events and absences when customer is stopped', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
     const payload = { stoppedAt: '2019-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
 
@@ -1063,7 +1063,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update a customer', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
     const customerResult = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
 
@@ -1178,11 +1178,11 @@ describe('removeCustomer', () => {
   });
 
   it('should delete customer and his drive folder', async () => {
-    const companyId = new ObjectID();
-    const customerId = new ObjectID();
+    const companyId = new ObjectId();
+    const customerId = new ObjectId();
     const customer = { _id: customerId, driveFolder: { driveId: 'https://skusku.com' }, company: companyId };
-    const helper1Id = new ObjectID();
-    const helper2Id = new ObjectID();
+    const helper1Id = new ObjectId();
+    const helper2Id = new ObjectId();
     const helpers = [
       { customer: customerId, user: helper1Id, company: companyId },
       { customer: customerId, user: helper2Id, company: companyId },
@@ -1216,10 +1216,10 @@ describe('removeCustomer', () => {
   });
 
   it('should delete customer but not his drive folder', async () => {
-    const companyId = new ObjectID();
-    const customerId = new ObjectID();
+    const companyId = new ObjectId();
+    const customerId = new ObjectId();
     const customer = { _id: customerId, company: companyId };
-    const helperId = new ObjectID();
+    const helperId = new ObjectId();
     const helper = { customer: customerId, user: helperId, company: companyId };
 
     findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
@@ -1247,8 +1247,8 @@ describe('removeCustomer', () => {
   });
 
   it('should delete customer even without a helper', async () => {
-    const companyId = new ObjectID();
-    const customerId = new ObjectID();
+    const companyId = new ObjectId();
+    const customerId = new ObjectId();
     const customer = { _id: customerId, company: companyId };
 
     findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
@@ -1317,7 +1317,7 @@ describe('generateQRCode', () => {
   });
 
   it('should generate customer\'s qr code pdf', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const customer = { _id: customerId, identity: { firstname: 'N\'Golo', lastname: 'Compté' } };
 
     toDataURL.returns('my_pic_in_base_64');

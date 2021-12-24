@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
 const get = require('lodash/get');
@@ -142,7 +142,7 @@ describe('POST /contracts', () => {
       expect(contractsCount).toEqual(contractsList.length + 1);
 
       const user = await User.findOne({ _id: contractUsers[1]._id }).lean();
-      expect(user.contracts).toContainEqual(new ObjectID(response.result.data.contract._id));
+      expect(user.contracts).toContainEqual(new ObjectId(response.result.data.contract._id));
       expect(user.inactivityDate).toBeUndefined();
 
       const sectorHistoriesLength = await SectorHistory.countDocuments({
@@ -697,7 +697,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
     it('should return a 403 error if versionId is not the last version', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/contracts/${contractsList[0]._id}/versions/${new ObjectID()}`,
+        url: `/contracts/${contractsList[0]._id}/versions/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -749,11 +749,11 @@ describe('GET contracts/staff-register', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.staffRegister.length).toEqual(contractsList.length);
       expect(response.result.data.staffRegister[0]).toEqual(expect.objectContaining({
-        _id: expect.any(ObjectID),
+        _id: expect.any(ObjectId),
         serialNumber: expect.any(String),
-        user: expect.objectContaining({ _id: expect.any(ObjectID) }),
+        user: expect.objectContaining({ _id: expect.any(ObjectId) }),
         startDate: expect.any(Date),
-        company: expect.any(ObjectID),
+        company: expect.any(ObjectId),
         versions: expect.any(Array),
       }));
     });

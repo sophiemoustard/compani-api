@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const cloneDeep = require('lodash/cloneDeep');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('../../../src/extensions/moment');
@@ -29,20 +29,20 @@ const {
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const sectorList = [
-  { _id: new ObjectID(), name: 'Vénus', company: authCompany._id },
-  { _id: new ObjectID(), name: 'Neptune', company: authCompany._id },
-  { _id: new ObjectID(), name: 'Mars', company: otherCompany._id },
+  { _id: new ObjectId(), name: 'Vénus', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Neptune', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Mars', company: otherCompany._id },
 ];
 
 const internalHoursList = [
-  { _id: new ObjectID(), company: authCompany._id, name: 'Planning' },
-  { _id: new ObjectID(), company: authCompany._id, name: 'Formation' },
+  { _id: new ObjectId(), company: authCompany._id, name: 'Planning' },
+  { _id: new ObjectId(), company: authCompany._id, name: 'Formation' },
 ];
 
 const contractList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   serialNumber: 'qsdcfbgfdsasdfv',
-  user: new ObjectID(),
+  user: new ObjectId(),
   company: authCompany._id,
   startDate: '2010-09-03T00:00:00',
   versions: [{ startDate: '2010-09-03T00:00:00', grossHourlyRate: 10.43, weeklyHours: 12 }],
@@ -50,7 +50,7 @@ const contractList = [{
 
 const userList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456!eR' },
     role: { client: auxiliaryRoleId },
@@ -59,7 +59,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
     local: { email: 'black@alenvi.io', password: '123456!eR' },
     role: { client: auxiliaryRoleId },
@@ -68,7 +68,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Red' },
     local: { email: 'blue@alenvi.io', password: '123456!eR' },
     role: { client: auxiliaryRoleId },
@@ -79,9 +79,9 @@ const userList = [
 ];
 
 const userCompanyList = [
-  { _id: new ObjectID(), user: userList[0], company: authCompany._id },
-  { _id: new ObjectID(), user: userList[1], company: authCompany._id },
-  { _id: new ObjectID(), user: userList[2], company: otherCompany._id },
+  { _id: new ObjectId(), user: userList[0], company: authCompany._id },
+  { _id: new ObjectId(), user: userList[1], company: authCompany._id },
+  { _id: new ObjectId(), user: userList[2], company: otherCompany._id },
 ];
 
 const sectorHistoryList = [{
@@ -112,7 +112,7 @@ const sectorHistoryList = [{
 }];
 
 const serviceList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   nature: 'hourly',
   company: authCompany._id,
   versions: [{
@@ -124,9 +124,9 @@ const serviceList = [{
   }],
 }];
 
-const subscriptionId = new ObjectID();
+const subscriptionId = new ObjectId();
 
-const tppId = new ObjectID();
+const tppId = new ObjectId();
 const tppList = [{
   _id: tppId,
   name: 'tiers payeur',
@@ -135,11 +135,11 @@ const tppList = [{
   billingMode: 'direct',
 }];
 
-const subscriptionWithEndedFundingId = new ObjectID();
+const subscriptionWithEndedFundingId = new ObjectId();
 
 const customerList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     subscriptions: [{ _id: subscriptionId, service: serviceList[0]._id }],
     fundings: [{
@@ -148,7 +148,7 @@ const customerList = [
       subscription: subscriptionId,
       thirdPartyPayer: tppId,
       versions: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         startDate: moment().startOf('month').subtract(2, 'months').toDate(),
         createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
         unitTTCRate: 20,
@@ -163,7 +163,7 @@ const customerList = [
       subscription: subscriptionId,
       thirdPartyPayer: tppId,
       versions: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         startDate: moment().startOf('month').subtract(2, 'months').toDate(),
         createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
         unitTTCRate: 20,
@@ -178,7 +178,7 @@ const customerList = [
       subscription: subscriptionId,
       thirdPartyPayer: tppId,
       versions: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         startDate: moment().startOf('month').subtract(2, 'months').toDate(),
         createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
         unitTTCRate: 20,
@@ -200,7 +200,7 @@ const customerList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     subscriptions: [{
       _id: subscriptionWithEndedFundingId,
@@ -223,7 +223,7 @@ const customerList = [
       subscription: subscriptionWithEndedFundingId,
       thirdPartyPayer: tppId,
       versions: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         startDate: '2019-07-01T08:00:00.000+00:00',
         endDate: '2019-07-01T10:00:00.000+00:00',
         createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
@@ -266,7 +266,7 @@ const referentList = [
 ];
 
 const customerFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   identity: { lastname: 'Bonjour' },
   contact: {
@@ -283,11 +283,11 @@ const customerFromOtherCompany = {
 
 const eventListForFollowUp = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T08:00:00.000+00:00',
@@ -301,11 +301,11 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[1]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionWithEndedFundingId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T10:00:00.000+00:00',
@@ -319,11 +319,11 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[1]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
@@ -337,11 +337,11 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[1]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
@@ -355,11 +355,11 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-11-09T09:00:00.000+00:00',
@@ -373,11 +373,11 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[1]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: customerList[1].subscriptions[0]._id,
     auxiliary: userList[0]._id,
     startDate: '2019-11-13T09:00:00.000+00:00',
@@ -391,11 +391,11 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: customerList[1].subscriptions[0]._id,
     auxiliary: userList[1]._id,
     startDate: '2019-11-13T09:00:00.000+00:00',
@@ -409,11 +409,11 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: customerList[0].subscriptions[0]._id,
     auxiliary: userList[0]._id,
     startDate: '2020-01-04T09:00:00.000+00:00',
@@ -427,11 +427,11 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: customerList[0].subscriptions[0]._id,
     auxiliary: userList[1]._id,
     startDate: '2020-01-13T09:00:00.000+00:00',
@@ -445,7 +445,7 @@ const eventListForFollowUp = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: INTERNAL_HOUR,
     startDate: '2019-07-12T09:00:00',
     endDate: '2019-07-12T10:00:00',
@@ -454,7 +454,7 @@ const eventListForFollowUp = [
     company: authCompany._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: INTERNAL_HOUR,
     startDate: '2019-11-02T09:00:00',
     endDate: '2019-11-02T11:00:00',
@@ -498,11 +498,11 @@ const tuesdayOfPreviousMonth = dayOfPreviousMonth(2);
 
 const eventListForFundingsMonitoring = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toDate(),
@@ -516,11 +516,11 @@ const eventListForFundingsMonitoring = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toDate(),
@@ -534,11 +534,11 @@ const eventListForFundingsMonitoring = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(sundayOfCurrentMonth).hour('8').toDate(),
@@ -552,11 +552,11 @@ const eventListForFundingsMonitoring = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     isCancelled: true,
@@ -573,11 +573,11 @@ const eventListForFundingsMonitoring = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[0]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     isCancelled: true,
@@ -594,11 +594,11 @@ const eventListForFundingsMonitoring = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     customer: customerList[1]._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subscriptionWithEndedFundingId,
     auxiliary: userList[0]._id,
     isCancelled: false,

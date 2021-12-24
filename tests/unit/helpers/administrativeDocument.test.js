@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
@@ -10,7 +10,7 @@ const AdministrativeDocumentHelper = require('../../../src/helpers/administrativ
 const SinonMongoose = require('../sinonMongoose');
 
 describe('createAdministrativeDocument', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
   const payload = { name: 'test', mimeType: 'pdf', file: 'file' };
 
@@ -76,7 +76,7 @@ describe('createAdministrativeDocument', () => {
 });
 
 describe('listAdministrativeDocuments', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
 
   let findAdministrativeDocument;
@@ -89,7 +89,7 @@ describe('listAdministrativeDocuments', () => {
   });
 
   it('should create an administrative document', async () => {
-    const administrativeDocuments = [{ _id: new ObjectID() }];
+    const administrativeDocuments = [{ _id: new ObjectId() }];
 
     findAdministrativeDocument.returns(SinonMongoose.stubChainedQueries([administrativeDocuments], ['lean']));
 
@@ -104,7 +104,7 @@ describe('listAdministrativeDocuments', () => {
 });
 
 describe('removeAdministrativeDocument', () => {
-  const administrativeDocumentId = new ObjectID();
+  const administrativeDocumentId = new ObjectId();
 
   let findOneAndDelete;
   let deleteFileStub;

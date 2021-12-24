@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const {
@@ -24,8 +24,8 @@ describe('createHistory', () => {
   });
 
   it('should create history', async () => {
-    const course = new ObjectID();
-    const user = new ObjectID();
+    const course = new ObjectId();
+    const user = new ObjectId();
     await CourseHistoriesHelper.createHistory(course, user, 'action', { trainee: 'bonjour' });
 
     sinon.assert.calledOnceWithExactly(create, { course, createdBy: user, action: 'action', trainee: 'bonjour' });
@@ -54,9 +54,9 @@ describe('createHistoryOnSlotCreation', () => {
         city: 'qwert',
         location: { type: 'Point', coordinates: [0, 1] },
       },
-      course: new ObjectID(),
+      course: new ObjectId(),
     };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotCreation(payload, userId);
 
@@ -73,9 +73,9 @@ describe('createHistoryOnSlotCreation', () => {
     const payload = {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
-      course: new ObjectID(),
+      course: new ObjectId(),
     };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotCreation(payload, userId);
 
@@ -111,9 +111,9 @@ describe('createHistoryOnSlotDeletion', () => {
         city: 'qwert',
         location: { type: 'Point', coordinates: [0, 1] },
       },
-      course: new ObjectID(),
+      course: new ObjectId(),
     };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
 
@@ -141,10 +141,10 @@ describe('createHistoryOnSlotEdition', () => {
   });
 
   it('should create history if date is updated', async () => {
-    const course = new ObjectID();
+    const course = new ObjectId();
     const slotFromDb = { startDate: '2020-01-10T09:00:00', course };
     const payload = { startDate: '2020-01-11T09:00:00' };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
 
@@ -159,10 +159,10 @@ describe('createHistoryOnSlotEdition', () => {
   });
 
   it('should create history with slot_creation action if not date in db', async () => {
-    const course = new ObjectID();
+    const course = new ObjectId();
     const slotFromDb = { course };
     const payload = { startDate: '2020-01-11T09:00:00' };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
 
@@ -171,10 +171,10 @@ describe('createHistoryOnSlotEdition', () => {
   });
 
   it('should not create history if date is not updated', async () => {
-    const course = new ObjectID();
+    const course = new ObjectId();
     const slotFromDb = { startDate: '2020-01-10T09:00:00', course };
     const payload = { startDate: '2020-01-10T09:00:00' };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
 
@@ -183,10 +183,10 @@ describe('createHistoryOnSlotEdition', () => {
   });
 
   it('should create history if hour is updated', async () => {
-    const course = new ObjectID();
+    const course = new ObjectId();
     const slotFromDb = { startDate: '2020-01-10T09:00:00', endDate: '2020-01-10T11:30:00', course };
     const payload = { startDate: '2020-01-10T11:00:00', endDate: '2020-01-10T13:00:00' };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, userId);
 
@@ -228,9 +228,9 @@ describe('createHistoryOnSlotDeletion', () => {
         city: 'qwert',
         location: { type: 'Point', coordinates: [0, 1] },
       },
-      course: new ObjectID(),
+      course: new ObjectId(),
     };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
 
@@ -257,10 +257,10 @@ describe('createHistoryOnTraineeAddition', () => {
 
   it('should create a courseHistory', async () => {
     const payload = {
-      traineeId: new ObjectID(),
-      course: new ObjectID(),
+      traineeId: new ObjectId(),
+      course: new ObjectId(),
     };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnTraineeAddition(payload, userId);
 
@@ -287,10 +287,10 @@ describe('createHistoryOnTraineeDeletion', () => {
 
   it('should create a courseHistory', async () => {
     const payload = {
-      traineeId: new ObjectID(),
-      course: new ObjectID(),
+      traineeId: new ObjectId(),
+      course: new ObjectId(),
     };
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await CourseHistoriesHelper.createHistoryOnTraineeDeletion(payload, userId);
 
@@ -325,7 +325,7 @@ describe('list', () => {
         city: 'qwert',
         location: { type: 'Point', coordinates: [0, 1] },
       },
-      course: new ObjectID(),
+      course: new ObjectId(),
     }];
     const query = { course: returnedList[0].course };
 
@@ -355,7 +355,7 @@ describe('list', () => {
         city: 'qwert',
         location: { type: 'Point', coordinates: [0, 1] },
       },
-      course: new ObjectID(),
+      course: new ObjectId(),
       createdAt: '2019-02-03T10:00:00.000Z',
     }];
     const query = { course: returnedList[0].course, createdAt: '2019-02-04T10:00:00.000Z' };

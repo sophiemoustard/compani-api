@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const {
   clientAdminRoleId,
@@ -16,7 +16,7 @@ const { WEBAPP, MOBILE } = require('../../src/helpers/constants');
 
 const userList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'client_admin', lastname: 'Boss' },
     refreshToken: uuidv4(),
     local: { email: 'client-admin@alenvi.io', password: '123456!eR' },
@@ -24,7 +24,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Coach', lastname: 'Calif' },
     local: { email: 'coach@alenvi.io', password: '123456!eR' },
     contact: { phone: '0987654321' },
@@ -33,17 +33,17 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Olait', title: 'mr' },
     local: { email: 'auxiliary@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     administrative: { driveFolder: { driveId: '0987654321' } },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary without company', lastname: 'créole' },
     local: { email: 'auxiliary-without-company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -51,7 +51,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'PlanningReferent', lastname: 'Test', title: 'mrs' },
     local: { email: 'planning-referent@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -59,7 +59,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { title: 'mr', firstname: 'Helper', lastname: 'Test' },
     local: { email: 'helper@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -67,7 +67,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'vendor_admin', lastname: 'SuperChef' },
     refreshToken: uuidv4(),
     local: { email: 'vendor-admin@alenvi.io', password: '123456!eR' },
@@ -75,7 +75,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'training_organisation_manager', lastname: 'ROP' },
     refreshToken: uuidv4(),
     local: { email: 'training-organisation-manager@alenvi.io', password: '123456!eR' },
@@ -83,7 +83,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'trainer', lastname: 'trainer' },
     refreshToken: uuidv4(),
     local: { email: 'trainer@alenvi.io', password: '123456!eR' },
@@ -91,7 +91,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'client_admin_company_without_subscription', lastname: 'Chef' },
     refreshToken: uuidv4(),
     local: { email: 'client-admin-company-without-erp@alenvi.io', password: '123456!eR' },
@@ -99,7 +99,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'norole', lastname: 'test' },
     refreshToken: uuidv4(),
     local: { email: 'norole@alenvi.io', password: 'fdsf5P56D' },
@@ -107,7 +107,7 @@ const userList = [
     origin: MOBILE,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'norole', lastname: 'nocompany' },
     refreshToken: uuidv4(),
     local: { email: 'norole.nocompany@alenvi.io', password: 'fdsf5P56D' },
@@ -117,7 +117,7 @@ const userList = [
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Simon', lastname: 'TrainerAndCoach' },
     refreshToken: uuidv4(),
     local: { email: 'trainercoach@alenvi.io', password: '123456!eR' },

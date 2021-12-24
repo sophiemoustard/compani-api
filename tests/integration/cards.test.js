@@ -1,9 +1,10 @@
+const flat = require('flat');
 const expect = require('expect');
 const { fn: momentProto } = require('moment');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Card = require('../../src/models/Card');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
@@ -366,7 +367,7 @@ describe('CARDS ROUTES - POST /cards/{_id}/answer', () => {
     it('should return 404 if invalid card id', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/cards/${(new ObjectID())}/answers`,
+        url: `/cards/${(new ObjectId())}/answers`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -546,7 +547,7 @@ describe('CARDS ROUTES - PUT /cards/{_id}/answers/{answerId}', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/cards/${(new ObjectID())}/answers/${answer._id}`,
+        url: `/cards/${(new ObjectId())}/answers/${answer._id}`,
         payload: { text: 'je suis un texte' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -828,8 +829,8 @@ describe('CARDS ROUTES - POST /cards/:id/upload', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const cardUpdated = await Card
-        .countDocuments({ _id: cardsList[0]._id, media: { link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' } });
+      const mediaQuery = flat({ media: { link: 'https://gcp/BucketKFC/my', publicId: 'media-ttm' } });
+      const cardUpdated = await Card.countDocuments({ _id: cardsList[0]._id, ...mediaQuery });
       expect(cardUpdated).toEqual(1);
       sinon.assert.calledOnceWithExactly(uploadProgramMediaStub, { fileName: 'title_text_media', file: 'true' });
     });

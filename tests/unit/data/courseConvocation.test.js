@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const FileHelper = require('../../../src/helpers/file');
 const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 
@@ -32,7 +32,7 @@ describe('getPdfContent', () => {
         { date: '14/01/2020', hours: '12h - 14h', address: '24 avenue du test' },
         { date: '15/01/2020', hours: '12h - 14h', meetingLink: 'https://pointerpointer.com/' },
       ],
-      slotsToPlan: [{ _id: new ObjectID() }],
+      slotsToPlan: [{ _id: new ObjectId() }],
       trainer: { formattedIdentity: 'test OK', biography: 'Voici ma bio' },
       contact: { formattedIdentity: 'Ca roule', formattedPhone: '09 87 65 43 21', email: 'test@test.fr' },
     };

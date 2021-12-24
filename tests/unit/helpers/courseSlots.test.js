@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const pick = require('lodash/pick');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Step = require('../../../src/models/Step');
@@ -21,11 +21,11 @@ describe('hasConflicts', () => {
 
   it('should return true if has conflicts', async () => {
     const slot = {
-      _id: new ObjectID(),
-      course: new ObjectID(),
+      _id: new ObjectId(),
+      course: new ObjectId(),
       startDate: '2020-09-12T09:00:00',
       endDate: '2020-09-12T11:00:00',
-      step: new ObjectID(),
+      step: new ObjectId(),
     };
     countDocuments.returns(2);
     const result = await CourseSlotsHelper.hasConflicts(slot);
@@ -44,10 +44,10 @@ describe('hasConflicts', () => {
 
   it('should return false if no conflict', async () => {
     const slot = {
-      course: new ObjectID(),
+      course: new ObjectId(),
       startDate: '2020-09-12T09:00:00',
       endDate: '2020-09-12T11:00:00',
-      step: new ObjectID(),
+      step: new ObjectId(),
     };
     countDocuments.returns(0);
     const result = await CourseSlotsHelper.hasConflicts(slot);
@@ -84,10 +84,10 @@ describe('createCourseSlot', () => {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
       address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
-      course: new ObjectID(),
-      step: new ObjectID(),
+      course: new ObjectId(),
+      step: new ObjectId(),
     };
-    const user = { _id: new ObjectID() };
+    const user = { _id: new ObjectId() };
     hasConflicts.returns(false);
 
     const result = await CourseSlotsHelper.createCourseSlot(newSlot, user);
@@ -103,8 +103,8 @@ describe('createCourseSlot', () => {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
       address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
-      course: new ObjectID(),
-      step: new ObjectID(),
+      course: new ObjectId(),
+      step: new ObjectId(),
     };
     hasConflicts.returns(true);
 
@@ -137,9 +137,9 @@ describe('updateCourseSlot', () => {
   });
 
   it('should update a remote course slot with meetingLink', async () => {
-    const slot = { _id: new ObjectID() };
-    const user = { _id: new ObjectID() };
-    const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectID(), meetingLink: 'https://github.com' };
+    const slot = { _id: new ObjectId() };
+    const user = { _id: new ObjectId() };
+    const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectId(), meetingLink: 'https://github.com' };
     hasConflicts.returns(false);
     findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: REMOTE }], ['lean']));
 
@@ -155,9 +155,9 @@ describe('updateCourseSlot', () => {
   });
 
   it('should update a remote course slot without meetingLink', async () => {
-    const slot = { _id: new ObjectID() };
-    const user = { _id: new ObjectID() };
-    const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectID() };
+    const slot = { _id: new ObjectId() };
+    const user = { _id: new ObjectId() };
+    const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectId() };
     hasConflicts.returns(false);
     findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: REMOTE }], ['lean']));
 
@@ -173,11 +173,11 @@ describe('updateCourseSlot', () => {
   });
 
   it('should update an on site course slot with address', async () => {
-    const slot = { _id: new ObjectID() };
-    const user = { _id: new ObjectID() };
+    const slot = { _id: new ObjectId() };
+    const user = { _id: new ObjectId() };
     const payload = {
       startDate: '2020-03-03T22:00:00',
-      step: new ObjectID(),
+      step: new ObjectId(),
       address: { fullAddress: '24 avenue Daumesnil' },
     };
     hasConflicts.returns(false);
@@ -195,9 +195,9 @@ describe('updateCourseSlot', () => {
   });
 
   it('should update an on site course slot without address', async () => {
-    const slot = { _id: new ObjectID() };
-    const user = { _id: new ObjectID() };
-    const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectID() };
+    const slot = { _id: new ObjectId() };
+    const user = { _id: new ObjectId() };
+    const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectId() };
     hasConflicts.returns(false);
     findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: ON_SITE }], ['lean']));
 
@@ -213,9 +213,9 @@ describe('updateCourseSlot', () => {
   });
 
   it('should throw an error if conflicts', async () => {
-    const slot = { _id: new ObjectID() };
+    const slot = { _id: new ObjectId() };
     const payload = { startDate: '2020-03-03T22:00:00' };
-    const user = { _id: new ObjectID() };
+    const user = { _id: new ObjectId() };
     hasConflicts.returns(true);
 
     try {
@@ -244,10 +244,10 @@ describe('removeSlot', () => {
   });
 
   it('should update a course slot', async () => {
-    const user = { _id: new ObjectID() };
+    const user = { _id: new ObjectId() };
     const returnedCourseSlot = {
-      _id: new ObjectID(),
-      course: new ObjectID(),
+      _id: new ObjectId(),
+      course: new ObjectId(),
       startDate: '2020-06-25T17:58:15',
       endDate: '2019-06-25T19:58:15',
       address: { fullAddress: '55 rue du sku, Skuville' },

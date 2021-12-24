@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
@@ -10,7 +10,7 @@ const { auxiliaryWithoutCompanyRoleId, auxiliaryRoleId, clientAdminRoleId } = re
 
 const payDocumentUsers = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Bob', lastname: 'Marley' },
     local: { email: 'paydocumentauxiliary@alenvi.io' },
     role: { client: auxiliaryRoleId },
@@ -18,7 +18,7 @@ const payDocumentUsers = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Bob', lastname: 'Dylan' },
     local: { email: 'paydocumentawc@alenvi.io', password: '123456!eR' },
     role: { client: auxiliaryWithoutCompanyRoleId },
@@ -28,15 +28,15 @@ const payDocumentUsers = [
 ];
 
 const payDocumentUserCompanies = [
-  { _id: new ObjectID(), user: payDocumentUsers[0]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: payDocumentUsers[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: payDocumentUsers[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: payDocumentUsers[1]._id, company: authCompany._id },
 ];
 
-const otherCompanyId = new ObjectID();
+const otherCompanyId = new ObjectId();
 
 const userFromOtherCompany = {
   company: otherCompanyId,
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'test', lastname: 'toto' },
   local: { email: 'test@alenvi.io' },
   role: { client: clientAdminRoleId },
@@ -45,7 +45,7 @@ const userFromOtherCompany = {
 };
 
 const payDocumentsList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   user: payDocumentUsers[0]._id,
   company: authCompany._id,
   nature: PAYSLIP,
@@ -53,7 +53,7 @@ const payDocumentsList = [{
   file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
 },
 {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   user: payDocumentUsers[0]._id,
   nature: CERTIFICATE,
@@ -61,7 +61,7 @@ const payDocumentsList = [{
   file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
 },
 {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   user: payDocumentUsers[0]._id,
   nature: OTHER,
@@ -69,21 +69,21 @@ const payDocumentsList = [{
   file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
 },
 {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   user: payDocumentUsers[0]._id,
   nature: OTHER,
   date: new Date('2019-01-04'),
 },
 {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   user: payDocumentUsers[1]._id,
   nature: OTHER,
   date: new Date('2019-01-04'),
 },
 {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   user: userFromOtherCompany._id,
   company: otherCompanyId,
   nature: OTHER,

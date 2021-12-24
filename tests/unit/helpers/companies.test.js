@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const flat = require('flat');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const CompanyHelper = require('../../../src/helpers/companies');
@@ -42,7 +42,7 @@ describe('createCompany', () => {
     createFolderStub.onCall(1).returns({ id: 'qwertyuiop' });
     createFolderStub.onCall(2).returns({ id: 'asdfghj' });
     find.returns(SinonMongoose.stubChainedQueries(
-      [[{ _id: new ObjectID(), prefixNumber: 345 }]],
+      [[{ _id: new ObjectId(), prefixNumber: 345 }]],
       ['sort', 'limit', 'lean']
     ));
 
@@ -75,7 +75,7 @@ describe('list', () => {
   });
 
   it('should return companies', async () => {
-    const companyList = [{ _id: new ObjectID(), name: 'Alenvi' }];
+    const companyList = [{ _id: new ObjectId(), name: 'Alenvi' }];
     find.returns(SinonMongoose.stubChainedQueries([companyList], ['lean']));
 
     const result = await CompanyHelper.list();
@@ -98,7 +98,7 @@ describe('getCompany', () => {
   });
 
   it('should return company', async () => {
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
     findOne.returns(SinonMongoose.stubChainedQueries([company], ['lean']));
 
     const result = await CompanyHelper.getCompany(company._id);
@@ -128,8 +128,8 @@ describe('uploadFile', () => {
 
   it('should upload a file', async () => {
     const payload = { fileName: 'mandat_signe', file: 'true', type: 'contract' };
-    const params = { _id: new ObjectID(), driveId: new ObjectID() };
-    const uploadedFile = { id: new ObjectID() };
+    const params = { _id: new ObjectId(), driveId: new ObjectId() };
+    const uploadedFile = { id: new ObjectId() };
     const driveFileInfo = { webViewLink: 'test' };
     addStub.returns(uploadedFile);
     getFileByIdStub.returns(driveFileInfo);
@@ -171,7 +171,7 @@ describe('getFirstIntervention', () => {
   });
 
   it('should get first intervention', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     find.returns(SinonMongoose.stubChainedQueries([[{ startDate: '2019-11-12' }]], ['sort', 'limit', 'lean']));
 
     const result = await CompanyHelper.getFirstIntervention(credentials);
@@ -200,8 +200,8 @@ describe('updateCompany', () => {
   });
 
   it('should update transport sub', async () => {
-    const companyId = new ObjectID();
-    const subId = new ObjectID();
+    const companyId = new ObjectId();
+    const subId = new ObjectId();
     const payload = {
       rhConfig: { transportSubs: { subId } },
     };
@@ -218,7 +218,7 @@ describe('updateCompany', () => {
     );
   });
   it('should update company', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const payload = { tradeName: 'toto' };
     findOneAndUpdate.returns({ _id: companyId });
 

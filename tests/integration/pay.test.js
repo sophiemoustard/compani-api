@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const {
   populateDB,
   auxiliaries,
@@ -101,7 +101,7 @@ describe('PAY ROUTES - POST /pay', () => {
       surchargedAndExempt: 20,
       surchargedAndExemptDetails: {},
       surchargedAndNotExempt: 20,
-      surchargedAndNotExemptDetails: { [new ObjectID()]: { planName: 'Toto', custom: { hours: 20, percentage: 10 } } },
+      surchargedAndNotExemptDetails: { [new ObjectId()]: { planName: 'Toto', custom: { hours: 20, percentage: 10 } } },
       paidTransportHours: 3,
       internalHours: 9,
       absencesHours: 5,

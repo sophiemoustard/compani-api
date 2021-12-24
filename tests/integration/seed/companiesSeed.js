@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
@@ -10,7 +10,7 @@ const { clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { INTERVENTION, MOBILE } = require('../../../src/helpers/constants');
 
 const company = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   rcs: '1234567890',
   siren: '1234567890',
   name: 'Test',
@@ -30,9 +30,9 @@ const company = {
 const event = {
   startDate: '2019-12-11',
   endDate: '2019-12-11',
-  auxiliary: new ObjectID(),
-  customer: new ObjectID(),
-  subscription: new ObjectID(),
+  auxiliary: new ObjectId(),
+  customer: new ObjectId(),
+  subscription: new ObjectId(),
   type: INTERVENTION,
   company: authCompany._id,
   address: {
@@ -45,7 +45,7 @@ const event = {
 };
 
 const companyClientAdmin = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'client_admin', lastname: 'Chef' },
   refreshToken: uuidv4(),
   local: { email: 'client_admin@alenvi.io', password: '123456!eR' },
@@ -53,7 +53,7 @@ const companyClientAdmin = {
   origin: MOBILE,
 };
 
-const userCompany = { _id: new ObjectID(), user: companyClientAdmin._id, company: company._id };
+const userCompany = { _id: new ObjectId(), user: companyClientAdmin._id, company: company._id };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();

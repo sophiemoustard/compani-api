@@ -1,6 +1,6 @@
 const path = require('path');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const sinon = require('sinon');
 const pick = require('lodash/pick');
@@ -520,7 +520,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 404 error if customer is not found', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: `/customers/${new ObjectID()}`,
+          url: `/customers/${new ObjectId()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -793,7 +793,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 404 error if no customer found', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/customers/${new ObjectID()}`,
+          url: `/customers/${new ObjectId()}`,
           payload: updatePayload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -970,7 +970,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return a 404 error if no customer found', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/customers/${new ObjectID()}`,
+          url: `/customers/${new ObjectId()}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -1083,7 +1083,7 @@ describe('CUSTOMERS ROUTES', () => {
       it('should return 404 if customer does not exists', async () => {
         const result = await app.inject({
           method: 'GET',
-          url: `/customers/${new ObjectID()}/qrcode`,
+          url: `/customers/${new ObjectId()}/qrcode`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -1302,7 +1302,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should return 404 as customer not found', async () => {
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${new ObjectID()}/subscriptions/${customersList[0].subscriptions[0]._id}`,
+        url: `/customers/${new ObjectId()}/subscriptions/${customersList[0].subscriptions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1313,7 +1313,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should return 404 as subscription not found', async () => {
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${customersList[0]._id}/subscriptions/${new ObjectID()}`,
+        url: `/customers/${customersList[0]._id}/subscriptions/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1459,7 +1459,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     it('should return 404 if customer not found', async () => {
       const result = await app.inject({
         method: 'GET',
-        url: `/customers/${new ObjectID()}/mandates`,
+        url: `/customers/${new ObjectId()}/mandates`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1520,7 +1520,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${new ObjectID()}/mandates/${customersList[1].payment.mandates[0]._id}`,
+        url: `/customers/${new ObjectId()}/mandates/${customersList[1].payment.mandates[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1533,7 +1533,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
       const result = await app.inject({
         method: 'PUT',
-        url: `/customers/${customersList[1]._id}/mandates/${new ObjectID()}`,
+        url: `/customers/${customersList[1]._id}/mandates/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1718,7 +1718,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     it('should return 404 error if no user found', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/customers/${new ObjectID()}/quotes`,
+        url: `/customers/${new ObjectId()}/quotes`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2149,7 +2149,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${new ObjectID()}/fundings`,
+        url: `/customers/${new ObjectId()}/fundings`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -2402,7 +2402,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${new ObjectID()}/fundings/${customersList[0].fundings[0]._id}`,
+        url: `/customers/${new ObjectId()}/fundings/${customersList[0].fundings[0]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });

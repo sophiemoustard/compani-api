@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const { fn: momentProto } = require('moment');
 const sinon = require('sinon');
@@ -44,7 +44,7 @@ describe('authenticate', () => {
   it('should authenticate user and set firstMobileConnection', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       refreshToken: 'refreshToken',
       local: { password: 'toto' },
     };
@@ -81,7 +81,7 @@ describe('authenticate', () => {
 
   it('should authenticate user but not set firstMobileConnection (authentication from webapp)', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'webapp' };
-    const user = { _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'toto' } };
+    const user = { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'toto' } };
 
     findOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
     compare.returns(true);
@@ -113,7 +113,7 @@ describe('authenticate', () => {
   it('should authenticate user but not set firstMobileConnection (firstMobileConnection already set)', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       refreshToken: 'refreshToken',
       local: { password: 'toto' },
       firstMobileConnection: '2020-12-08T13:45:25.437Z',
@@ -175,7 +175,7 @@ describe('authenticate', () => {
   it('should throw an error if refresh token does not exist', async () => {
     const payload = { email: 'toto@email.com', password: '123456!eR' };
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectID() }], ['select', 'lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectId() }], ['select', 'lean']));
 
       await AuthenticationHelper.authenticate(payload);
     } catch (e) {
@@ -202,7 +202,7 @@ describe('authenticate', () => {
       const payload = { email: 'toto@email.com', password: '123456!eR' };
 
       findOne.returns(SinonMongoose.stubChainedQueries(
-        [{ _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'password_hash' } }],
+        [{ _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'password_hash' } }],
         ['select', 'lean']
       ));
       compare.returns(false);
@@ -261,7 +261,7 @@ describe('refreshToken', () => {
   });
 
   it('should return refresh token', async () => {
-    const user = { _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'toto' } };
+    const user = { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'toto' } };
 
     findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
     encode.returns('token');
@@ -293,7 +293,7 @@ describe('updatePassword', () => {
   });
 
   it('should update a user password', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const payload = { local: { password: '123456!eR' } };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(
@@ -332,7 +332,7 @@ describe('sendToken', () => {
 
   it('should return token with user', async () => {
     const email = 'carolyn@alenvi.io';
-    const user = { _id: new ObjectID(), local: { email } };
+    const user = { _id: new ObjectId(), local: { email } };
     const userPayload = { _id: user._id, email };
 
     encode.returns('1234567890');
@@ -388,7 +388,7 @@ describe('checkPasswordToken', () => {
   it('(should return a token if code match (mobile)', async () => {
     const token = '3310';
     const email = 'carolyn@alenvi.io';
-    const user = { _id: new ObjectID(), local: { email } };
+    const user = { _id: new ObjectId(), local: { email } };
     const userPayload = { _id: user._id, email };
 
     userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
@@ -460,7 +460,7 @@ describe('checkPasswordToken', () => {
   it('should return a new access token after checking reset password token (webapp)', async () => {
     fakeDate.returns(date);
     const filter = { passwordToken: { token: '1234567890', expiresIn: { $gt: date } } };
-    const user = { _id: new ObjectID(), local: { email: 'toto@toto.com' } };
+    const user = { _id: new ObjectId(), local: { email: 'toto@toto.com' } };
     const userPayload = { _id: user._id, email: user.local.email };
 
     userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
@@ -684,7 +684,7 @@ describe('generatePasswordToken', () => {
 
   it('should return a new access token after checking reset password token', async () => {
     const user = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       local: { email: 'toto@toto.com' },
       passwordToken: { token: sinon.match.string, expiresIn: date.getTime() + 3600000 },
     };

@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const BillingItem = require('../../../src/models/BillingItem');
 const Service = require('../../../src/models/Service');
@@ -7,7 +7,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 
 const billingItemList = [
   { // 0
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'An existing billing',
     type: 'manual',
     defaultUnitAmount: 25,
@@ -15,7 +15,7 @@ const billingItemList = [
     vat: 2,
   },
   { // 1
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Another billing',
     type: 'per_intervention',
     defaultUnitAmount: 25,
@@ -23,7 +23,7 @@ const billingItemList = [
     vat: 2,
   },
   { // 2
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'An existing billing',
     type: 'per_intervention',
     defaultUnitAmount: 25,
@@ -31,7 +31,7 @@ const billingItemList = [
     vat: 2,
   },
   { // 3
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'A nice billing',
     type: 'per_intervention',
     defaultUnitAmount: 25,
@@ -39,7 +39,7 @@ const billingItemList = [
     vat: 2,
   },
   { // 4
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Boule et Billing',
     type: 'per_intervention',
     defaultUnitAmount: 20,
@@ -81,7 +81,7 @@ const serviceList = [
 const billList = [
   {
     date: '2010-09-03T00:00:00',
-    customer: new ObjectID(),
+    customer: new ObjectId(),
     number: 'F1606120',
     type: 'manual',
     netInclTaxes: 880,

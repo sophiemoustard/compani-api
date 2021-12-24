@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const AuthorizationHelper = require('../../../src/helpers/authorization');
 const User = require('../../../src/models/User');
 const { AUXILIARY_WITHOUT_COMPANY } = require('../../../src/helpers/constants');
@@ -21,7 +21,7 @@ describe('validate', () => {
   });
 
   it('should authenticate user without role and company', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const user = { _id: userId, identity: { lastname: 'lastname' }, local: { email: 'email@email.com' } };
 
     findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
@@ -53,8 +53,8 @@ describe('validate', () => {
   });
 
   it('should authenticate user with company without erp subscription', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -122,8 +122,8 @@ describe('validate', () => {
   });
 
   it('should authenticate user with company with erp subscription', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -204,9 +204,9 @@ describe('validate', () => {
   });
 
   it('should authenticate user with customers', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
-    const customerId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
+    const customerId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -246,8 +246,8 @@ describe('validate', () => {
   });
 
   it('should authenticate auxiliary without company', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -286,8 +286,8 @@ describe('validate', () => {
   });
 
   it('should authenticate a user with coach and trainer role', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },

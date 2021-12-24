@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('../../../src/extensions/moment');
 const Event = require('../../../src/models/Event');
@@ -46,13 +46,13 @@ const {
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
-const sector = { _id: new ObjectID(), name: 'Etoile', company: authCompany._id };
+const sector = { _id: new ObjectId(), name: 'Etoile', company: authCompany._id };
 
-const surcharge = { _id: new ObjectID(), name: 'test' };
+const surcharge = { _id: new ObjectId(), name: 'test' };
 
 const serviceList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       name: 'Service 1',
@@ -64,7 +64,7 @@ const serviceList = [
     nature: HOURLY,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
@@ -78,14 +78,14 @@ const serviceList = [
   },
 ];
 
-const authBillService = { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'fixed' };
+const authBillService = { serviceId: new ObjectId(), name: 'Temps de qualité - autonomie', nature: 'fixed' };
 
-const contract1Id = new ObjectID();
-const contract2Id = new ObjectID();
-const contract3Id = new ObjectID();
+const contract1Id = new ObjectId();
+const contract2Id = new ObjectId();
+const contract3Id = new ObjectId();
 
 const establishment = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Toto',
   siret: '12345678901234',
   address: {
@@ -102,7 +102,7 @@ const establishment = {
 };
 
 const auxiliaryList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   establishment: establishment._id,
   identity: {
     firstname: 'Lulu',
@@ -131,7 +131,7 @@ const auxiliaryList = [{
   contracts: [contract1Id, contract2Id],
   origin: WEBAPP,
 }, {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   establishment: establishment._id,
   identity: {
     firstname: 'Lili',
@@ -193,22 +193,22 @@ const sectorHistories = [
   { auxiliary: auxiliaryList[0]._id, sector: sector._id, company: authCompany._id, startDate: '2018-12-10T00:00:00' },
 ];
 
-const internalHour = { _id: new ObjectID(), name: 'planning', company: authCompany._id };
+const internalHour = { _id: new ObjectId(), name: 'planning', company: authCompany._id };
 
-const subscriptionId = new ObjectID();
+const subscriptionId = new ObjectId();
 
 const thirdPartyPayer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
   billingMode: 'direct',
 };
 
-const customerSubscriptionId = new ObjectID();
+const customerSubscriptionId = new ObjectId();
 const customersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Christopher', lastname: 'Froome', birthDate: moment('1940-01-01').toDate() },
     contact: {
@@ -227,10 +227,10 @@ const customersList = [
         service: serviceList[0]._id,
         versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 30, evenings: 1, sundays: 2 }],
       },
-      { _id: new ObjectID(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000+01:00' }] },
+      { _id: new ObjectId(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000+01:00' }] },
     ],
     fundings: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       nature: FIXED,
       thirdPartyPayer: thirdPartyPayer._id,
       subscription: subscriptionId,
@@ -252,7 +252,7 @@ const customersList = [
     archivedAt: '2021-06-03T22:00:00.000+01:00',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
@@ -270,7 +270,7 @@ const customersList = [
     stopReason: 'quality',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
     contact: {
@@ -286,7 +286,7 @@ const customersList = [
     followUp: { situation: 'home' },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
@@ -309,7 +309,7 @@ const customersList = [
     }],
     fundings: [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayer._id,
         subscription: customerSubscriptionId,
@@ -362,7 +362,7 @@ const referentList = [
 
 const eventList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: ABSENCE,
@@ -373,7 +373,7 @@ const eventList = [
     auxiliary: auxiliaryList[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: ABSENCE,
@@ -385,7 +385,7 @@ const eventList = [
     misc: 'test absence',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
@@ -407,7 +407,7 @@ const eventList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
@@ -416,7 +416,7 @@ const eventList = [
     customer: customersList[3]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customersList[3].subscriptions[0]._id,
-    repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
+    repetition: { frequency: EVERY_DAY, parentId: new ObjectId() },
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -428,7 +428,7 @@ const eventList = [
     kmDuringEvent: 23,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
@@ -437,7 +437,7 @@ const eventList = [
     customer: customersList[0]._id,
     createdAt: '2020-01-16T14:30:19.543Z',
     subscription: customersList[3].subscriptions[0]._id,
-    repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
+    repetition: { frequency: EVERY_DAY, parentId: new ObjectId() },
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -448,7 +448,7 @@ const eventList = [
     isBilled: true,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     auxiliary: auxiliaryList[0]._id,
@@ -459,7 +459,7 @@ const eventList = [
     createdAt: '2019-01-16T14:30:19.543Z',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
@@ -481,7 +481,7 @@ const eventList = [
 
 const eventHistoriesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     event: { eventId: eventList[3]._id },
     action: MANUAL_TIME_STAMPING,
@@ -489,7 +489,7 @@ const eventHistoriesList = [
     update: { startHour: { from: '2019-01-17T14:30:19.543Z', to: '2019-01-17T14:35:19.543Z' } },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     event: { eventId: eventList[3]._id },
     action: QR_CODE_TIME_STAMPING,
@@ -499,7 +499,7 @@ const eventHistoriesList = [
 
 const billsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
     date: '2019-05-29',
     number: 'FACT-1905002',
@@ -514,10 +514,10 @@ const billsList = [
       vat: 5.5,
       service: authBillService,
       events: [{
-        eventId: new ObjectID(),
+        eventId: new ObjectId(),
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: new ObjectId(),
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
@@ -530,7 +530,7 @@ const billsList = [
     }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
     date: '2019-05-25',
     number: 'FACT-1905003',
@@ -543,10 +543,10 @@ const billsList = [
       subscription: customersList[3].subscriptions[0]._id,
       vat: 5.5,
       events: [{
-        eventId: new ObjectID(),
+        eventId: new ObjectId(),
         startDate: '2019-01-16T10:30:19.543Z',
         endDate: '2019-01-16T12:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: new ObjectId(),
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
@@ -563,7 +563,7 @@ const billsList = [
 
 const paymentsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903201',
     date: '2019-05-26T19:47:42',
@@ -574,7 +574,7 @@ const paymentsList = [
     type: 'direct_debit',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903202',
     date: '2019-05-24T15:47:42',
@@ -584,7 +584,7 @@ const paymentsList = [
     type: 'check',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903203',
     date: '2019-05-27T09:10:20',
@@ -598,7 +598,7 @@ const paymentsList = [
 
 const payList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaryList[0]._id,
@@ -642,7 +642,7 @@ const payList = [
     absencesHours: 5,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaryList[0]._id,
@@ -689,7 +689,7 @@ const payList = [
 
 const finalPayList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaryList[0]._id,
@@ -736,7 +736,7 @@ const finalPayList = [
     absencesHours: 5,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaryList[0]._id,
@@ -786,7 +786,7 @@ const finalPayList = [
 
 const creditNotesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     date: '2019-05-28',
     startDate: '2019-05-27',
@@ -798,11 +798,11 @@ const creditNotesList = [
     exclTaxesTpp: 10,
     inclTaxesTpp: 90,
     events: [{
-      eventId: new ObjectID(),
+      eventId: new ObjectId(),
       serviceName: 'Temps de qualité - autonomie',
       startDate: '2019-01-16T10:30:19.543Z',
       endDate: '2019-01-16T12:30:21.653Z',
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       bills: {
         inclTaxesCustomer: 10,
         exclTaxesCustomer: 8,
@@ -812,7 +812,7 @@ const creditNotesList = [
     subscription: {
       _id: customersList[3].subscriptions[0]._id,
       service: {
-        serviceId: new ObjectID(),
+        serviceId: new ObjectId(),
         nature: 'fixed',
         name: 'toto',
       },
@@ -822,7 +822,7 @@ const creditNotesList = [
 ];
 
 const user = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   contact: { phone: '0123456789' },
   identity: { firstname: 'test', lastname: 'Toto' },
   local: { email: 'toto@alenvi.io' },
@@ -836,9 +836,9 @@ const helpersList = [
 ];
 
 const userCompanies = [
-  { _id: new ObjectID(), user: auxiliaryList[0]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: auxiliaryList[1]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: user._id, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryList[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: user._id, company: authCompany._id },
 ];
 
 const populateDB = async () => {

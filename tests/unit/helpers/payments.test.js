@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const PaymentsHelper = require('../../../src/helpers/payments');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -25,9 +25,9 @@ describe('getPayments', () => {
   });
 
   it('should return all payments ', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const query = {};
-    const payment = { _id: new ObjectID() };
+    const payment = { _id: new ObjectId() };
     find.returns(SinonMongoose.stubChainedQueries([[payment]]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
@@ -46,9 +46,9 @@ describe('getPayments', () => {
   });
 
   it('should call getDateQuery if startDate is defined ', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const query = { startDate: '2019-11-01' };
-    const payment = { _id: new ObjectID() };
+    const payment = { _id: new ObjectId() };
 
     getDateQueryStub.returns({ $lte: '2019-11-01' });
     find.returns(SinonMongoose.stubChainedQueries([[payment]]));
@@ -69,9 +69,9 @@ describe('getPayments', () => {
   });
 
   it('should call getDateQuery if endDate is defined ', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const query = { endDate: '2019-11-01' };
-    const payment = { _id: new ObjectID() };
+    const payment = { _id: new ObjectId() };
 
     getDateQueryStub.returns({ $gte: '2019-11-01' });
     find.returns(SinonMongoose.stubChainedQueries([[payment]]));
@@ -94,7 +94,7 @@ describe('getPayments', () => {
 
 describe('generateXML', () => {
   const company = {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'test',
     iban: '1234',
     bic: '5678',
@@ -104,8 +104,8 @@ describe('generateXML', () => {
   const firstPayments = [{
     company: company._id,
     date: '2019-11-20',
-    customer: new ObjectID(),
-    thirdPartyPayer: new ObjectID(),
+    customer: new ObjectId(),
+    thirdPartyPayer: new ObjectId(),
     netInclTaxes: 190,
     nature: PAYMENT,
     type: 'direct_debit',
@@ -113,8 +113,8 @@ describe('generateXML', () => {
   const recurPayments = [{
     company: company._id,
     date: '2019-11-20',
-    customer: new ObjectID(),
-    thirdPartyPayer: new ObjectID(),
+    customer: new ObjectId(),
+    thirdPartyPayer: new ObjectId(),
     netInclTaxes: 120,
     nature: PAYMENT,
     type: 'direct_debit',
@@ -295,18 +295,18 @@ describe('createPayment', () => {
   it('should create a payment', async () => {
     const payment = {
       date: '2019-11-28',
-      customer: new ObjectID(),
-      thirdPartyPayer: new ObjectID(),
+      customer: new ObjectId(),
+      thirdPartyPayer: new ObjectId(),
       netInclTaxes: 190,
       nature: PAYMENT,
       type: 'direct_debit',
     };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const number = { prefix: '1219', seq: 1, nature: 'payment', company: companyId };
     const formattedPayment = {
       ...payment,
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       number: 'REG-101121900001',
       company: companyId,
     };
@@ -332,13 +332,13 @@ describe('createPayment', () => {
 describe('formatPayment', () => {
   it('should add an id, a number and a company to payment', async () => {
     const payment = {
-      customer: new ObjectID(),
-      thirdPartyPayer: new ObjectID(),
+      customer: new ObjectId(),
+      thirdPartyPayer: new ObjectId(),
       netInclTaxes: 190,
       nature: PAYMENT,
       type: 'direct_debit',
     };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const company = { _id: companyId, prefixNumber: 101 };
     const number = { prefix: '1219', seq: 1 };
     const formatPaymentNumberStub = sinon.stub(PaymentsHelper, 'formatPaymentNumber').returns('REG-190410100001');
@@ -346,7 +346,7 @@ describe('formatPayment', () => {
 
     expect(result).toBeDefined();
     expect(result.number).toBe('REG-190410100001');
-    expect(ObjectID.isValid(result._id)).toBe(true);
+    expect(ObjectId.isValid(result._id)).toBe(true);
     expect(result.company).toBe(companyId);
     sinon.assert.calledOnceWithExactly(
       formatPaymentNumberStub,
@@ -372,7 +372,7 @@ describe('getPaymentNumber', () => {
 
   it('should get payment number', async () => {
     const payment = { nature: 'payment', date: new Date('2019-12-01') };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
@@ -430,7 +430,7 @@ describe('savePayments', () => {
   });
   const credentials = {
     company: {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       name: 'test',
       iban: '1234',
       bic: '5678',
@@ -445,8 +445,8 @@ describe('savePayments', () => {
   const payload = [{
     company: credentials.company._id,
     date: '2019-11-20',
-    customer: new ObjectID(),
-    thirdPartyPayer: new ObjectID(),
+    customer: new ObjectId(),
+    thirdPartyPayer: new ObjectId(),
     netInclTaxes: 190,
     nature: PAYMENT,
     type: 'direct_debit',
@@ -454,8 +454,8 @@ describe('savePayments', () => {
   {
     company: credentials.company._id,
     date: '2019-11-20',
-    customer: new ObjectID(),
-    thirdPartyPayer: new ObjectID(),
+    customer: new ObjectId(),
+    thirdPartyPayer: new ObjectId(),
     netInclTaxes: 120,
     nature: REFUND,
     type: 'direct_debit',
@@ -540,7 +540,7 @@ describe('remove', () => {
   });
 
   it('should remove a payment', async () => {
-    const paymentId = new ObjectID();
+    const paymentId = new ObjectId();
 
     await PaymentsHelper.remove(paymentId);
 

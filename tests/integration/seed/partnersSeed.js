@@ -1,21 +1,21 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const Partner = require('../../../src/models/Partner');
 
 const partnersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Anne', lastname: 'Onyme' },
-    partnerOrganization: new ObjectID(),
+    partnerOrganization: new ObjectId(),
     company: authCompany._id,
     phone: '0712345678',
     email: 'onSaitPasDuCoup@alenvi.io',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Alain', lastname: 'Terieur' },
-    partnerOrganization: new ObjectID(),
+    partnerOrganization: new ObjectId(),
     company: otherCompany._id,
   },
 ];

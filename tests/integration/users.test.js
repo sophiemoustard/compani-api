@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { fn: momentProto } = require('moment');
 const expect = require('expect');
 const GetStream = require('get-stream');
@@ -151,7 +151,7 @@ describe('POST /users', () => {
         local: { email: 'kirk@alenvi.io' },
         sector: userSectors[0]._id,
         origin: WEBAPP,
-        role: new ObjectID(),
+        role: new ObjectId(),
       };
       const response = await app.inject({
         method: 'POST',
@@ -1613,7 +1613,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     it('should return a 404 error if user is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/users/${auxiliaryFromOtherCompany._id}/gdrive/${new ObjectID()}/upload`,
+        url: `/users/${auxiliaryFromOtherCompany._id}/gdrive/${new ObjectId()}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -1825,7 +1825,7 @@ describe('DELETE /users/:id/upload', () => {
     it('should return 404 if invalid user id', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${new ObjectID()}/upload`,
+        url: `/users/${new ObjectId()}/upload`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

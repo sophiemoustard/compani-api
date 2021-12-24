@@ -1,5 +1,5 @@
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
 const SectorHistory = require('../models/SectorHistory');
@@ -78,7 +78,7 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
   const matchFundings = [
     {
       $match: {
-        _id: new ObjectID(customerId),
+        _id: new ObjectId(customerId),
         fundings: { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } },
       },
     },

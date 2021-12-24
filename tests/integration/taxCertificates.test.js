@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
 const GetStream = require('get-stream');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const TaxCertificate = require('../../src/models/TaxCertificate');
@@ -115,7 +115,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
     it('should should return 404 if tax certificate does not exists', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/taxcertificates/${(new ObjectID()).toHexString()}/pdfs`,
+        url: `/taxcertificates/${(new ObjectId()).toHexString()}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -361,7 +361,7 @@ describe('TAX CERTIFICATES - DELETE /', () => {
     it('should throw an error if tax certificate does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/taxcertificates/${new ObjectID()}`,
+        url: `/taxcertificates/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

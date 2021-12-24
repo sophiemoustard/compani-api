@@ -1,6 +1,6 @@
 const pick = require('lodash/pick');
 const get = require('lodash/get');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Activity = require('../models/Activity');
 const Step = require('../models/Step');
 const Card = require('../models/Card');
@@ -22,7 +22,7 @@ exports.addActivity = async (stepId, payload) => {
   if (payload.activityId) {
     const duplicatedActivity = await exports.getActivity(payload.activityId);
 
-    const duplicatedCards = duplicatedActivity.cards.map(c => ({ ...c, _id: new ObjectID() }));
+    const duplicatedCards = duplicatedActivity.cards.map(c => ({ ...c, _id: new ObjectId() }));
     await Card.insertMany(duplicatedCards);
 
     newActivity = { ...pick(duplicatedActivity, ['name', 'type']), cards: duplicatedCards.map(c => c._id) };

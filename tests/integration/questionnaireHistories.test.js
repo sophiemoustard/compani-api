@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const {
@@ -36,8 +36,8 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         questionnaireAnswersList: [
           { card: cardsList[0]._id, answerList: ['blabla'] },
           { card: cardsList[3]._id, answerList: ['blebleble'] },
-          { card: cardsList[4]._id, answerList: [new ObjectID(), new ObjectID()] },
-          { card: cardsList[5]._id, answerList: [new ObjectID()] },
+          { card: cardsList[4]._id, answerList: [new ObjectId(), new ObjectId()] },
+          { card: cardsList[5]._id, answerList: [new ObjectId()] },
         ],
       };
 
@@ -77,7 +77,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         course: coursesList[0]._id,
         user: questionnaireHistoriesUsersList[0],
         questionnaire: questionnairesList[0]._id,
-        questionnaireAnswersList: [{ answerList: [new ObjectID(), new ObjectID()] }],
+        questionnaireAnswersList: [{ answerList: [new ObjectId(), new ObjectId()] }],
       };
 
       const response = await app.inject({
@@ -151,7 +151,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       const payload = {
         course: coursesList[0]._id,
         user: questionnaireHistoriesUsersList[0],
-        questionnaire: new ObjectID(),
+        questionnaire: new ObjectId(),
       };
 
       const response = await app.inject({
@@ -258,7 +258,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
         course: coursesList[0]._id,
         user: questionnaireHistoriesUsersList[0],
         questionnaire: questionnairesList[0]._id,
-        questionnaireAnswersList: [{ card: cardsList[5]._id, answerList: [new ObjectID(), new ObjectID()] }],
+        questionnaireAnswersList: [{ card: cardsList[5]._id, answerList: [new ObjectId(), new ObjectId()] }],
       };
 
       const response = await app.inject({
@@ -271,7 +271,7 @@ describe('QUESTIONNAIRE HISTORIES ROUTES - POST /questionnairehistories', () => 
       expect(response.statusCode).toBe(422);
     });
 
-    it('should return 422 if is a q/a and items in answerList are not ObjectID', async () => {
+    it('should return 422 if is a q/a and items in answerList are not ObjectId', async () => {
       const payload = {
         course: coursesList[0]._id,
         user: questionnaireHistoriesUsersList[0],

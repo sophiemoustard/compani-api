@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const Course = require('../../../src/models/Course');
 const Card = require('../../../src/models/Card');
@@ -60,7 +60,7 @@ describe('getQuestionnaire', () => {
   });
 
   it('should return questionnaire', async () => {
-    const questionnaireId = new ObjectID();
+    const questionnaireId = new ObjectId();
     const questionnaire = { _id: questionnaireId, name: 'test' };
 
     findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
@@ -89,8 +89,8 @@ describe('editQuestionnaire', () => {
   });
 
   it('should update questionnaire', async () => {
-    const questionnaireId = new ObjectID();
-    const cards = [new ObjectID(), new ObjectID()];
+    const questionnaireId = new ObjectId();
+    const cards = [new ObjectId(), new ObjectId()];
     const questionnaire = { _id: questionnaireId, name: 'test2', cards };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
@@ -121,9 +121,9 @@ describe('addCard', () => {
   });
 
   it('should add card to questionnaire', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
     const payload = { template: 'transition' };
-    const questionnaire = { _id: new ObjectID(), name: 'faire du jetski' };
+    const questionnaire = { _id: new ObjectId(), name: 'faire du jetski' };
 
     createCard.returns({ _id: cardId });
 
@@ -150,7 +150,7 @@ describe('removeCard', () => {
   });
 
   it('should remove card without media from questionnaire', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
 
     findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
 
@@ -168,7 +168,7 @@ describe('removeCard', () => {
   });
 
   it('should remove card with media from questionnaire', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
     const card = { _id: cardId, media: { publicId: 'publicId' } };
 
     findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([card], ['lean']));
@@ -203,8 +203,8 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return an empty array if course is strictly e-learning', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = { _id: courseId, format: 'strictly_e_learning' };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
@@ -226,8 +226,8 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return an empty array if not started and no expectations questionnaire', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
@@ -260,16 +260,16 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return an empty array if expectations questionnaire is already answered', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
     const questionnaire = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       name: 'test',
-      histories: [{ _id: new ObjectID(), course: course._id, user: credentials._id }],
+      histories: [{ _id: new ObjectId(), course: course._id, user: credentials._id }],
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
@@ -299,13 +299,13 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return expectations questionnaire if course not started and questionnaire not answered', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
-    const questionnaire = { _id: new ObjectID(), name: 'test', type: 'expectations', histories: [] };
+    const questionnaire = { _id: new ObjectId(), name: 'test', type: 'expectations', histories: [] };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
     nowStub.returns(new Date('2021-04-13T15:00:00'));
@@ -334,10 +334,10 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return expectations questionnaire if no slots', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = { _id: courseId, slots: [] };
-    const questionnaire = { _id: new ObjectID(), name: 'test', histories: [] };
+    const questionnaire = { _id: new ObjectId(), name: 'test', histories: [] };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
     nowStub.returns(new Date('2021-04-13T15:00:00'));
@@ -366,12 +366,12 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return an empty array if course is started and has slots to plan', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
-      slotsToPlan: [{ _id: new ObjectID() }],
+      slotsToPlan: [{ _id: new ObjectId() }],
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
@@ -393,8 +393,8 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return an empty array if is ended and no end of course questionnaire', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
@@ -427,16 +427,16 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return an empty array if end of course questionnaire is already answered', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
     const questionnaire = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       name: 'test',
-      histories: [{ _id: new ObjectID(), course: course._id, user: credentials._id }],
+      histories: [{ _id: new ObjectId(), course: course._id, user: credentials._id }],
     };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
@@ -466,13 +466,13 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return end of course questionnaire if last slot is started and questionnaire not answered', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
       slots: [{ startDate: new Date('2021-04-23T09:00:00'), endDate: new Date('2021-04-23T11:00:00') }],
     };
-    const questionnaire = { _id: new ObjectID(), name: 'test', type: 'end_of_course', histories: [] };
+    const questionnaire = { _id: new ObjectId(), name: 'test', type: 'end_of_course', histories: [] };
 
     findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
     nowStub.returns(new Date('2021-04-23T10:00:00'));
@@ -501,8 +501,8 @@ describe('getUserQuestionnaires', () => {
   });
 
   it('should return an empty array if first slot is passed but last slot isn\'t', async () => {
-    const courseId = new ObjectID();
-    const credentials = { _id: new ObjectID() };
+    const courseId = new ObjectId();
+    const credentials = { _id: new ObjectId() };
     const course = {
       _id: courseId,
       format: 'blended',
@@ -544,23 +544,23 @@ describe('getFollowUp', () => {
   });
 
   it('should return follow up for intra course', async () => {
-    const questionnaireId = new ObjectID();
-    const courseId = new ObjectID();
-    const companyId = new ObjectID();
+    const questionnaireId = new ObjectId();
+    const courseId = new ObjectId();
+    const companyId = new ObjectId();
     const course = {
       _id: courseId,
       company: { name: 'company' },
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
     };
-    const cardsIds = [new ObjectID(), new ObjectID()];
+    const cardsIds = [new ObjectId(), new ObjectId()];
     const questionnaire = {
       _id: questionnaireId,
       type: EXPECTATIONS,
       name: 'questionnaire',
       histories: [
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           course: course._id,
           user: { company: companyId },
           questionnaireAnswersList: [
@@ -586,7 +586,7 @@ describe('getFollowUp', () => {
           ],
         },
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           course: course._id,
           user: { company: companyId },
           questionnaireAnswersList: [
@@ -691,23 +691,23 @@ describe('getFollowUp', () => {
   });
 
   it('should return follow up for inter b2b course', async () => {
-    const questionnaireId = new ObjectID();
-    const courseId = new ObjectID();
-    const companyAId = new ObjectID();
-    const companyBId = new ObjectID();
+    const questionnaireId = new ObjectId();
+    const courseId = new ObjectId();
+    const companyAId = new ObjectId();
+    const companyBId = new ObjectId();
     const course = {
       _id: courseId,
       subProgram: { program: { name: 'test' } },
       misc: 'infos',
     };
-    const cardsIds = [new ObjectID(), new ObjectID()];
+    const cardsIds = [new ObjectId(), new ObjectId()];
     const questionnaire = {
       _id: questionnaireId,
       type: EXPECTATIONS,
       name: 'questionnaire',
       histories: [
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           course: course._id,
           user: { company: companyAId },
           questionnaireAnswersList: [
@@ -733,7 +733,7 @@ describe('getFollowUp', () => {
           ],
         },
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           course: course._id,
           user: { company: companyBId },
           questionnaireAnswersList: [
@@ -838,17 +838,17 @@ describe('getFollowUp', () => {
   });
 
   it('should return follow up for a questionnaire', async () => {
-    const questionnaireId = new ObjectID();
-    const cardsIds = [new ObjectID(), new ObjectID()];
-    const companyId = ObjectID();
+    const questionnaireId = new ObjectId();
+    const cardsIds = [new ObjectId(), new ObjectId()];
+    const companyId = ObjectId();
     const questionnaire = {
       _id: questionnaireId,
       type: EXPECTATIONS,
       name: 'questionnaire',
       histories: [
         {
-          _id: new ObjectID(),
-          course: new ObjectID(),
+          _id: new ObjectId(),
+          course: new ObjectId(),
           user: { company: companyId },
           questionnaireAnswersList: [
             {
@@ -873,8 +873,8 @@ describe('getFollowUp', () => {
           ],
         },
         {
-          _id: new ObjectID(),
-          course: new ObjectID(),
+          _id: new ObjectId(),
+          course: new ObjectId(),
           user: { company: companyId },
           questionnaireAnswersList: [
             {
@@ -959,9 +959,9 @@ describe('getFollowUp', () => {
   });
 
   it('should return an empty array for followUp if answerList is empty', async () => {
-    const questionnaireId = new ObjectID();
-    const courseId = new ObjectID();
-    const companyId = new ObjectID();
+    const questionnaireId = new ObjectId();
+    const courseId = new ObjectId();
+    const companyId = new ObjectId();
     const course = {
       _id: courseId,
       company: { name: 'company' },
@@ -973,11 +973,11 @@ describe('getFollowUp', () => {
       type: EXPECTATIONS,
       name: 'questionnaire',
       histories: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         course: course._id,
         user: { company: companyId },
         questionnaireAnswersList: [{
-          card: { _id: new ObjectID(), template: 'open_question', isMandatory: true, question: 'aimez-vous ce test ?' },
+          card: { _id: new ObjectId(), template: 'open_question', isMandatory: true, question: 'aimez-vous ce test ?' },
           answerList: [''],
         }],
       }],
@@ -1040,8 +1040,8 @@ describe('getFollowUp', () => {
   });
 
   it('should return an empty array for followUp if histories is empty', async () => {
-    const questionnaireId = new ObjectID();
-    const courseId = new ObjectID();
+    const questionnaireId = new ObjectId();
+    const courseId = new ObjectId();
     const course = {
       _id: courseId,
       company: { name: 'company' },
@@ -1112,9 +1112,9 @@ describe('getFollowUp', () => {
   });
 
   it('should return an empty array for followUp if questionnaireAnswersList is empty', async () => {
-    const questionnaireId = new ObjectID();
-    const courseId = new ObjectID();
-    const companyId = new ObjectID();
+    const questionnaireId = new ObjectId();
+    const courseId = new ObjectId();
+    const companyId = new ObjectId();
     const course = {
       _id: courseId,
       company: { name: 'company' },
@@ -1126,7 +1126,7 @@ describe('getFollowUp', () => {
       type: EXPECTATIONS,
       name: 'questionnaire',
       histories: [{
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         course: course._id,
         user: { company: companyId },
         questionnaireAnswersList: [],

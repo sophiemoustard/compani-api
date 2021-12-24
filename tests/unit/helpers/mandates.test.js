@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { fn: momentProto } = require('moment');
 const Customer = require('../../../src/models/Customer');
 const Drive = require('../../../src/models/Google/Drive');
@@ -22,8 +22,8 @@ describe('getMandates', () => {
   });
 
   it('should return customer mandates', async () => {
-    const customerId = (new ObjectID()).toHexString();
-    const mandate = { _id: new ObjectID() };
+    const customerId = (new ObjectId()).toHexString();
+    const mandate = { _id: new ObjectId() };
 
     findOneCustomer.returns(SinonMongoose.stubChainedQueries([mandate], ['lean']));
 
@@ -57,7 +57,7 @@ describe('updateMandate', () => {
   });
 
   it('should update customer mandates', async () => {
-    const customerId = (new ObjectID()).toHexString();
+    const customerId = (new ObjectId()).toHexString();
     const mandateId = '1234567890';
     const payload = { startDate: '2019-12-12T00:00:00' };
 
@@ -99,8 +99,8 @@ describe('getSignatureRequest', () => {
   });
 
   it('should generate signature request', async () => {
-    const customerId = (new ObjectID()).toHexString();
-    const mandateId = new ObjectID();
+    const customerId = (new ObjectId()).toHexString();
+    const mandateId = new ObjectId();
     const payload = {
       fileId: 'fileId',
       fields: 'fields',
@@ -111,7 +111,7 @@ describe('getSignatureRequest', () => {
     };
     const customer = {
       _id: customerId,
-      payment: { mandates: [{ _id: new ObjectID() }, { _id: mandateId, rum: 'rum' }] },
+      payment: { mandates: [{ _id: new ObjectId() }, { _id: mandateId, rum: 'rum' }] },
     };
     findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
     generateSignatureRequest.returns({
@@ -139,8 +139,8 @@ describe('getSignatureRequest', () => {
   });
 
   it('should throw error if error on generate', async () => {
-    const customerId = (new ObjectID()).toHexString();
-    const mandateId = new ObjectID();
+    const customerId = (new ObjectId()).toHexString();
+    const mandateId = new ObjectId();
     try {
       const payload = {
         fileId: 'fileId',
@@ -152,7 +152,7 @@ describe('getSignatureRequest', () => {
       };
       const customer = {
         _id: customerId,
-        payment: { mandates: [{ _id: new ObjectID() }, { _id: mandateId, rum: 'rum' }] },
+        payment: { mandates: [{ _id: new ObjectId() }, { _id: mandateId, rum: 'rum' }] },
       };
 
       findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
@@ -209,7 +209,7 @@ describe('saveSignedMandate', () => {
 
   it('should save signed mandate', async () => {
     const customerId = '1234567890';
-    const mandateId = new ObjectID();
+    const mandateId = new ObjectId();
     const customer = {
       _id: customerId,
       payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },
@@ -258,7 +258,7 @@ describe('saveSignedMandate', () => {
   it('should throw an error if esign returns an error', async () => {
     const customerId = '1234567890';
     try {
-      const mandateId = new ObjectID();
+      const mandateId = new ObjectId();
       const customer = {
         _id: customerId,
         payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },
@@ -288,7 +288,7 @@ describe('saveSignedMandate', () => {
   it('should throw an error if no signed doc in esign response', async () => {
     const customerId = '1234567890';
     try {
-      const mandateId = new ObjectID();
+      const mandateId = new ObjectId();
       const customer = {
         _id: customerId,
         payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },

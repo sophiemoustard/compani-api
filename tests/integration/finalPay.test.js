@@ -1,6 +1,6 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { populateDB, auxiliary, auxiliaryFromOtherCompany, surcharge } = require('./seed/finalPaySeed');
 const app = require('../../server');
 const FinalPay = require('../../src/models/FinalPay');
@@ -146,7 +146,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
       surchargedAndExemptDetails: {},
       surchargedAndNotExempt: 20,
       surchargedAndNotExemptDetails: {
-        [new ObjectID()]: {
+        [new ObjectId()]: {
           planName: 'Toto',
           custom: { hours: 20, percentage: 10 },
         },

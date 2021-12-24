@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Helper = require('../../../src/models/Helper');
@@ -10,7 +10,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const { helperRoleId } = require('../../seed/authRolesSeed');
 
 const customer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
@@ -25,7 +25,7 @@ const customer = {
 };
 
 const customerFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { title: 'mr', firstname: 'toto', lastname: 'test' },
   company: otherCompany._id,
   contact: {
@@ -42,7 +42,7 @@ const customerFromOtherCompany = {
 };
 
 const helperFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Guigui', lastname: 'toto' },
   local: { email: 'othercompany@alenvi.io' },
   role: { client: helperRoleId },
@@ -52,7 +52,7 @@ const helperFromOtherCompany = {
 };
 
 const usersSeedList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Helper1', lastname: 'Carolyn' },
   local: { email: 'carolyn@alenvi.io' },
   refreshToken: uuidv4(),
@@ -61,20 +61,20 @@ const usersSeedList = [{
 }];
 
 const userCompanies = [
-  { _id: new ObjectID(), user: helperFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectID(), user: usersSeedList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: helperFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: usersSeedList[0]._id, company: authCompany._id },
 ];
 
 const helpersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     user: usersSeedList[0]._id,
     customer: customer._id,
     company: authCompany._id,
     referent: false,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     user: helperFromOtherCompany._id,
     customer: customerFromOtherCompany._id,
     company: otherCompany._id,

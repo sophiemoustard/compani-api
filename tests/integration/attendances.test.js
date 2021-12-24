@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Attendance = require('../../src/models/Attendance');
 const app = require('../../server');
 const {
@@ -68,7 +68,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
         method: 'POST',
         url: '/attendances',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: coursesList[0].trainees[1], courseSlot: new ObjectID() },
+        payload: { trainee: coursesList[0].trainees[1], courseSlot: new ObjectId() },
       });
 
       expect(response.statusCode).toBe(404);
@@ -219,7 +219,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
     it('should return 404 if invalid course', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?course=${new ObjectID()}`,
+        url: `/attendances?course=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -229,7 +229,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
     it('should return 404 if invalid courseSlot', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?courseSlot=${new ObjectID()}`,
+        url: `/attendances?courseSlot=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -334,7 +334,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
     it('should return a 404 if attendance does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${new ObjectID()}`,
+        url: `/attendances/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const SubProgram = require('../../src/models/SubProgram');
@@ -134,7 +134,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
 
     it('should return a 400 if user tries to publish strictly e-learning subProgram with wrong accessCompany',
       async () => {
-        const payload = { status: 'published', accessCompany: new ObjectID() };
+        const payload = { status: 'published', accessCompany: new ObjectId() };
         const response = await app.inject({
           method: 'PUT',
           url: `/subprograms/${eLearningSubProgramId.toHexString()}`,
@@ -319,7 +319,7 @@ describe('SUBPROGRAMS ROUTES - POST /subprograms/{_id}/step', () => {
     it('should return a 404 if subprogram does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/subprograms/${new ObjectID()}/steps`,
+        url: `/subprograms/${new ObjectId()}/steps`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -391,7 +391,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}/step', () => {
     it('should return a 404 if subProgram does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/subprograms/${new ObjectID()}/steps`,
+        url: `/subprograms/${new ObjectId()}/steps`,
         payload: { steps: stepsList[0]._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -403,7 +403,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}/step', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/subprograms/${subProgramsList[0]._id}/steps`,
-        payload: { steps: new ObjectID() },
+        payload: { steps: new ObjectId() },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -625,7 +625,7 @@ describe('SUBPROGRAMS ROUTES - GET /subprograms/{_id}', () => {
     it('should return 404 if subprogram does not exists', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/subprograms/${new ObjectID()}`,
+        url: `/subprograms/${new ObjectId()}`,
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(404);

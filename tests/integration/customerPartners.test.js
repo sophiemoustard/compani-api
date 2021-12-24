@@ -1,6 +1,7 @@
 const expect = require('expect');
 const app = require('../../server');
 const CustomerPartner = require('../../src/models/CustomerPartner');
+const { authCompany } = require('../seed/authCompaniesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const {
   populateDB,
@@ -150,7 +151,7 @@ describe('CUSTOMER PARTNERS ROUTES - GET /customerpartners', () => {
 
       expect(response.statusCode).toBe(200);
       const customerPartners = await CustomerPartner.countDocuments({ customer: customersList[0]._id });
-      expect(customerPartners).toEqual(1);
+      expect(customerPartners).toEqual(2);
     });
 
     it('should return 404 if customer and user have different companies', async () => {
@@ -206,8 +207,11 @@ describe('CUSTOMER PARTNERS ROUTES - PUT /customerpartners/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const updatedCustomerPartner = await CustomerPartner.countDocuments({ _id: customerPartnerId, prescriber: true });
-      expect(updatedCustomerPartner).toEqual(1);
+      const updatedCustomerPartnerList = await CustomerPartner
+        .find({ prescriber: true, company: authCompany._id })
+        .lean();
+      expect(updatedCustomerPartnerList.length).toEqual(1);
+      expect(updatedCustomerPartnerList[0]._id).toEqual(customerPartnerId);
     });
 
     it('should return 404 if customer partner has wrong company', async () => {

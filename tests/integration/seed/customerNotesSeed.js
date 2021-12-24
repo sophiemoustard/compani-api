@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Customer = require('../../../src/models/Customer');
 const CustomerNote = require('../../../src/models/CustomerNote');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
@@ -6,7 +6,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const customersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
@@ -20,7 +20,7 @@ const customersList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: otherCompany._id,
     identity: { title: 'mrs', firstname: 'Romane', lastname: 'Chal' },
     contact: {
@@ -37,14 +37,14 @@ const customersList = [
 
 const customerNotesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     title: 'Titre',
     description: 'Description',
     customer: customersList[0],
     company: authCompany._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     title: 'Titre 1',
     description: 'Description 2',
     customer: customersList[1],

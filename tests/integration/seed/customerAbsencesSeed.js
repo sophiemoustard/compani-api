@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Customer = require('../../../src/models/Customer');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -12,7 +12,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const customersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Paul', lastname: 'Bardet' },
     contact: {
@@ -26,7 +26,7 @@ const customersList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: otherCompany._id,
     identity: { title: 'mrs', firstname: 'Romane', lastname: 'Chal' },
     contact: {
@@ -40,7 +40,7 @@ const customersList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Gerars', lastname: 'Menvussa' },
     contact: {
@@ -54,7 +54,7 @@ const customersList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Pierre', lastname: 'Poirot' },
     contact: {
@@ -68,7 +68,7 @@ const customersList = [
     },
   },
   { // stopped Customer
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Jesuis', lastname: 'Arrete' },
     contact: {
@@ -86,7 +86,7 @@ const customersList = [
 ];
 
 const usersList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Mike', lastname: 'ElJackson' },
   local: { email: 'dsfgag@tt.com', password: '123456!eR' },
   refreshToken: uuidv4(),
@@ -102,7 +102,7 @@ const helpersList = [
 
 const customerAbsencesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[0],
     startDate: '2021-10-01T00:00:00.000Z',
@@ -110,7 +110,7 @@ const customerAbsencesList = [
     absenceType: 'leave',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[2],
     startDate: '2021-10-04T00:00:00.000Z',
@@ -118,7 +118,7 @@ const customerAbsencesList = [
     absenceType: 'hospitalization',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[0],
     startDate: '2021-11-01T00:00:00.000Z',
@@ -126,7 +126,7 @@ const customerAbsencesList = [
     absenceType: 'other',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: otherCompany._id,
     customer: customersList[1],
     startDate: '2021-10-08T00:00:00.000Z',
@@ -134,7 +134,7 @@ const customerAbsencesList = [
     absenceType: 'other',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[4],
     startDate: '2021-10-08T00:00:00.000Z',

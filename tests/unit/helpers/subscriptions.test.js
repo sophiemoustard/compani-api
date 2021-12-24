@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const Customer = require('../../../src/models/Customer');
@@ -14,11 +14,11 @@ describe('populateService', () => {
 
   it('should return service correctly populated', () => {
     const service = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       isArchived: true,
       versions: [
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           startDate: '2019-01-18T15:46:30.636Z',
           createdAt: '2019-01-18T15:46:30.636Z',
           unitTTCRate: 13,
@@ -26,7 +26,7 @@ describe('populateService', () => {
           sundays: 2,
         },
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           startDate: '2020-01-18T15:46:30.636Z',
           createdAt: '2019-12-17T15:46:30.636Z',
           unitTTCRate: 1,
@@ -95,7 +95,7 @@ describe('populateSubscriptionsServices', () => {
 
 describe('subscriptionsAccepted', () => {
   it('should set subscriptionsAccepted to true', async () => {
-    const subId = new ObjectID();
+    const subId = new ObjectId();
     const customer = {
       subscriptions: [
         {
@@ -103,7 +103,7 @@ describe('subscriptionsAccepted', () => {
             {
               startDate: '2019-01-18T15:46:30.636Z',
               createdAt: '2019-01-18T15:46:30.636Z',
-              _id: new ObjectID(),
+              _id: new ObjectId(),
               unitTTCRate: 13,
               estimatedWeeklyVolume: 12,
               sundays: 2,
@@ -111,7 +111,7 @@ describe('subscriptionsAccepted', () => {
             {
               startDate: '2019-01-27T23:00:00.000Z',
               createdAt: '2019-01-18T15:46:37.471Z',
-              _id: new ObjectID(),
+              _id: new ObjectId(),
               unitTTCRate: 24,
               estimatedWeeklyVolume: 12,
               sundays: 2,
@@ -121,7 +121,7 @@ describe('subscriptionsAccepted', () => {
           createdAt: '2019-01-18T15:46:30.637Z',
           _id: subId,
           service: {
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             nature: 'Horaire',
             defaultUnitAmount: 25,
             vat: 5.5,
@@ -140,7 +140,7 @@ describe('subscriptionsAccepted', () => {
             title: '',
           },
           subscriptions: [{
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             service: 'Temps de qualité - Autonomie',
             unitTTCRate: 24,
             estimatedWeeklyVolume: 12,
@@ -150,7 +150,7 @@ describe('subscriptionsAccepted', () => {
             subscriptionId: subId,
           }],
           approvalDate: '2019-01-21T11:14:23.030Z',
-          _id: new ObjectID(),
+          _id: new ObjectId(),
         },
       ],
     };
@@ -168,14 +168,14 @@ describe('subscriptionsAccepted', () => {
             {
               startDate: '2019-01-18T15:46:30.636Z',
               createdAt: '2019-01-18T15:46:30.636Z',
-              _id: new ObjectID(),
+              _id: new ObjectId(),
               unitTTCRate: 13,
               estimatedWeeklyVolume: 12,
               sundays: 2,
             }, {
               startDate: '2019-01-27T23:00:00.000Z',
               createdAt: '2019-01-18T15:46:37.471Z',
-              _id: new ObjectID(),
+              _id: new ObjectId(),
               unitTTCRate: 24,
               estimatedWeeklyVolume: 12,
               sundays: 2,
@@ -183,8 +183,8 @@ describe('subscriptionsAccepted', () => {
             },
           ],
           createdAt: '2019-01-18T15:46:30.637Z',
-          _id: new ObjectID(),
-          service: new ObjectID(),
+          _id: new ObjectId(),
+          service: new ObjectId(),
         },
       ],
       subscriptionsHistory: [
@@ -192,16 +192,16 @@ describe('subscriptionsAccepted', () => {
           helper: { firstname: 'Test', lastname: 'Test', title: '' },
           subscriptions: [
             {
-              _id: new ObjectID(),
+              _id: new ObjectId(),
               service: 'Temps de qualité - Autonomie',
               unitTTCRate: 35,
               estimatedWeeklyVolume: 12,
               startDate: '2019-01-27T23:00:00.000Z',
-              subscriptionId: new ObjectID(),
+              subscriptionId: new ObjectId(),
             },
           ],
           approvalDate: '2019-01-21T11:14:23.030Z',
-          _id: new ObjectID(),
+          _id: new ObjectId(),
         },
       ],
     };
@@ -225,13 +225,13 @@ describe('updateSubscription', () => {
   });
 
   it('should update subscription', async () => {
-    const customerId = new ObjectID();
-    const subscriptionId = new ObjectID();
+    const customerId = new ObjectId();
+    const subscriptionId = new ObjectId();
     const params = { _id: customerId.toHexString(), subscriptionId: subscriptionId.toHexString() };
     const payload = { evenings: 2 };
     const customer = {
       _id: customerId,
-      subscriptions: [{ _id: subscriptionId, evenings: 2, service: new ObjectID() }],
+      subscriptions: [{ _id: subscriptionId, evenings: 2, service: new ObjectId() }],
     };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
@@ -275,9 +275,9 @@ describe('addSubscription', () => {
   });
 
   it('should add this first subscription', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const customer = { _id: customerId };
-    const payload = { service: new ObjectID(), estimatedWeeklyVolume: 10 };
+    const payload = { service: new ObjectId(), estimatedWeeklyVolume: 10 };
 
     findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
@@ -306,9 +306,9 @@ describe('addSubscription', () => {
   });
 
   it('should add the second subscription', async () => {
-    const customerId = new ObjectID();
-    const customer = { _id: customerId, subscriptions: [{ service: new ObjectID() }] };
-    const payload = { service: (new ObjectID()).toHexString(), estimatedWeeklyVolume: 10 };
+    const customerId = new ObjectId();
+    const customer = { _id: customerId, subscriptions: [{ service: new ObjectId() }] };
+    const payload = { service: (new ObjectId()).toHexString(), estimatedWeeklyVolume: 10 };
 
     findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
@@ -337,9 +337,9 @@ describe('addSubscription', () => {
   });
 
   it('should throw an error if service is already subscribed', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     try {
-      const serviceId = new ObjectID();
+      const serviceId = new ObjectId();
       const customer = { _id: customerId, subscriptions: [{ service: serviceId }] };
       const payload = { service: serviceId.toHexString(), estimatedWeeklyVolume: 10 };
 
@@ -357,9 +357,9 @@ describe('addSubscription', () => {
 });
 
 describe('deleteSubscription', () => {
-  const customerId = new ObjectID();
-  const subscriptionId = new ObjectID();
-  const secondSubId = new ObjectID();
+  const customerId = new ObjectId();
+  const subscriptionId = new ObjectId();
+  const secondSubId = new ObjectId();
 
   let updateOne;
   let findByIdCustomer;
@@ -410,7 +410,7 @@ describe('createSubscriptionHistory', () => {
   });
 
   it('should create subscription history', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { evenings: 2 };
     const customer = { _id: customerId };
 

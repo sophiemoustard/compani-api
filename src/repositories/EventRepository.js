@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
@@ -268,7 +268,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
 
 exports.getEventsToBill = async (query, companyId) => {
   const rules = [];
-  if (has(query, 'eventIds')) rules.push({ _id: { $in: query.eventIds.map(id => new ObjectID(id)) } });
+  if (has(query, 'eventIds')) rules.push({ _id: { $in: query.eventIds.map(id => new ObjectId(id)) } });
   else {
     rules.push(
       { endDate: { $lt: query.endDate } },
@@ -278,7 +278,7 @@ exports.getEventsToBill = async (query, companyId) => {
       { 'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } } }
     );
     if (query.startDate) rules.push({ startDate: { $gte: query.startDate } });
-    if (query.customer) rules.push({ customer: new ObjectID(query.customer) });
+    if (query.customer) rules.push({ customer: new ObjectId(query.customer) });
   }
 
   return Event.aggregate([

@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const Boom = require('@hapi/boom');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const eventTimeStampingHelper = require('../../../src/helpers/eventTimeStamping');
 const eventHistoryHelper = require('../../../src/helpers/eventHistories');
 const eventValidationHelper = require('../../../src/helpers/eventsValidation');
@@ -16,7 +16,7 @@ describe('isStartDateTimeStampAllowed', () => {
   afterEach(() => { hasConflictsStub.restore(); });
 
   it('should return true if user is allowed to timestamp', async () => {
-    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const event = { _id: new ObjectId(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
     const startDate = '2021-05-01T10:04:00';
 
     hasConflictsStub.returns(false);
@@ -28,7 +28,7 @@ describe('isStartDateTimeStampAllowed', () => {
   });
 
   it('should return a 422 if endDate is before timestamping date', async () => {
-    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const event = { _id: new ObjectId(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
     const startDate = '2021-05-01T12:30:00';
     try {
       await eventTimeStampingHelper.isStartDateTimeStampAllowed(event, startDate);
@@ -40,7 +40,7 @@ describe('isStartDateTimeStampAllowed', () => {
   });
 
   it('should return a 409 if new event is in conflict with other events', async () => {
-    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const event = { _id: new ObjectId(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
     const startDate = '2021-05-01T09:45:00';
     try {
       hasConflictsStub.returns(true);
@@ -63,7 +63,7 @@ describe('isEndDateTimeStampAllowed', () => {
   afterEach(() => { hasConflictsStub.restore(); });
 
   it('should return true if user is allowed to timestamp', async () => {
-    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const event = { _id: new ObjectId(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
     const endDate = '2021-05-01T12:04:00';
 
     hasConflictsStub.returns(false);
@@ -75,7 +75,7 @@ describe('isEndDateTimeStampAllowed', () => {
   });
 
   it('should return a 422 if startDate is after timestamping date', async () => {
-    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const event = { _id: new ObjectId(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
     const endDate = '2021-05-01T09:30:00';
     try {
       await eventTimeStampingHelper.isEndDateTimeStampAllowed(event, endDate);
@@ -87,7 +87,7 @@ describe('isEndDateTimeStampAllowed', () => {
   });
 
   it('should return a 409 if new event is in conflict with other events', async () => {
-    const event = { _id: new ObjectID(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
+    const event = { _id: new ObjectId(), startDate: '2021-05-01T10:00:00', endDate: '2021-05-01T12:00:00' };
     const endDate = '2021-05-01T12:45:00';
     try {
       hasConflictsStub.returns(true);
@@ -123,10 +123,10 @@ describe('addTimeStamp', () => {
   });
 
   it('should add startDate timestamp and updateEvent', async () => {
-    const event = { _id: new ObjectID() };
+    const event = { _id: new ObjectId() };
     const startDate = new Date();
     const payload = { action: MANUAL_TIME_STAMPING, reason: 'qrcode', startDate };
-    const credentials = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
 
     isStartDateTimeStampAllowedStub.returns(true);
 
@@ -139,10 +139,10 @@ describe('addTimeStamp', () => {
   });
 
   it('should return a 409 if startDate timestamp is not allowed', async () => {
-    const event = { _id: new ObjectID() };
+    const event = { _id: new ObjectId() };
     const startDate = new Date();
     const payload = { action: MANUAL_TIME_STAMPING, reason: 'qrcode', startDate };
-    const credentials = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
 
     try {
       isStartDateTimeStampAllowedStub.returns(false);
@@ -159,10 +159,10 @@ describe('addTimeStamp', () => {
   });
 
   it('should add endDate timestamp and updateEvent', async () => {
-    const event = { _id: new ObjectID() };
+    const event = { _id: new ObjectId() };
     const endDate = new Date();
     const payload = { action: MANUAL_TIME_STAMPING, reason: 'qrcode', endDate };
-    const credentials = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
 
     isEndDateTimeStampAllowedStub.returns(true);
 
@@ -175,10 +175,10 @@ describe('addTimeStamp', () => {
   });
 
   it('should return a 409 if startDate timestamp is not allowed', async () => {
-    const event = { _id: new ObjectID() };
+    const event = { _id: new ObjectId() };
     const endDate = new Date();
     const payload = { action: MANUAL_TIME_STAMPING, reason: 'qrcode', endDate };
-    const credentials = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
 
     try {
       isEndDateTimeStampAllowedStub.returns(false);

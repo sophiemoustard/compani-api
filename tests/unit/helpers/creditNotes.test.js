@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -24,9 +24,9 @@ describe('getCreditNotes', () => {
   let getDateQueryStub;
   let find;
   let populateSubscriptionsServicesStub;
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
-  const customerId = new ObjectID();
+  const customerId = new ObjectId();
 
   beforeEach(() => {
     getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
@@ -165,12 +165,12 @@ describe('updateEventAndFundingHistory', () => {
   });
 
   it('should increment history for hourly and once funding', async () => {
-    const fundingId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const fundingId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const events = [{
-      _id: new ObjectID(),
-      company: new ObjectID(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
       startDate: new Date('2019/01/19'),
     }];
 
@@ -190,12 +190,12 @@ describe('updateEventAndFundingHistory', () => {
   });
 
   it('should increment history for hourly and monthly funding', async () => {
-    const fundingId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const fundingId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const events = [{
-      _id: new ObjectID(),
-      company: new ObjectID(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
       startDate: new Date('2019/01/19'),
     }];
 
@@ -214,12 +214,12 @@ describe('updateEventAndFundingHistory', () => {
   });
 
   it('should decrement history for hourly and monthly funding', async () => {
-    const fundingId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const fundingId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const events = [{
-      _id: new ObjectID(),
-      company: new ObjectID(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
       startDate: new Date('2019/01/19'),
     }];
 
@@ -238,14 +238,14 @@ describe('updateEventAndFundingHistory', () => {
   });
 
   it('should increment history for fixed and once funding', async () => {
-    const fundingId = new ObjectID();
-    const eventId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const fundingId = new ObjectId();
+    const eventId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const eventsToUpdate = [{ eventId }];
     const events = [{
-      _id: new ObjectID(),
-      company: new ObjectID(),
-      bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectID(), inclTaxesTpp: 666 },
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectId(), inclTaxesTpp: 666 },
       startDate: new Date('2019/01/19'),
     }];
 
@@ -333,7 +333,7 @@ describe('getCreditNoteNumber', () => {
 
   it('should get credit note number', async () => {
     const payload = { date: '2019-09-19T00:00:00' };
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
@@ -363,7 +363,7 @@ describe('createCreditNotes', () => {
   let updateEventAndFundingHistory;
   let getCreditNoteNumber;
   let createBillSlips;
-  const credentials = { company: { _id: new ObjectID(), prefixNumber: 'prefixNumber' } };
+  const credentials = { company: { _id: new ObjectId(), prefixNumber: 'prefixNumber' } };
   const prefix = 'AV-0719';
 
   beforeEach(() => {
@@ -532,7 +532,7 @@ describe('updateCreditNotes', () => {
   let findByIdAndUpdate;
   let updateOne;
   const creditNote = {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     number: 1,
     events: [{
       auxiliary: { identity: { firstname: 'Nathanaelle', lastname: 'Tata' } },
@@ -544,7 +544,7 @@ describe('updateCreditNotes', () => {
     customer: {
       identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
       contact: { primaryAddress: { fullAddress: 'La ruche' } },
-      subscriptions: [{ _id: new ObjectID(), service: { versions: [{ name: 'Toto' }] } }],
+      subscriptions: [{ _id: new ObjectId(), service: { versions: [{ name: 'Toto' }] } }],
     },
     date: '2019-04-29T22:00:00.000Z',
     exclTaxesCustomer: 221,
@@ -552,7 +552,7 @@ describe('updateCreditNotes', () => {
     exclTaxesTpp: 21,
     inclTaxesTpp: 34,
   };
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
 
   beforeEach(() => {
     updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
@@ -606,7 +606,7 @@ describe('updateCreditNotes', () => {
   });
 
   it('should update a customer credit note and its tpp linked credit note', async () => {
-    const creditNoteWithLink = { ...creditNote, linkedCreditNote: new ObjectID() };
+    const creditNoteWithLink = { ...creditNote, linkedCreditNote: new ObjectId() };
     const payload = {
       events: [{
         auxiliary: {
@@ -647,8 +647,8 @@ describe('updateCreditNotes', () => {
   });
 
   it('should update a tpp credit note and its customer linked credit note', async () => {
-    const tppId = new ObjectID();
-    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: tppId, linkedCreditNote: new ObjectID() };
+    const tppId = new ObjectId();
+    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: tppId, linkedCreditNote: new ObjectId() };
     const payload = {
       events: [{
         auxiliary: {
@@ -719,7 +719,7 @@ describe('formatPdf', () => {
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     };
-    const subId = new ObjectID();
+    const subId = new ObjectId();
     const creditNote = {
       number: 1,
       events: [{
@@ -780,7 +780,7 @@ describe('formatPdf', () => {
   });
 
   it('should format correct credit note pdf with events for tpp', () => {
-    const subId = new ObjectID();
+    const subId = new ObjectId();
     const creditNote = {
       number: 1,
       events: [{
@@ -895,7 +895,7 @@ describe('removeCreditNote', () => {
   let updateEventAndFundingHistoryStub;
   let deleteOneStub;
   const creditNote = {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     number: 1,
     events: [{
       auxiliary: {
@@ -909,7 +909,7 @@ describe('removeCreditNote', () => {
     customer: {
       identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
       contact: { primaryAddress: { fullAddress: 'La ruche' } },
-      subscriptions: [{ _id: new ObjectID(), service: { versions: [{ name: 'Toto' }] } }],
+      subscriptions: [{ _id: new ObjectId(), service: { versions: [{ name: 'Toto' }] } }],
     },
     date: '2019-04-29T22:00:00.000Z',
     exclTaxesCustomer: 221,
@@ -917,8 +917,8 @@ describe('removeCreditNote', () => {
     exclTaxesTpp: 21,
     inclTaxesTpp: 34,
   };
-  const credentials = { company: { _id: new ObjectID() } };
-  const params = { _id: new ObjectID() };
+  const credentials = { company: { _id: new ObjectId() } };
+  const params = { _id: new ObjectId() };
   beforeEach(() => {
     updateEventAndFundingHistoryStub = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
     deleteOneStub = sinon.stub(CreditNote, 'deleteOne');
@@ -936,7 +936,7 @@ describe('removeCreditNote', () => {
   });
 
   it('should delete the linked creditNote if it has one', async () => {
-    creditNote.linkedCreditNote = new ObjectID();
+    creditNote.linkedCreditNote = new ObjectId();
     await CreditNoteHelper.removeCreditNote(creditNote, credentials, params);
     sinon.assert.calledOnceWithExactly(updateEventAndFundingHistoryStub, creditNote.events, true, credentials);
     expect(deleteOneStub.getCall(0).calledWithExactly(deleteOneStub, { _id: params._id }));
@@ -951,8 +951,8 @@ describe('generateCreditNotePdf', () => {
   let getPdfContent;
   let generatePdf;
 
-  const params = { _id: new ObjectID() };
-  const credentials = { company: { _id: new ObjectID() } };
+  const params = { _id: new ObjectId() };
+  const credentials = { company: { _id: new ObjectId() } };
   beforeEach(() => {
     creditNoteFindOne = sinon.stub(CreditNote, 'findOne');
     companyNoteFindOne = sinon.stub(Company, 'findOne');

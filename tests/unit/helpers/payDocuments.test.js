@@ -1,7 +1,7 @@
 const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const PayDocumentHelper = require('../../../src/helpers/payDocuments');
@@ -30,9 +30,9 @@ describe('create', () => {
   });
 
   it('should throw a 424 error if file is not uploaded to Google Drive', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     findOne.returns(SinonMongoose.stubChainedQueries([{
       _id: userId,
       administrative: { driveFolder: { driveId: 'driveId' } },
@@ -62,8 +62,8 @@ describe('create', () => {
   });
 
   it('should save document to drive and db', async () => {
-    const userId = new ObjectID();
-    const companyId = new ObjectID();
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
     const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
     const credentials = { company: { _id: companyId } };
     findOne.returns(SinonMongoose.stubChainedQueries([{
@@ -108,7 +108,7 @@ describe('removeFromDriveAndDb', () => {
 
   it('should remove document from db and drive', async () => {
     const deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
-    const id = new ObjectID();
+    const id = new ObjectId();
     const doc = { file: { driveId: '1234567890', link: 'http://test.com/test.pdf' } };
     findByIdAndRemoveStub.returns(doc);
     await PayDocumentHelper.removeFromDriveAndDb(id);

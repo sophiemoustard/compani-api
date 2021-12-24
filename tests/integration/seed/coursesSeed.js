@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -32,7 +32,7 @@ const { VIDEO, WEBAPP } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 
 const traineeFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Fred', lastname: 'Astaire' },
   local: { email: 'traineeOtherCompany@alenvi.io', password: '123456!eR' },
   role: { client: auxiliaryRoleId },
@@ -42,7 +42,7 @@ const traineeFromOtherCompany = {
 };
 
 const traineeFromAuthCompanyWithFormationExpoToken = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Trainee', lastname: 'WithExpoToken' },
   local: { email: 'traineeWithExpoToken@alenvi.io' },
   role: { client: auxiliaryRoleId },
@@ -53,7 +53,7 @@ const traineeFromAuthCompanyWithFormationExpoToken = {
 };
 
 const traineeWithoutCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Salut', lastname: 'Toi' },
   local: { email: 'traineeWithoutCompany@alenvi.io' },
   role: { vendor: trainerRoleId },
@@ -62,7 +62,7 @@ const traineeWithoutCompany = {
 };
 
 const contact = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Roberto', lastname: 'Benigni' },
   local: { email: 'contact@trainer.io' },
   contact: { phone: '0123456789' },
@@ -72,7 +72,7 @@ const contact = {
 };
 
 const contactWithoutPhone = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Cathy', lastname: 'Palenne' },
   local: { email: 'contact_withoutphone@trainer.io' },
   role: { vendor: trainerRoleId },
@@ -89,31 +89,31 @@ const userList = [
 ];
 
 const userCompanies = [
-  { _id: new ObjectID(), user: traineeFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectID(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
+  { _id: new ObjectId(), user: traineeFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: traineeFromAuthCompanyWithFormationExpoToken._id, company: authCompany._id },
 ];
 
 const cardsList = [
-  { _id: new ObjectID(), template: 'title_text' },
-  { _id: new ObjectID(), template: 'survey' },
-  { _id: new ObjectID(), template: 'survey' },
+  { _id: new ObjectId(), template: 'title_text' },
+  { _id: new ObjectId(), template: 'survey' },
+  { _id: new ObjectId(), template: 'survey' },
 ];
 
 const activitiesList = [
-  { _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [cardsList[0]._id] },
-  { _id: new ObjectID(), name: 'great activity', type: VIDEO, cards: [cardsList[1]._id] },
+  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[0]._id] },
+  { _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [cardsList[1]._id] },
 ];
 const activitiesHistory = [
-  { _id: new ObjectID(), user: coach._id, activity: activitiesList[0]._id },
-  { _id: new ObjectID(), user: clientAdmin._id, activity: activitiesList[0]._id },
-  { _id: new ObjectID(), user: helper._id, activity: activitiesList[0]._id },
-  { _id: new ObjectID(), user: auxiliary._id, activity: activitiesList[0]._id },
-  { _id: new ObjectID(), user: auxiliaryWithoutCompany._id, activity: activitiesList[0]._id },
-  { _id: new ObjectID(), user: trainerOrganisationManager._id, activity: activitiesList[0]._id },
-  { _id: new ObjectID(), user: trainer._id, activity: activitiesList[0]._id },
-  { _id: new ObjectID(), user: noRoleNoCompany._id, activity: activitiesList[0]._id },
+  { _id: new ObjectId(), user: coach._id, activity: activitiesList[0]._id },
+  { _id: new ObjectId(), user: clientAdmin._id, activity: activitiesList[0]._id },
+  { _id: new ObjectId(), user: helper._id, activity: activitiesList[0]._id },
+  { _id: new ObjectId(), user: auxiliary._id, activity: activitiesList[0]._id },
+  { _id: new ObjectId(), user: auxiliaryWithoutCompany._id, activity: activitiesList[0]._id },
+  { _id: new ObjectId(), user: trainerOrganisationManager._id, activity: activitiesList[0]._id },
+  { _id: new ObjectId(), user: trainer._id, activity: activitiesList[0]._id },
+  { _id: new ObjectId(), user: noRoleNoCompany._id, activity: activitiesList[0]._id },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     user: coach._id,
     activity: activitiesList[1]._id,
     questionnaireAnswersList: [{ card: cardsList[0]._id, answerList: ['3'] }],
@@ -121,31 +121,31 @@ const activitiesHistory = [
 ];
 
 const stepList = [
-  { _id: new ObjectID(), name: 'etape', type: 'on_site', activities: activitiesList.map(a => a._id) },
-  { _id: new ObjectID(), name: 'etape', type: 'e_learning', activities: activitiesList.map(a => a._id) },
-  { _id: new ObjectID(), name: 'etape', type: 'remote', activities: activitiesList.map(a => a._id) },
+  { _id: new ObjectId(), name: 'etape', type: 'on_site', activities: activitiesList.map(a => a._id) },
+  { _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: activitiesList.map(a => a._id) },
+  { _id: new ObjectId(), name: 'etape', type: 'remote', activities: activitiesList.map(a => a._id) },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectID(), name: 'sous-programme 1', steps: [stepList[0]._id] },
-  { _id: new ObjectID(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id] },
 ];
 
 const programsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'program',
     learningGoals: 'on est là',
     image: { link: 'belle/url', publicId: '12345' },
     description: 'Ceci est une description',
     subPrograms: [subProgramsList[0]._id],
   },
-  { _id: new ObjectID(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
+  { _id: new ObjectId(), name: 'training program', image: { link: 'belle/url', publicId: '12345' } },
 ];
 
 const coursesList = [
   { // 0
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'first session',
@@ -155,18 +155,18 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 1
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: contactWithoutPhone._id,
     company: otherCompany._id,
     misc: 'team formation',
-    trainer: new ObjectID(),
+    trainer: new ObjectId(),
     trainees: [traineeFromOtherCompany._id, coach._id],
     type: 'intra',
     salesRepresentative: vendorAdmin._id,
   },
   { // 2
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: contact._id,
     company: authCompany._id,
@@ -184,7 +184,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 3
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
     misc: 'second team formation',
@@ -194,7 +194,7 @@ const coursesList = [
     trainer: trainerAndCoach._id,
   },
   { // 4 course without slots
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session concerning auth company',
     type: 'inter_b2b',
@@ -204,7 +204,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 5 course with slots
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
@@ -213,7 +213,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 6 course without trainees and slots
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
@@ -221,7 +221,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 7 course with slots to plan
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: contact._id,
     misc: 'inter b2b session NOT concerning auth company',
@@ -232,29 +232,29 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 8 course with access rules
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     contact: contact._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
     trainees: [coach._id],
-    accessRules: [authCompany._id, new ObjectID()],
+    accessRules: [authCompany._id, new ObjectId()],
     salesRepresentative: vendorAdmin._id,
   },
   { // 9 course with access rules and trainee that can't have access to the course but has already suscribed
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     trainer: trainer._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
     trainees: [coach._id, traineeFromOtherCompany._id],
-    accessRules: [authCompany._id, new ObjectID()],
+    accessRules: [authCompany._id, new ObjectId()],
     salesRepresentative: vendorAdmin._id,
   },
   { // 10 course with contact
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     trainer: coach._id,
     misc: 'inter_b2b',
@@ -264,7 +264,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 11 course without authCompany in access rules (11ème position)
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     misc: 'inter_b2b',
     type: 'inter_b2b',
@@ -274,7 +274,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 12 course with no on-site slot
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[1]._id,
     misc: 'inter_b2b',
     type: 'inter_b2b',
@@ -282,7 +282,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 13 course without trainee
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     misc: '',
     type: 'inter_b2b',
@@ -291,7 +291,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
   },
   { // 14 archived course
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'old session',
@@ -304,7 +304,7 @@ const coursesList = [
 ];
 
 const questionnaire = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'questionnaire',
   status: 'published',
   cards: [cardsList[2]._id],

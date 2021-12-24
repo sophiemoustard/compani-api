@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -25,8 +25,8 @@ describe('create', () => {
   });
 
   it('should create UserCompany', async () => {
-    const userId = new ObjectID();
-    const companyId = new ObjectID();
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
 
     findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
@@ -41,8 +41,8 @@ describe('create', () => {
   });
 
   it('should do nothing if already userCompany for this user and this company', async () => {
-    const userId = new ObjectID();
-    const companyId = new ObjectID();
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
 
     findOne.returns(SinonMongoose.stubChainedQueries([{ user: userId, company: companyId }], ['lean']));
 
@@ -57,11 +57,11 @@ describe('create', () => {
   });
 
   it('should throw an error if already userCompany for this user and an other company', async () => {
-    const userId = new ObjectID();
-    const companyId = new ObjectID();
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([{ user: userId, company: new ObjectID() }], ['lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries([{ user: userId, company: new ObjectId() }], ['lean']));
 
       await UserCompaniesHelper.create(userId, companyId);
 

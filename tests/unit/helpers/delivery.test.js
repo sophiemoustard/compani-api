@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const moment = require('moment');
 const expect = require('expect');
@@ -28,14 +28,14 @@ describe('formatEvents', () => {
   });
 
   it('should format events', async () => {
-    const companyId = new ObjectID();
-    const auxiliary1 = new ObjectID();
-    const auxiliary2 = new ObjectID();
-    const customer1 = new ObjectID();
-    const customer2 = new ObjectID();
-    const event1 = new ObjectID();
-    const event2 = new ObjectID();
-    const event3 = new ObjectID();
+    const companyId = new ObjectId();
+    const auxiliary1 = new ObjectId();
+    const auxiliary2 = new ObjectId();
+    const customer1 = new ObjectId();
+    const customer2 = new ObjectId();
+    const event1 = new ObjectId();
+    const event2 = new ObjectId();
+    const event3 = new ObjectId();
     const events = [
       { auxiliary: auxiliary1, customer: customer1, _id: event1 },
       { auxiliary: auxiliary1, customer: customer2, _id: event2 },
@@ -128,7 +128,7 @@ describe('formatNonBilledEvents', () => {
   });
 
   it('should return [] if no events', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const startDate = '2021-10-12T09:00:00';
     const endDate = '2021-10-15T19:00:00';
     const events = [];
@@ -142,7 +142,7 @@ describe('formatNonBilledEvents', () => {
   });
 
   it('should format non billed events', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const startDate = '2021-10-12T09:00:00';
     const endDate = '2021-10-15T19:00:00';
     const events = [{ _id: 'ev1' }, { _id: 'ev2' }, { _id: 'ev4' }, { _id: 'ev5' }, { _id: 'ev9' }];
@@ -194,7 +194,7 @@ describe('formatBilledEvents', () => {
   });
 
   it('should return [] if no events', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const events = [];
 
     const result = await DeliveryHelper.formatBilledEvents(events, { company: { _id: companyId } });
@@ -204,7 +204,7 @@ describe('formatBilledEvents', () => {
   });
 
   it('should format events', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const events = [{ _id: 'event1' }, { _id: 'event2' }];
     formatEvents.returns([{ auxiliary: { _id: '12' }, _id: 'event1' }, { auxiliary: { _id: '45' }, _id: 'event2' }]);
 
@@ -234,9 +234,9 @@ describe('getEvents', () => {
   });
 
   it('should get events', async () => {
-    const companyId = new ObjectID();
-    const tpp1 = new ObjectID();
-    const tpp2 = new ObjectID();
+    const companyId = new ObjectId();
+    const tpp1 = new ObjectId();
+    const tpp2 = new ObjectId();
     const query = { thirdPartyPayers: [tpp1.toHexString(), tpp2.toHexString()], month: '09-2021' };
     const customers = [
       {
@@ -247,14 +247,14 @@ describe('getEvents', () => {
         _id: '321',
         fundings: [
           { thirdPartyPayer: tpp1, subscription: '987' },
-          { thirdPartyPayer: new ObjectID(), subscription: '435' },
+          { thirdPartyPayer: new ObjectId(), subscription: '435' },
         ],
       },
     ];
     const events = [
       { isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } },
       { isBilled: false, _id: 'not_billed' },
-      { isBilled: true, _id: 'billedbutwrongtpp', bills: { thirdPartyPayer: new ObjectID() } },
+      { isBilled: true, _id: 'billedbutwrongtpp', bills: { thirdPartyPayer: new ObjectId() } },
     ];
     findCustomers.returns(SinonMongoose.stubChainedQueries([customers], ['lean']));
     findEvents.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
@@ -319,7 +319,7 @@ describe('getFileName', () => {
   });
 
   it('should return file name', async () => {
-    const tppId = new ObjectID();
+    const tppId = new ObjectId();
     const query = { thirdPartyPayers: [tppId], month: '09-2021' };
     const thirdPartyPayer = { teletransmissionType: 'APA', companyCode: '440' };
     findOne.returns(SinonMongoose.stubChainedQueries([thirdPartyPayer], ['lean']));

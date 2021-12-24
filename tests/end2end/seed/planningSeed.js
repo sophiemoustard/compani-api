@@ -1,6 +1,6 @@
 const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
@@ -16,11 +16,11 @@ const { rolesList } = require('../../seed/authRolesSeed');
 const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
 const { NEVER, INTERVENTION, HOURLY, AUXILIARY, WEBAPP } = require('../../../src/helpers/constants');
 
-const subscriptionId = new ObjectID();
+const subscriptionId = new ObjectId();
 const loggedAuxiliary = userList[2];
 
 const service = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
@@ -33,7 +33,7 @@ const service = {
 };
 
 const customer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
     primaryAddress: {
@@ -54,14 +54,14 @@ const customer = {
 };
 
 const secondAuxiliary = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Customer referent', lastname: 'Test', title: 'mr' },
   local: { email: 'customer-referent@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
   company: authCompany._id,
   contact: { phone: '0987654321' },
-  contracts: [new ObjectID()],
+  contracts: [new ObjectId()],
   origin: WEBAPP,
 };
 
@@ -79,7 +79,7 @@ const contracts = [
         grossHourlyRate: 10.28,
         startDate: '2018-12-03T23:00:00.000Z',
         weeklyHours: 9,
-        _id: new ObjectID(),
+        _id: new ObjectId(),
       },
     ],
   },
@@ -96,7 +96,7 @@ const contracts = [
         grossHourlyRate: 10.28,
         startDate: '2018-12-03T23:00:00.000Z',
         weeklyHours: 9,
-        _id: new ObjectID(),
+        _id: new ObjectId(),
       },
     ],
   },
@@ -118,18 +118,18 @@ const referentHistories = [
   },
 ];
 
-const sectors = [{ _id: new ObjectID(), name: 'Test', company: authCompany._id }];
+const sectors = [{ _id: new ObjectId(), name: 'Test', company: authCompany._id }];
 
 const sectorHistories = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     auxiliary: loggedAuxiliary._id,
     sector: sectors[0]._id,
     startDate: '2020-03-20T00:00:00',
     company: authCompany._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     auxiliary: secondAuxiliary._id,
     sector: sectors[0]._id,
     startDate: '2020-03-20T00:00:00',
@@ -175,7 +175,7 @@ const eventList = [
     subscription: customer.subscriptions[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: INTERVENTION,
     customer: customer._id,
     company: authCompany._id,

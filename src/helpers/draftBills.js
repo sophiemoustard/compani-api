@@ -1,6 +1,6 @@
 const get = require('lodash/get');
 const omit = require('lodash/omit');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
 const BillingItem = require('../models/BillingItem');
@@ -304,7 +304,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
     exports.computeBillingInfoForEvents(events, subscription.service, fundings, billingStartDate, unitTTCRate);
 
   const draftBillInfo = {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subscription,
     discount: 0,
     startDate: startDate.toDate(),
@@ -323,7 +323,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
         [tppId]: {
           ...draftBillInfo,
           ...thirdPartyPayerPrices[tppId],
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           externalBilling: false,
           thirdPartyPayer: fundings.find(fund =>
             UtilsHelper.areObjectIdsEquals(fund.thirdPartyPayer._id, tppId)).thirdPartyPayer,
@@ -360,8 +360,8 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
     const unitExclTaxes = UtilsHelper.getExclTaxes(bddBillingItem.defaultUnitAmount, bddBillingItem.vat);
 
     formattedBillingItems.push({
-      _id: new ObjectID(),
-      billingItem: { _id: new ObjectID(billingItemId), name: bddBillingItem.name },
+      _id: new ObjectId(),
+      billingItem: { _id: new ObjectId(billingItemId), name: bddBillingItem.name },
       discount: 0,
       unitExclTaxes,
       unitInclTaxes: bddBillingItem.defaultUnitAmount,

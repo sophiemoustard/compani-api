@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const SinonMongoose = require('../sinonMongoose');
 const BillingItem = require('../../../src/models/BillingItem');
@@ -17,10 +17,10 @@ const { BILLING_DIRECT, BILLING_INDIRECT } = require('../../../src/helpers/const
 
 describe('populateAndFormatSubscription', () => {
   it('should populate surcharge and billing items and sort versions', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const bddSurcharges = [{ _id: surchargeId, sundaySurcharge: 10 }];
-    const billingItemId1 = new ObjectID();
-    const billingItemId2 = new ObjectID();
+    const billingItemId1 = new ObjectId();
+    const billingItemId2 = new ObjectId();
     const bddBillingItems = [
       { _id: billingItemId1, defaultUnitAmount: 2 },
       { _id: billingItemId2, defaultUnitAmount: 3 },
@@ -101,15 +101,15 @@ describe('populateFundings', () => {
   });
 
   it('should return empty array if input empty', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const result = await DraftBillsHelper.populateFundings([], new Date(), null, companyId);
     expect(result).toEqual([]);
   });
 
   it('should populate third party payer funding', async () => {
-    const companyId = new ObjectID();
-    const tppId = new ObjectID();
-    const fundings = [{ thirdPartyPayer: tppId, _id: new ObjectID(), versions: [] }];
+    const companyId = new ObjectId();
+    const tppId = new ObjectId();
+    const fundings = [{ thirdPartyPayer: tppId, _id: new ObjectId(), versions: [] }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...omit(fundings[0], ['versions']) };
     mergeLastVersionWithBaseObjectStub.returns(funding);
@@ -126,11 +126,11 @@ describe('populateFundings', () => {
   });
 
   it('should populate funding history with once frequency and history', async () => {
-    const companyId = new ObjectID();
-    const fundingId = new ObjectID();
-    const tppId = new ObjectID();
+    const companyId = new ObjectId();
+    const fundingId = new ObjectId();
+    const tppId = new ObjectId();
     const fundings = [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       thirdPartyPayer: tppId,
       frequency: 'once',
       versions: [{ _id: fundingId }],
@@ -152,9 +152,9 @@ describe('populateFundings', () => {
   });
 
   it('should populate funding history with once frequency and without history', async () => {
-    const companyId = new ObjectID();
-    const fundingId = new ObjectID();
-    const tppId = new ObjectID();
+    const companyId = new ObjectId();
+    const fundingId = new ObjectId();
+    const tppId = new ObjectId();
     const fundings = [{
       _id: fundingId,
       thirdPartyPayer: tppId,
@@ -177,9 +177,9 @@ describe('populateFundings', () => {
   });
 
   it('should populate funding history with monthly frequency', async () => {
-    const companyId = new ObjectID();
-    const fundingId = new ObjectID();
-    const tppId = new ObjectID();
+    const companyId = new ObjectId();
+    const fundingId = new ObjectId();
+    const tppId = new ObjectId();
     const fundings = [{
       _id: fundingId,
       thirdPartyPayer: tppId,
@@ -208,10 +208,10 @@ describe('populateFundings', () => {
   });
 
   it('shouldn\'t populate third party payer funding if billing mode is indirect', async () => {
-    const companyId = new ObjectID();
-    const tppIndirectId = new ObjectID();
+    const companyId = new ObjectId();
+    const tppIndirectId = new ObjectId();
     const fundings = [
-      { thirdPartyPayer: tppIndirectId, _id: new ObjectID(), versions: [] },
+      { thirdPartyPayer: tppIndirectId, _id: new ObjectId(), versions: [] },
     ];
     const tpps = [{ _id: tppIndirectId, billingMode: BILLING_INDIRECT }];
     const funding = { ...omit(fundings[0], ['versions']) };
@@ -270,7 +270,7 @@ describe('getThirdPartyPayerPrice', () => {
 
 describe('getMatchingHistory', () => {
   it('should return history for once frequency', () => {
-    const fundingId = new ObjectID();
+    const fundingId = new ObjectId();
     const funding = { _id: fundingId, frequency: 'once', history: [{ fundingId, careHours: 2 }] };
 
     const result = DraftBillsHelper.getMatchingHistory({}, funding);
@@ -279,7 +279,7 @@ describe('getMatchingHistory', () => {
   });
 
   it('should return existing history for monthly frequency', () => {
-    const fundingId = new ObjectID();
+    const fundingId = new ObjectId();
     const funding = {
       _id: fundingId,
       frequency: 'monthly',
@@ -293,7 +293,7 @@ describe('getMatchingHistory', () => {
   });
 
   it('should create history and add to list when missing for monthly frequency', () => {
-    const fundingId = new ObjectID();
+    const fundingId = new ObjectId();
     const funding = {
       _id: fundingId,
       frequency: 'monthly',
@@ -335,7 +335,7 @@ describe('getHourlyFundingSplit', () => {
       frequency: 'once',
       customerParticipationRate: 20,
       history: { careHours: 1 },
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
 
     getExclTaxes.returns(17.5);
@@ -362,7 +362,7 @@ describe('getHourlyFundingSplit', () => {
       frequency: 'once',
       customerParticipationRate: 20,
       history: { careHours: 3 },
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
 
     getExclTaxes.returns(17.5);
@@ -397,7 +397,7 @@ describe('getFixedFundingSplit', () => {
     const funding = {
       history: [{ amountTTC: 10 }],
       amountTTC: 100,
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
     getExclTaxes.returns(50);
 
@@ -413,7 +413,7 @@ describe('getFixedFundingSplit', () => {
     const funding = {
       history: [{ amountTTC: 79 }],
       amountTTC: 100,
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
     getExclTaxes.returns(17.5);
 
@@ -489,7 +489,7 @@ describe('getEventBilling', () => {
       frequency: 'once',
       customerParticipationRate: 0,
       history: { careHours: 1 },
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
     getExclTaxes.returns(17.5);
     getHourlyFundingSplit.returns({ customerPrice: 10, thirdPartyPayerPrice: 25 });
@@ -509,7 +509,7 @@ describe('getEventBilling', () => {
       nature: 'fixed',
       history: { amountTTC: 50 },
       amountTTC: 100,
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
     getExclTaxes.returns(17.5);
     getFixedFundingSplit.returns({ customerPrice: 0, thirdPartyPayerPrice: 35 });
@@ -532,7 +532,7 @@ describe('getEventBilling', () => {
       frequency: 'once',
       customerParticipationRate: 0,
       history: { careHours: 1 },
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
     getExclTaxes.returns(17.5);
     getHourlyFundingSplit.returns({ customerPrice: 10, thirdPartyPayerPrice: 25 });
@@ -554,7 +554,7 @@ describe('getEventBilling', () => {
       nature: 'fixed',
       history: { amountTTC: 50 },
       amountTTC: 100,
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
     getExclTaxes.returns(17.5);
     getFixedFundingSplit.returns({ customerPrice: 0, thirdPartyPayerPrice: 35 });
@@ -591,7 +591,7 @@ describe('getEventBilling', () => {
       nature: 'fixed',
       history: { amountTTC: 50 },
       amountTTC: 100,
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
     getExclTaxes.returns(17.5);
     const result = DraftBillsHelper.getEventBilling(cancelledEvent, unitTTCRate, service, funding);
@@ -727,19 +727,19 @@ describe('computeBillingInfoForEvents', () => {
 
   it('should compute info for each event', () => {
     const events = [
-      { _id: new ObjectID(), startDate: '2021-02-04T12:00:00.000Z' },
-      { _id: new ObjectID(), startDate: '2021-03-05T10:00:00.000Z' },
+      { _id: new ObjectId(), startDate: '2021-02-04T12:00:00.000Z' },
+      { _id: new ObjectId(), startDate: '2021-03-05T10:00:00.000Z' },
     ];
     const service = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [
         {
           billingItems: [
-            { _id: new ObjectID('d00000000000000000000000'), name: 'skusku' },
-            { _id: new ObjectID('d00000000000000000000001'), name: 'skusku 2' },
+            { _id: new ObjectId('d00000000000000000000000'), name: 'skusku' },
+            { _id: new ObjectId('d00000000000000000000001'), name: 'skusku 2' },
           ],
         },
-        { billingItems: [{ _id: new ObjectID('d00000000000000000000001'), name: 'skusku 3' }] },
+        { billingItems: [{ _id: new ObjectId('d00000000000000000000001'), name: 'skusku 3' }] },
       ],
     };
     const fundings = [];
@@ -748,14 +748,14 @@ describe('computeBillingInfoForEvents', () => {
       _id: service._id,
       name: 'test',
       billingItems: [
-        { _id: new ObjectID('d00000000000000000000000'), name: 'skusku' },
-        { _id: new ObjectID('d00000000000000000000001'), name: 'skusku 2' },
+        { _id: new ObjectId('d00000000000000000000000'), name: 'skusku' },
+        { _id: new ObjectId('d00000000000000000000001'), name: 'skusku 2' },
       ],
     };
     const matchingService2 = {
       _id: service._id,
       name: 'test',
-      billingItems: [{ _id: new ObjectID('d00000000000000000000001'), name: 'skusku 3' }],
+      billingItems: [{ _id: new ObjectId('d00000000000000000000001'), name: 'skusku 3' }],
     };
 
     getMatchingVersion.onCall(0).returns(matchingService1);
@@ -805,22 +805,22 @@ describe('computeBillingInfoForEvents', () => {
 
   it('should compute info with fundings', () => {
     const events = [
-      { _id: new ObjectID(), startDate: '2021-03-04T12:00:00.000Z' },
-      { _id: new ObjectID(), startDate: '2021-03-05T10:00:00.000Z' },
-      { _id: new ObjectID(), startDate: '2021-03-06T10:00:00.000Z' },
+      { _id: new ObjectId(), startDate: '2021-03-04T12:00:00.000Z' },
+      { _id: new ObjectId(), startDate: '2021-03-05T10:00:00.000Z' },
+      { _id: new ObjectId(), startDate: '2021-03-06T10:00:00.000Z' },
     ];
     const service = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [{
-        billingItems: [{ _id: new ObjectID('d00000000000000000000000'), name: 'skusku' }],
+        billingItems: [{ _id: new ObjectId('d00000000000000000000000'), name: 'skusku' }],
       }],
     };
     const matchingService = {
       _id: service._id,
       name: 'test',
-      billingItems: [{ _id: new ObjectID('d00000000000000000000000'), name: 'skusku' }],
+      billingItems: [{ _id: new ObjectId('d00000000000000000000000'), name: 'skusku' }],
     };
-    const fundings = [{ _id: new ObjectID() }];
+    const fundings = [{ _id: new ObjectId() }];
     const matchingFunding = { ...fundings[0], thirdPartyPayer: 'tpp' };
     const startDate = moment('2021/03/01', 'YYYY/MM/DD');
 
@@ -915,7 +915,7 @@ describe('computeBillingInfoForEvents', () => {
   it('should return empty infos if no event', () => {
     const startDate = moment('2021/01/01', 'YYYY/MM/DD');
 
-    const result = DraftBillsHelper.computeBillingInfoForEvents([], { _id: new ObjectID() }, [], startDate, 0);
+    const result = DraftBillsHelper.computeBillingInfoForEvents([], { _id: new ObjectId() }, [], startDate, 0);
 
     expect(result).toEqual({
       prices: {
@@ -943,7 +943,7 @@ describe('formatDraftBillsForTPP', () => {
   });
 
   it('should format bill for tpp', () => {
-    const tppId = new ObjectID();
+    const tppId = new ObjectId();
     const tpp = { _id: tppId };
     const tppPrices = {
       [tppId]: { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] },
@@ -1001,7 +1001,7 @@ describe('getDraftBillsPerSubscription', () => {
   });
 
   it('should return draft bill', () => {
-    const tppId = new ObjectID();
+    const tppId = new ObjectId();
     const fundings = [{ thirdPartyPayer: { _id: tppId } }];
     const events = [
       { _id: 1, startDate: new Date('2019/02/15').setHours(8), endDate: new Date('2019/02/15').setHours(10) },
@@ -1010,7 +1010,7 @@ describe('getDraftBillsPerSubscription', () => {
       versions: [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
       service: {
         versions: [
-          { startDate: new Date('2019/01/01'), vat: 20, billingItems: [new ObjectID('d00000000000000000000001')] },
+          { startDate: new Date('2019/01/01'), vat: 20, billingItems: [new ObjectId('d00000000000000000000001')] },
         ],
       },
     };
@@ -1094,7 +1094,7 @@ describe('getDraftBillsPerSubscription', () => {
   });
 
   it('should return draft bill for tpp only', () => {
-    const tppId = new ObjectID();
+    const tppId = new ObjectId();
     const fundings = [{ thirdPartyPayer: { _id: tppId } }];
     const events = [
       { _id: 1, startDate: new Date('2019/02/15').setHours(8), endDate: new Date('2019/02/15').setHours(10) },
@@ -1151,9 +1151,9 @@ describe('formatBillingItems', () => {
   });
 
   it('should return formatted billing items', async () => {
-    const eventId1 = new ObjectID();
-    const eventId2 = new ObjectID();
-    const eventId3 = new ObjectID();
+    const eventId1 = new ObjectId();
+    const eventId2 = new ObjectId();
+    const eventId3 = new ObjectId();
     const eventsByBillingItemBySubscriptions = [
       {
         d00000000000000000000001: [{ _id: eventId1 }, { _id: eventId2 }],
@@ -1193,7 +1193,7 @@ describe('formatBillingItems', () => {
 
     expect(result).toEqual([
       expect.objectContaining({
-        billingItem: { _id: new ObjectID('d00000000000000000000001'), name: 'FI' },
+        billingItem: { _id: new ObjectId('d00000000000000000000001'), name: 'FI' },
         discount: 0,
         unitExclTaxes: 0.9090909090909091,
         unitInclTaxes: 1,
@@ -1205,7 +1205,7 @@ describe('formatBillingItems', () => {
         endDate: '2019-12-25T07:00:00',
       }),
       expect.objectContaining({
-        billingItem: { _id: new ObjectID('d00000000000000000000002'), name: 'EPI' },
+        billingItem: { _id: new ObjectId('d00000000000000000000002'), name: 'EPI' },
         discount: 0,
         unitExclTaxes: 4.545454545454546,
         unitInclTaxes: 5,
@@ -1291,10 +1291,10 @@ describe('getDraftBillsList', () => {
   });
 
   it('should return empty array if not event to bill', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const bddSurcharges = [{ _id: new ObjectID(), sundaySurcharge: 10 }];
-    const bddBillingItems = [{ _id: new ObjectID(), defaultUnitAmount: 2 }];
+    const bddSurcharges = [{ _id: new ObjectId(), sundaySurcharge: 10 }];
+    const bddBillingItems = [{ _id: new ObjectId(), defaultUnitAmount: 2 }];
     const query = { endDate: '2019-12-25T07:00:00', billingStartDate: '2019-12-31T07:00:00' };
 
     getEventsToBill.returns([]);
@@ -1326,11 +1326,11 @@ describe('getDraftBillsList', () => {
   });
 
   it('should return customer and tpp draft bills', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const thirdPartyPayersList = [{ id: new ObjectID() }];
-    const bddSurcharges = [{ _id: new ObjectID(), sundaySurcharge: 10 }];
-    const bddBillingItems = [{ _id: new ObjectID(), defaultUnitAmount: 2 }];
+    const thirdPartyPayersList = [{ id: new ObjectId() }];
+    const bddSurcharges = [{ _id: new ObjectId(), sundaySurcharge: 10 }];
+    const bddBillingItems = [{ _id: new ObjectId(), defaultUnitAmount: 2 }];
     const query = { endDate: '2019-12-25T07:00:00', billingStartDate: '2019-12-31T07:00:00' };
 
     findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([thirdPartyPayersList], ['lean']));
@@ -1460,10 +1460,10 @@ describe('getDraftBillsList', () => {
   });
 
   it('should return customer draft bills', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const bddSurcharges = [{ _id: new ObjectID(), sundaySurcharge: 10 }];
-    const bddBillingItems = [{ _id: new ObjectID(), defaultUnitAmount: 2 }];
+    const bddSurcharges = [{ _id: new ObjectId(), sundaySurcharge: 10 }];
+    const bddBillingItems = [{ _id: new ObjectId(), defaultUnitAmount: 2 }];
     const query = { endDate: '2019-12-25T07:00:00', billingStartDate: '2019-12-31T07:00:00' };
 
     findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));

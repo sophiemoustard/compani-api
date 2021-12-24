@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const flat = require('flat');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Program = require('../../../src/models/Program');
 const User = require('../../../src/models/User');
 const Course = require('../../../src/models/Course');
@@ -20,7 +20,7 @@ describe('createProgram', () => {
   });
 
   it('should create program', async () => {
-    const newProgram = { name: 'name', categories: [new ObjectID()] };
+    const newProgram = { name: 'name', categories: [new ObjectId()] };
     await ProgramHelper.createProgram(newProgram);
 
     sinon.assert.calledOnceWithExactly(create, newProgram);
@@ -68,9 +68,9 @@ describe('listELearning', () => {
 
   it('should return programs with elearning subprograms', async () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
-    const subPrograms = [new ObjectID()];
-    const companyId = new ObjectID();
-    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+    const subPrograms = [new ObjectId()];
+    const companyId = new ObjectId();
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
 
     courseFind.returns(SinonMongoose.stubChainedQueries([[{ subProgram: subPrograms[0] }]], ['lean']));
     programFind.returns(SinonMongoose.stubChainedQueries([programsList]));
@@ -122,11 +122,11 @@ describe('listELearning', () => {
   });
 
   it('should return a specific program with elearning subprogram', async () => {
-    const programId = new ObjectID();
+    const programId = new ObjectId();
     const programsList = [{ _id: programId, name: 'name' }];
-    const subPrograms = [new ObjectID()];
-    const companyId = new ObjectID();
-    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+    const subPrograms = [new ObjectId()];
+    const companyId = new ObjectId();
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
 
     courseFind.returns(SinonMongoose.stubChainedQueries([[{ subProgram: subPrograms[0] }]], ['lean']));
     programFind.returns(SinonMongoose.stubChainedQueries([programsList]));
@@ -188,13 +188,13 @@ describe('getProgram', () => {
   });
 
   it('should return the requested program', async () => {
-    const programId = new ObjectID();
-    const otherProgramId = new ObjectID();
-    const subProgramId = new ObjectID();
-    const otherSubProgramId = new ObjectID();
-    const stepId = new ObjectID();
-    const activityId = new ObjectID();
-    const cardsIds = [new ObjectID(), new ObjectID()];
+    const programId = new ObjectId();
+    const otherProgramId = new ObjectId();
+    const subProgramId = new ObjectId();
+    const otherSubProgramId = new ObjectId();
+    const stepId = new ObjectId();
+    const activityId = new ObjectId();
+    const cardsIds = [new ObjectId(), new ObjectId()];
 
     const program = {
       _id: programId,
@@ -246,7 +246,7 @@ describe('getProgram', () => {
             populate: {
               path: 'steps',
               populate: [
-                { path: 'activities ', populate: 'cards' },
+                { path: 'activities', populate: 'cards' },
                 {
                   path: 'subPrograms',
                   select: 'name -steps',
@@ -277,7 +277,7 @@ describe('update', () => {
   });
 
   it('should update name', async () => {
-    const programId = new ObjectID();
+    const programId = new ObjectId();
     const payload = { name: 'toto' };
 
     programUpdateOne.returns({ _id: programId, name: 'toto' });
@@ -306,7 +306,7 @@ describe('uploadImage', () => {
       link: 'https://storage.googleapis.com/BucketKFC/myMedia',
     });
 
-    const programId = new ObjectID();
+    const programId = new ObjectId();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
 
     await ProgramHelper.uploadImage(programId, payload);
@@ -337,7 +337,7 @@ describe('deleteImage', () => {
   });
 
   it('should do nothing as publicId is not set', async () => {
-    const programId = new ObjectID();
+    const programId = new ObjectId();
     await ProgramHelper.deleteImage(programId, '');
 
     sinon.assert.notCalled(updateOne);
@@ -345,7 +345,7 @@ describe('deleteImage', () => {
   });
 
   it('should update card and delete media', async () => {
-    const programId = new ObjectID();
+    const programId = new ObjectId();
     await ProgramHelper.deleteImage(programId, 'publicId');
 
     sinon.assert.calledOnceWithExactly(
@@ -367,8 +367,8 @@ describe('addCategory', () => {
   });
 
   it('should add category', async () => {
-    const programId = new ObjectID();
-    const payload = { categoryId: new ObjectID() };
+    const programId = new ObjectId();
+    const payload = { categoryId: new ObjectId() };
     await ProgramHelper.addCategory(programId, payload);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $push: { categories: payload.categoryId } });
@@ -385,8 +385,8 @@ describe('removeCategory', () => {
   });
 
   it('should remove category', async () => {
-    const programId = new ObjectID();
-    const categoryId = new ObjectID();
+    const programId = new ObjectId();
+    const categoryId = new ObjectId();
     await ProgramHelper.removeCategory(programId, categoryId);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: programId }, { $pull: { categories: categoryId } });
@@ -411,8 +411,8 @@ describe('addTester', () => {
   });
 
   it('should add existing user to program as tester', async () => {
-    const programId = new ObjectID();
-    const user = { _id: new ObjectID(), local: { email: 'test@test.fr' } };
+    const programId = new ObjectId();
+    const user = { _id: new ObjectId(), local: { email: 'test@test.fr' } };
     findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
 
@@ -433,8 +433,8 @@ describe('addTester', () => {
   });
 
   it('should create a user and add it to program as tester', async () => {
-    const programId = new ObjectID();
-    const userId = new ObjectID();
+    const programId = new ObjectId();
+    const userId = new ObjectId();
     const payload = { local: { email: 'test@test.fr' } };
 
     findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
@@ -470,8 +470,8 @@ describe('removeTester', () => {
   });
 
   it('should remove tester', async () => {
-    const programId = new ObjectID();
-    const testerId = new ObjectID();
+    const programId = new ObjectId();
+    const testerId = new ObjectId();
     updateOne.returns({ _id: programId });
 
     await ProgramHelper.removeTester(programId, testerId);

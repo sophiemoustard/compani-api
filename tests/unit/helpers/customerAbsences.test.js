@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const moment = require('moment');
 const expect = require('expect');
@@ -18,11 +18,11 @@ describe('createAbsence', () => {
   });
 
   it('should create customer absence', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const payload = {
       startDate: new Date(),
       endDate: moment(new Date()).endOf('d').toDate(),
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       absenceType: 'leave',
     };
     await CustomerAbsencesHelper.create(payload, companyId);
@@ -44,8 +44,8 @@ describe('list', () => {
   });
 
   it('should get absences of a customer', async () => {
-    const companyId = new ObjectID();
-    const customerId = new ObjectID();
+    const companyId = new ObjectId();
+    const customerId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { customer: customerId, startDate: '2021-09-09T00:00:00', endDate: '2021-12-09T00:00:00' };
     const customerAbsences = [
@@ -90,8 +90,8 @@ describe('list', () => {
   });
 
   it('should get absences of several customers', async () => {
-    const companyId = new ObjectID();
-    const customers = [new ObjectID(), new ObjectID()];
+    const companyId = new ObjectId();
+    const customers = [new ObjectId(), new ObjectId()];
     const credentials = { company: { _id: companyId } };
     const query = { customer: customers, startDate: '2021-09-09T00:00:00', endDate: '2021-12-09T00:00:00' };
     const customerAbsences = [
@@ -146,7 +146,7 @@ describe('isAbsent', () => {
   });
 
   it('should return true if customer is absent', async () => {
-    const customer = new ObjectID();
+    const customer = new ObjectId();
     const date = new Date('2019-11-01');
 
     countDocuments.returns(1);
@@ -161,7 +161,7 @@ describe('isAbsent', () => {
   });
 
   it('should return false if customer is not absent', async () => {
-    const customer = new ObjectID();
+    const customer = new ObjectId();
     const date = new Date('2019-11-01');
 
     countDocuments.returns(0);
@@ -188,9 +188,9 @@ describe('updateCustomerAbsence', () => {
   });
 
   it('should update absence and remove events on this period', async () => {
-    const customerAbsenceId = new ObjectID();
-    const customer = new ObjectID();
-    const companyId = new ObjectID();
+    const customerAbsenceId = new ObjectId();
+    const customer = new ObjectId();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const startDate = new Date('2021-11-28');
     const endDate = new Date('2021-12-10');
@@ -230,7 +230,7 @@ describe('updateCustomerAbsencesOnCustomerStop', () => {
   });
 
   it('should delete absence after stoppedDate and update absences before ', async () => {
-    const customer = new ObjectID();
+    const customer = new ObjectId();
     const stoppedAt = new Date('2019-11-01');
 
     await CustomerAbsencesHelper.updateCustomerAbsencesOnCustomerStop(customer, stoppedAt);
@@ -254,7 +254,7 @@ describe('delete', () => {
   });
 
   it('should delete customer absence', async () => {
-    const customerAbsenceId = new ObjectID();
+    const customerAbsenceId = new ObjectId();
 
     await CustomerAbsencesHelper.delete(customerAbsenceId);
 

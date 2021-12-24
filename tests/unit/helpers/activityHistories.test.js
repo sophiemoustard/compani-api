@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const UserCompany = require('../../../src/models/UserCompany');
 const ActivityHistoryHelper = require('../../../src/helpers/activityHistories');
@@ -18,9 +18,9 @@ describe('addActivityHistory', () => {
   });
 
   it('should create an activityHistory', async () => {
-    const activityId = new ObjectID();
-    const userId = new ObjectID();
-    const questionnaireAnswersList = [{ card: new ObjectID(), answerList: ['blabla'] }];
+    const activityId = new ObjectId();
+    const userId = new ObjectId();
+    const questionnaireAnswersList = [{ card: new ObjectId(), answerList: ['blabla'] }];
 
     await ActivityHistoryHelper.addActivityHistory({ user: userId, activity: activityId, questionnaireAnswersList });
 
@@ -44,10 +44,10 @@ describe('list', () => {
   });
 
   it('should return a list of histories', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const query = { startDate: '2020-12-10T23:00:00', endDate: '2021-01-10T23:00:00' };
-    const firstUserId = new ObjectID();
-    const secondUserId = new ObjectID();
+    const firstUserId = new ObjectId();
+    const secondUserId = new ObjectId();
     const activityHistories = [
       {
         user: firstUserId,
@@ -70,7 +70,7 @@ describe('list', () => {
           steps: [{
             subPrograms: [{
               program: { name: 'une rencontre sensationnelle' },
-              courses: [{ misc: 'groupe 2', format: 'strictly_e_learning', trainees: [new ObjectID()] }],
+              courses: [{ misc: 'groupe 2', format: 'strictly_e_learning', trainees: [new ObjectId()] }],
             }],
           }],
         },
