@@ -32,6 +32,7 @@ describe('CompaniDate', () => {
         startOf: expect.any(Function),
         endOf: expect.any(Function),
         diff: expect.any(Function),
+        add: expect.any(Function),
       }));
     sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, date);
   });
@@ -423,6 +424,33 @@ describe('MANIPULATE', () => {
         expect(e).toEqual(new Error('Invalid unit jour'));
       } finally {
         sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      }
+    });
+  });
+
+  describe('add', () => {
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
+
+    it('should return a newly constructed companiDate, inscreased by amout', () => {
+      const result = companiDate.add({ months: 1, hours: 2 });
+
+      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
+      expect(result._getDate.toUTC().toISO()).toEqual('2022-01-01T09:00:00.000Z');
+    });
+
+    it('should return error if invalid unit', () => {
+      try {
+        companiDate.add({ jour: 1, hours: 2 });
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit jour'));
+      }
+    });
+
+    it('should return error if amount is number', () => {
+      try {
+        companiDate.add(11111);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
       }
     });
   });

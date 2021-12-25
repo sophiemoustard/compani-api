@@ -65,6 +65,11 @@ const CompaniDateFactory = (inputDate) => {
       if (typeFloat) return floatDiff;
       return floatDiff > 0 ? Math.floor(floatDiff) : Math.ceil(floatDiff);
     },
+
+    add(amount) {
+      if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
+      return CompaniDateFactory(_date.plus(amount));
+    },
   });
 };
 
