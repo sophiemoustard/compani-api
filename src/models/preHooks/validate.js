@@ -18,13 +18,13 @@ module.exports = {
   formatQuery(next) {
     const query = this.getQuery();
     const flattenQuery = {};
-    for (const entry of Object.entries(query)) {
-      if (entry[1] && typeof entry[1] === 'object' && !Array.isArray(entry[1]) && Object.keys(entry[1])[0] &&
-        Object.keys(entry[1])[0].charAt(0) !== '$') {
-        const flattenEntry = flat({ [entry[0]]: entry[1] });
+    for (const [key, value] of Object.entries(query)) {
+      if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value)[0] &&
+        Object.keys(value)[0].charAt(0) !== '$') {
+        const flattenEntry = flat({ [key]: value });
         Object.assign(flattenQuery, flattenEntry);
       } else {
-        const untouchedEntry = { [entry[0]]: entry[1] };
+        const untouchedEntry = { [key]: value };
         Object.assign(flattenQuery, untouchedEntry);
       }
     }
