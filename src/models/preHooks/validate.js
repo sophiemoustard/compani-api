@@ -19,8 +19,9 @@ module.exports = {
     const query = this.getQuery();
     const flattenQuery = {};
     for (const [key, value] of Object.entries(query)) {
-      if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value)[0] &&
-        Object.keys(value)[0].charAt(0) !== '$') {
+      const isValueAnObject = value && typeof value === 'object' && !Array.isArray(value);
+      const doesValueNotStartWithDollarSign = value && Object.keys(value)[0] && Object.keys(value)[0].charAt(0) !== '$';
+      if (isValueAnObject && doesValueNotStartWithDollarSign) {
         const flattenEntry = flat({ [key]: value });
         Object.assign(flattenQuery, flattenEntry);
       } else {
