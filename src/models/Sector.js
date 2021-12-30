@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const SectorHistory = require('./SectorHistory');
-const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const SectorSchema = mongoose.Schema({
   name: String,
@@ -18,10 +18,8 @@ const hasAuxiliaries = async (docs) => {
 };
 
 SectorSchema.pre('find', validateQuery);
-SectorSchema.pre('countDocuments', formatQuery);
-SectorSchema.pre('find', formatQuery);
-SectorSchema.pre('findOne', formatQuery);
 SectorSchema.pre('aggregate', validateAggregation);
 SectorSchema.post('find', hasAuxiliaries);
+formatQueryMiddlewareList().map(middleware => SectorSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Sector', SectorSchema);

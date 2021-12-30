@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const paySchemaDefinition = require('./schemaDefinitions/pay');
-const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const FinalPaySchema = mongoose.Schema({
   ...paySchemaDefinition,
@@ -10,9 +10,7 @@ const FinalPaySchema = mongoose.Schema({
 }, { timestamps: true });
 
 FinalPaySchema.pre('find', validateQuery);
-FinalPaySchema.pre('countDocuments', formatQuery);
-FinalPaySchema.pre('find', formatQuery);
-FinalPaySchema.pre('findOne', formatQuery);
 FinalPaySchema.pre('aggregate', validateAggregation);
+formatQueryMiddlewareList().map(middleware => FinalPaySchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('FinalPay', FinalPaySchema);

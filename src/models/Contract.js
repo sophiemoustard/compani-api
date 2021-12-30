@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const {
   EMPLOYER_TRIAL_PERIOD_TERMINATION,
@@ -60,10 +60,8 @@ const ContractSchema = mongoose.Schema({
 });
 
 ContractSchema.pre('find', validateQuery);
-ContractSchema.pre('countDocuments', formatQuery);
-ContractSchema.pre('find', formatQuery);
-ContractSchema.pre('findOne', formatQuery);
 ContractSchema.pre('aggregate', validateAggregation);
+formatQueryMiddlewareList().map(middleware => ContractSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Contract', ContractSchema);
 module.exports.END_CONTRACT_REASONS = END_CONTRACT_REASONS;

@@ -17,7 +17,7 @@ const {
   UPLOAD_VIDEO,
   UPLOAD_AUDIO,
 } = require('../helpers/constants');
-const { formatQuery } = require('./preHooks/validate');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const { cardValidationByTemplate } = require('./validations/cardValidation');
 
 const CARD_TEMPLATES = [
@@ -123,9 +123,7 @@ function setIsValid() {
 
 CardSchema.pre('save', save);
 CardSchema.virtual('isValid').get(setIsValid);
-CardSchema.pre('countDocuments', formatQuery);
-CardSchema.pre('find', formatQuery);
-CardSchema.pre('findOne', formatQuery);
+formatQueryMiddlewareList().map(middleware => CardSchema.pre(middleware, formatQuery));
 
 CardSchema.plugin(mongooseLeanVirtuals);
 

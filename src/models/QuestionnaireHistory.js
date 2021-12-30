@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { formatQuery } = require('./preHooks/validate');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const QuestionnaireHistorySchema = mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
@@ -11,8 +11,6 @@ const QuestionnaireHistorySchema = mongoose.Schema({
   }],
 }, { timestamps: true });
 
-QuestionnaireHistorySchema.pre('countDocuments', formatQuery);
-QuestionnaireHistorySchema.pre('find', formatQuery);
-QuestionnaireHistorySchema.pre('findOne', formatQuery);
+formatQueryMiddlewareList().map(middleware => QuestionnaireHistorySchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('QuestionnaireHistory', QuestionnaireHistorySchema);

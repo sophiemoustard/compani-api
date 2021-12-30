@@ -1,13 +1,11 @@
 const mongoose = require('mongoose');
-const { formatQuery } = require('./preHooks/validate');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const IdentityVerificationSchema = mongoose.Schema({
   email: { type: String, required: true },
   code: { type: String, required: true },
 }, { timestamps: true });
 
-IdentityVerificationSchema.pre('countDocuments', formatQuery);
-IdentityVerificationSchema.pre('find', formatQuery);
-IdentityVerificationSchema.pre('findOne', formatQuery);
+formatQueryMiddlewareList().map(middleware => IdentityVerificationSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('IdentityVerification', IdentityVerificationSchema);

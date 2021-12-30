@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, validateUpdateOne, formatQuery } = require('./preHooks/validate');
+const {
+  validateQuery,
+  validateAggregation,
+  validateUpdateOne,
+  formatQuery,
+  formatQueryMiddlewareList,
+} = require('./preHooks/validate');
 
 const RumSchema = mongoose.Schema({
   prefix: { type: String, required: true },
@@ -8,10 +14,8 @@ const RumSchema = mongoose.Schema({
 }, { timestamps: true });
 
 RumSchema.pre('find', validateQuery);
-RumSchema.pre('countDocuments', formatQuery);
-RumSchema.pre('find', formatQuery);
-RumSchema.pre('findOne', formatQuery);
 RumSchema.pre('aggregate', validateAggregation);
 RumSchema.pre('updateOne', validateUpdateOne);
+formatQueryMiddlewareList().map(middleware => RumSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Rum', RumSchema);

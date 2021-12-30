@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { formatQuery } = require('./preHooks/validate');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const CourseSlotSchema = mongoose.Schema({
@@ -11,8 +11,6 @@ const CourseSlotSchema = mongoose.Schema({
   step: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required() { return !!this.startDate; } },
 }, { timestamps: true });
 
-CourseSlotSchema.pre('countDocuments', formatQuery);
-CourseSlotSchema.pre('find', formatQuery);
-CourseSlotSchema.pre('findOne', formatQuery);
+formatQueryMiddlewareList().map(middleware => CourseSlotSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CourseSlot', CourseSlotSchema);

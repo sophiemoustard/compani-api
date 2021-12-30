@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateUpdateOne, formatQuery } = require('./preHooks/validate');
+const { validateQuery, validateUpdateOne, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const CustomerNoteSchema = mongoose.Schema({
   customer: { type: mongoose.Schema.Types.ObjectId, immutable: true, required: true },
@@ -20,9 +20,7 @@ CustomerNoteSchema.virtual(
 
 CustomerNoteSchema.pre('find', validateQuery);
 CustomerNoteSchema.pre('findOne', validateQuery);
-CustomerNoteSchema.pre('countDocuments', formatQuery);
-CustomerNoteSchema.pre('find', formatQuery);
-CustomerNoteSchema.pre('findOne', formatQuery);
 CustomerNoteSchema.pre('updateOne', validateUpdateOne);
+formatQueryMiddlewareList().map(middleware => CustomerNoteSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CustomerNote', CustomerNoteSchema);

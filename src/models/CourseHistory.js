@@ -6,7 +6,7 @@ const {
   TRAINEE_ADDITION,
   TRAINEE_DELETION,
 } = require('../helpers/constants');
-const { formatQuery } = require('./preHooks/validate');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const ACTION_TYPES = [SLOT_CREATION, SLOT_DELETION, SLOT_EDITION, TRAINEE_ADDITION, TRAINEE_DELETION];
@@ -41,8 +41,6 @@ const CourseHistorySchema = mongoose.Schema({
   },
 }, { timestamps: true });
 
-CourseHistorySchema.pre('countDocuments', formatQuery);
-CourseHistorySchema.pre('find', formatQuery);
-CourseHistorySchema.pre('findOne', formatQuery);
+formatQueryMiddlewareList().map(middleware => CourseHistorySchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CourseHistory', CourseHistorySchema);

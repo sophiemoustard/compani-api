@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const autopopulate = require('mongoose-autopopulate');
-const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const SectorHistorySchema = mongoose.Schema({
   sector: {
@@ -17,9 +17,7 @@ const SectorHistorySchema = mongoose.Schema({
 
 SectorHistorySchema.pre('aggregate', validateAggregation);
 SectorHistorySchema.pre('find', validateQuery);
-SectorHistorySchema.pre('countDocuments', formatQuery);
-SectorHistorySchema.pre('find', formatQuery);
-SectorHistorySchema.pre('findOne', formatQuery);
+formatQueryMiddlewareList().map(middleware => SectorHistorySchema.pre(middleware, formatQuery));
 
 SectorHistorySchema.plugin(autopopulate);
 

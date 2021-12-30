@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const { MANUAL, PER_INTERVENTION } = require('../helpers/constants');
-const { validateQuery, validateAggregation, validateUpdateOne, formatQuery } = require('./preHooks/validate');
+const {
+  validateQuery,
+  validateAggregation,
+  validateUpdateOne,
+  formatQuery,
+  formatQueryMiddlewareList,
+} = require('./preHooks/validate');
 
 const BILLING_ITEM_TYPES = [MANUAL, PER_INTERVENTION];
 
@@ -13,11 +19,9 @@ const BillingItemSchema = mongoose.Schema({
 }, { timestamps: true });
 
 BillingItemSchema.pre('find', validateQuery);
-BillingItemSchema.pre('countDocuments', formatQuery);
-BillingItemSchema.pre('find', formatQuery);
-BillingItemSchema.pre('findOne', formatQuery);
 BillingItemSchema.pre('aggregate', validateAggregation);
 BillingItemSchema.pre('updateOne', validateUpdateOne);
+formatQueryMiddlewareList().map(middleware => BillingItemSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('BillingItem', BillingItemSchema);
 module.exports.BILLING_ITEM_TYPES = BILLING_ITEM_TYPES;

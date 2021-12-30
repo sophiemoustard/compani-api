@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const has = require('lodash/has');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { DRAFT, PUBLISHED, E_LEARNING } = require('../helpers/constants');
-const { formatQuery } = require('./preHooks/validate');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const STATUS_TYPES = [DRAFT, PUBLISHED];
 
@@ -46,9 +46,7 @@ SubProgramSchema.virtual('areStepsValid').get(setAreStepsValid);
 
 SubProgramSchema.virtual('isStrictlyELearning').get(setIsStrictlyELearning);
 
-SubProgramSchema.pre('countDocuments', formatQuery);
-SubProgramSchema.pre('find', formatQuery);
-SubProgramSchema.pre('findOne', formatQuery);
+formatQueryMiddlewareList().map(middleware => SubProgramSchema.pre(middleware, formatQuery));
 
 SubProgramSchema.plugin(mongooseLeanVirtuals);
 

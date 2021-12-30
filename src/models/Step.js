@@ -3,7 +3,7 @@ const has = require('lodash/has');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const { E_LEARNING, ON_SITE, REMOTE, DRAFT, LIVE_STEPS } = require('../helpers/constants');
 const { STATUS_TYPES } = require('./SubProgram');
-const { formatQuery } = require('./preHooks/validate');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const STEP_TYPES = [E_LEARNING, ON_SITE, REMOTE];
 
@@ -28,9 +28,7 @@ function setAreActivitiesValid() {
 }
 
 StepSchema.virtual('areActivitiesValid').get(setAreActivitiesValid);
-StepSchema.pre('countDocuments', formatQuery);
-StepSchema.pre('find', formatQuery);
-StepSchema.pre('findOne', formatQuery);
+formatQueryMiddlewareList().map(middleware => StepSchema.pre(middleware, formatQuery));
 
 StepSchema.plugin(mongooseLeanVirtuals);
 

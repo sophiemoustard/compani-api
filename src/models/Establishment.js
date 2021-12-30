@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { PHONE_VALIDATION } = require('./utils');
-const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { workHealthServices } = require('../data/workHealthServices');
 const { urssafCodes } = require('../data/urssafCodes');
@@ -32,10 +32,8 @@ EstablishmentSchema.virtual('usersCount', {
 });
 
 EstablishmentSchema.pre('find', validateQuery);
-EstablishmentSchema.pre('countDocuments', formatQuery);
-EstablishmentSchema.pre('find', formatQuery);
-EstablishmentSchema.pre('findOne', formatQuery);
 EstablishmentSchema.pre('aggregate', validateAggregation);
+formatQueryMiddlewareList().map(middleware => EstablishmentSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Establishment', EstablishmentSchema);
 module.exports.ESTABLISHMENT_NAME_VALIDATION = ESTABLISHMENT_NAME_VALIDATION;

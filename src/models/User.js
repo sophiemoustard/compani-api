@@ -25,7 +25,7 @@ const {
   MOBILE,
   WEBAPP,
 } = require('../helpers/constants');
-const { formatQuery } = require('./preHooks/validate');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
@@ -366,10 +366,8 @@ UserSchema.virtual('contractCreationMissingInfo').get(setContractCreationMissing
 UserSchema.pre('validate', validate);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
-UserSchema.pre('countDocuments', formatQuery);
-UserSchema.pre('find', formatQuery);
-UserSchema.pre('findOne', formatQuery);
 UserSchema.pre('updateOne', findOneAndUpdate);
+formatQueryMiddlewareList().map(middleware => UserSchema.pre(middleware, formatQuery));
 
 UserSchema.post('find', populateSectors);
 UserSchema.post('find', populateCompanies);

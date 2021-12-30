@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, formatQuery } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const SurchargeSchema = mongoose.Schema({
   name: { type: String, required: true },
@@ -19,9 +19,7 @@ const SurchargeSchema = mongoose.Schema({
 }, { timestamps: true });
 
 SurchargeSchema.pre('find', validateQuery);
-SurchargeSchema.pre('countDocuments', formatQuery);
-SurchargeSchema.pre('find', formatQuery);
-SurchargeSchema.pre('findOne', formatQuery);
 SurchargeSchema.pre('aggregate', validateAggregation);
+formatQueryMiddlewareList().map(middleware => SurchargeSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Surcharge', SurchargeSchema);

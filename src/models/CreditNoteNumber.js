@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
-const { validateQuery, validateAggregation, validateUpdateOne, formatQuery } = require('./preHooks/validate');
+const {
+  validateQuery,
+  validateAggregation,
+  validateUpdateOne,
+  formatQuery,
+  formatQueryMiddlewareList,
+} = require('./preHooks/validate');
 
 const CreditNoteNumberSchema = mongoose.Schema({
   prefix: { type: String, required: true },
@@ -8,10 +14,8 @@ const CreditNoteNumberSchema = mongoose.Schema({
 }, { timestamps: true });
 
 CreditNoteNumberSchema.pre('find', validateQuery);
-CreditNoteNumberSchema.pre('countDocuments', formatQuery);
-CreditNoteNumberSchema.pre('find', formatQuery);
-CreditNoteNumberSchema.pre('findOne', formatQuery);
 CreditNoteNumberSchema.pre('aggregate', validateAggregation);
 CreditNoteNumberSchema.pre('updateOne', validateUpdateOne);
+formatQueryMiddlewareList().map(middleware => CreditNoteNumberSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CreditNoteNumber', CreditNoteNumberSchema);
