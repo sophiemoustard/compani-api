@@ -95,7 +95,7 @@ exports.createEvent = async (payload, credentials) => {
   if (payload.type === ABSENCE) {
     const { startDate, endDate } = populatedEvent;
     const dates = { startDate, endDate };
-    const auxiliary = await User.findOne({ _id: populatedEvent.auxiliary })
+    const auxiliary = await User.findOne({ _id: populatedEvent.auxiliary._id })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
     await exports.deleteConflictInternalHoursAndUnavailabilities(populatedEvent, auxiliary, credentials);

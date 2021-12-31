@@ -53,7 +53,7 @@ describe('ESTABLISHMENTS ROUTES - POST /establishments', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.establishment).toMatchObject({ ...payload, company: authCompany._id });
-      const establishmentsCount = await Establishment.countDocuments({ company: authCompany });
+      const establishmentsCount = await Establishment.countDocuments({ company: authCompany._id });
       expect(establishmentsCount).toBe(establishmentsList.length + 1);
     });
 

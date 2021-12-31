@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
 const AdministrativeDocumentSchema = mongoose.Schema({
@@ -11,5 +11,7 @@ const AdministrativeDocumentSchema = mongoose.Schema({
 
 AdministrativeDocumentSchema.pre('find', validateQuery);
 AdministrativeDocumentSchema.pre('aggregate', validateAggregation);
+
+formatQueryMiddlewareList().map(middleware => AdministrativeDocumentSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('AdministrativeDocument', AdministrativeDocumentSchema);

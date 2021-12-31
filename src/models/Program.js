@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const ProgramSchema = mongoose.Schema({
   name: { type: String, required: true },
@@ -12,5 +13,7 @@ const ProgramSchema = mongoose.Schema({
   },
   testers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });
+
+formatQueryMiddlewareList().map(middleware => ProgramSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Program', ProgramSchema);

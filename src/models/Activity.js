@@ -8,6 +8,7 @@ const {
   DRAFT,
   CARD_TEMPLATES,
 } = require('../helpers/constants');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const { STATUS_TYPES } = require('./SubProgram');
 
 const ACTIVITY_TYPES = [LESSON, QUIZ, SHARING_EXPERIENCE, VIDEO];
@@ -52,6 +53,7 @@ function setAreCardsValid() {
 }
 
 ActivitySchema.virtual('areCardsValid').get(setAreCardsValid);
+formatQueryMiddlewareList().map(middleware => ActivitySchema.pre(middleware, formatQuery));
 
 ActivitySchema.plugin(mongooseLeanVirtuals);
 module.exports = mongoose.model('Activity', ActivitySchema);

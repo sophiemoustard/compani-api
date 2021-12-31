@@ -1,3 +1,4 @@
+const flat = require('flat');
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { ObjectId } = require('mongodb');
@@ -13,6 +14,39 @@ module.exports = {
 
     if (!hasCompany && !isPopulate && !isVendorUser && !requestingOwnInfos && !allCompanies) next(Boom.badRequest());
     next();
+  },
+  formatQuery(next) {
+    const query = this.getQuery();
+    const flattenQuery = {};
+    for (const [key, value] of Object.entries(query)) {
+      const isValueAnObject = value && typeof value === 'object' && !Array.isArray(value);
+      const doesValueNotStartWithDollarSign = value && Object.keys(value)[0] && Object.keys(value)[0].charAt(0) !== '$';
+      if (isValueAnObject && doesValueNotStartWithDollarSign) {
+        const flattenEntry = flat({ [key]: value });
+        Object.assign(flattenQuery, flattenEntry);
+      } else {
+        const untouchedEntry = { [key]: value };
+        Object.assign(flattenQuery, untouchedEntry);
+      }
+    }
+
+    this.setQuery(flattenQuery);
+    next();
+  },
+  formatQueryMiddlewareList() {
+    return [
+      'countDocuments',
+      'find',
+      'findOne',
+      'deleteMany',
+      'deleteOne',
+      'findOneAndDelete',
+      'findOneAndRemove',
+      'remove',
+      'findOneAndUpdate',
+      'updateOne',
+      'updateMany',
+    ];
   },
   validateAggregation(next) {
     if (get(this, 'options.allCompanies', null)) next();

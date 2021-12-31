@@ -24,7 +24,7 @@ const authCompany = {
   address: {
     fullAddress: '37 rue de Ponthieu 75008 Paris',
     city: 'Paris',
-    street: '37 rie de Ponthieu',
+    street: '37 rue de Ponthieu',
     zipCode: '75008',
     location: { type: 'Point', coordinates: [0, 0] },
   },
