@@ -51,16 +51,35 @@ describe('CompaniDate', () => {
 });
 
 describe('GETTER', () => {
-  describe('getUnits', () => {
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
+  describe('getDate', () => {
+    it('should return _date', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
+      const result = companiDate._getDate;
 
+      expect(result).toEqual(expect.any(luxon.DateTime));
+      expect(result).toEqual(luxon.DateTime.fromISO('2021-11-24T07:12:08.000Z'));
+    });
+
+    it('should not mutate _date', () => {
+      const isoDate = '2021-11-24T07:12:08.000Z';
+      const otherIsoDate = '2022-01-03T07:12:08.000Z';
+      const companiDate = CompaniDatesHelper.CompaniDate(isoDate);
+      companiDate._date = luxon.DateTime.fromISO(otherIsoDate);
+
+      expect(companiDate._getDate.toUTC().toISO()).toEqual(isoDate);
+    });
+  });
+
+  describe('getUnits', () => {
     it('should return units', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
       const result = companiDate.getUnits(['day', 'second']);
 
       expect(result).toEqual({ day: 24, second: 8 });
     });
 
-    it('should return empty if unit is plural or invalid', () => {
+    it('should return only valid units', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
       const result = companiDate.getUnits(['days', 'second', 'mois']);
 
       expect(result).toEqual({ second: 8 });
@@ -70,9 +89,8 @@ describe('GETTER', () => {
 
 describe('DISPLAY', () => {
   describe('format', () => {
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
-
     it('should return formated date in a string', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
       const result = companiDate.format('\'Le\' cccc dd LLLL y \'à\' HH\'h\'mm \'et\' s \'secondes\'');
 
       expect(result).toBe('Le mercredi 24 novembre 2021 à 08h12 et 8 secondes');
