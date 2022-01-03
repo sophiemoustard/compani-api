@@ -144,7 +144,7 @@ describe('updateCourseSlot', () => {
     findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: REMOTE }], ['lean']));
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
-    SinonMongoose.calledWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
     sinon.assert.calledOnceWithExactly(createHistoryOnSlotEdition, slot, payload, user._id);
     sinon.assert.calledOnceWithExactly(
@@ -162,7 +162,7 @@ describe('updateCourseSlot', () => {
     findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: REMOTE }], ['lean']));
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
-    SinonMongoose.calledWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
     sinon.assert.calledOnceWithExactly(createHistoryOnSlotEdition, slot, payload, user._id);
     sinon.assert.calledOnceWithExactly(
@@ -184,7 +184,7 @@ describe('updateCourseSlot', () => {
     findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: ON_SITE }], ['lean']));
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
-    SinonMongoose.calledWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
     sinon.assert.calledOnceWithExactly(createHistoryOnSlotEdition, slot, payload, user._id);
     sinon.assert.calledOnceWithExactly(
@@ -202,7 +202,7 @@ describe('updateCourseSlot', () => {
     findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: ON_SITE }], ['lean']));
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
-    SinonMongoose.calledWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
     sinon.assert.calledOnceWithExactly(hasConflicts, { ...slot, ...payload });
     sinon.assert.calledOnceWithExactly(createHistoryOnSlotEdition, slot, payload, user._id);
     sinon.assert.calledOnceWithExactly(

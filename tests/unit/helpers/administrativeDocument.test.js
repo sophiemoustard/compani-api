@@ -52,7 +52,7 @@ describe('createAdministrativeDocument', () => {
       createAdministrativeDocument,
       { company: companyId, name: payload.name, driveFile: { driveId: '12345', link: 'www.12345.fr' } }
     );
-    SinonMongoose.calledWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
   });
 
   it('should return an error if uploaded file is not defined', async () => {
@@ -70,7 +70,10 @@ describe('createAdministrativeDocument', () => {
       );
       sinon.assert.notCalled(createPermissionStub);
       sinon.assert.notCalled(createAdministrativeDocument);
-      SinonMongoose.calledWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
+      SinonMongoose.calledOnceWithExactly(
+        findByIdCompany,
+        [{ query: 'findById', args: [companyId] }, { query: 'lean' }]
+      );
     }
   });
 });
@@ -96,7 +99,7 @@ describe('listAdministrativeDocuments', () => {
     const res = await AdministrativeDocumentHelper.listAdministrativeDocuments(credentials);
 
     expect(res).toEqual(administrativeDocuments);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findAdministrativeDocument,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
@@ -125,7 +128,7 @@ describe('removeAdministrativeDocument', () => {
     await AdministrativeDocumentHelper.removeAdministrativeDocument(administrativeDocumentId);
 
     sinon.assert.calledWithExactly(deleteFileStub, '1234');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndDelete,
       [{ query: 'findOneAndDelete', args: [{ _id: administrativeDocumentId }] }, { query: 'lean' }]
     );

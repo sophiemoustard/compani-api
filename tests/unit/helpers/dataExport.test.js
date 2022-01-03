@@ -64,7 +64,7 @@ describe('exportCustomers', () => {
       'Date de création',
       'Statut',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
@@ -144,7 +144,7 @@ describe('exportCustomers', () => {
       '12/12/2012',
       'Actif',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
@@ -173,7 +173,7 @@ describe('exportCustomers', () => {
     expect(result[1]).toMatchObject([
       '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', '',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
@@ -221,7 +221,7 @@ describe('exportAuxiliaries', () => {
       'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
       'Date de création']);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -287,18 +287,18 @@ describe('exportAuxiliaries', () => {
       '01/02/2019',
     ]);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRole,
       [
         { query: 'find', args: [{ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         {
@@ -350,18 +350,18 @@ describe('exportAuxiliaries', () => {
       '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '02/12/2019', '', '', '',
     ]);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRole,
       [
         { query: 'find', args: [{ name: { $in: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] } }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         {
@@ -429,7 +429,7 @@ describe('exportHelpers', () => {
       'Bénéficiaire - Ville',
       'Date de création',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -489,12 +489,15 @@ describe('exportHelpers', () => {
         '01/02/2019',
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(findOneRole, [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
+      findOneRole,
+      [{ query: 'findOne', args: [{ name: 'helper' }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         {
@@ -541,7 +544,7 @@ describe('exportSectors', () => {
       'Date d\'arrivée dans l\'équipe',
       'Date de départ de l\'équipe',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findSectorHistory,
       [
         { query: 'find', args: [{ company: credentials.company._id, startDate: { $exists: true } }] },
@@ -587,7 +590,7 @@ describe('exportSectors', () => {
       '10/11/2019',
       '10/12/2019',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findSectorHistory,
       [
         { query: 'find', args: [{ company: credentials.company._id, startDate: { $exists: true } }] },
@@ -629,7 +632,7 @@ describe('exportReferents', () => {
       'Date de début',
       'Date de fin',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findReferentHistory,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
@@ -686,7 +689,7 @@ describe('exportReferents', () => {
       '10/11/2020',
       '',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findReferentHistory,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
@@ -828,7 +831,7 @@ describe('exportServices', () => {
       'Date de création',
       'Date de mise a jour',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findService,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
@@ -881,7 +884,7 @@ describe('exportServices', () => {
     expect(result[2]).toMatchObject([
       'Forfaitaire', 'Compani', 'kické', 'F-13', 'F-5.5', 'smatch', '01/02/2019', '21/01/2019', '14/02/2019',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findService,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
@@ -931,7 +934,7 @@ describe('exportSubscriptions', () => {
       'Dont soirées',
       'Dont dimanches',
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },
@@ -964,7 +967,7 @@ describe('exportSubscriptions', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([expect.any(ObjectId), 'M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },

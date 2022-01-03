@@ -345,7 +345,7 @@ describe('updateEvent', () => {
     sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, payload, event, credentials);
     sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event._id }] },
@@ -437,7 +437,7 @@ describe('updateEvent', () => {
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, true);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, { _id: event._id }, event, credentials);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: { _id: eventId }, $unset: {} });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event._id }] },
@@ -492,7 +492,7 @@ describe('updateEvent', () => {
     sinon.assert.calledOnceWithExactly(formatEditionPayload, event, payload, false);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, { _id: event._id }, event, credentials);
     sinon.assert.calledOnceWithExactly(updateOne, { _id: event._id }, { $set: { _id: eventId }, $unset: {} });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event._id }] },
@@ -556,7 +556,7 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvent,
       [
         { query: 'find', args: [query] },
@@ -587,7 +587,7 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toEqual([{ type: 'intervention' }]);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvent,
       [
         { query: 'find', args: [query] },
@@ -621,7 +621,7 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvent,
       [
         { query: 'find', args: [query] },
@@ -1170,7 +1170,7 @@ describe('detachAuxiliaryFromEvent', () => {
     const result = await EventHelper.detachAuxiliaryFromEvent(event, companyId);
 
     expect(result).toEqual({ sector: 'sector', repetition: { frequency: 'never' } });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -1255,7 +1255,7 @@ describe('createEvent', () => {
     sinon.assert.calledOnceWithExactly(createEventHistoryOnCreate, event, credentials);
     sinon.assert.calledOnceWithExactly(getEvent, event._id, credentials);
     sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       createEvent,
       [{ query: 'createEvent', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
     );
@@ -1288,7 +1288,7 @@ describe('createEvent', () => {
     sinon.assert.calledOnceWithExactly(createEventHistoryOnCreate, { ...newEvent, repetition }, credentials);
     sinon.assert.calledOnceWithExactly(getEvent, detachedEvent._id, credentials);
     sinon.assert.calledOnceWithExactly(populateEventSubscription, detachedEvent);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       createEvent,
       [{ query: 'createEvent', args: [detachedEvent] }, { query: 'toObject' }]
     );
@@ -1325,7 +1325,7 @@ describe('createEvent', () => {
       credentials
     );
     sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       createEvent,
       [{ query: 'createEvent', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
     );
@@ -1368,7 +1368,7 @@ describe('createEvent', () => {
       auxiliary,
       credentials
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -1376,7 +1376,7 @@ describe('createEvent', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       createEvent,
       [{ query: 'createEvent', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
     );
@@ -1463,7 +1463,7 @@ describe('unassignConflictInterventions', () => {
 
     sinon.assert.calledOnceWithExactly(formatEventsInConflictQuery, dates, auxiliaryId, [INTERVENTION], companyId);
     sinon.assert.callCount(updateEvent, events.length);
-    SinonMongoose.calledWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findEvent, [{ query: 'find', args: [query] }, { query: 'lean' }]);
   });
 });
 
@@ -1571,7 +1571,7 @@ describe('deleteEventsAndRepetition', () => {
     sinon.assert.notCalled(createEventHistoryOnDelete);
     sinon.assert.notCalled(repetitionDeleteOne);
     sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
-    SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
+    SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [query] }]);
   });
 
   it('should delete events with repetitions', async () => {
@@ -1634,7 +1634,7 @@ describe('deleteEventsAndRepetition', () => {
     sinon.assert.calledOnceWithExactly(repetitionDeleteOne, { parentId });
     sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: events.map(ev => ev._id) } });
     sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
-    SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
+    SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [query] }]);
   });
 
   it('should not delete event if at least one is billed', async () => {
@@ -1662,7 +1662,7 @@ describe('deleteEventsAndRepetition', () => {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
       sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
-      SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
+      SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [query] }]);
     }
   });
 
@@ -1691,7 +1691,7 @@ describe('deleteEventsAndRepetition', () => {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
       sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
-      SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [query] }]);
+      SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [query] }]);
     }
   });
 });
@@ -1914,7 +1914,7 @@ describe('workingStats', () => {
     sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, query);
     sinon.assert.calledOnceWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], query);
     sinon.assert.calledOnceWithExactly(getPayFromAbsencesStub, [], contract, query);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         { query: 'find', args: [{ _id: { $in: query.auxiliary } }] },
@@ -1922,7 +1922,7 @@ describe('workingStats', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findDistanceMatrix,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
@@ -1968,13 +1968,13 @@ describe('workingStats', () => {
       queryWithoutAuxiliary
     );
     sinon.assert.calledOnceWithExactly(getPayFromAbsencesStub, [], contract, queryWithoutAuxiliary);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [
         { query: 'find', args: [{ company: companyId }, { user: 1 }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         { query: 'find', args: [{ _id: { $in: [users[0].user] } }] },
@@ -1982,7 +1982,7 @@ describe('workingStats', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findDistanceMatrix,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
@@ -1998,7 +1998,7 @@ describe('workingStats', () => {
 
     sinon.assert.notCalled(findUserCompany);
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         { query: 'find', args: [{ _id: { $in: query.auxiliary } }] },
@@ -2006,7 +2006,7 @@ describe('workingStats', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findDistanceMatrix,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
@@ -2030,7 +2030,7 @@ describe('workingStats', () => {
     sinon.assert.notCalled(findUserCompany);
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
     sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         { query: 'find', args: [{ _id: { $in: query.auxiliary } }] },
@@ -2038,7 +2038,7 @@ describe('workingStats', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findDistanceMatrix,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );

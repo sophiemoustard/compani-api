@@ -95,7 +95,7 @@ describe('method', () => {
 
       expect(result).toMatchObject({ results: [futureEvent], errors: [], deletedRepetitions: [] });
       sinon.assert.calledWith(formatEventBasedOnRepetitionStub, repetition[0], new Date());
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findRepetition,
         [
           { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -103,7 +103,7 @@ describe('method', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findCompany,
         [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
       );
@@ -134,7 +134,7 @@ describe('method', () => {
     const result = await eventRepetitions.method(server);
 
     expect(result).toMatchObject({ results: [], errors: [], deletedRepetitions: [repetitions[0]] });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRepetition,
       [
         { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -142,7 +142,7 @@ describe('method', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCompany,
       [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
     );
@@ -197,7 +197,7 @@ describe('method', () => {
 
     expect(result).toMatchObject({ results: [futureEvent], errors: [], deletedRepetitions: [] });
     sinon.assert.calledWith(formatEventBasedOnRepetitionStub, repetitions[1], new Date());
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRepetition,
       [
         { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -205,7 +205,7 @@ describe('method', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCompany,
       [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
     );
@@ -238,7 +238,7 @@ describe('method', () => {
     const result = await eventRepetitions.method(server);
 
     expect(result).toMatchObject({ results: [], errors: [repetition[0]._id], deletedRepetitions: [] });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRepetition,
       [
         { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -246,7 +246,7 @@ describe('method', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCompany,
       [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
     );
@@ -293,7 +293,7 @@ describe('method', () => {
     const result = await eventRepetitions.method(server);
 
     expect(result).toMatchObject({ results: [], errors: [], deletedRepetitions: [] });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRepetition,
       [
         { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -301,7 +301,7 @@ describe('method', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCompany,
       [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
     );

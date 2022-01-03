@@ -24,7 +24,7 @@ describe('list', () => {
     const result = await SurchargesHelper.list(credentials);
     expect(result).toEqual([{ company: companyId, name: 'Coucou' }]);
 
-    SinonMongoose.calledWithExactly(find, [
+    SinonMongoose.calledOnceWithExactly(find, [
       { query: 'find', args: [{ company: companyId }] },
       { query: 'lean' },
     ]);

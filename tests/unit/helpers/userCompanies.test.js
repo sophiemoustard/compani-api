@@ -34,7 +34,7 @@ describe('create', () => {
 
     sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId });
     sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
     );
@@ -50,7 +50,7 @@ describe('create', () => {
 
     sinon.assert.notCalled(create);
     sinon.assert.notCalled(deleteManyCompanyLinkRequest);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
     );
@@ -70,7 +70,7 @@ describe('create', () => {
       expect(e).toEqual(Boom.conflict());
       sinon.assert.notCalled(create);
       sinon.assert.notCalled(deleteManyCompanyLinkRequest);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOne,
         [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
       );

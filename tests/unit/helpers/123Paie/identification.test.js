@@ -197,7 +197,7 @@ describe('exportDpae', () => {
       exportToTxt,
       [['ap_matr', 'fs_bq_dom', 'ap_contrat'], ['serialNumber', 'BANK AUDI FRANCE', '1234567890']]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         {
@@ -248,7 +248,7 @@ describe('exportIdentification', () => {
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(0), 'first user');
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(1), 'second user');
     sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank'], [1, 1], [2, 2]]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         {

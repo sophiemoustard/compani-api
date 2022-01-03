@@ -41,7 +41,7 @@ describe('getContractList', () => {
     const result = await ContractHelper.getContractList(query, credentials);
 
     expect(result).toEqual(contracts);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ $and: [{ company: '1234567890' }, { user: '1234567890' }] }] },
@@ -67,7 +67,7 @@ describe('getContractList', () => {
     const result = await ContractHelper.getContractList(query, credentials);
 
     expect(result).toEqual(contracts);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         {
@@ -266,14 +266,14 @@ describe('createContract', () => {
       { _id: payload.user },
       { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneRole,
       [
         { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: payload.user }] },
@@ -327,14 +327,14 @@ describe('createContract', () => {
       { _id: payload.user },
       { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneRole,
       [
         { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: payload.user }] },
@@ -381,14 +381,14 @@ describe('createContract', () => {
       { _id: payload.user },
       { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneRole,
       [
         { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: payload.user }] },
@@ -424,7 +424,7 @@ describe('createContract', () => {
       sinon.assert.notCalled(updateOneUser);
       sinon.assert.notCalled(findOneRole);
       sinon.assert.notCalled(createContract);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneUser,
         [
           { query: 'findOne', args: [{ _id: payload.user }] },
@@ -520,14 +520,14 @@ describe('endContract', () => {
       credentials
     );
     sinon.assert.calledWithExactly(updateEndDateStub, updatedContract.user._id, updatedContract.endDate);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
       [
         { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [
         {
@@ -548,7 +548,7 @@ describe('endContract', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       countDocumentHistories,
       [
         {
@@ -567,7 +567,7 @@ describe('endContract', () => {
         },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       eventCountDocuments,
       [
         {
@@ -624,14 +624,14 @@ describe('endContract', () => {
       sinon.assert.notCalled(updateAbsencesOnContractEnd);
       sinon.assert.notCalled(updateEndDateStub);
       sinon.assert.notCalled(findOneAndUpdateContract);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [
           { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         countDocumentHistories,
         [
           {
@@ -650,7 +650,7 @@ describe('endContract', () => {
           },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         eventCountDocuments,
         [
           {
@@ -710,14 +710,14 @@ describe('endContract', () => {
       sinon.assert.notCalled(findOneAndUpdateContract);
       sinon.assert.notCalled(countDocumentHistories);
 
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [
           { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         eventCountDocuments,
         [
           {
@@ -761,7 +761,7 @@ describe('endContract', () => {
       sinon.assert.notCalled(updateAbsencesOnContractEnd);
       sinon.assert.notCalled(updateEndDateStub);
       sinon.assert.notCalled(findOneAndUpdateContract);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [
           { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
@@ -809,7 +809,7 @@ describe('createVersion', () => {
 
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
       [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
     );
@@ -818,7 +818,7 @@ describe('createVersion', () => {
       { _id: contract._id.toHexString() },
       { $set: { [`versions.${1}.endDate`]: moment('2019-09-13T00:00:00').subtract(1, 'd').endOf('d').toISOString() } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [{ query: 'findOneAndUpdate', args: [{ _id: contract._id.toHexString() }, { $push: { versions: newVersion } }] }]
     );
@@ -839,11 +839,11 @@ describe('createVersion', () => {
 
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
       [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [{
         query: 'findOneAndUpdate',
@@ -873,7 +873,7 @@ describe('createVersion', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
       );
@@ -991,7 +991,7 @@ describe('canUpdateVersion', () => {
       countAuxiliaryEventsBetweenDates,
       { auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
@@ -1028,7 +1028,7 @@ describe('canUpdateVersion', () => {
         startDate: '2018-10-02T23:59:59',
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
@@ -1052,7 +1052,7 @@ describe('canUpdateVersion', () => {
       countAuxiliaryEventsBetweenDates,
       { auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
@@ -1203,14 +1203,14 @@ describe('updateVersion', () => {
       companyId
     );
     sinon.assert.notCalled(updateOneContract);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
       [
         { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [
         { query: 'findOneAndUpdate', args: [{ _id: contractId.toHexString() }, { $set: {}, $push: {} }] },
@@ -1253,14 +1253,14 @@ describe('updateVersion', () => {
       { _id: contractId.toHexString() },
       { $unset: { auxiliaryDoc: '' } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
       [
         { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [
         { query: 'findOneAndUpdate', args: [{ _id: contractId.toHexString() }, { $set: {}, $push: {} }] },
@@ -1299,7 +1299,7 @@ describe('updateVersion', () => {
       sinon.assert.notCalled(formatVersionEditionPayload);
       sinon.assert.notCalled(updateOneContract);
       sinon.assert.notCalled(findOneAndUpdateContract);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [
           { query: 'findOne', args: [{ _id: contractId.toHexString() }] },

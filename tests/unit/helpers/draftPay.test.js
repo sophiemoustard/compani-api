@@ -1991,15 +1991,15 @@ describe('computeDraftPay', () => {
     expect(result).toEqual([]);
     sinon.assert.calledOnceWithExactly(getPreviousMonthPay, [], query, [{ _id: 'sur' }], [{ _id: 'dm' }], companyId);
     sinon.assert.notCalled(computeAuxiliaryDraftPay);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       companyFindOne,
       [{ query: 'findOne', args: [{ _id: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       surchargeFind,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       distanceMatrixFind,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );

@@ -39,7 +39,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toBeUndefined();
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
@@ -59,7 +59,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual(null);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
@@ -79,7 +79,7 @@ describe('updateHistoryOnSectorUpdate', () => {
     } catch (e) {
       expect(e).toEqual(Boom.conflict('No last sector history for auxiliary in contract'));
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOne,
         [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
       );
@@ -97,11 +97,11 @@ describe('updateHistoryOnSectorUpdate', () => {
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual({ sector });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] }, { query: 'lean' }]
     );
@@ -124,11 +124,11 @@ describe('updateHistoryOnSectorUpdate', () => {
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual({ sector });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
@@ -153,11 +153,11 @@ describe('updateHistoryOnSectorUpdate', () => {
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual({ sector });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
@@ -193,11 +193,11 @@ describe('updateHistoryOnSectorUpdate', () => {
       companyId,
       moment().startOf('day').toDate()
     );
-    SinonMongoose.calledWithExactly(findOne, [
+    SinonMongoose.calledOnceWithExactly(findOne, [
       { query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] },
       { query: 'lean' },
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find, [
         { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
         { query: 'sort', args: [{ startDate: -1 }] },
@@ -246,7 +246,7 @@ describe('createHistoryOnContractCreation', () => {
 
     await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       countDocuments,
       [
         {
@@ -256,7 +256,7 @@ describe('createHistoryOnContractCreation', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ startDate: { $exists: false }, auxiliary: auxiliaryId }] },
@@ -279,7 +279,7 @@ describe('createHistoryOnContractCreation', () => {
 
     await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       countDocuments,
       [
         {
@@ -295,7 +295,7 @@ describe('createHistoryOnContractCreation', () => {
       companyId,
       moment(newContract.startDate).startOf('day').toDate()
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ startDate: { $exists: false }, auxiliary: auxiliaryId }] },
@@ -318,7 +318,7 @@ describe('createHistoryOnContractCreation', () => {
     } catch (e) {
       expect(e).toEqual(Boom.conflict('There is a sector history with a startDate without an endDate'));
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         countDocuments,
         [
           {
@@ -367,7 +367,7 @@ describe('updateHistoryOnContractUpdate', () => {
 
     await SectorHistoryHelper.updateHistoryOnContractUpdate(contractId, newContract, companyId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: contractId, company: companyId }] }, { query: 'lean' }]
     );
@@ -386,7 +386,7 @@ describe('updateHistoryOnContractUpdate', () => {
 
     await SectorHistoryHelper.updateHistoryOnContractUpdate(contractId, newContract, companyId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: contractId, company: companyId }] }, { query: 'lean' }]
     );
@@ -394,7 +394,7 @@ describe('updateHistoryOnContractUpdate', () => {
       remove,
       { auxiliary: auxiliaryId, endDate: { $gte: '2019-01-01', $lte: newContract.startDate } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         {
@@ -439,7 +439,7 @@ describe('updateHistoryOnContractDeletion', () => {
 
     await SectorHistoryHelper.updateHistoryOnContractDeletion(contract, companyId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ auxiliary: contract.user, endDate: null }] }, { query: 'lean' }]
     );
@@ -478,7 +478,7 @@ describe('createHistory', () => {
     const result = await SectorHistoryHelper.createHistory({ _id: auxiliaryId, sector }, companyId);
 
     expect(result).toEqual(sectorHistory);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       create,
       [
         { query: 'create', args: [{ auxiliary: auxiliaryId, sector, company: companyId }] },
@@ -495,7 +495,7 @@ describe('createHistory', () => {
     const result = await SectorHistoryHelper.createHistory({ _id: auxiliaryId, sector }, companyId, '2020-01-01');
 
     expect(result).toEqual(sectorHistory);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       create,
       [
         { query: 'create', args: [{ auxiliary: auxiliaryId, sector, company: companyId, startDate: '2020-01-01' }] },
@@ -553,7 +553,7 @@ describe('getAuxiliarySectors', () => {
     const result = await SectorHistoryHelper.getAuxiliarySectors(auxiliaryId, companyId, '2020-01-01', '2020-02-01');
 
     expect(result).toEqual([sectorId1.toHexString(), sectorId2.toHexString()]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       sectorHistoryFind,
       [
         {

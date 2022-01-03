@@ -20,7 +20,7 @@ describe('list', () => {
 
     await PartnersHelper.list(credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
     );

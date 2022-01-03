@@ -258,9 +258,10 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     sinon.assert.calledWithExactly(computeDraftPay, [{ ...auxiliary, prevPay }], query, credentials);
     SinonMongoose.calledWithExactly(
       payFindOne,
-      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }],
+      0
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       finalPayFindOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
     );
@@ -269,7 +270,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month: prevMonth }] }, { query: 'lean' }],
       1
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -300,9 +301,10 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     sinon.assert.calledWithExactly(computeDraftFinalPay, [{ ...auxiliary, prevPay }], query, credentials);
     SinonMongoose.calledWithExactly(
       payFindOne,
-      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }],
+      0
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       finalPayFindOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
     );
@@ -311,7 +313,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month: prevMonth }] }, { query: 'lean' }],
       1
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -369,7 +371,7 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     expect(result).toEqual({ ...pay, sectors: [sectorId.toHexString()], counterAndDiffRelevant: true });
     sinon.assert.notCalled(getContractStub);
     sinon.assert.notCalled(computeDraftPay);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       payFindOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
     );
@@ -390,11 +392,11 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     expect(result).toEqual({ ...pay, sectors: [sectorId.toHexString()], counterAndDiffRelevant: true });
     sinon.assert.notCalled(getContractStub);
     sinon.assert.notCalled(computeDraftPay);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       payFindOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       finalPayFindOne,
       [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, month }] }, { query: 'lean' }]
     );
@@ -477,7 +479,7 @@ describe('hoursBalanceDetailBySector', () => {
       [query.sector],
       credentials.company._id
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         { query: 'find', args: [{ _id: { $in: [] } }, { identity: 1, picture: 1 }] },
@@ -512,7 +514,7 @@ describe('hoursBalanceDetailBySector', () => {
     );
     sinon.assert.calledWithExactly(getContractStub, [contract], startDate, endDate);
     sinon.assert.calledWithExactly(hoursBalanceDetailByAuxiliary, auxiliaryId, startDate, endDate, credentials);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         { query: 'find', args: [{ _id: { $in: [auxiliaryId] } }, { identity: 1, picture: 1 }] },
@@ -567,7 +569,7 @@ describe('hoursBalanceDetailBySector', () => {
       endDate,
       credentials
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         { query: 'find', args: [{ _id: { $in: auxiliaryIds } }, { identity: 1, picture: 1 }] },
@@ -596,7 +598,7 @@ describe('hoursBalanceDetailBySector', () => {
     );
     sinon.assert.notCalled(getContractStub);
     sinon.assert.notCalled(hoursBalanceDetailByAuxiliary);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         { query: 'find', args: [{ _id: { $in: [auxiliaryId] } }, { identity: 1, picture: 1 }] },
@@ -628,7 +630,7 @@ describe('hoursBalanceDetailBySector', () => {
     );
     sinon.assert.calledWithExactly(getContractStub, [contract], startDate, endDate);
     sinon.assert.notCalled(hoursBalanceDetailByAuxiliary);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         { query: 'find', args: [{ _id: { $in: [auxiliaryId] } }, { identity: 1, picture: 1 }] },

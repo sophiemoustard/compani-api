@@ -71,7 +71,7 @@ describe('list', () => {
     await CustomerAbsencesHelper.list(query, credentials);
 
     sinon.assert.calledOnceWithExactly(formatIdsArray, customerId);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomerAbsence,
       [
         {
@@ -117,7 +117,7 @@ describe('list', () => {
     await CustomerAbsencesHelper.list(query, credentials);
 
     sinon.assert.calledOnceWithExactly(formatIdsArray, customers);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomerAbsence,
       [
         {
@@ -201,7 +201,7 @@ describe('updateCustomerAbsence', () => {
 
     await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: customerAbsenceId, company: companyId }, { customer: 1 }] },

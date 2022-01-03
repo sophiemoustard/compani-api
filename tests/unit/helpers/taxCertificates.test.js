@@ -33,7 +33,7 @@ describe('list', () => {
     const result = await TaxCertificateHelper.list(customer, { company: { _id: companyId } });
 
     expect(result).toEqual(taxCertificates);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ customer, company: companyId }] }, { query: 'lean' }]
     );
@@ -228,7 +228,7 @@ describe('generateTaxCertificatePdf', () => {
     const result = await TaxCertificateHelper.generateTaxCertificatePdf(taxCertificateId, credentials);
 
     expect(result).toEqual('pdf');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: taxCertificateId }] },
@@ -347,7 +347,7 @@ describe('remove', () => {
     await TaxCertificateHelper.remove(taxCertificateId);
 
     sinon.assert.notCalled(deleteFileStub);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndDelete,
       [{ query: 'findOneAndDelete', args: [{ _id: taxCertificateId }] }, { query: 'lean' }]
     );
@@ -362,7 +362,7 @@ describe('remove', () => {
     await TaxCertificateHelper.remove(taxCertificateId);
 
     sinon.assert.calledWithExactly(deleteFileStub, taxCertificate.driveFile.driveId);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndDelete,
       [{ query: 'findOneAndDelete', args: [{ _id: taxCertificateId }] }, { query: 'lean' }]
     );

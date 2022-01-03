@@ -334,7 +334,7 @@ describe('list', () => {
     const result = await CourseHistoriesHelper.list(query);
 
     expect(result).toMatchObject(returnedList);
-    SinonMongoose.calledWithExactly(find, [
+    SinonMongoose.calledOnceWithExactly(find, [
       { query: '', args: [query] },
       { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
       { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
@@ -365,7 +365,7 @@ describe('list', () => {
     const result = await CourseHistoriesHelper.list(query);
 
     expect(result).toMatchObject(returnedList);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: '', args: [{ course: query.course, createdAt: { $lt: query.createdAt } }] },

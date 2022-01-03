@@ -732,7 +732,7 @@ describe('getBalances', () => {
       nonArchivedCustomers,
       maxDate
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findThirdPartyPayer,
       [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
     );

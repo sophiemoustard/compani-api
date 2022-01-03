@@ -43,7 +43,7 @@ describe('list', () => {
     const result = await QuestionnaireHelper.list();
 
     expect(result).toMatchObject(questionnairesList);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find' }, { query: 'populate', args: [{ path: 'historiesCount' }] }, { query: 'lean' }]
     );
@@ -68,7 +68,7 @@ describe('getQuestionnaire', () => {
     const result = await QuestionnaireHelper.getQuestionnaire(questionnaireId);
 
     expect(result).toMatchObject(questionnaire);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
@@ -98,7 +98,7 @@ describe('editQuestionnaire', () => {
     const result = await QuestionnaireHelper.update(questionnaireId, { name: 'test2', cards });
 
     expect(result).toMatchObject(questionnaire);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         { query: 'findOneAndUpdate', args: [{ _id: questionnaireId }, { $set: { name: 'test2', cards } }] },
@@ -158,7 +158,7 @@ describe('removeCard', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.notCalled(deleteMedia);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndRemoveCard,
       [
         { query: 'findOne', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
@@ -177,7 +177,7 @@ describe('removeCard', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.calledOnceWithExactly(deleteMedia, cardId, 'publicId');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndRemoveCard,
       [
         { query: 'findOne', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
@@ -214,7 +214,7 @@ describe('getUserQuestionnaires', () => {
 
     expect(result).toMatchObject([]);
     sinon.assert.notCalled(findOneQuestionnaire);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -240,7 +240,7 @@ describe('getUserQuestionnaires', () => {
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -249,7 +249,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
@@ -279,7 +279,7 @@ describe('getUserQuestionnaires', () => {
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -288,7 +288,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
@@ -314,7 +314,7 @@ describe('getUserQuestionnaires', () => {
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([questionnaire]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -323,7 +323,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
@@ -346,7 +346,7 @@ describe('getUserQuestionnaires', () => {
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([questionnaire]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -355,7 +355,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: EXPECTATIONS, status: PUBLISHED }, { type: 1, name: 1 }] },
@@ -381,7 +381,7 @@ describe('getUserQuestionnaires', () => {
 
     expect(result).toMatchObject([]);
     sinon.assert.notCalled(findOneQuestionnaire);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -407,7 +407,7 @@ describe('getUserQuestionnaires', () => {
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -416,7 +416,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: END_OF_COURSE, status: PUBLISHED }, { type: 1, name: 1 }] },
@@ -446,7 +446,7 @@ describe('getUserQuestionnaires', () => {
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -455,7 +455,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: END_OF_COURSE, status: PUBLISHED }, { type: 1, name: 1 }] },
@@ -481,7 +481,7 @@ describe('getUserQuestionnaires', () => {
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
     expect(result).toMatchObject([questionnaire]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -490,7 +490,7 @@ describe('getUserQuestionnaires', () => {
         { query: 'lean', args: [{ virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneQuestionnaire,
       [
         { query: 'findOne', args: [{ type: END_OF_COURSE, status: PUBLISHED }, { type: 1, name: 1 }] },
@@ -519,7 +519,7 @@ describe('getUserQuestionnaires', () => {
 
     expect(result).toMatchObject([]);
     sinon.assert.notCalled(findOneQuestionnaire);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -648,7 +648,7 @@ describe('getFollowUp', () => {
         },
       ],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -661,7 +661,7 @@ describe('getFollowUp', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
@@ -795,7 +795,7 @@ describe('getFollowUp', () => {
         },
       ],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -808,7 +808,7 @@ describe('getFollowUp', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
@@ -929,7 +929,7 @@ describe('getFollowUp', () => {
         },
       ],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
@@ -997,7 +997,7 @@ describe('getFollowUp', () => {
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -1010,7 +1010,7 @@ describe('getFollowUp', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
@@ -1069,7 +1069,7 @@ describe('getFollowUp', () => {
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -1082,7 +1082,7 @@ describe('getFollowUp', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },
@@ -1147,7 +1147,7 @@ describe('getFollowUp', () => {
       questionnaire: { type: EXPECTATIONS, name: 'questionnaire' },
       followUp: [],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -1160,7 +1160,7 @@ describe('getFollowUp', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       questionnaireFindOne,
       [
         { query: 'findOne', args: [{ _id: questionnaireId }] },

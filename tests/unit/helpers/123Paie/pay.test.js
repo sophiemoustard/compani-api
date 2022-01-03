@@ -107,7 +107,7 @@ describe('exportPay', () => {
         ['ap_soc', 'serialNumber', 'good_contract', 'T', '489', 'Frais kilométriques', '', 0, ''],
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [{ month: '03-2021', company: companyId }] },
@@ -210,7 +210,7 @@ describe('exportPay', () => {
         ['ap_soc', 'serialNumber', 'ended_good_contract', 'T', '489', 'Frais kilométriques', '', 0, ''],
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [{ month: '03-2021', company: companyId }] },

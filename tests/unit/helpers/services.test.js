@@ -24,7 +24,7 @@ describe('list', () => {
 
     expect(result).toStrictEqual([{ name: 'test' }]);
 
-    SinonMongoose.calledWithExactly(find, [
+    SinonMongoose.calledOnceWithExactly(find, [
       { query: 'find', args: [{ company: companyId, isArchived: true }] },
       { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: companyId } }] },
       { query: 'populate', args: [{ path: 'versions.billingItems', select: 'name' }] },

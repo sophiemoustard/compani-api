@@ -70,7 +70,7 @@ describe('formatEvents', () => {
         _id: event3,
       },
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUsers,
       [
         {
@@ -82,7 +82,7 @@ describe('formatEvents', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomers,
       [
         {
@@ -97,7 +97,7 @@ describe('formatEvents', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEventHistories,
       [
         {
@@ -267,7 +267,7 @@ describe('getEvents', () => {
       { isBilled: false, _id: 'not_billed', auxiliary: 'auxiliary' },
       { isBilled: true, _id: 'billed', auxiliary: 'aux' },
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomers,
       [
         {
@@ -277,7 +277,7 @@ describe('getEvents', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvents,
       [
         {
@@ -327,7 +327,7 @@ describe('getFileName', () => {
     const result = await DeliveryHelper.getFileName(query);
 
     expect(result).toEqual(`440-202109-APA-${moment().format('YYMMDDHHmm')}.xml`);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: tppId }, { teletransmissionType: 1, companyCode: 1 }] }, { query: 'lean' }]
     );

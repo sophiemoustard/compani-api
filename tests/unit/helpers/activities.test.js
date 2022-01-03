@@ -40,7 +40,7 @@ describe('getActivity', () => {
       { query: 'lean', args: [{ virtuals: true }] },
     ];
 
-    SinonMongoose.calledWithExactly(findOne, chainedPayload);
+    SinonMongoose.calledOnceWithExactly(findOne, chainedPayload);
     expect(result).toMatchObject({ _id: 'skusku' });
   });
 });
@@ -198,7 +198,7 @@ describe('removeCard', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.notCalled(deleteMedia);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndRemoveCard,
       [
         { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
@@ -217,7 +217,7 @@ describe('removeCard', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.calledOnceWithExactly(deleteMedia, cardId, 'publicId');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndRemoveCard,
       [
         { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },

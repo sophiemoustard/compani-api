@@ -108,7 +108,7 @@ describe('updatedSubProgram', () => {
         { status: payload.status }
       );
       sinon.assert.calledWithExactly(activityUpdateManyStub, { _id: { $in: activities } }, { status: payload.status });
-      SinonMongoose.calledWithExactly(findOneAndUpdate, [
+      SinonMongoose.calledOnceWithExactly(findOneAndUpdate, [
         { query: 'findOneAndUpdate', args: [{ _id: subProgram._id }, { $set: payload }] },
         { query: 'populate', args: [{ path: 'steps', select: 'activities type' }] },
         { query: 'lean', args: [{ virtuals: true }] },
@@ -155,7 +155,7 @@ describe('updatedSubProgram', () => {
         { status: payload.status }
       );
       sinon.assert.calledWithExactly(activityUpdateManyStub, { _id: { $in: activities } }, { status: payload.status });
-      SinonMongoose.calledWithExactly(findOneAndUpdate, [
+      SinonMongoose.calledOnceWithExactly(findOneAndUpdate, [
         { query: 'findOneAndUpdate', args: [{ _id: subProgram._id }, { $set: { status: payload.status } }] },
         { query: 'populate', args: [{ path: 'steps', select: 'activities type' }] },
         { query: 'lean', args: [{ virtuals: true }] },
@@ -210,7 +210,7 @@ describe('updatedSubProgram', () => {
           { _id: { $in: activities } },
           { status: payload.status }
         );
-        SinonMongoose.calledWithExactly(findOneAndUpdate, [
+        SinonMongoose.calledOnceWithExactly(findOneAndUpdate, [
           { query: 'findOneAndUpdate', args: [{ _id: subProgram._id }, { $set: { status: payload.status } }] },
           { query: 'populate', args: [{ path: 'steps', select: 'activities type' }] },
           { query: 'lean', args: [{ virtuals: true }] },
@@ -260,7 +260,7 @@ describe('listELearningDraft', () => {
     const result = await SubProgramHelper.listELearningDraft();
 
     expect(result).toMatchObject([subProgramsList[0]]);
-    SinonMongoose.calledWithExactly(find, [
+    SinonMongoose.calledOnceWithExactly(find, [
       { query: 'find', args: [{ status: 'draft' }] },
       { query: 'populate', args: [{ path: 'program', select: '_id name description image' }] },
       { query: 'populate', args: [{ path: 'steps', select: 'type' }] },
@@ -296,7 +296,7 @@ describe('listELearningDraft', () => {
     const result = await SubProgramHelper.listELearningDraft(testerRestrictedPrograms);
 
     expect(result).toMatchObject([subProgramsList[0]]);
-    SinonMongoose.calledWithExactly(find, [
+    SinonMongoose.calledOnceWithExactly(find, [
       { query: 'find', args: [{ status: 'draft' }] },
       {
         query: 'populate',
@@ -336,7 +336,7 @@ describe('getSubProgram', () => {
     const result = await SubProgramHelper.getSubProgram(subProgram._id);
 
     expect(result).toMatchObject(subProgram);
-    SinonMongoose.calledWithExactly(findOne, [
+    SinonMongoose.calledOnceWithExactly(findOne, [
       { query: 'findOne', args: [{ _id: subProgram._id }] },
       { query: 'populate', args: [{ path: 'program', select: 'name image' }] },
       { query: 'populate', args: [{ path: 'steps', populate: { path: 'activities' } }] },

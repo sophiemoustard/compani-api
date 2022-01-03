@@ -43,7 +43,7 @@ describe('list', () => {
     const result = await AttendanceHelper.list([courseSlots], null);
 
     expect(result).toMatchObject(attendancesList);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },
@@ -67,7 +67,7 @@ describe('list', () => {
     const result = await AttendanceHelper.list([courseSlots], companyId);
 
     expect(result).toMatchObject([attendancesList[0]]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ courseSlot: { $in: [courseSlots] } }] },

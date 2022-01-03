@@ -34,7 +34,7 @@ describe('getPayments', () => {
 
     expect(result).toEqual([payment]);
     sinon.assert.notCalled(getDateQueryStub);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
@@ -57,7 +57,7 @@ describe('getPayments', () => {
 
     expect(result).toEqual([payment]);
     sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, date: { $lte: '2019-11-01' } }] },
@@ -80,7 +80,7 @@ describe('getPayments', () => {
 
     expect(result).toEqual([payment]);
     sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, date: { $gte: '2019-11-01' } }] },
@@ -378,7 +378,7 @@ describe('getPaymentNumber', () => {
 
     await PaymentsHelper.getPaymentNumber(payment, companyId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {

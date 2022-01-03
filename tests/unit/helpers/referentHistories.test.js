@@ -38,7 +38,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.notCalled(findOneCustomer);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -58,7 +58,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.calledOnceWithExactly(createReferentHistory, customerId, referent.toHexString(), company);
       sinon.assert.notCalled(findOneCustomer);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -80,7 +80,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.notCalled(findOneCustomer);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -101,7 +101,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.calledOnceWithExactly(createReferentHistory, customerId, referent.toHexString(), company);
       sinon.assert.notCalled(findOneCustomer);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -123,7 +123,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.notCalled(findOneCustomer);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -144,7 +144,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.notCalled(findOneCustomer);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -168,7 +168,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.calledOnceWithExactly(createReferentHistory, customerId, referent.toHexString(), company);
       sinon.assert.notCalled(findOneCustomer);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -192,7 +192,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.notCalled(updateLastHistory);
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.calledOnceWithExactly(deleteOneReferentHistory, { _id: lastHistory._id });
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -201,7 +201,7 @@ describe('updateCustomerReferent', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           { query: 'find', args: [{ _id: customerId }] },
@@ -223,7 +223,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.notCalled(updateLastHistory);
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.calledOnceWithExactly(deleteOneReferentHistory, { _id: lastHistory._id });
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -232,7 +232,7 @@ describe('updateCustomerReferent', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           { query: 'find', args: [{ _id: customerId }] },
@@ -260,7 +260,7 @@ describe('updateCustomerReferent', () => {
       );
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -269,7 +269,7 @@ describe('updateCustomerReferent', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           { query: 'find', args: [{ _id: customerId }] },
@@ -294,7 +294,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.notCalled(updateLastHistory);
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -303,7 +303,7 @@ describe('updateCustomerReferent', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           { query: 'find', args: [{ _id: customerId }] },
@@ -330,7 +330,7 @@ describe('updateCustomerReferent', () => {
       );
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -339,7 +339,7 @@ describe('updateCustomerReferent', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           { query: 'find', args: [{ _id: customerId }] },
@@ -368,7 +368,7 @@ describe('updateCustomerReferent', () => {
       sinon.assert.calledOnceWithExactly(updateLastHistory, lastHistory, { auxiliary: referent.toHexString() });
       sinon.assert.notCalled(createReferentHistory);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -377,7 +377,7 @@ describe('updateCustomerReferent', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           { query: 'find', args: [{ _id: customerId }] },
@@ -406,7 +406,7 @@ describe('updateCustomerReferent', () => {
       );
       sinon.assert.calledOnceWithExactly(createReferentHistory, customerId, referent.toHexString(), company);
       sinon.assert.notCalled(deleteOneReferentHistory);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findReferentHistory,
         [
           { query: 'find', args: [{ customer: customerId, company: company._id }] },
@@ -415,7 +415,7 @@ describe('updateCustomerReferent', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           { query: 'find', args: [{ _id: customerId }] },

@@ -32,7 +32,22 @@ const calledWithExactly = (stubbedMethod, chainedPayload, callCount = 0) => {
   }
 };
 
+const calledOnceWithExactly = (stubbedMethod, chainedPayload) => {
+  let chainedQuery = stubbedMethod;
+  if (chainedPayload[0].args) {
+    sinon.assert.calledOnceWithExactly(chainedQuery, ...chainedPayload[0].args);
+  } else sinon.assert.calledOnceWithExactly(chainedQuery);
+  for (let i = 1; i < chainedPayload.length; i++) {
+    const { query, args } = chainedPayload[i];
+
+    chainedQuery = chainedQuery.getCall(0).returnValue[query];
+    if (args && args.length) sinon.assert.calledWithExactly(chainedQuery, ...args);
+    else sinon.assert.calledWithExactly(chainedQuery);
+  }
+};
+
 module.exports = {
   stubChainedQueries,
   calledWithExactly,
+  calledOnceWithExactly,
 };

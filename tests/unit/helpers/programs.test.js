@@ -43,7 +43,7 @@ describe('list', () => {
 
     const result = await ProgramHelper.list();
     expect(result).toMatchObject(programsList);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{}] },
@@ -78,7 +78,7 @@ describe('listELearning', () => {
     const result = await ProgramHelper.listELearning(credentials);
     expect(result).toMatchObject([{ name: 'name' }, { name: 'program' }]);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFind,
       [
         {
@@ -91,7 +91,7 @@ describe('listELearning', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       programFind,
       [
         { query: 'find', args: [{ subPrograms: { $in: subPrograms } }] },
@@ -134,7 +134,7 @@ describe('listELearning', () => {
     const result = await ProgramHelper.listELearning(credentials, { _id: programId });
     expect(result).toMatchObject([{ _id: programId, name: 'name' }]);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFind,
       [
         {
@@ -147,7 +147,7 @@ describe('listELearning', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       programFind,
       [
         { query: 'find', args: [{ _id: programId, subPrograms: { $in: subPrograms } }] },
@@ -235,7 +235,7 @@ describe('getProgram', () => {
         }],
       }],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       programFindOne,
       [
         { query: 'findOne', args: [{ _id: program._id }] },
@@ -418,11 +418,11 @@ describe('addTester', () => {
 
     await ProgramHelper.addTester(programId, user);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ 'local.email': 'test@test.fr' }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         { query: 'findOne', args: [{ _id: programId }, { $addToSet: { testers: user._id } }, { new: true }] },
@@ -443,11 +443,11 @@ describe('addTester', () => {
 
     await ProgramHelper.addTester(programId, payload);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ 'local.email': 'test@test.fr' }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         { query: 'findOne', args: [{ _id: programId }, { $addToSet: { testers: userId } }, { new: true }] },

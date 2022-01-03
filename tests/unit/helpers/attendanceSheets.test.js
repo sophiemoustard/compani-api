@@ -30,7 +30,7 @@ describe('list', () => {
     const result = await attendanceSheetHelper.list(courseId, null);
 
     expect(result).toMatchObject(attendanceSheets);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
@@ -62,7 +62,7 @@ describe('list', () => {
     const result = await attendanceSheetHelper.list(courseId, authCompanyId);
 
     expect(result).toMatchObject([attendanceSheets[0]]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
@@ -119,7 +119,7 @@ describe('create', () => {
     formatIdentity.returns('monsieurPATATE');
 
     await attendanceSheetHelper.create(payload);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: '', args: [{ _id: 'id de quelqun' }, { identity: 1 }] },

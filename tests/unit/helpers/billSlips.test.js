@@ -107,7 +107,7 @@ describe('getBillSlipNumber', () => {
 
     expect(result).toEqual('1234567890');
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
@@ -159,7 +159,7 @@ describe('createBillSlips', () => {
     sinon.assert.notCalled(formatBillSlipNumber);
     sinon.assert.notCalled(updateOneBillSlipNumber);
     sinon.assert.notCalled(insertManyBillSlip);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBillSlip,
       [
         {
@@ -204,7 +204,7 @@ describe('createBillSlips', () => {
         { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBillSlip,
       [
         {
@@ -247,7 +247,7 @@ describe('createBillSlips', () => {
         { company: company._id, month: '09-2019', thirdPartyPayer: thirdPartyPayer2, number: 'BORD-129ASD00013' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBillSlip,
       [
         {
@@ -576,7 +576,7 @@ describe('generateFile', () => {
       path.join(process.cwd(), 'src/data/billSlip.docx'),
       billSlipData
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findByIdBillSlip,
       [
         { query: 'findById', args: [billSlip._id] },

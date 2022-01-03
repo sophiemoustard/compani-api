@@ -40,7 +40,7 @@ describe('validate', () => {
         company: null,
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -109,7 +109,7 @@ describe('validate', () => {
         role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -191,7 +191,7 @@ describe('validate', () => {
         role: { client: { name: 'client_admin' } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -233,7 +233,7 @@ describe('validate', () => {
         role: { client: { name: 'helper' } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -273,7 +273,7 @@ describe('validate', () => {
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -352,7 +352,7 @@ describe('validate', () => {
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },

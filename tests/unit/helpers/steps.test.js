@@ -278,7 +278,7 @@ describe('list', () => {
       { _id: stepId1, name: 'etape 1', type: 'on_site' },
       { _id: stepId3, name: 'etape 3', type: 'remote' },
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       stepFind,
       [
         { query: 'find', args: [] },

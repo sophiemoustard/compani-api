@@ -41,7 +41,7 @@ describe('list', () => {
         customer: query.customer,
       },
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ customer: query.customer, company: companyId }] },
@@ -73,7 +73,7 @@ describe('update', () => {
 
     await HelpersHelper.update(helperId, { referent: true });
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [{ query: 'findOneAndUpdate', args: [{ _id: helperId }, { $set: { referent: true } }] }, { query: 'lean' }]
     );

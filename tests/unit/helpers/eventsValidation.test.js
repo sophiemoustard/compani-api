@@ -90,7 +90,7 @@ describe('isUserContractValidOnEventDates', () => {
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -109,7 +109,7 @@ describe('isUserContractValidOnEventDates', () => {
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -129,7 +129,7 @@ describe('isUserContractValidOnEventDates', () => {
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -149,7 +149,7 @@ describe('isUserContractValidOnEventDates', () => {
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -174,7 +174,7 @@ describe('isUserContractValidOnEventDates', () => {
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -199,7 +199,7 @@ describe('isUserContractValidOnEventDates', () => {
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },

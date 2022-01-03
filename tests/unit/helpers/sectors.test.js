@@ -25,7 +25,7 @@ describe('create', () => {
 
     expect(result).toMatchObject({ name: 'toto', company: companyId });
 
-    SinonMongoose.calledWithExactly(create, [
+    SinonMongoose.calledOnceWithExactly(create, [
       { query: 'create', args: [{ name: 'toto', company: companyId }] },
       { query: 'toObject' },
     ]);
@@ -49,7 +49,7 @@ describe('list', () => {
 
     await SectorsHelper.list(credentials);
 
-    SinonMongoose.calledWithExactly(find, [
+    SinonMongoose.calledOnceWithExactly(find, [
       { query: 'find', args: [{ company: companyId }] },
       { query: 'lean' },
     ]);
@@ -75,7 +75,7 @@ describe('update', () => {
 
     await SectorsHelper.update(sectorId, payload, credentials);
 
-    SinonMongoose.calledWithExactly(findOneAndUpdate, [
+    SinonMongoose.calledOnceWithExactly(findOneAndUpdate, [
       { query: 'findOneAndUpdate', args: [{ _id: sectorId }, { $set: payload }, { new: true }] },
       { query: 'lean' },
     ]);
