@@ -121,7 +121,6 @@ describe('DISPLAY', () => {
 describe('QUERY', () => {
   describe('isBefore', () => {
     let _formatMiscToCompaniDate;
-    let otherDate = '2021-11-01T10:00:00.000Z';
     const companiDate = CompaniDatesHelper.CompaniDate('2021-11-01T07:00:00.000Z');
 
     beforeEach(() => {
@@ -133,6 +132,7 @@ describe('QUERY', () => {
     });
 
     it('should return true if date is before other date', () => {
+      const otherDate = '2021-11-01T10:00:00.000Z';
       const result = companiDate.isBefore(otherDate);
 
       expect(result).toBe(true);
@@ -140,7 +140,7 @@ describe('QUERY', () => {
     });
 
     it('should return false is date is not before other date', () => {
-      otherDate = '2021-11-01T05:00:00.000Z';
+      const otherDate = '2021-11-01T05:00:00.000Z';
       const result = companiDate.isBefore(otherDate);
 
       expect(result).toBe(false);
@@ -160,7 +160,6 @@ describe('QUERY', () => {
 
   describe('isAfter', () => {
     let _formatMiscToCompaniDate;
-    let otherDate = '2021-11-01T05:00:00.000Z';
     const companiDate = CompaniDatesHelper.CompaniDate('2021-11-01T07:00:00.000Z');
 
     beforeEach(() => {
@@ -172,6 +171,7 @@ describe('QUERY', () => {
     });
 
     it('should return true if date is after other date', () => {
+      const otherDate = '2021-11-01T05:00:00.000Z';
       const result = companiDate.isAfter(otherDate);
 
       expect(result).toBe(true);
@@ -179,7 +179,7 @@ describe('QUERY', () => {
     });
 
     it('should return false is date is not after other date', () => {
-      otherDate = '2021-11-01T10:00:00.000Z';
+      const otherDate = '2021-11-01T10:00:00.000Z';
       const result = companiDate.isAfter(otherDate);
 
       expect(result).toBe(false);
@@ -248,7 +248,6 @@ describe('QUERY', () => {
   describe('isSameOrBefore', () => {
     let _formatMiscToCompaniDate;
     const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
-    let otherDate = '2021-11-25T10:00:00.000Z';
 
     beforeEach(() => {
       _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
@@ -259,7 +258,7 @@ describe('QUERY', () => {
     });
 
     it('should return true if same moment', () => {
-      otherDate = '2021-11-24T07:00:00.000Z';
+      const otherDate = '2021-11-24T07:00:00.000Z';
 
       const result = companiDate.isSameOrBefore(otherDate);
 
@@ -268,6 +267,7 @@ describe('QUERY', () => {
     });
 
     it('should return true if before', () => {
+      const otherDate = '2021-11-25T10:00:00.000Z';
       const result = companiDate.isSameOrBefore(otherDate);
 
       expect(result).toBe(true);
@@ -275,7 +275,7 @@ describe('QUERY', () => {
     });
 
     it('should return true if after but same as specified unit', () => {
-      otherDate = '2021-11-24T06:00:00.000Z';
+      const otherDate = '2021-11-24T06:00:00.000Z';
 
       const result = companiDate.isSameOrBefore(otherDate, 'day');
 
@@ -284,7 +284,7 @@ describe('QUERY', () => {
     });
 
     it('should return false if after', () => {
-      otherDate = '2021-11-23T10:00:00.000Z';
+      const otherDate = '2021-11-23T10:00:00.000Z';
 
       const result = companiDate.isSameOrBefore(otherDate);
 
@@ -293,7 +293,7 @@ describe('QUERY', () => {
     });
 
     it('should return false if after specified unit', () => {
-      otherDate = '2021-11-24T06:00:00.000Z';
+      const otherDate = '2021-11-24T06:00:00.000Z';
 
       const result = companiDate.isSameOrBefore(otherDate, 'minute');
 
@@ -312,6 +312,7 @@ describe('QUERY', () => {
     });
 
     it('should return error if unit is plural', () => {
+      const otherDate = '2021-11-24T06:00:00.000Z';
       try {
         companiDate.isSame(otherDate, 'minutes');
       } catch (e) {
@@ -385,7 +386,6 @@ describe('MANIPULATE', () => {
   describe('diff', () => {
     let _formatMiscToCompaniDate;
     const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T10:00:00.000Z');
-    let otherDate = '2021-11-20T10:00:00.000Z';
 
     beforeEach(() => {
       _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
@@ -396,6 +396,7 @@ describe('MANIPULATE', () => {
     });
 
     it('should return difference in positive days', () => {
+      const otherDate = '2021-11-20T10:00:00.000Z';
       const result = companiDate.diff(otherDate, 'days');
 
       expect(result).toBe(4);
@@ -403,7 +404,7 @@ describe('MANIPULATE', () => {
     });
 
     it('should return diff in milliseconds, if no unit specified', () => {
-      otherDate = '2021-11-24T08:29:48.000Z';
+      const otherDate = '2021-11-24T08:29:48.000Z';
       const result = companiDate.diff(otherDate);
       const expectedDiffInMillis = 1 * 60 * 60 * 1000 + 30 * 60 * 1000 + 12 * 1000;
 
@@ -412,7 +413,7 @@ describe('MANIPULATE', () => {
     });
 
     it('should return difference in days. Result should be 0 if difference is less then 24h', () => {
-      otherDate = '2021-11-23T21:00:00.000Z';
+      const otherDate = '2021-11-23T21:00:00.000Z';
       const result = companiDate.diff(otherDate, 'days');
 
       expect(result).toBe(0);
@@ -420,7 +421,7 @@ describe('MANIPULATE', () => {
     });
 
     it('should return difference in positive floated days', () => {
-      otherDate = '2021-11-22T21:00:00.000Z';
+      const otherDate = '2021-11-22T21:00:00.000Z';
       const result = companiDate.diff(otherDate, 'days', true);
 
       expect(result).toBeGreaterThan(0);
@@ -429,7 +430,7 @@ describe('MANIPULATE', () => {
     });
 
     it('should return difference in negative days', () => {
-      otherDate = '2021-11-30T10:00:00.000Z';
+      const otherDate = '2021-11-30T10:00:00.000Z';
       const result = companiDate.diff(otherDate, 'days');
 
       expect(result).toBe(-6);
@@ -437,7 +438,7 @@ describe('MANIPULATE', () => {
     });
 
     it('should return difference in negative floated days', () => {
-      otherDate = '2021-11-30T08:00:00.000Z';
+      const otherDate = '2021-11-30T08:00:00.000Z';
       const result = companiDate.diff(otherDate, 'days', true);
 
       expect(result).toBeLessThan(0);
@@ -456,6 +457,7 @@ describe('MANIPULATE', () => {
     });
 
     it('should return error if invalid unit', () => {
+      const otherDate = '2021-11-30T08:00:00.000Z';
       try {
         companiDate.diff(otherDate, 'jour', true);
       } catch (e) {
