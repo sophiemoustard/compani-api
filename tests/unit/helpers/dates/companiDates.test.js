@@ -14,59 +14,62 @@ describe('CompaniDate', () => {
     _formatMiscToCompaniDate.restore();
   });
 
-  it('should return dateTime', () => {
-    const date = '2021-11-24T07:00:00.000Z';
+  it('should not mutate _date', () => {
+    const isoDate = '2021-11-24T07:12:08.000Z';
+    const otherIsoDate = '2022-01-03T07:12:08.000Z';
+    const companiDate = CompaniDatesHelper.CompaniDate(isoDate);
+    companiDate._date = luxon.DateTime.fromISO(otherIsoDate);
 
-    const result = CompaniDatesHelper.CompaniDate(date);
-
-    expect(result)
-      .toEqual(expect.objectContaining({
-        _getDate: expect.any(luxon.DateTime),
-        getUnits: expect.any(Function),
-        format: expect.any(Function),
-        toDate: expect.any(Function),
-        toISO: expect.any(Function),
-        isBefore: expect.any(Function),
-        isAfter: expect.any(Function),
-        isSame: expect.any(Function),
-        isSameOrBefore: expect.any(Function),
-        startOf: expect.any(Function),
-        endOf: expect.any(Function),
-        diff: expect.any(Function),
-        add: expect.any(Function),
-        set: expect.any(Function),
-      }));
-    sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, date);
+    expect(companiDate._getDate.toUTC().toISO()).toEqual(isoDate);
   });
 
-  it('should return error if invalid argument', () => {
-    try {
-      CompaniDatesHelper.CompaniDate(null);
-    } catch (e) {
-      expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
-    } finally {
-      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
-    }
+  describe('Constructor', () => {
+    it('should return dateTime', () => {
+      const date = '2021-11-24T07:00:00.000Z';
+
+      const result = CompaniDatesHelper.CompaniDate(date);
+
+      expect(result)
+        .toEqual(expect.objectContaining({
+          _getDate: expect.any(luxon.DateTime),
+          getUnits: expect.any(Function),
+          format: expect.any(Function),
+          toDate: expect.any(Function),
+          toISO: expect.any(Function),
+          isBefore: expect.any(Function),
+          isAfter: expect.any(Function),
+          isSame: expect.any(Function),
+          isSameOrBefore: expect.any(Function),
+          startOf: expect.any(Function),
+          endOf: expect.any(Function),
+          diff: expect.any(Function),
+          add: expect.any(Function),
+          set: expect.any(Function),
+        }));
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, date);
+    });
+
+    it('should return error if invalid argument', () => {
+      try {
+        CompaniDatesHelper.CompaniDate(null);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
+      }
+    });
   });
 });
 
 describe('GETTER', () => {
   describe('getDate', () => {
     it('should return _date', () => {
-      const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
+      const isoDate = '2021-11-24T07:12:08.000Z';
+      const companiDate = CompaniDatesHelper.CompaniDate(isoDate);
       const result = companiDate._getDate;
 
       expect(result).toEqual(expect.any(luxon.DateTime));
-      expect(result).toEqual(luxon.DateTime.fromISO('2021-11-24T07:12:08.000Z'));
-    });
-
-    it('should not mutate _date', () => {
-      const isoDate = '2021-11-24T07:12:08.000Z';
-      const otherIsoDate = '2022-01-03T07:12:08.000Z';
-      const companiDate = CompaniDatesHelper.CompaniDate(isoDate);
-      companiDate._date = luxon.DateTime.fromISO(otherIsoDate);
-
-      expect(companiDate._getDate.toUTC().toISO()).toEqual(isoDate);
+      expect(result).toEqual(luxon.DateTime.fromISO(isoDate));
     });
   });
 
