@@ -98,9 +98,8 @@ describe('DISPLAY', () => {
   });
 
   describe('toDate', () => {
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000+01:00');
-
     it('should return a JSDate equivalent to companiDate (in utc)', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000+01:00');
       const result = companiDate.toDate();
 
       expect(result).toEqual(new Date('2021-11-24T06:00:00.000Z'));
@@ -108,9 +107,8 @@ describe('DISPLAY', () => {
   });
 
   describe('toISO', () => {
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-24T12:00:00.000+03:00');
-
     it('should return a string ISO 8601 equivalent to companiDate (in utc)', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2021-12-24T12:00:00.000+03:00');
       const result = companiDate.toISO();
 
       expect(result).toEqual('2021-12-24T09:00:00.000Z');
