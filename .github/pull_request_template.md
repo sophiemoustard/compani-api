@@ -6,6 +6,8 @@
   - [ ] Si oui, J'ai fait de nouveaux tests sans modifier les anciens
 </details>
 
+- [ ] Je replie cette section car mes modifications n'ont pas besoin de tests unitaires ou d'intégration
+
 ---
 
 <details open><summary> POINTS D'ATTENTION POUR CETTE PR  :warning: </summary>
@@ -21,6 +23,8 @@
 
 </details>
 
+- [ ] Je replie cette section car je n'ai pas fait de modifications entrainant un point d'attention
+
 ---
 
 <details open><summary> FONCTIONNALITÉS APPS MOBILES  :iphone: </summary>
@@ -31,6 +35,8 @@
   - [ ] Si oui, j'ai testé que les anciennes versions maintenues fonctionnent toujours
 
 </details>
+
+- [ ] Je replie cette section car mes modifications n'ont pas d'impact sur les applications mobiles
 
 ---
 
