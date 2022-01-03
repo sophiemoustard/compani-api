@@ -60,10 +60,10 @@ describe('GETTER', () => {
       expect(result).toEqual({ day: 24, second: 8 });
     });
 
-    it('should return empty if unit is plural', () => {
-      const result = companiDate.getUnits(['days']);
+    it('should return empty if unit is plural or invalid', () => {
+      const result = companiDate.getUnits(['days', 'second', 'mois']);
 
-      expect(result).toEqual({});
+      expect(result).toEqual({ second: 8 });
     });
   });
 });
