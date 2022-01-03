@@ -161,7 +161,7 @@ describe('removeCard', () => {
     SinonMongoose.calledOnceWithExactly(
       findOneAndRemoveCard,
       [
-        { query: 'findOne', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
+        { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
         { query: 'lean' },
       ]
     );
@@ -180,7 +180,7 @@ describe('removeCard', () => {
     SinonMongoose.calledOnceWithExactly(
       findOneAndRemoveCard,
       [
-        { query: 'findOne', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
+        { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
         { query: 'lean' },
       ]
     );

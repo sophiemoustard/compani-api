@@ -687,7 +687,7 @@ describe('formatPaymentPayload', () => {
     sinon.assert.calledWithExactly(updateOne, { prefix: rumNumber.prefix, company: company._id }, { $inc: { seq: 1 } });
     SinonMongoose.calledOnceWithExactly(
       findByIdCustomer,
-      [{ query: 'finById', args: [customerId] }, { query: 'lean' }]
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
     );
   });
 

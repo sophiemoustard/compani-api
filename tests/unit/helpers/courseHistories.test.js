@@ -335,7 +335,7 @@ describe('list', () => {
 
     expect(result).toMatchObject(returnedList);
     SinonMongoose.calledOnceWithExactly(find, [
-      { query: '', args: [query] },
+      { query: 'find', args: [query] },
       { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
       { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
       { query: 'sort', args: [{ createdAt: -1 }] },
@@ -368,7 +368,7 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: '', args: [{ course: query.course, createdAt: { $lt: query.createdAt } }] },
+        { query: 'find', args: [{ course: query.course, createdAt: { $lt: query.createdAt } }] },
         { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
         { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
         { query: 'sort', args: [{ createdAt: -1 }] },

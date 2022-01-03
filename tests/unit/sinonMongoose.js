@@ -20,6 +20,10 @@ const stubChainedQueries = (stubbedMethodReturns, chainedQueries = ['populate', 
 
 const calledWithExactly = (stubbedMethod, chainedPayload, callCount = 0) => {
   let chainedQuery = stubbedMethod;
+
+  if (String(chainedQuery.getCall(0).proxy) !== chainedPayload[0].query) {
+    sinon.assert.fail(`Error in principal query : ${String(chainedQuery.getCall(callCount).proxy)} expected`);
+  }
   if (chainedPayload[0].args) {
     sinon.assert.calledWithExactly(chainedQuery.getCall(callCount), ...chainedPayload[0].args);
   } else sinon.assert.calledWithExactly(chainedQuery.getCall(callCount));
@@ -27,6 +31,7 @@ const calledWithExactly = (stubbedMethod, chainedPayload, callCount = 0) => {
   for (let i = 1; i < chainedPayload.length; i++) {
     const { query, args } = chainedPayload[i];
     chainedQuery = chainedQuery.getCall(callCount).returnValue[query];
+    if (!chainedQuery) sinon.assert.fail('Error in secondary queries');
     if (args && args.length) sinon.assert.calledWithExactly(chainedQuery, ...args);
     else sinon.assert.calledWithExactly(chainedQuery);
   }
@@ -34,13 +39,18 @@ const calledWithExactly = (stubbedMethod, chainedPayload, callCount = 0) => {
 
 const calledOnceWithExactly = (stubbedMethod, chainedPayload) => {
   let chainedQuery = stubbedMethod;
+
+  if (String(chainedQuery.getCall(0).proxy) !== chainedPayload[0].query) {
+    sinon.assert.fail(`Error in principal query : ${String(chainedQuery.getCall(0).proxy)} expected`);
+  }
   if (chainedPayload[0].args) {
     sinon.assert.calledOnceWithExactly(chainedQuery, ...chainedPayload[0].args);
   } else sinon.assert.calledOnceWithExactly(chainedQuery);
+
   for (let i = 1; i < chainedPayload.length; i++) {
     const { query, args } = chainedPayload[i];
-
     chainedQuery = chainedQuery.getCall(0).returnValue[query];
+    if (!chainedQuery) sinon.assert.fail('Error in secondary queries');
     if (args && args.length) sinon.assert.calledWithExactly(chainedQuery, ...args);
     else sinon.assert.calledWithExactly(chainedQuery);
   }

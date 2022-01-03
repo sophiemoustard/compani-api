@@ -204,7 +204,7 @@ describe('updateCustomerReferent', () => {
       SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
-          { query: 'find', args: [{ _id: customerId }] },
+          { query: 'findOne', args: [{ _id: customerId }] },
           {
             query: 'populate',
             args: [{ path: 'firstIntervention', select: 'startDate', match: { company: company._id } }],
@@ -235,7 +235,7 @@ describe('updateCustomerReferent', () => {
       SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
-          { query: 'find', args: [{ _id: customerId }] },
+          { query: 'findOne', args: [{ _id: customerId }] },
           {
             query: 'populate',
             args: [{ path: 'firstIntervention', select: 'startDate', match: { company: company._id } }],
@@ -272,7 +272,7 @@ describe('updateCustomerReferent', () => {
       SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
-          { query: 'find', args: [{ _id: customerId }] },
+          { query: 'findOne', args: [{ _id: customerId }] },
           {
             query: 'populate',
             args: [{ path: 'firstIntervention', select: 'startDate', match: { company: company._id } }],
@@ -306,7 +306,7 @@ describe('updateCustomerReferent', () => {
       SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
-          { query: 'find', args: [{ _id: customerId }] },
+          { query: 'findOne', args: [{ _id: customerId }] },
           {
             query: 'populate',
             args: [{ path: 'firstIntervention', select: 'startDate', match: { company: company._id } }],
@@ -342,7 +342,7 @@ describe('updateCustomerReferent', () => {
       SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
-          { query: 'find', args: [{ _id: customerId }] },
+          { query: 'findOne', args: [{ _id: customerId }] },
           {
             query: 'populate',
             args: [{ path: 'firstIntervention', select: 'startDate', match: { company: company._id } }],
@@ -380,7 +380,7 @@ describe('updateCustomerReferent', () => {
       SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
-          { query: 'find', args: [{ _id: customerId }] },
+          { query: 'findOne', args: [{ _id: customerId }] },
           {
             query: 'populate',
             args: [{ path: 'firstIntervention', select: 'startDate', match: { company: company._id } }],
@@ -418,7 +418,7 @@ describe('updateCustomerReferent', () => {
       SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
-          { query: 'find', args: [{ _id: customerId }] },
+          { query: 'findOne', args: [{ _id: customerId }] },
           {
             query: 'populate',
             args: [{ path: 'firstIntervention', select: 'startDate', match: { company: company._id } }],

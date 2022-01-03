@@ -38,7 +38,7 @@ describe('updateRepetitions', () => {
     expect(result).toBeUndefined();
     SinonMongoose.calledOnceWithExactly(
       findOneRepetition,
-      [{ query: 'find', args: [{ parentId }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ parentId }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(findOneAndUpdateRepetition, { parentId }, { payload: 'payload' });
     sinon.assert.calledOnceWithExactly(
@@ -58,7 +58,7 @@ describe('updateRepetitions', () => {
     expect(result).toBeUndefined();
     SinonMongoose.calledOnceWithExactly(
       findOneRepetition,
-      [{ query: 'find', args: [{ parentId }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ parentId }] }, { query: 'lean' }]
     );
     sinon.assert.notCalled(findOneAndUpdateRepetition);
     sinon.assert.notCalled(formatEditionPayloadStub);

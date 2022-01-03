@@ -47,7 +47,7 @@ describe('create', () => {
       expect(e).toEqual(Boom.failedDependency('Google drive: File not uploaded'));
     } finally {
       SinonMongoose.calledOnceWithExactly(findOne, [
-        { query: '', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
+        { query: 'findOne', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
         { query: 'lean' },
       ]);
       sinon.assert.calledWithExactly(formatIdentity, { lastname: 'lastname' }, 'FL');
@@ -81,7 +81,7 @@ describe('create', () => {
       { driveFolderId: 'driveId', name: 'bulletin_de_paie_31_12_2020_0000_bonjour', type: 'pdf', body: 'stream' }
     );
     SinonMongoose.calledOnceWithExactly(findOne, [
-      { query: '', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
+      { query: 'findOne', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
       { query: 'lean' },
     ]);
     sinon.assert.calledOnceWithExactly(

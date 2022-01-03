@@ -122,7 +122,7 @@ describe('create', () => {
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: '', args: [{ _id: 'id de quelqun' }, { identity: 1 }] },
+        { query: 'findOne', args: [{ _id: 'id de quelqun' }, { identity: 1 }] },
         { query: 'lean' },
       ]
     );

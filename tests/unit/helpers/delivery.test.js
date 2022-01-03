@@ -271,7 +271,7 @@ describe('getEvents', () => {
       findCustomers,
       [
         {
-          query: '',
+          query: 'find',
           args: [{ 'fundings.thirdPartyPayer': { $in: [tpp1, tpp2] }, company: companyId }, { fundings: 1 }],
         },
         { query: 'lean' },
@@ -281,7 +281,7 @@ describe('getEvents', () => {
       findEvents,
       [
         {
-          query: '',
+          query: 'find',
           args: [{
             subscription: { $in: ['234', '111', '987'] },
             company: companyId,

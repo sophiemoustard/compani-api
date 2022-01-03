@@ -343,7 +343,7 @@ describe('getCreditNoteNumber', () => {
       findOneAndUpdate,
       [
         {
-          query: 'find',
+          query: 'findOneAndUpdate',
           args: [
             { prefix: '0919', company: company._id },
             {},
@@ -982,7 +982,7 @@ describe('generateCreditNotePdf', () => {
     SinonMongoose.calledOnceWithExactly(
       creditNoteFindOne,
       [
-        { query: 'find', args: [{ _id: params._id }] },
+        { query: 'findOne', args: [{ _id: params._id }] },
         {
           query: 'populate',
           args: [{
@@ -998,7 +998,7 @@ describe('generateCreditNotePdf', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       companyNoteFindOne,
-      [{ query: 'find', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       formatPdf,
@@ -1023,7 +1023,7 @@ describe('generateCreditNotePdf', () => {
       SinonMongoose.calledOnceWithExactly(
         creditNoteFindOne,
         [
-          { query: 'find', args: [{ _id: params._id }] },
+          { query: 'findOne', args: [{ _id: params._id }] },
           {
             query: 'populate',
             args: [{
@@ -1054,7 +1054,7 @@ describe('generateCreditNotePdf', () => {
       SinonMongoose.calledOnceWithExactly(
         creditNoteFindOne,
         [
-          { query: 'find', args: [{ _id: params._id }] },
+          { query: 'findOne', args: [{ _id: params._id }] },
           {
             query: 'populate',
             args: [{

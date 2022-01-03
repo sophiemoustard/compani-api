@@ -425,7 +425,7 @@ describe('addTester', () => {
     SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
-        { query: 'findOne', args: [{ _id: programId }, { $addToSet: { testers: user._id } }, { new: true }] },
+        { query: 'findOneAndUpdate', args: [{ _id: programId }, { $addToSet: { testers: user._id } }, { new: true }] },
         { query: 'lean' },
       ]
     );
@@ -450,7 +450,7 @@ describe('addTester', () => {
     SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
-        { query: 'findOne', args: [{ _id: programId }, { $addToSet: { testers: userId } }, { new: true }] },
+        { query: 'findOneAndUpdate', args: [{ _id: programId }, { $addToSet: { testers: userId } }, { new: true }] },
         { query: 'lean' },
       ]
     );

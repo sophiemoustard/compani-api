@@ -1257,7 +1257,7 @@ describe('createEvent', () => {
     sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
     SinonMongoose.calledOnceWithExactly(
       createEvent,
-      [{ query: 'createEvent', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
+      [{ query: 'create', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
     );
     sinon.assert.calledOnceWithExactly(isRepetition, { ...payload, company: companyId });
     sinon.assert.notCalled(findOneUser);
@@ -1290,7 +1290,7 @@ describe('createEvent', () => {
     sinon.assert.calledOnceWithExactly(populateEventSubscription, detachedEvent);
     SinonMongoose.calledOnceWithExactly(
       createEvent,
-      [{ query: 'createEvent', args: [detachedEvent] }, { query: 'toObject' }]
+      [{ query: 'create', args: [detachedEvent] }, { query: 'toObject' }]
     );
     sinon.assert.calledOnceWithExactly(isRepetition, { ...newEvent, company: companyId });
     sinon.assert.calledOnceWithExactly(detachAuxiliaryFromEvent, { ...newEvent, company: companyId }, companyId);
@@ -1327,7 +1327,7 @@ describe('createEvent', () => {
     sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
     SinonMongoose.calledOnceWithExactly(
       createEvent,
-      [{ query: 'createEvent', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
+      [{ query: 'create', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
     );
     sinon.assert.calledOnceWithExactly(isRepetition, { ...payload, company: companyId });
     sinon.assert.notCalled(findOneUser);
@@ -1378,7 +1378,7 @@ describe('createEvent', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       createEvent,
-      [{ query: 'createEvent', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
+      [{ query: 'create', args: [{ ...payload, company: companyId }] }, { query: 'toObject' }]
     );
     sinon.assert.notCalled(detachAuxiliaryFromEvent);
   });

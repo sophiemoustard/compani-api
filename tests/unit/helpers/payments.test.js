@@ -382,7 +382,7 @@ describe('getPaymentNumber', () => {
       findOneAndUpdate,
       [
         {
-          query: 'find',
+          query: 'findOneAndUpdate',
           args: [
             { nature: payment.nature, company: companyId, prefix: '1219' },
             {},
