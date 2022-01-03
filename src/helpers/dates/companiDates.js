@@ -1,14 +1,19 @@
+const pick = require('lodash/pick');
 const luxon = require('./luxon');
 
-exports.CompaniDate = (...args) => companiDateFactory(exports._formatMiscToCompaniDate(...args));
+exports.CompaniDate = (...args) => CompaniDateFactory(exports._formatMiscToCompaniDate(...args));
 
-const companiDateFactory = (inputDate) => {
+const CompaniDateFactory = (inputDate) => {
   const _date = inputDate;
 
   return ({
     // GETTER
-    get _date() {
+    get _getDate() {
       return _date;
+    },
+
+    getUnits(units) {
+      return pick(_date.toObject(), units);
     },
 
     // DISPLAY
@@ -16,7 +21,27 @@ const companiDateFactory = (inputDate) => {
       return _date.toFormat(fmt);
     },
 
+    toDate() {
+      return _date.toUTC().toJSDate();
+    },
+
+    toISO() {
+      return _date.toUTC().toISO();
+    },
+
     // QUERY
+    isBefore(miscTypeOtherDate) {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+
+      return _date < otherDate;
+    },
+
+    isAfter(miscTypeOtherDate) {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+
+      return _date > otherDate;
+    },
+
     isSame(miscTypeOtherDate, unit) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
@@ -30,12 +55,29 @@ const companiDateFactory = (inputDate) => {
     },
 
     // MANIPULATE
+    startOf(unit) {
+      return CompaniDateFactory(_date.startOf(unit));
+    },
+
+    endOf(unit) {
+      return CompaniDateFactory(_date.endOf(unit));
+    },
+
     diff(miscTypeOtherDate, unit = 'milliseconds', typeFloat = false) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
       const floatDiff = _date.diff(otherDate, unit).as(unit);
 
       if (typeFloat) return floatDiff;
       return floatDiff > 0 ? Math.floor(floatDiff) : Math.ceil(floatDiff);
+    },
+
+    add(amount) {
+      if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
+      return CompaniDateFactory(_date.plus(amount));
+    },
+
+    set(values) {
+      return CompaniDateFactory(_date.set(values));
     },
   });
 };
@@ -44,8 +86,9 @@ exports._formatMiscToCompaniDate = (...args) => {
   if (!args.length) return luxon.DateTime.now();
 
   if (args.length === 1) {
-    if (args[0] instanceof Object && args[0]._date && args[0]._date instanceof luxon.DateTime) return args[0]._date;
-    if (args[0] instanceof luxon.DateTime) return args[0];
+    if (args[0] instanceof Object && args[0]._getDate && args[0]._getDate instanceof luxon.DateTime) {
+      return args[0]._getDate;
+    }
     if (args[0] instanceof Date) return luxon.DateTime.fromJSDate(args[0]);
     if (typeof args[0] === 'string' && args[0] !== '') return luxon.DateTime.fromISO(args[0]);
   }
