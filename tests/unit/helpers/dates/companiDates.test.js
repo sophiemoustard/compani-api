@@ -22,6 +22,7 @@ describe('CompaniDate', () => {
     expect(result)
       .toEqual(expect.objectContaining({
         _getDate: expect.any(luxon.DateTime),
+        getUnits: expect.any(Function),
         format: expect.any(Function),
         toDate: expect.any(Function),
         toISO: expect.any(Function),
@@ -33,6 +34,7 @@ describe('CompaniDate', () => {
         endOf: expect.any(Function),
         diff: expect.any(Function),
         add: expect.any(Function),
+        set: expect.any(Function),
       }));
     sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, date);
   });
@@ -45,6 +47,24 @@ describe('CompaniDate', () => {
     } finally {
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
     }
+  });
+});
+
+describe('GETTER', () => {
+  describe('getUnits', () => {
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
+
+    it('should return units', () => {
+      const result = companiDate.getUnits(['day', 'second']);
+
+      expect(result).toEqual({ day: 24, second: 8 });
+    });
+
+    it('should return empty if unit is plural', () => {
+      const result = companiDate.getUnits(['days']);
+
+      expect(result).toEqual({});
+    });
   });
 });
 
@@ -451,6 +471,25 @@ describe('MANIPULATE', () => {
         companiDate.add(11111);
       } catch (e) {
         expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
+      }
+    });
+  });
+
+  describe('set', () => {
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-20T07:00:00.000Z');
+
+    it('should return a newly constructed companiDate, updated by input', () => {
+      const result = companiDate.set({ month: 11, hour: 3, millisecond: 400 });
+
+      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
+      expect(result._getDate.toUTC().toISO()).toEqual('2021-11-20T02:00:00.400Z');
+    });
+
+    it('should return error if unit is plural', () => {
+      try {
+        companiDate.set({ day: 1, hours: 2 });
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit hours'));
       }
     });
   });

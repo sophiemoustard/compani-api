@@ -1,3 +1,4 @@
+const pick = require('lodash/pick');
 const luxon = require('./luxon');
 
 exports.CompaniDate = (...args) => CompaniDateFactory(exports._formatMiscToCompaniDate(...args));
@@ -9,6 +10,10 @@ const CompaniDateFactory = (inputDate) => {
     // GETTER
     get _getDate() {
       return _date;
+    },
+
+    getUnits(units) {
+      return pick(_date.toObject(), units);
     },
 
     // DISPLAY
@@ -69,6 +74,10 @@ const CompaniDateFactory = (inputDate) => {
     add(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.plus(amount));
+    },
+
+    set(values) {
+      return CompaniDateFactory(_date.set(values));
     },
   });
 };
