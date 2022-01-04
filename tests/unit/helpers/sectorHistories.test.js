@@ -193,12 +193,13 @@ describe('updateHistoryOnSectorUpdate', () => {
       companyId,
       moment().startOf('day').toDate()
     );
-    SinonMongoose.calledOnceWithExactly(findOne, [
-      { query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] },
-      { query: 'lean' },
-    ]);
     SinonMongoose.calledOnceWithExactly(
-      find, [
+      findOne,
+      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
         { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
         { query: 'sort', args: [{ startDate: -1 }] },
         { query: 'lean' },

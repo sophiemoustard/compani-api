@@ -18,42 +18,43 @@ const stubChainedQueries = (stubbedMethodReturns, chainedQueries = ['populate', 
   return chainedQueriesStubs;
 };
 
-const calledWithExactly = (stubbedMethod, chainedPayload, callCount = 0) => {
-  let chainedQuery = stubbedMethod;
-
-  if (String(chainedQuery.getCall(0).proxy) !== chainedPayload[0].query) {
-    sinon.assert.fail(`Error in principal query : ${String(chainedQuery.getCall(callCount).proxy)} expected`);
+const checkFirstQuery = (chainedPayload, stubbedMethod, callCount) => {
+  const expectedQuery = String(stubbedMethod.getCall(callCount).proxy);
+  const receivedQuery = chainedPayload[0].query;
+  if (expectedQuery !== receivedQuery) {
+    sinon.assert.fail(`Error in principal query : expected: "${expectedQuery}", received: "${receivedQuery}"`);
   }
-  if (chainedPayload[0].args) {
-    sinon.assert.calledWithExactly(chainedQuery.getCall(callCount), ...chainedPayload[0].args);
-  } else sinon.assert.calledWithExactly(chainedQuery.getCall(callCount));
+};
 
+const checkSecondaryQueries = (chainedPayload, stubbedMethod, callCount) => {
   for (let i = 1; i < chainedPayload.length; i++) {
     const { query, args } = chainedPayload[i];
-    chainedQuery = chainedQuery.getCall(callCount).returnValue[query];
-    if (!chainedQuery) sinon.assert.fail('Error in secondary queries');
+    const chainedQuery = stubbedMethod.getCall(callCount).returnValue[query];
+    if (!chainedQuery) sinon.assert.fail(`Error in secondary queries : "${query}" is not the expected query`);
     if (args && args.length) sinon.assert.calledWithExactly(chainedQuery, ...args);
     else sinon.assert.calledWithExactly(chainedQuery);
   }
 };
 
-const calledOnceWithExactly = (stubbedMethod, chainedPayload) => {
-  let chainedQuery = stubbedMethod;
+const calledWithExactly = (stubbedMethod, chainedPayload, callCount = 0) => {
+  checkFirstQuery(chainedPayload, stubbedMethod, callCount);
 
-  if (String(chainedQuery.getCall(0).proxy) !== chainedPayload[0].query) {
-    sinon.assert.fail(`Error in principal query : ${String(chainedQuery.getCall(0).proxy)} expected`);
-  }
   if (chainedPayload[0].args) {
-    sinon.assert.calledOnceWithExactly(chainedQuery, ...chainedPayload[0].args);
-  } else sinon.assert.calledOnceWithExactly(chainedQuery);
-
-  for (let i = 1; i < chainedPayload.length; i++) {
-    const { query, args } = chainedPayload[i];
-    chainedQuery = chainedQuery.getCall(0).returnValue[query];
-    if (!chainedQuery) sinon.assert.fail('Error in secondary queries');
-    if (args && args.length) sinon.assert.calledWithExactly(chainedQuery, ...args);
-    else sinon.assert.calledWithExactly(chainedQuery);
+    sinon.assert.calledWithExactly(stubbedMethod.getCall(callCount), ...chainedPayload[0].args);
+  } else {
+    sinon.assert.calledWithExactly(stubbedMethod.getCall(callCount));
   }
+
+  checkSecondaryQueries(chainedPayload, stubbedMethod, callCount);
+};
+
+const calledOnceWithExactly = (stubbedMethod, chainedPayload) => {
+  checkFirstQuery(chainedPayload, stubbedMethod, 0);
+
+  if (chainedPayload[0].args) sinon.assert.calledOnceWithExactly(stubbedMethod, ...chainedPayload[0].args);
+  else sinon.assert.calledOnceWithExactly(stubbedMethod);
+
+  checkSecondaryQueries(chainedPayload, stubbedMethod, 0);
 };
 
 module.exports = {
