@@ -15,7 +15,7 @@ describe('CompaniDuration', () => {
   });
 
   it('should return duration', () => {
-    const duration = 1200000000;
+    const duration = { seconds: 1200000 };
 
     const result = CompaniDurationsHelper.CompaniDuration(duration);
 
@@ -31,7 +31,7 @@ describe('CompaniDuration', () => {
 
 describe('format', () => {
   it('should return formatted duration with minutes', () => {
-    const durationAmount = 5 * 60 * 60 * 1000 + 16 * 60 * 1000;
+    const durationAmount = { seconds: 5 * 60 * 60 + 16 * 60 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -39,7 +39,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration with minutes, leading zero on minutes', () => {
-    const durationAmount = 5 * 60 * 60 * 1000 + 3 * 60 * 1000;
+    const durationAmount = { seconds: 5 * 60 * 60 + 3 * 60 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -47,7 +47,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration without minutes', () => {
-    const durationAmount = 13 * 60 * 60 * 1000;
+    const durationAmount = { seconds: 13 * 60 * 60 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -55,7 +55,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration, days are converted to hours', () => {
-    const durationAmount = 2 * 24 * 60 * 60 * 1000 + 1 * 60 * 60 * 1000;
+    const durationAmount = { seconds: 2 * 24 * 60 * 60 + 1 * 60 * 60 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -63,7 +63,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration with minutes, seconds and milliseconds have no effect', () => {
-    const durationAmount = 1 * 60 * 60 * 1000 + 2 * 60 * 1000 + 30 * 1000 + 400;
+    const durationAmount = { seconds: 1 * 60 * 60 + 2 * 60 + 30 + 0.4 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -71,7 +71,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration without minutes, seconds and milliseconds have no effect', () => {
-    const durationAmount = 1 * 60 * 60 * 1000 + 55 * 1000 + 900;
+    const durationAmount = { seconds: 1 * 60 * 60 + 55 + 0.9 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -82,7 +82,7 @@ describe('format', () => {
 describe('add', () => {
   let _formatMiscToCompaniDuration;
   const durationAmountInMillis = 60 * 60 * 1000;
-  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmountInMillis);
+  const companiDuration = CompaniDurationsHelper.CompaniDuration({ seconds: durationAmountInMillis / 1000 });
 
   beforeEach(() => {
     _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
@@ -94,11 +94,11 @@ describe('add', () => {
 
   it('should increase companiDuration, and return a reference', () => {
     const addedAmountInMillis = 2 * 60 * 60 * 1000 + 5 * 60 * 1000;
-    const result = companiDuration.add(addedAmountInMillis);
+    const result = companiDuration.add({ seconds: addedAmountInMillis / 1000 });
 
     expect(result).toBe(companiDuration);
     expect(companiDuration._duration.toMillis()).toBe(durationAmountInMillis + addedAmountInMillis);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmountInMillis);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), { seconds: addedAmountInMillis / 1000 });
   });
 });
 
@@ -141,14 +141,12 @@ describe('_formatMiscToCompaniDuration', () => {
     sinon.assert.notCalled(invalid);
   });
 
-  it('should return duration if arg is number', () => {
-    const payload = 3000000000;
+  it('should return duration if arg is an object with luxon duration keys', () => {
+    const payload = { hours: 3, minutes: 35, seconds: 12 };
     const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
-    expect(result instanceof luxon.Duration).toBe(true);
-    expect(new luxon.Duration(result).toMillis()).toBe(payload);
-    sinon.assert.calledOnceWithExactly(fromMillis, payload);
-    sinon.assert.calledOnce(fromObject); // fromMillis calls fromObject
+    expect(result.values).toEqual(payload);
+    sinon.assert.calledOnce(fromObject);
     sinon.assert.notCalled(invalid);
   });
 
