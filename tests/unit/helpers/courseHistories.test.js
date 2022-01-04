@@ -334,8 +334,8 @@ describe('list', () => {
     const result = await CourseHistoriesHelper.list(query);
 
     expect(result).toMatchObject(returnedList);
-    SinonMongoose.calledWithExactly(find, [
-      { query: '', args: [query] },
+    SinonMongoose.calledOnceWithExactly(find, [
+      { query: 'find', args: [query] },
       { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
       { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
       { query: 'sort', args: [{ createdAt: -1 }] },
@@ -365,10 +365,10 @@ describe('list', () => {
     const result = await CourseHistoriesHelper.list(query);
 
     expect(result).toMatchObject(returnedList);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: '', args: [{ course: query.course, createdAt: { $lt: query.createdAt } }] },
+        { query: 'find', args: [{ course: query.course, createdAt: { $lt: query.createdAt } }] },
         { query: 'populate', args: [{ path: 'createdBy', select: '_id identity picture' }] },
         { query: 'populate', args: [{ path: 'trainee', select: '_id identity' }] },
         { query: 'sort', args: [{ createdAt: -1 }] },

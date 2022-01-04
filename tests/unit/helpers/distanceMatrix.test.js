@@ -31,7 +31,7 @@ describe('getDistanceMatrices', () => {
     const result = await DistanceMatrixHelper.getDistanceMatrices(credentials);
 
     expect(result).toEqual(distanceMatrix);
-    SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]);
   });
 });
 

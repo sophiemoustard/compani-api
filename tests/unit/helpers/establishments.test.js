@@ -41,7 +41,10 @@ describe('create', () => {
     const result = await EstablishmentsHelper.create(payload, credentials);
 
     expect(result).toMatchObject(payloadWithCompany);
-    SinonMongoose.calledWithExactly(create, [{ query: 'create', args: [payloadWithCompany] }, { query: 'toObject' }]);
+    SinonMongoose.calledOnceWithExactly(
+      create,
+      [{ query: 'create', args: [payloadWithCompany] }, { query: 'toObject' }]
+    );
   });
 });
 
@@ -63,7 +66,7 @@ describe('update', () => {
     const result = await EstablishmentsHelper.update(establishmentId, payload);
 
     expect(result).toMatchObject({ _id: establishmentId });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         { query: 'findOneAndUpdate', args: [{ _id: establishmentId }, { $set: payload }, { new: true }] },
@@ -90,7 +93,7 @@ describe('list', () => {
 
     await EstablishmentsHelper.list(credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },

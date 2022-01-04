@@ -50,7 +50,7 @@ describe('formatQueryForUsersList', () => {
 
     expect(result).toEqual(omit(query, 'company'));
     sinon.assert.notCalled(find);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -74,11 +74,11 @@ describe('formatQueryForUsersList', () => {
       'role.vendor': { $in: [query.role[0]._id, query.role[1]._id] },
     });
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -94,7 +94,7 @@ describe('formatQueryForUsersList', () => {
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].roleNotFound));
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         find,
         [{ query: 'find', args: [{ name: { $in: query.role } }, { _id: 1, interface: 1 }] }, { query: 'lean' }]
       );
@@ -130,7 +130,7 @@ describe('getUsersList', () => {
 
     expect(result).toEqual(users);
     sinon.assert.calledOnceWithExactly(formatQueryForUsersListStub, query);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ ...query, company: companyId }, {}, { autopopulate: false }] },
@@ -168,7 +168,7 @@ describe('getUsersList', () => {
 
     expect(result).toEqual(users);
     sinon.assert.calledOnceWithExactly(formatQueryForUsersListStub, query);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
@@ -232,7 +232,7 @@ describe('getUsersListWithSectorHistories', () => {
       formatQueryForUsersListStub,
       { ...query, role: ['auxiliary', 'planning_referent', 'auxiliary_without_company'] }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [formattedQuery, {}, { autopopulate: false }] },
@@ -294,7 +294,7 @@ describe('getLearnerList', () => {
 
     expect(result).toEqual(usersWithVirtuals);
     sinon.assert.notCalled(findRole);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         {
@@ -340,15 +340,15 @@ describe('getLearnerList', () => {
     const result = await UsersHelper.getLearnerList(query, credentials);
 
     expect(result).toEqual(usersWithVirtuals);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRole,
       [{ query: 'find', args: [{ name: { $in: [HELPER, AUXILIARY_WITHOUT_COMPANY] } }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: query.company }, { user: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         {
@@ -394,11 +394,11 @@ describe('getLearnerList', () => {
 
     expect(result).toEqual(usersWithVirtuals);
     sinon.assert.notCalled(findRole);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{}, { user: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUser,
       [
         {
@@ -441,7 +441,7 @@ describe('getUser', () => {
 
     await UsersHelper.getUser(userId, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: userId }] },
@@ -490,7 +490,7 @@ describe('getUser', () => {
 
     await UsersHelper.getUser(userId, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: userId }] },
@@ -536,7 +536,7 @@ describe('getUser', () => {
 
     await UsersHelper.getUser(userId, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: userId }] },
@@ -582,7 +582,7 @@ describe('getUser', () => {
 
     await UsersHelper.getUser(userId, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: userId }] },
@@ -634,7 +634,7 @@ describe('getUser', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(404);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOne,
         [
           { query: 'findOne', args: [{ _id: userId }] },
@@ -701,7 +701,7 @@ describe('userExists', () => {
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(user, 'local'));
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
@@ -719,7 +719,7 @@ describe('userExists', () => {
     expect(rep.exists).toBe(false);
     expect(rep.user).toEqual({});
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': nonExistantEmail }, { role: 1 }] },
@@ -736,7 +736,7 @@ describe('userExists', () => {
 
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
@@ -754,7 +754,7 @@ describe('userExists', () => {
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual(omit(userWithoutCompany, 'local'));
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
@@ -772,7 +772,7 @@ describe('userExists', () => {
     expect(rep.exists).toBe(true);
     expect(rep.user).toEqual({});
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }, { role: 1 }] },
@@ -939,7 +939,7 @@ describe('createUser', () => {
     expect(result).toEqual(newUser);
     sinon.assert.calledOnceWithExactly(createHistoryStub, { _id: userId, sector: payload.sector }, companyId);
     sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, companyId);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
@@ -953,7 +953,7 @@ describe('createUser', () => {
         role: { client: roleId },
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: userId }] },
@@ -990,12 +990,12 @@ describe('createUser', () => {
     expect(result).toEqual(newUser);
     sinon.assert.notCalled(createHistoryStub);
     sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, companyId);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(userCreate, { ...payload, refreshToken: sinon.match.string });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: userId }] },
@@ -1032,7 +1032,7 @@ describe('createUser', () => {
 
     expect(result).toEqual(newUser);
     sinon.assert.calledOnceWithExactly(userCompanyCreate, userId, userCompanyId);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
@@ -1040,7 +1040,7 @@ describe('createUser', () => {
       userCreate,
       { ...payload, role: { client: roleId }, refreshToken: sinon.match.string }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: userId }] },
@@ -1075,7 +1075,7 @@ describe('createUser', () => {
     expect(result).toEqual(newUser);
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(userCompanyCreate);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
@@ -1126,7 +1126,7 @@ describe('createUser', () => {
       sinon.assert.notCalled(createHistoryStub);
       sinon.assert.notCalled(userCreate);
       sinon.assert.notCalled(userCompanyCreate);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         roleFindById,
         [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
       );
@@ -1220,7 +1220,7 @@ describe('updateUser', () => {
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: payloadWithRole });
     sinon.assert.calledOnceWithExactly(createHelper, userId, payload.customer, credentials.company._id);
     sinon.assert.notCalled(updateHistoryOnSectorUpdateStub);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
@@ -1257,7 +1257,7 @@ describe('updateUser', () => {
 
     sinon.assert.calledOnceWithExactly(userUpdateOne, { _id: userId }, { $set: payloadWithRole });
     sinon.assert.notCalled(createHelper);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       roleFindById,
       [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
     );
@@ -1287,7 +1287,7 @@ describe('updateUser', () => {
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Le rôle n\'existe pas.'));
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         roleFindById,
         [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
       );
@@ -1465,7 +1465,7 @@ describe('createDriveFolder', () => {
 
     await UsersHelper.createDriveFolder(userId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userCompanyFindOne,
       [
         { query: 'findOne', args: [{ user: userId }] },
@@ -1491,7 +1491,7 @@ describe('createDriveFolder', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         userCompanyFindOne,
         [
           { query: 'findOne', args: [{ user: userId }] },
@@ -1517,7 +1517,7 @@ describe('createDriveFolder', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         userCompanyFindOne,
         [
           { query: 'findOne', args: [{ user: userId }] },

@@ -170,7 +170,7 @@ describe('createEventHistory', () => {
         event: { eventId: payload._id, auxiliary: auxiliaryId.toHexString() },
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: payload.auxiliary }] },
@@ -662,7 +662,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId],
       auxiliaries: [auxiliaryId, 'qwertyuiop'],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ _id: { $in: [auxiliaryId, 'qwertyuiop'] } }] },
@@ -692,7 +692,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId],
       auxiliaries: [auxiliaryId],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -723,7 +723,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId, eventSectorId],
       auxiliaries: [auxiliaryId],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -775,7 +775,7 @@ describe('formatHistoryForCancelUpdate', () => {
         cancel: { reason: 'toto', condition: 'tata' },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
@@ -852,7 +852,7 @@ describe('formatHistoryForDatesUpdate', () => {
         startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
@@ -943,7 +943,7 @@ describe('formatHistoryForHoursUpdate', () => {
         endHour: { from: '2019-01-21T10:38:18', to: '2019-01-21T11:38:18' },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
@@ -1119,12 +1119,15 @@ describe('createTimeStampCancellationHistory', () => {
         sectors: [sectorId],
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: eventHistoryId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(findOneEvent, [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
+      findOneEvent,
+      [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -1162,11 +1165,14 @@ describe('createTimeStampCancellationHistory', () => {
         sectors: [sectorId],
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: eventHistoryId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(findOneEvent, [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findOneEvent,
+      [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]
+    );
     sinon.assert.notCalled(findOneUser);
   });
 });

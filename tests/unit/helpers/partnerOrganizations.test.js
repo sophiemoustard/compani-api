@@ -69,7 +69,7 @@ describe('list', () => {
     const result = await PartnerOrganizationsHelper.list(credentials);
 
     expect(result).toEqual([{ _id: partnerOrganizationId, name: 'skusku', partners: [], prescribedCustomersCount: 0 }]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
@@ -116,7 +116,7 @@ describe('list', () => {
         },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id }] },
@@ -153,7 +153,7 @@ describe('getPartnerOrganization', () => {
 
     await PartnerOrganizationsHelper.getPartnerOrganization(partnerOrganizationId, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: partnerOrganizationId, company: credentials.company._id }] },

@@ -53,7 +53,7 @@ describe('createCompany', () => {
     sinon.assert.calledWithExactly(createFolderStub.getCall(1), 'customers', '1234567890');
     sinon.assert.calledWithExactly(createFolderStub.getCall(2), 'auxiliaries', '1234567890');
     sinon.assert.calledOnceWithExactly(createCompany, { ...createdCompany, prefixNumber: 346 });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find' },
@@ -81,7 +81,7 @@ describe('list', () => {
     const result = await CompanyHelper.list();
 
     expect(result).toEqual(companyList);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{}, { _id: 1, name: 1 }] }, { query: 'lean', args: [] }]
     );
@@ -104,7 +104,7 @@ describe('getCompany', () => {
     const result = await CompanyHelper.getCompany(company._id);
 
     expect(result).toEqual(company);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: company._id }] }, { query: 'lean', args: [] }]
     );
@@ -151,7 +151,7 @@ describe('uploadFile', () => {
       type: undefined,
     });
     sinon.assert.calledWithExactly(getFileByIdStub, { fileId: uploadedFile.id });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         { query: 'findOneAndUpdate', args: [{ _id: params._id }, { $set: flat(companyPayload) }, { new: true }] },
@@ -178,7 +178,7 @@ describe('getFirstIntervention', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ startDate: '2019-11-12' }]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, type: INTERVENTION }] },

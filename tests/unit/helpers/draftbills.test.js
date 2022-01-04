@@ -119,7 +119,7 @@ describe('populateFundings', () => {
 
     expect(result[0].thirdPartyPayer._id).toEqual(tppId);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    SinonMongoose.calledWithExactly(findOneFundingHistory, [
+    SinonMongoose.calledOnceWithExactly(findOneFundingHistory, [
       { query: 'findOne', args: [{ fundingId: fundings[0]._id }] },
       { query: 'lean' },
     ]);
@@ -145,7 +145,7 @@ describe('populateFundings', () => {
 
     expect(result[0].history).toMatchObject([{ careHours: 4, fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    SinonMongoose.calledWithExactly(findOneFundingHistory, [
+    SinonMongoose.calledOnceWithExactly(findOneFundingHistory, [
       { query: 'findOne', args: [{ fundingId: fundings[0]._id }] },
       { query: 'lean' },
     ]);
@@ -170,7 +170,7 @@ describe('populateFundings', () => {
 
     expect(result[0].history).toMatchObject([{ careHours: 0, amountTTC: 0, fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    SinonMongoose.calledWithExactly(findOneFundingHistory, [
+    SinonMongoose.calledOnceWithExactly(findOneFundingHistory, [
       { query: 'findOne', args: [{ fundingId: fundings[0]._id }] },
       { query: 'lean' },
     ]);
@@ -201,7 +201,7 @@ describe('populateFundings', () => {
     const addedHistory = result[0].history.find(hist => hist.month === '03/2019');
     expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    SinonMongoose.calledWithExactly(findFundingHistory, [
+    SinonMongoose.calledOnceWithExactly(findFundingHistory, [
       { query: 'find', args: [{ fundingId: fundings[0]._id, company: companyId }] },
       { query: 'lean' },
     ]);
@@ -1306,15 +1306,15 @@ describe('getDraftBillsList', () => {
     const result = await DraftBillsHelper.getDraftBillsList(query, credentials);
 
     expect(result).toEqual([]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findThirdPartyPayer,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findSurcharge,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBillingItem,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
@@ -1445,15 +1445,15 @@ describe('getDraftBillsList', () => {
       query,
       { _id: 'ghjk', identity: { firstname: 'Toto' } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findThirdPartyPayer,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findSurcharge,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBillingItem,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
@@ -1622,15 +1622,15 @@ describe('getDraftBillsList', () => {
       query,
       { _id: 'asdf', identity: { firstname: 'Tata' } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findThirdPartyPayer,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findSurcharge,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBillingItem,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );

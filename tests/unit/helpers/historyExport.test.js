@@ -153,7 +153,7 @@ describe('getWorkingEventsForExport', () => {
 
     const result = await ExportHelper.getWorkingEventsForExport(startDate, endDate, companyId);
     expect(result).toStrictEqual(eventsWithSubscription);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [payload] },
@@ -788,7 +788,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBill,
       [
         { query: 'find', args: [findQuery] },
@@ -798,7 +798,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCreditNote,
       [
         { query: 'find', args: [findQuery] },
@@ -825,7 +825,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       ['Facture', '', '', '', '', '', '', '', '', '', '', '', '', ''],
       ['Avoir', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBill,
       [
         { query: 'find', args: [findQuery] },
@@ -835,7 +835,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCreditNote,
       [
         { query: 'find', args: [findQuery] },
@@ -930,7 +930,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         '16/10/2019',
       ],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBill,
       [
         { query: 'find', args: [findQuery] },
@@ -940,7 +940,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCreditNote,
       [
         { query: 'find', args: [findQuery] },
@@ -982,7 +982,7 @@ describe('exportContractHistory', () => {
       'Taux horaire',
       'Volume horaire hebdomadaire',
     ]]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
@@ -1004,7 +1004,7 @@ describe('exportContractHistory', () => {
       ['Type', 'Id Auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
       ['Contrat', contracts[0].user._id, '', '', '', '10/10/2019', '', '', ''],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
@@ -1039,7 +1039,7 @@ describe('exportContractHistory', () => {
       ['Contrat', contracts[0].user._id, 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
       ['Avenant', contracts[1].user._id, 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
@@ -1404,7 +1404,7 @@ describe('exportPayAndFinalPayHistory', () => {
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);
 
     expect(exportArray).toEqual([header]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [query] },
@@ -1423,7 +1423,7 @@ describe('exportPayAndFinalPayHistory', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findFinalPay,
       [
         { query: 'find', args: [query] },
@@ -1481,7 +1481,7 @@ describe('exportPayAndFinalPayHistory', () => {
         '15,10', '20,00', '100,00', '0,00'],
     ]);
     sinon.assert.callCount(formatFloatForExportStub, 77);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [query] },
@@ -1500,7 +1500,7 @@ describe('exportPayAndFinalPayHistory', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findFinalPay,
       [
         { query: 'find', args: [query] },
@@ -1590,7 +1590,7 @@ describe('exportPaymentsHistory', () => {
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ date: { $lte: null, $gte: null }, company: credentials.company._id }] },
@@ -1637,7 +1637,7 @@ describe('exportPaymentsHistory', () => {
         '1002,40',
       ],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ date: { $lte: null, $gte: null }, company: credentials.company._id }] },

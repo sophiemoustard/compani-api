@@ -95,11 +95,11 @@ describe('list', () => {
     const result = await ActivityHistoryHelper.list(query, { company: { _id: companyId } });
 
     expect(result).toEqual([filteredActivityHistories]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findUserCompanies,
       [{ query: 'find', args: [{ company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findHistories,
       [
         {

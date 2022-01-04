@@ -24,7 +24,7 @@ describe('getQuotes', () => {
 
     await QuoteHelper.getQuotes(customerId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         {
@@ -55,7 +55,7 @@ describe('getQuoteNumber', () => {
 
     await QuoteHelper.getQuoteNumber(company._id);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
@@ -116,7 +116,7 @@ describe('createQuote', () => {
 
     sinon.assert.calledOnceWithExactly(getQuoteNumberStub, credentials.company._id);
     sinon.assert.calledOnceWithExactly(formatQuoteNumberStub, credentials.company.prefixNumber, 'pre', 2);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {

@@ -46,7 +46,7 @@ describe('getAbsences', () => {
     const result = await Absences123PayHelper.getAbsences(query, { company: { _id: companyId } });
 
     expect(result).toEqual(absences);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [{ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId }] },
@@ -55,7 +55,7 @@ describe('getAbsences', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvent,
       [
         {
@@ -94,7 +94,7 @@ describe('getAbsences', () => {
     const result = await Absences123PayHelper.getAbsences(query, { company: { _id: companyId } });
 
     expect(result).toEqual(absences);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [{ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId }] },
@@ -103,7 +103,7 @@ describe('getAbsences', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvent,
       [
         {

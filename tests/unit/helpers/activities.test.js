@@ -18,7 +18,7 @@ describe('getActivity', () => {
     findOne.restore();
   });
 
-  it('should return the requested activity - with checkSinon and stubChainedQueries', async () => {
+  it('should return the requested activity', async () => {
     findOne.returns(SinonMongoose.stubChainedQueries([{ _id: 'skusku' }]));
 
     const activity = { _id: new ObjectId() };
@@ -26,7 +26,7 @@ describe('getActivity', () => {
     const result = await ActivityHelper.getActivity(activity._id);
 
     const chainedPayload = [
-      { query: '', args: [{ _id: activity._id }] },
+      { query: 'findOne', args: [{ _id: activity._id }] },
       { query: 'populate', args: [{ path: 'cards', select: '-__v -createdAt -updatedAt' }] },
       {
         query: 'populate',
@@ -40,7 +40,7 @@ describe('getActivity', () => {
       { query: 'lean', args: [{ virtuals: true }] },
     ];
 
-    SinonMongoose.calledWithExactly(findOne, chainedPayload);
+    SinonMongoose.calledOnceWithExactly(findOne, chainedPayload);
     expect(result).toMatchObject({ _id: 'skusku' });
   });
 });
@@ -198,7 +198,7 @@ describe('removeCard', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.notCalled(deleteMedia);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndRemoveCard,
       [
         { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },
@@ -217,7 +217,7 @@ describe('removeCard', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { cards: cardId }, { $pull: { cards: cardId } });
     sinon.assert.calledOnceWithExactly(deleteMedia, cardId, 'publicId');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndRemoveCard,
       [
         { query: 'findOneAndRemove', args: [{ _id: cardId }, { 'media.publicId': 1 }] },

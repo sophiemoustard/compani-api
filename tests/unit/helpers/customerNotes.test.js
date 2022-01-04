@@ -65,7 +65,7 @@ describe('list', () => {
     const result = await CustomerNotesHelper.list(customer, credentials);
 
     expect(result).toMatchObject(customerNotes);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ customer, company: credentials.company._id }] },
@@ -111,7 +111,7 @@ describe('update', () => {
 
     await CustomerNotesHelper.update(customerNote._id, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },
@@ -160,7 +160,7 @@ describe('update', () => {
 
     await CustomerNotesHelper.update(customerNote._id, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: customerNote._id, company: credentials.company._id }] },

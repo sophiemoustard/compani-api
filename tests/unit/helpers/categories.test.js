@@ -39,7 +39,7 @@ describe('list', () => {
     const result = await CategoryHelper.list();
 
     expect(result).toMatchObject(categoriesList);
-    SinonMongoose.calledWithExactly(list, [
+    SinonMongoose.calledOnceWithExactly(list, [
       { query: 'find' },
       { query: 'populate', args: [{ path: 'programsCount' }] },
       { query: 'lean' },

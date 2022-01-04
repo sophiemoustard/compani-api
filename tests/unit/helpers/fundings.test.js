@@ -34,7 +34,7 @@ describe('checkSubscriptionFunding', () => {
     } catch (e) {
       expect(e).toEqual(Boom.notFound('Error while checking subscription funding: customer not found.'));
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
       );
@@ -49,7 +49,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -63,7 +63,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -86,7 +86,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -107,7 +107,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -128,7 +128,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -149,7 +149,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -170,7 +170,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -191,7 +191,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -217,7 +217,7 @@ describe('checkSubscriptionFunding', () => {
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -304,7 +304,7 @@ describe('createFunding', () => {
 
     sinon.assert.calledOnceWithExactly(checkSubscriptionFunding, customerId, payload);
     sinon.assert.calledOnceWithExactly(populateFundingsList, customer);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -372,7 +372,7 @@ describe('updateFunding', () => {
 
     sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, checkPayload);
     sinon.assert.calledWithExactly(populateFundingsList, customer);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {

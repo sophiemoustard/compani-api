@@ -1261,7 +1261,7 @@ describe('getBillNumber', () => {
 
     const result = await BillHelper.getBillNumber(new Date('2019-11-15'), companyId);
     expect(result).toEqual(billNumber);
-    SinonMongoose.calledWithExactly(findOneAndUpdateBillNumber, [
+    SinonMongoose.calledOnceWithExactly(findOneAndUpdateBillNumber, [
       {
         query: 'findOneAndUpdate',
         args: [{ prefix, company: companyId }, {}, { new: true, upsert: true, setDefaultsOnInsert: true }],
@@ -1852,7 +1852,7 @@ describe('list', () => {
 
     await BillHelper.list(query, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBill,
       [
         { query: 'find', args: [{ type: 'manual', company: authCompanyId }] },
@@ -1938,7 +1938,7 @@ describe('formatAndCreateBill', () => {
 
     sinon.assert.calledOnceWithExactly(getBillNumber, '2021-09-01', companyId);
     sinon.assert.calledOnceWithExactly(formatBillNumber, '101', 'FACT-101', 1);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBillingItem,
       [
         { query: 'find', args: [{ _id: { $in: [billingItemId1, billingItemId2] } }, { vat: 1, name: 1 }] },
@@ -1998,7 +1998,7 @@ describe('getBills', () => {
 
     expect(result).toEqual(bills);
     sinon.assert.notCalled(getDateQueryStub);
-    SinonMongoose.calledWithExactly(findBill, [
+    SinonMongoose.calledOnceWithExactly(findBill, [
       { query: 'find', args: [{ company: credentials.company._id }] },
       { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
       { query: 'lean' },
@@ -2015,7 +2015,7 @@ describe('getBills', () => {
     const result = await BillHelper.getBills(query, credentials);
 
     expect(result).toEqual(bills);
-    SinonMongoose.calledWithExactly(findBill, [
+    SinonMongoose.calledOnceWithExactly(findBill, [
       { query: 'find', args: [{ company: credentials.company._id, date: dateQuery }] },
       { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
       { query: 'lean' },
@@ -2033,7 +2033,7 @@ describe('getBills', () => {
     const result = await BillHelper.getBills(query, credentials);
 
     expect(result).toEqual(bills);
-    SinonMongoose.calledWithExactly(findBill, [
+    SinonMongoose.calledOnceWithExactly(findBill, [
       { query: 'find', args: [{ company: credentials.company._id, date: dateQuery }] },
       { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name' }] },
       { query: 'lean' },
@@ -2553,14 +2553,14 @@ describe('generateBillPdf', async () => {
     sinon.assert.calledWithExactly(formatPdf, bill, credentials.company);
     sinon.assert.calledWithExactly(generatePdf, { content: [{ text: 'data' }] });
     sinon.assert.calledOnceWithExactly(getPdfContent, { data: 'data' });
-    SinonMongoose.calledWithExactly(findOneBill, [
+    SinonMongoose.calledOnceWithExactly(findOneBill, [
       { query: 'findOne', args: [{ _id: bill._id, origin: 'compani' }] },
       { query: 'populate', args: [{ path: 'thirdPartyPayer', select: '_id name address' }] },
       { query: 'populate', args: [{ path: 'customer', select: '_id identity contact fundings' }] },
       { query: 'populate', args: [{ path: 'subscriptions.events.auxiliary', select: 'identity' }] },
       { query: 'lean' },
     ]);
-    SinonMongoose.calledWithExactly(findOneCompany, [
+    SinonMongoose.calledOnceWithExactly(findOneCompany, [
       { query: 'findOne', args: [{ _id: companyId }] },
       { query: 'lean' },
     ]);

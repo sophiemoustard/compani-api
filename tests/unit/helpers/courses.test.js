@@ -348,7 +348,7 @@ describe('listUserCourses', () => {
       )
     ));
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFind,
       [
         {
@@ -417,7 +417,7 @@ describe('getCourse', () => {
     );
     expect(result).toMatchObject(course);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: course._id }] },
@@ -480,7 +480,7 @@ describe('getCourse', () => {
     const result = await CourseHelper.getCourse({ _id: course._id }, loggedUser);
 
     expect(result).toMatchObject(courseWithFilteredTrainees);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: course._id }] },
@@ -817,7 +817,7 @@ describe('getQuestionnaireAnswers', () => {
     const result = await CourseHelper.getQuestionnaireAnswers(courseId);
 
     expect(result).toMatchObject(followUps);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -870,7 +870,7 @@ describe('getQuestionnaireAnswers', () => {
     const result = await CourseHelper.getQuestionnaireAnswers(courseId);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -915,7 +915,7 @@ describe('getQuestionnaireAnswers', () => {
     const result = await CourseHelper.getQuestionnaireAnswers(courseId);
 
     expect(result).toMatchObject([]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCourse,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -1063,7 +1063,7 @@ describe('getTraineeCourse', () => {
       progress: 1,
     });
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: course._id }] },
@@ -1140,7 +1140,7 @@ describe('updateCourse', () => {
     const result = await CourseHelper.updateCourse(courseId, payload);
     expect(result.misc).toEqual(payload.misc);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOneAndUpdate,
       [
         { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $set: payload }] },
@@ -1160,7 +1160,7 @@ describe('updateCourse', () => {
     expect(result._id).toBe(courseId);
     expect(result.contact).toBeUndefined();
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOneAndUpdate,
       [
         { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $unset: payload }] },
@@ -1222,7 +1222,7 @@ describe('sendSMS', () => {
 
     await CourseHelper.sendSMS(courseId, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindById,
       [
         { query: 'findById', args: [courseId] },
@@ -1307,7 +1307,7 @@ describe('getSMSHistory', () => {
     const result = await CourseHelper.getSMSHistory(courseId);
 
     expect(result).toEqual(sms);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseSmsHistoryFind,
       [
         { query: 'find', args: [{ course: courseId }] },
@@ -1352,7 +1352,7 @@ describe('addCourseTrainee', () => {
     await CourseHelper.addCourseTrainee(course._id, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(courseUpdateOne, { _id: course._id }, { $addToSet: { trainees: user._id } });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [{ _id: user._id }, { formationExpoTokenList: 1 }] },
@@ -1700,7 +1700,7 @@ describe('generateAttendanceSheets', () => {
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
-    SinonMongoose.calledWithExactly(courseFindOne, [
+    SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['company'] },
       { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'type' } }] },
@@ -1734,7 +1734,7 @@ describe('generateAttendanceSheets', () => {
 
     await CourseHelper.generateAttendanceSheets(courseId);
 
-    SinonMongoose.calledWithExactly(courseFindOne, [
+    SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['company'] },
       { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'type' } }] },
@@ -1912,7 +1912,7 @@ describe('generateCompletionCertificate', () => {
       fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
       tmpFilePath: '/path/certificate_template.docx',
     });
-    SinonMongoose.calledWithExactly(courseFindOne, [
+    SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       { query: 'populate', args: ['slots'] },
       { query: 'populate', args: ['trainees'] },
@@ -2128,7 +2128,7 @@ describe('generateConvocationPdf', () => {
     const result = await CourseHelper.generateConvocationPdf(courseId);
 
     expect(result).toEqual({ pdf: 'pdf', courseName: 'Comment-attraper-des-Pokemons' });
-    SinonMongoose.calledWithExactly(courseFindOne, [
+    SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
       {
         query: 'populate',
@@ -2200,7 +2200,7 @@ describe('getQuestionnaires', () => {
     const result = await CourseHelper.getQuestionnaires(courseId);
 
     expect(result).toMatchObject([questionnaires[0]]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findQuestionnaire,
       [
         { query: 'find', args: [{ status: { $ne: DRAFT } }] },

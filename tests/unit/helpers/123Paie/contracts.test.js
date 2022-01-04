@@ -61,7 +61,7 @@ describe('exportsContractVersions', () => {
         ['ap_soc', 'userNumber', 'Gallier', 'titotu', '02/11/2020', 26, 260],
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ $and: [{ endDate: null }, { endDate: { $exists: false } }] }] },
@@ -115,7 +115,7 @@ describe('exportContractEnds', () => {
         ['ap_soc', 'userNumber', 'Gallier', 'titotu', '07/11/2020', 16],
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         {

@@ -45,7 +45,7 @@ describe('list', () => {
     const result = await CustomerPartnersHelper.list(customer, credentials);
 
     expect(result).toMatchObject(customerPartners);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ customer, company: credentials.company._id }] },
@@ -83,7 +83,7 @@ describe('update', () => {
 
     await CustomerPartnersHelper.update(customerPartnerId, { prescriber: true });
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
@@ -108,7 +108,7 @@ describe('update', () => {
     await CustomerPartnersHelper.update(customerPartnerId, { prescriber: false });
 
     sinon.assert.notCalled(updateOne);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {

@@ -30,7 +30,7 @@ describe('getMandates', () => {
     const result = await MandatesHelper.getMandates(customerId);
 
     expect(result).toMatchObject(mandate);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         {
@@ -66,7 +66,7 @@ describe('updateMandate', () => {
     const result = await MandatesHelper.updateMandate(customerId, mandateId, payload);
 
     expect(result).toMatchObject({ ...payload, _id: mandateId });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -126,7 +126,7 @@ describe('getSignatureRequest', () => {
       { _id: customerId, 'payment.mandates._id': mandateId.toHexString() },
       { $set: flat({ 'payment.mandates.$.everSignId': 'document_hash' }) }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         {
@@ -163,7 +163,7 @@ describe('getSignatureRequest', () => {
       expect(e.output.statusCode).toEqual(400);
     } finally {
       sinon.assert.notCalled(updateOneCustomer);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           {
@@ -236,11 +236,11 @@ describe('saveSignedMandate', () => {
       { driveFolderId: 'driveFolder', name: 'rum', type: 'application/pdf', body: 'file' }
     );
     sinon.assert.calledWithExactly(getFileById, { fileId: 'fileId' });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -278,7 +278,7 @@ describe('saveSignedMandate', () => {
       sinon.assert.notCalled(addFile);
       sinon.assert.notCalled(getFileById);
       sinon.assert.notCalled(findOneAndUpdateCustomer);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
       );
@@ -308,7 +308,7 @@ describe('saveSignedMandate', () => {
       sinon.assert.notCalled(addFile);
       sinon.assert.notCalled(getFileById);
       sinon.assert.notCalled(findOneAndUpdateCustomer);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
       );

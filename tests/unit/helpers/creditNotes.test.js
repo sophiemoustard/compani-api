@@ -58,7 +58,7 @@ describe('getCreditNotes', () => {
 
     expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
     sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ date: dateQuery, customer: customerId, company: companyId }] },
@@ -89,7 +89,7 @@ describe('getCreditNotes', () => {
 
     expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
     sinon.assert.notCalled(getDateQueryStub);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ customer: customerId, company: companyId }] },
@@ -126,7 +126,7 @@ describe('getCreditNotes', () => {
 
     expect(result).toEqual([]);
     sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ date: dateQuery, customer: customerId, company: companyId }] },
@@ -183,7 +183,7 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: -3 } });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
     sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { careHours: -3 } });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
     );
@@ -207,7 +207,7 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: -3 } });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
     sinon.assert.notCalled(updateOneFundingHistory);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
     );
@@ -231,7 +231,7 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: 3 } });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: true });
     sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { careHours: 3 } });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
     );
@@ -255,7 +255,7 @@ describe('updateEventAndFundingHistory', () => {
 
     sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { amountTTC: -666 } });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [eventId] }, company: credentials.company._id }] }, { query: 'lean' }]
     );
@@ -339,11 +339,11 @@ describe('getCreditNoteNumber', () => {
 
     await CreditNoteHelper.getCreditNoteNumber(payload, company._id);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
-          query: 'find',
+          query: 'findOneAndUpdate',
           args: [
             { prefix: '0919', company: company._id },
             {},
@@ -979,10 +979,10 @@ describe('generateCreditNotePdf', () => {
     const result = await CreditNoteHelper.generateCreditNotePdf(params, credentials);
 
     expect(result).toEqual({ pdf: { title: 'creditNote' }, creditNoteNumber: '12345' });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       creditNoteFindOne,
       [
-        { query: 'find', args: [{ _id: params._id }] },
+        { query: 'findOne', args: [{ _id: params._id }] },
         {
           query: 'populate',
           args: [{
@@ -996,9 +996,9 @@ describe('generateCreditNotePdf', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       companyNoteFindOne,
-      [{ query: 'find', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       formatPdf,
@@ -1020,10 +1020,10 @@ describe('generateCreditNotePdf', () => {
       sinon.assert.notCalled(formatPdf);
       sinon.assert.notCalled(getPdfContent);
       sinon.assert.notCalled(generatePdf);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         creditNoteFindOne,
         [
-          { query: 'find', args: [{ _id: params._id }] },
+          { query: 'findOne', args: [{ _id: params._id }] },
           {
             query: 'populate',
             args: [{
@@ -1051,10 +1051,10 @@ describe('generateCreditNotePdf', () => {
       sinon.assert.notCalled(formatPdf);
       sinon.assert.notCalled(getPdfContent);
       sinon.assert.notCalled(generatePdf);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         creditNoteFindOne,
         [
-          { query: 'find', args: [{ _id: params._id }] },
+          { query: 'findOne', args: [{ _id: params._id }] },
           {
             query: 'populate',
             args: [{

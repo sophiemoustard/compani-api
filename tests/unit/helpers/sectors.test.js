@@ -25,10 +25,13 @@ describe('create', () => {
 
     expect(result).toMatchObject({ name: 'toto', company: companyId });
 
-    SinonMongoose.calledWithExactly(create, [
-      { query: 'create', args: [{ name: 'toto', company: companyId }] },
-      { query: 'toObject' },
-    ]);
+    SinonMongoose.calledOnceWithExactly(
+      create,
+      [
+        { query: 'create', args: [{ name: 'toto', company: companyId }] },
+        { query: 'toObject' },
+      ]
+    );
   });
 });
 
@@ -49,10 +52,13 @@ describe('list', () => {
 
     await SectorsHelper.list(credentials);
 
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ company: companyId }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -75,10 +81,13 @@ describe('update', () => {
 
     await SectorsHelper.update(sectorId, payload, credentials);
 
-    SinonMongoose.calledWithExactly(findOneAndUpdate, [
-      { query: 'findOneAndUpdate', args: [{ _id: sectorId }, { $set: payload }, { new: true }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: sectorId }, { $set: payload }, { new: true }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

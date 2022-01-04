@@ -101,7 +101,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
 
     await NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -179,7 +179,7 @@ describe('sendNewElearningCourseNotification', () => {
 
     await NotificationHelper.sendNewElearningCourseNotification(courseId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -190,7 +190,7 @@ describe('sendNewElearningCourseNotification', () => {
         { query: 'lean', args: [] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         {
@@ -237,7 +237,7 @@ describe('sendNewElearningCourseNotification', () => {
 
     await NotificationHelper.sendNewElearningCourseNotification(courseId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -248,7 +248,7 @@ describe('sendNewElearningCourseNotification', () => {
         { query: 'lean', args: [] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         {

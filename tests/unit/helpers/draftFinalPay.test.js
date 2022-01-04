@@ -258,15 +258,15 @@ describe('computeDraftFinalPay', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       surchargeFind,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       companyFindOne,
       [{ query: 'findOne', args: [{ _id: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       surchargeFind,
       [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
     );

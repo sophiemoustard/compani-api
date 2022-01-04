@@ -43,7 +43,7 @@ describe('list', () => {
     const result = await InternalHoursHelper.list(credentials);
 
     expect(result).toEqual(internalHours);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
     );

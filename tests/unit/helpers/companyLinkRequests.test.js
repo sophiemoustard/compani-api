@@ -47,7 +47,7 @@ describe('list', () => {
 
     expect(result).toEqual(companyLinkRequestList);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: companyId }] },

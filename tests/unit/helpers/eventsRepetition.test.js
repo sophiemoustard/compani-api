@@ -286,7 +286,7 @@ describe('createRepeatedEvents', () => {
     sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(1), event, sector, '2019-01-12T09:00:00.000Z');
     sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(2), event, sector, '2019-01-13T09:00:00.000Z');
     sinon.assert.calledOnceWithExactly(insertMany, repeatedEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       customerFindOne,
       [
         { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
@@ -321,7 +321,7 @@ describe('createRepeatedEvents', () => {
     sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(0), event, sector, '2019-01-11T09:00:00.000Z');
     sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(1), event, sector, '2019-01-14T09:00:00.000Z');
     sinon.assert.calledOnceWithExactly(insertMany, [fridayEvent, mondayEvent]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       customerFindOne,
       [
         { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
@@ -357,7 +357,7 @@ describe('createRepeatedEvents', () => {
     sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(1), event, sector, '2019-01-12T09:00:00.000Z');
     sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(2), event, sector, '2019-01-13T09:00:00.000Z');
     sinon.assert.calledOnceWithExactly(insertMany, repeatedEvents.slice(0, 2));
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       customerFindOne,
       [
         { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
@@ -626,7 +626,7 @@ describe('createRepetitions', () => {
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -650,7 +650,7 @@ describe('createRepetitions', () => {
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -787,7 +787,7 @@ describe('updateRepetition', () => {
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     sinon.assert.notCalled(findOneUser);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         {
@@ -864,7 +864,7 @@ describe('updateRepetition', () => {
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -875,7 +875,7 @@ describe('updateRepetition', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         {
@@ -970,7 +970,7 @@ describe('updateRepetition', () => {
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -981,7 +981,7 @@ describe('updateRepetition', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         {
@@ -1065,7 +1065,7 @@ describe('updateRepetition', () => {
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -1076,7 +1076,7 @@ describe('updateRepetition', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         {
@@ -1163,7 +1163,7 @@ describe('updateRepetition', () => {
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     sinon.assert.notCalled(findOneUser);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         {

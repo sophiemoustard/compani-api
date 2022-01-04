@@ -241,7 +241,7 @@ describe('updateSubscription', () => {
 
     expect(result).toEqual(customer);
     sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
@@ -287,8 +287,8 @@ describe('addSubscription', () => {
 
     expect(result).toEqual(customer);
     sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
-    SinonMongoose.calledWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
@@ -318,8 +318,8 @@ describe('addSubscription', () => {
 
     expect(result).toEqual(customer);
     sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
-    SinonMongoose.calledWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
@@ -349,7 +349,7 @@ describe('addSubscription', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
-      SinonMongoose.calledWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+      SinonMongoose.calledOnceWithExactly(findById, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
       sinon.assert.notCalled(populateSubscriptionsServices);
       sinon.assert.notCalled(findOneAndUpdate);
     }
@@ -393,7 +393,7 @@ describe('deleteSubscription', () => {
         $set: { subscriptionsHistory: [{ subscriptions: [{ subscriptionId: secondSubId }] }] },
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findByIdCustomer,
       [{ query: 'findById', args: [customerId.toHexString()] }, { query: 'lean' }]
     );
@@ -419,7 +419,7 @@ describe('createSubscriptionHistory', () => {
     const result = await SubscriptionsHelper.createSubscriptionHistory(customerId.toHexString(), payload);
 
     expect(result).toEqual(customer);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {

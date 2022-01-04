@@ -65,7 +65,7 @@ describe('method', () => {
     expect(billAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
     expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
     sinon.assert.calledOnceWithExactly(updateManyBill, { _id: { $in: billsIds } }, { $set: { sentAt: fakeDate } });
-    SinonMongoose.calledWithExactly(findCompany, [{ query: 'find' }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findCompany, [{ query: 'find' }, { query: 'lean' }]);
   });
 
   it('should log emails which can not be sent', async () => {
@@ -100,7 +100,7 @@ describe('method', () => {
     expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
     sinon.assert.notCalled(updateManyBill);
-    SinonMongoose.calledWithExactly(findCompany, [{ query: 'find' }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findCompany, [{ query: 'find' }, { query: 'lean' }]);
     serverLogStub.restore();
   });
 });

@@ -73,7 +73,7 @@ describe('getCustomersBySector', () => {
 
     sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(0), { _id: customerIds[0] });
     sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(1), { _id: customerIds[1] });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findSectorHistories,
       [
         {
@@ -91,7 +91,7 @@ describe('getCustomersBySector', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvents,
       [
         {
@@ -172,7 +172,7 @@ describe('getCustomers', () => {
     expect(result).toEqual([]);
     sinon.assert.notCalled(subscriptionsAccepted);
     sinon.assert.notCalled(populateSubscriptionsServices);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
@@ -226,7 +226,7 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Emmanuel' }, company: companyId }
     );
     sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(1), { company: companyId });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
@@ -280,7 +280,7 @@ describe('getCustomers', () => {
       populateSubscriptionsServices,
       { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId, archivedAt: { $ne: null } }] },
@@ -332,7 +332,7 @@ describe('getCustomers', () => {
       populateSubscriptionsServices,
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId, archivedAt: { $eq: null } }] },
@@ -370,7 +370,7 @@ describe('getCustomersFirstIntervention', () => {
       123456: { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },
       '0987': { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [query, { _id: 1 }] },
@@ -444,7 +444,7 @@ describe('getCustomersWithSubscriptions', () => {
     const rep = await CustomerHelper.getCustomersWithSubscriptions({ company: { _id: companyId } });
 
     expect(rep).toEqual(customersWithSubscriptions);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },
@@ -497,7 +497,7 @@ describe('getCustomer', () => {
     const result = await CustomerHelper.getCustomer(customerId, credentials);
 
     expect(result).toBeNull();
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
@@ -527,7 +527,7 @@ describe('getCustomer', () => {
     expect(result).toEqual({ identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true });
     sinon.assert.calledOnce(populateSubscriptionsServices);
     sinon.assert.calledOnce(subscriptionsAccepted);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
@@ -569,7 +569,7 @@ describe('getCustomer', () => {
       populateFundingsList,
       { ...customer, subscriptions: 2, subscriptionsAccepted: true }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
@@ -601,7 +601,7 @@ describe('getRumNumber', () => {
 
     await CustomerHelper.getRumNumber(companyId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateRum,
       [
         {
@@ -685,7 +685,10 @@ describe('formatPaymentPayload', () => {
     sinon.assert.calledWithExactly(getRumNumber, company._id);
     sinon.assert.calledWithExactly(formatRumNumber, company.prefixNumber, rumNumber.prefix, 1);
     sinon.assert.calledWithExactly(updateOne, { prefix: rumNumber.prefix, company: company._id }, { $inc: { seq: 1 } });
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'finById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
@@ -702,7 +705,10 @@ describe('formatPaymentPayload', () => {
     sinon.assert.notCalled(getRumNumber);
     sinon.assert.notCalled(formatRumNumber);
     sinon.assert.notCalled(updateOne);
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 });
 
@@ -738,7 +744,10 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: payload.contact.primaryAddress } }
     );
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 
   it('should update events if secondaryAddress is changed', async () => {
@@ -760,7 +769,10 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: payload.contact.secondaryAddress } }
     );
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
@@ -774,7 +786,10 @@ describe('updateCustomerEvents', () => {
     await CustomerHelper.updateCustomerEvents(customerId, payload);
 
     sinon.assert.notCalled(updateMany);
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
@@ -799,7 +814,10 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: customer.contact.primaryAddress } }
     );
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 });
 
@@ -843,7 +861,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(updateCustomerReferent, customer._id, payload.referent, credentials.company);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         { query: 'findOneAndUpdate', args: [{ _id: customer._id }, { $set: flat({}, { safe: true }) }, { new: true }] },
@@ -875,7 +893,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -913,7 +931,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [{ query: 'findOneAndUpdate', args: [{ _id: customerId }, payload, { new: true }] }, { query: 'lean' }]
     );
@@ -933,7 +951,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -959,7 +977,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -985,7 +1003,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -1016,7 +1034,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -1047,7 +1065,7 @@ describe('updateCustomer', () => {
       credentials
     );
     sinon.assert.calledOnceWithExactly(updateCustomerAbsencesOnCustomerStop, customerId, '2019-06-25T16:34:04.144Z');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -1076,7 +1094,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -1193,11 +1211,11 @@ describe('removeCustomer', () => {
 
     await CustomerHelper.removeCustomer(customerId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findHelper,
       [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -1227,11 +1245,11 @@ describe('removeCustomer', () => {
 
     await CustomerHelper.removeCustomer(customerId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findHelper,
       [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -1256,11 +1274,11 @@ describe('removeCustomer', () => {
 
     await CustomerHelper.removeCustomer(customerId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findHelper,
       [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -1329,7 +1347,7 @@ describe('generateQRCode', () => {
 
     expect(result).toEqual({ fileName: 'qrcode.pdf', pdf: 'pdf' });
     sinon.assert.calledOnceWithExactly(toDataURL, `${customerId}`, { margin: 0 });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }, { identity: 1 }] }, { query: 'lean' }]
     );
