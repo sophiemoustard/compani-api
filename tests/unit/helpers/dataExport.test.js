@@ -409,7 +409,7 @@ describe('exportHelpers', () => {
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectId() } };
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([[]]));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
 
     const result = await ExportHelper.exportHelpers(credentials);
 

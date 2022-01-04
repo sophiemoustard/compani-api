@@ -514,6 +514,11 @@ describe('getCourse', () => {
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
         { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' }],
+        },
         { query: 'lean' },
       ]
     );
@@ -644,7 +649,8 @@ describe('getCourseFollowUp', () => {
     };
     const trainees = [1, 2, 3, 4, 5];
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['populate', 'lean']));
+    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries([{ trainees }], ['lean']));
+    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries([course]));
 
     formatStep.callsFake(s => s);
     getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
@@ -712,7 +718,8 @@ describe('getCourseFollowUp', () => {
     };
     const trainees = [1, 2, 3, 4, 5];
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ trainees }, course], ['populate', 'lean']));
+    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries([{ trainees }], ['lean']));
+    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries([course]));
     formatStep.callsFake(s => s);
     getTraineeElearningProgress.returns({ steps: { progress: 1 }, elearningProgress: 1 });
 
@@ -2140,6 +2147,10 @@ describe('generateConvocationPdf', () => {
       },
       { query: 'populate', args: ['slots'] },
       { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+      {
+        query: 'populate',
+        args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' }],
+      },
       { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname biography' }] },
       { query: 'lean' },
     ]);

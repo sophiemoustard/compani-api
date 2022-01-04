@@ -438,7 +438,7 @@ describe('getCustomersWithSubscriptions', () => {
     const customersWithSubscriptions = [{ identity: { lastname: 'Fred' }, subscriptions: [{ _id: new ObjectId() }] }];
     findCustomer.returns(SinonMongoose.stubChainedQueries(
       [customersWithSubscriptions],
-      ['find', 'populate', 'select', 'lean']
+      ['populate', 'select', 'lean']
     ));
 
     const rep = await CustomerHelper.getCustomersWithSubscriptions({ company: { _id: companyId } });
@@ -612,6 +612,7 @@ describe('getRumNumber', () => {
             { new: true, upsert: true, setDefaultsOnInsert: true },
           ],
         },
+        { query: 'lean' },
       ]
     );
   });

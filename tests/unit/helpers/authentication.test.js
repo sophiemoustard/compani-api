@@ -554,7 +554,7 @@ describe('forgotPassword', () => {
   it('should create and send a verification code if origin mobile and type email', async () => {
     const email = 'toto@toto.com';
     codeVerification.returns(0.1111);
-    identityVerificationFindOneAndUpdate.returns(null);
+    identityVerificationFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     identityVerificationCreate.returns({ email, code: '1999' });
     sendVerificationCodeEmail.returns({ sent: true });
 
@@ -568,14 +568,14 @@ describe('forgotPassword', () => {
     sinon.assert.calledOnceWithExactly(identityVerificationCreate, { email, code: '1999' });
     SinonMongoose.calledOnceWithExactly(
       identityVerificationFindOneAndUpdate,
-      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }]
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }, { query: 'lean' }]
     );
   });
 
   it('should update and send new verification code if already exists one', async () => {
     const email = 'toto@toto.com';
     codeVerification.returns(0.1111);
-    identityVerificationFindOneAndUpdate.returns({ email, code: '1999' });
+    identityVerificationFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ email, code: '1999' }], ['lean']));
     identityVerificationCreate.returns(null);
     sendVerificationCodeEmail.returns({ sent: true });
 
@@ -590,7 +590,7 @@ describe('forgotPassword', () => {
     sinon.assert.notCalled(sendVerificationCodeSms);
     SinonMongoose.calledOnceWithExactly(
       identityVerificationFindOneAndUpdate,
-      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }]
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }, { query: 'lean' }]
     );
   });
 
@@ -598,7 +598,7 @@ describe('forgotPassword', () => {
     const email = 'toto@toto.com';
     const user = { local: { email: 'toto@toto.com' }, contact: { phone: '0687654321' } };
     codeVerification.returns(0.1111);
-    identityVerificationFindOneAndUpdate.returns({ email, code: '1999' });
+    identityVerificationFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ email, code: '1999' }], ['lean']));
     identityVerificationCreate.returns(null);
     userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
     sendVerificationCodeSms.returns({ phone: '0687654321' });
@@ -613,7 +613,7 @@ describe('forgotPassword', () => {
     sinon.assert.calledOnceWithExactly(sendVerificationCodeSms, '0687654321', '1999');
     SinonMongoose.calledOnceWithExactly(
       identityVerificationFindOneAndUpdate,
-      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }]
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       userFindOne,
@@ -622,11 +622,12 @@ describe('forgotPassword', () => {
   });
 
   it('should throw 409 if no phone in user', async () => {
+    const email = 'toto@toto.com';
     try {
-      const email = 'toto@toto.com';
       const user = { local: { email: 'toto@toto.com' } };
       codeVerification.returns(0.1111);
-      identityVerificationFindOneAndUpdate.returns({ email, code: '1999' });
+      identityVerificationFindOneAndUpdate
+        .returns(SinonMongoose.stubChainedQueries([{ email, code: '1999' }], ['lean']));
       identityVerificationCreate.returns(null);
       userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
       sendVerificationCodeSms.returns({ phone: '06P87654321' });
@@ -635,6 +636,10 @@ describe('forgotPassword', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
+      SinonMongoose.calledOnceWithExactly(
+        identityVerificationFindOneAndUpdate,
+        [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }, { query: 'lean' }]
+      );
       SinonMongoose.calledOnceWithExactly(
         userFindOne,
         [{ query: 'findOne', args: [{ 'local.email': 'toto@toto.com' }, { 'contact.phone': 1 }] }, { query: 'lean' }]

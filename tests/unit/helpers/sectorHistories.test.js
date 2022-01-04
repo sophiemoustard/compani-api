@@ -103,7 +103,11 @@ describe('updateHistoryOnSectorUpdate', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
+        { query: 'sort', args: [{ startDate: -1 }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
