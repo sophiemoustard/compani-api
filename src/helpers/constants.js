@@ -471,4 +471,17 @@ module.exports = {
   ACTIVATED: 'Actif',
   STOPPED: 'Arrêté',
   ARCHIVED: 'Archivé',
+  // DURATION
+  get DURATION_UNITS() {
+    return [
+      'years',
+      'quarters',
+      'months',
+      'weeks',
+      'days',
+      'hours',
+      'minutes',
+      'seconds',
+    ];
+  },
 };
