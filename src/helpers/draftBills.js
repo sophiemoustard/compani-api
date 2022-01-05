@@ -1,5 +1,4 @@
 const get = require('lodash/get');
-const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
@@ -366,7 +365,14 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
       unitExclTaxes,
       unitInclTaxes: bddBillingItem.defaultUnitAmount,
       vat: bddBillingItem.vat,
-      eventsList: eventsList.map(event => ({ ...omit(event, ['_id', 'subscription']), event: event._id })),
+      eventsList: eventsList.map(event => (
+        {
+          event: event._id,
+          startDate: event.startDate,
+          endDate: event.endDate,
+          auxiliary: event.auxiliary,
+        }
+      )),
       exclTaxes: unitExclTaxes * eventsList.length,
       inclTaxes: bddBillingItem.defaultUnitAmount * eventsList.length,
       startDate,
