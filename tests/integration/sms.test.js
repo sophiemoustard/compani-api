@@ -27,7 +27,7 @@ describe('POST /sms', () => {
       SmsHelperStub.restore();
     });
 
-    it('should send a SMS to user from company', async () => {
+    it('should send a SMS if phone in the company', async () => {
       const payload = { recipient: `+33${smsUser.contact.phone.substring(1)}`, content: 'Test', tag: HR_SMS };
       const response = await app.inject({
         method: 'POST',
@@ -41,7 +41,7 @@ describe('POST /sms', () => {
       sinon.assert.calledWithExactly(SmsHelperStub, payload, sinon.match({ company: { _id: authCompany._id } }));
     });
 
-    it('should throw error if phone is not in the same company', async () => {
+    it('should throw error if no phone in the company', async () => {
       const payload = {
         recipient: `+33${smsUserFromOtherCompany.contact.phone.substring(1)}`,
         content: 'Ceci est un test',

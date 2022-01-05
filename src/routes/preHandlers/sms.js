@@ -8,13 +8,14 @@ const { language } = translate;
 
 exports.authorizeSendSms = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id');
-  const user = await User
-    .findOne({ 'contact.phone': `0${req.payload.recipient.substring(3)}` })
+  const users = await User
+    .find({ 'contact.phone': `0${req.payload.recipient.substring(3)}` })
     .populate({ path: 'company' })
     .lean();
-  if (!user) throw Boom.notFound(translate[language].userNotFound);
+  if (!users.length) throw Boom.notFound(translate[language].userNotFound);
 
-  if (!UtilsHelper.areObjectIdsEquals(user.company, companyId)) throw Boom.notFound();
+  const userCompanies = users.map(user => user.company);
+  if (!UtilsHelper.doesArrayIncludeId(userCompanies, companyId)) throw Boom.notFound();
 
   return null;
 };
