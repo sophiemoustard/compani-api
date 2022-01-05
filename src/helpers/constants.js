@@ -472,16 +472,24 @@ module.exports = {
   STOPPED: 'Arrêté',
   ARCHIVED: 'Archivé',
   // DURATION
+  YEARS: 'years',
+  QUARTERS: 'quarters',
+  MONTHS: 'months',
+  WEEKS: 'weeks',
+  DAYS: 'days',
+  HOURS: 'hours',
+  MINUTES: 'minutes',
+  SECONDS: 'seconds',
   get DURATION_UNITS() {
     return [
-      'years',
-      'quarters',
-      'months',
-      'weeks',
-      'days',
-      'hours',
-      'minutes',
-      'seconds',
+      this.YEARS,
+      this.QUARTERS,
+      this.MONTHS,
+      this.WEEKS,
+      this.DAYS,
+      this.HOURS,
+      this.MINUTES,
+      this.SECONDS,
     ];
   },
 };
