@@ -18,7 +18,7 @@ const smsUser = {
 };
 
 const smsUserWithSameNumberAndNoCompany = {
-  _id: new ObjectId(),
+  _id: new ObjectID(),
   identity: { firstname: 'mms', lastname: 'Test' },
   local: { email: 'email_user_with_same_number@alenvi.io' },
   contact: { phone: '0987654321' },
