@@ -1,5 +1,4 @@
 const get = require('lodash/get');
-const omit = require('lodash/omit');
 const { ObjectId } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
