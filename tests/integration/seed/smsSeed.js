@@ -10,7 +10,17 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const smsUser = {
   _id: new ObjectId(),
   identity: { firstname: 'sms', lastname: 'Test' },
-  local: { email: 'email_user@alenvi.io', password: '123456!eR' },
+  local: { email: 'email_user@alenvi.io' },
+  contact: { phone: '0987654321' },
+  refreshToken: uuidv4(),
+  role: { client: clientAdminRoleId },
+  origin: WEBAPP,
+};
+
+const smsUserWithSameNumberAndNoCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'mms', lastname: 'Test' },
+  local: { email: 'email_user_with_same_number@alenvi.io' },
   contact: { phone: '0987654321' },
   refreshToken: uuidv4(),
   role: { client: clientAdminRoleId },
@@ -20,7 +30,7 @@ const smsUser = {
 const smsUserFromOtherCompany = {
   _id: new ObjectId(),
   identity: { firstname: 'texto', lastname: 'Test' },
-  local: { email: 'email_user_other_company@alenvi.io', password: '123456!eR' },
+  local: { email: 'email_user_other_company@alenvi.io' },
   contact: { phone: '0253647382' },
   refreshToken: uuidv4(),
   role: { client: clientAdminRoleId },
@@ -35,8 +45,10 @@ const userCompanies = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create(smsUser, smsUserFromOtherCompany);
-  await UserCompany.insertMany(userCompanies);
+  await Promise.all([
+    User.create(smsUser, smsUserFromOtherCompany, smsUserWithSameNumberAndNoCompany),
+    UserCompany.insertMany(userCompanies),
+  ]);
 };
 
 module.exports = { populateDB, smsUser, smsUserFromOtherCompany };
