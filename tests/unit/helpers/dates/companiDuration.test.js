@@ -15,7 +15,7 @@ describe('CompaniDuration', () => {
   });
 
   it('should return duration', () => {
-    const duration = { seconds: 1200000 };
+    const duration = { days: 13, hours: 19, minutes: 12 };
 
     const result = CompaniDurationsHelper.CompaniDuration(duration);
 
@@ -31,7 +31,7 @@ describe('CompaniDuration', () => {
 
 describe('format', () => {
   it('should return formatted duration with minutes', () => {
-    const durationAmount = { seconds: 5 * 60 * 60 + 16 * 60 };
+    const durationAmount = { hours: 5, minutes: 16 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -39,7 +39,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration with minutes, leading zero on minutes', () => {
-    const durationAmount = { seconds: 5 * 60 * 60 + 3 * 60 };
+    const durationAmount = { hours: 5, minutes: 3 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -47,7 +47,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration without minutes', () => {
-    const durationAmount = { seconds: 13 * 60 * 60 };
+    const durationAmount = { hours: 13 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -55,7 +55,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration, days are converted to hours', () => {
-    const durationAmount = { seconds: 2 * 24 * 60 * 60 + 1 * 60 * 60 };
+    const durationAmount = { days: 2, hours: 1 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -63,7 +63,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration with minutes, seconds and milliseconds have no effect', () => {
-    const durationAmount = { seconds: 1 * 60 * 60 + 2 * 60 + 30 + 0.4 };
+    const durationAmount = { hours: 1, minutes: 2, seconds: 4 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -71,7 +71,7 @@ describe('format', () => {
   });
 
   it('should return formatted duration without minutes, seconds and milliseconds have no effect', () => {
-    const durationAmount = { seconds: 1 * 60 * 60 + 55 + 0.9 };
+    const durationAmount = { hours: 1, seconds: 9 };
     const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
     const result = companiDuration.format();
 
@@ -81,8 +81,8 @@ describe('format', () => {
 
 describe('add', () => {
   let _formatMiscToCompaniDuration;
-  const durationAmountInMillis = 60 * 60 * 1000;
-  const companiDuration = CompaniDurationsHelper.CompaniDuration({ seconds: durationAmountInMillis / 1000 });
+  const durationAmount = { hours: 1 };
+  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
 
   beforeEach(() => {
     _formatMiscToCompaniDuration = sinon.spy(CompaniDurationsHelper, '_formatMiscToCompaniDuration');
@@ -93,12 +93,13 @@ describe('add', () => {
   });
 
   it('should increase companiDuration, and return a reference', () => {
-    const addedAmountInMillis = 2 * 60 * 60 * 1000 + 5 * 60 * 1000;
-    const result = companiDuration.add({ seconds: addedAmountInMillis / 1000 });
+    const addedAmount = { hours: 2, minutes: 5 };
+    const result = companiDuration.add(addedAmount);
 
     expect(result).toBe(companiDuration);
-    expect(companiDuration._duration.toMillis()).toBe(durationAmountInMillis + addedAmountInMillis);
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), { seconds: addedAmountInMillis / 1000 });
+    const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
+    expect(companiDuration._duration.toMillis()).toBe(amountInMs);
+    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
   });
 });
 
@@ -106,7 +107,6 @@ describe('_formatMiscToCompaniDuration', () => {
   let fromObject;
   let fromMillis;
   let invalid;
-  const duration = luxon.Duration.fromMillis(123456789);
 
   beforeEach(() => {
     fromObject = sinon.spy(luxon.Duration, 'fromObject');
@@ -131,13 +131,14 @@ describe('_formatMiscToCompaniDuration', () => {
   });
 
   it('should return duration if arg is object with duration', () => {
+    const duration = luxon.Duration.fromMillis(123456789);
     const payload = { _duration: duration };
     const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
     expect(result instanceof luxon.Duration).toBe(true);
     expect(new luxon.Duration(result).toMillis()).toEqual(123456789);
-    sinon.assert.notCalled(fromMillis);
-    sinon.assert.notCalled(fromObject);
+    sinon.assert.calledOnceWithExactly(fromMillis, 123456789);
+    sinon.assert.calledOnce(fromObject);
     sinon.assert.notCalled(invalid);
   });
 
@@ -145,7 +146,7 @@ describe('_formatMiscToCompaniDuration', () => {
     const payload = { hours: 3, minutes: 35, seconds: 12 };
     const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
-    expect(result.values).toEqual(payload);
+    expect(new luxon.Duration(result).toMillis()).toEqual(3 * 60 * 60 * 1000 + 35 * 60 * 1000 + 12 * 1000);
     sinon.assert.calledOnce(fromObject);
     sinon.assert.notCalled(invalid);
   });
@@ -153,6 +154,18 @@ describe('_formatMiscToCompaniDuration', () => {
   it('should return invalid if wrong input', () => {
     try {
       CompaniDurationsHelper._formatMiscToCompaniDuration(23232323, 'minutes');
+    } catch (e) {
+      expect(e).toEqual(new Error('Invalid Duration: wrong arguments'));
+    } finally {
+      sinon.assert.calledOnceWithExactly(invalid, 'wrong arguments');
+      sinon.assert.notCalled(fromObject);
+      sinon.assert.notCalled(fromMillis);
+    }
+  });
+
+  it('should return invalid if wrong unit in object input', () => {
+    try {
+      CompaniDurationsHelper._formatMiscToCompaniDuration({ wrong: 123 });
     } catch (e) {
       expect(e).toEqual(new Error('Invalid Duration: wrong arguments'));
     } finally {

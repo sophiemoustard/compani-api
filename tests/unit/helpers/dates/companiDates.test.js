@@ -416,7 +416,7 @@ describe('MANIPULATE', () => {
       const otherDate = '2021-11-22T21:00:00.000Z';
       const result = companiDate.diff(otherDate, 'days');
 
-      expect(result).toStrictEqual({ days: 1 }); // 1.54 days = 1 day and 13 hours
+      expect(result).toStrictEqual({ days: 1 });
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 

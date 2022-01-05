@@ -29,7 +29,7 @@ exports._formatMiscToCompaniDuration = (...args) => {
   if (args.length === 1) {
     if (args[0] instanceof Object) {
       if (args[0]._duration && args[0]._duration instanceof luxon.Duration) return args[0]._duration;
-      if (every(Object.keys, key => DURATION_UNITS.includes(key))) return luxon.Duration.fromObject(args[0]);
+      if (every(Object.keys(args[0]), key => DURATION_UNITS.includes(key))) return luxon.Duration.fromObject(args[0]);
     }
   }
   return luxon.Duration.invalid('wrong arguments');
