@@ -1156,7 +1156,7 @@ describe('formatBillingItems', () => {
     const eventId3 = new ObjectID();
     const eventsByBillingItemBySubscriptions = [
       {
-        d00000000000000000000001: [{ _id: eventId1 }, { _id: eventId2 }],
+        d00000000000000000000001: [{ _id: eventId1, fieldToOmit: 'test' }, { _id: eventId2 }],
         d00000000000000000000002: [{ _id: eventId1 }, { _id: eventId2 }],
       },
       { d00000000000000000000001: [{ _id: eventId3 }] },
