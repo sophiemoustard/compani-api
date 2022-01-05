@@ -30,15 +30,16 @@ const checkSecondaryQueriesCall = (stubbedMethod, chainedPayload, callCount) => 
   const expectedQueries = chainedPayload.map(payload => payload.query);
   const receivedQueries = Object.entries(stubbedMethod.getCall(callCount).returnValue)
     .map(query => ({ name: query[0], functionStub: query[1] }));
+
   for (const receivedQuery of receivedQueries) {
-    if (!expectedQueries.includes(receivedQuery.name)) {
+    const expectedOccurencesCount = expectedQueries
+      .filter(expectedQuery => receivedQuery.name === expectedQuery).length;
+    if (!expectedOccurencesCount) {
       sinon.assert.fail(`Error in secondary queries: unexpected "${receivedQuery.name}" received`);
     }
-    sinon.assert.callCount(
-      receivedQuery.functionStub,
-      expectedQueries.filter(expectedQuery => receivedQuery.name === expectedQuery).length
-    );
+    sinon.assert.callCount(receivedQuery.functionStub, expectedOccurencesCount);
   }
+
   for (let i = 1; i < chainedPayload.length; i++) {
     const { query, args } = chainedPayload[i];
     const chainedQuery = stubbedMethod.getCall(callCount).returnValue[query];
