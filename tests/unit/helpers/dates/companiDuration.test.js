@@ -146,6 +146,7 @@ describe('_formatMiscToCompaniDuration', () => {
     const payload = { hours: 3, minutes: 35, seconds: 12 };
     const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
+    expect(result instanceof luxon.Duration).toBe(true);
     expect(new luxon.Duration(result).toMillis()).toEqual(3 * 60 * 60 * 1000 + 35 * 60 * 1000 + 12 * 1000);
     sinon.assert.calledOnce(fromObject);
     sinon.assert.notCalled(invalid);
