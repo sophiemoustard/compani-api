@@ -28,14 +28,15 @@ const checkFirstQueryCoherence = (stubbedMethod, chainedPayload, callCount) => {
 
 const checkSecondaryQueriesCall = (stubbedMethod, chainedPayload, callCount) => {
   const expectedQueries = chainedPayload.map(payload => payload.query);
-  const receivedQueries = Object.keys(stubbedMethod.getCall(callCount).returnValue);
-  for (let i = 0; i < receivedQueries.length; i++) {
-    if (!expectedQueries.includes(receivedQueries[i])) {
-      sinon.assert.fail(`Error in secondary queries: unexpected "${receivedQueries[i]}" received`);
+  const receivedQueries = Object.entries(stubbedMethod.getCall(callCount).returnValue)
+    .map(query => ({ name: query[0], functionStub: query[1] }));
+  for (const receivedQuery of receivedQueries) {
+    if (!expectedQueries.includes(receivedQuery.name)) {
+      sinon.assert.fail(`Error in secondary queries: unexpected "${receivedQuery.name}" received`);
     }
     sinon.assert.callCount(
-      stubbedMethod.getCall(callCount).returnValue[receivedQueries[i]],
-      expectedQueries.filter(expectedQuery => receivedQueries[i] === expectedQuery).length
+      receivedQuery.functionStub,
+      expectedQueries.filter(expectedQuery => receivedQuery.name === expectedQuery).length
     );
   }
   for (let i = 1; i < chainedPayload.length; i++) {
