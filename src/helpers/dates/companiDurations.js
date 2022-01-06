@@ -1,3 +1,4 @@
+const { DURATION_UNITS } = require('../constants');
 const luxon = require('./luxon');
 
 exports.CompaniDuration = (...args) => companiDurationFactory(exports._formatMiscToCompaniDuration(...args));
@@ -25,11 +26,9 @@ exports._formatMiscToCompaniDuration = (...args) => {
   if (args.length === 0) return luxon.Duration.fromObject({});
 
   if (args.length === 1) {
-    if (args[0] instanceof Object && args[0]._duration && args[0]._duration instanceof luxon.Duration) {
-      return args[0]._duration;
-    }
-    if (typeof args[0] === 'number') {
-      return luxon.Duration.fromMillis(args[0]);
+    if (args[0] instanceof Object) {
+      if (args[0]._duration && args[0]._duration instanceof luxon.Duration) return args[0]._duration;
+      if (Object.keys(args[0]).every(key => DURATION_UNITS.includes(key))) return luxon.Duration.fromObject(args[0]);
     }
   }
   return luxon.Duration.invalid('wrong arguments');

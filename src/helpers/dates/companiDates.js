@@ -63,12 +63,12 @@ const CompaniDateFactory = (inputDate) => {
       return CompaniDateFactory(_date.endOf(unit));
     },
 
-    diff(miscTypeOtherDate, unit = 'milliseconds', typeFloat = false) {
+    diff(miscTypeOtherDate, unit) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
-      const floatDiff = _date.diff(otherDate, unit).as(unit);
+      const floatedDiff = _date.diff(otherDate, unit).as(unit);
+      const roundedDiff = floatedDiff > 0 ? Math.floor(floatedDiff) : Math.ceil(floatedDiff);
 
-      if (typeFloat) return floatDiff;
-      return floatDiff > 0 ? Math.floor(floatDiff) : Math.ceil(floatDiff);
+      return { [unit]: roundedDiff };
     },
 
     add(amount) {

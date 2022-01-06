@@ -395,7 +395,7 @@ exports.formatIntraCourseSlotsForPdf = slot => ({
 });
 
 exports.formatInterCourseSlotsForPdf = (slot) => {
-  const duration = CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate));
+  const duration = CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'));
 
   return {
     address: get(slot, 'address.fullAddress') || null,
@@ -408,7 +408,7 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
 
 exports.getCourseDuration = (slots) => {
   const duration = slots.reduce(
-    (acc, slot) => acc.add(CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate))),
+    (acc, slot) => acc.add(CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'))),
     CompaniDuration()
   );
 
