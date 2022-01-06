@@ -811,7 +811,7 @@ describe('createVersion', () => {
 
     SinonMongoose.calledOnceWithExactly(
       findOneContract,
-      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       updateOneContract,
@@ -820,7 +820,10 @@ describe('createVersion', () => {
     );
     SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
-      [{ query: 'findOneAndUpdate', args: [{ _id: contract._id.toHexString() }, { $push: { versions: newVersion } }] }]
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: contract._id.toHexString() }, { $push: { versions: newVersion } }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.notCalled(generateSignatureRequest);
     sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
@@ -841,7 +844,7 @@ describe('createVersion', () => {
 
     SinonMongoose.calledOnceWithExactly(
       findOneContract,
-      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
@@ -851,7 +854,9 @@ describe('createVersion', () => {
           { _id: contract._id.toHexString() },
           { $push: { versions: { ...newVersion, signature: { eversignId: '1234567890' } } } },
         ],
-      }]
+      },
+      { query: 'lean' },
+      ]
     );
     sinon.assert.calledOnceWithExactly(generateSignatureRequest, { templateId: '1234567890' });
     sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
@@ -875,7 +880,7 @@ describe('createVersion', () => {
     } finally {
       SinonMongoose.calledOnceWithExactly(
         findOneContract,
-        [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+        [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }, { query: 'lean' }]
       );
       sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
       sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });

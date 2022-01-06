@@ -361,6 +361,7 @@ describe('getLearnerList', () => {
         },
         { query: 'populate', args: [{ path: 'company', populate: { path: 'company' }, select: 'name' }] },
         { query: 'populate', args: [{ path: 'blendedCoursesCount' }] },
+        { query: 'populate', args: [{ path: 'eLearningCoursesCount' }] },
         {
           query: 'populate',
           args: [{ path: 'activityHistories', select: 'updatedAt', options: { sort: { updatedAt: -1 } } }],

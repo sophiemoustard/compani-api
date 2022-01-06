@@ -197,7 +197,7 @@ describe('updateCustomerAbsence', () => {
     const customerAbsence = { _id: customerAbsenceId, customer };
     const payload = { absenceType: 'hospitalization', startDate, endDate };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customerAbsence]));
+    findOne.returns(SinonMongoose.stubChainedQueries([customerAbsence], ['lean']));
 
     await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, credentials);
 

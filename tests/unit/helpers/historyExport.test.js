@@ -18,6 +18,7 @@ const UserRepository = require('../../../src/repositories/UserRepository');
 const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
+const { TIME_STAMPING_ACTIONS } = require('../../../src/models/EventHistory');
 
 describe('getWorkingEventsForExport', () => {
   const auxiliaryId = new ObjectId();
@@ -161,6 +162,10 @@ describe('getWorkingEventsForExport', () => {
         { query: 'populate', args: [{ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } }] },
         { query: 'populate', args: ['internalHour'] },
         { query: 'populate', args: ['sector'] },
+        {
+          query: 'populate',
+          args: [{ path: 'histories', match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId } }],
+        },
         { query: 'lean' },
       ]
     );

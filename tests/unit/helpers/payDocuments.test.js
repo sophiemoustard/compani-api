@@ -33,11 +33,10 @@ describe('create', () => {
     const userId = new ObjectId();
     const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
     const credentials = { company: { _id: new ObjectId() } };
-    findOne.returns(SinonMongoose.stubChainedQueries([{
-      _id: userId,
-      administrative: { driveFolder: { driveId: 'driveId' } },
-      identity: { lastname: 'lastname' },
-    }]));
+    findOne.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: userId, administrative: { driveFolder: { driveId: 'driveId' } }, identity: { lastname: 'lastname' } }],
+      ['lean']
+    ));
     formatIdentity.returns('bonjour');
     addFile.returns(null);
 
@@ -69,11 +68,10 @@ describe('create', () => {
     const companyId = new ObjectId();
     const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
     const credentials = { company: { _id: companyId } };
-    findOne.returns(SinonMongoose.stubChainedQueries([{
-      _id: userId,
-      administrative: { driveFolder: { driveId: 'driveId' } },
-      identity: { lastname: 'lastname' },
-    }]));
+    findOne.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: userId, administrative: { driveFolder: { driveId: 'driveId' } }, identity: { lastname: 'lastname' } }],
+      ['lean']
+    ));
     formatIdentity.returns('bonjour');
     addFile.returns({ id: '0987654321', webViewLink: 'http://test.com/test.pdf' });
 

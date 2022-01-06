@@ -244,7 +244,8 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     const draft = { name: 'brouillon' };
 
     getAuxiliarySectors.returns([sectorId.toHexString()]);
-    payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+    payFindOne.onCall(0).returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    payFindOne.onCall(1).returns(SinonMongoose.stubChainedQueries([prevPay], ['lean']));
     finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);
@@ -287,7 +288,8 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     const draft = { name: 'brouillon' };
 
     getAuxiliarySectors.returns([sectorId.toHexString()]);
-    payFindOne.returns(SinonMongoose.stubChainedQueries([null, prevPay], ['lean']));
+    payFindOne.onCall(0).returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    payFindOne.onCall(1).returns(SinonMongoose.stubChainedQueries([prevPay], ['lean']));
     finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);
@@ -330,7 +332,8 @@ describe('hoursBalanceDetailByAuxiliary', () => {
     const draft = { name: 'brouillon' };
 
     getAuxiliarySectors.returns([sectorId.toHexString()]);
-    payFindOne.returns(SinonMongoose.stubChainedQueries([null, null], ['lean']));
+    payFindOne.onCall(0).returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    payFindOne.onCall(1).returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     finalPayFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
     userFindOne.returns(SinonMongoose.stubChainedQueries([auxiliary]));
     getContractStub.returns(contract);

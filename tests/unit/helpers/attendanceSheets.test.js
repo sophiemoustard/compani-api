@@ -115,7 +115,7 @@ describe('create', () => {
     const payload = { trainee: 'id de quelqun', course: new ObjectId(), file: 'test.pdf' };
     const returnedUser = { identity: { firstName: 'monsieur', lastname: 'patate' } };
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
-    findOne.returns(SinonMongoose.stubChainedQueries([returnedUser]));
+    findOne.returns(SinonMongoose.stubChainedQueries([returnedUser], ['lean']));
     formatIdentity.returns('monsieurPATATE');
 
     await attendanceSheetHelper.create(payload);

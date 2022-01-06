@@ -214,7 +214,9 @@ describe('createBillSlips', () => {
             month: '09-2019',
             company: company._id,
           }],
-        }]
+        },
+        { query: 'lean' },
+      ]
     );
   });
 
@@ -258,6 +260,7 @@ describe('createBillSlips', () => {
             company: company._id,
           }],
         },
+        { query: 'lean' },
       ]
     );
   });
