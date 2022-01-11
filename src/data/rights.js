@@ -36,7 +36,7 @@ const rights = [
   { permission: 'events:edit', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Editer un évènement' },
   { permission: 'events:read', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter les évènements' },
   { permission: 'exports:edit', rolesConcerned: [CLIENT_ADMIN, COACH], description: 'Exports' },
-  { permission: 'exports:read', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Exporter des données' },
+  { permission: 'exports:read', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], subscription: ERP, description: 'Exporter des données' },
   { permission: 'helpers:list', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter la liste des aidants' },
   { permission: 'helpers:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Modifier un(e) aidant(e)' },
   { permission: 'pay:edit', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Edition de la paie' },

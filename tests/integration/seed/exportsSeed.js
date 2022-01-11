@@ -20,6 +20,11 @@ const Establishment = require('../../../src/models/Establishment');
 const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
+const Program = require('../../../src/models/Program');
+const SubProgram = require('../../../src/models/SubProgram');
+const Course = require('../../../src/models/Course');
+const CourseSlot = require('../../../src/models/CourseSlot');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
@@ -43,6 +48,8 @@ const {
   MANUAL_TIME_STAMPING,
   QRCODE_MISSING,
   QR_CODE_TIME_STAMPING,
+  INTRA,
+  INTER_B2B,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -841,6 +848,131 @@ const userCompanies = [
   { _id: new ObjectId(), user: user._id, company: authCompany._id },
 ];
 
+const subProgramList = [
+  { _id: new ObjectId(), name: 'subProgram 1' },
+  { _id: new ObjectId(), name: 'subProgram 2' },
+];
+
+const programList = [
+  { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] },
+  { _id: new ObjectId(), name: 'Program 2', subPrograms: [subProgramList[1]._id] },
+];
+
+const trainer = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Gilles', lastname: 'Formateur' },
+  origin: WEBAPP,
+  local: { email: 'formateur@compani.fr' },
+};
+const salesRepresentative = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Aline', lastname: 'Contact-Com' },
+  origin: WEBAPP,
+  local: { email: 'srepresentative@compani.fr' },
+};
+
+const traineeList = [
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Jacques', lastname: 'Trainee' },
+    origin: WEBAPP,
+    local: { email: 'trainee1@compani.fr' },
+    firstMobileConnection: new Date(),
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Paul', lastname: 'Trainee' },
+    origin: WEBAPP,
+    local: { email: 'trainee2@compani.fr' },
+    firstMobileConnection: new Date(),
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Marie', lastname: 'Trainee' },
+    local: { email: 'trainee3@compani.fr' },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Annie', lastname: 'Trainee' },
+    local: { email: 'trainee4@compani.fr' },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Luc', lastname: 'Trainee' },
+    local: { email: 'trainee5@compani.fr' },
+    origin: WEBAPP,
+  },
+];
+
+const courseList = [
+  {
+    _id: new ObjectId(),
+    type: INTRA,
+    company: authCompany._id,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 1',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+
+  },
+  {
+    _id: new ObjectId(),
+    type: INTER_B2B,
+    subProgram: subProgramList[1]._id,
+    misc: 'group 2',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[3]._id, traineeList[4]._id],
+  },
+];
+
+const courseSlotList = [
+  {
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    step: new ObjectId(),
+    startDate: new Date('2021-05-01T08:00'),
+    endDate: new Date('2021-05-01T10:00'),
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    step: new ObjectId(),
+    startDate: new Date('2021-05-01T14:00'),
+    endDate: new Date('2021-05-01T16:00'),
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    step: new ObjectId(),
+    startDate: new Date('2021-02-01T08:00'),
+    endDate: new Date('2021-02-01T10:00'),
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    step: new ObjectId(),
+    startDate: new Date('2021-02-02T08:00'),
+    endDate: new Date('2021-02-02T10:00'),
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    step: new ObjectId(),
+  },
+];
+
+const smsList = [
+  { _id: new ObjectId(), type: 'convocation', message: 'SMS 1', sender: traineeList[0]._id, course: courseList[0]._id },
+  { _id: new ObjectId(), type: 'convocation', message: 'SMS 2', sender: traineeList[1]._id, course: courseList[0]._id },
+  { _id: new ObjectId(), type: 'convocation', message: 'SMS 3', sender: traineeList[3]._id, course: courseList[1]._id },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -862,9 +994,13 @@ const populateDB = async () => {
     SectorHistory.create(sectorHistories),
     Service.create(serviceList),
     ThirdPartyPayer.create(thirdPartyPayer),
-    User.create(user),
-    User.create(auxiliaryList),
+    User.create([...auxiliaryList, ...traineeList, user, trainer, salesRepresentative]),
     UserCompany.create(userCompanies),
+    SubProgram.create(subProgramList),
+    Program.create(programList),
+    Course.create(courseList),
+    CourseSlot.create(courseSlotList),
+    CourseSmsHistory.create(smsList),
   ]);
 };
 
@@ -878,4 +1014,5 @@ module.exports = {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
+  courseList,
 };

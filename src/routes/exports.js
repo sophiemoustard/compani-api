@@ -11,16 +11,12 @@ const {
   CUSTOMER,
   FUNDING,
   SUBSCRIPTION,
-  WORKING_EVENT,
-  BILL,
-  PAYMENT,
-  ABSENCE,
-  PAY,
-  CONTRACT,
   SECTOR,
   RUP,
   REFERENT,
+  EXPORT_TYPES,
 } = require('../helpers/constants');
+const { authorizeExport } = require('./preHandlers/exports');
 
 exports.plugin = {
   name: 'routes-exports',
@@ -36,6 +32,7 @@ exports.plugin = {
               .valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR, RUP, REFERENT),
           }),
         },
+        pre: [{ method: authorizeExport }],
         auth: { scope: ['exports:read'] },
       },
       handler: exportData,
@@ -47,10 +44,11 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({
-            type: Joi.string().required().valid(WORKING_EVENT, BILL, PAYMENT, ABSENCE, PAY, CONTRACT),
+            type: Joi.string().required().valid(...EXPORT_TYPES),
           }),
           query: Joi.object({ startDate: Joi.date().required(), endDate: Joi.date().required() }),
         },
+        pre: [{ method: authorizeExport }],
         auth: { scope: ['exports:read'] },
       },
       handler: exportHistory,

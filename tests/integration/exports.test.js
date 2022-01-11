@@ -17,6 +17,7 @@ const {
   BILL,
   ABSENCE,
   WORKING_EVENT,
+  COURSE,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -29,6 +30,7 @@ const {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
+  courseList,
 } = require('./seed/exportsSeed');
 const { helper, userList } = require('../seed/authUsersSeed');
 const { formatPrice } = require('../../src/helpers/utils');
@@ -40,7 +42,7 @@ describe('NODE ENV', () => {
   });
 });
 
-const historyExportTypes = [
+const clientHistoryExportTypes = [
   {
     exportType: WORKING_EVENT,
     expectedRows: [
@@ -92,7 +94,19 @@ const historyExportTypes = [
   },
 ];
 
-historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
+const vendorHistoryExportTypes = [
+  {
+    exportType: COURSE,
+    expectedRows: [
+      '\ufeff"Identifiant";"Type";"Structure";"Programme";"Sous-Programme";"Infos complémentaires";"Formateur";"Référent Compani";"Contact pour la formation";"Nombre d\'inscrits";"Nombre de dates";"Nombre de créneaux";"Durée Totale";"Nombre de SMS envoyés";"Nombre de personnes connectées à l\'app";"Début de formation";"Fin de formation"',
+      `${courseList[0]._id};"intra";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;"4h";2;2;"samedi 01 mai 2021";"samedi 01 mai 2021"`,
+      `${courseList[1]._id};"inter_b2b";;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;"4h";1;0;"lundi 01 février 2021";"à planifier"`,
+    ],
+    query: 'startDate=2021-01-15&endDate=2022-01-20',
+  },
+];
+
+clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
   describe(`EXPORTS ROUTES - GET /exports/${exportType}/history`, () => {
     let authToken;
     before(populateDB);
@@ -130,7 +144,55 @@ historyExportTypes.forEach(({ exportType, expectedRows, query }) => {
           authToken = await getToken(role.name, role.erp);
           const response = await app.inject({
             method: 'GET',
-            url: `/exports/${exportType}/data`,
+            url: `/exports/${exportType}/history?${query}`,
+            headers: { Cookie: `alenvi_token=${authToken}` },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+});
+
+vendorHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
+  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history`, () => {
+    let authToken;
+    before(populateDB);
+
+    describe('TRAINING_ORGANISATION_MANAGER', () => {
+      beforeEach(async () => {
+        authToken = await getToken('training_organisation_manager');
+      });
+
+      it(`should get ${exportType}`, async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/exports/${exportType}/history?${query}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const rows = response.result.split('\r\n');
+        expect(rows.length).toBe(expectedRows.length);
+
+        for (let i = 0; i < expectedRows.length; i++) expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'planning_referent', expectedCode: 403 },
+        { name: 'client_admin', expectedCode: 403 },
+      ];
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+          authToken = await getToken(role.name, role.erp);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/exports/${exportType}/history?${query}`,
             headers: { Cookie: `alenvi_token=${authToken}` },
           });
 

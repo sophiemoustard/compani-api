@@ -218,6 +218,10 @@ module.exports = {
   },
   // EXPORTS HISTORY
   WORKING_EVENT: 'working_event', // intervention or internal hours
+  COURSE: 'course',
+  get EXPORT_TYPES() {
+    return [this.WORKING_EVENT, this.BILL, this.PAYMENT, this.ABSENCE, this.PAY, this.CONTRACT, this.COURSE];
+  },
   // BILLING
   BILL: 'bill',
   CREDIT_NOTE: 'credit_note',
