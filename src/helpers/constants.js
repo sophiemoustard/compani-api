@@ -9,6 +9,7 @@ module.exports = {
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',
+  HALF_DAILY: 'half_daily',
   UNAVAILABILITY: 'unavailability',
   UNJUSTIFIED: 'unjustified_absence',
   INTERNAL_HOUR: 'internal_hour',
