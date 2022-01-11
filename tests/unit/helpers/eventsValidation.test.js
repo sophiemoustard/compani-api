@@ -21,12 +21,11 @@ describe('isCustomerSubscriptionValid', () => {
   });
 
   it('should return true if event subscription is in customer subscriptions', async () => {
-    const subscriptionId = new ObjectId();
     const event = {
-      auxiliary: (new ObjectId()).toHexString(),
-      customer: (new ObjectId()).toHexString(),
+      auxiliary: new ObjectId(),
+      customer: new ObjectId(),
       type: INTERVENTION,
-      subscription: subscriptionId.toHexString(),
+      subscription: new ObjectId(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
     };
@@ -48,10 +47,10 @@ describe('isCustomerSubscriptionValid', () => {
 
   it('should return false if event subscription is not in customer subscriptions', async () => {
     const event = {
-      auxiliary: (new ObjectId()).toHexString(),
-      customer: (new ObjectId()).toHexString(),
+      auxiliary: new ObjectId(),
+      customer: new ObjectId(),
       type: INTERVENTION,
-      subscription: (new ObjectId()).toHexString(),
+      subscription: new ObjectId(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
     };
@@ -82,7 +81,7 @@ describe('isUserContractValidOnEventDates', () => {
   });
 
   it('should return false as user has no contract', async () => {
-    const event = { auxiliary: (new ObjectId()).toHexString() };
+    const event = { auxiliary: new ObjectId() };
     const user = { _id: event.auxiliary };
 
     findOne.returns(SinonMongoose.stubChainedQueries([user]));
@@ -101,7 +100,7 @@ describe('isUserContractValidOnEventDates', () => {
   });
 
   it('should return false as user contracts are empty', async () => {
-    const event = { auxiliary: (new ObjectId()).toHexString() };
+    const event = { auxiliary: new ObjectId() };
     const user = { _id: event.auxiliary, contracts: [] };
 
     findOne.returns(SinonMongoose.stubChainedQueries([user]));
@@ -320,7 +319,7 @@ describe('isEditionAllowed', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const event = {
-      auxiliary: (new ObjectId()).toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
@@ -337,7 +336,7 @@ describe('isEditionAllowed', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const event = {
-      auxiliary: (new ObjectId()).toHexString(),
+      auxiliary: new ObjectId(),
       type: ABSENCE,
       absenceNature: HOURLY,
       startDate: '2019-04-13T09:00:00',
@@ -355,7 +354,7 @@ describe('isEditionAllowed', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const event = {
-      sector: (new ObjectId()).toHexString(),
+      sector: new ObjectId(),
       type: ABSENCE,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -368,12 +367,11 @@ describe('isEditionAllowed', () => {
     sinon.assert.notCalled(isCustomerSubscriptionValid);
   });
 
-  it('should return false as auxiliary does not have contracts', async () => {
+  it('should return false as auxiliary does not have contracts #tag', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectId();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -391,9 +389,8 @@ describe('isEditionAllowed', () => {
   it('should return false if event is intervention and customer is absent', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const customerId = new ObjectId();
     const event = {
-      customer: customerId.toHexString(),
+      customer: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -416,9 +413,8 @@ describe('isEditionAllowed', () => {
   it('should return false if event is intervention and customer subscription is not valid', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectId();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -437,9 +433,8 @@ describe('isEditionAllowed', () => {
   it('should return true if event is intervention and customer subscription is valid', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectId();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -458,7 +453,7 @@ describe('isEditionAllowed', () => {
   it('should return true', async () => {
     const credentials = { company: { _id: new ObjectId() } };
     const event = {
-      auxiliary: new ObjectId().toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERNAL_HOUR,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -489,9 +484,8 @@ describe('isCreationAllowed', () => {
   it('should return 409 as event is not absence and has conflicts', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectId();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -512,9 +506,8 @@ describe('isCreationAllowed', () => {
   it('should return true', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectId();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -532,10 +525,9 @@ describe('isCreationAllowed', () => {
 
   it('should return true as there is no conflict when no auxiliary assigned', async () => {
     const companyId = new ObjectId();
-    const sectorId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const event = {
-      sector: sectorId.toHexString(),
+      sector: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -598,7 +590,7 @@ describe('isUpdateAllowed', () => {
   it('should return false if event is startDate timeStamped and start date updated', async () => {
     const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:05:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -660,7 +652,7 @@ describe('isUpdateAllowed', () => {
   it('should return false if event is endDate timeStamped and end date updated', async () => {
     const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:05:00',
     };
@@ -722,7 +714,7 @@ describe('isUpdateAllowed', () => {
   it('should return false if event is billed', async () => {
     const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       endDateTimeStamp: 1,
@@ -738,7 +730,7 @@ describe('isUpdateAllowed', () => {
 
   it('should return false as event is absence and auxiliary is updated', async () => {
     const payload = {
-      auxiliary: (new ObjectId()).toHexString(),
+      auxiliary: new ObjectId(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -759,7 +751,7 @@ describe('isUpdateAllowed', () => {
 
   it('should return false as event is unavailability and auxiliary is updated', async () => {
     const payload = {
-      auxiliary: (new ObjectId()).toHexString(),
+      auxiliary: new ObjectId(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -781,7 +773,7 @@ describe('isUpdateAllowed', () => {
   it('should throw 409 if event has auxiliairy, is single intervention not cancelled and has conflicts', async () => {
     const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -796,7 +788,7 @@ describe('isUpdateAllowed', () => {
       sinon.assert.calledOnceWithExactly(
         hasConflicts,
         {
-          auxiliary: auxiliaryId.toHexString(),
+          auxiliary: auxiliaryId,
           startDate: '2019-04-13T09:00:00',
           endDate: '2019-04-13T11:00:00',
           type: INTERVENTION,
@@ -809,7 +801,7 @@ describe('isUpdateAllowed', () => {
   it('should throw 409 if event has auxiliairy, has conflicts and cancellation is undone', async () => {
     const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       isCancelled: false,
@@ -831,7 +823,7 @@ describe('isUpdateAllowed', () => {
       sinon.assert.calledOnceWithExactly(
         hasConflicts,
         {
-          auxiliary: auxiliaryId.toHexString(),
+          auxiliary: auxiliaryId,
           startDate: '2019-04-13T09:00:00',
           endDate: '2019-04-13T11:00:00',
           type: INTERVENTION,
