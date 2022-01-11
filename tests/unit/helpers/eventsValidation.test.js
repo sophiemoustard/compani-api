@@ -8,7 +8,7 @@ const EventHistory = require('../../../src/models/EventHistory');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const { INTERVENTION, ABSENCE, INTERNAL_HOUR, UNAVAILABILITY } = require('../../../src/helpers/constants');
+const { INTERVENTION, ABSENCE, INTERNAL_HOUR, UNAVAILABILITY, HOURLY } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('isCustomerSubscriptionValid', () => {
@@ -322,6 +322,24 @@ describe('isEditionAllowed', () => {
     const event = {
       auxiliary: (new ObjectId()).toHexString(),
       type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-14T11:00:00',
+    };
+
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
+
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(isUserContractValidOnEventDates);
+    sinon.assert.notCalled(isCustomerSubscriptionValid);
+  });
+
+  it('should return false as event is not a daily absence and not on one day', async () => {
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId } };
+    const event = {
+      auxiliary: (new ObjectId()).toHexString(),
+      type: ABSENCE,
+      absenceNature: HOURLY,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
     };
