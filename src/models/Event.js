@@ -31,6 +31,7 @@ const {
   PRIVATE_TRANSPORT,
   COMPANY_TRANSPORT,
   PUBLIC_TRANSPORT,
+  HALF_DAILY,
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
@@ -39,7 +40,7 @@ const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareLi
 const { TIME_STAMPING_ACTIONS } = require('./EventHistory');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
-const ABSENCE_NATURES = [HOURLY, DAILY];
+const ABSENCE_NATURES = [HOURLY, DAILY, HALF_DAILY];
 const ABSENCE_TYPES = [
   PAID_LEAVE,
   UNPAID_LEAVE,
