@@ -3,7 +3,13 @@ const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const momentRange = require('moment-range');
-const { INTERVENTION, ABSENCE, UNAVAILABILITY, NEVER, DAILY } = require('./constants');
+const {
+  INTERVENTION,
+  ABSENCE,
+  UNAVAILABILITY,
+  NEVER,
+  DAILY,
+} = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
 const EventHistory = require('../models/EventHistory');
