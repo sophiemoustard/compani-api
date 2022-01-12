@@ -84,7 +84,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
 
   const course = await Course.findOne({ _id: courseId })
     .populate({ path: 'trainees', select: 'company', populate: 'company' })
-    .lean({ virtuals: true });
+    .lean();
   if (!course) throw Boom.notFound();
 
   checkRole(course, credentials);

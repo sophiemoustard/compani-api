@@ -18,6 +18,28 @@ exports.list = async (query, companyId) => {
     : attendances;
 };
 
+const formatCourseWithAttendances = (courseWithSameSubProgram, course, companyId) => {
+  const { slots } = courseWithSameSubProgram;
+
+  return slots.map((cs) => {
+    const { attendances } = cs;
+    if (!attendances) return {};
+
+    return attendances.filter((a) => {
+      const traineeSubscribedOnlyToSpecificCourse = UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id) &&
+        !UtilsHelper.doesArrayIncludeId(courseWithSameSubProgram.trainees, a.trainee._id);
+      const traineeIsInSpecificCompany = (!companyId || UtilsHelper.areObjectIdsEquals(a.trainee.company, companyId));
+
+      return traineeSubscribedOnlyToSpecificCourse && traineeIsInSpecificCompany;
+    }).map(a => ({
+      trainee: a.trainee,
+      courseSlot: pick(cs, ['step', 'startDate', 'endDate']),
+      misc: courseWithSameSubProgram.misc,
+      trainer: courseWithSameSubProgram.trainer,
+    }));
+  });
+};
+
 exports.listUnsubscribed = async (courseId, companyId) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({
@@ -27,7 +49,7 @@ exports.listUnsubscribed = async (courseId, companyId) => {
     })
     .lean();
 
-  const courseListWithSameProgram = await Course.find({
+  const courseWithSameSubProgramList = await Course.find({
     format: BLENDED,
     subProgram: { $in: get(course, 'subProgram.program.subPrograms') },
   })
@@ -46,23 +68,8 @@ exports.listUnsubscribed = async (courseId, companyId) => {
     .populate({ path: 'trainer', select: 'identity' })
     .lean();
 
-  const unsubscribedAttendances = courseListWithSameProgram.map((c) => {
-    const { slots } = c;
-    return slots.map((s) => {
-      const { attendances } = s;
-      if (!attendances) return {};
-      return attendances.filter(a =>
-        UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id) &&
-          !UtilsHelper.doesArrayIncludeId(c.trainees, a.trainee._id) &&
-          (!companyId || UtilsHelper.areObjectIdsEquals(a.trainee.company, companyId))
-      ).map(a => ({
-        trainee: a.trainee,
-        courseSlot: pick(s, ['step', 'startDate', 'endDate']),
-        misc: c.misc,
-        trainer: c.trainer,
-      }));
-    });
-  });
+  const unsubscribedAttendances = courseWithSameSubProgramList.map(c =>
+    formatCourseWithAttendances(c, course, companyId));
 
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
