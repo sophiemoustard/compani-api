@@ -186,13 +186,12 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
 };
 
 exports.getAbsenceHours = (absence, contracts) => {
+  if (absence.absenceNature === HOURLY) return moment(absence.endDate).diff(absence.startDate, 'm') / 60;
+
   const dailyAbsenceHours = contracts.filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
     (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
     .reduce((acc, c) => acc + DraftPayHelper.getHoursFromDailyAbsence(absence, c), 0);
-
-  if (absence.absenceNature === HOURLY) return moment(absence.endDate).diff(absence.startDate, 'm') / 60;
-  if (absence.absenceNature === HALF_DAILY) return dailyAbsenceHours / 2;
-  return dailyAbsenceHours;
+  return absence.absenceNature === HALF_DAILY ? dailyAbsenceHours / 2 : dailyAbsenceHours;
 };
 
 const absenceExportHeader = [

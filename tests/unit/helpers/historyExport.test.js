@@ -392,7 +392,7 @@ describe('getAbsenceHours', () => {
     sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
   });
 
-  it('should return half-daily absence hours with mutiple contracts', async () => {
+  it('should return half-daily absence hours', async () => {
     const absence = { absenceNature: 'half-daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
     const contracts = [
       {
@@ -432,7 +432,7 @@ describe('getAbsenceHours', () => {
     const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
 
     expect(absenceHours).toEqual(2);
-    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
+    sinon.assert.notCalled(getHoursFromDailyAbsence);
   });
 });
 
