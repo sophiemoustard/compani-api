@@ -51,6 +51,7 @@ module.exports = {
     return {
       [this.HOURLY]: 'Horaire',
       [this.DAILY]: 'Journalière',
+      [this.HALF_DAILY]: 'Demi-journalière',
     };
   },
   PLANNING_VIEW_END_HOUR: 22,
