@@ -38,7 +38,7 @@ exports.listUnsubscribed = async (courseId, companyId) => {
         {
           path: 'attendances',
           select: 'trainee',
-          populate: [{ path: 'trainee', select: 'identity company' }],
+          populate: { path: 'trainee', select: 'identity company', populate: 'company' },
         },
         { path: 'step', select: 'name' },
       ],
@@ -53,7 +53,8 @@ exports.listUnsubscribed = async (courseId, companyId) => {
       if (!attendances) return {};
       return attendances.filter(a =>
         UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id) &&
-          !UtilsHelper.doesArrayIncludeId(c.trainees, a.trainee._id)
+          !UtilsHelper.doesArrayIncludeId(c.trainees, a.trainee._id) &&
+          (!companyId || UtilsHelper.areObjectIdsEquals(a.trainee.company, companyId))
       ).map(a => ({
         trainee: a.trainee,
         courseSlot: pick(s, ['step', 'startDate', 'endDate']),

@@ -34,7 +34,7 @@ exports.plugin = {
       path: '/unsubscribed',
       options: {
         auth: { scope: ['attendances:read'] },
-        validate: { query: Joi.object({ course: Joi.objectId().required() }) },
+        validate: { query: Joi.object({ course: Joi.objectId().required(), company: Joi.objectId() }) },
         pre: [{ method: authorizeUnsubscribedAttendancesGet }],
       },
       handler: listUnsubscribed,
