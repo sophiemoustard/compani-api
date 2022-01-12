@@ -154,7 +154,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
   });
 });
 
-describe('ATTENDANCES ROUTES - GET /attendances', () => {
+describe('ATTENDANCES ROUTES - GET /attendance', () => {
   let authToken;
   beforeEach(populateDB);
 
