@@ -186,6 +186,7 @@ vendorHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
         { name: 'helper', expectedCode: 403 },
         { name: 'planning_referent', expectedCode: 403 },
         { name: 'client_admin', expectedCode: 403 },
+        { name: 'trainer', expectedCode: 403 },
       ];
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {

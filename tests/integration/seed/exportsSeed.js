@@ -848,10 +848,7 @@ const userCompanies = [
   { _id: new ObjectId(), user: user._id, company: authCompany._id },
 ];
 
-const subProgramList = [
-  { _id: new ObjectId(), name: 'subProgram 1' },
-  { _id: new ObjectId(), name: 'subProgram 2' },
-];
+const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1' }, { _id: new ObjectId(), name: 'subProgram 2' }];
 
 const programList = [
   { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] },
