@@ -99,6 +99,7 @@ describe('validate', () => {
           'companies:edit',
           'companies:read',
           'courses:create',
+          'exports:read',
           'programs:edit',
           'programs:read',
           'questionnaires:edit',

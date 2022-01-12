@@ -637,8 +637,8 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
   return rows;
 };
 
-const getEndOfCourse = (slotsGroupedByDate, slotToPlan) => {
-  if (slotToPlan.length) return 'à planifier';
+const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
+  if (slotsToPlan.length) return 'à planifier';
   if (slotsGroupedByDate) {
     const lastDate = slotsGroupedByDate.length - 1;
     const lastSlot = slotsGroupedByDate[lastDate].length - 1;
