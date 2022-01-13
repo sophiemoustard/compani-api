@@ -666,29 +666,28 @@ exports.exportCourseHistory = async (startDate, endDate) => {
 
   for (const course of courses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
-    const SmsCount = await CourseSmsHistory.countDocuments({ course: course._id });
-    rows.push(
-      {
-        Identifiant: course._id,
-        Type: course.type,
-        Structure: course.type === INTRA ? get(course, 'company.name') : '',
-        Programme: get(course, 'subProgram.program.name') || '',
-        'Sous-Programme': get(course, 'subProgram.name') || '',
-        'Infos complémentaires': course.misc,
-        Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
-        'Référent Compani': UtilsHelper.formatIdentity(get(course, 'salesRepresentative.identity') || '', 'FL'),
-        'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
-        'Nombre d\'inscrits': get(course, 'trainees.length') || '',
-        'Nombre de dates': slotsGroupedByDate.length,
-        'Nombre de créneaux': get(course, 'slots.length') || '',
-        'Durée Totale': CourseHelper.getCourseDuration(course.slots),
-        'Nombre de SMS envoyés': SmsCount,
-        'Nombre de personnes connectées à l\'app': course.trainees
-          .filter(trainee => trainee.firstMobileConnection).length,
-        'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('cccc dd LLLL yyyy') || '',
-        'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
-      }
-    );
+    const smsCount = await CourseSmsHistory.countDocuments({ course: course._id });
+
+    rows.push({
+      Identifiant: course._id,
+      Type: course.type,
+      Structure: course.type === INTRA ? get(course, 'company.name') : '',
+      Programme: get(course, 'subProgram.program.name') || '',
+      'Sous-Programme': get(course, 'subProgram.name') || '',
+      'Infos complémentaires': course.misc,
+      Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
+      'Référent Compani': UtilsHelper.formatIdentity(get(course, 'salesRepresentative.identity') || '', 'FL'),
+      'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
+      'Nombre d\'inscrits': get(course, 'trainees.length') || '',
+      'Nombre de dates': slotsGroupedByDate.length,
+      'Nombre de créneaux': get(course, 'slots.length') || '',
+      'Durée Totale': CourseHelper.getCourseDuration(course.slots),
+      'Nombre de SMS envoyés': smsCount,
+      'Nombre de personnes connectées à l\'app': course.trainees
+        .filter(trainee => trainee.firstMobileConnection).length,
+      'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('cccc dd LLLL yyyy') || '',
+      'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
+    });
   }
 
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];

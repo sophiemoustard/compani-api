@@ -14,7 +14,7 @@ const {
   SECTOR,
   RUP,
   REFERENT,
-  EXPORT_TYPES,
+  HISTORY_EXPORT_TYPES,
 } = require('../helpers/constants');
 const { authorizeExport } = require('./preHandlers/exports');
 
@@ -44,7 +44,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({
-            type: Joi.string().required().valid(...EXPORT_TYPES),
+            type: Joi.string().required().valid(...HISTORY_EXPORT_TYPES),
           }),
           query: Joi.object({ startDate: Joi.date().required(), endDate: Joi.date().required() }),
         },
