@@ -19,6 +19,7 @@ const {
   WORKING_EVENT,
   COURSE,
   COURSE_SLOT,
+  TRANSPORT,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -93,6 +94,11 @@ const clientHistoryExportTypes = [
       `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/02/2019";;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"10,00"`,
     ],
     query: 'startDate=2019-01-01T10:00:00.000Z&endDate=2019-05-31T10:00:00.000Z',
+  },
+  {
+    exportType: TRANSPORT,
+    expectedRows: [],
+    query: 'startDate=2019-05-25&endDate=2019-05-31',
   },
 ];
 

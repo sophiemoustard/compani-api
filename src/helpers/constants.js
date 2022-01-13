@@ -218,6 +218,7 @@ module.exports = {
     6: 'Dimanche',
     7: 'Jours fériés',
   },
+  TRANSPORT: 'transport',
   // EXPORTS HISTORY
   WORKING_EVENT: 'working_event', // intervention or internal hours
   COURSE: 'course',
@@ -232,6 +233,7 @@ module.exports = {
       this.CONTRACT,
       this.COURSE,
       this.COURSE_SLOT,
+      this.TRANSPORT,
     ];
   },
   get CLIENT_EXPORT_TYPES() {

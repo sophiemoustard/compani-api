@@ -747,3 +747,5 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
 
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };
+
+exports.exportTransportsHistory = async (startDate, endDate, credentials) => [];
