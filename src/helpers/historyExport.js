@@ -478,7 +478,7 @@ const formatLines = (surchargedPlanDetails, planName) => {
   const lines = [planName];
   for (const [surchageKey, surcharge] of surcharges) {
     lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, `
-     + `${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
+      + `${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
   }
 
   return lines.join('\r\n');
@@ -748,4 +748,12 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };
 
-exports.exportTransportsHistory = async (startDate, endDate, credentials) => [];
+exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
+  const eventsByDayByAuxiliary = await EventRepository.getEventsByDayAndAuxiliary(
+    startDate,
+    endDate,
+    get(credentials, 'company._id')
+  );
+
+  return [];
+};

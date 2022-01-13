@@ -604,3 +604,31 @@ exports.getEventsToCheckEventConsistency = async (rules, companyId) => Event.agg
   },
   { $group: { _id: { $ifNull: ['$auxiliary', '$sector'] }, events: { $push: '$$ROOT' } } },
 ]).option({ company: companyId });
+
+exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Event.aggregate([
+  {
+    $match: {
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
+      auxiliary: { $exists: true }, // Pas fait sur script
+      type: { $in: [INTERNAL_HOUR, INTERVENTION] },
+    },
+  },
+  { $project: { auxiliary: 1, startDate: 1 } },
+  {
+    $group: {
+      _id: {
+        auxiliary: '$auxiliary',
+        month: { $month: '$startDate' },
+        day: { $dayOfMonth: '$startDate' },
+      },
+      eventsByDay: { $push: '$$ROOT' },
+    },
+  },
+  {
+    $group: {
+      _id: { auxiliary: '$_id.auxiliary' },
+      eventsByDayByAuxiliary: { $push: '$eventsByDay' },
+    },
+  },
+]).option({ company: companyId });

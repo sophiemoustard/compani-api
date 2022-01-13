@@ -98,7 +98,7 @@ const clientHistoryExportTypes = [
   {
     exportType: TRANSPORT,
     expectedRows: [],
-    query: 'startDate=2019-05-25&endDate=2019-05-31',
+    query: 'startDate=2019-01-01&endDate=2019-01-31',
   },
 ];
 
@@ -130,7 +130,7 @@ clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
     let authToken;
     before(populateDB);
 
-    describe('COACH', () => {
+    describe('COACH #tag', () => {
       beforeEach(async () => {
         authToken = await getToken('coach');
       });

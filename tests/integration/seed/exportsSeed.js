@@ -384,7 +384,7 @@ const referentList = [
 ];
 
 const eventList = [
-  {
+  { // 0
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -395,7 +395,7 @@ const eventList = [
     endDate: '2019-01-21T22:59:00.000Z',
     auxiliary: auxiliaryList[0]._id,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -407,7 +407,7 @@ const eventList = [
     auxiliary: auxiliaryList[0]._id,
     misc: 'test absence',
   },
-  {
+  { // 2
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -429,7 +429,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 3
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -450,7 +450,7 @@ const eventList = [
     transportMode: 'public',
     kmDuringEvent: 23,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -470,7 +470,7 @@ const eventList = [
     },
     isBilled: true,
   },
-  {
+  { // 5
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -481,7 +481,7 @@ const eventList = [
     endDate: '2019-01-17T16:30:19.543Z',
     createdAt: '2019-01-16T14:30:19.543Z',
   },
-  {
+  { // 6
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -489,6 +489,44 @@ const eventList = [
     startDate: '2019-01-11T09:30:19.543Z',
     endDate: '2019-01-11T11:30:21.653Z',
     auxiliary: auxiliaryList[0]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // 7
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T12:30:19.543Z',
+    endDate: '2019-01-11T14:30:21.653Z',
+    auxiliary: auxiliaryList[0]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // 8
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T09:30:19.543Z',
+    endDate: '2019-01-11T11:30:21.653Z',
+    auxiliary: auxiliaryList[1]._id,
     customer: customersList[3]._id,
     createdAt: '2019-01-09T11:33:14.343Z',
     subscription: customersList[3].subscriptions[0]._id,
