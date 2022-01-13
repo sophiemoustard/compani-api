@@ -128,6 +128,7 @@ const auxiliaryList = [{
     nationality: 'FR',
     socialSecurityNumber: '012345678912345',
   },
+  administrative: { transportInvoice: { transportType: 'public' } },
   contact: {
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -172,6 +173,7 @@ const auxiliaryList = [{
   refreshToken: uuidv4(),
   contracts: [contract3Id],
   origin: WEBAPP,
+  administrative: { transportInvoice: { transportType: 'private' } },
 }];
 
 const contractList = [{
@@ -383,6 +385,27 @@ const referentList = [
   },
 ];
 
+const distanceMatrixList = [
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    origins: '42 Rue de la Procession 75015 Paris',
+    destinations: '37 Rue de Ponthieu 75008 Paris',
+    mode: 'transit',
+    distance: 5073,
+    duration: 3600,
+  },
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    origins: '105 BOULEVARD MURAT 75016 PARIS',
+    destinations: '37 Rue de Ponthieu 75008 Paris',
+    mode: 'transit',
+    distance: 13905,
+    duration: 2700,
+  },
+];
+
 const eventList = [
   { // 0
     _id: new ObjectId(),
@@ -505,17 +528,17 @@ const eventList = [
     company: authCompany._id,
     sector,
     type: INTERVENTION,
-    startDate: '2019-01-11T12:30:19.543Z',
-    endDate: '2019-01-11T14:30:21.653Z',
+    startDate: '2019-01-11T06:30:19.543Z',
+    endDate: '2019-01-11T08:30:21.653Z',
     auxiliary: auxiliaryList[0]._id,
     customer: customersList[3]._id,
     createdAt: '2019-01-09T11:33:14.343Z',
     subscription: customersList[3].subscriptions[0]._id,
     address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
+      fullAddress: '42 Rue de la Procession 75015 Paris',
+      zipCode: '75015',
       city: 'Paris',
-      street: '37 rue de Ponthieu',
+      street: '42 Rue de la Procession',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
@@ -531,10 +554,10 @@ const eventList = [
     createdAt: '2019-01-09T11:33:14.343Z',
     subscription: customersList[3].subscriptions[0]._id,
     address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
-      zipCode: '75008',
+      fullAddress: '42 Rue de la Procession 75015 Paris',
+      zipCode: '75015',
       city: 'Paris',
-      street: '37 rue de Ponthieu',
+      street: '42 Rue de la Procession',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
@@ -1108,4 +1131,5 @@ module.exports = {
   thirdPartyPayer,
   courseList,
   courseSlotList,
+  distanceMatrixList,
 };

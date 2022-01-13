@@ -614,7 +614,17 @@ exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Ev
       type: { $in: [INTERNAL_HOUR, INTERVENTION] },
     },
   },
-  { $project: { auxiliary: 1, startDate: 1 } },
+  {
+    $project: {
+      auxiliary: 1,
+      startDate: 1,
+      endDate: 1,
+      address: 1,
+      transportMode: 1,
+      hasFixedService: 1,
+      company: 1,
+    },
+  },
   {
     $group: {
       _id: {
@@ -634,5 +644,10 @@ exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Ev
   },
   { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
   { $unwind: { path: '$auxiliary' } },
-  { $project: { auxiliary: { _id: 1, identity: { firstname: 1, lastname: 1 } }, eventsByDayByAuxiliary: 1 } },
+  {
+    $project: {
+      auxiliary: { _id: 1, identity: { firstname: 1, lastname: 1 }, administrative: 1 },
+      eventsByDayByAuxiliary: 1,
+    },
+  },
 ]).option({ company: companyId });

@@ -34,6 +34,7 @@ const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
 const CourseHelper = require('./courses');
 const AttendanceSheet = require('../models/AttendanceSheet');
+const DistanceMatrixHelper = require('./distanceMatrix');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
@@ -757,25 +758,46 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
   );
 
   for (const group of eventsByDayByAuxiliary) {
-    for (const events of group.eventsByDayByAuxiliary) {
-      rows.push({
-        'Id de l\'auxiliaire': group.auxiliary._id,
-        'Prénom  de l\'auxiliaire': group.auxiliary.identity.firstname,
-        'Nom  de l\'auxiliaire': group.auxiliary.identity.lastname,
-        // 'Date du trajet': sortedEvents[i].startDate,
-        // 'Adresse de départ': origins,
-        // 'Adresse d\'arrivée': destinations,
-        // 'Distance': travelledKm,
-        // 'Mode de transport': transportMode,
-        // 'Durée du trajet': transportDuration,
-        // 'Durée inter vacation': breakDuration,
-        // 'Pause prise en compte': !pickTransportDuration,
-        // 'Heures prise en compte': duration,
-      });
+    for (const dailyEvents of group.eventsByDayByAuxiliary) {
+      const sortedEvents = [...dailyEvents].sort((a, b) =>
+        CompaniDate(a.startDate).toDate() - CompaniDate(b.startDate).toDate()
+      );
+      const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices(credentials);
+
+      for (let i = 1; i < sortedEvents.length; i++) {
+        const {
+          duration,
+          travelledKm,
+          origins,
+          destinations,
+          transportDuration,
+          breakDuration,
+          pickTransportDuration,
+        } = await DraftPayHelper.getPaidTransportInfo(
+          { ...sortedEvents[i], auxiliary: group.auxiliary },
+          { ...sortedEvents[i - 1], auxiliary: group.auxiliary },
+          distanceMatrix
+        );
+
+        rows.push({
+          'Id de l\'auxiliaire': group.auxiliary._id.toHexString(),
+          'Prénom  de l\'auxiliaire': group.auxiliary.identity.firstname,
+          'Nom  de l\'auxiliaire': group.auxiliary.identity.lastname,
+          'Date du trajet': CompaniDate(sortedEvents[i].startDate).format('dd LLLL yyyy'),
+          'Adresse de départ': origins,
+          'Adresse d\'arrivée': destinations,
+          Distance: travelledKm,
+          'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
+            get(group, 'auxiliary.administrative.transportInvoice.transportType')
+          ],
+          'Durée du trajet': transportDuration,
+          'Durée inter vacation': breakDuration,
+          'Pause prise en compte': !pickTransportDuration,
+          'Heures prise en compte': duration,
+        });
+      }
     }
   }
-
-  // console.log('rows', [Object.keys(rows[0]), ...rows.map(d => Object.values(d))]);
 
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };

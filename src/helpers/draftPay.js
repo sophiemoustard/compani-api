@@ -156,11 +156,16 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
   let paidTransportDuration = 0;
   let paidKm = 0;
   let travelledKm = 0;
+  let origins = null;
+  let destinations = null;
+  let transportMode = null;
+  let transportDuration = 0;
+  let breakDuration = 0;
+  let pickTransportDuration = false;
 
   if (prevEvent && !prevEvent.hasFixedService && !event.hasFixedService) {
-    const origins = get(prevEvent, 'address.fullAddress', null);
-    const destinations = get(event, 'address.fullAddress', null);
-    let transportMode = null;
+    origins = get(prevEvent, 'address.fullAddress', null);
+    destinations = get(event, 'address.fullAddress', null);
     if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
       transportMode = exports.getTransportMode(event);
     }
@@ -174,14 +179,24 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
       transportMode.specific || transportMode.default,
       event.company
     );
-    const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
-    const pickTransportDuration = breakDuration > (transport.duration + 15);
+    breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
+    pickTransportDuration = breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
     paidKm = transportMode.shouldPayKm ? transport.distance : 0;
     travelledKm = transport.distance;
+    transportDuration = transport.duration;
   }
 
-  return { duration: paidTransportDuration, paidKm, travelledKm };
+  return {
+    duration: paidTransportDuration,
+    paidKm,
+    travelledKm,
+    origins,
+    destinations,
+    transportDuration,
+    breakDuration,
+    pickTransportDuration,
+  };
 };
 
 exports.getEventHours = async (event, prevEvent, service, details, dm) => {
