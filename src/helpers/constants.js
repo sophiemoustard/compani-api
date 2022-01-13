@@ -241,6 +241,7 @@ module.exports = {
       this.REFERENT,
     ];
   },
+  get VENDOR_EXPORT_TYPES() { return [this.COURSE]; },
   // BILLING
   BILL: 'bill',
   CREDIT_NOTE: 'credit_note',
