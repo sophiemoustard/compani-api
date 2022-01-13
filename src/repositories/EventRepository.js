@@ -628,7 +628,11 @@ exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Ev
   {
     $group: {
       _id: { auxiliary: '$_id.auxiliary' },
+      auxiliary: { $first: '$_id.auxiliary' },
       eventsByDayByAuxiliary: { $push: '$eventsByDay' },
     },
   },
+  { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
+  { $unwind: { path: '$auxiliary' } },
+  { $project: { auxiliary: { _id: 1, identity: { firstname: 1, lastname: 1 } }, eventsByDayByAuxiliary: 1 } },
 ]).option({ company: companyId });

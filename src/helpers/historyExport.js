@@ -749,11 +749,33 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
 };
 
 exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
+  const rows = [];
   const eventsByDayByAuxiliary = await EventRepository.getEventsByDayAndAuxiliary(
     startDate,
     endDate,
     get(credentials, 'company._id')
   );
 
-  return [];
+  for (const group of eventsByDayByAuxiliary) {
+    for (const events of group.eventsByDayByAuxiliary) {
+      rows.push({
+        'Id de l\'auxiliaire': group.auxiliary._id,
+        'Prénom  de l\'auxiliaire': group.auxiliary.identity.firstname,
+        'Nom  de l\'auxiliaire': group.auxiliary.identity.lastname,
+        // 'Date du trajet': sortedEvents[i].startDate,
+        // 'Adresse de départ': origins,
+        // 'Adresse d\'arrivée': destinations,
+        // 'Distance': travelledKm,
+        // 'Mode de transport': transportMode,
+        // 'Durée du trajet': transportDuration,
+        // 'Durée inter vacation': breakDuration,
+        // 'Pause prise en compte': !pickTransportDuration,
+        // 'Heures prise en compte': duration,
+      });
+    }
+  }
+
+  // console.log('rows', [Object.keys(rows[0]), ...rows.map(d => Object.values(d))]);
+
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };
