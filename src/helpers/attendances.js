@@ -21,8 +21,8 @@ exports.list = async (query, companyId) => {
 const formatCourseWithAttendances = (courseWithSameSubProgram, course, companyId) => {
   const { slots } = courseWithSameSubProgram;
 
-  return slots.map((cs) => {
-    const { attendances } = cs;
+  return slots.map((slot) => {
+    const { attendances } = slot;
     if (!attendances) return {};
 
     return attendances.filter((a) => {
@@ -33,7 +33,7 @@ const formatCourseWithAttendances = (courseWithSameSubProgram, course, companyId
       return traineeSubscribedOnlyToSpecificCourse && traineeIsInSpecificCompany;
     }).map(a => ({
       trainee: a.trainee,
-      courseSlot: pick(cs, ['step', 'startDate', 'endDate']),
+      courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
       misc: courseWithSameSubProgram.misc,
       trainer: courseWithSameSubProgram.trainer,
     }));
