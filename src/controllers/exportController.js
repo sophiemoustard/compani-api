@@ -17,6 +17,7 @@ const {
   SECTOR,
   RUP,
   REFERENT,
+  COURSE,
 } = require('../helpers/constants');
 const HistoryExportHelper = require('../helpers/historyExport');
 const DataExportHelper = require('../helpers/dataExport');
@@ -95,6 +96,8 @@ const exportHistory = async (req, h) => {
       case CONTRACT:
         exportArray = await HistoryExportHelper.exportContractHistory(startDate, endDate, credentials);
         break;
+      case COURSE:
+        exportArray = await HistoryExportHelper.exportCourseHistory(startDate, endDate);
     }
 
     const csv = await exportToCsv(exportArray);

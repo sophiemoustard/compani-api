@@ -21,15 +21,21 @@ const {
   TIMESTAMPING_ACTION_TYPE_LIST,
   MANUAL_TIME_STAMPING_REASONS,
   EVENT_TRANSPORT_MODE_LIST,
+  INTRA,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
+const CourseHelper = require('./courses');
+const { CompaniDate } = require('./dates/companiDates');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
 const Contract = require('../models/Contract');
+const CourseSmsHistory = require('../models/CourseSmsHistory');
+const CourseSlot = require('../models/CourseSlot');
+const Course = require('../models/Course');
 const Pay = require('../models/Pay');
 const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
@@ -629,4 +635,60 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
   }
 
   return rows;
+};
+
+const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
+  if (slotsToPlan.length) return 'à planifier';
+  if (slotsGroupedByDate) {
+    const lastDate = slotsGroupedByDate.length - 1;
+    const lastSlot = slotsGroupedByDate[lastDate].length - 1;
+    return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].startDate).format('cccc dd LLLL yyyy');
+  }
+  return '';
+};
+
+exports.exportCourseHistory = async (startDate, endDate) => {
+  const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
+  const courseIds = slots.map(slot => slot.course);
+  const courses = await Course
+    .find({ _id: { $in: courseIds } })
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'subProgram', select: 'name program', populate: [{ path: 'program', select: 'name' }] })
+    .populate({ path: 'trainer', select: 'identity' })
+    .populate({ path: 'salesRepresentative', select: 'identity' })
+    .populate({ path: 'contact', select: 'identity' })
+    .populate({ path: 'slots' })
+    .populate({ path: 'slotsToPlan' })
+    .populate({ path: 'trainees', select: 'firstMobileConnection' })
+    .lean();
+
+  const rows = [];
+
+  for (const course of courses) {
+    const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
+    const smsCount = await CourseSmsHistory.countDocuments({ course: course._id });
+
+    rows.push({
+      Identifiant: course._id,
+      Type: course.type,
+      Structure: course.type === INTRA ? get(course, 'company.name') : '',
+      Programme: get(course, 'subProgram.program.name') || '',
+      'Sous-Programme': get(course, 'subProgram.name') || '',
+      'Infos complémentaires': course.misc,
+      Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
+      'Référent Compani': UtilsHelper.formatIdentity(get(course, 'salesRepresentative.identity') || '', 'FL'),
+      'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
+      'Nombre d\'inscrits': get(course, 'trainees.length') || '',
+      'Nombre de dates': slotsGroupedByDate.length,
+      'Nombre de créneaux': get(course, 'slots.length') || '',
+      'Durée Totale': CourseHelper.getCourseDuration(course.slots),
+      'Nombre de SMS envoyés': smsCount,
+      'Nombre de personnes connectées à l\'app': course.trainees
+        .filter(trainee => trainee.firstMobileConnection).length,
+      'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('cccc dd LLLL yyyy') || '',
+      'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
+    });
+  }
+
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };

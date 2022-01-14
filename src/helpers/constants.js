@@ -219,6 +219,30 @@ module.exports = {
   },
   // EXPORTS HISTORY
   WORKING_EVENT: 'working_event', // intervention or internal hours
+  COURSE: 'course',
+  get HISTORY_EXPORT_TYPES() {
+    return [this.WORKING_EVENT, this.BILL, this.PAYMENT, this.ABSENCE, this.PAY, this.CONTRACT, this.COURSE];
+  },
+  get CLIENT_EXPORT_TYPES() {
+    return [
+      this.WORKING_EVENT,
+      this.BILL,
+      this.PAYMENT,
+      this.ABSENCE,
+      this.PAY,
+      this.CONTRACT,
+      this.SERVICE,
+      this.AUXILIARY,
+      this.HELPER,
+      this.CUSTOMER,
+      this.FUNDING,
+      this.SUBSCRIPTION,
+      this.SECTOR,
+      this.RUP,
+      this.REFERENT,
+    ];
+  },
+  get VENDOR_EXPORT_TYPES() { return [this.COURSE]; },
   // BILLING
   BILL: 'bill',
   CREDIT_NOTE: 'credit_note',

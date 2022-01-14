@@ -7,15 +7,19 @@ const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
 const CreditNote = require('../../../src/models/CreditNote');
 const Contract = require('../../../src/models/Contract');
+const CourseSlot = require('../../../src/models/CourseSlot');
+const Course = require('../../../src/models/Course');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Pay = require('../../../src/models/Pay');
 const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
+const CourseHelper = require('../../../src/helpers/courses');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
-const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
+const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
 const { TIME_STAMPING_ACTIONS } = require('../../../src/models/EventHistory');
@@ -1649,6 +1653,204 @@ describe('exportPaymentsHistory', () => {
         { query: 'sort', args: [{ date: 'desc' }] },
         { query: 'populate', args: [{ path: 'customer', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'thirdPartyPayer' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('exportCourseHistory', () => {
+  const subProgramList = [
+    { _id: new ObjectId(), name: 'subProgram 1', program: { name: 'Program 1' } },
+    { _id: new ObjectId(), name: 'subProgram 2', program: { name: 'Program 2' } },
+  ];
+  const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
+  const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
+  const traineeList = [
+    { _id: new ObjectId(), firstMobileConnection: new Date() },
+    { _id: new ObjectId(), firstMobileConnection: new Date() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+  ];
+
+  const courseIdList = [new ObjectId(), new ObjectId()];
+
+  const courseSlotList = [
+    {
+      _id: new ObjectId(),
+      course: courseIdList[0],
+      startDate: new Date('2021-05-01T08:00'),
+      endDate: new Date('2021-05-01T10:00'),
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[0],
+      startDate: new Date('2021-05-01T14:00'),
+      endDate: new Date('2021-05-01T16:00'),
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      startDate: new Date('2021-02-01T08:00'),
+      endDate: new Date('2021-02-01T10:00'),
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      startDate: new Date('2021-02-02T08:00'),
+      endDate: new Date('2021-02-02T10:00'),
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      step: new ObjectId(),
+    },
+  ];
+
+  const courseList = [
+    {
+      _id: courseIdList[0],
+      type: INTRA,
+      company: { _id: new ObjectId(), name: 'Test SAS' },
+      subProgram: subProgramList[0],
+      misc: 'group 1',
+      trainer,
+      salesRepresentative,
+      contact: salesRepresentative,
+      trainees: [traineeList[0], traineeList[1], traineeList[2]],
+      slotsToPlan: [],
+      slots: [courseSlotList[0], courseSlotList[1]],
+    },
+    {
+      _id: courseIdList[1],
+      type: INTER_B2B,
+      subProgram: subProgramList[1],
+      misc: 'group 2',
+      trainer,
+      salesRepresentative,
+      contact: salesRepresentative,
+      trainees: [traineeList[3], traineeList[4]],
+      slotsToPlan: [courseSlotList[4]],
+      slots: [courseSlotList[2], courseSlotList[3]],
+    },
+  ];
+
+  let findCourseSlot;
+  let findCourse;
+  let groupSlotsByDate;
+  let getCourseDuration;
+  let countDocumentsCourseSmsHistory;
+
+  beforeEach(() => {
+    findCourseSlot = sinon.stub(CourseSlot, 'find');
+    findCourse = sinon.stub(Course, 'find');
+    groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
+    getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    countDocumentsCourseSmsHistory = sinon.stub(CourseSmsHistory, 'countDocuments');
+  });
+
+  afterEach(() => {
+    findCourseSlot.restore();
+    findCourse.restore();
+    groupSlotsByDate.restore();
+    getCourseDuration.restore();
+    countDocumentsCourseSmsHistory.restore();
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries([courseSlotList], ['lean']));
+    findCourse.returns(SinonMongoose.stubChainedQueries([courseList]));
+    groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
+    groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
+    getCourseDuration.onCall(0).returns('4h');
+    getCourseDuration.onCall(1).returns('4h');
+    countDocumentsCourseSmsHistory.onCall(0).returns(2);
+    countDocumentsCourseSmsHistory.onCall(1).returns(1);
+
+    const exportArray = await ExportHelper.exportCourseHistory('2021-01-15', '2022-01-20');
+
+    expect(exportArray).toEqual([
+      [
+        'Identifiant',
+        'Type',
+        'Structure',
+        'Programme',
+        'Sous-Programme',
+        'Infos complémentaires',
+        'Formateur',
+        'Référent Compani',
+        'Contact pour la formation',
+        'Nombre d\'inscrits',
+        'Nombre de dates',
+        'Nombre de créneaux',
+        'Durée Totale',
+        'Nombre de SMS envoyés',
+        'Nombre de personnes connectées à l\'app',
+        'Début de formation',
+        'Fin de formation',
+      ],
+      [
+        courseList[0]._id,
+        'intra',
+        'Test SAS',
+        'Program 1',
+        'subProgram 1',
+        'group 1',
+        'Gilles FORMATEUR',
+        'Aline CONTACT-COM',
+        'Aline CONTACT-COM',
+        3,
+        1,
+        2,
+        '4h',
+        2,
+        2,
+        'samedi 01 mai 2021',
+        'samedi 01 mai 2021',
+      ],
+      [
+        courseList[1]._id,
+        'inter_b2b',
+        '',
+        'Program 2',
+        'subProgram 2',
+        'group 2',
+        'Gilles FORMATEUR',
+        'Aline CONTACT-COM',
+        'Aline CONTACT-COM',
+        2,
+        2,
+        2,
+        '4h',
+        1,
+        0,
+        'lundi 01 février 2021',
+        'à planifier',
+      ],
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        { query: 'find', args: [{ startDate: { $lte: '2022-01-20' }, endDate: { $gte: '2021-01-15' } }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findCourse,
+      [
+        { query: 'find', args: [{ _id: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'name program', populate: [{ path: 'program', select: 'name' }] }],
+        },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'slots' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan' }] },
+        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
         { query: 'lean' },
       ]
     );
