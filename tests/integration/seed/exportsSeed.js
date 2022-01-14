@@ -1,6 +1,8 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('../../../src/extensions/moment');
+const Attendance = require('../../../src/models/Attendance');
+const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -964,6 +966,20 @@ const courseSlotList = [
   },
 ];
 
+const attendanceList = [
+  { trainee: traineeList[0]._id, courseSlot: courseSlotList[0]._id },
+  { trainee: traineeList[0]._id, courseSlot: courseSlotList[1]._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[1]._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[2]._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[3]._id },
+  { trainee: traineeList[3]._id, courseSlot: courseSlotList[2]._id },
+  { trainee: traineeList[3]._id, courseSlot: courseSlotList[3]._id },
+];
+
+const attendanceSheetList = [
+  { course: courseList[0]._id, trainee: traineeList[0]._id, file: { link: 'link', publicId: '123' } },
+];
+
 const smsList = [
   { _id: new ObjectId(), type: 'convocation', message: 'SMS 1', sender: traineeList[0]._id, course: courseList[0]._id },
   { _id: new ObjectId(), type: 'convocation', message: 'SMS 2', sender: traineeList[1]._id, course: courseList[0]._id },
@@ -998,6 +1014,8 @@ const populateDB = async () => {
     Course.create(courseList),
     CourseSlot.create(courseSlotList),
     CourseSmsHistory.create(smsList),
+    Attendance.create(attendanceList),
+    AttendanceSheet.create(attendanceSheetList),
   ]);
 };
 

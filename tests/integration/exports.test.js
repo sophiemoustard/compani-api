@@ -98,9 +98,9 @@ const vendorHistoryExportTypes = [
   {
     exportType: COURSE,
     expectedRows: [
-      '\ufeff"Identifiant";"Type";"Structure";"Programme";"Sous-Programme";"Infos complémentaires";"Formateur";"Référent Compani";"Contact pour la formation";"Nombre d\'inscrits";"Nombre de dates";"Nombre de créneaux";"Durée Totale";"Nombre de SMS envoyés";"Nombre de personnes connectées à l\'app";"Début de formation";"Fin de formation"',
-      `${courseList[0]._id};"intra";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;"4h";2;2;"samedi 01 mai 2021";"samedi 01 mai 2021"`,
-      `${courseList[1]._id};"inter_b2b";;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;"4h";1;0;"lundi 01 février 2021";"à planifier"`,
+      '\ufeff"Identifiant";"Type";"Structure";"Programme";"Sous-Programme";"Infos complémentaires";"Formateur";"Référent Compani";"Contact pour la formation";"Nombre d\'inscrits";"Nombre de dates";"Nombre de créneaux";"Durée Totale";"Nombre de SMS envoyés";"Nombre de personnes connectées à l\'app";"Début de formation";"Fin de formation";"Nombre de feuilles d\'émargement chargées";"Nombre de présences";"Nombre d\'absences";"Nombre de stagiaires non prévus";"Nombre de présences non prévues"',
+      `${courseList[0]._id};"intra";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;"4h";2;2;"samedi 01 mai 2021";"samedi 01 mai 2021";1;3;3;0;0`,
+      `${courseList[1]._id};"inter_b2b";;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;"4h";1;0;"lundi 01 février 2021";"à planifier";0;2;2;1;2`,
     ],
     query: 'startDate=2021-01-15&endDate=2022-01-20',
   },

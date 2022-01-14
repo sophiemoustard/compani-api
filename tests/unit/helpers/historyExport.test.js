@@ -23,6 +23,7 @@ const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B } = require('../../../src/
 const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
 const { TIME_STAMPING_ACTIONS } = require('../../../src/models/EventHistory');
+const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 
 describe('getWorkingEventsForExport', () => {
   const auxiliaryId = new ObjectId();
@@ -1690,24 +1691,28 @@ describe('exportCourseHistory', () => {
       course: courseIdList[0],
       startDate: new Date('2021-05-01T08:00'),
       endDate: new Date('2021-05-01T10:00'),
+      attendances: [{ trainee: traineeList[0]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[0],
       startDate: new Date('2021-05-01T14:00'),
       endDate: new Date('2021-05-01T16:00'),
+      attendances: [{ trainee: traineeList[0]._id }, { trainee: traineeList[1]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[1],
       startDate: new Date('2021-02-01T08:00'),
       endDate: new Date('2021-02-01T10:00'),
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[1],
       startDate: new Date('2021-02-02T08:00'),
       endDate: new Date('2021-02-02T10:00'),
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
     },
     {
       _id: new ObjectId(),
@@ -1749,6 +1754,7 @@ describe('exportCourseHistory', () => {
   let groupSlotsByDate;
   let getCourseDuration;
   let countDocumentsCourseSmsHistory;
+  let countDocumentsAttendanceSheet;
 
   beforeEach(() => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
@@ -1756,6 +1762,7 @@ describe('exportCourseHistory', () => {
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
     getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
     countDocumentsCourseSmsHistory = sinon.stub(CourseSmsHistory, 'countDocuments');
+    countDocumentsAttendanceSheet = sinon.stub(AttendanceSheet, 'countDocuments');
   });
 
   afterEach(() => {
@@ -1764,6 +1771,7 @@ describe('exportCourseHistory', () => {
     groupSlotsByDate.restore();
     getCourseDuration.restore();
     countDocumentsCourseSmsHistory.restore();
+    countDocumentsAttendanceSheet.restore();
   });
 
   it('should return an array with the header and 2 rows', async () => {
@@ -1775,6 +1783,8 @@ describe('exportCourseHistory', () => {
     getCourseDuration.onCall(1).returns('4h');
     countDocumentsCourseSmsHistory.onCall(0).returns(2);
     countDocumentsCourseSmsHistory.onCall(1).returns(1);
+    countDocumentsAttendanceSheet.onCall(0).returns(1);
+    countDocumentsAttendanceSheet.onCall(1).returns(0);
 
     const exportArray = await ExportHelper.exportCourseHistory('2021-01-15', '2022-01-20');
 
@@ -1797,6 +1807,11 @@ describe('exportCourseHistory', () => {
         'Nombre de personnes connectées à l\'app',
         'Début de formation',
         'Fin de formation',
+        'Nombre de feuilles d\'émargement chargées',
+        'Nombre de présences',
+        'Nombre d\'absences',
+        'Nombre de stagiaires non prévus',
+        'Nombre de présences non prévues',
       ],
       [
         courseList[0]._id,
@@ -1816,6 +1831,11 @@ describe('exportCourseHistory', () => {
         2,
         'samedi 01 mai 2021',
         'samedi 01 mai 2021',
+        1,
+        3,
+        3,
+        0,
+        0,
       ],
       [
         courseList[1]._id,
@@ -1835,6 +1855,11 @@ describe('exportCourseHistory', () => {
         0,
         'lundi 01 février 2021',
         'à planifier',
+        0,
+        2,
+        2,
+        1,
+        2,
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(
@@ -1856,7 +1881,7 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'slots' }] },
+        { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
         { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
         { query: 'lean' },
