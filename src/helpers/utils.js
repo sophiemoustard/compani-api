@@ -90,6 +90,15 @@ exports.formatHourWithMinutes = hour => (moment(hour).minutes()
   ? moment(hour).format('HH[h]mm')
   : moment(hour).format('HH[h]'));
 
+exports.convertDurationToHourWithMinutes = (timeInMin) => { // 61 -> 1 h 01 min // 49 -> 49 min
+  if (!timeInMin) return '0 h 00 min';
+
+  const hours = Math.floor(timeInMin / 60).toFixed(0);
+  const minutes = (timeInMin % 60).toFixed(0);
+
+  return `${hours >= 1 ? `${hours} h ` : ''}${minutes < 10 ? `0${minutes}` : minutes} min`;
+};
+
 const roundFrenchPercentage = (number) => {
   const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'percent' });
   return nf.format(number);

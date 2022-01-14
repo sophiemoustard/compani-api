@@ -756,13 +756,13 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
     endDate,
     get(credentials, 'company._id')
   );
+  const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices(credentials);
 
   for (const group of eventsByDayByAuxiliary) {
-    for (const dailyEvents of group.eventsByDayByAuxiliary) {
-      const sortedEvents = [...dailyEvents].sort((a, b) =>
+    for (const eventsByDay of group.eventsByDay) {
+      const sortedEvents = [...eventsByDay].sort((a, b) =>
         CompaniDate(a.startDate).toDate() - CompaniDate(b.startDate).toDate()
       );
-      const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices(credentials);
 
       for (let i = 1; i < sortedEvents.length; i++) {
         const {
@@ -790,10 +790,10 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
             get(group, 'auxiliary.administrative.transportInvoice.transportType')
           ],
-          'Durée du trajet': transportDuration,
-          'Durée inter vacation': breakDuration,
-          'Pause prise en compte': !pickTransportDuration,
-          'Heures prise en compte': duration,
+          'Durée du trajet': UtilsHelper.convertDurationToHourWithMinutes(transportDuration),
+          'Durée inter vacation': UtilsHelper.convertDurationToHourWithMinutes(breakDuration),
+          'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
+          'Heures prise en compte': UtilsHelper.convertDurationToHourWithMinutes(duration),
         });
       }
     }
