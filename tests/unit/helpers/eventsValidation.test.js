@@ -367,7 +367,7 @@ describe('isEditionAllowed', () => {
     sinon.assert.notCalled(isCustomerSubscriptionValid);
   });
 
-  it('should return false as auxiliary does not have contracts #tag', async () => {
+  it('should return false as auxiliary does not have contracts', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const event = {
