@@ -156,7 +156,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
   });
 });
 
-describe('ATTENDANCES ROUTES - GET /attendance', () => {
+describe('ATTENDANCES ROUTES - GET /attendances', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -312,7 +312,7 @@ describe('ATTENDANCES ROUTES - GET /attendance', () => {
   });
 });
 
-describe('ATTENDANCES ROUTES - GET /attendance/unsubscribed', () => {
+describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -429,6 +429,25 @@ describe('ATTENDANCES ROUTES - GET /attendance/unsubscribed', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?course=${coursesList[6]._id}&company=${authCompany._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });
