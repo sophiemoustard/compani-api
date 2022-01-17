@@ -645,7 +645,7 @@ const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsGroupedByDate) {
     const lastDate = slotsGroupedByDate.length - 1;
     const lastSlot = slotsGroupedByDate[lastDate].length - 1;
-    return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].startDate).format('dd/LL/yyyy hh:mm:ss');
+    return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format('dd/LL/yyyy HH:mm:ss');
   }
   return '';
 };
@@ -703,7 +703,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
         .filter(trainee => trainee.firstMobileConnection).length,
-      'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy hh:mm:ss') || '',
+      'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss') || '',
       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
       'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
       'Nombre de présences': subscribedTraineesAttendancesCount,
