@@ -106,15 +106,6 @@ const coursesList = [
     trainer,
     salesRepresentative: userList[2]._id,
   },
-  { // 6 trainer is authTrainer
-    _id: new ObjectId(),
-    subProgram: subProgramId,
-    company: otherCompany._id,
-    type: 'intra',
-    trainees: [new ObjectId()],
-    trainer,
-    salesRepresentative: userList[2]._id,
-  },
 ];
 
 const slotsList = [
