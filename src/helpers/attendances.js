@@ -18,41 +18,32 @@ exports.list = async (query, companyId) => {
     : attendances;
 };
 
-const formatCourseWithAttendances = (courseWithSameSubProgram, course, companyId) => {
-  const { slots } = courseWithSameSubProgram;
+const formatCourseWithAttendances = (course, trainees, companyId) => course.slots.map((slot) => {
+  const { attendances } = slot;
+  if (!attendances) return {};
 
-  return slots.map((slot) => {
-    const { attendances } = slot;
-    if (!attendances) return {};
+  return attendances
+    .filter((a) => {
+      const isTraineeOnlySubscribedToSpecificCourse = UtilsHelper.doesArrayIncludeId(trainees, a.trainee._id) &&
+        !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id);
+      const IsTraineeInSpecificCompany = (!companyId || UtilsHelper.areObjectIdsEquals(a.trainee.company, companyId));
 
-    return attendances.filter((a) => {
-      const traineeSubscribedOnlyToSpecificCourse = UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id) &&
-        !UtilsHelper.doesArrayIncludeId(courseWithSameSubProgram.trainees, a.trainee._id);
-      const traineeIsInSpecificCompany = (!companyId || UtilsHelper.areObjectIdsEquals(a.trainee.company, companyId));
-
-      return traineeSubscribedOnlyToSpecificCourse && traineeIsInSpecificCompany;
+      return isTraineeOnlySubscribedToSpecificCourse && IsTraineeInSpecificCompany;
     }).map(a => ({
       trainee: a.trainee,
       courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
-      misc: courseWithSameSubProgram.misc,
-      trainer: courseWithSameSubProgram.trainer,
+      misc: course.misc,
+      trainer: course.trainer,
     }));
-  });
-};
+});
 
 exports.listUnsubscribed = async (courseId, companyId) => {
   const course = await Course.findOne({ _id: courseId })
-    .populate({
-      path: 'subProgram',
-      select: 'program',
-      populate: { path: 'program', select: 'subPrograms' },
-    })
+    .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'subPrograms' } })
     .lean();
 
-  const courseWithSameSubProgramList = await Course.find({
-    format: BLENDED,
-    subProgram: { $in: get(course, 'subProgram.program.subPrograms') },
-  })
+  const coursesWithSameProgram = await Course
+    .find({ format: BLENDED, subProgram: { $in: get(course, 'subProgram.program.subPrograms') } })
     .populate({
       path: 'slots',
       select: 'attendances step startDate endDate',
@@ -68,8 +59,8 @@ exports.listUnsubscribed = async (courseId, companyId) => {
     .populate({ path: 'trainer', select: 'identity' })
     .lean();
 
-  const unsubscribedAttendances = courseWithSameSubProgramList.map(c =>
-    formatCourseWithAttendances(c, course, companyId));
+  const unsubscribedAttendances = coursesWithSameProgram.map(c =>
+    formatCourseWithAttendances(c, course.trainees, companyId));
 
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
