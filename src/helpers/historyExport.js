@@ -759,7 +759,9 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
   const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices(credentials);
 
   for (const group of eventsByDayByAuxiliary) {
-    for (const eventsByDay of group.eventsByDay) {
+    const sortedEventsByDayList = group.eventsByDay
+      .sort((a, b) => CompaniDate(a[0].startDate).toDate() - CompaniDate(b[0].startDate).toDate());
+    for (const eventsByDay of sortedEventsByDayList) {
       const sortedEvents = [...eventsByDay].sort((a, b) =>
         CompaniDate(a.startDate).toDate() - CompaniDate(b.startDate).toDate()
       );
