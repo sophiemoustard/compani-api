@@ -175,15 +175,6 @@ exports.formatDuration = (duration) => {
   return paddedMinutes ? `${hours}h${paddedMinutes}` : `${hours}h`;
 };
 
-exports.formatMinutes = (timeInMin) => {
-  if (!timeInMin) return '';
-
-  const hours = Math.floor(timeInMin / 60).toFixed(0);
-  const minutes = (timeInMin % 60).toFixed(0);
-
-  return `${hours > 0 ? `${hours} h ` : ''}${minutes < 10 ? `0${minutes}` : minutes} min`;
-};
-
 exports.areObjectIdsEquals = (id1, id2) => !!id1 && !!id2 &&
   new ObjectId(id1).toHexString() === new ObjectId(id2).toHexString();
 

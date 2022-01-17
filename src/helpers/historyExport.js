@@ -780,9 +780,9 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
         );
 
         rows.push({
-          'Id de l\'auxiliaire': group.auxiliary._id.toHexString(),
-          'Prénom  de l\'auxiliaire': group.auxiliary.identity.firstname,
-          'Nom  de l\'auxiliaire': group.auxiliary.identity.lastname,
+          'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
+          'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
+          'Nom  de l\'auxiliaire': get(group, 'auxiliary.identity.lastname', ''),
           'Date du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy'),
           'Adresse de départ': origins,
           'Adresse d\'arrivée': destinations,
@@ -790,10 +790,10 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
             get(group, 'auxiliary.administrative.transportInvoice.transportType')
           ],
-          'Durée du trajet': UtilsHelper.formatMinutes(transportDuration),
-          'Durée inter vacation': UtilsHelper.formatMinutes(breakDuration),
+          'Durée du trajet': UtilsHelper.formatDuration(moment.duration({ minutes: transportDuration })),
+          'Durée inter vacation': UtilsHelper.formatDuration(moment.duration({ minutes: breakDuration })),
           'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
-          'Heures prise en compte': UtilsHelper.formatMinutes(duration),
+          'Heures prise en compte': UtilsHelper.formatDuration(moment.duration({ minutes: duration })),
         });
       }
     }
