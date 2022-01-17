@@ -447,7 +447,7 @@ describe('getTransportInfo', () => {
   });
 });
 
-describe('getPaidTransportInfo #tag', () => {
+describe('getPaidTransportInfo', () => {
   let getTransportInfo;
   beforeEach(() => {
     getTransportInfo = sinon.stub(DraftPayHelper, 'getTransportInfo');
@@ -584,11 +584,11 @@ describe('getPaidTransportInfo #tag', () => {
       duration: 40,
       paidKm: 10,
       travelledKm: 10,
-      destinations: 'jébobolà',
-      breakDuration: 60,
       origins: 'tamalou',
-      pickTransportDuration: true,
+      destinations: 'jébobolà',
       transportDuration: 40,
+      breakDuration: 60,
+      pickTransportDuration: true,
     });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });

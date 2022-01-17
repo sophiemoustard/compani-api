@@ -783,17 +783,17 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Id de l\'auxiliaire': group.auxiliary._id.toHexString(),
           'Prénom  de l\'auxiliaire': group.auxiliary.identity.firstname,
           'Nom  de l\'auxiliaire': group.auxiliary.identity.lastname,
-          'Date du trajet': CompaniDate(sortedEvents[i].startDate).format('dd LLLL yyyy'),
+          'Date du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy'),
           'Adresse de départ': origins,
           'Adresse d\'arrivée': destinations,
           Distance: travelledKm,
           'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
             get(group, 'auxiliary.administrative.transportInvoice.transportType')
           ],
-          'Durée du trajet': UtilsHelper.convertDurationToHourWithMinutes(transportDuration),
-          'Durée inter vacation': UtilsHelper.convertDurationToHourWithMinutes(breakDuration),
+          'Durée du trajet': UtilsHelper.formatMinutes(transportDuration),
+          'Durée inter vacation': UtilsHelper.formatMinutes(breakDuration),
           'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
-          'Heures prise en compte': UtilsHelper.convertDurationToHourWithMinutes(duration),
+          'Heures prise en compte': UtilsHelper.formatMinutes(duration),
         });
       }
     }

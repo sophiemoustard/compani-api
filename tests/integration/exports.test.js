@@ -99,8 +99,8 @@ const clientHistoryExportTypes = [
     exportType: TRANSPORT,
     expectedRows: [
       '\ufeff"Id de l\'auxiliaire";"Prénom  de l\'auxiliaire";"Nom  de l\'auxiliaire";"Date du trajet";"Adresse de départ";"Adresse d\'arrivée";"Distance";"Mode de transport";"Durée du trajet";"Durée inter vacation";"Pause prise en compte";"Heures prise en compte"',
-      `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11 janvier 2019";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";0.23;"Transports en commun / À pied";"04 min";"59 min";"Non";"04 min"`,
-      `"${auxiliaryList[1]._id}";"Lili";"Lolo";"11 janvier 2019";"42 Rue de la Procession 75015 Paris";"35 Rue du Test 75015 Paris";0.23;"Véhicule personnel";"1 h 05 min";"1 h 04 min";"Oui";"1 h 04 min"`,
+      `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11/01/2019";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";0.23;"Transports en commun / À pied";"04 min";"1 h 00 min";"Non";"04 min"`,
+      `"${auxiliaryList[1]._id}";"Lili";"Lolo";"11/01/2019";"42 Rue de la Procession 75015 Paris";"35 Rue du Test 75015 Paris";0.23;"Véhicule personnel";"1 h 05 min";"1 h 05 min";"Oui";"1 h 05 min"`,
     ],
     query: 'startDate=2019-01-01&endDate=2019-01-31',
   },
@@ -134,7 +134,7 @@ clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
     let authToken;
     before(populateDB);
 
-    describe('COACH #tag', () => {
+    describe('COACH', () => {
       beforeEach(async () => {
         authToken = await getToken('coach');
       });

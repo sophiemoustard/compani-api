@@ -253,6 +253,7 @@ module.exports = {
       this.SECTOR,
       this.RUP,
       this.REFERENT,
+      this.TRANSPORT,
     ];
   },
   get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT]; },
