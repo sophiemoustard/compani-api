@@ -610,7 +610,7 @@ exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Ev
     $match: {
       startDate: { $gte: startDate },
       endDate: { $lte: endDate },
-      auxiliary: { $exists: true }, // Pas fait sur script
+      auxiliary: { $exists: true },
       isCancelled: false,
       type: { $in: [INTERNAL_HOUR, INTERVENTION] },
     },

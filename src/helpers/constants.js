@@ -218,8 +218,8 @@ module.exports = {
     6: 'Dimanche',
     7: 'Jours fériés',
   },
-  TRANSPORT: 'transport',
   // EXPORTS HISTORY
+  TRANSPORT: 'transport',
   WORKING_EVENT: 'working_event', // intervention or internal hours
   COURSE: 'course',
   COURSE_SLOT: 'course_slot',

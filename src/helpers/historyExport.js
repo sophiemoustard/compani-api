@@ -763,12 +763,10 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
     .sort((a, b) => (a.auxiliary.identity.lastname).localeCompare(b.auxiliary.identity.lastname));
 
   for (const group of sortedEventsByAuxiliary) {
-    const sortedEventsByDayList = group.eventsByDay
-      .sort((a, b) => CompaniDate(a[0].startDate).toDate() - CompaniDate(b[0].startDate).toDate());
+    const sortedEventsByDayList = group.eventsByDay.sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
+
     for (const eventsGroupedByDay of sortedEventsByDayList) {
-      const sortedEvents = [...eventsGroupedByDay].sort((a, b) =>
-        CompaniDate(a.startDate).toDate() - CompaniDate(b.startDate).toDate()
-      );
+      const sortedEvents = [...eventsGroupedByDay].sort(DatesHelper.ascendingSort('startDate'));
 
       for (let i = 1; i < sortedEvents.length; i++) {
         const {

@@ -153,24 +153,17 @@ exports.getTransportMode = (event) => {
 };
 
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
-  let paidTransportDuration = 0;
-  let paidKm = 0;
-  let travelledKm = 0;
-  let origins = null;
-  let destinations = null;
-  let transportMode = null;
-  let transportDuration = 0;
-  let breakDuration = 0;
-  let pickTransportDuration = false;
+  let transportMode;
 
   if (prevEvent && !prevEvent.hasFixedService && !event.hasFixedService) {
-    origins = get(prevEvent, 'address.fullAddress', null);
-    destinations = get(event, 'address.fullAddress', null);
+    const origins = get(prevEvent, 'address.fullAddress', null);
+    const destinations = get(event, 'address.fullAddress', null);
+
     if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
       transportMode = exports.getTransportMode(event);
     }
 
-    if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, paidKm, travelledKm };
+    if (!origins || !destinations || !transportMode) return { duration: 0, paidKm: 0, travelledKm: 0 };
 
     const transport = await exports.getTransportInfo(
       dm,
@@ -179,23 +172,33 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
       transportMode.specific || transportMode.default,
       event.company
     );
-    breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
-    pickTransportDuration = breakDuration > (transport.duration + 15);
-    paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
-    paidKm = transportMode.shouldPayKm ? transport.distance : 0;
-    travelledKm = transport.distance;
-    transportDuration = transport.duration;
-  }
+    const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
+    const pickTransportDuration = breakDuration > (transport.duration + 15);
+    const paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
+    const paidKm = transportMode.shouldPayKm ? transport.distance : 0;
+    const travelledKm = transport.distance;
+    const transportDuration = transport.duration;
 
+    return {
+      duration: paidTransportDuration,
+      paidKm,
+      travelledKm,
+      origins,
+      destinations,
+      transportDuration,
+      breakDuration,
+      pickTransportDuration,
+    };
+  }
   return {
-    duration: paidTransportDuration,
-    paidKm,
-    travelledKm,
-    origins,
-    destinations,
-    transportDuration,
-    breakDuration,
-    pickTransportDuration,
+    duration: 0,
+    paidKm: 0,
+    travelledKm: 0,
+    origins: null,
+    destinations: null,
+    transportDuration: 0,
+    breakDuration: 0,
+    pickTransportDuration: false,
   };
 };
 

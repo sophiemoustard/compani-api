@@ -1,4 +1,5 @@
 const moment = require('moment');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.isBefore = (date1, date2, ref = '') => {
   let formattedDate1 = date1;
@@ -105,6 +106,6 @@ exports.formatDateAndTime = (date, format = '') => {
     .replace(', ', ' ');
 };
 
-exports.descendingSort = key => (a, b) => new Date(b[key]) - new Date(a[key]);
+exports.ascendingSort = key => (a, b) => CompaniDate(a[key]).toDate() - CompaniDate(b[key]).toDate();
 
-exports.ascendingSort = key => (a, b) => new Date(a[key]) - new Date(b[key]);
+exports.descendingSort = key => (a, b) => CompaniDate(b[key]).toDate() - CompaniDate(a[key]).toDate();
