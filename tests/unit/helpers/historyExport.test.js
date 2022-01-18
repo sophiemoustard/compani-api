@@ -1734,6 +1734,7 @@ describe('exportCourseHistory', () => {
         'Nombre d\'absences',
         'Nombre de stagiaires non prévus',
         'Nombre de présences non prévues',
+        'Avancement',
       ],
       [
         courseList[0]._id,
@@ -1758,6 +1759,7 @@ describe('exportCourseHistory', () => {
         3,
         0,
         0,
+        '2/2',
       ],
       [
         courseList[1]._id,
@@ -1782,6 +1784,7 @@ describe('exportCourseHistory', () => {
         2,
         1,
         2,
+        '2/3',
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(

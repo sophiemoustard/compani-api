@@ -678,6 +678,8 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       .filter(attendanceTrainee => !UtilsHelper.doesArrayIncludeId(courseTraineeList, attendanceTrainee))
       .length;
 
+    const passedSlots = course.slots.filter(slot => CompaniDate().isAfter(slot.endDate));
+
     rows.push({
       Identifiant: course._id,
       Type: course.type,
@@ -702,6 +704,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre d\'absences': absencesCount,
       'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
       'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
+      Avancement: `${passedSlots.length}/${course.slots.length + course.slotsToPlan.length}`,
     });
   }
 
