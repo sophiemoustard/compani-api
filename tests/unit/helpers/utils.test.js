@@ -360,3 +360,48 @@ describe('computeExclTaxesWithDiscount', () => {
     expect(result).toEqual(17);
   });
 });
+
+describe('computeTotalDuration', () => {
+  describe('computeTotalDuration', () => {
+    it('should return duration with minutes', () => {
+      const slots = [
+        { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
+        { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:30:00.000Z' },
+      ];
+
+      const result = UtilsHelper.computeTotalDuration(slots);
+
+      expect(result).toEqual('4h30');
+    });
+    it('should return duration with leading zero minutes', () => {
+      const slots = [
+        { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:08:00.000Z' },
+        { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:00:00.000Z' },
+      ];
+
+      const result = UtilsHelper.computeTotalDuration(slots);
+
+      expect(result).toEqual('4h08');
+    });
+    it('should return duration without minutes', () => {
+      const slots = [
+        { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
+        { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:00:00.000Z' },
+      ];
+
+      const result = UtilsHelper.computeTotalDuration(slots);
+
+      expect(result).toEqual('4h');
+    });
+    it('should return duration with days', () => {
+      const slots = [
+        { startDate: '2020-03-20T07:00:00.000Z', endDate: '2020-03-20T22:00:00.000Z' },
+        { startDate: '2020-04-21T07:00:00.000Z', endDate: '2020-04-21T22:00:00.000Z' },
+      ];
+
+      const result = UtilsHelper.computeTotalDuration(slots);
+
+      expect(result).toEqual('30h');
+    });
+  });
+});

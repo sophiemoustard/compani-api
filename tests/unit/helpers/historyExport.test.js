@@ -1752,7 +1752,7 @@ describe('exportCourseHistory', () => {
   let findCourseSlot;
   let findCourse;
   let groupSlotsByDate;
-  let getCourseDuration;
+  let computeTotalDuration;
   let countDocumentsCourseSmsHistory;
   let countDocumentsAttendanceSheet;
 
@@ -1760,7 +1760,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
     findCourse = sinon.stub(Course, 'find');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
-    getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    computeTotalDuration = sinon.stub(UtilsHelper, 'computeTotalDuration');
     countDocumentsCourseSmsHistory = sinon.stub(CourseSmsHistory, 'countDocuments');
     countDocumentsAttendanceSheet = sinon.stub(AttendanceSheet, 'countDocuments');
   });
@@ -1769,7 +1769,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot.restore();
     findCourse.restore();
     groupSlotsByDate.restore();
-    getCourseDuration.restore();
+    computeTotalDuration.restore();
     countDocumentsCourseSmsHistory.restore();
     countDocumentsAttendanceSheet.restore();
   });
@@ -1779,8 +1779,8 @@ describe('exportCourseHistory', () => {
     findCourse.returns(SinonMongoose.stubChainedQueries([courseList]));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
-    getCourseDuration.onCall(0).returns('4h');
-    getCourseDuration.onCall(1).returns('4h');
+    computeTotalDuration.onCall(0).returns('4h');
+    computeTotalDuration.onCall(1).returns('4h');
     countDocumentsCourseSmsHistory.onCall(0).returns(2);
     countDocumentsCourseSmsHistory.onCall(1).returns(1);
     countDocumentsAttendanceSheet.onCall(0).returns(1);

@@ -406,15 +406,6 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
   };
 };
 
-exports.getCourseDuration = (slots) => {
-  const duration = slots.reduce(
-    (acc, slot) => acc.add(CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'))),
-    CompaniDuration()
-  );
-
-  return duration.format();
-};
-
 exports.groupSlotsByDate = (slots) => {
   const group = groupBy(slots, slot => CompaniDate(slot.startDate).format('dd/LL/yyyy'));
 
@@ -426,7 +417,7 @@ exports.formatIntraCourseForPdf = (course) => {
   const name = course.subProgram.program.name + possibleMisc;
   const courseData = {
     name,
-    duration: exports.getCourseDuration(course.slots),
+    duration: UtilsHelper.computeTotalDuration(course.slots),
     company: course.company.name,
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
@@ -461,7 +452,7 @@ exports.formatInterCourseForPdf = (course) => {
     lastDate: filteredSlots.length
       ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format('dd/LL/yyyy')
       : '',
-    duration: exports.getCourseDuration(filteredSlots),
+    duration: UtilsHelper.computeTotalDuration(filteredSlots),
   };
 
   return {
@@ -494,7 +485,7 @@ exports.formatCourseForDocx = (course) => {
   const sortedCourseSlots = course.slots.sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
 
   return {
-    duration: exports.getCourseDuration(course.slots),
+    duration: UtilsHelper.computeTotalDuration(course.slots),
     learningGoals: get(course, 'subProgram.program.learningGoals') || '',
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format('dd/LL/yyyy'),

@@ -1435,49 +1435,6 @@ describe('formatInterCourseSlotsForPdf', () => {
   });
 });
 
-describe('getCourseDuration', () => {
-  it('should return course duration with minutes', () => {
-    const slots = [
-      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
-      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:30:00' },
-    ];
-
-    const result = CourseHelper.getCourseDuration(slots);
-
-    expect(result).toEqual('4h30');
-  });
-  it('should return course duration with leading zero minutes', () => {
-    const slots = [
-      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:08:00' },
-      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:00:00' },
-    ];
-
-    const result = CourseHelper.getCourseDuration(slots);
-
-    expect(result).toEqual('4h08');
-  });
-  it('should return course duration without minutes', () => {
-    const slots = [
-      { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
-      { startDate: '2020-04-21T09:00:00', endDate: '2020-04-21T11:00:00' },
-    ];
-
-    const result = CourseHelper.getCourseDuration(slots);
-
-    expect(result).toEqual('4h');
-  });
-  it('should return course duration with days', () => {
-    const slots = [
-      { startDate: '2020-03-20T07:00:00', endDate: '2020-03-20T22:00:00' },
-      { startDate: '2020-04-21T07:00:00', endDate: '2020-04-21T22:00:00' },
-    ];
-
-    const result = CourseHelper.getCourseDuration(slots);
-
-    expect(result).toEqual('30h');
-  });
-});
-
 describe('groupSlotsByDate', () => {
   it('should group slots by date', () => {
     const slots = [
@@ -1507,18 +1464,18 @@ describe('groupSlotsByDate', () => {
 
 describe('formatIntraCourseForPdf', () => {
   let formatIdentity;
-  let getCourseDuration;
+  let computeTotalDuration;
   let groupSlotsByDate;
   let formatIntraCourseSlotsForPdf;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
-    getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    computeTotalDuration = sinon.stub(UtilsHelper, 'computeTotalDuration');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
     formatIntraCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatIntraCourseSlotsForPdf');
   });
   afterEach(() => {
     formatIdentity.restore();
-    getCourseDuration.restore();
+    computeTotalDuration.restore();
     groupSlotsByDate.restore();
     formatIntraCourseSlotsForPdf.restore();
   });
@@ -1542,7 +1499,7 @@ describe('formatIntraCourseForPdf', () => {
       company: { name: 'alenvi' },
     };
 
-    getCourseDuration.returns('8h');
+    computeTotalDuration.returns('8h');
     formatIdentity.returns('MasterClass');
     groupSlotsByDate.returns([[{
       startDate: '2020-03-20T09:00:00',
@@ -1572,7 +1529,7 @@ describe('formatIntraCourseForPdf', () => {
         date: '12/04/2020',
       }],
     });
-    sinon.assert.calledOnceWithExactly(getCourseDuration, course.slots);
+    sinon.assert.calledOnceWithExactly(computeTotalDuration, course.slots);
     sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
     sinon.assert.calledOnceWithExactly(groupSlotsByDate, [
       {
@@ -1593,16 +1550,16 @@ describe('formatIntraCourseForPdf', () => {
 
 describe('formatInterCourseForPdf', () => {
   let formatIdentity;
-  let getCourseDuration;
+  let computeTotalDuration;
   let formatInterCourseSlotsForPdf;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
-    getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    computeTotalDuration = sinon.stub(UtilsHelper, 'computeTotalDuration');
     formatInterCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatInterCourseSlotsForPdf');
   });
   afterEach(() => {
     formatIdentity.restore();
-    getCourseDuration.restore();
+    computeTotalDuration.restore();
     formatInterCourseSlotsForPdf.restore();
   });
 
@@ -1631,7 +1588,7 @@ describe('formatInterCourseForPdf', () => {
     formatIdentity.onCall(0).returns('Pere Castor');
     formatIdentity.onCall(1).returns('trainee 1');
     formatIdentity.onCall(2).returns('trainee 2');
-    getCourseDuration.returns('7h');
+    computeTotalDuration.returns('7h');
 
     const result = CourseHelper.formatInterCourseForPdf(course);
 
@@ -1666,7 +1623,7 @@ describe('formatInterCourseForPdf', () => {
     sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'MasterClass' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 1' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(2), { lastname: 'trainee 2' }, 'FL');
-    sinon.assert.calledOnceWithExactly(getCourseDuration, sortedSlots);
+    sinon.assert.calledOnceWithExactly(computeTotalDuration, sortedSlots);
     sinon.assert.callCount(formatInterCourseSlotsForPdf, 3);
   });
 });
@@ -1764,12 +1721,12 @@ describe('generateAttendanceSheets', () => {
 });
 
 describe('formatCourseForDocx', () => {
-  let getCourseDuration;
+  let computeTotalDuration;
   beforeEach(() => {
-    getCourseDuration = sinon.stub(CourseHelper, 'getCourseDuration');
+    computeTotalDuration = sinon.stub(UtilsHelper, 'computeTotalDuration');
   });
   afterEach(() => {
-    getCourseDuration.restore();
+    computeTotalDuration.restore();
   });
 
   it('should format course for docx', () => {
@@ -1781,7 +1738,7 @@ describe('formatCourseForDocx', () => {
       ],
       subProgram: { program: { learningGoals: 'Apprendre', name: 'nom du programme' } },
     };
-    getCourseDuration.returns('7h');
+    computeTotalDuration.returns('7h');
 
     const result = CourseHelper.formatCourseForDocx(course);
 
@@ -1793,7 +1750,7 @@ describe('formatCourseForDocx', () => {
       programName: 'NOM DU PROGRAMME',
     });
     sinon.assert.calledOnceWithExactly(
-      getCourseDuration,
+      computeTotalDuration,
       [
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
