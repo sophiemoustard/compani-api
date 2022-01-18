@@ -1350,8 +1350,8 @@ describe('getAbsenceHours', () => {
 
     expect(absenceHours).toEqual(8);
     sinon.assert.calledTwice(getHoursFromDailyAbsence);
-    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
-    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absence, contracts[1]);
+    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absence, contracts[0], absence);
+    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absence, contracts[1], absence);
   });
 
   it('should return half-daily absence hours', async () => {
@@ -1370,10 +1370,10 @@ describe('getAbsenceHours', () => {
     ];
 
     getHoursFromDailyAbsence.returns(1);
-    const absenceHours = await DraftPayHelper.getAbsenceHours(absence, contracts);
+    const absenceHours = await DraftPayHelper.getAbsenceHours(absence, contracts, absence);
 
     expect(absenceHours).toEqual(1);
-    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
+    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0], absence);
   });
 
   it('should return hourly absence hours', async () => {

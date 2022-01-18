@@ -18,7 +18,6 @@ const {
   DRIVING,
   PRIVATE_TRANSPORT,
   INTERVENTION,
-  DAILY,
   INTERNAL_HOUR,
   WEEKS_PER_MONTH,
   HOURLY,
@@ -318,20 +317,17 @@ exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
   return hours;
 };
 
-exports.getAbsenceHours = (absence, contracts) => {
+exports.getAbsenceHours = (absence, contracts, query = absence) => {
   if (absence.absenceNature === HOURLY) return moment(absence.endDate).diff(absence.startDate, 'm') / 60;
 
   const dailyAbsenceHours = contracts.filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
     (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
-    .reduce((acc, c) => acc + this.getHoursFromDailyAbsence(absence, c), 0);
+    .reduce((acc, c) => acc + this.getHoursFromDailyAbsence(absence, c, query), 0);
   return absence.absenceNature === HALF_DAILY ? dailyAbsenceHours / 2 : dailyAbsenceHours;
 };
 
-exports.getPayFromAbsences = (absences, contract, query) => absences.reduce((acc, abs) => {
-  if (abs.absenceNature !== DAILY) return acc + moment(abs.endDate).diff(abs.startDate, 'm') / 60;
-
-  return acc + exports.getHoursFromDailyAbsence(abs, contract, query);
-}, 0);
+exports.getPayFromAbsences = (absences, contract, query) => absences
+  .reduce((acc, abs) => acc + exports.getAbsenceHours(abs, [contract], query), 0);
 
 exports.getContract = (contracts, endDate) => contracts.find((cont) => {
   const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);

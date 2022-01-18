@@ -3,7 +3,6 @@ const moment = require('moment');
 const FileHelper = require('../file');
 const {
   ABSENCE,
-  DAILY,
   HOURLY,
   PAID_LEAVE,
   UNPAID_LEAVE,
@@ -94,7 +93,7 @@ exports.exportAbsences = async (query, credentials) => {
       const formattedAbsence = abs.absenceNature === HOURLY
         ? { ...abs }
         : {
-          absenceNature: DAILY,
+          absenceNature: abs.absenceNature,
           startDate: moment(day).startOf('d').toISOString(),
           endDate: moment(day).endOf('d').toISOString(),
         };
