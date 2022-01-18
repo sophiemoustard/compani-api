@@ -23,13 +23,18 @@ const {
   MANUAL_TIME_STAMPING_REASONS,
   EVENT_TRANSPORT_MODE_LIST,
   INTRA,
+  HALF_DAILY,
+  ON_SITE,
+  REMOTE,
+  E_LEARNING,
 } = require('./constants');
 const DatesHelper = require('./dates');
+const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
 const CourseHelper = require('./courses');
-const { CompaniDate } = require('./dates/companiDates');
 const AttendanceSheet = require('../models/AttendanceSheet');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
@@ -705,6 +710,45 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
       'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
       Avancement: `${passedSlots.length}/${course.slots.length + course.slotsToPlan.length}`,
+    });
+  }
+
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+};
+
+const getSlotType = (type) => {
+  switch (type) {
+    case ON_SITE:
+      return 'présentiel';
+    case REMOTE:
+      return 'distanciel';
+    case E_LEARNING:
+      return 'elearning';
+    default:
+      return '';
+  }
+};
+
+exports.exportCourseSlotHistory = async (startDate, endDate) => {
+  const courseSlots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
+    .populate({ path: 'step', select: 'type name' })
+    .lean();
+
+  const rows = [];
+
+  for (const slot of courseSlots) {
+    const slotDuration = CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes')).format();
+
+    rows.push({
+      'Id Créneau': slot._id,
+      'Id Formation': slot.course,
+      Étape: get(slot, 'step.name') || '',
+      Type: getSlotType(get(slot, 'step.type') || ''),
+      'Date de création': CompaniDate(slot.createdAt).format('dd/LL/yyyy HH:mm:ss') || '',
+      'Date de début': CompaniDate(slot.startDate).format('dd/LL/yyyy HH:mm:ss') || '',
+      'Date de fin': CompaniDate(slot.endDate).format('dd/LL/yyyy HH:mm:ss') || '',
+      Durée: slotDuration,
+      Adresse: get(slot, 'address.fullAddress') || '',
     });
   }
 

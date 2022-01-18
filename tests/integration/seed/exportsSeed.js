@@ -14,6 +14,7 @@ const Payment = require('../../../src/models/Payment');
 const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const Step = require('../../../src/models/Step');
 const InternalHour = require('../../../src/models/InternalHour');
 const FinalPay = require('../../../src/models/FinalPay');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
@@ -52,6 +53,9 @@ const {
   QR_CODE_TIME_STAMPING,
   INTRA,
   INTER_B2B,
+  ON_SITE,
+  REMOTE,
+  E_LEARNING,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -930,39 +934,62 @@ const courseList = [
   },
 ];
 
+const stepList = [
+  { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+  { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+  { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
+  { _id: new ObjectId(), name: 'étape 4', type: ON_SITE },
+];
+
+const slotAddress = {
+  street: '24 Avenue Daumesnil',
+  fullAddress: '24 Avenue Daumesnil 75012 Paris',
+  zipCode: '75012',
+  city: 'Paris',
+  location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+};
+
 const courseSlotList = [
   {
     _id: new ObjectId(),
     course: courseList[0]._id,
-    step: new ObjectId(),
+    step: stepList[0]._id,
     startDate: new Date('2021-05-01T08:00:00.000+00:00'),
     endDate: new Date('2021-05-01T10:00:00.000+00:00'),
+    address: slotAddress,
+    createdAt: new Date('2020-12-12T10:00:00.000+00:00'),
   },
   {
     _id: new ObjectId(),
     course: courseList[0]._id,
-    step: new ObjectId(),
+    step: stepList[1]._id,
     startDate: new Date('2021-05-01T14:00:00.000+00:00'),
     endDate: new Date('2021-05-01T16:00:00.000+00:00'),
+    createdAt: new Date('2020-12-12T10:00:01.000+00:00'),
   },
   {
     _id: new ObjectId(),
     course: courseList[1]._id,
-    step: new ObjectId(),
+    step: stepList[0]._id,
     startDate: new Date('2021-02-01T08:00:00.000+00:00'),
     endDate: new Date('2021-02-01T10:00:00.000+00:00'),
+    address: slotAddress,
+    createdAt: new Date('2020-12-12T10:00:02.000+00:00'),
   },
   {
     _id: new ObjectId(),
     course: courseList[1]._id,
-    step: new ObjectId(),
+    step: stepList[2]._id,
     startDate: new Date('2021-02-02T08:00:00.000+00:00'),
     endDate: new Date('2021-02-02T10:00:00.000+00:00'),
+    createdAt: new Date('2020-12-12T10:00:03.000+00:00'),
   },
   {
     _id: new ObjectId(),
     course: courseList[1]._id,
-    step: new ObjectId(),
+    step: stepList[3]._id,
+    address: slotAddress,
+    createdAt: new Date('2020-12-12T10:00:04.000+00:00'),
   },
 ];
 
@@ -1016,6 +1043,7 @@ const populateDB = async () => {
     CourseSmsHistory.create(smsList),
     Attendance.create(attendanceList),
     AttendanceSheet.create(attendanceSheetList),
+    Step.create(stepList),
   ]);
 };
 
@@ -1030,4 +1058,5 @@ module.exports = {
   establishment,
   thirdPartyPayer,
   courseList,
+  courseSlotList,
 };

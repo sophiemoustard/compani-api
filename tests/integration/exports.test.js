@@ -18,6 +18,7 @@ const {
   ABSENCE,
   WORKING_EVENT,
   COURSE,
+  COURSE_SLOT,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -31,6 +32,7 @@ const {
   establishment,
   thirdPartyPayer,
   courseList,
+  courseSlotList,
 } = require('./seed/exportsSeed');
 const { helper, userList } = require('../seed/authUsersSeed');
 const { formatPrice } = require('../../src/helpers/utils');
@@ -101,6 +103,17 @@ const vendorHistoryExportTypes = [
       '\ufeff"Identifiant";"Type";"Structure";"Programme";"Sous-Programme";"Infos complémentaires";"Formateur";"Référent Compani";"Contact pour la formation";"Nombre d\'inscrits";"Nombre de dates";"Nombre de créneaux";"Durée Totale";"Nombre de SMS envoyés";"Nombre de personnes connectées à l\'app";"Début de formation";"Fin de formation";"Nombre de feuilles d\'émargement chargées";"Nombre de présences";"Nombre d\'absences";"Nombre de stagiaires non prévus";"Nombre de présences non prévues";"Avancement"',
       `${courseList[0]._id};"intra";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;"4h";2;2;"01/05/2021 10:00:00";"01/05/2021 18:00:00";1;3;3;0;0;"2/2"`,
       `${courseList[1]._id};"inter_b2b";;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;"4h";1;0;"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;"2/3"`,
+    ],
+    query: 'startDate=2021-01-15&endDate=2022-01-20',
+  },
+  {
+    exportType: COURSE_SLOT,
+    expectedRows: [
+      '\ufeff"Id Créneau";"Id Formation";"Étape";"Type";"Date de création";"Date de début";"Date de fin";"Durée";"Adresse"',
+      `${courseSlotList[0]._id};${courseList[0]._id};"étape 1";"présentiel";"12/12/2020 11:00:00";"01/05/2021 10:00:00";"01/05/2021 12:00:00";"2h";"24 Avenue Daumesnil 75012 Paris"`,
+      `${courseSlotList[1]._id};${courseList[0]._id};"étape 2";"distanciel";"12/12/2020 11:00:01";"01/05/2021 16:00:00";"01/05/2021 18:00:00";"2h";`,
+      `${courseSlotList[2]._id};${courseList[1]._id};"étape 1";"présentiel";"12/12/2020 11:00:02";"01/02/2021 09:00:00";"01/02/2021 11:00:00";"2h";"24 Avenue Daumesnil 75012 Paris"`,
+      `${courseSlotList[3]._id};${courseList[1]._id};"étape 3";"elearning";"12/12/2020 11:00:03";"02/02/2021 09:00:00";"02/02/2021 11:00:00";"2h";`,
     ],
     query: 'startDate=2021-01-15&endDate=2022-01-20',
   },

@@ -19,7 +19,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
-const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B, ON_SITE, REMOTE, E_LEARNING } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
 const { TIME_STAMPING_ACTIONS } = require('../../../src/models/EventHistory');
@@ -1809,6 +1809,144 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
         { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('exportCourseSlotHistory', () => {
+  const courseIdList = [new ObjectId(), new ObjectId()];
+
+  const stepList = [
+    { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+    { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
+  ];
+
+  const slotAddress = {
+    street: '24 Avenue Daumesnil',
+    fullAddress: '24 Avenue Daumesnil 75012 Paris',
+    zipCode: '75012',
+    city: 'Paris',
+    location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+  };
+
+  const courseSlotList = [
+    {
+      _id: new ObjectId(),
+      course: courseIdList[0],
+      startDate: new Date('2021-05-01T08:00:00.000+00:00'),
+      endDate: new Date('2021-05-01T10:00:00.000+00:00'),
+      createdAt: new Date('2020-12-12T10:00:00.000+00:00'),
+      step: stepList[0],
+      address: slotAddress,
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[0],
+      startDate: new Date('2021-05-01T14:00:00.000+00:00'),
+      endDate: new Date('2021-05-01T16:00:00.000+00:00'),
+      createdAt: new Date('2020-12-12T10:00:01.000+00:00'),
+      step: stepList[1],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      startDate: new Date('2021-02-01T08:00:00.000+00:00'),
+      endDate: new Date('2021-02-01T10:00:00.000+00:00'),
+      createdAt: new Date('2020-12-12T10:00:02.000+00:00'),
+      step: stepList[0],
+      address: slotAddress,
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      startDate: new Date('2021-02-02T08:00:00.000+00:00'),
+      endDate: new Date('2021-02-02T10:00:00.000+00:00'),
+      createdAt: new Date('2020-12-12T10:00:03.000+00:00'),
+      step: stepList[2],
+    },
+  ];
+
+  let findCourseSlot;
+
+  beforeEach(() => {
+    findCourseSlot = sinon.stub(CourseSlot, 'find');
+  });
+
+  afterEach(() => {
+    findCourseSlot.restore();
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries([courseSlotList]));
+
+    const exportArray = await ExportHelper.exportCourseSlotHistory('2021-01-15', '2022-01-20');
+
+    expect(exportArray).toEqual([
+      [
+        'Id Créneau',
+        'Id Formation',
+        'Étape',
+        'Type',
+        'Date de création',
+        'Date de début',
+        'Date de fin',
+        'Durée',
+        'Adresse',
+      ],
+      [
+        courseSlotList[0]._id,
+        courseIdList[0],
+        'étape 1',
+        'présentiel',
+        '12/12/2020 11:00:00',
+        '01/05/2021 10:00:00',
+        '01/05/2021 12:00:00',
+        '2h',
+        '24 Avenue Daumesnil 75012 Paris',
+      ],
+      [
+        courseSlotList[1]._id,
+        courseIdList[0],
+        'étape 2',
+        'distanciel',
+        '12/12/2020 11:00:01',
+        '01/05/2021 16:00:00',
+        '01/05/2021 18:00:00',
+        '2h',
+        '',
+      ],
+      [
+        courseSlotList[2]._id,
+        courseIdList[1],
+        'étape 1',
+        'présentiel',
+        '12/12/2020 11:00:02',
+        '01/02/2021 09:00:00',
+        '01/02/2021 11:00:00',
+        '2h',
+        '24 Avenue Daumesnil 75012 Paris',
+      ],
+      [
+        courseSlotList[3]._id,
+        courseIdList[1],
+        'étape 3',
+        'elearning',
+        '12/12/2020 11:00:03',
+        '02/02/2021 09:00:00',
+        '02/02/2021 11:00:00',
+        '2h',
+        '',
+      ],
+
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        { query: 'find', args: [{ startDate: { $lte: '2022-01-20' }, endDate: { $gte: '2021-01-15' } }] },
+        { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
         { query: 'lean' },
       ]
     );
