@@ -14,18 +14,39 @@ describe('CompaniDuration', () => {
     _formatMiscToCompaniDuration.restore();
   });
 
-  it('should return duration', () => {
-    const duration = { days: 13, hours: 19, minutes: 12 };
+  it('should not mutate _duration', () => {
+    const durationObject = { days: 2 };
+    const otherDurationObject = { hours: 10 };
+    const companiDate = CompaniDurationsHelper.CompaniDuration(durationObject);
+    companiDate._date = luxon.Duration.fromObject(otherDurationObject);
 
-    const result = CompaniDurationsHelper.CompaniDuration(duration);
+    expect(companiDate._getDuration.toObject()).toEqual(durationObject);
+  });
 
-    expect(result)
-      .toEqual(expect.objectContaining({
-        _duration: expect.any(luxon.Duration),
-        format: expect.any(Function),
-        add: expect.any(Function),
-      }));
-    sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
+  describe('Constructor', () => {
+    it('should return duration', () => {
+      const duration = { days: 13, hours: 19, minutes: 12 };
+
+      const result = CompaniDurationsHelper.CompaniDuration(duration);
+
+      expect(result)
+        .toEqual(expect.objectContaining({
+          _getDuration: expect.any(luxon.Duration),
+          format: expect.any(Function),
+          add: expect.any(Function),
+        }));
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
+    });
+
+    it('should return error if invalid argument', () => {
+      try {
+        CompaniDurationsHelper.CompaniDuration(null);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid Duration: wrong arguments'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDuration, null);
+      }
+    });
   });
 });
 
@@ -98,7 +119,7 @@ describe('add', () => {
 
     expect(result).toBe(companiDuration);
     const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
-    expect(companiDuration._duration.toMillis()).toBe(amountInMs);
+    expect(companiDuration._getDuration.toMillis()).toBe(amountInMs);
     sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
   });
 });
@@ -132,7 +153,7 @@ describe('_formatMiscToCompaniDuration', () => {
 
   it('should return duration if arg is object with duration', () => {
     const duration = luxon.Duration.fromMillis(123456789);
-    const payload = { _duration: duration };
+    const payload = { _getDuration: duration };
     const result = CompaniDurationsHelper._formatMiscToCompaniDuration(payload);
 
     expect(result instanceof luxon.Duration).toBe(true);
