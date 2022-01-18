@@ -1,5 +1,4 @@
 const expect = require('expect');
-const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
@@ -244,27 +243,6 @@ describe('getDaysRatioBetweenTwoDates', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual({ holidays: 1, sundays: 1, businessDays: 1 });
-  });
-});
-
-describe('formatDuration', () => {
-  it('should format duration with minutes', () => {
-    const duration = moment.duration({ minutes: 20, hours: 2 });
-    const result = UtilsHelper.formatDuration(duration);
-
-    expect(result).toEqual('2h20');
-  });
-  it('should format duration with padded minutes', () => {
-    const duration = moment.duration({ minutes: 2, hours: 2 });
-    const result = UtilsHelper.formatDuration(duration);
-
-    expect(result).toEqual('2h02');
-  });
-  it('should format duration with days', () => {
-    const duration = moment.duration({ days: 2, hours: 2 });
-    const result = UtilsHelper.formatDuration(duration);
-
-    expect(result).toEqual('50h');
   });
 });
 

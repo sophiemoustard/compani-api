@@ -48,6 +48,7 @@ const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
+const { CompaniDuration } = require('./dates/companiDurations');
 
 const workingEventExportHeader = [
   'Type',
@@ -751,18 +752,21 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
 
 exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
   const rows = [];
-  const eventsByDayByAuxiliary = await EventRepository.getEventsByDayAndAuxiliary(
+  const events = await EventRepository.getEventsByDayAndAuxiliary(
     startDate,
     endDate,
     get(credentials, 'company._id')
   );
   const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices(credentials);
 
-  for (const group of eventsByDayByAuxiliary) {
+  const sortedEventsByAuxiliary = events
+    .sort((a, b) => (a.auxiliary.identity.lastname).localeCompare(b.auxiliary.identity.lastname));
+
+  for (const group of sortedEventsByAuxiliary) {
     const sortedEventsByDayList = group.eventsByDay
       .sort((a, b) => CompaniDate(a[0].startDate).toDate() - CompaniDate(b[0].startDate).toDate());
-    for (const eventsByDay of sortedEventsByDayList) {
-      const sortedEvents = [...eventsByDay].sort((a, b) =>
+    for (const eventsGroupedByDay of sortedEventsByDayList) {
+      const sortedEvents = [...eventsGroupedByDay].sort((a, b) =>
         CompaniDate(a.startDate).toDate() - CompaniDate(b.startDate).toDate()
       );
 
@@ -785,17 +789,18 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
           'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
           'Nom  de l\'auxiliaire': get(group, 'auxiliary.identity.lastname', ''),
-          'Date du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy'),
+          'Heure de départ du trajet': CompaniDate(sortedEvents[i - 1].endDate).format('dd/LL/yyyy HH:mm:ss'),
+          'Heure d\'arrivée du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy HH:mm:ss'),
           'Adresse de départ': origins,
           'Adresse d\'arrivée': destinations,
           Distance: travelledKm,
           'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
             get(group, 'auxiliary.administrative.transportInvoice.transportType')
           ],
-          'Durée du trajet': UtilsHelper.formatDuration(moment.duration({ minutes: transportDuration })),
-          'Durée inter vacation': UtilsHelper.formatDuration(moment.duration({ minutes: breakDuration })),
+          'Durée du trajet': CompaniDuration({ minutes: transportDuration }).format(),
+          'Durée inter vacation': CompaniDuration({ minutes: breakDuration }).format(),
           'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
-          'Heures prise en compte': UtilsHelper.formatDuration(moment.duration({ minutes: duration })),
+          'Heures prise en compte': CompaniDuration({ minutes: duration }).format(),
         });
       }
     }

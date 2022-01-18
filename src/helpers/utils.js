@@ -166,15 +166,6 @@ exports.formatObjectIdsArray = ids => (Array.isArray(ids) ? ids.map(id => new Ob
 
 exports.formatIdsArray = ids => (Array.isArray(ids) ? ids : [ids]);
 
-exports.formatDuration = (duration) => {
-  const paddedMinutes = duration.minutes() > 0 && duration.minutes() < 10
-    ? duration.minutes().toString().padStart(2, 0)
-    : duration.minutes();
-  const hours = (duration.days() * 24) + duration.hours();
-
-  return paddedMinutes ? `${hours}h${paddedMinutes}` : `${hours}h`;
-};
-
 exports.areObjectIdsEquals = (id1, id2) => !!id1 && !!id2 &&
   new ObjectId(id1).toHexString() === new ObjectId(id2).toHexString();
 
