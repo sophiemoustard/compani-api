@@ -18,24 +18,27 @@ exports.list = async (query, companyId) => {
     : attendances;
 };
 
-const formatCourseWithAttendances = (course, trainees, companyId) => course.slots.map((slot) => {
-  const { attendances } = slot;
-  if (!attendances) return {};
+const formatCourseWithAttendances = (course, specificCourseTrainees, specificCourseCompany) =>
+  course.slots.map((slot) => {
+    const { attendances } = slot;
+    if (!attendances) return {};
 
-  return attendances
-    .filter((a) => {
-      const isTraineeOnlySubscribedToSpecificCourse = UtilsHelper.doesArrayIncludeId(trainees, a.trainee._id) &&
-        !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id);
-      const IsTraineeInSpecificCompany = (!companyId || UtilsHelper.areObjectIdsEquals(a.trainee.company, companyId));
+    return attendances
+      .filter((a) => {
+        const isTraineeOnlySubscribedToSpecificCourse =
+          UtilsHelper.doesArrayIncludeId(specificCourseTrainees, a.trainee._id) &&
+          !UtilsHelper.doesArrayIncludeId(course.trainees, a.trainee._id);
+        const IsTraineeInSpecificCompany = !specificCourseCompany ||
+        UtilsHelper.areObjectIdsEquals(a.trainee.company, specificCourseCompany);
 
-      return isTraineeOnlySubscribedToSpecificCourse && IsTraineeInSpecificCompany;
-    }).map(a => ({
-      trainee: a.trainee,
-      courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
-      misc: course.misc,
-      trainer: course.trainer,
-    }));
-});
+        return isTraineeOnlySubscribedToSpecificCourse && IsTraineeInSpecificCompany;
+      }).map(a => ({
+        trainee: a.trainee,
+        courseSlot: pick(slot, ['step', 'startDate', 'endDate']),
+        misc: course.misc,
+        trainer: course.trainer,
+      }));
+  });
 
 exports.listUnsubscribed = async (courseId, companyId) => {
   const course = await Course.findOne({ _id: courseId })
