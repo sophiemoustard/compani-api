@@ -113,7 +113,7 @@ const vendorHistoryExportTypes = [
       `${courseSlotList[0]._id};${courseList[0]._id};"étape 1";"présentiel";"12/12/2020 11:00:00";"01/05/2021 10:00:00";"01/05/2021 12:00:00";"2h";"24 Avenue Daumesnil 75012 Paris"`,
       `${courseSlotList[1]._id};${courseList[0]._id};"étape 2";"distanciel";"12/12/2020 11:00:01";"01/05/2021 16:00:00";"01/05/2021 18:00:00";"2h";"https://meet.google.com"`,
       `${courseSlotList[2]._id};${courseList[1]._id};"étape 1";"présentiel";"12/12/2020 11:00:02";"01/02/2021 09:00:00";"01/02/2021 11:00:00";"2h";"24 Avenue Daumesnil 75012 Paris"`,
-      `${courseSlotList[3]._id};${courseList[1]._id};"étape 3";"elearning";"12/12/2020 11:00:03";"02/02/2021 09:00:00";"02/02/2021 11:00:00";"2h";`,
+      `${courseSlotList[3]._id};${courseList[1]._id};"étape 3";"eLearning";"12/12/2020 11:00:03";"02/02/2021 09:00:00";"02/02/2021 11:00:00";"2h";`,
     ],
     query: 'startDate=2021-01-15&endDate=2022-01-20',
   },

@@ -396,14 +396,14 @@ exports.formatIntraCourseSlotsForPdf = slot => ({
 });
 
 exports.formatInterCourseSlotsForPdf = (slot) => {
-  const duration = CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'));
+  const duration = UtilsHelper.getDuration(slot);
 
   return {
     address: get(slot, 'address.fullAddress') || null,
     date: CompaniDate(slot.startDate).format('dd/LL/yyyy'),
     startHour: CompaniDate(slot.startDate).format('HH:mm'),
     endHour: CompaniDate(slot.endDate).format('HH:mm'),
-    duration: duration.format(),
+    duration,
   };
 };
 

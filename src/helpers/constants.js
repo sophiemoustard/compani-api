@@ -354,6 +354,13 @@ module.exports = {
   get LIVE_STEPS() {
     return [this.ON_SITE, this.REMOTE];
   },
+  get STEP_TYPES() {
+    return {
+      [this.E_LEARNING]: 'eLearning',
+      [this.ON_SITE]: 'présentiel',
+      [this.REMOTE]: 'distanciel',
+    };
+  },
   // ACTIVITY
   LESSON: 'lesson',
   QUIZ: 'quiz',

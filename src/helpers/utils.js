@@ -225,3 +225,8 @@ exports.getTotalDuration = (timePeriods) => {
 
   return totalDuration.format();
 };
+
+exports.getDuration = timePeriods => CompaniDuration(
+  CompaniDate(timePeriods.endDate).diff(timePeriods.startDate, 'minutes')
+)
+  .format();

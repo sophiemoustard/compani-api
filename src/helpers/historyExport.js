@@ -26,11 +26,10 @@ const {
   HALF_DAILY,
   ON_SITE,
   REMOTE,
-  E_LEARNING,
+  STEP_TYPES,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
-const { CompaniDuration } = require('./dates/companiDurations');
 const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
@@ -716,28 +715,11 @@ exports.exportCourseHistory = async (startDate, endDate) => {
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };
 
-const getSlotType = (type) => {
-  switch (type) {
-    case ON_SITE:
-      return 'présentiel';
-    case REMOTE:
-      return 'distanciel';
-    case E_LEARNING:
-      return 'elearning';
-    default:
-      return '';
-  }
-};
-
 const getAddress = (slot) => {
-  switch (get(slot, 'step.type')) {
-    case ON_SITE:
-      return get(slot, 'address.fullAddress') || '';
-    case REMOTE:
-      return slot.meetingLink || '';
-    default:
-      return '';
-  }
+  if (get(slot, 'step.type') === ON_SITE) return get(slot, 'address.fullAddress') || '';
+  if (get(slot, 'step.type') === REMOTE) return slot.meetingLink || '';
+
+  return '';
 };
 
 exports.exportCourseSlotHistory = async (startDate, endDate) => {
@@ -748,13 +730,13 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
   const rows = [];
 
   for (const slot of courseSlots) {
-    const slotDuration = CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes')).format();
+    const slotDuration = UtilsHelper.getDuration(slot);
 
     rows.push({
       'Id Créneau': slot._id,
       'Id Formation': slot.course,
       Étape: get(slot, 'step.name') || '',
-      Type: getSlotType(get(slot, 'step.type') || ''),
+      Type: STEP_TYPES[get(slot, 'step.type')] || '',
       'Date de création': CompaniDate(slot.createdAt).format('dd/LL/yyyy HH:mm:ss') || '',
       'Date de début': CompaniDate(slot.startDate).format('dd/LL/yyyy HH:mm:ss') || '',
       'Date de fin': CompaniDate(slot.endDate).format('dd/LL/yyyy HH:mm:ss') || '',
