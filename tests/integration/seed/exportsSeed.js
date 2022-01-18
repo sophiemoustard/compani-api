@@ -965,6 +965,7 @@ const courseSlotList = [
     step: stepList[1]._id,
     startDate: new Date('2021-05-01T14:00:00.000+00:00'),
     endDate: new Date('2021-05-01T16:00:00.000+00:00'),
+    meetingLink: 'https://meet.google.com',
     createdAt: new Date('2020-12-12T10:00:01.000+00:00'),
   },
   {

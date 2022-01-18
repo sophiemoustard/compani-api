@@ -1849,6 +1849,7 @@ describe('exportCourseSlotHistory', () => {
       endDate: new Date('2021-05-01T16:00:00.000+00:00'),
       createdAt: new Date('2020-12-12T10:00:01.000+00:00'),
       step: stepList[1],
+      meetingLink: 'https://meet.google.com',
     },
     {
       _id: new ObjectId(),
@@ -1916,7 +1917,7 @@ describe('exportCourseSlotHistory', () => {
         '01/05/2021 16:00:00',
         '01/05/2021 18:00:00',
         '2h',
-        '',
+        'https://meet.google.com',
       ],
       [
         courseSlotList[2]._id,

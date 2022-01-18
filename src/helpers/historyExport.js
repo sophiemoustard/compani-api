@@ -729,6 +729,17 @@ const getSlotType = (type) => {
   }
 };
 
+const getAddress = (slot) => {
+  switch (get(slot, 'step.type')) {
+    case ON_SITE:
+      return get(slot, 'address.fullAddress') || '';
+    case REMOTE:
+      return slot.meetingLink || '';
+    default:
+      return '';
+  }
+};
+
 exports.exportCourseSlotHistory = async (startDate, endDate) => {
   const courseSlots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
     .populate({ path: 'step', select: 'type name' })
@@ -748,7 +759,7 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
       'Date de début': CompaniDate(slot.startDate).format('dd/LL/yyyy HH:mm:ss') || '',
       'Date de fin': CompaniDate(slot.endDate).format('dd/LL/yyyy HH:mm:ss') || '',
       Durée: slotDuration,
-      Adresse: get(slot, 'address.fullAddress') || '',
+      Adresse: getAddress(slot),
     });
   }
 
