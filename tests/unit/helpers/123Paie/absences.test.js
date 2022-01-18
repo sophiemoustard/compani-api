@@ -7,7 +7,7 @@ const Event = require('../../../../src/models/Event');
 const Pay = require('../../../../src/models/Pay');
 const Absences123PayHelper = require('../../../../src/helpers/123paie/absences');
 const FileHelper = require('../../../../src/helpers/file');
-const HistoryExportHelper = require('../../../../src/helpers/historyExport');
+const DraftPayHelper = require('../../../../src/helpers/draftPay');
 const {
   PAID_LEAVE,
   UNPAID_LEAVE,
@@ -139,7 +139,7 @@ describe('exportsAbsence', () => {
   let exportToTxt;
   beforeEach(() => {
     getAbsences = sinon.stub(Absences123PayHelper, 'getAbsences');
-    getAbsenceHours = sinon.stub(HistoryExportHelper, 'getAbsenceHours');
+    getAbsenceHours = sinon.stub(DraftPayHelper, 'getAbsenceHours');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
     process.env.AP_SOC = 'ap_soc';
   });

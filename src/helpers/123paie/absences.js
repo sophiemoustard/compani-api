@@ -15,7 +15,7 @@ const {
   WORK_ACCIDENT,
   TRANSPORT_ACCIDENT,
 } = require('../constants');
-const HistoryExportHelper = require('../historyExport');
+const DraftPayHelper = require('../draftPay');
 const Event = require('../../models/Event');
 const Pay = require('../../models/Pay');
 
@@ -104,7 +104,7 @@ exports.exportAbsences = async (query, credentials) => {
         va_abs_nb22: [1, 2, 3, 4, 5].includes(moment(day).isoWeekday()) ? 1 : 0,
         va_abs_nb26: [1, 2, 3, 4, 5, 6].includes(moment(day).isoWeekday()) ? 1 : 0,
         va_abs_nb30: 1,
-        va_abs_nbh: HistoryExportHelper.getAbsenceHours(formattedAbsence, [matchingContract]),
+        va_abs_nbh: DraftPayHelper.getAbsenceHours(formattedAbsence, [matchingContract]),
       });
     }
   }

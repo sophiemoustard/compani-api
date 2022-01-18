@@ -21,6 +21,8 @@ const {
   DAILY,
   INTERNAL_HOUR,
   WEEKS_PER_MONTH,
+  HOURLY,
+  HALF_DAILY,
 } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
@@ -314,6 +316,15 @@ exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
   }
 
   return hours;
+};
+
+exports.getAbsenceHours = (absence, contracts) => {
+  if (absence.absenceNature === HOURLY) return moment(absence.endDate).diff(absence.startDate, 'm') / 60;
+
+  const dailyAbsenceHours = contracts.filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
+    (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
+    .reduce((acc, c) => acc + this.getHoursFromDailyAbsence(absence, c), 0);
+  return absence.absenceNature === HALF_DAILY ? dailyAbsenceHours / 2 : dailyAbsenceHours;
 };
 
 exports.getPayFromAbsences = (absences, contract, query) => absences.reduce((acc, abs) => {
