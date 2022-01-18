@@ -418,7 +418,7 @@ exports.formatIntraCourseForPdf = (course) => {
   const name = course.subProgram.program.name + possibleMisc;
   const courseData = {
     name,
-    duration: UtilsHelper.computeTotalDuration(course.slots),
+    duration: UtilsHelper.getTotalDuration(course.slots),
     company: course.company.name,
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
@@ -453,7 +453,7 @@ exports.formatInterCourseForPdf = (course) => {
     lastDate: filteredSlots.length
       ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format('dd/LL/yyyy')
       : '',
-    duration: UtilsHelper.computeTotalDuration(filteredSlots),
+    duration: UtilsHelper.getTotalDuration(filteredSlots),
   };
 
   return {
@@ -486,7 +486,7 @@ exports.formatCourseForDocx = (course) => {
   const sortedCourseSlots = course.slots.sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
 
   return {
-    duration: UtilsHelper.computeTotalDuration(course.slots),
+    duration: UtilsHelper.getTotalDuration(course.slots),
     learningGoals: get(course, 'subProgram.program.learningGoals') || '',
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format('dd/LL/yyyy'),
@@ -518,7 +518,7 @@ exports.generateCompletionCertificates = async (courseId) => {
     const traineeSlots = courseAttendances
       .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
       .map(a => a.courseSlot);
-    const attendanceDuration = UtilsHelper.computeTotalDuration(traineeSlots);
+    const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots);
     const filePath = await DocxHelper.createDocx(
       certificateTemplatePath,
       {

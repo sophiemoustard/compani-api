@@ -217,7 +217,7 @@ exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
   return NumbersHelper.subtract(exclTaxes, discountExclTaxes);
 };
 
-exports.computeTotalDuration = (timePeriods) => {
+exports.getTotalDuration = (timePeriods) => {
   const totalDuration = timePeriods.reduce(
     (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes'))),
     CompaniDuration()

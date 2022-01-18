@@ -1465,18 +1465,18 @@ describe('groupSlotsByDate', () => {
 
 describe('formatIntraCourseForPdf', () => {
   let formatIdentity;
-  let computeTotalDuration;
+  let getTotalDuration;
   let groupSlotsByDate;
   let formatIntraCourseSlotsForPdf;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
-    computeTotalDuration = sinon.stub(UtilsHelper, 'computeTotalDuration');
+    getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
     formatIntraCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatIntraCourseSlotsForPdf');
   });
   afterEach(() => {
     formatIdentity.restore();
-    computeTotalDuration.restore();
+    getTotalDuration.restore();
     groupSlotsByDate.restore();
     formatIntraCourseSlotsForPdf.restore();
   });
@@ -1500,7 +1500,7 @@ describe('formatIntraCourseForPdf', () => {
       company: { name: 'alenvi' },
     };
 
-    computeTotalDuration.returns('8h');
+    getTotalDuration.returns('8h');
     formatIdentity.returns('MasterClass');
     groupSlotsByDate.returns([[{
       startDate: '2020-03-20T09:00:00',
@@ -1530,7 +1530,7 @@ describe('formatIntraCourseForPdf', () => {
         date: '12/04/2020',
       }],
     });
-    sinon.assert.calledOnceWithExactly(computeTotalDuration, course.slots);
+    sinon.assert.calledOnceWithExactly(getTotalDuration, course.slots);
     sinon.assert.calledOnceWithExactly(formatIdentity, { lastname: 'MasterClass' }, 'FL');
     sinon.assert.calledOnceWithExactly(groupSlotsByDate, [
       {
@@ -1551,16 +1551,16 @@ describe('formatIntraCourseForPdf', () => {
 
 describe('formatInterCourseForPdf', () => {
   let formatIdentity;
-  let computeTotalDuration;
+  let getTotalDuration;
   let formatInterCourseSlotsForPdf;
   beforeEach(() => {
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
-    computeTotalDuration = sinon.stub(UtilsHelper, 'computeTotalDuration');
+    getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
     formatInterCourseSlotsForPdf = sinon.stub(CourseHelper, 'formatInterCourseSlotsForPdf');
   });
   afterEach(() => {
     formatIdentity.restore();
-    computeTotalDuration.restore();
+    getTotalDuration.restore();
     formatInterCourseSlotsForPdf.restore();
   });
 
@@ -1589,7 +1589,7 @@ describe('formatInterCourseForPdf', () => {
     formatIdentity.onCall(0).returns('Pere Castor');
     formatIdentity.onCall(1).returns('trainee 1');
     formatIdentity.onCall(2).returns('trainee 2');
-    computeTotalDuration.returns('7h');
+    getTotalDuration.returns('7h');
 
     const result = CourseHelper.formatInterCourseForPdf(course);
 
@@ -1624,7 +1624,7 @@ describe('formatInterCourseForPdf', () => {
     sinon.assert.calledWithExactly(formatIdentity.getCall(0), { lastname: 'MasterClass' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 1' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(2), { lastname: 'trainee 2' }, 'FL');
-    sinon.assert.calledOnceWithExactly(computeTotalDuration, sortedSlots);
+    sinon.assert.calledOnceWithExactly(getTotalDuration, sortedSlots);
     sinon.assert.callCount(formatInterCourseSlotsForPdf, 3);
   });
 });
@@ -1722,12 +1722,12 @@ describe('generateAttendanceSheets', () => {
 });
 
 describe('formatCourseForDocx', () => {
-  let computeTotalDuration;
+  let getTotalDuration;
   beforeEach(() => {
-    computeTotalDuration = sinon.stub(UtilsHelper, 'computeTotalDuration');
+    getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
   });
   afterEach(() => {
-    computeTotalDuration.restore();
+    getTotalDuration.restore();
   });
 
   it('should format course for docx', () => {
@@ -1739,7 +1739,7 @@ describe('formatCourseForDocx', () => {
       ],
       subProgram: { program: { learningGoals: 'Apprendre', name: 'nom du programme' } },
     };
-    computeTotalDuration.returns('7h');
+    getTotalDuration.returns('7h');
 
     const result = CourseHelper.formatCourseForDocx(course);
 
@@ -1751,7 +1751,7 @@ describe('formatCourseForDocx', () => {
       programName: 'NOM DU PROGRAMME',
     });
     sinon.assert.calledOnceWithExactly(
-      computeTotalDuration,
+      getTotalDuration,
       [
         { startDate: '2020-03-20T09:00:00', endDate: '2020-03-20T11:00:00' },
         { startDate: '2020-04-12T09:00:00', endDate: '2020-04-12T11:30:00' },
@@ -1766,7 +1766,7 @@ describe('generateCompletionCertificate', () => {
   let attendanceFind;
   let formatCourseForDocx;
   let formatIdentity;
-  let computeTotalDuration;
+  let getTotalDuration;
   let createDocx;
   let generateZip;
   let luxonNow;
@@ -1778,7 +1778,7 @@ describe('generateCompletionCertificate', () => {
     attendanceFind = sinon.stub(Attendance, 'find');
     formatCourseForDocx = sinon.stub(CourseHelper, 'formatCourseForDocx');
     formatIdentity = sinon.stub(UtilsHelper, 'formatIdentity');
-    computeTotalDuration = sinon.stub(UtilsHelper, 'computeTotalDuration');
+    getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
     createDocx = sinon.stub(DocxHelper, 'createDocx');
     generateZip = sinon.stub(ZipHelper, 'generateZip');
     luxonNow = sinon.stub(luxon.DateTime, 'now');
@@ -1791,7 +1791,7 @@ describe('generateCompletionCertificate', () => {
     attendanceFind.restore();
     formatCourseForDocx.restore();
     formatIdentity.restore();
-    computeTotalDuration.restore();
+    getTotalDuration.restore();
     createDocx.restore();
     generateZip.restore();
     luxonNow.restore();
@@ -1800,7 +1800,7 @@ describe('generateCompletionCertificate', () => {
     tmpDir.restore();
   });
 
-  it('should download completion certificates #tag', async () => {
+  it('should download completion certificates', async () => {
     const currentTimeISO = '2020-01-20T07:00:00.000Z';
     const courseId = new ObjectId();
     const readable1 = new PassThrough();
@@ -1846,9 +1846,9 @@ describe('generateCompletionCertificate', () => {
     formatIdentity.onCall(0).returns('trainee 1');
     formatIdentity.onCall(1).returns('trainee 2');
     formatIdentity.onCall(2).returns('trainee 3');
-    computeTotalDuration.onCall(0).returns('4h30');
-    computeTotalDuration.onCall(1).returns('3h');
-    computeTotalDuration.onCall(2).returns('0h');
+    getTotalDuration.onCall(0).returns('4h30');
+    getTotalDuration.onCall(1).returns('3h');
+    getTotalDuration.onCall(2).returns('0h');
     createReadStream.onCall(0).returns(readable1);
     createReadStream.onCall(1).returns(readable2);
     createReadStream.onCall(2).returns(readable3);
@@ -1860,11 +1860,11 @@ describe('generateCompletionCertificate', () => {
     sinon.assert.calledWithExactly(formatIdentity.getCall(1), { lastname: 'trainee 2' }, 'FL');
     sinon.assert.calledWithExactly(formatIdentity.getCall(2), { lastname: 'trainee 3' }, 'FL');
     sinon.assert.calledWithExactly(
-      computeTotalDuration.getCall(0),
+      getTotalDuration.getCall(0),
       [attendances[0].courseSlot, attendances[1].courseSlot]
     );
-    sinon.assert.calledWithExactly(computeTotalDuration.getCall(1), [attendances[2].courseSlot]);
-    sinon.assert.calledWithExactly(computeTotalDuration.getCall(2), []);
+    sinon.assert.calledWithExactly(getTotalDuration.getCall(1), [attendances[2].courseSlot]);
+    sinon.assert.calledWithExactly(getTotalDuration.getCall(2), []);
     sinon.assert.calledWithExactly(
       createDocx.getCall(0),
       '/path/certificate_template.docx',

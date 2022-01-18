@@ -701,7 +701,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre d\'inscrits': get(course, 'trainees.length') || '',
       'Nombre de dates': slotsGroupedByDate.length,
       'Nombre de créneaux': get(course, 'slots.length') || '',
-      'Durée Totale': UtilsHelper.computeTotalDuration(course.slots),
+      'Durée Totale': UtilsHelper.getTotalDuration(course.slots),
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
         .filter(trainee => trainee.firstMobileConnection).length,
