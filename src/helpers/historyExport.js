@@ -675,7 +675,8 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     const attendances = course.slots.map(slot => slot.attendances).flat();
     const courseTraineeList = course.trainees.map(trainee => trainee._id);
     const subscribedTraineesAttendancesCount = attendances
-      .filter(attendance => UtilsHelper.doesArrayIncludeId(courseTraineeList, attendance.trainee)).length;
+      .filter(attendance => UtilsHelper.doesArrayIncludeId(courseTraineeList, attendance.trainee))
+      .length;
     const unsubscribedTraineesAttendancesCount = attendances.length - subscribedTraineesAttendancesCount;
 
     const attendancesToCome = course.slots
@@ -684,7 +685,8 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     - attendancesToCome;
 
     const unsubscribedTraineesCount = uniqBy(attendances.map(a => a.trainee), trainee => trainee.toString())
-      .filter(attendanceTrainee => !UtilsHelper.doesArrayIncludeId(courseTraineeList, attendanceTrainee)).length;
+      .filter(attendanceTrainee => !UtilsHelper.doesArrayIncludeId(courseTraineeList, attendanceTrainee))
+      .length;
 
     rows.push({
       Identifiant: course._id,
