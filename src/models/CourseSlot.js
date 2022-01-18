@@ -13,10 +13,6 @@ const CourseSlotSchema = mongoose.Schema({
 
 formatQueryMiddlewareList().map(middleware => CourseSlotSchema.pre(middleware, formatQuery));
 
-CourseSlotSchema.virtual('attendances', {
-  ref: 'Attendance',
-  localField: '_id',
-  foreignField: 'courseSlot',
-});
+CourseSlotSchema.virtual('attendances', { ref: 'Attendance', localField: '_id', foreignField: 'courseSlot' });
 
 module.exports = mongoose.model('CourseSlot', CourseSlotSchema);

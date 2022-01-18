@@ -1,8 +1,17 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const CourseSlot = require('../../models/CourseSlot');
+const Course = require('../../models/Course');
 const Attendance = require('../../models/Attendance');
-const { TRAINER, INTRA, INTER_B2B } = require('../../helpers/constants');
+const {
+  TRAINER,
+  INTRA,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+  CLIENT_ADMIN,
+  COACH,
+} = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const UserCompany = require('../../models/UserCompany');
 
@@ -12,18 +21,30 @@ const isTrainerAuthorized = (loggedUserId, trainer) => {
   return null;
 };
 
-const authorizeUserWithoutVendorRole = (loggedUserCompany, course) => {
+const checkRole = (course, credentials) => {
+  const loggedUserCompany = get(credentials, 'company._id');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
+  const loggedUserClientRole = get(credentials, 'role.client.name');
+
+  const isCourseTrainer = loggedUserVendorRole === TRAINER &&
+    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+  const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(loggedUserVendorRole);
+
+  let isClientAndAuthorized;
   if (course.type === INTRA) {
     if (!course.company) throw Boom.badData();
 
-    if (!UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company)) throw Boom.forbidden();
+    isClientAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
+      UtilsHelper.areObjectIdsEquals(loggedUserCompany, course.company);
+  } else {
+    const traineeCompanies = course.trainees.map(trainee => trainee.company);
+    isClientAndAuthorized = [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) &&
+      UtilsHelper.doesArrayIncludeId(traineeCompanies, loggedUserCompany);
   }
 
-  if (course.type === INTER_B2B) {
-    const companyTraineeInCourse = course.trainees
-      .some(t => UtilsHelper.areObjectIdsEquals(loggedUserCompany, t.company));
-    if (!companyTraineeInCourse) throw Boom.forbidden();
-  }
+  if (!isClientAndAuthorized && !isAdminVendor && !isCourseTrainer) throw Boom.forbidden();
+
+  return null;
 };
 
 exports.authorizeAttendancesGet = async (req) => {
@@ -43,14 +64,32 @@ exports.authorizeAttendancesGet = async (req) => {
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   const { course } = courseSlots[0];
 
-  if (!loggedUserHasVendorRole) authorizeUserWithoutVendorRole(loggedUserCompany, course);
-
-  if (get(credentials, 'role.vendor.name') === TRAINER) isTrainerAuthorized(credentials._id, course.trainer);
+  checkRole(course, credentials);
 
   return {
     courseSlotsIds: courseSlots.map(cs => cs._id),
     company: !loggedUserHasVendorRole ? loggedUserCompany : null,
   };
+};
+
+exports.authorizeUnsubscribedAttendancesGet = async (req) => {
+  const { course: courseId } = req.query;
+  const { credentials } = req.auth;
+  const loggedUserHasVendorRole = has(credentials, 'role.vendor');
+  const loggedUserClientRole = get(credentials, 'role.client.name');
+
+  if (!loggedUserHasVendorRole && [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && !req.query.company) {
+    throw Boom.badRequest();
+  }
+
+  const course = await Course.findOne({ _id: courseId })
+    .populate({ path: 'trainees', select: 'company', populate: 'company' })
+    .lean();
+  if (!course) throw Boom.notFound();
+
+  checkRole(course, credentials);
+
+  return null;
 };
 
 exports.authorizeAttendanceCreation = async (req) => {

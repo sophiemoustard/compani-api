@@ -2,11 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, remove } = require('../controllers/attendanceController');
+const { list, listUnsubscribed, create, remove } = require('../controllers/attendanceController');
 const {
   authorizeAttendancesGet,
   authorizeAttendanceCreation,
   authorizeAttendanceDeletion,
+  authorizeUnsubscribedAttendancesGet,
 } = require('./preHandlers/attendances');
 
 exports.plugin = {
@@ -22,10 +23,21 @@ exports.plugin = {
             Joi.object({ course: Joi.objectId().required() })
           ),
         },
-        auth: { scope: ['attendancesheets:read'] },
+        auth: { scope: ['attendances:read'] },
         pre: [{ method: authorizeAttendancesGet, assign: 'attendancesInfos' }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/unsubscribed',
+      options: {
+        auth: { scope: ['attendances:read'] },
+        validate: { query: Joi.object({ course: Joi.objectId().required(), company: Joi.objectId() }) },
+        pre: [{ method: authorizeUnsubscribedAttendancesGet }],
+      },
+      handler: listUnsubscribed,
     });
 
     server.route({
@@ -35,7 +47,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object({ trainee: Joi.string().required(), courseSlot: Joi.string().required() }),
         },
-        auth: { scope: ['attendancesheets:edit'] },
+        auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceCreation }],
       },
       handler: create,
@@ -46,7 +58,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: { params: Joi.object({ _id: Joi.objectId().required() }) },
-        auth: { scope: ['attendancesheets:edit'] },
+        auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceDeletion }],
       },
       handler: remove,
