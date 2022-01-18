@@ -29,6 +29,7 @@ const {
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
@@ -48,7 +49,6 @@ const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
-const { CompaniDuration } = require('./dates/companiDurations');
 
 const workingEventExportHeader = [
   'Type',
