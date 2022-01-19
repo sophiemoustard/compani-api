@@ -1611,29 +1611,29 @@ describe('exportCourseHistory', () => {
     {
       _id: new ObjectId(),
       course: courseIdList[0],
-      startDate: new Date('2021-05-01T08:00:00.000Z'),
-      endDate: new Date('2021-05-01T10:00:00.000Z'),
+      startDate: '2021-05-01T08:00:00.000Z',
+      endDate: '2021-05-01T10:00:00.000Z',
       attendances: [{ trainee: traineeList[0]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[0],
-      startDate: new Date('2021-05-01T14:00:00.000Z'),
-      endDate: new Date('2021-05-01T16:00:00.000Z'),
+      startDate: '2021-05-01T14:00:00.000Z',
+      endDate: '2021-05-01T16:00:00.000Z',
       attendances: [{ trainee: traineeList[0]._id }, { trainee: traineeList[1]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[1],
-      startDate: new Date('2021-02-01T08:00:00.000Z'),
-      endDate: new Date('2021-02-01T10:00:00.000Z'),
+      startDate: '2021-02-01T08:00:00.000Z',
+      endDate: '2021-02-01T10:00:00.000Z',
       attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[1],
-      startDate: new Date('2021-02-02T08:00:00.000Z'),
-      endDate: new Date('2021-02-02T10:00:00.000Z'),
+      startDate: '2021-02-02T08:00:00.000Z',
+      endDate: '2021-02-02T10:00:00.000Z',
       attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
     },
     {
@@ -1708,9 +1708,9 @@ describe('exportCourseHistory', () => {
     countDocumentsAttendanceSheet.onCall(0).returns(1);
     countDocumentsAttendanceSheet.onCall(1).returns(0);
 
-    const exportArray = await ExportHelper.exportCourseHistory('2021-01-15', '2022-01-20');
+    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(exportArray).toEqual([
+    expect(result).toEqual([
       [
         'Identifiant',
         'Type',
@@ -1724,6 +1724,7 @@ describe('exportCourseHistory', () => {
         'Nombre d\'inscrits',
         'Nombre de dates',
         'Nombre de créneaux',
+        'Nombre de créneaux à planifier',
         'Durée Totale',
         'Nombre de SMS envoyés',
         'Nombre de personnes connectées à l\'app',
@@ -1749,6 +1750,7 @@ describe('exportCourseHistory', () => {
         3,
         1,
         2,
+        '',
         '4h',
         2,
         2,
@@ -1774,6 +1776,7 @@ describe('exportCourseHistory', () => {
         2,
         2,
         2,
+        1,
         '4h',
         1,
         0,
@@ -1790,7 +1793,10 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
-        { query: 'find', args: [{ startDate: { $lte: '2022-01-20' }, endDate: { $gte: '2021-01-15' } }] },
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
         { query: 'lean' },
       ]
     );
@@ -1836,36 +1842,36 @@ describe('exportCourseSlotHistory', () => {
     {
       _id: new ObjectId(),
       course: courseIdList[0],
-      startDate: new Date('2021-05-01T08:00:00.000Z'),
-      endDate: new Date('2021-05-01T10:00:00.000Z'),
-      createdAt: new Date('2020-12-12T10:00:00.000Z'),
+      startDate: '2021-05-01T08:00:00.000Z',
+      endDate: '2021-05-01T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:00.000Z',
       step: stepList[0],
       address: slotAddress,
     },
     {
       _id: new ObjectId(),
       course: courseIdList[0],
-      startDate: new Date('2021-05-01T14:00:00.000Z'),
-      endDate: new Date('2021-05-01T16:00:00.000Z'),
-      createdAt: new Date('2020-12-12T10:00:01.000Z'),
+      startDate: '2021-05-01T14:00:00.000Z',
+      endDate: '2021-05-01T16:00:00.000Z',
+      createdAt: '2020-12-12T10:00:01.000Z',
       step: stepList[1],
       meetingLink: 'https://meet.google.com',
     },
     {
       _id: new ObjectId(),
       course: courseIdList[1],
-      startDate: new Date('2021-02-01T08:00:00.000Z'),
-      endDate: new Date('2021-02-01T10:00:00.000Z'),
-      createdAt: new Date('2020-12-12T10:00:02.000Z'),
+      startDate: '2021-02-01T08:00:00.000Z',
+      endDate: '2021-02-01T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:02.000Z',
       step: stepList[0],
       address: slotAddress,
     },
     {
       _id: new ObjectId(),
       course: courseIdList[1],
-      startDate: new Date('2021-02-02T08:00:00.000Z'),
-      endDate: new Date('2021-02-02T10:00:00.000Z'),
-      createdAt: new Date('2020-12-12T10:00:03.000Z'),
+      startDate: '2021-02-02T08:00:00.000Z',
+      endDate: '2021-02-02T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:03.000Z',
       step: stepList[2],
     },
   ];
@@ -1883,9 +1889,9 @@ describe('exportCourseSlotHistory', () => {
   it('should return an array with the header and 2 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries([courseSlotList]));
 
-    const exportArray = await ExportHelper.exportCourseSlotHistory('2021-01-15', '2022-01-20');
+    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(exportArray).toEqual([
+    expect(result).toEqual([
       [
         'Id Créneau',
         'Id Formation',
@@ -1946,7 +1952,10 @@ describe('exportCourseSlotHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
-        { query: 'find', args: [{ startDate: { $lte: '2022-01-20' }, endDate: { $gte: '2021-01-15' } }] },
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
         { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
         { query: 'lean' },
       ]

@@ -6,7 +6,6 @@ const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
-const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
