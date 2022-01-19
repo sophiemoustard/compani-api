@@ -116,7 +116,6 @@ describe('listUnsubscribed', () => {
           {
             endDate: new Date('2020-11-18T15:00:00.000Z'),
             startDate: new Date('2020-11-18T13:00:00.000Z'),
-            step: { _id: new ObjectId(), name: 'step' },
             attendances: [
               {
                 _id: new ObjectId(),
@@ -138,7 +137,6 @@ describe('listUnsubscribed', () => {
           {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
             startDate: new Date('2020-11-20T13:00:00.000Z'),
-            step: { _id: new ObjectId(), name: 'step 2' },
             attendances: [
               {
                 _id: new ObjectId(),
@@ -164,7 +162,6 @@ describe('listUnsubscribed', () => {
           courseSlot: {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
             startDate: new Date('2020-11-20T13:00:00.000Z'),
-            step: { name: 'step 2' },
           },
         },
       ],
@@ -193,15 +190,12 @@ describe('listUnsubscribed', () => {
           query: 'populate',
           args: [{
             path: 'slots',
-            select: 'attendances step startDate endDate',
-            populate: [
-              {
-                path: 'attendances',
-                select: 'trainee',
-                populate: { path: 'trainee', select: 'identity company', populate: 'company' },
-              },
-              { path: 'step', select: 'name' },
-            ],
+            select: 'attendances startDate endDate',
+            populate: {
+              path: 'attendances',
+              select: 'trainee',
+              populate: { path: 'trainee', select: 'identity company', populate: 'company' },
+            },
           }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
@@ -233,7 +227,6 @@ describe('listUnsubscribed', () => {
           {
             endDate: new Date('2020-11-18T15:00:00.000Z'),
             startDate: new Date('2020-11-18T13:00:00.000Z'),
-            step: { _id: new ObjectId(), name: 'step' },
             attendances: [
               {
                 _id: new ObjectId(),
@@ -255,7 +248,6 @@ describe('listUnsubscribed', () => {
           {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
             startDate: new Date('2020-11-20T13:00:00.000Z'),
-            step: { _id: new ObjectId(), name: 'step 2' },
             attendances: [
               {
                 _id: new ObjectId(),
@@ -281,7 +273,6 @@ describe('listUnsubscribed', () => {
           courseSlot: {
             endDate: new Date('2020-11-20T15:00:00.000Z'),
             startDate: new Date('2020-11-20T13:00:00.000Z'),
-            step: { name: 'step 2' },
           },
         },
       ],
@@ -310,15 +301,12 @@ describe('listUnsubscribed', () => {
           query: 'populate',
           args: [{
             path: 'slots',
-            select: 'attendances step startDate endDate',
-            populate: [
-              {
-                path: 'attendances',
-                select: 'trainee',
-                populate: { path: 'trainee', select: 'identity company', populate: 'company' },
-              },
-              { path: 'step', select: 'name' },
-            ],
+            select: 'attendances startDate endDate',
+            populate: {
+              path: 'attendances',
+              select: 'trainee',
+              populate: { path: 'trainee', select: 'identity company', populate: 'company' },
+            },
           }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
