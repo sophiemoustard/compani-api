@@ -155,50 +155,51 @@ exports.getTransportMode = (event) => {
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
   let transportMode;
 
-  if (prevEvent && !prevEvent.hasFixedService && !event.hasFixedService) {
-    const origins = get(prevEvent, 'address.fullAddress', null);
-    const destinations = get(event, 'address.fullAddress', null);
-
-    if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
-      transportMode = exports.getTransportMode(event);
-    }
-
-    if (!origins || !destinations || !transportMode) return { duration: 0, paidKm: 0, travelledKm: 0 };
-
-    const transport = await exports.getTransportInfo(
-      dm,
-      origins,
-      destinations,
-      transportMode.specific || transportMode.default,
-      event.company
-    );
-    const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
-    const pickTransportDuration = breakDuration > (transport.duration + 15);
-    const paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
-    const paidKm = transportMode.shouldPayKm ? transport.distance : 0;
-    const travelledKm = transport.distance;
-    const transportDuration = transport.duration;
-
+  if (!prevEvent || prevEvent.hasFixedService || event.hasFixedService) {
     return {
-      duration: paidTransportDuration,
-      paidKm,
-      travelledKm,
-      origins,
-      destinations,
-      transportDuration,
-      breakDuration,
-      pickTransportDuration,
+      duration: 0,
+      paidKm: 0,
+      travelledKm: 0,
+      origins: null,
+      destinations: null,
+      transportDuration: 0,
+      breakDuration: 0,
+      pickTransportDuration: false,
     };
   }
+
+  const origins = get(prevEvent, 'address.fullAddress', null);
+  const destinations = get(event, 'address.fullAddress', null);
+
+  if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
+    transportMode = exports.getTransportMode(event);
+  }
+
+  if (!origins || !destinations || !transportMode) return { duration: 0, paidKm: 0, travelledKm: 0 };
+
+  const transport = await exports.getTransportInfo(
+    dm,
+    origins,
+    destinations,
+    transportMode.specific || transportMode.default,
+    event.company
+  );
+  const breakDuration = CompaniDate(event.startDate).diff(prevEvent.endDate, 'minutes').minutes;
+  const pickTransportDuration = breakDuration > (transport.duration + 15);
+  const paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
+  const paidKm = transportMode.shouldPayKm ? transport.distance : 0;
+  const travelledKm = transport.distance;
+  const transportDuration = transport.duration;
+
   return {
-    duration: 0,
-    paidKm: 0,
-    travelledKm: 0,
-    origins: null,
-    destinations: null,
-    transportDuration: 0,
-    breakDuration: 0,
-    pickTransportDuration: false,
+    duration: paidTransportDuration,
+    paidKm,
+    travelledKm,
+    origins,
+    destinations,
+    transportDuration,
+    breakDuration,
+    pickTransportDuration,
   };
 };
 

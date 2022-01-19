@@ -782,6 +782,7 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           { ...sortedEvents[i - 1], auxiliary: group.auxiliary },
           distanceMatrix
         );
+        const formattedDuration = UtilsHelper.formatFloatForExport(Math.trunc(duration) / 60);
 
         rows.push({
           'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
@@ -798,7 +799,7 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Durée du trajet': CompaniDuration({ minutes: transportDuration }).format(),
           'Durée inter vacation': CompaniDuration({ minutes: breakDuration }).format(),
           'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
-          'Heures prise en compte': CompaniDuration({ minutes: duration }).format(),
+          'Heures prise en compte': formattedDuration,
         });
       }
     }
