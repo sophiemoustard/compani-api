@@ -782,7 +782,7 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           { ...sortedEvents[i - 1], auxiliary: group.auxiliary },
           distanceMatrix
         );
-        const formattedDuration = UtilsHelper.formatFloatForExport(Math.trunc(duration) / 60);
+        const formattedDuration = UtilsHelper.formatFloatForExport(duration / 60);
 
         rows.push({
           'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),

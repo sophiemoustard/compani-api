@@ -99,7 +99,7 @@ const clientHistoryExportTypes = [
     exportType: TRANSPORT,
     expectedRows: [
       '\ufeff"Id de l\'auxiliaire";"Prénom  de l\'auxiliaire";"Nom  de l\'auxiliaire";"Heure de départ du trajet";"Heure d\'arrivée du trajet";"Adresse de départ";"Adresse d\'arrivée";"Distance";"Mode de transport";"Durée du trajet";"Durée inter vacation";"Pause prise en compte";"Heures prise en compte"',
-      `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11/01/2019 09:30:00";"11/01/2019 10:30:00";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";0.23;"Transports en commun / À pied";"0h03";"1h";"Non";"0,05"`,
+      `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11/01/2019 09:30:00";"11/01/2019 10:30:00";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";0.23;"Transports en commun / À pied";"0h03";"1h";"Non";"0,06"`,
       `"${auxiliaryList[1]._id}";"Lili";"Lolo";"11/01/2019 11:30:00";"11/01/2019 12:35:00";"42 Rue de la Procession 75015 Paris";"35 Rue du Test 75015 Paris";0.23;"Véhicule personnel";"1h05";"1h05";"Oui";"1,08"`,
     ],
     query: 'startDate=2019-01-01&endDate=2019-01-31',
