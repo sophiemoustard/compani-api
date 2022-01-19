@@ -53,7 +53,7 @@ const clientHistoryExportTypes = [
       `"Heure interne";"planning";;"17/01/2019 15:30:19";;;;"17/01/2019 17:30:19";;;;"2,00";;;;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";;;;;;"Non";"Non";;`,
       `"Intervention";;"Service 1";"16/01/2019 10:30:19";;;;"16/01/2019 12:30:21";;;;"2,00";;;;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative de l'intervenant(e)"`,
     ],
-    query: 'startDate=2019-01-15&endDate=2019-01-20',
+    query: 'startDate=2019-01-15T10:00:00.000Z&endDate=2019-01-20T10:00:00.000Z',
   },
   {
     exportType: ABSENCE,
@@ -62,7 +62,7 @@ const clientHistoryExportTypes = [
       `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Absence injustifiée";"Horaire";"19/01/2019 14:00";"19/01/2019 16:00";"2,00";"non";;"test absence"`,
       `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Congé";"Journalière";"19/01/2019";"21/01/2019";"4,00";"non";;`,
     ],
-    query: 'startDate=2019-01-15&endDate=2019-01-21',
+    query: 'startDate=2019-01-15T10:00:00.000Z&endDate=2019-01-21T10:00:00.000Z',
   },
   {
     exportType: BILL,
@@ -72,7 +72,7 @@ const clientHistoryExportTypes = [
       `"Facture";"FACT-1905003";"25/05/2019";"${billsList[1].customer.toHexString()}";"M.";"BARDET";"Romain";;;"96,00";"101,28";"4,00";"Temps de qualité - autonomie - 4,00h - ${formatPrice(billsList[1].subscriptions[0].inclTaxes)} TTC";"${moment().format('DD/MM/YYYY')}"`,
       `"Avoir";;"28/05/2019";"${creditNotesList[0].customer.toHexString()}";"M.";"BARDET";"Romain";"${thirdPartyPayer._id}";"Toto";"110,00";"202,00";;"toto";"${moment().format('DD/MM/YYYY')}"`,
     ],
-    query: 'startDate=2019-05-25&endDate=2019-05-29',
+    query: 'startDate=2019-05-25T10:00:00.000Z&endDate=2019-05-29T10:00:00.000Z',
   },
   {
     exportType: PAYMENT,
@@ -81,7 +81,7 @@ const clientHistoryExportTypes = [
       `"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"220,00"`,
       `"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"190,00"`,
     ],
-    query: 'startDate=2019-05-25&endDate=2019-05-31',
+    query: 'startDate=2019-05-25T10:00:00.000Z&endDate=2019-05-31T10:00:00.000Z',
   },
   {
     exportType: PAY,
@@ -92,7 +92,7 @@ const clientHistoryExportTypes = [
       `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/01/2019";;"31/01/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"10,00"`,
       `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/02/2019";;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"10,00"`,
     ],
-    query: 'startDate=2019-01-01&endDate=2019-05-31',
+    query: 'startDate=2019-01-01T10:00:00.000Z&endDate=2019-05-31T10:00:00.000Z',
   },
 ];
 
@@ -104,7 +104,7 @@ const vendorHistoryExportTypes = [
       `${courseList[0]._id};"intra";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;;"4h";2;2;"01/05/2021 10:00:00";"01/05/2021 18:00:00";1;3;3;0;0;1`,
       `${courseList[1]._id};"inter_b2b";;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;1;"4h";1;0;"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;0.67`,
     ],
-    query: 'startDate=2021-01-15&endDate=2022-01-20',
+    query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },
   {
     exportType: COURSE_SLOT,
@@ -115,7 +115,7 @@ const vendorHistoryExportTypes = [
       `${courseSlotList[2]._id};${courseList[1]._id};"étape 1";"présentiel";"12/12/2020 11:00:02";"01/02/2021 09:00:00";"01/02/2021 11:00:00";"2h";"24 Avenue Daumesnil 75012 Paris"`,
       `${courseSlotList[3]._id};${courseList[1]._id};"étape 3";"eLearning";"12/12/2020 11:00:03";"02/02/2021 09:00:00";"02/02/2021 11:00:00";"2h";`,
     ],
-    query: 'startDate=2021-01-15&endDate=2022-01-20',
+    query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },
 ];
 
