@@ -11,6 +11,7 @@ const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
+const Attendance = require('../models/Attendance');
 const CourseRepository = require('../repositories/CourseRepository');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
@@ -406,15 +407,6 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
   };
 };
 
-exports.getCourseDuration = (slots) => {
-  const duration = slots.reduce(
-    (acc, slot) => acc.add(CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'))),
-    CompaniDuration()
-  );
-
-  return duration.format();
-};
-
 exports.groupSlotsByDate = (slots) => {
   const group = groupBy(slots, slot => CompaniDate(slot.startDate).format('dd/LL/yyyy'));
 
@@ -426,7 +418,7 @@ exports.formatIntraCourseForPdf = (course) => {
   const name = course.subProgram.program.name + possibleMisc;
   const courseData = {
     name,
-    duration: exports.getCourseDuration(course.slots),
+    duration: UtilsHelper.getTotalDuration(course.slots),
     company: course.company.name,
     trainer: course.trainer ? UtilsHelper.formatIdentity(course.trainer.identity, 'FL') : '',
   };
@@ -461,7 +453,7 @@ exports.formatInterCourseForPdf = (course) => {
     lastDate: filteredSlots.length
       ? CompaniDate(filteredSlots[filteredSlots.length - 1].startDate).format('dd/LL/yyyy')
       : '',
-    duration: exports.getCourseDuration(filteredSlots),
+    duration: UtilsHelper.getTotalDuration(filteredSlots),
   };
 
   return {
@@ -494,7 +486,7 @@ exports.formatCourseForDocx = (course) => {
   const sortedCourseSlots = course.slots.sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
 
   return {
-    duration: exports.getCourseDuration(course.slots),
+    duration: UtilsHelper.getTotalDuration(course.slots),
     learningGoals: get(course, 'subProgram.program.learningGoals') || '',
     programName: get(course, 'subProgram.program.name').toUpperCase() || '',
     startDate: CompaniDate(sortedCourseSlots[0].startDate).format('dd/LL/yyyy'),
@@ -509,6 +501,11 @@ exports.generateCompletionCertificates = async (courseId) => {
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
+  const slotIds = course.slots.map(s => s._id);
+  const courseAttendances = await Attendance.find({ courseSlot: slotIds })
+    .populate({ path: 'courseSlot', select: 'startDate endDate' })
+    .lean();
+
   const courseData = exports.formatCourseForDocx(course);
   const certificateTemplatePath = path.join(os.tmpdir(), 'certificate_template.docx');
   await drive.downloadFileById({
@@ -518,9 +515,17 @@ exports.generateCompletionCertificates = async (courseId) => {
 
   const fileListPromises = course.trainees.map(async (trainee) => {
     const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
+    const traineeSlots = courseAttendances
+      .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
+      .map(a => a.courseSlot);
+    const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots);
     const filePath = await DocxHelper.createDocx(
       certificateTemplatePath,
-      { ...courseData, traineeIdentity, date: CompaniDate().format('dd/LL/yyyy') }
+      {
+        ...courseData,
+        trainee: { identity: traineeIdentity, attendanceDuration },
+        date: CompaniDate().format('dd/LL/yyyy'),
+      }
     );
 
     return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };

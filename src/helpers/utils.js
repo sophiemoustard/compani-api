@@ -5,6 +5,8 @@ const Intl = require('intl');
 const moment = require('../extensions/moment');
 const { CIVILITY_LIST } = require('./constants');
 const DatesHelper = require('./dates');
+const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const NumbersHelper = require('./numbers');
 
 exports.getLastVersion = (versions, dateKey) => {
@@ -213,4 +215,13 @@ exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
   const discountExclTaxes = exports.getExclTaxes(discount, vat);
 
   return NumbersHelper.subtract(exclTaxes, discountExclTaxes);
+};
+
+exports.getTotalDuration = (timePeriods) => {
+  const totalDuration = timePeriods.reduce(
+    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes'))),
+    CompaniDuration()
+  );
+
+  return totalDuration.format();
 };
