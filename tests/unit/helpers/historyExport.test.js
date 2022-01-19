@@ -1751,7 +1751,7 @@ describe('exportCourseHistory', () => {
         1,
         2,
         '',
-        '4h',
+        '4,00',
         2,
         2,
         '01/05/2021 10:00:00',
@@ -1761,7 +1761,7 @@ describe('exportCourseHistory', () => {
         3,
         0,
         0,
-        1,
+        '1,00',
       ],
       [
         courseList[1]._id,
@@ -1777,7 +1777,7 @@ describe('exportCourseHistory', () => {
         2,
         2,
         1,
-        '4h',
+        '4,00',
         1,
         0,
         '01/02/2021 09:00:00',
@@ -1787,7 +1787,7 @@ describe('exportCourseHistory', () => {
         2,
         1,
         2,
-        0.67,
+        '0,67',
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(
@@ -1911,7 +1911,7 @@ describe('exportCourseSlotHistory', () => {
         '12/12/2020 11:00:00',
         '01/05/2021 10:00:00',
         '01/05/2021 12:00:00',
-        '2h',
+        '2,00',
         '24 Avenue Daumesnil 75012 Paris',
       ],
       [
@@ -1922,7 +1922,7 @@ describe('exportCourseSlotHistory', () => {
         '12/12/2020 11:00:01',
         '01/05/2021 16:00:00',
         '01/05/2021 18:00:00',
-        '2h',
+        '2,00',
         'https://meet.google.com',
       ],
       [
@@ -1933,7 +1933,7 @@ describe('exportCourseSlotHistory', () => {
         '12/12/2020 11:00:02',
         '01/02/2021 09:00:00',
         '01/02/2021 11:00:00',
-        '2h',
+        '2,00',
         '24 Avenue Daumesnil 75012 Paris',
       ],
       [
@@ -1944,7 +1944,7 @@ describe('exportCourseSlotHistory', () => {
         '12/12/2020 11:00:03',
         '02/02/2021 09:00:00',
         '02/02/2021 11:00:00',
-        '2h',
+        '2,00',
         '',
       ],
 

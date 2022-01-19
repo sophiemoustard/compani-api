@@ -673,8 +673,8 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       .length;
     const unsubscribedTraineesAttendancesCount = attendances.length - subscribedTraineesAttendancesCount;
 
-    const attendancesToCome = course.slots
-      .filter(slot => CompaniDate().isBefore(slot.startDate)).length * course.trainees.length;
+    const upComingSlotsCount = course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
+    const attendancesToCome = upComingSlotsCount * course.trainees.length;
     const absencesCount = (course.slots.length * course.trainees.length) - subscribedTraineesAttendancesCount
     - attendancesToCome;
 
@@ -682,7 +682,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       .filter(attendanceTrainee => !UtilsHelper.doesArrayIncludeId(courseTraineeList, attendanceTrainee))
       .length;
 
-    const passedSlots = course.slots.filter(slot => CompaniDate().isAfter(slot.endDate));
+    const pastSlotsCount = course.slots.length - upComingSlotsCount;
 
     rows.push({
       Identifiant: course._id,
@@ -698,7 +698,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre de dates': slotsGroupedByDate.length,
       'Nombre de créneaux': get(course, 'slots.length') || '',
       'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length') || '',
-      'Durée Totale': UtilsHelper.getTotalDuration(course.slots),
+      'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
         .filter(trainee => trainee.firstMobileConnection).length,
@@ -709,7 +709,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre d\'absences': absencesCount,
       'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
       'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
-      Avancement: Number((passedSlots.length / (course.slots.length + course.slotsToPlan.length)).toFixed(2)),
+      Avancement: UtilsHelper.formatFloatForExport(pastSlotsCount / (course.slots.length + course.slotsToPlan.length)),
     });
   }
 
@@ -731,7 +731,7 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
   const rows = [];
 
   for (const slot of courseSlots) {
-    const slotDuration = UtilsHelper.getDuration(slot);
+    const slotDuration = UtilsHelper.getDurationForExport(slot.startDate, slot.endDate);
 
     rows.push({
       'Id Créneau': slot._id,

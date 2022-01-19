@@ -395,7 +395,7 @@ exports.formatIntraCourseSlotsForPdf = slot => ({
 });
 
 exports.formatInterCourseSlotsForPdf = (slot) => {
-  const duration = UtilsHelper.getDuration(slot);
+  const duration = UtilsHelper.getDuration(slot.startDate, slot.endDate);
 
   return {
     address: get(slot, 'address.fullAddress') || null,
