@@ -40,7 +40,7 @@ describe('list', () => {
       { _id: new ObjectId(), partner: { _id: new ObjectId() } },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([customerPartners]));
+    find.returns(SinonMongoose.stubChainedQueries(customerPartners));
 
     const result = await CustomerPartnersHelper.list(customer, credentials);
 
@@ -79,7 +79,7 @@ describe('update', () => {
     const customerPartnerId = new ObjectId();
     const customerPartner = { _id: customerPartnerId, customer: new ObjectId() };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customerPartner], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(customerPartner, ['lean']));
 
     await CustomerPartnersHelper.update(customerPartnerId, { prescriber: true });
 
@@ -103,7 +103,7 @@ describe('update', () => {
     const customerPartnerId = new ObjectId();
     const customerPartner = { _id: customerPartnerId, customer: new ObjectId() };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customerPartner], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(customerPartner, ['lean']));
 
     await CustomerPartnersHelper.update(customerPartnerId, { prescriber: false });
 

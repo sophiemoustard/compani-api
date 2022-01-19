@@ -31,7 +31,7 @@ describe('create', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const payloadWithCompany = { ...payload, company: credentials.company._id };
 
-    create.returns(SinonMongoose.stubChainedQueries([payloadWithCompany], ['toObject']));
+    create.returns(SinonMongoose.stubChainedQueries(payloadWithCompany, ['toObject']));
 
     const result = await ThirdPartyPayersHelper.create(payload, credentials);
 
@@ -56,7 +56,7 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const tppList = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
 
-    find.returns(SinonMongoose.stubChainedQueries([tppList], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(tppList, ['lean']));
 
     const result = await ThirdPartyPayersHelper.list(credentials);
 
@@ -81,7 +81,7 @@ describe('update', () => {
     const payload = { siret: '13605658901234' };
     const tppId = new ObjectId();
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: tppId }], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries({ _id: tppId }, ['lean']));
 
     const result = await ThirdPartyPayersHelper.update(tppId, payload);
 

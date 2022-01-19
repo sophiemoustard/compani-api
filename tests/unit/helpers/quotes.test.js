@@ -20,7 +20,7 @@ describe('getQuotes', () => {
   it('should get customer quotes', async () => {
     const customerId = '12345678io0';
 
-    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await QuoteHelper.getQuotes(customerId);
 
@@ -51,7 +51,7 @@ describe('getQuoteNumber', () => {
   it('should return quote number', async () => {
     const company = { _id: new ObjectId() };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await QuoteHelper.getQuoteNumber(company._id);
 
@@ -110,7 +110,7 @@ describe('createQuote', () => {
 
     getQuoteNumberStub.returns({ prefix: 'pre', seq: 2 });
     formatQuoteNumberStub.returns('pre-002');
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await QuoteHelper.createQuote(customerId, payload, credentials);
 

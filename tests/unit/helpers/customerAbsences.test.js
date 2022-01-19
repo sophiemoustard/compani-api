@@ -66,7 +66,7 @@ describe('list', () => {
     ];
 
     formatIdsArray.returns([customerId]);
-    findCustomerAbsence.returns(SinonMongoose.stubChainedQueries([[customerAbsences]]));
+    findCustomerAbsence.returns(SinonMongoose.stubChainedQueries([customerAbsences]));
 
     await CustomerAbsencesHelper.list(query, credentials);
 
@@ -112,7 +112,7 @@ describe('list', () => {
     ];
 
     formatIdsArray.returns(customers);
-    findCustomerAbsence.returns(SinonMongoose.stubChainedQueries([[customerAbsences]]));
+    findCustomerAbsence.returns(SinonMongoose.stubChainedQueries([customerAbsences]));
 
     await CustomerAbsencesHelper.list(query, credentials);
 
@@ -197,7 +197,7 @@ describe('updateCustomerAbsence', () => {
     const customerAbsence = { _id: customerAbsenceId, customer };
     const payload = { absenceType: 'hospitalization', startDate, endDate };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customerAbsence], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customerAbsence, ['lean']));
 
     await CustomerAbsencesHelper.updateCustomerAbsence(customerAbsenceId, payload, credentials);
 

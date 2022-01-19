@@ -234,7 +234,7 @@ describe('updateSubscription', () => {
       subscriptions: [{ _id: subscriptionId, evenings: 2, service: new ObjectId() }],
     };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(customer));
     populateSubscriptionsServices.returns(customer);
 
     const result = await SubscriptionsHelper.updateSubscription(params, payload);
@@ -279,8 +279,8 @@ describe('addSubscription', () => {
     const customer = { _id: customerId };
     const payload = { service: new ObjectId(), estimatedWeeklyVolume: 10 };
 
-    findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
+    findById.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(customer));
     populateSubscriptionsServices.returns(customer);
 
     const result = await SubscriptionsHelper.addSubscription(customerId, payload);
@@ -310,8 +310,8 @@ describe('addSubscription', () => {
     const customer = { _id: customerId, subscriptions: [{ service: new ObjectId() }] };
     const payload = { service: (new ObjectId()).toHexString(), estimatedWeeklyVolume: 10 };
 
-    findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([customer]));
+    findById.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(customer));
     populateSubscriptionsServices.returns(customer);
 
     const result = await SubscriptionsHelper.addSubscription(customerId, payload);
@@ -343,7 +343,7 @@ describe('addSubscription', () => {
       const customer = { _id: customerId, subscriptions: [{ service: serviceId }] };
       const payload = { service: serviceId.toHexString(), estimatedWeeklyVolume: 10 };
 
-      findById.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+      findById.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
 
       await SubscriptionsHelper.addSubscription(customerId, payload);
     } catch (e) {
@@ -374,12 +374,12 @@ describe('deleteSubscription', () => {
 
   it('should delete subscription and the subscriptionhistory associated', async () => {
     findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{
+      {
         subscriptionsHistory: [
           { subscriptions: [{ subscriptionId }] },
           { subscriptions: [{ subscriptionId }, { subscriptionId: secondSubId }] },
         ],
-      }],
+      },
       ['lean']
     ));
 
@@ -414,7 +414,7 @@ describe('createSubscriptionHistory', () => {
     const payload = { evenings: 2 };
     const customer = { _id: customerId };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
 
     const result = await SubscriptionsHelper.createSubscriptionHistory(customerId.toHexString(), payload);
 

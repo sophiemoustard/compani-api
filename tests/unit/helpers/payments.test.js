@@ -28,7 +28,7 @@ describe('getPayments', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const query = {};
     const payment = { _id: new ObjectId() };
-    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
+    find.returns(SinonMongoose.stubChainedQueries([payment]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
@@ -51,7 +51,7 @@ describe('getPayments', () => {
     const payment = { _id: new ObjectId() };
 
     getDateQueryStub.returns({ $lte: '2019-11-01' });
-    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
+    find.returns(SinonMongoose.stubChainedQueries([payment]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
@@ -74,7 +74,7 @@ describe('getPayments', () => {
     const payment = { _id: new ObjectId() };
 
     getDateQueryStub.returns({ $gte: '2019-11-01' });
-    find.returns(SinonMongoose.stubChainedQueries([[payment]]));
+    find.returns(SinonMongoose.stubChainedQueries([payment]));
 
     const result = await PaymentsHelper.getPayments(query, credentials);
 
@@ -374,7 +374,7 @@ describe('getPaymentNumber', () => {
     const payment = { nature: 'payment', date: new Date('2019-12-01') };
     const companyId = new ObjectId();
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await PaymentsHelper.getPaymentNumber(payment, companyId);
 

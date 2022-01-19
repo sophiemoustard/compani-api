@@ -39,9 +39,9 @@ describe('getAbsences', () => {
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
 
     findPay.returns(
-      SinonMongoose.stubChainedQueries([[{ createdAt: '2020-10-29T10:31:00' }]], ['sort', 'limit', 'lean'])
+      SinonMongoose.stubChainedQueries([{ createdAt: '2020-10-29T10:31:00' }], ['sort', 'limit', 'lean'])
     );
-    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries(absences, ['populate', 'sort', 'lean']));
 
     const result = await Absences123PayHelper.getAbsences(query, { company: { _id: companyId } });
 
@@ -88,8 +88,8 @@ describe('getAbsences', () => {
     const absences = [{ _id: new ObjectId() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
 
-    findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'limit', 'lean']));
-    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
+    findPay.returns(SinonMongoose.stubChainedQueries([], ['sort', 'limit', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries(absences, ['populate', 'sort', 'lean']));
 
     const result = await Absences123PayHelper.getAbsences(query, { company: { _id: companyId } });
 

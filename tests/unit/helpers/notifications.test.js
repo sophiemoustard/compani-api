@@ -97,7 +97,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
       slots: [{ startDate: '2020-01-02' }],
     };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([course]));
+    findOne.returns(SinonMongoose.stubChainedQueries(course));
 
     await NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId);
 
@@ -174,8 +174,8 @@ describe('sendNewElearningCourseNotification', () => {
       slots: [{ startDate: '2020-01-02' }],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
-    userFind.returns(SinonMongoose.stubChainedQueries([trainees], ['lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    userFind.returns(SinonMongoose.stubChainedQueries(trainees, ['lean']));
 
     await NotificationHelper.sendNewElearningCourseNotification(courseId);
 
@@ -232,8 +232,8 @@ describe('sendNewElearningCourseNotification', () => {
       slots: [{ startDate: '2020-01-02' }],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
-    userFind.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    userFind.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await NotificationHelper.sendNewElearningCourseNotification(courseId);
 

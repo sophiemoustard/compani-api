@@ -19,7 +19,7 @@ describe('list', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    find.returns(SinonMongoose.stubChainedQueries([[{ company: companyId, name: 'Coucou' }]], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([{ company: companyId, name: 'Coucou' }], ['lean']));
 
     const result = await SurchargesHelper.list(credentials);
     expect(result).toEqual([{ company: companyId, name: 'Coucou' }]);

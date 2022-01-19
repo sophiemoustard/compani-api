@@ -33,8 +33,8 @@ describe('updateHistoryOnSectorUpdate', () => {
   });
 
   it('should create sector history if no previous one', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([], ['sort', 'lean']));
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
@@ -53,8 +53,8 @@ describe('updateHistoryOnSectorUpdate', () => {
   it('should return nothing if last sector history sector is same than new one', async () => {
     const sectorHistory = { _id: new ObjectId(), sector, startDate: '2019-09-10T00:00:00' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([[{ _id: new ObjectId() }]], ['sort', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectId() }], ['sort', 'lean']));
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
@@ -68,9 +68,9 @@ describe('updateHistoryOnSectorUpdate', () => {
 
   it('should return an error if no last sector history and has an ongoing contract', async () => {
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
       find.returns(SinonMongoose.stubChainedQueries(
-        [[{ _id: new ObjectId(), startDate: '2020-01-01T23:59:59' }]],
+        [{ _id: new ObjectId(), startDate: '2020-01-01T23:59:59' }],
         ['sort', 'lean']
       ));
 
@@ -90,8 +90,8 @@ describe('updateHistoryOnSectorUpdate', () => {
   it('should update sector history if auxiliary does not have contract', async () => {
     const sectorHistory = { _id: new ObjectId(), sector: new ObjectId(), startDate: '2019-09-10T00:00:00' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([], ['sort', 'lean']));
     updateOne.returns({ sector });
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
@@ -118,9 +118,9 @@ describe('updateHistoryOnSectorUpdate', () => {
   });
 
   it('should update sector history if auxiliary is between contracts', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     find.returns(SinonMongoose.stubChainedQueries(
-      [[{ startDate: '2020-01-01T00:00:00', endDate: '2020-08-01T23:59:59' }, { startDate: moment().add(1, 'd') }]],
+      [{ startDate: '2020-01-01T00:00:00', endDate: '2020-08-01T23:59:59' }, { startDate: moment().add(1, 'd') }],
       ['sort', 'lean']
     ));
     createHistoryStub.returns({ sector });
@@ -150,8 +150,8 @@ describe('updateHistoryOnSectorUpdate', () => {
   it('should update sector history if many changes made on the same day', async () => {
     const sectorHistory = { _id: new ObjectId(), sector: new ObjectId(), startDate: moment().startOf('day') };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([[{ _id: new ObjectId() }]], ['sort', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectId() }], ['sort', 'lean']));
     updateOne.returns({ sector });
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
@@ -180,9 +180,9 @@ describe('updateHistoryOnSectorUpdate', () => {
   it('should update sector history and create new one', async () => {
     const sectorHistory = { _id: new ObjectId(), sector: new ObjectId(), startDate: '2019-10-10' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
     find.returns(SinonMongoose.stubChainedQueries(
-      [[{ _id: new ObjectId(), startDate: moment('2019-10-12').toDate() }]],
+      [{ _id: new ObjectId(), startDate: moment('2019-10-12').toDate() }],
       ['sort', 'lean']
     ));
     updateOne.returns({ sector });
@@ -246,8 +246,8 @@ describe('createHistoryOnContractCreation', () => {
     const user = { _id: auxiliaryId, sector };
     const existingHistory = { _id: new ObjectId(), sector };
 
-    countDocuments.returns(SinonMongoose.stubChainedQueries([], ['lean']));
-    findOne.returns(SinonMongoose.stubChainedQueries([existingHistory], ['lean']));
+    countDocuments.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(existingHistory, ['lean']));
 
     await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
 
@@ -279,8 +279,8 @@ describe('createHistoryOnContractCreation', () => {
   it('should create sector history if does not exist without start date', async () => {
     const user = { _id: auxiliaryId, sector };
 
-    countDocuments.returns(SinonMongoose.stubChainedQueries([], ['lean']));
-    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    countDocuments.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
 
@@ -315,7 +315,7 @@ describe('createHistoryOnContractCreation', () => {
     try {
       const existingWrongHistory = { _id: new ObjectId(), sector };
 
-      countDocuments.returns(SinonMongoose.stubChainedQueries([existingWrongHistory], ['lean']));
+      countDocuments.returns(SinonMongoose.stubChainedQueries(existingWrongHistory, ['lean']));
 
       await SectorHistoryHelper.createHistoryOnContractCreation(user, newContract, companyId);
 
@@ -367,7 +367,7 @@ describe('updateHistoryOnContractUpdate', () => {
 
   it('should update sector history if contract has not started yet', async () => {
     findOne.returns(
-      SinonMongoose.stubChainedQueries([{ user: auxiliaryId, startDate: moment().add(2, 'month') }], ['lean'])
+      SinonMongoose.stubChainedQueries({ user: auxiliaryId, startDate: moment().add(2, 'month') }, ['lean'])
     );
 
     await SectorHistoryHelper.updateHistoryOnContractUpdate(contractId, newContract, companyId);
@@ -386,8 +386,8 @@ describe('updateHistoryOnContractUpdate', () => {
   it('should update and remove sector history if contract has started', async () => {
     const sectorHistory = [{ _id: new ObjectId() }];
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ user: auxiliaryId, startDate: '2019-01-01' }], ['lean']));
-    find.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['sort', 'limit', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries({ user: auxiliaryId, startDate: '2019-01-01' }, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['sort', 'limit', 'lean']));
 
     await SectorHistoryHelper.updateHistoryOnContractUpdate(contractId, newContract, companyId);
 
@@ -440,7 +440,7 @@ describe('updateHistoryOnContractDeletion', () => {
   });
 
   it('should remove sector histories and update last one', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([{ startDate: '2020-10-10' }], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries({ startDate: '2020-10-10' }, ['lean']));
 
     await SectorHistoryHelper.updateHistoryOnContractDeletion(contract, companyId);
 
@@ -478,7 +478,7 @@ describe('createHistory', () => {
   it('should create SectorHistory without startDate', async () => {
     const sectorHistory = { auxiliary: auxiliaryId, sector, company: companyId };
 
-    create.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['toObject']));
+    create.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['toObject']));
 
     const result = await SectorHistoryHelper.createHistory({ _id: auxiliaryId, sector }, companyId);
 
@@ -495,7 +495,7 @@ describe('createHistory', () => {
   it('should create SectorHistory with startDate', async () => {
     const sectorHistory = { auxiliary: auxiliaryId, sector, company: companyId, startDate: '2020-01-01' };
 
-    create.returns(SinonMongoose.stubChainedQueries([sectorHistory], ['toObject']));
+    create.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['toObject']));
 
     const result = await SectorHistoryHelper.createHistory({ _id: auxiliaryId, sector }, companyId, '2020-01-01');
 
@@ -551,7 +551,7 @@ describe('getAuxiliarySectors', () => {
     const sectorId1 = new ObjectId();
     const sectorId2 = new ObjectId();
     sectorHistoryFind.returns(SinonMongoose.stubChainedQueries(
-      [[{ sector: sectorId1 }, { sector: sectorId1 }, { sector: sectorId2 }]],
+      [{ sector: sectorId1 }, { sector: sectorId1 }, { sector: sectorId2 }],
       ['lean']
     ));
 
@@ -581,7 +581,7 @@ describe('getAuxiliarySectors', () => {
   it('should return an empty array if no sector on the time range', async () => {
     const auxiliaryId = new ObjectId();
     const companyId = new ObjectId();
-    sectorHistoryFind.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    sectorHistoryFind.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const result = await SectorHistoryHelper.getAuxiliarySectors(auxiliaryId, companyId, '2020-01-01', '2020-02-02');
 

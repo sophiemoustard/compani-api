@@ -42,7 +42,7 @@ describe('createCompany', () => {
     createFolderStub.onCall(1).returns({ id: 'qwertyuiop' });
     createFolderStub.onCall(2).returns({ id: 'asdfghj' });
     find.returns(SinonMongoose.stubChainedQueries(
-      [[{ _id: new ObjectId(), prefixNumber: 345 }]],
+      [{ _id: new ObjectId(), prefixNumber: 345 }],
       ['sort', 'limit', 'lean']
     ));
 
@@ -76,7 +76,7 @@ describe('list', () => {
 
   it('should return companies', async () => {
     const companyList = [{ _id: new ObjectId(), name: 'Alenvi' }];
-    find.returns(SinonMongoose.stubChainedQueries([companyList], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(companyList, ['lean']));
 
     const result = await CompanyHelper.list();
 
@@ -99,7 +99,7 @@ describe('getCompany', () => {
 
   it('should return company', async () => {
     const company = { _id: new ObjectId() };
-    findOne.returns(SinonMongoose.stubChainedQueries([company], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(company, ['lean']));
 
     const result = await CompanyHelper.getCompany(company._id);
 
@@ -140,7 +140,7 @@ describe('uploadFile', () => {
         },
       },
     };
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await CompanyHelper.uploadFile(payload, params);
     sinon.assert.calledWithExactly(addStub, {
@@ -172,7 +172,7 @@ describe('getFirstIntervention', () => {
 
   it('should get first intervention', async () => {
     const credentials = { company: { _id: new ObjectId() } };
-    find.returns(SinonMongoose.stubChainedQueries([[{ startDate: '2019-11-12' }]], ['sort', 'limit', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries([{ startDate: '2019-11-12' }], ['sort', 'limit', 'lean']));
 
     const result = await CompanyHelper.getFirstIntervention(credentials);
 

@@ -97,7 +97,7 @@ describe('updatedSubProgram', () => {
         ],
       };
 
-      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedSubProgram]));
+      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(updatedSubProgram));
       stepUpdateManyStub.returns({ activities });
 
       await SubProgramHelper.updateSubProgram(subProgram._id, payload);
@@ -146,7 +146,7 @@ describe('updatedSubProgram', () => {
         accessRules: [],
       };
 
-      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedSubProgram]));
+      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(updatedSubProgram));
       stepUpdateManyStub.returns({ activities });
       courseCreateStub.returns(course);
 
@@ -200,7 +200,7 @@ describe('updatedSubProgram', () => {
           accessRules: [payload.accessCompany],
         };
 
-        findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedSubProgram]));
+        findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(updatedSubProgram));
         stepUpdateManyStub.returns({ activities });
         courseCreateStub.returns(course);
 
@@ -264,7 +264,7 @@ describe('listELearningDraft', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([subProgramsList]));
+    find.returns(SinonMongoose.stubChainedQueries(subProgramsList));
 
     const result = await SubProgramHelper.listELearningDraft();
 
@@ -303,7 +303,7 @@ describe('listELearningDraft', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([subProgramsList]));
+    find.returns(SinonMongoose.stubChainedQueries(subProgramsList));
 
     const result = await SubProgramHelper.listELearningDraft(testerRestrictedPrograms);
 
@@ -346,7 +346,7 @@ describe('getSubProgram', () => {
       }],
     };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([subProgram]));
+    findOne.returns(SinonMongoose.stubChainedQueries(subProgram));
 
     const result = await SubProgramHelper.getSubProgram(subProgram._id);
 

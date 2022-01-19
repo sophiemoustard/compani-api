@@ -51,7 +51,7 @@ describe('getCreditNotes', () => {
     };
 
     getDateQueryStub.returns(dateQuery);
-    find.returns(SinonMongoose.stubChainedQueries([[{ customer: { _id: customerId } }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ customer: { _id: customerId } }]));
     populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
@@ -82,7 +82,7 @@ describe('getCreditNotes', () => {
       customer: customerId,
     };
 
-    find.returns(SinonMongoose.stubChainedQueries([[{ customer: { _id: customerId } }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ customer: { _id: customerId } }]));
     populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
@@ -120,7 +120,7 @@ describe('getCreditNotes', () => {
     };
 
     getDateQueryStub.returns(dateQuery);
-    find.returns(SinonMongoose.stubChainedQueries([[]]));
+    find.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
 
@@ -176,7 +176,7 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(events);
     findOneAndUpdate.returns(null);
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
 
@@ -199,7 +199,7 @@ describe('updateEventAndFundingHistory', () => {
       startDate: new Date('2019/01/19'),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     findOneAndUpdate.returns(new FundingHistory());
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
@@ -223,7 +223,7 @@ describe('updateEventAndFundingHistory', () => {
       startDate: new Date('2019/01/19'),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     findOneAndUpdate.returns(null);
 
     await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
@@ -249,7 +249,7 @@ describe('updateEventAndFundingHistory', () => {
       startDate: new Date('2019/01/19'),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await CreditNoteHelper.updateEventAndFundingHistory(eventsToUpdate, false, credentials);
 
@@ -335,7 +335,7 @@ describe('getCreditNoteNumber', () => {
     const payload = { date: '2019-09-19T00:00:00' };
     const company = { _id: new ObjectId() };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await CreditNoteHelper.getCreditNoteNumber(payload, company._id);
 
@@ -970,8 +970,8 @@ describe('generateCreditNotePdf', () => {
   });
 
   it('should generate a pdf', async () => {
-    creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: COMPANI, number: '12345' }]));
-    companyNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: credentials.company._id }], ['lean']));
+    creditNoteFindOne.returns(SinonMongoose.stubChainedQueries({ origin: COMPANI, number: '12345' }));
+    companyNoteFindOne.returns(SinonMongoose.stubChainedQueries({ _id: credentials.company._id }, ['lean']));
     formatPdf.returns({ name: 'creditNotePdf' });
     getPdfContent.returns({ content: ['creditNotePdf'] });
     generatePdf.returns({ title: 'creditNote' });
@@ -1011,7 +1011,7 @@ describe('generateCreditNotePdf', () => {
 
   it('should return a 404 if creditnote is not found', async () => {
     try {
-      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([]));
+      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries(null));
 
       await CreditNoteHelper.generateCreditNotePdf(params, credentials);
     } catch (e) {
@@ -1042,7 +1042,7 @@ describe('generateCreditNotePdf', () => {
 
   it('should return a 400 if creditnote origin is not compani', async () => {
     try {
-      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: OGUST }]));
+      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries({ origin: OGUST }));
 
       await CreditNoteHelper.generateCreditNotePdf(params, credentials);
     } catch (e) {

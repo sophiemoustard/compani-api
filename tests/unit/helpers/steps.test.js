@@ -270,7 +270,7 @@ describe('list', () => {
       },
     ];
 
-    stepFind.returns(SinonMongoose.stubChainedQueries([steps], ['populate', 'lean']));
+    stepFind.returns(SinonMongoose.stubChainedQueries(steps, ['populate', 'lean']));
 
     const result = await StepHelper.list(programId);
 

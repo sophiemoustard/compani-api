@@ -329,7 +329,7 @@ describe('list', () => {
     }];
     const query = { course: returnedList[0].course };
 
-    find.returns(SinonMongoose.stubChainedQueries([returnedList], ['populate', 'sort', 'limit', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(returnedList, ['populate', 'sort', 'limit', 'lean']));
 
     const result = await CourseHistoriesHelper.list(query);
 
@@ -360,7 +360,7 @@ describe('list', () => {
     }];
     const query = { course: returnedList[0].course, createdAt: '2019-02-04T10:00:00.000Z' };
 
-    find.returns(SinonMongoose.stubChainedQueries([returnedList], ['populate', 'sort', 'limit', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(returnedList, ['populate', 'sort', 'limit', 'lean']));
 
     const result = await CourseHistoriesHelper.list(query);
 

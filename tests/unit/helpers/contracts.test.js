@@ -36,7 +36,7 @@ describe('getContractList', () => {
     const credentials = { company: { _id: '1234567890' } };
     const query = { user: '1234567890' };
 
-    findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
+    findContract.returns(SinonMongoose.stubChainedQueries(contracts));
 
     const result = await ContractHelper.getContractList(query, credentials);
 
@@ -62,7 +62,7 @@ describe('getContractList', () => {
     const credentials = { company: { _id: '1234567890' } };
     const query = { startDate: '2019-09-09T00:00:00', endDate: '2019-09-09T00:00:00' };
 
-    findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
+    findContract.returns(SinonMongoose.stubChainedQueries(contracts));
 
     const result = await ContractHelper.getContractList(query, credentials);
 
@@ -250,8 +250,8 @@ describe('createContract', () => {
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
     createContract.returns(contract);
-    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
+    findOneRole.returns(SinonMongoose.stubChainedQueries(role, ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -311,8 +311,8 @@ describe('createContract', () => {
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
 
     createContract.returns(contractWithDoc);
-    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
+    findOneRole.returns(SinonMongoose.stubChainedQueries(role, ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -365,8 +365,8 @@ describe('createContract', () => {
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
     createContract.returns(contract);
-    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
+    findOneRole.returns(SinonMongoose.stubChainedQueries(role, ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -412,7 +412,7 @@ describe('createContract', () => {
     try {
       isCreationAllowed.returns(false);
 
-      findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
+      findOneUser.returns(SinonMongoose.stubChainedQueries(user));
       await ContractHelper.createContract(payload, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
@@ -500,8 +500,8 @@ describe('endContract', () => {
     };
     const credentials = { _id: new ObjectId(), company: { _id: '1234567890' } };
 
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(updatedContract));
     countDocumentHistories.returns(0);
     eventCountDocuments.returns(0);
 
@@ -606,8 +606,8 @@ describe('endContract', () => {
     };
 
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(updatedContract));
       countDocumentHistories.returns(1);
       eventCountDocuments.returns(0);
 
@@ -690,8 +690,8 @@ describe('endContract', () => {
     };
 
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(updatedContract));
       eventCountDocuments.returns(1);
       countDocumentHistories.returns(0);
 
@@ -746,7 +746,7 @@ describe('endContract', () => {
     };
     const credentials = { _id: new ObjectId(), company: { _id: '1234567890' } };
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
 
       await ContractHelper.endContract(contractId.toHexString(), payload, credentials);
       expect(true).toBe(false);
@@ -803,8 +803,8 @@ describe('createVersion', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     canCreateVersion.returns(true);
 
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
@@ -837,8 +837,8 @@ describe('createVersion', () => {
 
     generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
     canCreateVersion.returns(true);
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
@@ -870,7 +870,7 @@ describe('createVersion', () => {
     const credentials = { company: { _id: companyId } };
 
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
       generateSignatureRequest.returns({ data: { error: { type: '1234567890' } } });
       canCreateVersion.returns(true);
 
@@ -896,7 +896,7 @@ describe('createVersion', () => {
     const credentials = { company: { _id: companyId } };
 
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
       canCreateVersion.returns(false);
 
       await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
@@ -987,7 +987,7 @@ describe('canUpdateVersion', () => {
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(0);
-    findContract.returns(SinonMongoose.stubChainedQueries([[contract]], ['sort', 'lean']));
+    findContract.returns(SinonMongoose.stubChainedQueries([contract], ['sort', 'lean']));
 
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
 
@@ -1017,7 +1017,7 @@ describe('canUpdateVersion', () => {
 
     countAuxiliaryEventsBetweenDates.returns(0);
     findContract.returns(SinonMongoose.stubChainedQueries(
-      [[contract, { startDate: '2018-06-02T00:00:00', endDate: '2018-10-02T23:59:59' }]],
+      [contract, { startDate: '2018-06-02T00:00:00', endDate: '2018-10-02T23:59:59' }],
       ['sort', 'lean']
     ));
 
@@ -1048,7 +1048,7 @@ describe('canUpdateVersion', () => {
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(5);
-    findContract.returns(SinonMongoose.stubChainedQueries([[contract]], ['sort', 'lean']));
+    findContract.returns(SinonMongoose.stubChainedQueries([contract], ['sort', 'lean']));
 
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
 
@@ -1187,8 +1187,8 @@ describe('updateVersion', () => {
     canUpdateVersion.returns(true);
     formatVersionEditionPayload.returns({ $set: {}, $push: {} });
 
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
 
     updateHistoryOnContractUpdateStub.returns();
 
@@ -1240,8 +1240,8 @@ describe('updateVersion', () => {
     canUpdateVersion.returns(true);
     formatVersionEditionPayload.returns({ $set: {}, $push: {}, $unset: { auxiliaryDoc: '' } });
 
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
 
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate, credentials);
 
@@ -1282,7 +1282,7 @@ describe('updateVersion', () => {
         versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
       };
 
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
       canUpdateVersion.returns(false);
       updateHistoryOnContractUpdateStub.returns();
 

@@ -19,7 +19,7 @@ describe('create', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    create.returns(SinonMongoose.stubChainedQueries([{ name: 'toto', company: companyId }], ['toObject']));
+    create.returns(SinonMongoose.stubChainedQueries({ name: 'toto', company: companyId }, ['toObject']));
 
     const result = await SectorsHelper.create(payload, credentials);
 
@@ -48,7 +48,7 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const companyId = credentials.company._id;
 
-    find.returns(SinonMongoose.stubChainedQueries([{ name: 'toto', company: companyId }], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries({ name: 'toto', company: companyId }, ['lean']));
 
     await SectorsHelper.list(credentials);
 
@@ -77,7 +77,7 @@ describe('update', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await SectorsHelper.update(sectorId, payload, credentials);
 

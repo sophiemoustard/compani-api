@@ -1257,7 +1257,7 @@ describe('getBillNumber', () => {
     const prefix = '1119';
     const billNumber = { prefix, seq: 1 };
 
-    findOneAndUpdateBillNumber.returns(SinonMongoose.stubChainedQueries([billNumber], ['lean']));
+    findOneAndUpdateBillNumber.returns(SinonMongoose.stubChainedQueries(billNumber, ['lean']));
 
     const result = await BillHelper.getBillNumber(new Date('2019-11-15'), companyId);
     expect(result).toEqual(billNumber);
@@ -1848,7 +1848,7 @@ describe('list', () => {
       { _id: new ObjectId(), type: 'manual', billingItemList: [] },
     ];
 
-    findBill.returns(SinonMongoose.stubChainedQueries([bills]));
+    findBill.returns(SinonMongoose.stubChainedQueries(bills));
 
     await BillHelper.list(query, credentials);
 
@@ -1929,7 +1929,7 @@ describe('formatAndCreateBill', () => {
     getBillNumber.returns({ prefix: 'FACT-101', seq: 1 });
     formatBillNumber.returns('FACT-101092100001');
     findBillingItem.returns(
-      SinonMongoose.stubChainedQueries([[{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]], ['lean'])
+      SinonMongoose.stubChainedQueries([{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }], ['lean'])
     );
     formatBillingItem.onCall(0).returns({ inclTaxes: 180 });
     formatBillingItem.onCall(1).returns({ inclTaxes: 150 });
@@ -1992,7 +1992,7 @@ describe('getBills', () => {
   });
 
   it('should return bills', async () => {
-    findBill.returns(SinonMongoose.stubChainedQueries([bills]));
+    findBill.returns(SinonMongoose.stubChainedQueries(bills));
 
     const result = await BillHelper.getBills({}, credentials);
 
@@ -2010,7 +2010,7 @@ describe('getBills', () => {
     const dateQuery = { $lte: query.startDate };
 
     getDateQueryStub.returns(dateQuery);
-    findBill.returns(SinonMongoose.stubChainedQueries([bills]));
+    findBill.returns(SinonMongoose.stubChainedQueries(bills));
 
     const result = await BillHelper.getBills(query, credentials);
 
@@ -2028,7 +2028,7 @@ describe('getBills', () => {
     const dateQuery = { $gte: query.endDate };
 
     getDateQueryStub.returns(dateQuery);
-    findBill.returns(SinonMongoose.stubChainedQueries([bills]));
+    findBill.returns(SinonMongoose.stubChainedQueries(bills));
 
     const result = await BillHelper.getBills(query, credentials);
 
@@ -2541,8 +2541,8 @@ describe('generateBillPdf', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const bill = { _id: new ObjectId(), number: 'number' };
-    findOneBill.returns(SinonMongoose.stubChainedQueries([bill]));
-    findOneCompany.returns(SinonMongoose.stubChainedQueries([credentials.company], ['lean']));
+    findOneBill.returns(SinonMongoose.stubChainedQueries(bill));
+    findOneCompany.returns(SinonMongoose.stubChainedQueries(credentials.company, ['lean']));
     formatPdf.returns({ data: 'data' });
     generatePdf.returns({ pdf: 'pdf' });
     getPdfContent.returns({ content: [{ text: 'data' }] });

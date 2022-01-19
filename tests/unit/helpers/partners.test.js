@@ -16,7 +16,7 @@ describe('list', () => {
   it('should list partner from my company', async () => {
     const credentials = { company: { _id: new ObjectId() } };
 
-    find.returns(SinonMongoose.stubChainedQueries([[{ _id: new ObjectId() }]], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectId() }], ['lean']));
 
     await PartnersHelper.list(credentials);
 

@@ -113,7 +113,7 @@ describe('populateFundings', () => {
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...omit(fundings[0], ['versions']) };
     mergeLastVersionWithBaseObjectStub.returns(funding);
-    findOneFundingHistory.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    findOneFundingHistory.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
@@ -139,7 +139,7 @@ describe('populateFundings', () => {
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     const returnedHistory = { careHours: 4, fundingId };
     mergeLastVersionWithBaseObjectStub.returns(funding);
-    findOneFundingHistory.returns(SinonMongoose.stubChainedQueries([returnedHistory], ['lean']));
+    findOneFundingHistory.returns(SinonMongoose.stubChainedQueries(returnedHistory, ['lean']));
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
@@ -164,7 +164,7 @@ describe('populateFundings', () => {
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     mergeLastVersionWithBaseObjectStub.returns(funding);
-    findOneFundingHistory.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    findOneFundingHistory.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
@@ -193,7 +193,7 @@ describe('populateFundings', () => {
     ];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     mergeLastVersionWithBaseObjectStub.returns(funding);
-    findFundingHistory.returns(SinonMongoose.stubChainedQueries([returnedHistories], ['lean']));
+    findFundingHistory.returns(SinonMongoose.stubChainedQueries(returnedHistories, ['lean']));
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date('2019/03/10'), tpps, companyId);
 
@@ -1298,9 +1298,9 @@ describe('getDraftBillsList', () => {
     const query = { endDate: '2019-12-25T07:00:00', billingStartDate: '2019-12-31T07:00:00' };
 
     getEventsToBill.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
-    findSurcharge.returns(SinonMongoose.stubChainedQueries([bddSurcharges], ['lean']));
-    findBillingItem.returns(SinonMongoose.stubChainedQueries([bddBillingItems], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    findSurcharge.returns(SinonMongoose.stubChainedQueries(bddSurcharges, ['lean']));
+    findBillingItem.returns(SinonMongoose.stubChainedQueries(bddBillingItems, ['lean']));
     formatBillingItems.returns([]);
 
     const result = await DraftBillsHelper.getDraftBillsList(query, credentials);
@@ -1333,9 +1333,9 @@ describe('getDraftBillsList', () => {
     const bddBillingItems = [{ _id: new ObjectId(), defaultUnitAmount: 2 }];
     const query = { endDate: '2019-12-25T07:00:00', billingStartDate: '2019-12-31T07:00:00' };
 
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([thirdPartyPayersList], ['lean']));
-    findSurcharge.returns(SinonMongoose.stubChainedQueries([bddSurcharges], ['lean']));
-    findBillingItem.returns(SinonMongoose.stubChainedQueries([bddBillingItems], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(thirdPartyPayersList, ['lean']));
+    findSurcharge.returns(SinonMongoose.stubChainedQueries(bddSurcharges, ['lean']));
+    findBillingItem.returns(SinonMongoose.stubChainedQueries(bddBillingItems, ['lean']));
     getEventsToBill.returns([
       {
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
@@ -1466,9 +1466,9 @@ describe('getDraftBillsList', () => {
     const bddBillingItems = [{ _id: new ObjectId(), defaultUnitAmount: 2 }];
     const query = { endDate: '2019-12-25T07:00:00', billingStartDate: '2019-12-31T07:00:00' };
 
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
-    findSurcharge.returns(SinonMongoose.stubChainedQueries([bddSurcharges], ['lean']));
-    findBillingItem.returns(SinonMongoose.stubChainedQueries([bddBillingItems], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    findSurcharge.returns(SinonMongoose.stubChainedQueries(bddSurcharges, ['lean']));
+    findBillingItem.returns(SinonMongoose.stubChainedQueries(bddBillingItems, ['lean']));
     getEventsToBill.returns([
       {
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },

@@ -84,8 +84,8 @@ describe('method', () => {
         },
       };
 
-      findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));
-      findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+      findRepetition.returns(SinonMongoose.stubChainedQueries(repetition));
+      findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
 
       formatEventBasedOnRepetitionStub.returns(futureEvent);
       create.returns(futureEvent);
@@ -128,8 +128,8 @@ describe('method', () => {
       parentId: '5d84f869b7e67963c65236a9',
     }];
 
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions]));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries(repetitions));
 
     const result = await eventRepetitions.method(server);
 
@@ -176,8 +176,8 @@ describe('method', () => {
     ];
     const companyId = new ObjectId();
 
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions]));
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries(repetitions));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
 
     const futureEvent = new Event({
       type: 'internal_hour',
@@ -230,8 +230,8 @@ describe('method', () => {
 
     const companyId = new ObjectId();
 
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries(repetition));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
 
     formatEventBasedOnRepetitionStub.returns(Promise.reject(error));
 
@@ -285,8 +285,8 @@ describe('method', () => {
       repetition: { frequency: 'every_day', parentId },
     };
 
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries(repetition));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
     formatEventBasedOnRepetitionStub.returns(futureEvent);
     isAbsent.returns(true);
 

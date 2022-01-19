@@ -25,7 +25,7 @@ describe('list', () => {
       date: '2020-04-03T10:00:00',
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets]));
+    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets));
 
     const result = await attendanceSheetHelper.list(courseId, null);
 
@@ -57,7 +57,7 @@ describe('list', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets]));
+    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets));
 
     const result = await attendanceSheetHelper.list(courseId, authCompanyId);
 
@@ -115,7 +115,7 @@ describe('create', () => {
     const payload = { trainee: 'id de quelqun', course: new ObjectId(), file: 'test.pdf' };
     const returnedUser = { identity: { firstName: 'monsieur', lastname: 'patate' } };
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
-    findOne.returns(SinonMongoose.stubChainedQueries([returnedUser], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(returnedUser, ['lean']));
     formatIdentity.returns('monsieurPATATE');
 
     await attendanceSheetHelper.create(payload);

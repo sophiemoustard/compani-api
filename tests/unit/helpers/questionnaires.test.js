@@ -38,7 +38,7 @@ describe('list', () => {
   it('should return questionnaires', async () => {
     const questionnairesList = [{ name: 'test' }, { name: 'test2' }];
 
-    find.returns(SinonMongoose.stubChainedQueries([questionnairesList]));
+    find.returns(SinonMongoose.stubChainedQueries(questionnairesList));
 
     const result = await QuestionnaireHelper.list();
 
@@ -63,7 +63,7 @@ describe('getQuestionnaire', () => {
     const questionnaireId = new ObjectId();
     const questionnaire = { _id: questionnaireId, name: 'test' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([questionnaire]));
+    findOne.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getQuestionnaire(questionnaireId);
 
@@ -93,7 +93,7 @@ describe('editQuestionnaire', () => {
     const cards = [new ObjectId(), new ObjectId()];
     const questionnaire = { _id: questionnaireId, name: 'test2', cards };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([questionnaire], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(questionnaire, ['lean']));
 
     const result = await QuestionnaireHelper.update(questionnaireId, { name: 'test2', cards });
 
@@ -152,7 +152,7 @@ describe('removeCard', () => {
   it('should remove card without media from questionnaire', async () => {
     const cardId = new ObjectId();
 
-    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await QuestionnaireHelper.removeCard(cardId);
 
@@ -171,7 +171,7 @@ describe('removeCard', () => {
     const cardId = new ObjectId();
     const card = { _id: cardId, media: { publicId: 'publicId' } };
 
-    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([card], ['lean']));
+    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries(card, ['lean']));
 
     await QuestionnaireHelper.removeCard(cardId);
 
@@ -207,7 +207,7 @@ describe('getUserQuestionnaires', () => {
     const credentials = { _id: new ObjectId() };
     const course = { _id: courseId, format: 'strictly_e_learning' };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-13T15:00:00'));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -233,9 +233,9 @@ describe('getUserQuestionnaires', () => {
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-13T15:00:00'));
-    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries([null]));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(null));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -272,9 +272,9 @@ describe('getUserQuestionnaires', () => {
       histories: [{ _id: new ObjectId(), course: course._id, user: credentials._id }],
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-13T15:00:00'));
-    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaire]));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -307,9 +307,9 @@ describe('getUserQuestionnaires', () => {
     };
     const questionnaire = { _id: new ObjectId(), name: 'test', type: 'expectations', histories: [] };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-13T15:00:00'));
-    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaire]));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -339,9 +339,9 @@ describe('getUserQuestionnaires', () => {
     const course = { _id: courseId, slots: [] };
     const questionnaire = { _id: new ObjectId(), name: 'test', histories: [] };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-13T15:00:00'));
-    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaire]));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -374,7 +374,7 @@ describe('getUserQuestionnaires', () => {
       slotsToPlan: [{ _id: new ObjectId() }],
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-23T15:00:00'));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -400,9 +400,9 @@ describe('getUserQuestionnaires', () => {
       slots: [{ startDate: new Date('2021-04-20T09:00:00'), endDate: new Date('2021-04-20T11:00:00') }],
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-23T15:00:00'));
-    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries([null]));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(null));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -439,9 +439,9 @@ describe('getUserQuestionnaires', () => {
       histories: [{ _id: new ObjectId(), course: course._id, user: credentials._id }],
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-23T15:00:00'));
-    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaire]));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -474,9 +474,9 @@ describe('getUserQuestionnaires', () => {
     };
     const questionnaire = { _id: new ObjectId(), name: 'test', type: 'end_of_course', histories: [] };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-23T10:00:00'));
-    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaire]));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
 
@@ -512,7 +512,7 @@ describe('getUserQuestionnaires', () => {
       ],
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     nowStub.returns(new Date('2021-04-23T15:00:00'));
 
     const result = await QuestionnaireHelper.getUserQuestionnaires(courseId, credentials);
@@ -614,8 +614,8 @@ describe('getFollowUp', () => {
       ],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['select', 'populate', 'lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
     const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
 
@@ -761,8 +761,8 @@ describe('getFollowUp', () => {
       ],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['select', 'populate', 'lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
     const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
 
@@ -901,7 +901,7 @@ describe('getFollowUp', () => {
       ],
     };
 
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['select', 'populate', 'lean']));
+    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
     const result = await QuestionnaireHelper.getFollowUp(questionnaireId);
 
@@ -983,8 +983,8 @@ describe('getFollowUp', () => {
       }],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['select', 'populate', 'lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
     const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
 
@@ -1055,8 +1055,8 @@ describe('getFollowUp', () => {
       histories: [],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['select', 'populate', 'lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
     const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
 
@@ -1133,8 +1133,8 @@ describe('getFollowUp', () => {
       }],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['select', 'populate', 'lean']));
-    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries([questionnaire], ['select', 'populate', 'lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['select', 'populate', 'lean']));
+    questionnaireFindOne.returns(SinonMongoose.stubChainedQueries(questionnaire, ['select', 'populate', 'lean']));
 
     const result = await QuestionnaireHelper.getFollowUp(questionnaireId, courseId);
 

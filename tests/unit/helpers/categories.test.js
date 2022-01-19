@@ -34,7 +34,7 @@ describe('list', () => {
   it('should return categories', async () => {
     const categoriesList = [{ name: 'ma première catégorie' }, { name: 'ma seconde catégorie' }];
 
-    list.returns(SinonMongoose.stubChainedQueries([categoriesList]));
+    list.returns(SinonMongoose.stubChainedQueries(categoriesList));
 
     const result = await CategoryHelper.list();
 

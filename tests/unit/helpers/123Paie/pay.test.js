@@ -83,7 +83,7 @@ describe('exportPay', () => {
       },
     ];
 
-    findPay.returns(SinonMongoose.stubChainedQueries([payList]));
+    findPay.returns(SinonMongoose.stubChainedQueries(payList));
     exportToTxt.returns('file');
 
     const result = await Pay123PayHelper.exportPay(query, { company: { _id: companyId } });
@@ -186,7 +186,7 @@ describe('exportPay', () => {
       },
     ];
 
-    findPay.returns(SinonMongoose.stubChainedQueries([payList]));
+    findPay.returns(SinonMongoose.stubChainedQueries(payList));
     exportToTxt.returns('file');
 
     const result = await Pay123PayHelper.exportPay(query, { company: { _id: companyId } });

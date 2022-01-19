@@ -155,7 +155,7 @@ describe('createEventHistory', () => {
     const companyId = new ObjectId();
     const payload = { _id: new ObjectId(), auxiliary: auxiliaryId.toHexString() };
     const credentials = { _id: new ObjectId(), company: { _id: companyId } };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ sector: sectorId }));
 
     await EventHistoryHelper.createEventHistory(payload, credentials, 'event_creation');
 
@@ -650,7 +650,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { auxiliary: 'qwertyuiop' };
     const event = { auxiliary: auxiliaryId };
-    find.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, sector: sectorId }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
@@ -680,7 +680,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { sector: sectorId };
     const event = { auxiliary: auxiliaryId };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
@@ -711,7 +711,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { auxiliary: auxiliaryId };
     const event = { sector: eventSectorId };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
@@ -757,7 +757,7 @@ describe('formatHistoryForCancelUpdate', () => {
       cancel: { reason: 'toto', condition: 'tata' },
       auxiliary: auxiliaryId.toHexString(),
     };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForCancelUpdate(mainInfo, payload, companyId);
 
@@ -837,7 +837,7 @@ describe('formatHistoryForDatesUpdate', () => {
       auxiliary: auxiliaryId.toHexString(),
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForDatesUpdate(mainInfo, payload, event, companyId);
 
@@ -924,7 +924,7 @@ describe('formatHistoryForHoursUpdate', () => {
       auxiliary: auxiliaryId.toHexString(),
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForHoursUpdate(mainInfo, payload, event, companyId);
 
@@ -1100,9 +1100,9 @@ describe('createTimeStampCancellationHistory', () => {
     const auxiliaryId = new ObjectId();
     const sectorId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: eventHistoryId, event: { eventId } }], ['lean']));
-    findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, auxiliary: auxiliaryId }], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: eventHistoryId, event: { eventId } }, ['lean']));
+    findOneEvent.returns(SinonMongoose.stubChainedQueries({ _id: eventId, auxiliary: auxiliaryId }, ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     await EventHistoryHelper.createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
 
@@ -1147,8 +1147,8 @@ describe('createTimeStampCancellationHistory', () => {
     const eventId = new ObjectId();
     const sectorId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: eventHistoryId, event: { eventId } }], ['lean']));
-    findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, sector: sectorId }], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: eventHistoryId, event: { eventId } }, ['lean']));
+    findOneEvent.returns(SinonMongoose.stubChainedQueries({ _id: eventId, sector: sectorId }, ['lean']));
 
     await EventHistoryHelper.createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
 

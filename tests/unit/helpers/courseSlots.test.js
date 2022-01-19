@@ -141,7 +141,7 @@ describe('updateCourseSlot', () => {
     const user = { _id: new ObjectId() };
     const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectId(), meetingLink: 'https://github.com' };
     hasConflicts.returns(false);
-    findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: REMOTE }], ['lean']));
+    findByIdStep.returns(SinonMongoose.stubChainedQueries({ _id: payload.step, type: REMOTE }, ['lean']));
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     SinonMongoose.calledOnceWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
@@ -159,7 +159,7 @@ describe('updateCourseSlot', () => {
     const user = { _id: new ObjectId() };
     const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectId() };
     hasConflicts.returns(false);
-    findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: REMOTE }], ['lean']));
+    findByIdStep.returns(SinonMongoose.stubChainedQueries({ _id: payload.step, type: REMOTE }, ['lean']));
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     SinonMongoose.calledOnceWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
@@ -181,7 +181,7 @@ describe('updateCourseSlot', () => {
       address: { fullAddress: '24 avenue Daumesnil' },
     };
     hasConflicts.returns(false);
-    findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: ON_SITE }], ['lean']));
+    findByIdStep.returns(SinonMongoose.stubChainedQueries({ _id: payload.step, type: ON_SITE }, ['lean']));
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     SinonMongoose.calledOnceWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);
@@ -199,7 +199,7 @@ describe('updateCourseSlot', () => {
     const user = { _id: new ObjectId() };
     const payload = { startDate: '2020-03-03T22:00:00', step: new ObjectId() };
     hasConflicts.returns(false);
-    findByIdStep.returns(SinonMongoose.stubChainedQueries([{ _id: payload.step, type: ON_SITE }], ['lean']));
+    findByIdStep.returns(SinonMongoose.stubChainedQueries({ _id: payload.step, type: ON_SITE }, ['lean']));
 
     await CourseSlotsHelper.updateCourseSlot(slot, payload, user);
     SinonMongoose.calledOnceWithExactly(findByIdStep, [{ query: 'findById', args: [payload.step] }, { query: 'lean' }]);

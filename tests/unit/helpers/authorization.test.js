@@ -24,7 +24,7 @@ describe('validate', () => {
     const userId = new ObjectId();
     const user = { _id: userId, identity: { lastname: 'lastname' }, local: { email: 'email@email.com' } };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -67,7 +67,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -134,7 +134,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -218,7 +218,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -258,7 +258,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -298,7 +298,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 

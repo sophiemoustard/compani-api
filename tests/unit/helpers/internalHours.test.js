@@ -38,7 +38,7 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const internalHours = [{ _id: new ObjectId(), name: 'skusku' }];
 
-    find.returns(SinonMongoose.stubChainedQueries([internalHours], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(internalHours, ['lean']));
 
     const result = await InternalHoursHelper.list(credentials);
 

@@ -51,7 +51,7 @@ describe('method', () => {
     ];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ name: 'Alenvi', _id: companyId }]], ['lean']));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ name: 'Alenvi', _id: companyId }], ['lean']));
     billAlertEmailStub
       .onFirstCall()
       .returns(Promise.resolve('leroi@lion.com'))
@@ -85,7 +85,7 @@ describe('method', () => {
     ];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ name: 'Alenvi', _id: companyId }]], ['lean']));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ name: 'Alenvi', _id: companyId }], ['lean']));
     billAlertEmailStub
       .onFirstCall()
       .returns(Promise.resolve('leroi@lion.com'))

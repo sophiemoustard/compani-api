@@ -34,7 +34,7 @@ describe('create', () => {
     const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
     const credentials = { company: { _id: new ObjectId() } };
     findOne.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: userId, administrative: { driveFolder: { driveId: 'driveId' } }, identity: { lastname: 'lastname' } }],
+      { _id: userId, administrative: { driveFolder: { driveId: 'driveId' } }, identity: { lastname: 'lastname' } },
       ['lean']
     ));
     formatIdentity.returns('bonjour');
@@ -69,7 +69,7 @@ describe('create', () => {
     const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
     const credentials = { company: { _id: companyId } };
     findOne.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: userId, administrative: { driveFolder: { driveId: 'driveId' } }, identity: { lastname: 'lastname' } }],
+      { _id: userId, administrative: { driveFolder: { driveId: 'driveId' } }, identity: { lastname: 'lastname' } },
       ['lean']
     ));
     formatIdentity.returns('bonjour');
