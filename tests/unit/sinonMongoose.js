@@ -18,7 +18,7 @@ const stubChainedQueries = (stubbedMethodReturns, chainedQueries = ['populate', 
 
 const checkFirstQueryCoherence = (stubbedMethod, chainedPayload, callCount) => {
   const expectedQuery = chainedPayload[0].query;
-  if (!stubbedMethod.getCall(callCount)) console.log(stubbedMethod, chainedPayload[0].args, callCount);
+  if (!stubbedMethod.getCall(callCount)) sinon.assert.fail(`"${stubbedMethod}" stub not called on call ${callCount}`);
   const receivedQuery = String(stubbedMethod.getCall(callCount).proxy);
   if (expectedQuery !== receivedQuery) {
     sinon.assert.fail(`Error in principal query : expected: "${expectedQuery}", received: "${receivedQuery}"`);
