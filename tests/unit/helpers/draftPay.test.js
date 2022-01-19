@@ -1320,6 +1320,84 @@ describe('getHoursFromDailyAbsence', () => {
   });
 });
 
+describe('getAbsenceHours', () => {
+  let getHoursFromDailyAbsence;
+  beforeEach(() => {
+    getHoursFromDailyAbsence = sinon.stub(DraftPayHelper, 'getHoursFromDailyAbsence');
+  });
+  afterEach(() => {
+    getHoursFromDailyAbsence.restore();
+  });
+
+  it('should return daily absence hours', async () => {
+    const absence = { absenceNature: 'daily', startDate: '2019-07-17T10:00:00', endDate: '2019-07-20T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    getHoursFromDailyAbsence.onCall(0).returns(4);
+    getHoursFromDailyAbsence.onCall(1).returns(4);
+    const absenceHours = await DraftPayHelper.getAbsenceHours(absence, contracts);
+
+    expect(absenceHours).toEqual(8);
+    sinon.assert.calledTwice(getHoursFromDailyAbsence);
+    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absence, contracts[0], absence);
+    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absence, contracts[1], absence);
+  });
+
+  it('should return half-daily absence hours', async () => {
+    const absence = { absenceNature: 'half-daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    getHoursFromDailyAbsence.returns(1);
+    const absenceHours = await DraftPayHelper.getAbsenceHours(absence, contracts, absence);
+
+    expect(absenceHours).toEqual(1);
+    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0], absence);
+  });
+
+  it('should return hourly absence hours', async () => {
+    const absence = { absenceNature: 'hourly', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    const absenceHours = await DraftPayHelper.getAbsenceHours(absence, contracts);
+
+    expect(absenceHours).toEqual(2);
+    sinon.assert.notCalled(getHoursFromDailyAbsence);
+  });
+});
+
 describe('getPayFromAbsences', () => {
   let getHoursFromDailyAbsence;
   beforeEach(() => {

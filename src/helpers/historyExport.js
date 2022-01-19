@@ -23,7 +23,6 @@ const {
   MANUAL_TIME_STAMPING_REASONS,
   EVENT_TRANSPORT_MODE_LIST,
   INTRA,
-  HALF_DAILY,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const UtilsHelper = require('./utils');
@@ -187,15 +186,6 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
   return rows;
 };
 
-exports.getAbsenceHours = (absence, contracts) => {
-  if (absence.absenceNature === HOURLY) return moment(absence.endDate).diff(absence.startDate, 'm') / 60;
-
-  const dailyAbsenceHours = contracts.filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
-    (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
-    .reduce((acc, c) => acc + DraftPayHelper.getHoursFromDailyAbsence(absence, c), 0);
-  return absence.absenceNature === HALF_DAILY ? dailyAbsenceHours / 2 : dailyAbsenceHours;
-};
-
 const absenceExportHeader = [
   'Id Auxiliaire',
   'Auxiliaire - Prénom',
@@ -213,7 +203,7 @@ const absenceExportHeader = [
 ];
 
 exports.formatAbsence = (absence) => {
-  const hours = exports.getAbsenceHours(absence, absence.auxiliary.contracts);
+  const hours = DraftPayHelper.getAbsenceHours(absence, absence.auxiliary.contracts);
   const datetimeFormat = absence.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
 
   return [
