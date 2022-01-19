@@ -27,6 +27,7 @@ const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 const ContractHelper = require('./contracts');
 const DatesHelper = require('./dates');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.getContractMonthInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('M').toDate();
@@ -318,11 +319,16 @@ exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
 };
 
 exports.getAbsenceHours = (absence, contracts, query = absence) => {
-  if (absence.absenceNature === HOURLY) return moment(absence.endDate).diff(absence.startDate, 'm') / 60;
+  if (absence.absenceNature === HOURLY) {
+    const absenceDuration = CompaniDate(absence.endDate).diff(absence.startDate, 'minutes');
+    return absenceDuration.minutes / 60;
+  }
 
-  const dailyAbsenceHours = contracts.filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
-    (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
+  const dailyAbsenceHours = contracts
+    .filter(c => CompaniDate(c.startDate).isSameOrBefore(absence.endDate) &&
+      (!c.endDate || CompaniDate(c.endDate).isAfter(absence.startDate)))
     .reduce((acc, c) => acc + this.getHoursFromDailyAbsence(absence, c, query), 0);
+
   return absence.absenceNature === HALF_DAILY ? dailyAbsenceHours / 2 : dailyAbsenceHours;
 };
 
