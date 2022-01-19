@@ -708,7 +708,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre d\'absences': absencesCount,
       'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
       'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
-      Avancement: `${passedSlots.length}/${course.slots.length + course.slotsToPlan.length}`,
+      Avancement: Number((passedSlots.length / (course.slots.length + course.slotsToPlan.length)).toFixed(2)),
     });
   }
 
