@@ -34,6 +34,7 @@ describe('CompaniDuration', () => {
           _getDuration: expect.any(luxon.Duration),
           format: expect.any(Function),
           add: expect.any(Function),
+          asHours: expect.any(Function),
         }));
       sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), duration);
     });
@@ -47,6 +48,17 @@ describe('CompaniDuration', () => {
         sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDuration, null);
       }
     });
+  });
+});
+
+describe('getDuration', () => {
+  it('should return _duration', () => {
+    const durationObject = { hours: 3, minutes: 22, seconds: 57 };
+    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationObject);
+    const result = companiDuration._getDuration;
+
+    expect(result).toEqual(expect.any(luxon.Duration));
+    expect(result).toEqual(luxon.Duration.fromObject(durationObject));
   });
 });
 
