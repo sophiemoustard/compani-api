@@ -25,6 +25,10 @@ const companiDurationFactory = (inputDuration) => {
 
       return this;
     },
+
+    asHours() {
+      return _duration.as('hours');
+    },
   };
 };
 

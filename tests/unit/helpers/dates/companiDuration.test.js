@@ -124,6 +124,17 @@ describe('add', () => {
   });
 });
 
+describe('asHours', () => {
+  const durationAmount = { hours: 1, minutes: 9 };
+  const companiDuration = CompaniDurationsHelper.CompaniDuration(durationAmount);
+
+  it('should return duration in hours', () => {
+    const result = companiDuration.asHours();
+
+    expect(result).toBe(1.15); // 1.15 = 1 + 9 / 60
+  });
+});
+
 describe('_formatMiscToCompaniDuration', () => {
   let fromObject;
   let fromMillis;

@@ -232,13 +232,11 @@ exports.getTotalDurationForExport = (timePeriods) => {
     CompaniDuration()
   );
 
-  return exports.formatFloatForExport(totalDuration._duration.values.minutes / 60);
+  return exports.formatFloatForExport(totalDuration.asHours());
 };
 
 exports.getDuration = (startDate, endDate) =>
   CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format();
 
 exports.getDurationForExport = (startDate, endDate) =>
-  exports.formatFloatForExport(
-    CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes'))._duration.values.minutes / 60
-  );
+  exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).asHours());
