@@ -2086,7 +2086,7 @@ describe('exportTransportsHistory', () => {
         '1h06',
         '4h',
         'Non',
-        '1,10',
+        '1,1000',
       ],
       [
         `${auxiliaryList[0]._id}`,
@@ -2101,7 +2101,7 @@ describe('exportTransportsHistory', () => {
         '0h16',
         '0h30',
         'Oui',
-        '0,50',
+        '0,5000',
       ],
       [
         `${auxiliaryList[1]._id}`,
@@ -2116,7 +2116,7 @@ describe('exportTransportsHistory', () => {
         '2h06',
         '4h',
         'Non',
-        '2,10',
+        '2,1000',
       ],
     ]);
   });
