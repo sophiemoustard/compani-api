@@ -29,11 +29,13 @@ const {
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
 const CourseHelper = require('./courses');
 const AttendanceSheet = require('../models/AttendanceSheet');
+const DistanceMatrixHelper = require('./distanceMatrix');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
@@ -478,7 +480,7 @@ const formatLines = (surchargedPlanDetails, planName) => {
   const lines = [planName];
   for (const [surchageKey, surcharge] of surcharges) {
     lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, `
-     + `${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
+      + `${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
   }
 
   return lines.join('\r\n');
@@ -743,6 +745,65 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
       Durée: slotDuration,
       Adresse: getAddress(slot),
     });
+  }
+
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+};
+
+exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
+  const rows = [];
+  const events = await EventRepository.getEventsByDayAndAuxiliary(
+    startDate,
+    endDate,
+    get(credentials, 'company._id')
+  );
+  const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices(credentials);
+
+  const sortedEventsByAuxiliary = events
+    .sort((a, b) => (a.auxiliary.identity.lastname).localeCompare(b.auxiliary.identity.lastname));
+
+  for (const group of sortedEventsByAuxiliary) {
+    const sortedEventsByDayList = group.eventsByDay.sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
+
+    for (const eventsGroupedByDay of sortedEventsByDayList) {
+      const sortedEvents = [...eventsGroupedByDay].sort(DatesHelper.ascendingSort('startDate'));
+
+      for (let i = 1; i < sortedEvents.length; i++) {
+        const {
+          duration,
+          travelledKm,
+          origins,
+          destinations,
+          transportDuration,
+          breakDuration,
+          pickTransportDuration,
+        } = await DraftPayHelper.getPaidTransportInfo(
+          { ...sortedEvents[i], auxiliary: group.auxiliary },
+          { ...sortedEvents[i - 1], auxiliary: group.auxiliary },
+          distanceMatrix
+        );
+
+        const formattedDuration = (duration / 60).toFixed(4).replace('.', ',');
+
+        rows.push({
+          'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
+          'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
+          'Nom  de l\'auxiliaire': get(group, 'auxiliary.identity.lastname', ''),
+          'Heure de départ du trajet': CompaniDate(sortedEvents[i - 1].endDate).format('dd/LL/yyyy HH:mm:ss'),
+          'Heure d\'arrivée du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy HH:mm:ss'),
+          'Adresse de départ': origins,
+          'Adresse d\'arrivée': destinations,
+          Distance: travelledKm,
+          'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
+            get(group, 'auxiliary.administrative.transportInvoice.transportType')
+          ],
+          'Durée du trajet': CompaniDuration({ minutes: transportDuration }).format(),
+          'Durée inter vacation': CompaniDuration({ minutes: breakDuration }).format(),
+          'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
+          'Heures prise en compte': formattedDuration,
+        });
+      }
+    }
   }
 
   return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];

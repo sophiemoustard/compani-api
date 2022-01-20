@@ -28,6 +28,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
@@ -128,6 +129,7 @@ const auxiliaryList = [{
     nationality: 'FR',
     socialSecurityNumber: '012345678912345',
   },
+  administrative: { transportInvoice: { transportType: 'public' } },
   contact: {
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -172,6 +174,7 @@ const auxiliaryList = [{
   refreshToken: uuidv4(),
   contracts: [contract3Id],
   origin: WEBAPP,
+  administrative: { transportInvoice: { transportType: 'private' } },
 }];
 
 const contractList = [{
@@ -383,8 +386,29 @@ const referentList = [
   },
 ];
 
-const eventList = [
+const distanceMatrixList = [
   {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    origins: '42 Rue de la Procession 75015 Paris',
+    destinations: '37 Rue de Ponthieu 75008 Paris',
+    mode: 'transit',
+    distance: 230,
+    duration: 230,
+  },
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    origins: '42 Rue de la Procession 75015 Paris',
+    destinations: '35 Rue du Test 75015 Paris',
+    mode: 'driving',
+    distance: 230,
+    duration: 3900,
+  },
+];
+
+const eventList = [
+  { // 0
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -395,7 +419,7 @@ const eventList = [
     endDate: '2019-01-21T22:59:00.000Z',
     auxiliary: auxiliaryList[0]._id,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -407,7 +431,7 @@ const eventList = [
     auxiliary: auxiliaryList[0]._id,
     misc: 'test absence',
   },
-  {
+  { // 2
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -429,7 +453,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
+  { // 3
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -450,7 +474,7 @@ const eventList = [
     transportMode: 'public',
     kmDuringEvent: 23,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -470,7 +494,7 @@ const eventList = [
     },
     isBilled: true,
   },
-  {
+  { // 5
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -481,22 +505,79 @@ const eventList = [
     endDate: '2019-01-17T16:30:19.543Z',
     createdAt: '2019-01-16T14:30:19.543Z',
   },
-  {
+  { // 6 - transport event destination
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
-    startDate: '2019-01-11T09:30:19.543Z',
-    endDate: '2019-01-11T11:30:21.653Z',
+    startDate: '2019-01-11T09:30:00.000Z',
+    endDate: '2019-01-11T11:30:00.000Z',
     auxiliary: auxiliaryList[0]._id,
     customer: customersList[3]._id,
     createdAt: '2019-01-09T11:33:14.343Z',
     subscription: customersList[3].subscriptions[0]._id,
     address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
+      fullAddress: '37 Rue de Ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
       street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // 7 - transport event origin
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T06:30:00.000Z',
+    endDate: '2019-01-11T08:30:00.000Z',
+    auxiliary: auxiliaryList[0]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '42 Rue de la Procession 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '42 Rue de la Procession',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // 8 - origin
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T09:30:00.000Z',
+    endDate: '2019-01-11T10:30:00.000Z',
+    auxiliary: auxiliaryList[1]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '42 Rue de la Procession 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '42 Rue de la Procession',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // 9 - destination
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T11:35:00.000Z',
+    endDate: '2019-01-11T12:30:00.000Z',
+    auxiliary: auxiliaryList[1]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '35 Rue du Test 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '42 Rue de la Procession',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
@@ -1055,6 +1136,7 @@ const populateDB = async () => {
     Attendance.create(attendanceList),
     AttendanceSheet.create(attendanceSheetList),
     Step.create(stepList),
+    DistanceMatrix.create(distanceMatrixList),
   ]);
 };
 
@@ -1070,4 +1152,5 @@ module.exports = {
   thirdPartyPayer,
   courseList,
   courseSlotList,
+  distanceMatrixList,
 };

@@ -19,6 +19,7 @@ const {
   REFERENT,
   COURSE,
   COURSE_SLOT,
+  TRANSPORT,
 } = require('../helpers/constants');
 const HistoryExportHelper = require('../helpers/historyExport');
 const DataExportHelper = require('../helpers/dataExport');
@@ -102,6 +103,9 @@ const exportHistory = async (req, h) => {
         break;
       case COURSE_SLOT:
         exportArray = await HistoryExportHelper.exportCourseSlotHistory(startDate, endDate);
+        break;
+      case TRANSPORT:
+        exportArray = await HistoryExportHelper.exportTransportsHistory(startDate, endDate, credentials);
         break;
     }
 

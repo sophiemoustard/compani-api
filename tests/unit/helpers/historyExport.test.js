@@ -17,6 +17,7 @@ const CourseHelper = require('../../../src/helpers/courses');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
+const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
 const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B, ON_SITE, REMOTE, E_LEARNING } = require('../../../src/helpers/constants');
@@ -1960,5 +1961,163 @@ describe('exportCourseSlotHistory', () => {
         { query: 'lean' },
       ]
     );
+  });
+});
+
+describe('exportTransportsHistory', () => {
+  const auxiliaryList = [
+    {
+      _id: new ObjectId(),
+      administrative: { transportInvoice: { transportType: 'public' } },
+      identity: { firstname: 'Abel', lastname: 'Auboisdormant' },
+    },
+    {
+      _id: new ObjectId(),
+      administrative: { transportInvoice: { transportType: 'private' } },
+      identity: { firstname: 'Fleur', lastname: 'Ymichon' },
+    },
+  ];
+
+  let getEventsByDayAndAuxiliary;
+  let getPaidTransportInfo;
+  let getDistanceMatrices;
+
+  beforeEach(() => {
+    getEventsByDayAndAuxiliary = sinon.stub(EventRepository, 'getEventsByDayAndAuxiliary');
+    getPaidTransportInfo = sinon.stub(DraftPayHelper, 'getPaidTransportInfo');
+    getDistanceMatrices = sinon.stub(DistanceMatrixHelper, 'getDistanceMatrices');
+  });
+
+  afterEach(() => {
+    getEventsByDayAndAuxiliary.restore();
+    getPaidTransportInfo.restore();
+    getDistanceMatrices.restore();
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    getEventsByDayAndAuxiliary.returns([
+      {
+        auxiliary: auxiliaryList[0],
+        eventsByDay: [
+          [
+            { startDate: '2021-06-25T10:00:00', endDate: '2021-06-25T12:00:00' },
+            { startDate: '2021-06-25T14:00:00', endDate: '2021-06-25T16:00:00' },
+          ],
+          [
+            { startDate: '2021-06-29T12:30:00', endDate: '2021-06-29T14:30:00' },
+            { startDate: '2021-06-29T10:00:00', endDate: '2021-06-29T12:00:00' },
+          ],
+          [
+            { startDate: '2021-06-27T10:00:00', endDate: '2021-06-27T12:00:00' },
+          ],
+        ],
+      },
+      {
+        auxiliary: auxiliaryList[1],
+        eventsByDay: [
+          [
+            { startDate: '2021-06-25T10:00:00', endDate: '2021-06-25T12:00:00' },
+          ],
+          [
+            { startDate: '2021-06-28T14:00:00', endDate: '2021-06-28T16:00:00' },
+            { startDate: '2021-06-28T10:00:00', endDate: '2021-06-28T12:00:00' },
+          ],
+        ],
+      },
+    ]);
+    getPaidTransportInfo.onCall(0).returns({
+      duration: 66,
+      travelledKm: 5,
+      origins: '5 avenue du test, Saint Mandé',
+      destinations: '25 avenue du test, Saint Mandé',
+      transportDuration: 66,
+      breakDuration: 240,
+      pickTransportDuration: true,
+    });
+    getPaidTransportInfo.onCall(1).returns({
+      duration: 30,
+      travelledKm: 15,
+      origins: '5 rue du test, Paris',
+      destinations: '25 rue du test, Paris',
+      transportDuration: 16,
+      breakDuration: 30,
+      pickTransportDuration: false,
+    });
+    getPaidTransportInfo.onCall(2).returns({
+      duration: 126,
+      travelledKm: 25,
+      origins: '5 boulevard du test, Paris',
+      destinations: '25 place du test, Paris',
+      transportDuration: 126,
+      breakDuration: 240,
+      pickTransportDuration: true,
+    });
+    getDistanceMatrices.returns([]);
+
+    const credentials = { company: { _id: new ObjectId() } };
+    const exportArray = await ExportHelper.exportTransportsHistory('2021-06-24', '2021-06-30', credentials);
+
+    expect(exportArray).toEqual([
+      [
+        'Id de l\'auxiliaire',
+        'Prénom  de l\'auxiliaire',
+        'Nom  de l\'auxiliaire',
+        'Heure de départ du trajet',
+        'Heure d\'arrivée du trajet',
+        'Adresse de départ',
+        'Adresse d\'arrivée',
+        'Distance',
+        'Mode de transport',
+        'Durée du trajet',
+        'Durée inter vacation',
+        'Pause prise en compte',
+        'Heures prise en compte',
+      ],
+      [
+        `${auxiliaryList[0]._id}`,
+        'Abel',
+        'Auboisdormant',
+        '25/06/2021 12:00:00',
+        '25/06/2021 14:00:00',
+        '5 avenue du test, Saint Mandé',
+        '25 avenue du test, Saint Mandé',
+        5,
+        'Transports en commun / À pied',
+        '1h06',
+        '4h',
+        'Non',
+        '1,1000',
+      ],
+      [
+        `${auxiliaryList[0]._id}`,
+        'Abel',
+        'Auboisdormant',
+        '29/06/2021 12:00:00',
+        '29/06/2021 12:30:00',
+        '5 rue du test, Paris',
+        '25 rue du test, Paris',
+        15,
+        'Transports en commun / À pied',
+        '0h16',
+        '0h30',
+        'Oui',
+        '0,5000',
+      ],
+      [
+        `${auxiliaryList[1]._id}`,
+        'Fleur',
+        'Ymichon',
+        '28/06/2021 12:00:00',
+        '28/06/2021 14:00:00',
+        '5 boulevard du test, Paris',
+        '25 place du test, Paris',
+        25,
+        'Véhicule personnel',
+        '2h06',
+        '4h',
+        'Non',
+        '2,1000',
+      ],
+    ]);
   });
 });

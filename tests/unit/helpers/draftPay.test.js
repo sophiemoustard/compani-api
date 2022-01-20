@@ -461,7 +461,16 @@ describe('getPaidTransportInfo', () => {
     const event = {};
     const result = await DraftPayHelper.getPaidTransportInfo(event, null, []);
 
-    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
+    expect(result).toEqual({
+      duration: 0,
+      destinations: null,
+      breakDuration: 0,
+      origins: null,
+      paidKm: 0,
+      travelledKm: 0,
+      pickTransportDuration: false,
+      transportDuration: 0,
+    });
   });
 
   it('should return 0 if prevEvent has fixed service', async () => {
@@ -469,7 +478,16 @@ describe('getPaidTransportInfo', () => {
     const prevEvent = { hasFixedService: true };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
+    expect(result).toEqual({
+      duration: 0,
+      paidKm: 0,
+      travelledKm: 0,
+      destinations: null,
+      breakDuration: 0,
+      origins: null,
+      pickTransportDuration: false,
+      transportDuration: 0,
+    });
   });
 
   it('should return 0 if event has fixed service', async () => {
@@ -477,7 +495,16 @@ describe('getPaidTransportInfo', () => {
     const prevEvent = { hasFixedService: false };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
+    expect(result).toEqual({
+      duration: 0,
+      paidKm: 0,
+      travelledKm: 0,
+      destinations: null,
+      breakDuration: 0,
+      origins: null,
+      pickTransportDuration: false,
+      transportDuration: 0,
+    });
   });
 
   it('should return 0 if no address in event', async () => {
@@ -553,7 +580,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 40, paidKm: 10, travelledKm: 10 });
+    expect(result).toEqual({
+      duration: 40,
+      paidKm: 10,
+      travelledKm: 10,
+      origins: 'tamalou',
+      destinations: 'jébobolà',
+      transportDuration: 40,
+      breakDuration: 60,
+      pickTransportDuration: true,
+    });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
@@ -576,7 +612,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 40, paidKm: 0, travelledKm: 10 });
+    expect(result).toEqual({
+      duration: 40,
+      paidKm: 0,
+      travelledKm: 10,
+      destinations: 'jébobolà',
+      breakDuration: 180,
+      origins: 'tamalou',
+      pickTransportDuration: true,
+      transportDuration: 40,
+    });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
   });
 
@@ -598,7 +643,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 40, paidKm: 0, travelledKm: 10 });
+    expect(result).toEqual({
+      duration: 40,
+      paidKm: 0,
+      travelledKm: 10,
+      breakDuration: 180,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: true,
+      transportDuration: 40,
+    });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
@@ -619,7 +673,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 40 });
+    expect(result).toEqual({
+      paidKm: 10,
+      travelledKm: 10,
+      duration: 40,
+      breakDuration: 180,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: true,
+      transportDuration: 40,
+    });
   });
 
   it('should return break duration', async () => {
@@ -639,7 +702,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 70 });
+    expect(result).toEqual({
+      paidKm: 10,
+      travelledKm: 10,
+      duration: 70,
+      breakDuration: 70,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: false,
+      transportDuration: 60,
+    });
   });
 
   it('should return 0 if break duration is selected but is negative', async () => {
@@ -659,7 +731,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 0 });
+    expect(result).toEqual({
+      paidKm: 10,
+      travelledKm: 10,
+      duration: 0,
+      breakDuration: -50,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: false,
+      transportDuration: 60,
+    });
   });
 
   it('should return transport duration if transport duration is shorter than break duration', async () => {
@@ -679,7 +760,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 60 });
+    expect(result).toEqual({
+      paidKm: 10,
+      travelledKm: 10,
+      duration: 60,
+      breakDuration: 180,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: true,
+      transportDuration: 60,
+    });
   });
 
   it('should return break if break is shorter than transport duration', async () => {
@@ -699,7 +789,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 8, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 8, travelledKm: 8, duration: 30 });
+    expect(result).toEqual({
+      paidKm: 8,
+      travelledKm: 8,
+      duration: 30,
+      breakDuration: 30,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: false,
+      transportDuration: 60,
+    });
   });
 });
 

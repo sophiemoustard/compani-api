@@ -604,3 +604,51 @@ exports.getEventsToCheckEventConsistency = async (rules, companyId) => Event.agg
   },
   { $group: { _id: { $ifNull: ['$auxiliary', '$sector'] }, events: { $push: '$$ROOT' } } },
 ]).option({ company: companyId });
+
+exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Event.aggregate([
+  {
+    $match: {
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
+      auxiliary: { $exists: true },
+      isCancelled: false,
+      type: { $in: [INTERNAL_HOUR, INTERVENTION] },
+    },
+  },
+  {
+    $project: {
+      auxiliary: 1,
+      startDate: 1,
+      endDate: 1,
+      address: 1,
+      transportMode: 1,
+      hasFixedService: 1,
+      company: 1,
+    },
+  },
+  {
+    $group: {
+      _id: {
+        auxiliary: '$auxiliary',
+        month: { $month: '$startDate' },
+        day: { $dayOfMonth: '$startDate' },
+      },
+      eventsByDay: { $push: '$$ROOT' },
+    },
+  },
+  {
+    $group: {
+      _id: { auxiliary: '$_id.auxiliary' },
+      auxiliary: { $first: '$_id.auxiliary' },
+      eventsByDay: { $push: '$eventsByDay' },
+    },
+  },
+  { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $project: {
+      auxiliary: { _id: 1, identity: { firstname: 1, lastname: 1 }, administrative: 1 },
+      eventsByDay: 1,
+    },
+  },
+]).option({ company: companyId });
