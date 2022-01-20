@@ -1887,7 +1887,7 @@ describe('exportCourseSlotHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    findCourseSlot.returns(SinonMongoose.stubChainedQueries([courseSlotList]));
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
 
     const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
