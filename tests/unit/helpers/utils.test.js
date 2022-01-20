@@ -372,6 +372,7 @@ describe('getTotalDuration', () => {
 
     expect(result).toEqual('4h30');
   });
+
   it('should return duration with leading zero minutes', () => {
     const slots = [
       { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:08:00.000Z' },
@@ -382,6 +383,7 @@ describe('getTotalDuration', () => {
 
     expect(result).toEqual('4h08');
   });
+
   it('should return duration without minutes', () => {
     const slots = [
       { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
@@ -392,6 +394,7 @@ describe('getTotalDuration', () => {
 
     expect(result).toEqual('4h');
   });
+
   it('should return duration with days', () => {
     const slots = [
       { startDate: '2020-03-20T07:00:00.000Z', endDate: '2020-03-20T22:00:00.000Z' },
@@ -415,16 +418,7 @@ describe('getTotalDurationForExport', () => {
 
     expect(result).toEqual('4,50');
   });
-  it('should return duration with leading zero minutes', () => {
-    const slots = [
-      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:08:00.000Z' },
-      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:00:00.000Z' },
-    ];
 
-    const result = UtilsHelper.getTotalDurationForExport(slots);
-
-    expect(result).toEqual('4,13');
-  });
   it('should return duration without minutes', () => {
     const slots = [
       { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
@@ -435,6 +429,7 @@ describe('getTotalDurationForExport', () => {
 
     expect(result).toEqual('4,00');
   });
+
   it('should return duration with days', () => {
     const slots = [
       { startDate: '2020-03-20T07:00:00.000Z', endDate: '2020-03-20T22:00:00.000Z' },
@@ -456,6 +451,7 @@ describe('getDuration', () => {
 
     expect(result).toEqual('2h30');
   });
+
   it('should return duration with leading zero minutes', () => {
     const startDate = '2020-03-20T09:00:00.000Z';
     const endDate = '2020-03-20T11:08:00.000Z';
@@ -464,6 +460,7 @@ describe('getDuration', () => {
 
     expect(result).toEqual('2h08');
   });
+
   it('should return duration without minutes', () => {
     const startDate = '2020-03-20T09:00:00.000Z';
     const endDate = '2020-03-20T11:00:00.000Z';
@@ -472,6 +469,7 @@ describe('getDuration', () => {
 
     expect(result).toEqual('2h');
   });
+
   it('should return duration with days', () => {
     const startDate = '2020-03-20T09:00:00.000Z';
     const endDate = '2020-03-21T15:00:00.000Z';
@@ -491,14 +489,7 @@ describe('getDurationForExport', () => {
 
     expect(result).toEqual('2,50');
   });
-  it('should return duration with leading zero minutes', () => {
-    const startDate = '2020-03-20T09:00:00.000Z';
-    const endDate = '2020-03-20T11:08:00.000Z';
 
-    const result = UtilsHelper.getDurationForExport(startDate, endDate);
-
-    expect(result).toEqual('2,13');
-  });
   it('should return duration without minutes', () => {
     const startDate = '2020-03-20T09:00:00.000Z';
     const endDate = '2020-03-20T11:00:00.000Z';
@@ -507,6 +498,7 @@ describe('getDurationForExport', () => {
 
     expect(result).toEqual('2,00');
   });
+
   it('should return duration with days', () => {
     const startDate = '2020-03-20T09:00:00.000Z';
     const endDate = '2020-03-21T15:00:00.000Z';
