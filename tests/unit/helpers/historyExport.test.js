@@ -1825,6 +1825,25 @@ describe('exportCourseHistory', () => {
 describe('exportCourseSlotHistory', () => {
   const courseIdList = [new ObjectId(), new ObjectId()];
 
+  const traineeList = [
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+  ];
+
+  const courseList = [
+    {
+      _id: courseIdList[0],
+      trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+    },
+    {
+      _id: courseIdList[1],
+      trainees: [traineeList[3]._id, traineeList[4]._id],
+    },
+  ];
+
   const stepList = [
     { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
     { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
@@ -1842,38 +1861,42 @@ describe('exportCourseSlotHistory', () => {
   const courseSlotList = [
     {
       _id: new ObjectId(),
-      course: courseIdList[0],
+      course: courseList[0],
       startDate: '2021-05-01T08:00:00.000Z',
       endDate: '2021-05-01T10:00:00.000Z',
       createdAt: '2020-12-12T10:00:00.000Z',
       step: stepList[0],
       address: slotAddress,
+      attendances: [{ trainee: traineeList[0]._id }],
     },
     {
       _id: new ObjectId(),
-      course: courseIdList[0],
+      course: courseList[0],
       startDate: '2021-05-01T14:00:00.000Z',
       endDate: '2021-05-01T16:00:00.000Z',
       createdAt: '2020-12-12T10:00:01.000Z',
       step: stepList[1],
       meetingLink: 'https://meet.google.com',
+      attendances: [{ trainee: traineeList[0]._id }, { trainee: traineeList[1]._id }],
     },
     {
       _id: new ObjectId(),
-      course: courseIdList[1],
+      course: courseList[1],
       startDate: '2021-02-01T08:00:00.000Z',
       endDate: '2021-02-01T10:00:00.000Z',
       createdAt: '2020-12-12T10:00:02.000Z',
       step: stepList[0],
       address: slotAddress,
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
     },
     {
       _id: new ObjectId(),
-      course: courseIdList[1],
+      course: courseList[1],
       startDate: '2021-02-02T08:00:00.000Z',
       endDate: '2021-02-02T10:00:00.000Z',
       createdAt: '2020-12-12T10:00:03.000Z',
       step: stepList[2],
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
     },
   ];
 
@@ -1903,6 +1926,9 @@ describe('exportCourseSlotHistory', () => {
         'Date de fin',
         'Durée',
         'Adresse',
+        'Nombre de présences',
+        'Nombre d\'absences',
+        'Nombre de présences non prévues',
       ],
       [
         courseSlotList[0]._id,
@@ -1914,6 +1940,9 @@ describe('exportCourseSlotHistory', () => {
         '01/05/2021 12:00:00',
         '2,00',
         '24 Avenue Daumesnil 75012 Paris',
+        1,
+        2,
+        0,
       ],
       [
         courseSlotList[1]._id,
@@ -1925,6 +1954,9 @@ describe('exportCourseSlotHistory', () => {
         '01/05/2021 18:00:00',
         '2,00',
         'https://meet.google.com',
+        2,
+        1,
+        0,
       ],
       [
         courseSlotList[2]._id,
@@ -1936,6 +1968,9 @@ describe('exportCourseSlotHistory', () => {
         '01/02/2021 11:00:00',
         '2,00',
         '24 Avenue Daumesnil 75012 Paris',
+        1,
+        1,
+        1,
       ],
       [
         courseSlotList[3]._id,
@@ -1947,6 +1982,9 @@ describe('exportCourseSlotHistory', () => {
         '02/02/2021 11:00:00',
         '2,00',
         '',
+        1,
+        1,
+        1,
       ],
 
     ]);
@@ -1958,6 +1996,8 @@ describe('exportCourseSlotHistory', () => {
           args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
         },
         { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
+        { query: 'populate', args: [{ path: 'course', select: 'trainees' }] },
+        { query: 'populate', args: [{ path: 'attendances' }] },
         { query: 'lean' },
       ]
     );
