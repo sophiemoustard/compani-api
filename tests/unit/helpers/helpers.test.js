@@ -23,7 +23,7 @@ describe('list', () => {
       { _id: new ObjectId(), user: { local: { email: 'helper2@test.fr' } }, customer: query.customer, referent: false },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([helpers]));
+    find.returns(SinonMongoose.stubChainedQueries(helpers));
 
     const result = await HelpersHelper.list(query, credentials);
 
@@ -69,7 +69,7 @@ describe('update', () => {
     const customerId = new ObjectId();
     const helper = { _id: helperId, customer: customerId };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([helper], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(helper, ['lean']));
 
     await HelpersHelper.update(helperId, { referent: true });
 

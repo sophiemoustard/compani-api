@@ -101,7 +101,7 @@ describe('getBillSlipNumber', () => {
     const endDate = '2019-09-12T06:00:00';
     const company = { _id: new ObjectId() };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(['1234567890'], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries('1234567890', ['lean']));
 
     const result = await BillSlipHelper.getBillSlipNumber(endDate, company._id);
 
@@ -148,7 +148,7 @@ describe('createBillSlips', () => {
     const company = { _id: new ObjectId() };
 
     findBillSlip.returns(SinonMongoose.stubChainedQueries(
-      [[{ _id: new ObjectId() }, { _id: new ObjectId() }]],
+      [{ _id: new ObjectId() }, { _id: new ObjectId() }],
       ['lean']
     ));
 
@@ -182,7 +182,7 @@ describe('createBillSlips', () => {
     const company = { _id: new ObjectId(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
 
-    findBillSlip.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findBillSlip.returns(SinonMongoose.stubChainedQueries([], ['lean']));
     getBillSlipNumber.returns({ seq: 12, prefix: 'ASD' });
     formatBillSlipNumber.onCall(0).returns('BORD-129ASD00012');
     formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
@@ -227,7 +227,7 @@ describe('createBillSlips', () => {
     const company = { _id: new ObjectId(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
 
-    findBillSlip.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findBillSlip.returns(SinonMongoose.stubChainedQueries([], ['lean']));
     getBillSlipNumber.returns({ seq: 12, prefix: 'ASD' });
     formatBillSlipNumber.onCall(0).returns('BORD-129ASD00012');
     formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
@@ -560,7 +560,7 @@ describe('generateFile', () => {
   });
 
   it('should return generated pdf and bill slip number', async () => {
-    findByIdBillSlip.returns(SinonMongoose.stubChainedQueries([billSlip]));
+    findByIdBillSlip.returns(SinonMongoose.stubChainedQueries(billSlip));
     getBillsFromBillSlip.returns(billList);
     getCreditNoteFromBillSlip.returns(creditNoteList);
     createDocxStub.returns(docx);

@@ -25,7 +25,7 @@ describe('getDistanceMatrices', () => {
   });
 
   it('should return a distance matrix', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
 
     const credentials = { company: { _id: companyId } };
     const result = await DistanceMatrixHelper.getDistanceMatrices(credentials);

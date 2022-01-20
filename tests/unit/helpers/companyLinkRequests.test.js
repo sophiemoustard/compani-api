@@ -41,7 +41,7 @@ describe('list', () => {
       { user: new ObjectId(), company: companyId },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([companyLinkRequestList]));
+    find.returns(SinonMongoose.stubChainedQueries(companyLinkRequestList));
 
     const result = await CompanyLinkRequestsHelper.list(credentials);
 

@@ -18,7 +18,7 @@ describe('list', () => {
   });
 
   it('should find services', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([[{ name: 'test' }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ name: 'test' }]));
 
     const result = await ServiceHelper.list({ company: { _id: companyId } }, { isArchived: true });
 

@@ -32,7 +32,7 @@ describe('exportCustomers', () => {
     const customers = [];
     const companyId = new ObjectId();
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
@@ -111,7 +111,7 @@ describe('exportCustomers', () => {
     ];
     const companyId = new ObjectId();
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
@@ -163,7 +163,7 @@ describe('exportCustomers', () => {
     const customers = [{}];
     const companyId = new ObjectId();
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
@@ -210,7 +210,7 @@ describe('exportAuxiliaries', () => {
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectId() } };
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
@@ -256,9 +256,9 @@ describe('exportAuxiliaries', () => {
         establishment: { name: 'Test' },
       },
     ];
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([userCompanies], ['lean']));
-    findRole.returns(SinonMongoose.stubChainedQueries([[{ _id: roleIds[0] }, { _id: roleIds[1] }]], ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(userCompanies, ['lean']));
+    findRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleIds[0] }, { _id: roleIds[1] }], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(auxiliaries));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
@@ -334,9 +334,9 @@ describe('exportAuxiliaries', () => {
       },
     ];
 
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([userCompanies], ['lean']));
-    findRole.returns(SinonMongoose.stubChainedQueries([[{ _id: roleIds[0] }, { _id: roleIds[1] }]], ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(userCompanies, ['lean']));
+    findRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleIds[0] }, { _id: roleIds[1] }], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(auxiliaries));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
@@ -409,7 +409,7 @@ describe('exportHelpers', () => {
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectId() } };
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -464,9 +464,9 @@ describe('exportHelpers', () => {
       },
     }];
 
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([userCompanies], ['lean']));
-    findOneRole.returns(SinonMongoose.stubChainedQueries([{ _id: roleId }], ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries([helpers]));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(userCompanies, ['lean']));
+    findOneRole.returns(SinonMongoose.stubChainedQueries({ _id: roleId }, ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(helpers));
 
     const result = await ExportHelper.exportHelpers(credentials);
 
@@ -531,7 +531,7 @@ describe('exportSectors', () => {
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectId() } };
 
-    findSectorHistory.returns(SinonMongoose.stubChainedQueries([[]]));
+    findSectorHistory.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await ExportHelper.exportSectors(credentials);
 
@@ -569,7 +569,7 @@ describe('exportSectors', () => {
       endDate: '2019-12-10',
     }];
 
-    findSectorHistory.returns(SinonMongoose.stubChainedQueries([sectorHistories]));
+    findSectorHistory.returns(SinonMongoose.stubChainedQueries(sectorHistories));
 
     const result = await ExportHelper.exportSectors(credentials);
 
@@ -615,7 +615,7 @@ describe('exportReferents', () => {
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectId() } };
 
-    findReferentHistory.returns(SinonMongoose.stubChainedQueries([[]]));
+    findReferentHistory.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await ExportHelper.exportReferents(credentials);
 
@@ -660,7 +660,7 @@ describe('exportReferents', () => {
       },
     ];
 
-    findReferentHistory.returns(SinonMongoose.stubChainedQueries([referentHistories]));
+    findReferentHistory.returns(SinonMongoose.stubChainedQueries(referentHistories));
 
     const result = await ExportHelper.exportReferents(credentials);
 
@@ -815,7 +815,7 @@ describe('exportServices', () => {
     const services = [];
     const credentials = { company: { _id: new ObjectId() } };
 
-    findService.returns(SinonMongoose.stubChainedQueries([services]));
+    findService.returns(SinonMongoose.stubChainedQueries(services));
 
     const result = await ExportHelper.exportServices(credentials);
 
@@ -870,7 +870,7 @@ describe('exportServices', () => {
     ];
     const credentials = { company: { _id: new ObjectId() } };
 
-    findService.returns(SinonMongoose.stubChainedQueries([services]));
+    findService.returns(SinonMongoose.stubChainedQueries(services));
 
     const result = await ExportHelper.exportServices(credentials);
 
@@ -917,7 +917,7 @@ describe('exportSubscriptions', () => {
     const customers = [];
     const companyId = new ObjectId();
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportSubscriptions(credentials);
@@ -957,7 +957,7 @@ describe('exportSubscriptions', () => {
     ];
     const companyId = new ObjectId();
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
 
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportSubscriptions(credentials);

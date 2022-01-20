@@ -28,7 +28,7 @@ describe('checkSubscriptionFunding', () => {
   it('should return an error if customer does not exists', async () => {
     const customerId = new ObjectId();
     try {
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+      findOneCustomer.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
       await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
     } catch (e) {
@@ -44,7 +44,7 @@ describe('checkSubscriptionFunding', () => {
   it('should return true if customer does not have fundings', async () => {
     const customerId = new ObjectId();
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{}], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({}, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
@@ -58,7 +58,7 @@ describe('checkSubscriptionFunding', () => {
   it('should return true if customer does not have fundings', async () => {
     const customerId = new ObjectId();
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings: [] }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings: [] }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
@@ -73,13 +73,13 @@ describe('checkSubscriptionFunding', () => {
     const customerId = new ObjectId();
 
     findOneCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{
+      {
         fundings: [{
           _id: fundingId,
           subscription: checkedFundingSubscriptionId,
           versions: [{ careDays: [0, 1, 2], startDate: '2019-10-01', endDate: '2019-11-02' }],
         }],
-      }],
+      },
       ['lean']
     ));
 
@@ -102,7 +102,7 @@ describe('checkSubscriptionFunding', () => {
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
@@ -123,7 +123,7 @@ describe('checkSubscriptionFunding', () => {
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
@@ -144,7 +144,7 @@ describe('checkSubscriptionFunding', () => {
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
@@ -165,7 +165,7 @@ describe('checkSubscriptionFunding', () => {
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
@@ -186,7 +186,7 @@ describe('checkSubscriptionFunding', () => {
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
@@ -212,7 +212,7 @@ describe('checkSubscriptionFunding', () => {
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
@@ -298,7 +298,7 @@ describe('createFunding', () => {
     const customer = { _id: customerId };
 
     checkSubscriptionFunding.returns(true);
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customer));
 
     await FundingsHelper.createFunding(customerId, payload);
 
@@ -366,7 +366,7 @@ describe('updateFunding', () => {
     };
 
     checkSubscriptionFunding.returns(true);
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customer));
 
     await FundingsHelper.updateFunding(customerId, fundingId, payload);
 

@@ -2060,9 +2060,9 @@ describe('computeDraftPay', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
-    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
-    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
 
     const result = await DraftPayHelper.computeDraftPay([], query, credentials);
 
@@ -2104,9 +2104,9 @@ describe('computeDraftPay', () => {
 
     getEventsToPay.returns(payData);
     getPreviousMonthPay.returns(prevPay);
-    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
-    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
-    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns(null);
 
@@ -2149,9 +2149,9 @@ describe('computeDraftPay', () => {
 
     getEventsToPay.returns(payData);
     getPreviousMonthPay.returns(prevPay);
-    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
-    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
-    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns({ _id: '1234567890' });
 
@@ -2197,9 +2197,9 @@ describe('computeDraftPay', () => {
     }];
 
     getEventsToPay.returns(payData);
-    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
-    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
-    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns({ _id: '1234567890' });
 

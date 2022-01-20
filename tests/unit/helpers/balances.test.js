@@ -690,12 +690,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -789,7 +789,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -833,12 +833,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[0], tpp: tpps[0] }, billed: 450 },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -858,12 +858,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[1] }, refund: 40 },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -883,12 +883,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1], refund: 50 } },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -909,12 +909,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -937,7 +937,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 

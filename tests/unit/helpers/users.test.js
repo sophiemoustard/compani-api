@@ -44,7 +44,7 @@ describe('formatQueryForUsersList', () => {
     const users = [{ _id: new ObjectId(), user: new ObjectId() }];
     const query = { company: companyId, _id: { $in: users.map(u => u.user) } };
 
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([users], ['lean']));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(users, ['lean']));
 
     const result = await UsersHelper.formatQueryForUsersList(query);
 
@@ -65,8 +65,8 @@ describe('formatQueryForUsersList', () => {
     };
     const roles = [{ _id: query.role[0]._id, interface: 'vendor' }, { _id: query.role[1]._id, interface: 'vendor' }];
 
-    find.returns(SinonMongoose.stubChainedQueries([roles], ['lean']));
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([users], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(roles, ['lean']));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(users, ['lean']));
 
     const result = await UsersHelper.formatQueryForUsersList(query);
     expect(result).toEqual({
@@ -87,7 +87,7 @@ describe('formatQueryForUsersList', () => {
   it('should return 404 if role does not exist', async () => {
     const query = { company: companyId, role: [{ _id: new ObjectId() }, { _id: new ObjectId() }] };
     try {
-      find.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+      find.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
       const result = await UsersHelper.formatQueryForUsersList(query);
       expect(result).toBeUndefined();
@@ -124,7 +124,7 @@ describe('getUsersList', () => {
 
     formatQueryForUsersListStub.returns(query);
 
-    find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
 
     const result = await UsersHelper.getUsersList(query, { ...credentials, role: { client: 'test' } });
 
@@ -160,7 +160,7 @@ describe('getUsersList', () => {
     const roles = [new ObjectId(), new ObjectId()];
     const formattedQuery = { company: companyId, 'role.client': { $in: roles } };
 
-    find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
 
     formatQueryForUsersListStub.returns(formattedQuery);
 
@@ -220,7 +220,7 @@ describe('getUsersListWithSectorHistories', () => {
       'role.client': { $in: roles },
     };
 
-    find.returns(SinonMongoose.stubChainedQueries([users], ['populate', 'setOptions', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
     formatQueryForUsersListStub.returns(formattedQuery);
 
     const result = await UsersHelper.getUsersListWithSectorHistories(
@@ -285,10 +285,7 @@ describe('getLearnerList', () => {
       { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
 
-    findUser.returns(SinonMongoose.stubChainedQueries(
-      [users],
-      ['populate', 'setOptions', 'lean']
-    ));
+    findUser.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
@@ -330,12 +327,9 @@ describe('getLearnerList', () => {
       { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
 
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([usersCompany], ['lean']));
-    findRole.returns(SinonMongoose.stubChainedQueries([rolesToExclude], ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries(
-      [users],
-      ['populate', 'setOptions', 'lean']
-    ));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
+    findRole.returns(SinonMongoose.stubChainedQueries(rolesToExclude, ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
@@ -385,11 +379,8 @@ describe('getLearnerList', () => {
       { _id: users[1]._id, activityHistoryCount: 1, lastActivityHistory: users[1].activityHistories[0] },
     ];
 
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([usersCompany], ['lean']));
-    findUser.returns(SinonMongoose.stubChainedQueries(
-      [users],
-      ['populate', 'setOptions', 'lean']
-    ));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(usersCompany, ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(users, ['populate', 'setOptions', 'lean']));
 
     const result = await UsersHelper.getLearnerList(query, credentials);
 
@@ -438,7 +429,7 @@ describe('getUser', () => {
     const user = { _id: userId, role: { name: 'helper', rights: [] } };
     const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId() };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     await UsersHelper.getUser(userId, credentials);
 
@@ -487,7 +478,7 @@ describe('getUser', () => {
     const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
     const credentials = { company: { _id: new ObjectId() }, _id: new ObjectId(), role: { vendor: 'trainer' } };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     await UsersHelper.getUser(userId, credentials);
 
@@ -533,7 +524,7 @@ describe('getUser', () => {
     const user = { _id: userId, role: { vendor: 'trainer', rights: [] } };
     const credentials = { company: { _id: new ObjectId() }, _id: userId };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     await UsersHelper.getUser(userId, credentials);
 
@@ -579,7 +570,7 @@ describe('getUser', () => {
     const user = { _id: userId, companyLinkRequest: { company: { _id: new ObjectId(), name: 'Alenvi' } } };
     const credentials = { _id: userId };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     await UsersHelper.getUser(userId, credentials);
 
@@ -629,7 +620,7 @@ describe('getUser', () => {
     };
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([null]));
+      findOne.returns(SinonMongoose.stubChainedQueries(null));
 
       await UsersHelper.getUser(userId, credentials);
     } catch (e) {
@@ -695,7 +686,7 @@ describe('userExists', () => {
   });
 
   it('should find a user if credentials', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const rep = await UsersHelper.userExists(email, vendorCredentials);
 
@@ -713,7 +704,7 @@ describe('userExists', () => {
   });
 
   it('should not find as email does not exist', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([null], ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['populate', 'lean']));
 
     const rep = await UsersHelper.userExists(nonExistantEmail, vendorCredentials);
 
@@ -731,7 +722,7 @@ describe('userExists', () => {
   });
 
   it('should only confirm targeted user exist, as logged user has only client role', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
@@ -748,7 +739,7 @@ describe('userExists', () => {
   });
 
   it('should find targeted user and give all infos, as targeted user has no company', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([userWithoutCompany], ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(userWithoutCompany, ['populate', 'lean']));
 
     const rep = await UsersHelper.userExists(email, clientCredentials);
 
@@ -766,7 +757,7 @@ describe('userExists', () => {
   });
 
   it('should find an email but no user if no credentials', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const rep = await UsersHelper.userExists(email);
 
@@ -929,11 +920,11 @@ describe('createUser', () => {
     };
 
     roleFindById.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: roleId, name: 'auxiliary', interface: 'client' }],
+      { _id: roleId, name: 'auxiliary', interface: 'client' },
       ['lean']
     ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser]));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(newUser));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
@@ -980,11 +971,11 @@ describe('createUser', () => {
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'coach' } };
 
     roleFindById.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: roleId, name: 'coach', interface: 'client' }],
+      { _id: roleId, name: 'coach', interface: 'client' },
       ['lean']
     ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser]));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(newUser));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: companyId } });
 
@@ -1023,11 +1014,11 @@ describe('createUser', () => {
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'client_admin' } };
 
     roleFindById.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: roleId, name: 'client_admin', interface: 'client' }],
+      { _id: roleId, name: 'client_admin', interface: 'client' },
       ['lean']
     ));
     userCreate.returns(newUser);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([newUser]));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(newUser));
 
     const result = await UsersHelper.createUser(payload, { company: { _id: credentialsCompanyId } });
 
@@ -1066,7 +1057,7 @@ describe('createUser', () => {
     const newUser = { ...payload, _id: userId, role: { _id: roleId, name: 'trainer' } };
 
     roleFindById.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: roleId, name: 'trainer', interface: 'vendor' }],
+      { _id: roleId, name: 'trainer', interface: 'vendor' },
       ['lean']
     ));
     userCreate.returns(newUser);
@@ -1118,7 +1109,7 @@ describe('createUser', () => {
       origin: WEBAPP,
     };
     try {
-      roleFindById.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+      roleFindById.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
       await UsersHelper.createUser(payload, { company: { _id: companyId } });
     } catch (e) {
@@ -1212,7 +1203,7 @@ describe('updateUser', () => {
     const payloadWithRole = { 'role.client': payload.role.toHexString() };
 
     roleFindById.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: payload.role, name: 'test', interface: 'client' }],
+      { _id: payload.role, name: 'test', interface: 'client' },
       ['lean']
     ));
 
@@ -1250,7 +1241,7 @@ describe('updateUser', () => {
     const payloadWithRole = { 'role.client': payload.role.toHexString() };
 
     roleFindById.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: payload.role, name: 'test', interface: 'client' }],
+      { _id: payload.role, name: 'test', interface: 'client' },
       ['lean']
     ));
 
@@ -1281,7 +1272,7 @@ describe('updateUser', () => {
   it('should return a 400 error if role does not exists', async () => {
     const payload = { role: new ObjectId() };
 
-    roleFindById.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    roleFindById.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     try {
       await UsersHelper.updateUser(userId, payload, credentials);
@@ -1459,7 +1450,7 @@ describe('createDriveFolder', () => {
     const user = { _id: userId, identity: { lastname: 'Delenda' } };
 
     userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(
-      [{ company: { auxiliariesFolderId: 'auxiliariesFolderId' }, user }],
+      { company: { auxiliariesFolderId: 'auxiliariesFolderId' }, user },
       ['populate', 'lean']
     ));
     createFolder.returns({ webViewLink: 'webViewLink', id: 'folderId' });
@@ -1486,7 +1477,7 @@ describe('createDriveFolder', () => {
   it('should return a 422 if user has no company', async () => {
     const userId = new ObjectId();
     try {
-      userCompanyFindOne.returns(SinonMongoose.stubChainedQueries([null], ['populate', 'lean']));
+      userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(null, ['populate', 'lean']));
 
       await UsersHelper.createDriveFolder(userId);
     } catch (e) {
@@ -1510,7 +1501,7 @@ describe('createDriveFolder', () => {
     const userId = new ObjectId();
     try {
       userCompanyFindOne.returns(SinonMongoose.stubChainedQueries(
-        [{ user: { _id: userId }, company: { _id: new ObjectId() } }],
+        { user: { _id: userId }, company: { _id: new ObjectId() } },
         ['populate', 'lean']
       ));
 

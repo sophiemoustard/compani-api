@@ -181,7 +181,7 @@ describe('exportDpae', () => {
     };
     const auxiliary = { serialNumber: 'serialNumber' };
 
-    findOneUser.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(auxiliary));
     formatIdentificationInfo.returns({ ap_matr: 'serialNumber' });
     formatBankingInfo.returns({ fs_bq_dom: 'BANK AUDI FRANCE' });
     formatContractInfo.returns({ ap_contrat: '1234567890' });
@@ -233,7 +233,7 @@ describe('exportIdentification', () => {
     const endDate = moment('2020-01-11T14:00:00').toDate();
     const companyId = new ObjectId();
 
-    findContract.returns(SinonMongoose.stubChainedQueries([[{ user: 'first user' }, { user: 'second user' }]]));
+    findContract.returns(SinonMongoose.stubChainedQueries([{ user: 'first user' }, { user: 'second user' }]));
     formatIdentificationInfo.onFirstCall().returns({ identity: 1 }).onSecondCall().returns({ identity: 2 });
     formatBankingInfo.onFirstCall().returns({ bank: 1 }).onSecondCall().returns({ bank: 2 });
     exportToTxt.returns('file');

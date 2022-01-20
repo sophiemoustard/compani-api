@@ -39,7 +39,7 @@ describe('list', () => {
   it('should return programs', async () => {
     const programsList = [{ name: 'name' }, { name: 'program' }];
 
-    find.returns(SinonMongoose.stubChainedQueries([programsList]));
+    find.returns(SinonMongoose.stubChainedQueries(programsList));
 
     const result = await ProgramHelper.list();
     expect(result).toMatchObject(programsList);
@@ -72,8 +72,8 @@ describe('listELearning', () => {
     const companyId = new ObjectId();
     const credentials = { _id: new ObjectId(), company: { _id: companyId } };
 
-    courseFind.returns(SinonMongoose.stubChainedQueries([[{ subProgram: subPrograms[0] }]], ['lean']));
-    programFind.returns(SinonMongoose.stubChainedQueries([programsList]));
+    courseFind.returns(SinonMongoose.stubChainedQueries([{ subProgram: subPrograms[0] }], ['lean']));
+    programFind.returns(SinonMongoose.stubChainedQueries(programsList));
 
     const result = await ProgramHelper.listELearning(credentials);
     expect(result).toMatchObject([{ name: 'name' }, { name: 'program' }]);
@@ -128,8 +128,8 @@ describe('listELearning', () => {
     const companyId = new ObjectId();
     const credentials = { _id: new ObjectId(), company: { _id: companyId } };
 
-    courseFind.returns(SinonMongoose.stubChainedQueries([[{ subProgram: subPrograms[0] }]], ['lean']));
-    programFind.returns(SinonMongoose.stubChainedQueries([programsList]));
+    courseFind.returns(SinonMongoose.stubChainedQueries([{ subProgram: subPrograms[0] }], ['lean']));
+    programFind.returns(SinonMongoose.stubChainedQueries(programsList));
 
     const result = await ProgramHelper.listELearning(credentials, { _id: programId });
     expect(result).toMatchObject([{ _id: programId, name: 'name' }]);
@@ -214,7 +214,7 @@ describe('getProgram', () => {
       }],
     };
 
-    programFindOne.returns(SinonMongoose.stubChainedQueries([program]));
+    programFindOne.returns(SinonMongoose.stubChainedQueries(program));
 
     const result = await ProgramHelper.getProgram(program._id);
 
@@ -413,8 +413,8 @@ describe('addTester', () => {
   it('should add existing user to program as tester', async () => {
     const programId = new ObjectId();
     const user = { _id: new ObjectId(), local: { email: 'test@test.fr' } };
-    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries({ _id: programId }, ['lean']));
 
     await ProgramHelper.addTester(programId, user);
 
@@ -437,9 +437,9 @@ describe('addTester', () => {
     const userId = new ObjectId();
     const payload = { local: { email: 'test@test.fr' } };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     createUser.returns({ ...payload, _id: userId });
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: programId }], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries({ _id: programId }, ['lean']));
 
     await ProgramHelper.addTester(programId, payload);
 

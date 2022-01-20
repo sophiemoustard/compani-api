@@ -28,7 +28,7 @@ describe('create', () => {
     const userId = new ObjectId();
     const companyId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await UserCompaniesHelper.create(userId, companyId);
 
@@ -44,7 +44,7 @@ describe('create', () => {
     const userId = new ObjectId();
     const companyId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ user: userId, company: companyId }], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: companyId }, ['lean']));
 
     await UserCompaniesHelper.create(userId, companyId);
 
@@ -61,7 +61,7 @@ describe('create', () => {
     const companyId = new ObjectId();
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([{ user: userId, company: new ObjectId() }], ['lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: new ObjectId() }, ['lean']));
 
       await UserCompaniesHelper.create(userId, companyId);
 

@@ -337,7 +337,7 @@ describe('updateEvent', () => {
 
     isRepetitionValid.returns(true);
     isUpdateAllowed.returns(true);
-    findOne.returns(SinonMongoose.stubChainedQueries([event]));
+    findOne.returns(SinonMongoose.stubChainedQueries(event));
 
     await EventHelper.updateEvent(event, payload, credentials);
 
@@ -425,7 +425,7 @@ describe('updateEvent', () => {
     shouldDetachFromRepetition.returns(true);
     isUpdateAllowed.returns(true);
     formatEditionPayload.returns({ $set: { _id: eventId }, $unset: {} });
-    findOne.returns(SinonMongoose.stubChainedQueries([{ ...event, updated: 1 }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ ...event, updated: 1 }));
 
     await EventHelper.updateEvent(event, payload, credentials);
 
@@ -480,7 +480,7 @@ describe('updateEvent', () => {
     isRepetition.returns(false);
     isUpdateAllowed.returns(true);
     formatEditionPayload.returns({ $set: { _id: eventId }, $unset: {} });
-    findOne.returns(SinonMongoose.stubChainedQueries([{ ...event, updated: 1 }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ ...event, updated: 1 }));
 
     await EventHelper.updateEvent(event, payload, credentials);
 
@@ -549,7 +549,7 @@ describe('listForCreditNotes', () => {
       'bills.inclTaxesTpp': { $exists: false },
     };
 
-    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['sort', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries(events, ['sort', 'lean']));
 
     const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } });
 
@@ -580,7 +580,7 @@ describe('listForCreditNotes', () => {
       'bills.thirdPartyPayer': payload.thirdPartyPayer,
     };
 
-    findEvent.returns(SinonMongoose.stubChainedQueries([[{ type: 'intervention' }]], ['sort', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries([{ type: 'intervention' }], ['sort', 'lean']));
 
     const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } });
 
@@ -614,7 +614,7 @@ describe('listForCreditNotes', () => {
       $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }],
     };
 
-    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['sort', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries(events, ['sort', 'lean']));
 
     const result = await EventHelper.listForCreditNotes(payload, { company: { _id: companyId } }, creditNote);
 
@@ -1165,7 +1165,7 @@ describe('detachAuxiliaryFromEvent', () => {
     const companyId = new ObjectId();
 
     const auxiliary = { sector: 'sector' };
-    findOneUser.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(auxiliary));
 
     const result = await EventHelper.detachAuxiliaryFromEvent(event, companyId);
 
@@ -1248,7 +1248,7 @@ describe('createEvent', () => {
     isCreationAllowed.returns(true);
     isRepetition.returns(false);
     getEvent.returns(event);
-    createEvent.returns(SinonMongoose.stubChainedQueries([event], ['toObject']));
+    createEvent.returns(SinonMongoose.stubChainedQueries(event, ['toObject']));
 
     await EventHelper.createEvent(payload, credentials);
 
@@ -1280,7 +1280,7 @@ describe('createEvent', () => {
     isRepetition.returns(true);
     detachAuxiliaryFromEvent.returns(detachedEvent);
     getEvent.returns(detachedEvent);
-    createEvent.returns(SinonMongoose.stubChainedQueries([detachedEvent], ['toObject']));
+    createEvent.returns(SinonMongoose.stubChainedQueries(detachedEvent, ['toObject']));
 
     await EventHelper.createEvent(newEvent, credentials);
 
@@ -1309,7 +1309,7 @@ describe('createEvent', () => {
 
     isCreationAllowed.returns(true);
     hasConflicts.returns(false);
-    createEvent.returns(SinonMongoose.stubChainedQueries([event], ['toObject']));
+    createEvent.returns(SinonMongoose.stubChainedQueries(event, ['toObject']));
     getEvent.returns(event);
     isRepetition.returns(true);
 
@@ -1349,9 +1349,9 @@ describe('createEvent', () => {
 
     isCreationAllowed.returns(true);
     isRepetition.returns(false);
-    createEvent.returns(SinonMongoose.stubChainedQueries([event], ['toObject']));
+    createEvent.returns(SinonMongoose.stubChainedQueries(event, ['toObject']));
     getEvent.returns(payload);
-    findOneUser.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(auxiliary));
 
     await EventHelper.createEvent(payload, credentials);
 
@@ -1457,7 +1457,7 @@ describe('unassignConflictInterventions', () => {
     const events = [new Event({ _id: new ObjectId() }), new Event({ _id: new ObjectId() })];
 
     formatEventsInConflictQuery.returns(query);
-    findEvent.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
 
@@ -1562,7 +1562,7 @@ describe('deleteEventsAndRepetition', () => {
     };
     const events = [{ _id: '1234567890' }, { _id: 'qwertyuiop' }, { _id: 'asdfghjkl' }];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await EventHelper.deleteEventsAndRepetition(query, false, credentials);
 
@@ -1625,7 +1625,7 @@ describe('deleteEventsAndRepetition', () => {
       [parentId]: [events[1], events[2]],
     };
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await EventHelper.deleteEventsAndRepetition(query, true, credentials);
 
@@ -1649,7 +1649,7 @@ describe('deleteEventsAndRepetition', () => {
       { _id: 'asdfghjkl', type: INTERVENTION, isBilled: true },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     checkDeletionIsAllowed.throws(Boom.conflict('Vous ne pouvez pas supprimer un évènement facturé.'));
 
     try {
@@ -1678,7 +1678,7 @@ describe('deleteEventsAndRepetition', () => {
       { _id: 'asdfghjkl', type: INTERVENTION },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     checkDeletionIsAllowed.throws(Boom.conflict('Vous ne pouvez pas supprimer un évènement horodaté.'));
 
     try {
@@ -1896,8 +1896,8 @@ describe('workingStats', () => {
     getContractWeekInfoStub.returns(contractInfo);
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
-    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
-    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(auxiliaries));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
 
@@ -1944,9 +1944,9 @@ describe('workingStats', () => {
     getContractWeekInfoStub.returns(contractInfo);
     getPayFromEventsStub.returns(hours);
     getPayFromAbsencesStub.returns(absencesHours);
-    findUser.returns(SinonMongoose.stubChainedQueries([auxiliaries]));
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([users], ['lean']));
-    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries(auxiliaries));
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(users, ['lean']));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
 
     const result = await EventHelper.workingStats(queryWithoutAuxiliary, credentials);
     const expectedResult = {};
@@ -1988,8 +1988,8 @@ describe('workingStats', () => {
 
   it('should return {} if no contract in auxiliaries', async () => {
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
-    findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto' }]]));
-    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, firstname: 'toto' }]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});
@@ -2019,8 +2019,8 @@ describe('workingStats', () => {
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     getContractStub.returns();
-    findUser.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, firstname: 'toto', contracts }]]));
-    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, firstname: 'toto', contracts }]));
+    findDistanceMatrix.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
 
     const result = await EventHelper.workingStats(query, credentials);
     expect(result).toEqual({});

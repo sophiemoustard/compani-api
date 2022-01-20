@@ -84,7 +84,7 @@ describe('isUserContractValidOnEventDates', () => {
     const event = { auxiliary: new ObjectId() };
     const user = { _id: event.auxiliary };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
@@ -103,7 +103,7 @@ describe('isUserContractValidOnEventDates', () => {
     const event = { auxiliary: new ObjectId() };
     const user = { _id: event.auxiliary, contracts: [] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
@@ -123,7 +123,7 @@ describe('isUserContractValidOnEventDates', () => {
     const contract = { user: event.auxiliary, startDate: '2020-12-05T00:00:00' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
@@ -143,7 +143,7 @@ describe('isUserContractValidOnEventDates', () => {
     const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
@@ -168,7 +168,7 @@ describe('isUserContractValidOnEventDates', () => {
     const contract = { user: event.auxiliary, startDate: '2020-05-04T00:00:00' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
@@ -193,7 +193,7 @@ describe('isUserContractValidOnEventDates', () => {
     const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 

@@ -60,7 +60,7 @@ describe('list', () => {
       { _id: new ObjectId(), title: 'test 2' },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([customerNotes], ['populate', 'sort', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(customerNotes, ['populate', 'sort', 'lean']));
 
     const result = await CustomerNotesHelper.list(customer, credentials);
 
@@ -106,7 +106,7 @@ describe('update', () => {
     const customerNote = { _id: new ObjectId(), title: 'test', description: 'description', customer: credentials._id };
     const payload = { title: 'titre mis a jour', description: 'description mise a jour' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customerNote, ['lean']));
     customerNoteHistoryCreate.returns(customerNote);
 
     await CustomerNotesHelper.update(customerNote._id, payload, credentials);
@@ -156,7 +156,7 @@ describe('update', () => {
     };
     const payload = { title: '  test', description: 'description' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customerNote], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customerNote, ['lean']));
 
     await CustomerNotesHelper.update(customerNote._id, payload, credentials);
 

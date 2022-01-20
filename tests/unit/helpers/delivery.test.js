@@ -41,10 +41,10 @@ describe('formatEvents', () => {
       { auxiliary: auxiliary1, customer: customer2, _id: event2 },
       { auxiliary: auxiliary2, customer: customer1, _id: event3 },
     ];
-    findUsers.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliary1 }, { _id: auxiliary2 }]]));
-    findCustomers.returns(SinonMongoose.stubChainedQueries([[{ _id: customer1 }, { _id: customer2 }]]));
+    findUsers.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliary1 }, { _id: auxiliary2 }]));
+    findCustomers.returns(SinonMongoose.stubChainedQueries([{ _id: customer1 }, { _id: customer2 }]));
     findEventHistories.returns(SinonMongoose.stubChainedQueries(
-      [[{ event: { eventId: event1 } }, { event: { eventId: event2 } }, { event: { eventId: event3 } }]],
+      [{ event: { eventId: event1 } }, { event: { eventId: event2 } }, { event: { eventId: event3 } }],
       ['lean']
     ));
 
@@ -256,8 +256,8 @@ describe('getEvents', () => {
       { isBilled: false, _id: 'not_billed' },
       { isBilled: true, _id: 'billedbutwrongtpp', bills: { thirdPartyPayer: new ObjectId() } },
     ];
-    findCustomers.returns(SinonMongoose.stubChainedQueries([customers], ['lean']));
-    findEvents.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(customers, ['lean']));
+    findEvents.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     formatNonBilledEvents.returns([{ isBilled: false, _id: 'not_billed', auxiliary: 'auxiliary' }]);
     formatBilledEvents.returns([{ isBilled: true, _id: 'billed', auxiliary: 'aux' }]);
 
@@ -322,7 +322,7 @@ describe('getFileName', () => {
     const tppId = new ObjectId();
     const query = { thirdPartyPayers: [tppId], month: '09-2021' };
     const thirdPartyPayer = { teletransmissionType: 'APA', companyCode: '440' };
-    findOne.returns(SinonMongoose.stubChainedQueries([thirdPartyPayer], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(thirdPartyPayer, ['lean']));
 
     const result = await DeliveryHelper.getFileName(query);
 

@@ -278,7 +278,7 @@ describe('createRepeatedEvents', () => {
     formatRepeatedPayload.onCall(0).returns(repeatedEvents[0]);
     formatRepeatedPayload.onCall(1).returns(repeatedEvents[1]);
     formatRepeatedPayload.onCall(2).returns(repeatedEvents[2]);
-    customerFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    customerFindOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await EventsRepetitionHelper.createRepeatedEvents(event, range, sector, false);
 
@@ -314,7 +314,7 @@ describe('createRepeatedEvents', () => {
 
     formatRepeatedPayload.onCall(0).returns(fridayEvent);
     formatRepeatedPayload.onCall(1).returns(mondayEvent);
-    customerFindOne.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    customerFindOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await EventsRepetitionHelper.createRepeatedEvents(event, range, sector, true);
 
@@ -349,7 +349,7 @@ describe('createRepeatedEvents', () => {
     formatRepeatedPayload.onCall(0).returns(repeatedEvents[0]);
     formatRepeatedPayload.onCall(1).returns(repeatedEvents[1]);
     formatRepeatedPayload.onCall(2).returns(repeatedEvents[2]);
-    customerFindOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    customerFindOne.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
 
     await EventsRepetitionHelper.createRepeatedEvents(event, range, sector, false);
 
@@ -622,7 +622,7 @@ describe('createRepetitions', () => {
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
     const event = new Event({ repetition: { frequency: EVERY_WEEK }, company: new ObjectId(), auxiliary: auxiliaryId });
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
@@ -646,7 +646,7 @@ describe('createRepetitions', () => {
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
     const event = new Event({ company: new ObjectId(), auxiliary: auxiliaryId });
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
@@ -780,7 +780,7 @@ describe('updateRepetition', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     hasConflicts.returns(false);
     isAbsent.returns(false);
 
@@ -858,9 +858,9 @@ describe('updateRepetition', () => {
       },
       $unset: { auxiliary: '' },
     });
-    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOneUser.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
     hasConflicts.returns(true);
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
@@ -965,8 +965,8 @@ describe('updateRepetition', () => {
       $unset: { auxiliary: '' },
     });
     hasConflicts.returns(true);
-    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
@@ -1060,8 +1060,8 @@ describe('updateRepetition', () => {
     ];
 
     hasConflicts.returns(true);
-    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
@@ -1154,7 +1154,7 @@ describe('updateRepetition', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     hasConflicts.returns(false);
     isAbsent.onCall(0).returns(false);
     isAbsent.onCall(1).returns(false);

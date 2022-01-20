@@ -155,7 +155,7 @@ describe('getWorkingEventsForExport', () => {
   });
 
   it('should return events for history export', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([events], ['populate', 'sort', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['populate', 'sort', 'lean']));
 
     const result = await ExportHelper.getWorkingEventsForExport(startDate, endDate, companyId);
     expect(result).toStrictEqual(eventsWithSubscription);
@@ -722,8 +722,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    findBill.returns(SinonMongoose.stubChainedQueries([[]], ['populate', 'sort', 'lean']));
-    findCreditNote.returns(SinonMongoose.stubChainedQueries([[]], ['populate', 'sort', 'lean']));
+    findBill.returns(SinonMongoose.stubChainedQueries([], ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries([], ['populate', 'sort', 'lean']));
 
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
@@ -751,8 +751,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    findBill.returns(SinonMongoose.stubChainedQueries([[{}]], ['populate', 'sort', 'lean']));
-    findCreditNote.returns(SinonMongoose.stubChainedQueries([[{}]], ['populate', 'sort', 'lean']));
+    findBill.returns(SinonMongoose.stubChainedQueries([{}], ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries([{}], ['populate', 'sort', 'lean']));
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
@@ -791,8 +791,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    findBill.returns(SinonMongoose.stubChainedQueries([bills], ['populate', 'sort', 'lean']));
-    findCreditNote.returns(SinonMongoose.stubChainedQueries([creditNotes], ['populate', 'sort', 'lean']));
+    findBill.returns(SinonMongoose.stubChainedQueries(bills, ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries(creditNotes, ['populate', 'sort', 'lean']));
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
@@ -907,7 +907,7 @@ describe('exportContractHistory', () => {
 
   it('should return an array containing just the header', async () => {
     const credentials = { company: { _id: new ObjectId() } };
-    find.returns(SinonMongoose.stubChainedQueries([[]]));
+    find.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
 
@@ -936,7 +936,7 @@ describe('exportContractHistory', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }], user: { _id: new ObjectId() } }];
 
-    find.returns(SinonMongoose.stubChainedQueries([contracts]));
+    find.returns(SinonMongoose.stubChainedQueries(contracts));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
 
@@ -971,7 +971,7 @@ describe('exportContractHistory', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([contracts]));
+    find.returns(SinonMongoose.stubChainedQueries(contracts));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     expect(result).toEqual([
@@ -1338,8 +1338,8 @@ describe('exportPayAndFinalPayHistory', () => {
       company: credentials.company._id,
     };
 
-    findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
-    findFinalPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
+    findPay.returns(SinonMongoose.stubChainedQueries([], ['sort', 'populate', 'lean']));
+    findFinalPay.returns(SinonMongoose.stubChainedQueries([], ['sort', 'populate', 'lean']));
 
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);
 
@@ -1394,8 +1394,8 @@ describe('exportPayAndFinalPayHistory', () => {
       company: credentials.company._id,
     };
 
-    findPay.returns(SinonMongoose.stubChainedQueries([pays], ['sort', 'populate', 'lean']));
-    findFinalPay.returns(SinonMongoose.stubChainedQueries([finalPays], ['sort', 'populate', 'lean']));
+    findPay.returns(SinonMongoose.stubChainedQueries(pays, ['sort', 'populate', 'lean']));
+    findFinalPay.returns(SinonMongoose.stubChainedQueries(finalPays, ['sort', 'populate', 'lean']));
 
     formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
     formatSurchargedDetailsForExport.returnsArg(1);
@@ -1524,7 +1524,7 @@ describe('exportPaymentsHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries([], ['sort', 'populate', 'lean']));
 
     const credentials = { company: new ObjectId() };
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
@@ -1543,7 +1543,7 @@ describe('exportPaymentsHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([paymentsList], ['sort', 'populate', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(paymentsList, ['sort', 'populate', 'lean']));
 
     const credentials = { company: new ObjectId() };
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
@@ -1697,8 +1697,8 @@ describe('exportCourseHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    findCourseSlot.returns(SinonMongoose.stubChainedQueries([courseSlotList], ['lean']));
-    findCourse.returns(SinonMongoose.stubChainedQueries([courseList]));
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
+    findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
     getTotalDuration.onCall(0).returns('4h');
@@ -1887,7 +1887,7 @@ describe('exportCourseSlotHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    findCourseSlot.returns(SinonMongoose.stubChainedQueries([courseSlotList]));
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
 
     const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 

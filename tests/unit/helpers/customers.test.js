@@ -53,15 +53,15 @@ describe('getCustomersBySector', () => {
     const customerIds = [new ObjectId(), new ObjectId()];
 
     findSectorHistories.returns(SinonMongoose.stubChainedQueries(
-      [[{ auxiliary: auxiliaryIds[1] }, { auxiliary: auxiliaryIds[0] }]],
+      [{ auxiliary: auxiliaryIds[1] }, { auxiliary: auxiliaryIds[0] }],
       ['lean']
     ));
     findEvents.returns(SinonMongoose.stubChainedQueries(
-      [[
+      [
         { customer: { _id: customerIds[0] } },
         { customer: { _id: customerIds[0] } },
         { customer: { _id: customerIds[1] } },
-      ]],
+      ],
       ['populate', 'lean']
     ));
     populateSubscriptionsServices.onCall(0).returns({ _id: customerIds[0], identity: {} });
@@ -165,7 +165,7 @@ describe('getCustomers', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([[]]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await CustomerHelper.getCustomers(credentials);
 
@@ -187,7 +187,7 @@ describe('getCustomers', () => {
     const credentials = { company: { _id: companyId } };
     const customers = [{ identity: { firstname: 'Emmanuel' }, company: companyId }, { company: companyId }];
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
     populateSubscriptionsServices.onCall(0).returns({
       identity: { firstname: 'Emmanuel' },
       company: companyId,
@@ -245,7 +245,7 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
     ];
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([[customers[0]]]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers[0]]));
     populateSubscriptionsServices.returns({
       identity: { firstname: 'Emmanuel' },
       company: companyId,
@@ -299,7 +299,7 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
     ];
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([[customers[1]]]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers[1]]));
     populateSubscriptionsServices.returns({
       identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' },
       company: companyId,
@@ -362,7 +362,7 @@ describe('getCustomersFirstIntervention', () => {
     const credentials = { company: { _id: companyId } };
     const query = { company: companyId };
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
 
     const result = await CustomerHelper.getCustomersFirstIntervention(query, credentials);
 
@@ -436,10 +436,7 @@ describe('getCustomersWithSubscriptions', () => {
   it('should return customers with subscriptions', async () => {
     const companyId = new ObjectId();
     const customersWithSubscriptions = [{ identity: { lastname: 'Fred' }, subscriptions: [{ _id: new ObjectId() }] }];
-    findCustomer.returns(SinonMongoose.stubChainedQueries(
-      [customersWithSubscriptions],
-      ['populate', 'select', 'lean']
-    ));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customersWithSubscriptions, ['populate', 'select', 'lean']));
 
     const rep = await CustomerHelper.getCustomersWithSubscriptions({ company: { _id: companyId } });
 
@@ -492,7 +489,7 @@ describe('getCustomer', () => {
     const customerId = 'qwertyuiop';
     const credentials = { company: { _id: new ObjectId() } };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([null]));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(null));
 
     const result = await CustomerHelper.getCustomer(customerId, credentials);
 
@@ -518,7 +515,7 @@ describe('getCustomer', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const customer = { identity: { firstname: 'Emmanuel' } };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer));
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
@@ -548,7 +545,7 @@ describe('getCustomer', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const customer = { identity: { firstname: 'Emmanuel' }, fundings: [{ _id: '1234' }, { _id: '09876' }] };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer));
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
     populateFundingsList.returnsArg(0);
@@ -597,7 +594,7 @@ describe('getRumNumber', () => {
   it('should get RUM number', async () => {
     const companyId = new ObjectId();
 
-    findOneAndUpdateRum.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdateRum.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await CustomerHelper.getRumNumber(companyId);
 
@@ -672,7 +669,7 @@ describe('formatPaymentPayload', () => {
     const customer = { payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] } };
     const payload = { payment: { iban: 'FR8312739000501844178231W37' } };
 
-    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
     getRumNumber.returns(rumNumber);
     formatRumNumber.returns(formattedRumNumber);
 
@@ -698,7 +695,7 @@ describe('formatPaymentPayload', () => {
     const customer = { payment: { bankAccountNumber: '', iban: '', bic: '', mandates: [] } };
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
 
-    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
 
     const result = await CustomerHelper.formatPaymentPayload(customerId, payload, company);
 
@@ -730,7 +727,7 @@ describe('updateCustomerEvents', () => {
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      { contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } },
       ['lean']
     ));
 
@@ -755,7 +752,7 @@ describe('updateCustomerEvents', () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{ contact: { secondaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      { contact: { secondaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } },
       ['lean']
     ));
 
@@ -780,7 +777,7 @@ describe('updateCustomerEvents', () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      { contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } },
       ['lean']
     ));
 
@@ -802,7 +799,7 @@ describe('updateCustomerEvents', () => {
       },
     };
 
-    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
 
     await CustomerHelper.updateCustomerEvents(customerId, payload);
 
@@ -853,7 +850,7 @@ describe('updateCustomer', () => {
 
     const customerResult = { _id: customer._id };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customer._id, payload, credentials);
 
@@ -879,7 +876,7 @@ describe('updateCustomer', () => {
       payment: { bankAccountNumber: '', iban: 'FR8312739000501844178231W37', bic: '', mandates: [formattedRumNumber] },
     };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     formatPaymentPayload.returns({
       $set: flat(payload, { safe: true }),
@@ -923,7 +920,7 @@ describe('updateCustomer', () => {
 
     formatPaymentPayload.returns(payload);
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -943,7 +940,7 @@ describe('updateCustomer', () => {
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -969,7 +966,7 @@ describe('updateCustomer', () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -995,7 +992,7 @@ describe('updateCustomer', () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -1026,7 +1023,7 @@ describe('updateCustomer', () => {
       },
     };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -1052,7 +1049,7 @@ describe('updateCustomer', () => {
     const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
     const payload = { stoppedAt: '2019-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -1086,7 +1083,7 @@ describe('updateCustomer', () => {
     const payload = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
     const customerResult = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -1207,8 +1204,8 @@ describe('removeCustomer', () => {
       { customer: customerId, user: helper2Id, company: companyId },
     ];
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findHelper.returns(SinonMongoose.stubChainedQueries([helpers], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries(helpers, ['lean']));
 
     await CustomerHelper.removeCustomer(customerId);
 
@@ -1241,8 +1238,8 @@ describe('removeCustomer', () => {
     const helperId = new ObjectId();
     const helper = { customer: customerId, user: helperId, company: companyId };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findHelper.returns(SinonMongoose.stubChainedQueries([[helper]], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries([helper], ['lean']));
 
     await CustomerHelper.removeCustomer(customerId);
 
@@ -1270,8 +1267,8 @@ describe('removeCustomer', () => {
     const customerId = new ObjectId();
     const customer = { _id: customerId, company: companyId };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findHelper.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await CustomerHelper.removeCustomer(customerId);
 
@@ -1340,7 +1337,7 @@ describe('generateQRCode', () => {
     const customer = { _id: customerId, identity: { firstname: 'N\'Golo', lastname: 'Compté' } };
 
     toDataURL.returns('my_pic_in_base_64');
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
     getPdfContent.returns('template');
     generatePdf.returns('pdf');
 

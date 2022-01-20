@@ -64,7 +64,7 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const partnerOrganizationId = new ObjectId();
 
-    find.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku', partners: [] }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ _id: partnerOrganizationId, name: 'skusku', partners: [] }]));
 
     const result = await PartnerOrganizationsHelper.list(credentials);
 
@@ -102,7 +102,7 @@ describe('list', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([partnerOrganizations]));
+    find.returns(SinonMongoose.stubChainedQueries(partnerOrganizations));
 
     const result = await PartnerOrganizationsHelper.list(credentials);
 
@@ -149,7 +149,7 @@ describe('getPartnerOrganization', () => {
     const partnerOrganizationId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([[{ _id: partnerOrganizationId, name: 'skusku' }]]));
+    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: partnerOrganizationId, name: 'skusku' }]));
 
     await PartnerOrganizationsHelper.getPartnerOrganization(partnerOrganizationId, credentials);
 

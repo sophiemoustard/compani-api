@@ -41,7 +41,7 @@ describe('list', () => {
       { trainee: { _id: new ObjectId(), company: new ObjectId() }, courseSlot: courseSlots[1] },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendancesList]));
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList));
 
     const result = await AttendanceHelper.list([courseSlots], null);
 
@@ -65,7 +65,7 @@ describe('list', () => {
       { trainee: { _id: new ObjectId(), company: otherCompanyId }, courseSlot: courseSlots[1] },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendancesList]));
+    find.returns(SinonMongoose.stubChainedQueries(attendancesList));
 
     const result = await AttendanceHelper.list([courseSlots], companyId);
 
@@ -148,8 +148,8 @@ describe('listUnsubscribed', () => {
       },
     ];
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
-    courseFind.returns(SinonMongoose.stubChainedQueries([courseWithSameSubProgramList]));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
     const result = await AttendanceHelper.listUnsubscribed(courseId, companyId);
 
@@ -259,8 +259,8 @@ describe('listUnsubscribed', () => {
       },
     ];
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
-    courseFind.returns(SinonMongoose.stubChainedQueries([courseWithSameSubProgramList]));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    courseFind.returns(SinonMongoose.stubChainedQueries(courseWithSameSubProgramList));
 
     const result = await AttendanceHelper.listUnsubscribed(courseId);
 

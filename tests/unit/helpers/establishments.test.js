@@ -36,7 +36,7 @@ describe('create', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const payloadWithCompany = { ...payload, company: credentials.company._id };
 
-    create.returns(SinonMongoose.stubChainedQueries([payloadWithCompany], ['toObject']));
+    create.returns(SinonMongoose.stubChainedQueries(payloadWithCompany, ['toObject']));
 
     const result = await EstablishmentsHelper.create(payload, credentials);
 
@@ -61,7 +61,7 @@ describe('update', () => {
     const payload = { siret: '13605658901234' };
     const establishmentId = new ObjectId();
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([{ _id: establishmentId }], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries({ _id: establishmentId }, ['lean']));
 
     const result = await EstablishmentsHelper.update(establishmentId, payload);
 
@@ -89,7 +89,7 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const establishments = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
 
-    find.returns(SinonMongoose.stubChainedQueries([establishments]));
+    find.returns(SinonMongoose.stubChainedQueries(establishments));
 
     await EstablishmentsHelper.list(credentials);
 

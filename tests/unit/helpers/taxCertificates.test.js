@@ -28,7 +28,7 @@ describe('list', () => {
     const companyId = new ObjectId();
     const customer = new ObjectId();
 
-    find.returns(SinonMongoose.stubChainedQueries([taxCertificates], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(taxCertificates, ['lean']));
 
     const result = await TaxCertificateHelper.list(customer, { company: { _id: companyId } });
 
@@ -218,7 +218,7 @@ describe('generateTaxCertificatePdf', () => {
     const credentials = { company: { _id: companyId } };
     const taxCertificate = { _id: taxCertificateId, year: '2019' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([taxCertificate]));
+    findOne.returns(SinonMongoose.stubChainedQueries(taxCertificate));
     getTaxCertificateInterventions.returns(['interventions']);
     getTaxCertificatesPayments.returns({ paid: 1200, cesu: 500 });
     formatPdf.returns('data');
@@ -342,7 +342,7 @@ describe('remove', () => {
   it('should delete tax certificate', async () => {
     const taxCertificateId = new ObjectId();
 
-    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectId() }], ['lean']));
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries({ _id: new ObjectId() }, ['lean']));
 
     await TaxCertificateHelper.remove(taxCertificateId);
 
@@ -357,7 +357,7 @@ describe('remove', () => {
     const taxCertificateId = new ObjectId();
     const taxCertificate = { _id: new ObjectId(), driveFile: { driveId: new ObjectId() } };
 
-    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([taxCertificate], ['lean']));
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries(taxCertificate, ['lean']));
 
     await TaxCertificateHelper.remove(taxCertificateId);
 

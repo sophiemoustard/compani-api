@@ -36,7 +36,7 @@ describe('createAdministrativeDocument', () => {
     const uploadedFile = { id: '12345', webViewLink: 'www.12345.fr' };
     addFileStub.returns(uploadedFile);
 
-    findByIdCompany.returns(SinonMongoose.stubChainedQueries([{ folderId: '1234' }], ['lean']));
+    findByIdCompany.returns(SinonMongoose.stubChainedQueries({ folderId: '1234' }, ['lean']));
 
     await AdministrativeDocumentHelper.createAdministrativeDocument(payload, credentials);
 
@@ -58,7 +58,7 @@ describe('createAdministrativeDocument', () => {
   it('should return an error if uploaded file is not defined', async () => {
     try {
       addFileStub.returns();
-      findByIdCompany.returns(SinonMongoose.stubChainedQueries([{ folderId: '1234' }], ['lean']));
+      findByIdCompany.returns(SinonMongoose.stubChainedQueries({ folderId: '1234' }, ['lean']));
 
       await AdministrativeDocumentHelper.createAdministrativeDocument(payload, credentials);
     } catch (e) {
@@ -94,7 +94,7 @@ describe('listAdministrativeDocuments', () => {
   it('should create an administrative document', async () => {
     const administrativeDocuments = [{ _id: new ObjectId() }];
 
-    findAdministrativeDocument.returns(SinonMongoose.stubChainedQueries([administrativeDocuments], ['lean']));
+    findAdministrativeDocument.returns(SinonMongoose.stubChainedQueries(administrativeDocuments, ['lean']));
 
     const res = await AdministrativeDocumentHelper.listAdministrativeDocuments(credentials);
 
@@ -123,7 +123,7 @@ describe('removeAdministrativeDocument', () => {
 
   it('should remove a document from bdd + drive', async () => {
     deleteFileStub.returns();
-    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([{ driveFile: { driveId: '1234' } }], ['lean']));
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries({ driveFile: { driveId: '1234' } }, ['lean']));
 
     await AdministrativeDocumentHelper.removeAdministrativeDocument(administrativeDocumentId);
 

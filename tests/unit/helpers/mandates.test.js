@@ -25,7 +25,7 @@ describe('getMandates', () => {
     const customerId = (new ObjectId()).toHexString();
     const mandate = { _id: new ObjectId() };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([mandate], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(mandate, ['lean']));
 
     const result = await MandatesHelper.getMandates(customerId);
 
@@ -61,7 +61,7 @@ describe('updateMandate', () => {
     const mandateId = '1234567890';
     const payload = { startDate: '2019-12-12T00:00:00' };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([{ ...payload, _id: mandateId }], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries({ ...payload, _id: mandateId }, ['lean']));
 
     const result = await MandatesHelper.updateMandate(customerId, mandateId, payload);
 
@@ -113,7 +113,7 @@ describe('getSignatureRequest', () => {
       _id: customerId,
       payment: { mandates: [{ _id: new ObjectId() }, { _id: mandateId, rum: 'rum' }] },
     };
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
     generateSignatureRequest.returns({
       data: { document_hash: 'document_hash', signers: [{ embedded_signing_url: 'embedded_signing_url' }] },
     });
@@ -155,7 +155,7 @@ describe('getSignatureRequest', () => {
         payment: { mandates: [{ _id: new ObjectId() }, { _id: mandateId, rum: 'rum' }] },
       };
 
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+      findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
       generateSignatureRequest.returns({ data: { error: 'error' } });
 
       await MandatesHelper.getSignatureRequest(customerId, mandateId.toHexString(), payload);
@@ -217,8 +217,8 @@ describe('saveSignedMandate', () => {
     };
     const drive = { driveId: 'fileId', link: 'webViewLink' };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     getDocument.returns({ data: { log: [{ event: 'document_signed' }] } });
     downloadFinalDocument.returns({ data: 'data' });
     createAndReadFile.returns('file');
@@ -265,7 +265,7 @@ describe('saveSignedMandate', () => {
         driveFolder: { driveId: 'driveFolder' },
       };
 
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+      findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
       getDocument.returns({ data: { error: 'error', log: [{ event: 'document_signed' }] } });
 
       await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());
@@ -295,7 +295,7 @@ describe('saveSignedMandate', () => {
         driveFolder: { driveId: 'driveFolder' },
       };
 
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+      findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
       getDocument.returns({ data: { log: [{ event: 'document_not_signed' }] } });
 
       await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());

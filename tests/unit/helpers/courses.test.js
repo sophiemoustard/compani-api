@@ -318,7 +318,7 @@ describe('listUserCourses', () => {
       },
     ];
 
-    courseFind.returns(SinonMongoose.stubChainedQueries([coursesList], ['populate', 'select', 'lean']));
+    courseFind.returns(SinonMongoose.stubChainedQueries(coursesList, ['populate', 'select', 'lean']));
 
     formatCourseWithProgress.onCall(0).returns({
       ...coursesList[0],
@@ -410,7 +410,7 @@ describe('getCourse', () => {
       type: 'inter_b2b',
       trainees: [{ _id: new ObjectId(), company: new ObjectId() }, { _id: new ObjectId(), company: new ObjectId() }],
     };
-    findOne.returns(SinonMongoose.stubChainedQueries([course]));
+    findOne.returns(SinonMongoose.stubChainedQueries(course));
 
     const result = await CourseHelper.getCourse(
       { _id: course._id },
@@ -476,7 +476,7 @@ describe('getCourse', () => {
       trainees: [{ company: authCompanyId }, { company: otherCompanyId }],
     };
     const courseWithFilteredTrainees = { type: 'inter_b2b', trainees: [{ company: authCompanyId }] };
-    findOne.returns(SinonMongoose.stubChainedQueries([courseWithAllTrainees]));
+    findOne.returns(SinonMongoose.stubChainedQueries(courseWithAllTrainees));
 
     const result = await CourseHelper.getCourse({ _id: course._id }, loggedUser);
 
@@ -650,8 +650,8 @@ describe('getCourseFollowUp', () => {
     };
     const trainees = [1, 2, 3, 4, 5];
 
-    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries([{ trainees }], ['lean']));
-    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries([course]));
+    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries({ trainees }, ['lean']));
+    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries(course));
 
     formatStep.callsFake(s => s);
     getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
@@ -719,8 +719,8 @@ describe('getCourseFollowUp', () => {
     };
     const trainees = [1, 2, 3, 4, 5];
 
-    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries([{ trainees }], ['lean']));
-    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries([course]));
+    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries({ trainees }, ['lean']));
+    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries(course));
     formatStep.callsFake(s => s);
     getTraineeElearningProgress.returns({ steps: { progress: 1 }, elearningProgress: 1 });
 
@@ -818,7 +818,7 @@ describe('getQuestionnaireAnswers', () => {
       },
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     formatActivity.onCall(0).returns({ followUp: [followUps[0]] });
     formatActivity.onCall(1).returns({ followUp: [followUps[1]] });
 
@@ -871,7 +871,7 @@ describe('getQuestionnaireAnswers', () => {
       },
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
     formatActivity.onCall(0).returns({ followUp: [] });
     formatActivity.onCall(1).returns({ followUp: [] });
 
@@ -918,7 +918,7 @@ describe('getQuestionnaireAnswers', () => {
       subProgram: {},
     };
 
-    findOneCourse.returns(SinonMongoose.stubChainedQueries([course]));
+    findOneCourse.returns(SinonMongoose.stubChainedQueries(course));
 
     const result = await CourseHelper.getQuestionnaireAnswers(courseId);
 
@@ -1050,7 +1050,7 @@ describe('getTraineeCourse', () => {
     };
     const credentials = { _id: new ObjectId() };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course], ['populate', 'select', 'lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
 
     formatCourseWithProgress.returns({
       ...course,
@@ -1143,7 +1143,7 @@ describe('updateCourse', () => {
     const courseId = new ObjectId();
     const payload = { misc: 'groupe 4' };
 
-    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([payload], ['lean']));
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(payload, ['lean']));
 
     const result = await CourseHelper.updateCourse(courseId, payload);
     expect(result.misc).toEqual(payload.misc);
@@ -1162,7 +1162,7 @@ describe('updateCourse', () => {
     const payload = { contact: '' };
     const updatedCourse = { _id: courseId };
 
-    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries([updatedCourse], ['lean']));
+    courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(updatedCourse, ['lean']));
 
     const result = await CourseHelper.updateCourse(courseId, payload);
     expect(result._id).toBe(courseId);
@@ -1224,7 +1224,7 @@ describe('sendSMS', () => {
   });
 
   it('should send SMS to trainees and save missing phone trainee id', async () => {
-    courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees }]));
+    courseFindById.returns(SinonMongoose.stubChainedQueries({ trainees }));
     sendStub.onCall(0).returns();
     sendStub.onCall(1).returns(new Promise(() => { throw Boom.badRequest(); }));
 
@@ -1270,7 +1270,7 @@ describe('sendSMS', () => {
 
   it('should not save coursesmshistory if no sms is sent', async () => {
     try {
-      courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees }]));
+      courseFindById.returns(SinonMongoose.stubChainedQueries({ trainees }));
       sendStub.returns(new Promise(() => { throw Boom.badRequest(); }));
 
       await CourseHelper.sendSMS(courseId, payload, credentials);
@@ -1289,7 +1289,7 @@ describe('sendSMS', () => {
       { contact: {}, identity: { firstname: 'test', lasname: 'ko' }, _id: 'poiuytrewq' },
     ];
 
-    courseFindById.returns(SinonMongoose.stubChainedQueries([{ trainees: traineesWithoutPhoneNumbers }]));
+    courseFindById.returns(SinonMongoose.stubChainedQueries({ trainees: traineesWithoutPhoneNumbers }));
 
     await CourseHelper.sendSMS(courseId, payload, credentials);
 
@@ -1310,7 +1310,7 @@ describe('getSMSHistory', () => {
   });
 
   it('should get SMS history', async () => {
-    courseSmsHistoryFind.returns(SinonMongoose.stubChainedQueries([sms]));
+    courseSmsHistoryFind.returns(SinonMongoose.stubChainedQueries(sms));
 
     const result = await CourseHelper.getSMSHistory(courseId);
 
@@ -1355,7 +1355,7 @@ describe('addCourseTrainee', () => {
     const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
 
     userFindOne.returns(user);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
 
     await CourseHelper.addCourseTrainee(course._id, payload, credentials);
 
@@ -1657,7 +1657,7 @@ describe('generateAttendanceSheets', () => {
     const courseId = new ObjectId();
     const course = { misc: 'des infos en plus', type: 'inter_b2b' };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
     formatInterCourseForPdf.returns({ name: 'la formation - des infos en plus' });
     generatePdf.returns('pdf');
@@ -1691,7 +1691,7 @@ describe('generateAttendanceSheets', () => {
     const courseId = new ObjectId();
     const course = { misc: 'des infos en plus', type: 'intra' };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
     formatIntraCourseForPdf.returns({ name: 'la formation - des infos en plus' });
     generatePdf.returns('pdf');
@@ -1833,8 +1833,8 @@ describe('generateCompletionCertificate', () => {
       },
     ];
 
-    attendanceFind.returns(SinonMongoose.stubChainedQueries([attendances]));
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
+    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
     formatCourseForDocx.returns({
       program: { learningGoals: 'Apprendre', name: 'nom du programme' },
       courseDuration: '8h',
@@ -2092,7 +2092,7 @@ describe('generateConvocationPdf', () => {
     const courseId = new ObjectId();
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries(
-      [{
+      {
         _id: courseId,
         subProgram: { program: { name: 'Comment attraper des Pokemons' } },
         trainer: { identity: { firstname: 'Ash', lastname: 'Ketchum' } },
@@ -2102,7 +2102,7 @@ describe('generateConvocationPdf', () => {
           endDate: '2020-10-12T13:30:00.000+01:00',
           address: { fullAddress: '37 rue de Ponthieu 75005 Paris' },
         }],
-      }]
+      }
     ));
 
     formatCourseForConvocationPdf.returns({
@@ -2198,7 +2198,7 @@ describe('getQuestionnaires', () => {
       { name: 'test2', type: 'expectations', historiesCount: 0 },
     ];
 
-    findQuestionnaire.returns(SinonMongoose.stubChainedQueries([questionnaires], ['select', 'populate', 'lean']));
+    findQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaires, ['select', 'populate', 'lean']));
 
     const result = await CourseHelper.getQuestionnaires(courseId);
 

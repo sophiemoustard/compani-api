@@ -30,7 +30,7 @@ describe('updateRepetitions', () => {
       _id: new ObjectId(),
       test: 's',
     };
-    findOneRepetition.returns(SinonMongoose.stubChainedQueries([repetition], ['lean']));
+    findOneRepetition.returns(SinonMongoose.stubChainedQueries(repetition, ['lean']));
     formatEditionPayloadStub.returns({ payload: 'payload' });
 
     const result = await RepetitionHelper.updateRepetitions(eventPayload, parentId);
@@ -51,7 +51,7 @@ describe('updateRepetitions', () => {
 
   it('should do nothing if repetition does not exist', async () => {
     const parentId = new ObjectId();
-    findOneRepetition.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneRepetition.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     const result = await RepetitionHelper.updateRepetitions({}, parentId);
 

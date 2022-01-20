@@ -19,7 +19,7 @@ describe('getActivity', () => {
   });
 
   it('should return the requested activity', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: 'skusku' }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: 'skusku' }));
 
     const activity = { _id: new ObjectId() };
 
@@ -192,7 +192,7 @@ describe('removeCard', () => {
   it('should remove card without media from activity', async () => {
     const cardId = new ObjectId();
 
-    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await ActivityHelper.removeCard(cardId, null);
 
@@ -211,7 +211,7 @@ describe('removeCard', () => {
     const cardId = new ObjectId();
     const card = { _id: cardId, media: { publicId: 'publicId' } };
 
-    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries([card], ['lean']));
+    findOneAndRemoveCard.returns(SinonMongoose.stubChainedQueries(card, ['lean']));
 
     await ActivityHelper.removeCard(cardId, 'media-test-20210505104400');
 

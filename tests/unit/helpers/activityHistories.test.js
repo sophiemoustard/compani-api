@@ -88,9 +88,9 @@ describe('list', () => {
     };
 
     findUserCompanies.returns(
-      SinonMongoose.stubChainedQueries([[{ user: firstUserId }, { user: secondUserId }]], ['lean'])
+      SinonMongoose.stubChainedQueries([{ user: firstUserId }, { user: secondUserId }], ['lean'])
     );
-    findHistories.returns(SinonMongoose.stubChainedQueries([activityHistories]));
+    findHistories.returns(SinonMongoose.stubChainedQueries(activityHistories));
 
     const result = await ActivityHistoryHelper.list(query, { company: { _id: companyId } });
 
