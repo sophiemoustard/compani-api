@@ -17,10 +17,10 @@ describe('CompaniDuration', () => {
   it('should not mutate _duration', () => {
     const durationObject = { days: 2 };
     const otherDurationObject = { hours: 10 };
-    const companiDate = CompaniDurationsHelper.CompaniDuration(durationObject);
-    companiDate._date = luxon.Duration.fromObject(otherDurationObject);
+    const companiDuration = CompaniDurationsHelper.CompaniDuration(durationObject);
+    companiDuration._duration = luxon.Duration.fromObject(otherDurationObject);
 
-    expect(companiDate._getDuration.toObject()).toEqual(durationObject);
+    expect(companiDuration._getDuration.toObject()).toEqual(durationObject);
   });
 
   describe('Constructor', () => {
