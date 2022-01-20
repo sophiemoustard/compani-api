@@ -49,15 +49,12 @@ exports.listUnsubscribed = async (courseId, companyId) => {
     .find({ format: BLENDED, subProgram: { $in: get(course, 'subProgram.program.subPrograms') } })
     .populate({
       path: 'slots',
-      select: 'attendances step startDate endDate',
-      populate: [
-        {
-          path: 'attendances',
-          select: 'trainee',
-          populate: { path: 'trainee', select: 'identity company', populate: 'company' },
-        },
-        { path: 'step', select: 'name' },
-      ],
+      select: 'attendances startDate endDate',
+      populate: {
+        path: 'attendances',
+        select: 'trainee',
+        populate: { path: 'trainee', select: 'identity company', populate: 'company' },
+      },
     })
     .populate({ path: 'trainer', select: 'identity' })
     .lean();
