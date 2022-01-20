@@ -8,6 +8,7 @@ const BillRepository = require('../repositories/BillRepository');
 const CreditNoteRepository = require('../repositories/CreditNoteRepository');
 const DocxHelper = require('./docx');
 const UtilsHelper = require('./utils');
+const NumbersHelper = require('./numbers');
 const { MONTHLY } = require('./constants');
 
 exports.getBillSlips = async (credentials) => {
@@ -127,7 +128,7 @@ exports.formatBillingDataForFile = (billList, creditNoteList) => {
   let total = 0;
   const formattedBills = [];
   for (const bill of billsAndCreditNotes) {
-    total += bill.netInclTaxes;
+    total = NumbersHelper.add(total, bill.netInclTaxes.toFixed(2));
     formattedBills.push({
       ...bill,
       netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
