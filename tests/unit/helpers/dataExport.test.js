@@ -219,7 +219,7 @@ describe('exportAuxiliaries', () => {
       'Date de naissance', 'Pays de naissance', 'Departement de naissance', 'Ville de naissance', 'Nationalité',
       'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Établissement',
       'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
-      'Date de création']);
+      'Date de création', 'Mode de transport']);
 
     SinonMongoose.calledOnceWithExactly(
       findUserCompany,
@@ -254,6 +254,7 @@ describe('exportAuxiliaries', () => {
         contracts: [{ _id: 1, startDate: '2019-12-02' }],
         contact: { address: { fullAddress: 'Ponthieu' }, phone: '0123456789' },
         establishment: { name: 'Test' },
+        administrative: { transportInvoice: { transportType: 'public' } },
       },
     ];
     findUserCompany.returns(SinonMongoose.stubChainedQueries(userCompanies, ['lean']));
@@ -285,6 +286,7 @@ describe('exportAuxiliaries', () => {
       '',
       '01/02/2019',
       '01/02/2019',
+      'Transports en commun / À pied',
     ]);
 
     SinonMongoose.calledOnceWithExactly(
@@ -344,10 +346,50 @@ describe('exportAuxiliaries', () => {
     expect(result[1]).toBeDefined();
     expect(result[2]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '10/11/2019', '01/12/2019', '', '',
+      '',
+      '',
+      auxiliaries[0]._id,
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      2,
+      '',
+      '10/11/2019',
+      '01/12/2019',
+      '',
+      '',
+      '',
     ]);
     expect(result[2]).toMatchObject([
-      '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '02/12/2019', '', '', '',
+      '',
+      '',
+      auxiliaries[0]._id,
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      2,
+      '',
+      '02/12/2019',
+      '',
+      '',
+      '',
+      '',
     ]);
 
     SinonMongoose.calledOnceWithExactly(

@@ -14,6 +14,7 @@ const {
   STOPPED,
   ARCHIVED,
   ACTIVATED,
+  EVENT_TRANSPORT_MODE_LIST,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const Customer = require('../models/Customer');
@@ -148,6 +149,7 @@ const auxiliaryExportHeader = [
   'Date de fin de contrat prestataire',
   'Date d\'inactivité',
   'Date de création',
+  'Mode de transport',
 ];
 
 const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
@@ -157,6 +159,7 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
   const address = get(aux, 'contact.address.fullAddress');
   const birthCountry = get(aux, 'identity.birthCountry');
   const { inactivityDate, createdAt } = aux;
+  const transport = get(aux, 'administrative.transportInvoice.transportType');
 
   return [
     get(aux, 'local.email') || '',
@@ -179,6 +182,7 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
     get(contract, 'endDate', null) ? moment(contract.endDate).format('DD/MM/YYYY') : '',
     inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
     createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
+    EVENT_TRANSPORT_MODE_LIST[transport] || '',
   ];
 };
 
