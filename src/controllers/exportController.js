@@ -18,6 +18,7 @@ const {
   RUP,
   REFERENT,
   COURSE,
+  COURSE_SLOT,
 } = require('../helpers/constants');
 const HistoryExportHelper = require('../helpers/historyExport');
 const DataExportHelper = require('../helpers/dataExport');
@@ -98,6 +99,10 @@ const exportHistory = async (req, h) => {
         break;
       case COURSE:
         exportArray = await HistoryExportHelper.exportCourseHistory(startDate, endDate);
+        break;
+      case COURSE_SLOT:
+        exportArray = await HistoryExportHelper.exportCourseSlotHistory(startDate, endDate);
+        break;
     }
 
     const csv = await exportToCsv(exportArray);

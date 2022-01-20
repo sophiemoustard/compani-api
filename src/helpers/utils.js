@@ -225,3 +225,20 @@ exports.getTotalDuration = (timePeriods) => {
 
   return totalDuration.format();
 };
+
+exports.getTotalDurationForExport = (timePeriods) => {
+  const totalDuration = timePeriods.reduce(
+    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes'))),
+    CompaniDuration()
+  );
+
+  return exports.formatFloatForExport(totalDuration._duration.values.minutes / 60);
+};
+
+exports.getDuration = (startDate, endDate) =>
+  CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format();
+
+exports.getDurationForExport = (startDate, endDate) =>
+  exports.formatFloatForExport(
+    CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes'))._duration.values.minutes / 60
+  );

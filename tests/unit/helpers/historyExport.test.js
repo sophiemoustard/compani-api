@@ -19,7 +19,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
-const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B, ON_SITE, REMOTE, E_LEARNING } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
 const { TIME_STAMPING_ACTIONS } = require('../../../src/models/EventHistory');
@@ -637,7 +637,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
   const bills = [
     {
       number: 'FACT-0549236',
-      date: '2019-05-20T06:00:00.000+00:00',
+      date: '2019-05-20T06:00:00.000Z',
       customer: { _id: customerIdList[0], identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' } },
       thirdPartyPayer: { _id: tppIdList[0], name: 'TF1' },
       netInclTaxes: 389276.023,
@@ -662,7 +662,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     },
     {
       number: 'FACT-0419457',
-      date: '2019-05-22T06:00:00.000+00:00',
+      date: '2019-05-22T06:00:00.000Z',
       customer: { _id: customerIdList[1], identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' } },
       thirdPartyPayer: { _id: tppIdList[1], name: 'The Sherif' },
       netInclTaxes: 957.1319439,
@@ -677,7 +677,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     {
       number: 'F1501231',
       thirdPartyPayer: { _id: tppIdList[2], name: 'SW' },
-      date: '2019-05-21T01:00:00.000+00:00',
+      date: '2019-05-21T01:00:00.000Z',
       customer: { _id: customerIdList[2], identity: { firstname: 'Jar jar', lastname: 'Binks' } },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
@@ -688,7 +688,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     },
     {
       number: 'F6473250',
-      date: '2019-05-25T02:00:00.000+00:00',
+      date: '2019-05-25T02:00:00.000Z',
       customer: { _id: customerIdList[3], identity: { lastname: 'R2D2' } },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
@@ -1484,7 +1484,7 @@ describe('exportPaymentsHistory', () => {
       number: 'REG-101051900562',
       type: 'bank_transfer',
       nature: 'payment',
-      date: '2019-05-20T06:00:00.000+00:00',
+      date: '2019-05-20T06:00:00.000Z',
       customer: {
         _id: customerIdList[0],
         identity: {
@@ -1499,7 +1499,7 @@ describe('exportPaymentsHistory', () => {
       number: 'REG-101051900342',
       type: 'direct_debit',
       nature: 'refund',
-      date: '2019-05-22T06:00:00.000+00:00',
+      date: '2019-05-22T06:00:00.000Z',
       customer: {
         _id: customerIdList[1],
         identity: {
@@ -1611,29 +1611,29 @@ describe('exportCourseHistory', () => {
     {
       _id: new ObjectId(),
       course: courseIdList[0],
-      startDate: new Date('2021-05-01T08:00:00.000+00:00'),
-      endDate: new Date('2021-05-01T10:00:00.000+00:00'),
+      startDate: '2021-05-01T08:00:00.000Z',
+      endDate: '2021-05-01T10:00:00.000Z',
       attendances: [{ trainee: traineeList[0]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[0],
-      startDate: new Date('2021-05-01T14:00:00.000+00:00'),
-      endDate: new Date('2021-05-01T16:00:00.000+00:00'),
+      startDate: '2021-05-01T14:00:00.000Z',
+      endDate: '2021-05-01T16:00:00.000Z',
       attendances: [{ trainee: traineeList[0]._id }, { trainee: traineeList[1]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[1],
-      startDate: new Date('2021-02-01T08:00:00.000+00:00'),
-      endDate: new Date('2021-02-01T10:00:00.000+00:00'),
+      startDate: '2021-02-01T08:00:00.000Z',
+      endDate: '2021-02-01T10:00:00.000Z',
       attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
     },
     {
       _id: new ObjectId(),
       course: courseIdList[1],
-      startDate: new Date('2021-02-02T08:00:00.000+00:00'),
-      endDate: new Date('2021-02-02T10:00:00.000+00:00'),
+      startDate: '2021-02-02T08:00:00.000Z',
+      endDate: '2021-02-02T10:00:00.000Z',
       attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
     },
     {
@@ -1708,9 +1708,9 @@ describe('exportCourseHistory', () => {
     countDocumentsAttendanceSheet.onCall(0).returns(1);
     countDocumentsAttendanceSheet.onCall(1).returns(0);
 
-    const exportArray = await ExportHelper.exportCourseHistory('2021-01-15', '2022-01-20');
+    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(exportArray).toEqual([
+    expect(result).toEqual([
       [
         'Identifiant',
         'Type',
@@ -1724,6 +1724,7 @@ describe('exportCourseHistory', () => {
         'Nombre d\'inscrits',
         'Nombre de dates',
         'Nombre de créneaux',
+        'Nombre de créneaux à planifier',
         'Durée Totale',
         'Nombre de SMS envoyés',
         'Nombre de personnes connectées à l\'app',
@@ -1734,6 +1735,7 @@ describe('exportCourseHistory', () => {
         'Nombre d\'absences',
         'Nombre de stagiaires non prévus',
         'Nombre de présences non prévues',
+        'Avancement',
       ],
       [
         courseList[0]._id,
@@ -1748,7 +1750,8 @@ describe('exportCourseHistory', () => {
         3,
         1,
         2,
-        '4h',
+        '',
+        '4,00',
         2,
         2,
         '01/05/2021 10:00:00',
@@ -1758,6 +1761,7 @@ describe('exportCourseHistory', () => {
         3,
         0,
         0,
+        '1,00',
       ],
       [
         courseList[1]._id,
@@ -1772,7 +1776,8 @@ describe('exportCourseHistory', () => {
         2,
         2,
         2,
-        '4h',
+        1,
+        '4,00',
         1,
         0,
         '01/02/2021 09:00:00',
@@ -1782,12 +1787,16 @@ describe('exportCourseHistory', () => {
         2,
         1,
         2,
+        '0,67',
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
-        { query: 'find', args: [{ startDate: { $lte: '2022-01-20' }, endDate: { $gte: '2021-01-15' } }] },
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
         { query: 'lean' },
       ]
     );
@@ -1806,6 +1815,148 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
         { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('exportCourseSlotHistory', () => {
+  const courseIdList = [new ObjectId(), new ObjectId()];
+
+  const stepList = [
+    { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+    { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
+  ];
+
+  const slotAddress = {
+    street: '24 Avenue Daumesnil',
+    fullAddress: '24 Avenue Daumesnil 75012 Paris',
+    zipCode: '75012',
+    city: 'Paris',
+    location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+  };
+
+  const courseSlotList = [
+    {
+      _id: new ObjectId(),
+      course: courseIdList[0],
+      startDate: '2021-05-01T08:00:00.000Z',
+      endDate: '2021-05-01T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:00.000Z',
+      step: stepList[0],
+      address: slotAddress,
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[0],
+      startDate: '2021-05-01T14:00:00.000Z',
+      endDate: '2021-05-01T16:00:00.000Z',
+      createdAt: '2020-12-12T10:00:01.000Z',
+      step: stepList[1],
+      meetingLink: 'https://meet.google.com',
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      startDate: '2021-02-01T08:00:00.000Z',
+      endDate: '2021-02-01T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:02.000Z',
+      step: stepList[0],
+      address: slotAddress,
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      startDate: '2021-02-02T08:00:00.000Z',
+      endDate: '2021-02-02T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:03.000Z',
+      step: stepList[2],
+    },
+  ];
+
+  let findCourseSlot;
+
+  beforeEach(() => {
+    findCourseSlot = sinon.stub(CourseSlot, 'find');
+  });
+
+  afterEach(() => {
+    findCourseSlot.restore();
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries([courseSlotList]));
+
+    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+
+    expect(result).toEqual([
+      [
+        'Id Créneau',
+        'Id Formation',
+        'Étape',
+        'Type',
+        'Date de création',
+        'Date de début',
+        'Date de fin',
+        'Durée',
+        'Adresse',
+      ],
+      [
+        courseSlotList[0]._id,
+        courseIdList[0],
+        'étape 1',
+        'présentiel',
+        '12/12/2020 11:00:00',
+        '01/05/2021 10:00:00',
+        '01/05/2021 12:00:00',
+        '2,00',
+        '24 Avenue Daumesnil 75012 Paris',
+      ],
+      [
+        courseSlotList[1]._id,
+        courseIdList[0],
+        'étape 2',
+        'distanciel',
+        '12/12/2020 11:00:01',
+        '01/05/2021 16:00:00',
+        '01/05/2021 18:00:00',
+        '2,00',
+        'https://meet.google.com',
+      ],
+      [
+        courseSlotList[2]._id,
+        courseIdList[1],
+        'étape 1',
+        'présentiel',
+        '12/12/2020 11:00:02',
+        '01/02/2021 09:00:00',
+        '01/02/2021 11:00:00',
+        '2,00',
+        '24 Avenue Daumesnil 75012 Paris',
+      ],
+      [
+        courseSlotList[3]._id,
+        courseIdList[1],
+        'étape 3',
+        'eLearning',
+        '12/12/2020 11:00:03',
+        '02/02/2021 09:00:00',
+        '02/02/2021 11:00:00',
+        '2,00',
+        '',
+      ],
+
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
         { query: 'lean' },
       ]
     );

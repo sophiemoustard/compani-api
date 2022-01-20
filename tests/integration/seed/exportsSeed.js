@@ -14,6 +14,7 @@ const Payment = require('../../../src/models/Payment');
 const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const Step = require('../../../src/models/Step');
 const InternalHour = require('../../../src/models/InternalHour');
 const FinalPay = require('../../../src/models/FinalPay');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
@@ -52,6 +53,9 @@ const {
   QR_CODE_TIME_STAMPING,
   INTRA,
   INTER_B2B,
+  ON_SITE,
+  REMOTE,
+  E_LEARNING,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -67,7 +71,7 @@ const serviceList = [
       name: 'Service 1',
       surcharge: surcharge._id,
       exemptFromCharges: false,
-      startDate: '2019-01-16 17:58:15.519',
+      startDate: '2019-01-16T17:58:15.519Z',
       defaultUnitAmount: 24,
     }],
     nature: HOURLY,
@@ -80,7 +84,7 @@ const serviceList = [
       name: 'Service 2',
       surcharge: surcharge._id,
       exemptFromCharges: false,
-      startDate: '2019-01-18 19:58:15.519',
+      startDate: '2019-01-18T19:58:15.519Z',
       vat: 12,
     }],
     nature: HOURLY,
@@ -175,31 +179,41 @@ const contractList = [{
   serialNumber: 'safsdgsdgsd',
   user: auxiliaryList[0]._id,
   versions: [
-    { weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01T00:00:00', endDate: '2020-01-01T00:00:00' },
+    {
+      weeklyHours: 12,
+      grossHourlyRate: 10,
+      startDate: '2018-01-01T00:00:00.000Z',
+      endDate: '2020-01-01T00:00:00.000Z',
+    },
   ],
-  startDate: '2018-01-01T00:00:00',
-  endDate: '2020-01-01T00:00:00',
-  endNotificationDate: '2020-01-01t00:00:00',
+  startDate: '2018-01-01T00:00:00.000Z',
+  endDate: '2020-01-01T00:00:00.000Z',
+  endNotificationDate: '2020-01-01T00:00:00.000Z',
   endReason: 'mutation',
   company: authCompany._id,
 }, {
   _id: contract2Id,
   serialNumber: 'sfasdfsdf',
   user: auxiliaryList[0]._id,
-  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
-  startDate: '2020-02-01T00:00:00',
+  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01T10:00:00.000Z' }],
+  startDate: '2020-02-01T00:00:00.000Z',
   company: authCompany._id,
 }, {
   _id: contract3Id,
   serialNumber: 'nckxavhsasidf',
   user: auxiliaryList[1]._id,
-  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
-  startDate: '2020-02-01',
+  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01T10:00:00.000Z' }],
+  startDate: '2020-02-01T10:00:00.000Z',
   company: authCompany._id,
 }];
 
 const sectorHistories = [
-  { auxiliary: auxiliaryList[0]._id, sector: sector._id, company: authCompany._id, startDate: '2018-12-10T00:00:00' },
+  {
+    auxiliary: auxiliaryList[0]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T00:00:00.000Z',
+  },
 ];
 
 const internalHour = { _id: new ObjectId(), name: 'planning', company: authCompany._id };
@@ -236,7 +250,7 @@ const customersList = [
         service: serviceList[0]._id,
         versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 30, evenings: 1, sundays: 2 }],
       },
-      { _id: new ObjectId(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000+01:00' }] },
+      { _id: new ObjectId(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000Z' }] },
     ],
     fundings: [{
       _id: new ObjectId(),
@@ -245,7 +259,7 @@ const customersList = [
       subscription: subscriptionId,
       frequency: MONTHLY,
       versions: [{
-        startDate: '2018-02-03T22:00:00.000+01:00',
+        startDate: '2018-02-03T22:00:00.000Z',
         folderNumber: '12345',
         unitTTCRate: 10,
         amountTTC: 21,
@@ -256,9 +270,9 @@ const customersList = [
     }],
     payment: { bankAccountOwner: 'Test Toto', iban: 'FR6930003000405885475816L80', bic: 'ABNAFRPP' },
     followUp: { situation: 'home', misc: '123456789', environment: 'test', objectives: 'toto' },
-    stoppedAt: '2021-02-03T22:00:00.000+01:00',
+    stoppedAt: '2021-02-03T22:00:00.000Z',
     stopReason: 'death',
-    archivedAt: '2021-06-03T22:00:00.000+01:00',
+    archivedAt: '2021-06-03T22:00:00.000Z',
   },
   {
     _id: new ObjectId(),
@@ -275,7 +289,7 @@ const customersList = [
       phone: '0612345678',
     },
     followUp: { situation: 'nursing_home' },
-    stoppedAt: '2021-06-10T22:00:00.000+01:00',
+    stoppedAt: '2021-06-10T22:00:00.000Z',
     stopReason: 'quality',
   },
   {
@@ -312,8 +326,8 @@ const customersList = [
       _id: customerSubscriptionId,
       service: serviceList[0]._id,
       versions: [
-        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
-        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00.000Z' },
+        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
       ],
     }],
     fundings: [
@@ -325,19 +339,19 @@ const customersList = [
         frequency: ONCE,
         versions: [{
           folderNumber: 'D123456',
-          startDate: new Date('2019-10-01'),
-          createdAt: new Date('2019-10-01'),
-          endDate: new Date('2020-02-01'),
-          effectiveDate: new Date('2019-10-01'),
+          startDate: '2019-10-01T10:00:00.000Z',
+          createdAt: '2019-10-01T10:00:00.000Z',
+          endDate: '2020-02-01T10:00:00.000Z',
+          effectiveDate: '2019-10-01T10:00:00.000Z',
           amountTTC: 1200,
           customerParticipationRate: 66,
           careDays: [0, 1, 2, 3, 4, 5, 6],
         },
         {
           folderNumber: 'D123456',
-          startDate: new Date('2020-02-02'),
-          createdAt: new Date('2020-02-02'),
-          effectiveDate: new Date('2020-02-02'),
+          startDate: '2020-02-02T10:00:00.000Z',
+          createdAt: '2020-02-02T10:00:00.000Z',
+          effectiveDate: '2020-02-02T10:00:00.000Z',
           amountTTC: 1600,
           customerParticipationRate: 66,
           careDays: [0, 1, 2, 3, 4, 5],
@@ -352,20 +366,20 @@ const referentList = [
     auxiliary: auxiliaryList[0]._id,
     customer: customersList[0]._id,
     company: customersList[0].company,
-    startDate: '2020-01-31T00:00:00',
+    startDate: '2020-01-31T00:00:00.000Z',
   },
   {
     auxiliary: auxiliaryList[1]._id,
     customer: customersList[0]._id,
     company: customersList[0].company,
-    startDate: '2019-03-12T00:00:00',
-    endDate: '2020-01-30T00:00:00',
+    startDate: '2019-03-12T00:00:00.000Z',
+    endDate: '2020-01-30T00:00:00.000Z',
   },
   {
     auxiliary: auxiliaryList[0]._id,
     customer: customersList[1]._id,
     company: customersList[1].company,
-    startDate: '2019-06-23T00:00:00',
+    startDate: '2019-06-23T00:00:00.000Z',
   },
 ];
 
@@ -377,8 +391,8 @@ const eventList = [
     type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
-    startDate: '2019-01-19T00:00:00',
-    endDate: '2019-01-21T22:59:00',
+    startDate: '2019-01-18T23:00:00.000Z',
+    endDate: '2019-01-21T22:59:00.000Z',
     auxiliary: auxiliaryList[0]._id,
   },
   {
@@ -388,8 +402,8 @@ const eventList = [
     type: ABSENCE,
     absence: UNJUSTIFIED,
     absenceNature: HOURLY,
-    startDate: moment('2019-01-19T14:00:00').toDate(),
-    endDate: moment('2019-01-19T16:00:00').toDate(),
+    startDate: '2019-01-19T13:00:00.000Z',
+    endDate: '2019-01-19T15:00:00.000Z',
     auxiliary: auxiliaryList[0]._id,
     misc: 'test absence',
   },
@@ -510,15 +524,15 @@ const billsList = [
   {
     _id: new ObjectId(),
     type: 'automatic',
-    date: '2019-05-29',
+    date: '2019-05-29T10:00:00.000Z',
     number: 'FACT-1905002',
     company: authCompany._id,
     customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 75.96,
     subscriptions: [{
-      startDate: '2019-05-29',
-      endDate: '2019-11-29',
+      startDate: '2019-05-29T10:00:00.000Z',
+      endDate: '2019-11-29T10:00:00.000Z',
       subscription: customersList[3].subscriptions[0]._id,
       vat: 5.5,
       service: authBillService,
@@ -541,14 +555,14 @@ const billsList = [
   {
     _id: new ObjectId(),
     type: 'automatic',
-    date: '2019-05-25',
+    date: '2019-05-25T10:00:00.000Z',
     number: 'FACT-1905003',
     company: authCompany._id,
     customer: customersList[3]._id,
     netInclTaxes: 101.28,
     subscriptions: [{
-      startDate: '2019-05-25',
-      endDate: '2019-11-25',
+      startDate: '2019-05-25T10:00:00.000Z',
+      endDate: '2019-11-25T10:00:00.000Z',
       subscription: customersList[3].subscriptions[0]._id,
       vat: 5.5,
       events: [{
@@ -575,7 +589,7 @@ const paymentsList = [
     _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903201',
-    date: '2019-05-26T19:47:42',
+    date: '2019-05-26T19:47:42.000Z',
     customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 190,
@@ -586,7 +600,7 @@ const paymentsList = [
     _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903202',
-    date: '2019-05-24T15:47:42',
+    date: '2019-05-24T15:47:42.000Z',
     customer: customersList[3]._id,
     netInclTaxes: 390,
     nature: PAYMENT,
@@ -596,7 +610,7 @@ const paymentsList = [
     _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903203',
-    date: '2019-05-27T09:10:20',
+    date: '2019-05-27T09:10:20.000Z',
     customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 220,
@@ -626,7 +640,7 @@ const payList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2019-01-31T14:00:18',
+    endDate: '2019-01-31T14:00:18.000Z',
     hoursBalance: -8,
     hoursCounter: -20,
     hoursToWork: 30,
@@ -641,7 +655,7 @@ const payList = [
     mutual: false,
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2019-01-01T14:00:18',
+    startDate: '2019-01-01T14:00:18.000Z',
     transport: 10,
     paidKm: 12,
     travelledKm: 14,
@@ -670,7 +684,7 @@ const payList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2019-02-28T14:00:18',
+    endDate: '2019-02-28T14:00:18.000Z',
     holidaysHours: 12,
     hoursBalance: -8,
     hoursCounter: -20,
@@ -685,7 +699,7 @@ const payList = [
     surchargedAndNotExemptDetails: [],
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2019-01-01T14:00:18',
+    startDate: '2019-01-01T14:00:18.000Z',
     transport: 10,
     paidKm: 12,
     travelledKm: 14,
@@ -718,8 +732,8 @@ const finalPayList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2019-01-31T14:00:18',
-    endNotificationDate: '2019-01-25T14:00:18',
+    endDate: '2019-01-31T14:00:18.000Z',
+    endNotificationDate: '2019-01-25T14:00:18.000Z',
     endReason: 'salut',
     holidaysHours: 12,
     hoursBalance: -8,
@@ -735,7 +749,7 @@ const finalPayList = [
     surchargedAndNotExemptDetails: [],
     overtimeHours: 0,
     phoneFees: 0,
-    startDate: '2019-01-01T14:00:18',
+    startDate: '2019-01-01T14:00:18.000Z',
     transport: 10,
     paidKm: 12,
     travelledKm: 14,
@@ -765,8 +779,8 @@ const finalPayList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2019-02-28T14:00:18',
-    endNotificationDate: '2019-02-25T14:00:18',
+    endDate: '2019-02-28T14:00:18.000Z',
+    endNotificationDate: '2019-02-25T14:00:18.000Z',
     endReason: 'salut',
     holidaysHours: 12,
     hoursBalance: -8,
@@ -778,7 +792,7 @@ const finalPayList = [
     notSurchargedAndNotExempt: 43,
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2019-01-01T14:00:18',
+    startDate: '2019-01-01T14:00:18.000Z',
     surchargedAndExempt: 0,
     surchargedAndExemptDetails: [],
     surchargedAndNotExempt: 3,
@@ -797,9 +811,9 @@ const creditNotesList = [
   {
     _id: new ObjectId(),
     company: authCompany._id,
-    date: '2019-05-28',
-    startDate: '2019-05-27',
-    endDate: '2019-11-25',
+    date: '2019-05-28T10:00:00.000Z',
+    startDate: '2019-05-27T10:00:00.000Z',
+    endDate: '2019-11-25T10:00:00.000Z',
     customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     exclTaxesCustomer: 100,
@@ -876,14 +890,14 @@ const traineeList = [
     identity: { firstname: 'Jacques', lastname: 'Trainee' },
     origin: WEBAPP,
     local: { email: 'trainee1@compani.fr' },
-    firstMobileConnection: new Date(),
+    firstMobileConnection: '2019-01-16T10:30:19.543Z',
   },
   {
     _id: new ObjectId(),
     identity: { firstname: 'Paul', lastname: 'Trainee' },
     origin: WEBAPP,
     local: { email: 'trainee2@compani.fr' },
-    firstMobileConnection: new Date(),
+    firstMobileConnection: '2019-01-16T10:30:19.543Z',
   },
   {
     _id: new ObjectId(),
@@ -930,39 +944,63 @@ const courseList = [
   },
 ];
 
+const stepList = [
+  { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+  { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+  { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
+  { _id: new ObjectId(), name: 'étape 4', type: ON_SITE },
+];
+
+const slotAddress = {
+  street: '24 Avenue Daumesnil',
+  fullAddress: '24 Avenue Daumesnil 75012 Paris',
+  zipCode: '75012',
+  city: 'Paris',
+  location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+};
+
 const courseSlotList = [
   {
     _id: new ObjectId(),
     course: courseList[0]._id,
-    step: new ObjectId(),
-    startDate: new Date('2021-05-01T08:00:00.000+00:00'),
-    endDate: new Date('2021-05-01T10:00:00.000+00:00'),
+    step: stepList[0]._id,
+    startDate: '2021-05-01T08:00:00.000Z',
+    endDate: '2021-05-01T10:00:00.000Z',
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:00.000Z',
   },
   {
     _id: new ObjectId(),
     course: courseList[0]._id,
-    step: new ObjectId(),
-    startDate: new Date('2021-05-01T14:00:00.000+00:00'),
-    endDate: new Date('2021-05-01T16:00:00.000+00:00'),
+    step: stepList[1]._id,
+    startDate: '2021-05-01T14:00:00.000Z',
+    endDate: '2021-05-01T16:00:00.000Z',
+    meetingLink: 'https://meet.google.com',
+    createdAt: '2020-12-12T10:00:01.000Z',
   },
   {
     _id: new ObjectId(),
     course: courseList[1]._id,
-    step: new ObjectId(),
-    startDate: new Date('2021-02-01T08:00:00.000+00:00'),
-    endDate: new Date('2021-02-01T10:00:00.000+00:00'),
+    step: stepList[0]._id,
+    startDate: '2021-02-01T08:00:00.000Z',
+    endDate: '2021-02-01T10:00:00.000Z',
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:02.000Z',
   },
   {
     _id: new ObjectId(),
     course: courseList[1]._id,
-    step: new ObjectId(),
-    startDate: new Date('2021-02-02T08:00:00.000+00:00'),
-    endDate: new Date('2021-02-02T10:00:00.000+00:00'),
+    step: stepList[2]._id,
+    startDate: '2021-02-02T08:00:00.000Z',
+    endDate: '2021-02-02T10:00:00.000Z',
+    createdAt: '2020-12-12T10:00:03.000Z',
   },
   {
     _id: new ObjectId(),
     course: courseList[1]._id,
-    step: new ObjectId(),
+    step: stepList[3]._id,
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:04.000Z',
   },
 ];
 
@@ -1016,6 +1054,7 @@ const populateDB = async () => {
     CourseSmsHistory.create(smsList),
     Attendance.create(attendanceList),
     AttendanceSheet.create(attendanceSheetList),
+    Step.create(stepList),
   ]);
 };
 
@@ -1030,4 +1069,5 @@ module.exports = {
   establishment,
   thirdPartyPayer,
   courseList,
+  courseSlotList,
 };

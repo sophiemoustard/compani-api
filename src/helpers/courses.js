@@ -6,7 +6,6 @@ const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
-const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
@@ -396,14 +395,14 @@ exports.formatIntraCourseSlotsForPdf = slot => ({
 });
 
 exports.formatInterCourseSlotsForPdf = (slot) => {
-  const duration = CompaniDuration(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'));
+  const duration = UtilsHelper.getDuration(slot.startDate, slot.endDate);
 
   return {
     address: get(slot, 'address.fullAddress') || null,
     date: CompaniDate(slot.startDate).format('dd/LL/yyyy'),
     startHour: CompaniDate(slot.startDate).format('HH:mm'),
     endHour: CompaniDate(slot.endDate).format('HH:mm'),
-    duration: duration.format(),
+    duration,
   };
 };
 

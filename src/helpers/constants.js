@@ -221,8 +221,18 @@ module.exports = {
   // EXPORTS HISTORY
   WORKING_EVENT: 'working_event', // intervention or internal hours
   COURSE: 'course',
+  COURSE_SLOT: 'course_slot',
   get HISTORY_EXPORT_TYPES() {
-    return [this.WORKING_EVENT, this.BILL, this.PAYMENT, this.ABSENCE, this.PAY, this.CONTRACT, this.COURSE];
+    return [
+      this.WORKING_EVENT,
+      this.BILL,
+      this.PAYMENT,
+      this.ABSENCE,
+      this.PAY,
+      this.CONTRACT,
+      this.COURSE,
+      this.COURSE_SLOT,
+    ];
   },
   get CLIENT_EXPORT_TYPES() {
     return [
@@ -243,7 +253,7 @@ module.exports = {
       this.REFERENT,
     ];
   },
-  get VENDOR_EXPORT_TYPES() { return [this.COURSE]; },
+  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT]; },
   // BILLING
   BILL: 'bill',
   CREDIT_NOTE: 'credit_note',
@@ -343,6 +353,13 @@ module.exports = {
   REMOTE: 'remote',
   get LIVE_STEPS() {
     return [this.ON_SITE, this.REMOTE];
+  },
+  get STEP_TYPES() {
+    return {
+      [this.E_LEARNING]: 'eLearning',
+      [this.ON_SITE]: 'présentiel',
+      [this.REMOTE]: 'distanciel',
+    };
   },
   // ACTIVITY
   LESSON: 'lesson',
