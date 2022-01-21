@@ -611,7 +611,7 @@ exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Ev
       startDate: { $gte: startDate },
       endDate: { $lte: endDate },
       auxiliary: { $exists: true },
-      isCancelled: false,
+      $or: [{ isCancelled: false }, { 'cancel.condition': { $in: [INVOICED_AND_PAID] } }],
       type: { $in: [INTERNAL_HOUR, INTERVENTION] },
     },
   },
