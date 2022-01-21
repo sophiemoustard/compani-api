@@ -464,7 +464,7 @@ describe('MANIPULATE', () => {
   describe('add', () => {
     const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
 
-    it('should return a newly constructed companiDate, inscreased by amout', () => {
+    it('should return a newly constructed companiDate, increased by amount', () => {
       const result = companiDate.add({ months: 1, hours: 2 });
 
       expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
