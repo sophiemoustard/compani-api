@@ -543,7 +543,7 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  { // 8 - origin
+  { // 8 - origin cancelled event invoiced and paid
     _id: new ObjectId(),
     company: authCompany._id,
     sector,
@@ -561,6 +561,9 @@ const eventList = [
       street: '42 Rue de la Procession',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
+    isCancelled: true,
+    cancel: { condition: 'invoiced_and_paid', reason: 'customer_initiative' },
+    misc: 'bénéficiaire absent',
   },
   { // 9 - destination
     _id: new ObjectId(),
@@ -580,6 +583,28 @@ const eventList = [
       street: '42 Rue de la Procession',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
+  },
+  { // 10 - cancelled event - invoiced and not paid
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T08:00:00.000Z',
+    endDate: '2019-01-11T09:00:00.000Z',
+    auxiliary: auxiliaryList[1]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '35 Rue du Test 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '42 Rue de la Procession',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    isCancelled: true,
+    cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
+    misc: 'auxiliaire absente',
   },
 ];
 
