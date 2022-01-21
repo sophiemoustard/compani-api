@@ -4,7 +4,7 @@ const luxon = require('./luxon');
 exports.CompaniDuration = (...args) => companiDurationFactory(exports._formatMiscToCompaniDuration(...args));
 
 const companiDurationFactory = (inputDuration) => {
-  let _duration = inputDuration;
+  const _duration = inputDuration;
 
   return {
     get _getDuration() {
@@ -21,9 +21,7 @@ const companiDurationFactory = (inputDuration) => {
     add(miscTypeOtherDuration) {
       const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
 
-      _duration = _duration.plus(otherDuration);
-
-      return this;
+      return companiDurationFactory(_duration.plus(otherDuration));
     },
 
     asHours() {

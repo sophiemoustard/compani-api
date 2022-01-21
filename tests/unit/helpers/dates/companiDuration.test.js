@@ -125,13 +125,13 @@ describe('add', () => {
     _formatMiscToCompaniDuration.restore();
   });
 
-  it('should increase companiDuration, and return a reference', () => {
+  it('should increase a newly constructed companiDuration, increased by amount', () => {
     const addedAmount = { hours: 2, minutes: 5 };
     const result = companiDuration.add(addedAmount);
 
-    expect(result).toBe(companiDuration);
+    expect(result).toEqual(expect.objectContaining({ _getDuration: expect.any(luxon.Duration) }));
     const amountInMs = (durationAmount.hours + addedAmount.hours) * 60 * 60 * 1000 + addedAmount.minutes * 60 * 1000;
-    expect(companiDuration._getDuration.toMillis()).toBe(amountInMs);
+    expect(result._getDuration.toMillis()).toBe(amountInMs);
     sinon.assert.calledWithExactly(_formatMiscToCompaniDuration.getCall(0), addedAmount);
   });
 });
