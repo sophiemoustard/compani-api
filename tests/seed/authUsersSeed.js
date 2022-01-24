@@ -40,7 +40,7 @@ const userList = [
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
     contracts: [new ObjectId()],
-    administrative: { driveFolder: { driveId: '0987654321' } },
+    administrative: { driveFolder: { driveId: '0987654321' }, transportInvoice: { transportType: 'private' } },
   },
   {
     _id: new ObjectId(),

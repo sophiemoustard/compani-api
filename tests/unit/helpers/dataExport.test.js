@@ -10,7 +10,7 @@ const Service = require('../../../src/models/Service');
 const UserCompany = require('../../../src/models/UserCompany');
 const ExportHelper = require('../../../src/helpers/dataExport');
 const UtilsHelper = require('../../../src/helpers/utils');
-const { FIXED, HOURLY } = require('../../../src/helpers/constants');
+const { FIXED, HOURLY, AUXILIARY_ROLES } = require('../../../src/helpers/constants');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
 const SinonMongoose = require('../sinonMongoose');
@@ -210,23 +210,53 @@ describe('exportAuxiliaries', () => {
 
   it('should return csv header', async () => {
     const credentials = { company: { _id: new ObjectId() } };
-    findUserCompany.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    const roleIds = [new ObjectId(), new ObjectId()];
+    const userCompanies = [{ user: new ObjectId() }];
+
+    findUserCompany.returns(SinonMongoose.stubChainedQueries(userCompanies, ['lean']));
+    findRole.returns(SinonMongoose.stubChainedQueries(roleIds, ['lean']));
+    findUser.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id Auxiliaire', 'Titre', 'Nom', 'Prénom',
       'Date de naissance', 'Pays de naissance', 'Departement de naissance', 'Ville de naissance', 'Nationalité',
-      'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Établissement',
+      'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contrats', 'Établissement',
       'Date de début de contrat prestataire', 'Date de fin de contrat prestataire', 'Date d\'inactivité',
-      'Date de création']);
+      'Date de création', 'Mode de transport par défaut']);
 
     SinonMongoose.calledOnceWithExactly(
       findUserCompany,
       [{ query: 'find', args: [{ company: credentials.company._id }, { user: 1 }] }, { query: 'lean' }]
     );
-    sinon.assert.notCalled(findRole);
-    sinon.assert.notCalled(findUser);
+    SinonMongoose.calledOnceWithExactly(
+      findRole,
+      [{ query: 'find', args: [{ name: { $in: AUXILIARY_ROLES } }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findUser,
+      [
+        {
+          query: 'find',
+          args: [{ 'role.client': { $in: roleIds }, _id: { $in: [userCompanies[0].user] } }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            populate: { path: 'sector', select: 'name' },
+            match: { company: credentials.company._id },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'contracts', select: '_id startDate endDate' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'establishment', select: 'name', match: { company: credentials.company._id } }],
+        },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return auxiliary', async () => {
@@ -254,6 +284,7 @@ describe('exportAuxiliaries', () => {
         contracts: [{ _id: 1, startDate: '2019-12-02' }],
         contact: { address: { fullAddress: 'Ponthieu' }, phone: '0123456789' },
         establishment: { name: 'Test' },
+        administrative: { transportInvoice: { transportType: 'public' } },
       },
     ];
     findUserCompany.returns(SinonMongoose.stubChainedQueries(userCompanies, ['lean']));
@@ -285,6 +316,7 @@ describe('exportAuxiliaries', () => {
       '',
       '01/02/2019',
       '01/02/2019',
+      'Transports en commun / À pied',
     ]);
 
     SinonMongoose.calledOnceWithExactly(
@@ -344,10 +376,50 @@ describe('exportAuxiliaries', () => {
     expect(result[1]).toBeDefined();
     expect(result[2]).toBeDefined();
     expect(result[1]).toMatchObject([
-      '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '10/11/2019', '01/12/2019', '', '',
+      '',
+      '',
+      auxiliaries[0]._id,
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      2,
+      '',
+      '10/11/2019',
+      '01/12/2019',
+      '',
+      '',
+      '',
     ]);
     expect(result[2]).toMatchObject([
-      '', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '02/12/2019', '', '', '',
+      '',
+      '',
+      auxiliaries[0]._id,
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      2,
+      '',
+      '02/12/2019',
+      '',
+      '',
+      '',
+      '',
     ]);
 
     SinonMongoose.calledOnceWithExactly(

@@ -282,11 +282,13 @@ module.exports = {
   TRANSIT: 'transit',
   WALKING: 'walking',
   DRIVING: 'driving',
+  NONE: 'none',
   get EVENT_TRANSPORT_MODE_LIST() {
     return {
       [this.PUBLIC_TRANSPORT]: 'Transports en commun / À pied',
       [this.PRIVATE_TRANSPORT]: 'Véhicule personnel',
       [this.COMPANY_TRANSPORT]: 'Véhicule d\'entreprise',
+      [this.NONE]: 'Aucun',
     };
   },
   // PAY
