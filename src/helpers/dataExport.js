@@ -181,7 +181,7 @@ exports.exportAuxiliaries = async (credentials) => {
     .populate({ path: 'establishment', select: 'name', match: { company: companyId } })
     .lean();
 
-  if (!auxiliaries.length) rows.push(getDataForAuxiliariesExport([], 0));
+  if (!auxiliaries.length) rows.push(getDataForAuxiliariesExport({}, 0));
   else {
     for (const aux of auxiliaries) {
       const { contracts } = aux;

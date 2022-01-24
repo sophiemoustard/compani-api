@@ -189,7 +189,7 @@ describe('exportCustomers', () => {
   });
 });
 
-describe('exportAuxiliaries #tag', () => {
+describe('exportAuxiliaries', () => {
   let findUser;
   let findRole;
   let findUserCompany;
