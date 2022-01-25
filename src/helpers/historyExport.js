@@ -1,5 +1,6 @@
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const uniqBy = require('lodash/uniqBy');
 const moment = require('../extensions/moment');
 const {
   NEVER,
@@ -21,15 +22,27 @@ const {
   TIMESTAMPING_ACTION_TYPE_LIST,
   MANUAL_TIME_STAMPING_REASONS,
   EVENT_TRANSPORT_MODE_LIST,
+  INTRA,
+  ON_SITE,
+  REMOTE,
+  STEP_TYPES,
 } = require('./constants');
 const DatesHelper = require('./dates');
+const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const UtilsHelper = require('./utils');
 const NumbersHelper = require('./numbers');
 const DraftPayHelper = require('./draftPay');
+const CourseHelper = require('./courses');
+const AttendanceSheet = require('../models/AttendanceSheet');
+const DistanceMatrixHelper = require('./distanceMatrix');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
 const Contract = require('../models/Contract');
+const CourseSmsHistory = require('../models/CourseSmsHistory');
+const CourseSlot = require('../models/CourseSlot');
+const Course = require('../models/Course');
 const Pay = require('../models/Pay');
 const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
@@ -178,15 +191,6 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
   return rows;
 };
 
-exports.getAbsenceHours = (absence, contracts) => {
-  if (absence.absenceNature === HOURLY) return moment(absence.endDate).diff(absence.startDate, 'm') / 60;
-
-  return contracts
-    .filter(c => moment(c.startDate).isSameOrBefore(absence.endDate) &&
-      (!c.endDate || moment(c.endDate).isAfter(absence.startDate)))
-    .reduce((acc, c) => acc + DraftPayHelper.getHoursFromDailyAbsence(absence, c), 0);
-};
-
 const absenceExportHeader = [
   'Id Auxiliaire',
   'Auxiliaire - Prénom',
@@ -204,7 +208,7 @@ const absenceExportHeader = [
 ];
 
 exports.formatAbsence = (absence) => {
-  const hours = exports.getAbsenceHours(absence, absence.auxiliary.contracts);
+  const hours = DraftPayHelper.getAbsenceHours(absence, absence.auxiliary.contracts);
   const datetimeFormat = absence.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
 
   return [
@@ -476,7 +480,7 @@ const formatLines = (surchargedPlanDetails, planName) => {
   const lines = [planName];
   for (const [surchageKey, surcharge] of surcharges) {
     lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, `
-     + `${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
+      + `${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
   }
 
   return lines.join('\r\n');
@@ -629,4 +633,189 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
   }
 
   return rows;
+};
+
+const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
+  if (slotsToPlan.length) return 'à planifier';
+  if (slotsGroupedByDate) {
+    const lastDate = slotsGroupedByDate.length - 1;
+    const lastSlot = slotsGroupedByDate[lastDate].length - 1;
+    return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format('dd/LL/yyyy HH:mm:ss');
+  }
+  return '';
+};
+
+exports.exportCourseHistory = async (startDate, endDate) => {
+  const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
+  const courseIds = slots.map(slot => slot.course);
+  const courses = await Course
+    .find({ _id: { $in: courseIds } })
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'subProgram', select: 'name program', populate: [{ path: 'program', select: 'name' }] })
+    .populate({ path: 'trainer', select: 'identity' })
+    .populate({ path: 'salesRepresentative', select: 'identity' })
+    .populate({ path: 'contact', select: 'identity' })
+    .populate({ path: 'slots', populate: 'attendances' })
+    .populate({ path: 'slotsToPlan' })
+    .populate({ path: 'trainees', select: 'firstMobileConnection' })
+    .lean();
+
+  const rows = [];
+
+  for (const course of courses) {
+    const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
+    const smsCount = await CourseSmsHistory.countDocuments({ course: course._id });
+    const attendanceSheetsCount = await AttendanceSheet.countDocuments({ course: course._id });
+
+    const attendances = course.slots.map(slot => slot.attendances).flat();
+    const courseTraineeList = course.trainees.map(trainee => trainee._id);
+    const subscribedTraineesAttendancesCount = attendances
+      .filter(attendance => UtilsHelper.doesArrayIncludeId(courseTraineeList, attendance.trainee))
+      .length;
+    const unsubscribedTraineesAttendancesCount = attendances.length - subscribedTraineesAttendancesCount;
+
+    const upComingSlotsCount = course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
+    const attendancesToCome = upComingSlotsCount * course.trainees.length;
+    const absencesCount = (course.slots.length * course.trainees.length) - subscribedTraineesAttendancesCount
+    - attendancesToCome;
+
+    const unsubscribedTraineesCount = uniqBy(attendances.map(a => a.trainee), trainee => trainee.toString())
+      .filter(attendanceTrainee => !UtilsHelper.doesArrayIncludeId(courseTraineeList, attendanceTrainee))
+      .length;
+
+    const pastSlotsCount = course.slots.length - upComingSlotsCount;
+
+    rows.push({
+      Identifiant: course._id,
+      Type: course.type,
+      Structure: course.type === INTRA ? get(course, 'company.name') : '',
+      Programme: get(course, 'subProgram.program.name') || '',
+      'Sous-Programme': get(course, 'subProgram.name') || '',
+      'Infos complémentaires': course.misc,
+      Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
+      'Référent Compani': UtilsHelper.formatIdentity(get(course, 'salesRepresentative.identity') || '', 'FL'),
+      'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
+      'Nombre d\'inscrits': get(course, 'trainees.length') || '',
+      'Nombre de dates': slotsGroupedByDate.length,
+      'Nombre de créneaux': get(course, 'slots.length') || '',
+      'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length') || '',
+      'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
+      'Nombre de SMS envoyés': smsCount,
+      'Nombre de personnes connectées à l\'app': course.trainees
+        .filter(trainee => trainee.firstMobileConnection).length,
+      'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss') || '',
+      'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
+      'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
+      'Nombre de présences': subscribedTraineesAttendancesCount,
+      'Nombre d\'absences': absencesCount,
+      'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
+      'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
+      Avancement: UtilsHelper.formatFloatForExport(pastSlotsCount / (course.slots.length + course.slotsToPlan.length)),
+    });
+  }
+
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+};
+
+const getAddress = (slot) => {
+  if (get(slot, 'step.type') === ON_SITE) return get(slot, 'address.fullAddress') || '';
+  if (get(slot, 'step.type') === REMOTE) return slot.meetingLink || '';
+
+  return '';
+};
+
+exports.exportCourseSlotHistory = async (startDate, endDate) => {
+  const courseSlots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
+    .populate({ path: 'step', select: 'type name' })
+    .populate({ path: 'course', select: 'trainees' })
+    .populate({ path: 'attendances' })
+    .lean();
+
+  const rows = [];
+
+  for (const slot of courseSlots) {
+    const slotDuration = UtilsHelper.getDurationForExport(slot.startDate, slot.endDate);
+    const subscribedTraineesAttendancesCount = slot.attendances
+      .filter(attendance => UtilsHelper.doesArrayIncludeId(slot.course.trainees, attendance.trainee))
+      .length;
+    const unsubscribedTraineesAttendancesCount = slot.attendances.length - subscribedTraineesAttendancesCount;
+
+    const absencesCount = slot.course.trainees.length - subscribedTraineesAttendancesCount;
+
+    rows.push({
+      'Id Créneau': slot._id,
+      'Id Formation': slot.course._id,
+      Étape: get(slot, 'step.name') || '',
+      Type: STEP_TYPES[get(slot, 'step.type')] || '',
+      'Date de création': CompaniDate(slot.createdAt).format('dd/LL/yyyy HH:mm:ss') || '',
+      'Date de début': CompaniDate(slot.startDate).format('dd/LL/yyyy HH:mm:ss') || '',
+      'Date de fin': CompaniDate(slot.endDate).format('dd/LL/yyyy HH:mm:ss') || '',
+      Durée: slotDuration,
+      Adresse: getAddress(slot),
+      'Nombre de présences': subscribedTraineesAttendancesCount,
+      'Nombre d\'absences': absencesCount,
+      'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
+    });
+  }
+
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+};
+
+exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
+  const rows = [];
+  const events = await EventRepository.getEventsByDayAndAuxiliary(
+    startDate,
+    endDate,
+    get(credentials, 'company._id')
+  );
+  const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrices(credentials);
+
+  const sortedEventsByAuxiliary = events
+    .sort((a, b) => (a.auxiliary.identity.lastname).localeCompare(b.auxiliary.identity.lastname));
+
+  for (const group of sortedEventsByAuxiliary) {
+    const sortedEventsByDayList = group.eventsByDay.sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
+
+    for (const eventsGroupedByDay of sortedEventsByDayList) {
+      const sortedEvents = [...eventsGroupedByDay].sort(DatesHelper.ascendingSort('startDate'));
+
+      for (let i = 1; i < sortedEvents.length; i++) {
+        const {
+          duration,
+          travelledKm,
+          origins,
+          destinations,
+          transportDuration,
+          breakDuration,
+          pickTransportDuration,
+        } = await DraftPayHelper.getPaidTransportInfo(
+          { ...sortedEvents[i], auxiliary: group.auxiliary },
+          { ...sortedEvents[i - 1], auxiliary: group.auxiliary },
+          distanceMatrix
+        );
+
+        const formattedDuration = (duration / 60).toFixed(4).replace('.', ',');
+
+        rows.push({
+          'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
+          'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
+          'Nom  de l\'auxiliaire': get(group, 'auxiliary.identity.lastname', ''),
+          'Heure de départ du trajet': CompaniDate(sortedEvents[i - 1].endDate).format('dd/LL/yyyy HH:mm:ss'),
+          'Heure d\'arrivée du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy HH:mm:ss'),
+          'Adresse de départ': origins,
+          'Adresse d\'arrivée': destinations,
+          Distance: travelledKm,
+          'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
+            get(group, 'auxiliary.administrative.transportInvoice.transportType')
+          ],
+          'Durée du trajet': CompaniDuration({ minutes: transportDuration }).format(),
+          'Durée inter vacation': CompaniDuration({ minutes: breakDuration }).format(),
+          'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
+          'Heures prise en compte': formattedDuration,
+        });
+      }
+    }
+  }
+
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };

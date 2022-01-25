@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { fn: momentProto } = require('moment');
 const expect = require('expect');
 const GetStream = require('get-stream');
@@ -151,7 +151,7 @@ describe('POST /users', () => {
         local: { email: 'kirk@alenvi.io' },
         sector: userSectors[0]._id,
         origin: WEBAPP,
-        role: new ObjectID(),
+        role: new ObjectId(),
       };
       const response = await app.inject({
         method: 'POST',
@@ -968,7 +968,7 @@ describe('PUT /users/:id', () => {
 
       const userSectorHistory = sectorHistories
         .filter(history => UtilsHelper.areObjectIdsEquals(history.auxiliary, userId));
-      const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company: authCompany });
+      const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company: authCompany._id });
       expect(sectorHistoryCount).toBe(userSectorHistory.length + 1);
     });
 
@@ -997,7 +997,7 @@ describe('PUT /users/:id', () => {
         .lean();
 
       expect(updatedUser.sector).toEqual(userSectors[2]._id);
-      const histories = await SectorHistory.find({ auxiliary: userId, company: authCompany }).lean();
+      const histories = await SectorHistory.find({ auxiliary: userId, company: authCompany._id }).lean();
       expect(histories.some(sh => UtilsHelper.areObjectIdsEquals(sh.sector, userSectors[0]._id))).toBeTruthy();
       expect(histories.some(sh => UtilsHelper.areObjectIdsEquals(sh.sector, userSectors[1]._id))).toBeFalsy();
       expect(histories.some(sh => UtilsHelper.areObjectIdsEquals(sh.sector, userSectors[2]._id))).toBeTruthy();
@@ -1013,7 +1013,7 @@ describe('PUT /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
       const countHistory = await SectorHistory
-        .countDocuments({ auxiliary: usersSeedList[0]._id, company: authCompany, sector: userSectors[0]._id });
+        .countDocuments({ auxiliary: usersSeedList[0]._id, company: authCompany._id, sector: userSectors[0]._id });
       expect(countHistory).toEqual(1);
     });
 
@@ -1027,7 +1027,7 @@ describe('PUT /users/:id', () => {
 
       expect(res.statusCode).toBe(200);
       const countHistories = await SectorHistory
-        .countDocuments({ auxiliary: usersSeedList[1]._id, company: authCompany, sector: userSectors[1]._id });
+        .countDocuments({ auxiliary: usersSeedList[1]._id, company: authCompany._id, sector: userSectors[1]._id });
       expect(countHistories).toEqual(1);
     });
 
@@ -1042,14 +1042,14 @@ describe('PUT /users/:id', () => {
       expect(res.statusCode).toBe(200);
 
       const countHistories = await SectorHistory
-        .countDocuments({ auxiliary: usersSeedList[4]._id, company: authCompany, sector: userSectors[1]._id });
+        .countDocuments({ auxiliary: usersSeedList[4]._id, company: authCompany._id, sector: userSectors[1]._id });
       expect(countHistories).toEqual(1);
     });
 
     it('should create sectorHistory if auxiliary does not have one', async () => {
       const role = await Role.find({ name: 'auxiliary' }).lean();
       const previousHistories = await SectorHistory
-        .find({ auxiliary: usersSeedList[8]._id, company: authCompany, sector: userSectors[1]._id })
+        .find({ auxiliary: usersSeedList[8]._id, company: authCompany._id, sector: userSectors[1]._id })
         .lean();
 
       const res = await app.inject({
@@ -1062,7 +1062,7 @@ describe('PUT /users/:id', () => {
       expect(res.statusCode).toBe(200);
       expect(previousHistories).toHaveLength(0);
       const histories = await SectorHistory
-        .find({ auxiliary: usersSeedList[8]._id, company: authCompany, sector: userSectors[1]._id })
+        .find({ auxiliary: usersSeedList[8]._id, company: authCompany._id, sector: userSectors[1]._id })
         .lean();
       expect(histories.length).toEqual(1);
       expect(histories[0].startDate).toBeUndefined();
@@ -1613,7 +1613,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     it('should return a 404 error if user is not from same company', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/users/${auxiliaryFromOtherCompany._id}/gdrive/${new ObjectID()}/upload`,
+        url: `/users/${auxiliaryFromOtherCompany._id}/gdrive/${new ObjectId()}/upload`,
         payload: await GetStream(form),
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
@@ -1825,7 +1825,7 @@ describe('DELETE /users/:id/upload', () => {
     it('should return 404 if invalid user id', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${new ObjectID()}/upload`,
+        url: `/users/${new ObjectId()}/upload`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

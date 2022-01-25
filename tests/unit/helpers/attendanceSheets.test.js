@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const attendanceSheetHelper = require('../../../src/helpers/attendanceSheets');
@@ -18,19 +18,19 @@ describe('list', () => {
   });
 
   it('should return course attendance sheets', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const attendanceSheets = [{
       course: courseId,
       file: { publicId: 'mon premier upload', link: 'www.test.com' },
       date: '2020-04-03T10:00:00',
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets]));
+    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets));
 
     const result = await attendanceSheetHelper.list(courseId, null);
 
     expect(result).toMatchObject(attendanceSheets);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
@@ -41,28 +41,28 @@ describe('list', () => {
   });
 
   it('should return course attendance sheets from logged user company', async () => {
-    const courseId = new ObjectID();
-    const authCompanyId = new ObjectID();
-    const otherCompanyId = new ObjectID();
+    const courseId = new ObjectId();
+    const authCompanyId = new ObjectId();
+    const otherCompanyId = new ObjectId();
     const attendanceSheets = [
       {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de authCompany', link: 'www.test.com' },
-        trainee: { _id: new ObjectID(), company: authCompanyId },
+        trainee: { _id: new ObjectId(), company: authCompanyId },
       },
       {
         course: courseId,
         file: { publicId: 'mon upload avec un trainne de otherCompany', link: 'www.test.com' },
-        trainee: { _id: new ObjectID(), company: otherCompanyId },
+        trainee: { _id: new ObjectId(), company: otherCompanyId },
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([attendanceSheets]));
+    find.returns(SinonMongoose.stubChainedQueries(attendanceSheets));
 
     const result = await attendanceSheetHelper.list(courseId, authCompanyId);
 
     expect(result).toMatchObject([attendanceSheets[0]]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ course: courseId }] },
@@ -94,7 +94,7 @@ describe('create', () => {
   });
 
   it('should create an attendance sheet for INTRA course', async () => {
-    const payload = { date: '2020-04-03T10:00:00', course: new ObjectID(), file: 'test.pdf' };
+    const payload = { date: '2020-04-03T10:00:00', course: new ObjectId(), file: 'test.pdf' };
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
 
     await attendanceSheetHelper.create(payload);
@@ -112,17 +112,17 @@ describe('create', () => {
   });
 
   it('should create an attendance sheet for INTER course', async () => {
-    const payload = { trainee: 'id de quelqun', course: new ObjectID(), file: 'test.pdf' };
+    const payload = { trainee: 'id de quelqun', course: new ObjectId(), file: 'test.pdf' };
     const returnedUser = { identity: { firstName: 'monsieur', lastname: 'patate' } };
     uploadCourseFile.returns({ publicId: 'yo', link: 'yo' });
-    findOne.returns(SinonMongoose.stubChainedQueries([returnedUser]));
+    findOne.returns(SinonMongoose.stubChainedQueries(returnedUser, ['lean']));
     formatIdentity.returns('monsieurPATATE');
 
     await attendanceSheetHelper.create(payload);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
-        { query: '', args: [{ _id: 'id de quelqun' }, { identity: 1 }] },
+        { query: 'findOne', args: [{ _id: 'id de quelqun' }, { identity: 1 }] },
         { query: 'lean' },
       ]
     );
@@ -155,7 +155,7 @@ describe('delete', () => {
   });
 
   it('should remove an attendance sheet', async () => {
-    const attendanceSheet = { _id: new ObjectID(), file: { publicId: 'yo' } };
+    const attendanceSheet = { _id: new ObjectId(), file: { publicId: 'yo' } };
 
     await attendanceSheetHelper.delete(attendanceSheet);
 

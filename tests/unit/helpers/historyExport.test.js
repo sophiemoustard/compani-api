@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -7,23 +7,30 @@ const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
 const CreditNote = require('../../../src/models/CreditNote');
 const Contract = require('../../../src/models/Contract');
+const CourseSlot = require('../../../src/models/CourseSlot');
+const Course = require('../../../src/models/Course');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Pay = require('../../../src/models/Pay');
 const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
+const CourseHelper = require('../../../src/helpers/courses');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
+const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
-const { INTERNAL_HOUR, INTERVENTION } = require('../../../src/helpers/constants');
+const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B, ON_SITE, REMOTE, E_LEARNING } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
+const { TIME_STAMPING_ACTIONS } = require('../../../src/models/EventHistory');
+const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 
 describe('getWorkingEventsForExport', () => {
-  const auxiliaryId = new ObjectID();
-  const customerId = new ObjectID();
-  const subId1 = new ObjectID();
-  const subId2 = new ObjectID();
+  const auxiliaryId = new ObjectId();
+  const customerId = new ObjectId();
+  const subId1 = new ObjectId();
+  const subId2 = new ObjectId();
 
   const events = [
     {
@@ -126,7 +133,7 @@ describe('getWorkingEventsForExport', () => {
       misc: 'brbr',
     },
   ];
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const startDate = moment('2019-05-20T08:00:00').toDate();
   const endDate = moment('2019-05-20T10:00:00').toDate();
 
@@ -149,11 +156,11 @@ describe('getWorkingEventsForExport', () => {
   });
 
   it('should return events for history export', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([events], ['populate', 'sort', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['populate', 'sort', 'lean']));
 
     const result = await ExportHelper.getWorkingEventsForExport(startDate, endDate, companyId);
     expect(result).toStrictEqual(eventsWithSubscription);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [payload] },
@@ -161,6 +168,10 @@ describe('getWorkingEventsForExport', () => {
         { query: 'populate', args: [{ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } }] },
         { query: 'populate', args: ['internalHour'] },
         { query: 'populate', args: ['sector'] },
+        {
+          query: 'populate',
+          args: [{ path: 'histories', match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId } }],
+        },
         { query: 'lean' },
       ]
     );
@@ -200,7 +211,7 @@ describe('exportWorkingEventsHistory', () => {
     'Statut de l\'annulation',
     'Raison de l\'annulation',
   ];
-  const auxiliaryId = new ObjectID();
+  const auxiliaryId = new ObjectId();
   const auxiliaries = [
     {
       _id: auxiliaryId,
@@ -223,7 +234,7 @@ describe('exportWorkingEventsHistory', () => {
         service: { versions: [{ name: 'Lala' }] },
       },
       customer: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: auxiliaryId,
@@ -249,7 +260,7 @@ describe('exportWorkingEventsHistory', () => {
         service: { versions: [{ name: 'Lala' }] },
       },
       customer: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
@@ -283,7 +294,7 @@ describe('exportWorkingEventsHistory', () => {
       repetition: { frequency: 'never' },
       sector: { name: 'Etoiles - 75' },
       customer: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
       startDate: '2019-05-20T08:00:00',
@@ -339,93 +350,23 @@ describe('exportWorkingEventsHistory', () => {
       header,
       ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
         '20/05/2019 12:00:00', '', '', '', '2,00', 'Une fois par semaine', '667', 'Transports en commun / À pied',
-        'Girafes - 75', expect.any(ObjectID), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectID), 'Mme',
+        'Girafes - 75', expect.any(ObjectId), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectId), 'Mme',
         'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
       ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
         '20/05/2019 12:00:00', '20/05/2019 12:03:24', 'Manuel', 'Problème de caméra', '2,00', 'Une fois par semaine',
-        '', '', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'Mme', 'MATHY', 'Mimi', '',
+        '', '', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectId), 'Mme', 'MATHY', 'Mimi', '',
         'Oui', 'Non', '', ''],
       ['Heure interne', 'Formation', '', '20/05/2019 10:00:00', '', '', '', '20/05/2019 12:00:00', '', '', '',
-        '2,00', '', '4124', 'Véhicule d\'entreprise', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectID), 'M.',
+        '2,00', '', '4124', 'Véhicule d\'entreprise', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectId), 'M.',
         'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant(e)'],
     ]);
-  });
-});
-
-describe('getAbsenceHours', () => {
-  let getHoursFromDailyAbsence;
-  beforeEach(() => {
-    getHoursFromDailyAbsence = sinon.stub(DraftPayHelper, 'getHoursFromDailyAbsence');
-  });
-  afterEach(() => {
-    getHoursFromDailyAbsence.restore();
-  });
-
-  it('should return daily absence hours by calling getHoursFromDailyAbsence', async () => {
-    const absence = { absenceNature: 'daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
-    const contracts = [
-      {
-        startDate: '2019-02-18T07:00:00',
-        endDate: '2019-07-18T22:00:00',
-        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
-      },
-    ];
-
-    getHoursFromDailyAbsence.returns(2);
-    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
-
-    expect(absenceHours).toEqual(2);
-    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
-  });
-
-  it('should return daily absence hours with multiple contracts', async () => {
-    const absence = { absenceNature: 'daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
-    const contracts = [
-      {
-        startDate: '2019-02-18T07:00:00',
-        endDate: '2019-07-18T22:00:00',
-        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
-      },
-      {
-        startDate: '2019-07-19T07:00:00',
-        endDate: '2019-09-18T22:00:00',
-        versions: [{ weeklyHours: 12 }],
-      },
-    ];
-
-    getHoursFromDailyAbsence.returns(2);
-    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
-
-    expect(absenceHours).toEqual(2);
-    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0]);
-  });
-
-  it('should return hourly absence hours without calling getHoursFromDailyAbsence', async () => {
-    const absence = { absenceNature: 'hourly', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
-    const contracts = [
-      {
-        startDate: '2019-02-18T07:00:00',
-        endDate: '2019-07-18T22:00:00',
-        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
-      },
-      {
-        startDate: '2019-07-19T07:00:00',
-        endDate: '2019-09-18T22:00:00',
-        versions: [{ weeklyHours: 12 }],
-      },
-    ];
-
-    const absenceHours = await ExportHelper.getAbsenceHours(absence, contracts);
-
-    expect(absenceHours).toEqual(2);
-    sinon.assert.notCalled(getHoursFromDailyAbsence);
   });
 });
 
 describe('formatAbsence', () => {
   let getAbsenceHours;
   beforeEach(() => {
-    getAbsenceHours = sinon.stub(ExportHelper, 'getAbsenceHours');
+    getAbsenceHours = sinon.stub(DraftPayHelper, 'getAbsenceHours');
   });
   afterEach(() => {
     getAbsenceHours.restore();
@@ -437,7 +378,7 @@ describe('formatAbsence', () => {
       absence: 'unjustified_absence',
       absenceNature: 'hourly',
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
         contracts: [
@@ -452,7 +393,7 @@ describe('formatAbsence', () => {
     const exportArray = await ExportHelper.formatAbsence(event);
 
     expect(exportArray).toEqual([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'Jean-Claude',
       'VAN DAMME',
       '',
@@ -476,7 +417,7 @@ describe('formatAbsence', () => {
       absenceNature: 'daily',
       internalHour: { name: 'Formation' },
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
         contracts: [
@@ -485,14 +426,14 @@ describe('formatAbsence', () => {
       },
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-05-20T22:00:00',
-      extension: { _id: new ObjectID(), startDate: '2019-04-20T08:00:00' },
+      extension: { _id: new ObjectId(), startDate: '2019-04-20T08:00:00' },
       misc: 'brbr',
     };
     getAbsenceHours.returns(4);
     const exportArray = await ExportHelper.formatAbsence(event);
 
     expect(exportArray).toEqual([
-      expect.any(ObjectID),
+      expect.any(ObjectId),
       'Princess',
       'CAROLYN',
       '',
@@ -554,7 +495,7 @@ describe('exportAbsencesHistory', () => {
       absence: 'unjustified_absence',
       absenceNature: 'hourly',
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
         sector: { name: 'Girafes - 75' },
         contracts: [
@@ -565,7 +506,7 @@ describe('exportAbsencesHistory', () => {
       endDate: '2019-05-21T10:00:00',
     };
     const credentials = { company: { _id: '1234567890' } };
-    const formattedAbsence = [new ObjectID(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée',
+    const formattedAbsence = [new ObjectId(), 'Jean-Claude', 'VAN DAMME', '', 'Girafes - 75', 'Absence injustifiée',
       'Horaire',
       '20/05/2019 08:00', '21/05/2019 10:00', '26,00', 'non', '', ''];
 
@@ -588,7 +529,7 @@ describe('exportAbsencesHistory', () => {
       absenceNature: 'daily',
       internalHour: { name: 'Formation' },
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
         contracts: [
@@ -631,7 +572,7 @@ describe('exportAbsencesHistory', () => {
       absenceNature: 'daily',
       internalHour: { name: 'Formation' },
       auxiliary: {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         identity: { firstname: 'Princess', lastname: 'Carolyn' },
         sector: { name: 'Etoiles - 75' },
         contracts: [
@@ -640,7 +581,7 @@ describe('exportAbsencesHistory', () => {
       },
       startDate: '2019-05-20T08:00:00',
       endDate: '2019-07-01T22:00:00',
-      extension: { _id: new ObjectID(), startDate: '2019-04-20T08:00:00' },
+      extension: { _id: new ObjectId(), startDate: '2019-04-20T08:00:00' },
       misc: 'brbr',
     };
     const credentials = { company: { _id: '1234567890' } };
@@ -691,13 +632,13 @@ describe('exportBillsAndCreditNotesHistory', () => {
     'Services',
     'Date de création',
   ];
-  const customerIdList = [new ObjectID(), new ObjectID(), new ObjectID(), new ObjectID()];
-  const tppIdList = [new ObjectID(), new ObjectID(), new ObjectID()];
+  const customerIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+  const tppIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
 
   const bills = [
     {
       number: 'FACT-0549236',
-      date: '2019-05-20T06:00:00.000+00:00',
+      date: '2019-05-20T06:00:00.000Z',
       customer: { _id: customerIdList[0], identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' } },
       thirdPartyPayer: { _id: tppIdList[0], name: 'TF1' },
       netInclTaxes: 389276.023,
@@ -710,7 +651,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         },
       ],
       billingItemList: [{
-        billingItem: new ObjectID(),
+        billingItem: new ObjectId(),
         unitInclTaxes: 10,
         name: 'article de factu',
         count: 2,
@@ -722,7 +663,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     },
     {
       number: 'FACT-0419457',
-      date: '2019-05-22T06:00:00.000+00:00',
+      date: '2019-05-22T06:00:00.000Z',
       customer: { _id: customerIdList[1], identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' } },
       thirdPartyPayer: { _id: tppIdList[1], name: 'The Sherif' },
       netInclTaxes: 957.1319439,
@@ -737,7 +678,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     {
       number: 'F1501231',
       thirdPartyPayer: { _id: tppIdList[2], name: 'SW' },
-      date: '2019-05-21T01:00:00.000+00:00',
+      date: '2019-05-21T01:00:00.000Z',
       customer: { _id: customerIdList[2], identity: { firstname: 'Jar jar', lastname: 'Binks' } },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
@@ -748,7 +689,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     },
     {
       number: 'F6473250',
-      date: '2019-05-25T02:00:00.000+00:00',
+      date: '2019-05-25T02:00:00.000Z',
       customer: { _id: customerIdList[3], identity: { lastname: 'R2D2' } },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
@@ -756,7 +697,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       createdAt: '2019-10-16',
     },
   ];
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   const findQuery = { date: { $lte: null, $gte: null }, company: credentials.company._id };
   const sortQuery = { date: 'desc' };
   const populateCustomerQuery = { path: 'customer', select: 'identity' };
@@ -782,13 +723,13 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    findBill.returns(SinonMongoose.stubChainedQueries([[]], ['populate', 'sort', 'lean']));
-    findCreditNote.returns(SinonMongoose.stubChainedQueries([[]], ['populate', 'sort', 'lean']));
+    findBill.returns(SinonMongoose.stubChainedQueries([], ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries([], ['populate', 'sort', 'lean']));
 
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBill,
       [
         { query: 'find', args: [findQuery] },
@@ -798,7 +739,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCreditNote,
       [
         { query: 'find', args: [findQuery] },
@@ -811,8 +752,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    findBill.returns(SinonMongoose.stubChainedQueries([[{}]], ['populate', 'sort', 'lean']));
-    findCreditNote.returns(SinonMongoose.stubChainedQueries([[{}]], ['populate', 'sort', 'lean']));
+    findBill.returns(SinonMongoose.stubChainedQueries([{}], ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries([{}], ['populate', 'sort', 'lean']));
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
@@ -825,7 +766,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       ['Facture', '', '', '', '', '', '', '', '', '', '', '', '', ''],
       ['Avoir', '', '', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBill,
       [
         { query: 'find', args: [findQuery] },
@@ -835,7 +776,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCreditNote,
       [
         { query: 'find', args: [findQuery] },
@@ -851,8 +792,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    findBill.returns(SinonMongoose.stubChainedQueries([bills], ['populate', 'sort', 'lean']));
-    findCreditNote.returns(SinonMongoose.stubChainedQueries([creditNotes], ['populate', 'sort', 'lean']));
+    findBill.returns(SinonMongoose.stubChainedQueries(bills, ['populate', 'sort', 'lean']));
+    findCreditNote.returns(SinonMongoose.stubChainedQueries(creditNotes, ['populate', 'sort', 'lean']));
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatHourStub.callsFake(hour => (hour ? `${hour}h` : ''));
@@ -930,7 +871,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         '16/10/2019',
       ],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findBill,
       [
         { query: 'find', args: [findQuery] },
@@ -940,7 +881,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCreditNote,
       [
         { query: 'find', args: [findQuery] },
@@ -966,8 +907,8 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    find.returns(SinonMongoose.stubChainedQueries([[]]));
+    const credentials = { company: { _id: new ObjectId() } };
+    find.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
 
@@ -982,7 +923,7 @@ describe('exportContractHistory', () => {
       'Taux horaire',
       'Volume horaire hebdomadaire',
     ]]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
@@ -993,10 +934,10 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array containing the header and one row', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }], user: { _id: new ObjectID() } }];
+    const credentials = { company: { _id: new ObjectId() } };
+    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }], user: { _id: new ObjectId() } }];
 
-    find.returns(SinonMongoose.stubChainedQueries([contracts]));
+    find.returns(SinonMongoose.stubChainedQueries(contracts));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
 
@@ -1004,7 +945,7 @@ describe('exportContractHistory', () => {
       ['Type', 'Id Auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
       ['Contrat', contracts[0].user._id, '', '', '', '10/10/2019', '', '', ''],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
@@ -1015,14 +956,14 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const contracts = [
       {
-        user: { identity: { title: 'mr', lastname: 'Patate' }, _id: new ObjectID() },
+        user: { identity: { title: 'mr', lastname: 'Patate' }, _id: new ObjectId() },
         versions: [{ startDate: '2019-10-10T00:00:00', weeklyHours: 12, grossHourlyRate: 10.45 }],
       },
       {
-        user: { identity: { title: 'mrs', firstname: 'Patate' }, _id: new ObjectID() },
+        user: { identity: { title: 'mrs', firstname: 'Patate' }, _id: new ObjectId() },
         versions: [
           { startDate: '2019-09-08T00:00:00', endDate: '2019-10-07T00:00:00', weeklyHours: 10, grossHourlyRate: 10 },
           { startDate: '2019-10-08T00:00:00', endDate: '2019-11-07T00:00:00', weeklyHours: 14, grossHourlyRate: 2 },
@@ -1031,7 +972,7 @@ describe('exportContractHistory', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([contracts]));
+    find.returns(SinonMongoose.stubChainedQueries(contracts));
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     expect(result).toEqual([
@@ -1039,7 +980,7 @@ describe('exportContractHistory', () => {
       ['Contrat', contracts[0].user._id, 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
       ['Avenant', contracts[1].user._id, 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ company: credentials.company._id, 'versions.startDate': { $lte: endDate, $gte: startDate } }] },
@@ -1192,7 +1133,7 @@ describe('exportPayAndFinalPayHistory', () => {
   const pays = [
     {
       auxiliary: {
-        _id: ObjectID(),
+        _id: ObjectId(),
         identity: { firstname: 'Tata', lastname: 'Toto', title: 'mrs' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-05-04T00:00:00' }],
@@ -1219,7 +1160,7 @@ describe('exportPayAndFinalPayHistory', () => {
       paidKm: 12.3,
       phoneFees: 18,
       bonus: 0,
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       diff: {
         paidTransportHours: 2,
         hoursBalance: 8,
@@ -1236,7 +1177,7 @@ describe('exportPayAndFinalPayHistory', () => {
     },
     {
       auxiliary: {
-        _id: ObjectID(),
+        _id: ObjectId(),
         identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
       },
@@ -1280,7 +1221,7 @@ describe('exportPayAndFinalPayHistory', () => {
   const finalPays = [
     {
       auxiliary: {
-        _id: ObjectID(),
+        _id: ObjectId(),
         identity: { firstname: 'Tata', lastname: 'Toto', title: 'mr' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }],
@@ -1326,7 +1267,7 @@ describe('exportPayAndFinalPayHistory', () => {
     },
     {
       auxiliary: {
-        _id: ObjectID(),
+        _id: ObjectId(),
         identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }, { startDate: '2019-01-19T00:00:00' }],
@@ -1389,7 +1330,7 @@ describe('exportPayAndFinalPayHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const startDate = '2019-11-10';
     const endDate = '2019-12-10';
     const query = {
@@ -1398,13 +1339,13 @@ describe('exportPayAndFinalPayHistory', () => {
       company: credentials.company._id,
     };
 
-    findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
-    findFinalPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
+    findPay.returns(SinonMongoose.stubChainedQueries([], ['sort', 'populate', 'lean']));
+    findFinalPay.returns(SinonMongoose.stubChainedQueries([], ['sort', 'populate', 'lean']));
 
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);
 
     expect(exportArray).toEqual([header]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [query] },
@@ -1423,7 +1364,7 @@ describe('exportPayAndFinalPayHistory', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findFinalPay,
       [
         { query: 'find', args: [query] },
@@ -1445,7 +1386,7 @@ describe('exportPayAndFinalPayHistory', () => {
   });
 
   it('should return an array with the header and 4 rows', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const startDate = '2019-11-10';
     const endDate = '2019-12-10';
     const query = {
@@ -1454,8 +1395,8 @@ describe('exportPayAndFinalPayHistory', () => {
       company: credentials.company._id,
     };
 
-    findPay.returns(SinonMongoose.stubChainedQueries([pays], ['sort', 'populate', 'lean']));
-    findFinalPay.returns(SinonMongoose.stubChainedQueries([finalPays], ['sort', 'populate', 'lean']));
+    findPay.returns(SinonMongoose.stubChainedQueries(pays, ['sort', 'populate', 'lean']));
+    findFinalPay.returns(SinonMongoose.stubChainedQueries(finalPays, ['sort', 'populate', 'lean']));
 
     formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
     formatSurchargedDetailsForExport.returnsArg(1);
@@ -1464,24 +1405,24 @@ describe('exportPayAndFinalPayHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      [expect.any(ObjectID), 'Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94',
+      [expect.any(ObjectId), 'Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94',
         '10,00', '30,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
         'surchargedAndNotExemptDetails', '8,00', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '12,30',
         '12,30', '18,00', '0,00', '0,00'],
-      [expect.any(ObjectID), '', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '8,00',
+      [expect.any(ObjectId), '', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '8,00',
         '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00', 'surchargedAndNotExemptDetails',
         '2,00', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '15,10', '15,10', '20,00', '100,00', '0,00'],
-      [expect.any(ObjectID), 'M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission',
+      [expect.any(ObjectId), 'M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission',
         '31/05/2019', '77,94', '3,00', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
         'surchargedAndNotExemptDetails', '12,00', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '0,00',
         '15,10', '18,00', '0,00', '156,00'],
-      [expect.any(ObjectID), '', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation',
+      [expect.any(ObjectId), '', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation',
         '31/05/2019', '97,94', '0,00', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00',
         'surchargedAndNotExemptDetails', '0,00', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '15,10',
         '15,10', '20,00', '100,00', '0,00'],
     ]);
     sinon.assert.callCount(formatFloatForExportStub, 77);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [query] },
@@ -1500,7 +1441,7 @@ describe('exportPayAndFinalPayHistory', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findFinalPay,
       [
         { query: 'find', args: [query] },
@@ -1536,15 +1477,15 @@ describe('exportPaymentsHistory', () => {
     'Moyen de paiement',
     'Montant TTC en €',
   ];
-  const customerIdList = [new ObjectID(), new ObjectID()];
-  const tppIdList = [new ObjectID(), new ObjectID()];
+  const customerIdList = [new ObjectId(), new ObjectId()];
+  const tppIdList = [new ObjectId(), new ObjectId()];
 
   const paymentsList = [
     {
       number: 'REG-101051900562',
       type: 'bank_transfer',
       nature: 'payment',
-      date: '2019-05-20T06:00:00.000+00:00',
+      date: '2019-05-20T06:00:00.000Z',
       customer: {
         _id: customerIdList[0],
         identity: {
@@ -1559,7 +1500,7 @@ describe('exportPaymentsHistory', () => {
       number: 'REG-101051900342',
       type: 'direct_debit',
       nature: 'refund',
-      date: '2019-05-22T06:00:00.000+00:00',
+      date: '2019-05-22T06:00:00.000Z',
       customer: {
         _id: customerIdList[1],
         identity: {
@@ -1584,13 +1525,13 @@ describe('exportPaymentsHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'populate', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries([], ['sort', 'populate', 'lean']));
 
-    const credentials = { company: new ObjectID() };
+    const credentials = { company: new ObjectId() };
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ date: { $lte: null, $gte: null }, company: credentials.company._id }] },
@@ -1603,9 +1544,9 @@ describe('exportPaymentsHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([paymentsList], ['sort', 'populate', 'lean']));
+    find.returns(SinonMongoose.stubChainedQueries(paymentsList, ['sort', 'populate', 'lean']));
 
-    const credentials = { company: new ObjectID() };
+    const credentials = { company: new ObjectId() };
     const exportArray = await ExportHelper.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
@@ -1637,7 +1578,7 @@ describe('exportPaymentsHistory', () => {
         '1002,40',
       ],
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ date: { $lte: null, $gte: null }, company: credentials.company._id }] },
@@ -1647,5 +1588,576 @@ describe('exportPaymentsHistory', () => {
         { query: 'lean' },
       ]
     );
+  });
+});
+
+describe('exportCourseHistory', () => {
+  const subProgramList = [
+    { _id: new ObjectId(), name: 'subProgram 1', program: { name: 'Program 1' } },
+    { _id: new ObjectId(), name: 'subProgram 2', program: { name: 'Program 2' } },
+  ];
+  const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
+  const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
+  const traineeList = [
+    { _id: new ObjectId(), firstMobileConnection: new Date() },
+    { _id: new ObjectId(), firstMobileConnection: new Date() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+  ];
+
+  const courseIdList = [new ObjectId(), new ObjectId()];
+
+  const courseSlotList = [
+    {
+      _id: new ObjectId(),
+      course: courseIdList[0],
+      startDate: '2021-05-01T08:00:00.000Z',
+      endDate: '2021-05-01T10:00:00.000Z',
+      attendances: [{ trainee: traineeList[0]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[0],
+      startDate: '2021-05-01T14:00:00.000Z',
+      endDate: '2021-05-01T16:00:00.000Z',
+      attendances: [{ trainee: traineeList[0]._id }, { trainee: traineeList[1]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      startDate: '2021-02-01T08:00:00.000Z',
+      endDate: '2021-02-01T10:00:00.000Z',
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      startDate: '2021-02-02T08:00:00.000Z',
+      endDate: '2021-02-02T10:00:00.000Z',
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseIdList[1],
+      step: new ObjectId(),
+    },
+  ];
+
+  const courseList = [
+    {
+      _id: courseIdList[0],
+      type: INTRA,
+      company: { _id: new ObjectId(), name: 'Test SAS' },
+      subProgram: subProgramList[0],
+      misc: 'group 1',
+      trainer,
+      salesRepresentative,
+      contact: salesRepresentative,
+      trainees: [traineeList[0], traineeList[1], traineeList[2]],
+      slotsToPlan: [],
+      slots: [courseSlotList[0], courseSlotList[1]],
+    },
+    {
+      _id: courseIdList[1],
+      type: INTER_B2B,
+      subProgram: subProgramList[1],
+      misc: 'group 2',
+      trainer,
+      salesRepresentative,
+      contact: salesRepresentative,
+      trainees: [traineeList[3], traineeList[4]],
+      slotsToPlan: [courseSlotList[4]],
+      slots: [courseSlotList[2], courseSlotList[3]],
+    },
+  ];
+
+  let findCourseSlot;
+  let findCourse;
+  let groupSlotsByDate;
+  let getTotalDuration;
+  let countDocumentsCourseSmsHistory;
+  let countDocumentsAttendanceSheet;
+
+  beforeEach(() => {
+    findCourseSlot = sinon.stub(CourseSlot, 'find');
+    findCourse = sinon.stub(Course, 'find');
+    groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
+    getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
+    countDocumentsCourseSmsHistory = sinon.stub(CourseSmsHistory, 'countDocuments');
+    countDocumentsAttendanceSheet = sinon.stub(AttendanceSheet, 'countDocuments');
+  });
+
+  afterEach(() => {
+    findCourseSlot.restore();
+    findCourse.restore();
+    groupSlotsByDate.restore();
+    getTotalDuration.restore();
+    countDocumentsCourseSmsHistory.restore();
+    countDocumentsAttendanceSheet.restore();
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
+    findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
+    groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
+    groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
+    getTotalDuration.onCall(0).returns('4h');
+    getTotalDuration.onCall(1).returns('4h');
+    countDocumentsCourseSmsHistory.onCall(0).returns(2);
+    countDocumentsCourseSmsHistory.onCall(1).returns(1);
+    countDocumentsAttendanceSheet.onCall(0).returns(1);
+    countDocumentsAttendanceSheet.onCall(1).returns(0);
+
+    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+
+    expect(result).toEqual([
+      [
+        'Identifiant',
+        'Type',
+        'Structure',
+        'Programme',
+        'Sous-Programme',
+        'Infos complémentaires',
+        'Formateur',
+        'Référent Compani',
+        'Contact pour la formation',
+        'Nombre d\'inscrits',
+        'Nombre de dates',
+        'Nombre de créneaux',
+        'Nombre de créneaux à planifier',
+        'Durée Totale',
+        'Nombre de SMS envoyés',
+        'Nombre de personnes connectées à l\'app',
+        'Début de formation',
+        'Fin de formation',
+        'Nombre de feuilles d\'émargement chargées',
+        'Nombre de présences',
+        'Nombre d\'absences',
+        'Nombre de stagiaires non prévus',
+        'Nombre de présences non prévues',
+        'Avancement',
+      ],
+      [
+        courseList[0]._id,
+        'intra',
+        'Test SAS',
+        'Program 1',
+        'subProgram 1',
+        'group 1',
+        'Gilles FORMATEUR',
+        'Aline CONTACT-COM',
+        'Aline CONTACT-COM',
+        3,
+        1,
+        2,
+        '',
+        '4,00',
+        2,
+        2,
+        '01/05/2021 10:00:00',
+        '01/05/2021 18:00:00',
+        1,
+        3,
+        3,
+        0,
+        0,
+        '1,00',
+      ],
+      [
+        courseList[1]._id,
+        'inter_b2b',
+        '',
+        'Program 2',
+        'subProgram 2',
+        'group 2',
+        'Gilles FORMATEUR',
+        'Aline CONTACT-COM',
+        'Aline CONTACT-COM',
+        2,
+        2,
+        2,
+        1,
+        '4,00',
+        1,
+        0,
+        '01/02/2021 09:00:00',
+        'à planifier',
+        0,
+        2,
+        2,
+        1,
+        2,
+        '0,67',
+      ],
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findCourse,
+      [
+        { query: 'find', args: [{ _id: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'subProgram', select: 'name program', populate: [{ path: 'program', select: 'name' }] }],
+        },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan' }] },
+        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('exportCourseSlotHistory', () => {
+  const courseIdList = [new ObjectId(), new ObjectId()];
+
+  const traineeList = [
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+    { _id: new ObjectId() },
+  ];
+
+  const courseList = [
+    {
+      _id: courseIdList[0],
+      trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+    },
+    {
+      _id: courseIdList[1],
+      trainees: [traineeList[3]._id, traineeList[4]._id],
+    },
+  ];
+
+  const stepList = [
+    { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+    { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
+  ];
+
+  const slotAddress = {
+    street: '24 Avenue Daumesnil',
+    fullAddress: '24 Avenue Daumesnil 75012 Paris',
+    zipCode: '75012',
+    city: 'Paris',
+    location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+  };
+
+  const courseSlotList = [
+    {
+      _id: new ObjectId(),
+      course: courseList[0],
+      startDate: '2021-05-01T08:00:00.000Z',
+      endDate: '2021-05-01T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:00.000Z',
+      step: stepList[0],
+      address: slotAddress,
+      attendances: [{ trainee: traineeList[0]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseList[0],
+      startDate: '2021-05-01T14:00:00.000Z',
+      endDate: '2021-05-01T16:00:00.000Z',
+      createdAt: '2020-12-12T10:00:01.000Z',
+      step: stepList[1],
+      meetingLink: 'https://meet.google.com',
+      attendances: [{ trainee: traineeList[0]._id }, { trainee: traineeList[1]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseList[1],
+      startDate: '2021-02-01T08:00:00.000Z',
+      endDate: '2021-02-01T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:02.000Z',
+      step: stepList[0],
+      address: slotAddress,
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
+    },
+    {
+      _id: new ObjectId(),
+      course: courseList[1],
+      startDate: '2021-02-02T08:00:00.000Z',
+      endDate: '2021-02-02T10:00:00.000Z',
+      createdAt: '2020-12-12T10:00:03.000Z',
+      step: stepList[2],
+      attendances: [{ trainee: traineeList[1]._id }, { trainee: traineeList[3]._id }],
+    },
+  ];
+
+  let findCourseSlot;
+
+  beforeEach(() => {
+    findCourseSlot = sinon.stub(CourseSlot, 'find');
+  });
+
+  afterEach(() => {
+    findCourseSlot.restore();
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
+
+    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+
+    expect(result).toEqual([
+      [
+        'Id Créneau',
+        'Id Formation',
+        'Étape',
+        'Type',
+        'Date de création',
+        'Date de début',
+        'Date de fin',
+        'Durée',
+        'Adresse',
+        'Nombre de présences',
+        'Nombre d\'absences',
+        'Nombre de présences non prévues',
+      ],
+      [
+        courseSlotList[0]._id,
+        courseIdList[0],
+        'étape 1',
+        'présentiel',
+        '12/12/2020 11:00:00',
+        '01/05/2021 10:00:00',
+        '01/05/2021 12:00:00',
+        '2,00',
+        '24 Avenue Daumesnil 75012 Paris',
+        1,
+        2,
+        0,
+      ],
+      [
+        courseSlotList[1]._id,
+        courseIdList[0],
+        'étape 2',
+        'distanciel',
+        '12/12/2020 11:00:01',
+        '01/05/2021 16:00:00',
+        '01/05/2021 18:00:00',
+        '2,00',
+        'https://meet.google.com',
+        2,
+        1,
+        0,
+      ],
+      [
+        courseSlotList[2]._id,
+        courseIdList[1],
+        'étape 1',
+        'présentiel',
+        '12/12/2020 11:00:02',
+        '01/02/2021 09:00:00',
+        '01/02/2021 11:00:00',
+        '2,00',
+        '24 Avenue Daumesnil 75012 Paris',
+        1,
+        1,
+        1,
+      ],
+      [
+        courseSlotList[3]._id,
+        courseIdList[1],
+        'étape 3',
+        'eLearning',
+        '12/12/2020 11:00:03',
+        '02/02/2021 09:00:00',
+        '02/02/2021 11:00:00',
+        '2,00',
+        '',
+        1,
+        1,
+        1,
+      ],
+
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
+        { query: 'populate', args: [{ path: 'course', select: 'trainees' }] },
+        { query: 'populate', args: [{ path: 'attendances' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('exportTransportsHistory', () => {
+  const auxiliaryList = [
+    {
+      _id: new ObjectId(),
+      administrative: { transportInvoice: { transportType: 'public' } },
+      identity: { firstname: 'Abel', lastname: 'Auboisdormant' },
+    },
+    {
+      _id: new ObjectId(),
+      administrative: { transportInvoice: { transportType: 'private' } },
+      identity: { firstname: 'Fleur', lastname: 'Ymichon' },
+    },
+  ];
+
+  let getEventsByDayAndAuxiliary;
+  let getPaidTransportInfo;
+  let getDistanceMatrices;
+
+  beforeEach(() => {
+    getEventsByDayAndAuxiliary = sinon.stub(EventRepository, 'getEventsByDayAndAuxiliary');
+    getPaidTransportInfo = sinon.stub(DraftPayHelper, 'getPaidTransportInfo');
+    getDistanceMatrices = sinon.stub(DistanceMatrixHelper, 'getDistanceMatrices');
+  });
+
+  afterEach(() => {
+    getEventsByDayAndAuxiliary.restore();
+    getPaidTransportInfo.restore();
+    getDistanceMatrices.restore();
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    getEventsByDayAndAuxiliary.returns([
+      {
+        auxiliary: auxiliaryList[0],
+        eventsByDay: [
+          [
+            { startDate: '2021-06-25T10:00:00', endDate: '2021-06-25T12:00:00' },
+            { startDate: '2021-06-25T14:00:00', endDate: '2021-06-25T16:00:00' },
+          ],
+          [
+            { startDate: '2021-06-29T12:30:00', endDate: '2021-06-29T14:30:00' },
+            { startDate: '2021-06-29T10:00:00', endDate: '2021-06-29T12:00:00' },
+          ],
+          [
+            { startDate: '2021-06-27T10:00:00', endDate: '2021-06-27T12:00:00' },
+          ],
+        ],
+      },
+      {
+        auxiliary: auxiliaryList[1],
+        eventsByDay: [
+          [
+            { startDate: '2021-06-25T10:00:00', endDate: '2021-06-25T12:00:00' },
+          ],
+          [
+            { startDate: '2021-06-28T14:00:00', endDate: '2021-06-28T16:00:00' },
+            { startDate: '2021-06-28T10:00:00', endDate: '2021-06-28T12:00:00' },
+          ],
+        ],
+      },
+    ]);
+    getPaidTransportInfo.onCall(0).returns({
+      duration: 66,
+      travelledKm: 5,
+      origins: '5 avenue du test, Saint Mandé',
+      destinations: '25 avenue du test, Saint Mandé',
+      transportDuration: 66,
+      breakDuration: 240,
+      pickTransportDuration: true,
+    });
+    getPaidTransportInfo.onCall(1).returns({
+      duration: 30,
+      travelledKm: 15,
+      origins: '5 rue du test, Paris',
+      destinations: '25 rue du test, Paris',
+      transportDuration: 16,
+      breakDuration: 30,
+      pickTransportDuration: false,
+    });
+    getPaidTransportInfo.onCall(2).returns({
+      duration: 126,
+      travelledKm: 25,
+      origins: '5 boulevard du test, Paris',
+      destinations: '25 place du test, Paris',
+      transportDuration: 126,
+      breakDuration: 240,
+      pickTransportDuration: true,
+    });
+    getDistanceMatrices.returns([]);
+
+    const credentials = { company: { _id: new ObjectId() } };
+    const exportArray = await ExportHelper.exportTransportsHistory('2021-06-24', '2021-06-30', credentials);
+
+    expect(exportArray).toEqual([
+      [
+        'Id de l\'auxiliaire',
+        'Prénom  de l\'auxiliaire',
+        'Nom  de l\'auxiliaire',
+        'Heure de départ du trajet',
+        'Heure d\'arrivée du trajet',
+        'Adresse de départ',
+        'Adresse d\'arrivée',
+        'Distance',
+        'Mode de transport',
+        'Durée du trajet',
+        'Durée inter vacation',
+        'Pause prise en compte',
+        'Heures prise en compte',
+      ],
+      [
+        `${auxiliaryList[0]._id}`,
+        'Abel',
+        'Auboisdormant',
+        '25/06/2021 12:00:00',
+        '25/06/2021 14:00:00',
+        '5 avenue du test, Saint Mandé',
+        '25 avenue du test, Saint Mandé',
+        5,
+        'Transports en commun / À pied',
+        '1h06',
+        '4h',
+        'Non',
+        '1,1000',
+      ],
+      [
+        `${auxiliaryList[0]._id}`,
+        'Abel',
+        'Auboisdormant',
+        '29/06/2021 12:00:00',
+        '29/06/2021 12:30:00',
+        '5 rue du test, Paris',
+        '25 rue du test, Paris',
+        15,
+        'Transports en commun / À pied',
+        '0h16',
+        '0h30',
+        'Oui',
+        '0,5000',
+      ],
+      [
+        `${auxiliaryList[1]._id}`,
+        'Fleur',
+        'Ymichon',
+        '28/06/2021 12:00:00',
+        '28/06/2021 14:00:00',
+        '5 boulevard du test, Paris',
+        '25 place du test, Paris',
+        25,
+        'Véhicule personnel',
+        '2h06',
+        '4h',
+        'Non',
+        '2,1000',
+      ],
+    ]);
   });
 });

@@ -1,12 +1,12 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const ServiceHelper = require('../../../src/helpers/services');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('list', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let find;
 
   beforeEach(() => {
@@ -18,23 +18,26 @@ describe('list', () => {
   });
 
   it('should find services', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([[{ name: 'test' }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ name: 'test' }]));
 
     const result = await ServiceHelper.list({ company: { _id: companyId } }, { isArchived: true });
 
     expect(result).toStrictEqual([{ name: 'test' }]);
 
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ company: companyId, isArchived: true }] },
-      { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: companyId } }] },
-      { query: 'populate', args: [{ path: 'versions.billingItems', select: 'name' }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: companyId, isArchived: true }] },
+        { query: 'populate', args: [{ path: 'versions.surcharge', match: { company: companyId } }] },
+        { query: 'populate', args: [{ path: 'versions.billingItems', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
 describe('create', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let save;
 
   beforeEach(() => {
@@ -66,7 +69,7 @@ describe('update', () => {
   });
 
   it('should update a service', async () => {
-    const serviceId = new ObjectID();
+    const serviceId = new ObjectId();
 
     await ServiceHelper.update(serviceId, { vat: 2 });
 
@@ -74,7 +77,7 @@ describe('update', () => {
   });
 
   it('should archive a service', async () => {
-    const serviceId = new ObjectID();
+    const serviceId = new ObjectId();
 
     await ServiceHelper.update(serviceId, { isArchived: true });
 
@@ -83,7 +86,7 @@ describe('update', () => {
 });
 
 describe('remove', () => {
-  const serviceId = new ObjectID();
+  const serviceId = new ObjectId();
   let deleteOne;
 
   beforeEach(() => {

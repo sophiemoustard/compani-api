@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
@@ -13,7 +13,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP } = require('../../../src/helpers/constants');
 
 const tester = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'tester', lastname: 'without role' },
   refreshToken: uuidv4(),
   local: { email: 'tester.withoutrole@compani.fr', password: 'zxcvbnm' },
@@ -22,20 +22,20 @@ const tester = {
 };
 
 const cardsList = [
-  { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
-  { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
-  { _id: new ObjectID(), template: 'transition', title: 'ceci est un titre' },
+  { _id: new ObjectId(), template: 'transition', title: 'ceci est un titre' },
+  { _id: new ObjectId(), template: 'transition', title: 'ceci est un titre' },
+  { _id: new ObjectId(), template: 'transition', title: 'ceci est un titre' },
 ];
 
 const activitiesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'sharing_experience',
     name: 'activite',
     cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'sharing_experience',
     name: 'activite',
     cards: [],
@@ -43,29 +43,29 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectID(), name: 'step 1', type: 'on_site' },
-  { _id: new ObjectID(), name: 'step 2', type: 'e_learning', activities: [activitiesList[0]._id] },
-  { _id: new ObjectID(), name: 'step 3', type: 'e_learning', activities: [activitiesList[0]._id] },
-  { _id: new ObjectID(), name: 'step 4', type: 'e_learning' },
-  { _id: new ObjectID(), name: 'step 5', type: 'e_learning', activities: [activitiesList[1]._id] },
-  { _id: new ObjectID(), name: 'step 6 - linked to courseSlot', type: 'on_site' },
+  { _id: new ObjectId(), name: 'step 1', type: 'on_site' },
+  { _id: new ObjectId(), name: 'step 2', type: 'e_learning', activities: [activitiesList[0]._id] },
+  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', activities: [activitiesList[0]._id] },
+  { _id: new ObjectId(), name: 'step 4', type: 'e_learning' },
+  { _id: new ObjectId(), name: 'step 5', type: 'e_learning', activities: [activitiesList[1]._id] },
+  { _id: new ObjectId(), name: 'step 6 - linked to courseSlot', type: 'on_site' },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectID(), name: 'subProgram 1', steps: [stepsList[0]._id, stepsList[1]._id] },
-  { _id: new ObjectID(), name: 'subProgram 2', steps: [stepsList[1]._id] },
-  { _id: new ObjectID(), name: 'subProgram 3', status: 'published', steps: [stepsList[0]._id] },
-  { _id: new ObjectID(), name: 'subProgram 4', status: 'draft', steps: [stepsList[2]._id] },
-  { _id: new ObjectID(), name: 'subProgram 5', status: 'published', steps: [stepsList[2]._id] },
-  { _id: new ObjectID(), name: 'subProgram 6', status: 'draft', steps: [stepsList[3]._id] },
-  { _id: new ObjectID(), name: 'subProgram 7', status: 'draft', steps: [stepsList[4]._id, stepsList[5]._id] },
-  { _id: new ObjectID(), name: 'subProgram 8', status: 'draft', steps: [stepsList[0]._id, stepsList[5]._id] },
+  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepsList[0]._id, stepsList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 2', steps: [stepsList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 3', status: 'published', steps: [stepsList[0]._id] },
+  { _id: new ObjectId(), name: 'subProgram 4', status: 'draft', steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 5', status: 'published', steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 6', status: 'draft', steps: [stepsList[3]._id] },
+  { _id: new ObjectId(), name: 'subProgram 7', status: 'draft', steps: [stepsList[4]._id, stepsList[5]._id] },
+  { _id: new ObjectId(), name: 'subProgram 8', status: 'draft', steps: [stepsList[0]._id, stepsList[5]._id] },
 ];
 
 const programsList = [
-  { _id: new ObjectID(), name: 'program 1', subPrograms: [subProgramsList[0]._id, subProgramsList[1]._id] },
+  { _id: new ObjectId(), name: 'program 1', subPrograms: [subProgramsList[0]._id, subProgramsList[1]._id] },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'program 2',
     subPrograms: [subProgramsList[3]._id, subProgramsList[4]._id],
     image: 'link',
@@ -74,17 +74,17 @@ const programsList = [
 ];
 
 const coursesList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   format: 'strictly_e_learning',
   subProgram: subProgramsList[7]._id,
   type: 'intra',
-  company: new ObjectID(),
+  company: new ObjectId(),
   salesRepresentative: vendorAdmin._id,
 }];
 
 const courseSlotsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     startDate: '2020-03-10T09:00:00',
     endDate: '2020-03-10T12:00:00',
     course: coursesList[0]._id,

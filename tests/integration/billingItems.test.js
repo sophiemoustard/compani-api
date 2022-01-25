@@ -1,6 +1,6 @@
 const expect = require('expect');
 const { omit } = require('lodash');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
 const { populateDB, billingItemList } = require('./seed/billingItemsSeed');
@@ -193,7 +193,7 @@ describe('BILLING ITEMS ROUTES - DELETE /billingitems/{_id}', () => {
     it('should return a 404 if billingItem doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/billingitems/${new ObjectID()}`,
+        url: `/billingitems/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

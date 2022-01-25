@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const SinonMongoose = require('../sinonMongoose');
 const Repetition = require('../../../src/models/Repetition');
 const Company = require('../../../src/models/Company');
@@ -48,7 +48,7 @@ describe('method', () => {
     { type: 'every_week_day', dates: { startDate: '2019-09-19T06:00:00.000Z', endDate: '2019-09-19T07:00:00.000Z' } },
     { type: 'every_two_weeks', dates: { startDate: '2019-08-29T06:00:00.000Z', endDate: '2019-08-29T07:00:00.000Z' } },
   ];
-  const customerId = new ObjectID();
+  const customerId = new ObjectId();
 
   frequencies.forEach((freq) => {
     const repetition = [{
@@ -65,14 +65,14 @@ describe('method', () => {
     }];
 
     it(`should create a J+90 event for ${freq.type} repetition object`, async () => {
-      const companyId = new ObjectID();
+      const companyId = new ObjectId();
       const newEventStartDate = moment(new Date()).add(90, 'd')
         .set({ hours: 8, minutes: 0, seconds: 0, milliseconds: 0 });
 
       const futureEvent = {
         type: 'intervention',
-        company: new ObjectID(),
-        customer: { _id: new ObjectID() },
+        company: new ObjectId(),
+        customer: { _id: new ObjectId() },
         subscription: '5d4422b306ab3d00147caf13',
         auxiliary: '5d121abe9ff937001403b6c6',
         sector: '5d1a40b7ecb0da251cfa4ff2',
@@ -84,8 +84,8 @@ describe('method', () => {
         },
       };
 
-      findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));
-      findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+      findRepetition.returns(SinonMongoose.stubChainedQueries(repetition));
+      findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
 
       formatEventBasedOnRepetitionStub.returns(futureEvent);
       create.returns(futureEvent);
@@ -95,7 +95,7 @@ describe('method', () => {
 
       expect(result).toMatchObject({ results: [futureEvent], errors: [], deletedRepetitions: [] });
       sinon.assert.calledWith(formatEventBasedOnRepetitionStub, repetition[0], new Date());
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findRepetition,
         [
           { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -103,7 +103,7 @@ describe('method', () => {
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findCompany,
         [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
       );
@@ -114,11 +114,11 @@ describe('method', () => {
   });
 
   it('should delete a stopped customer\'s repetitions and not create an event', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const repetitions = [{
       _id: '5d84f869b7e67963c6523704',
       type: 'intervention',
-      customer: { _id: new ObjectID(), stoppedAt: '2018-06-30T23:59:59.000Z' },
+      customer: { _id: new ObjectId(), stoppedAt: '2018-06-30T23:59:59.000Z' },
       subscription: '5d4422b306ab3d00147caf13',
       auxiliary: '5d121abe9ff937001403b6c6',
       sector: '5d1a40b7ecb0da251cfa4ff2',
@@ -128,13 +128,13 @@ describe('method', () => {
       parentId: '5d84f869b7e67963c65236a9',
     }];
 
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions]));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries(repetitions));
 
     const result = await eventRepetitions.method(server);
 
     expect(result).toMatchObject({ results: [], errors: [], deletedRepetitions: [repetitions[0]] });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRepetition,
       [
         { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -142,7 +142,7 @@ describe('method', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCompany,
       [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
     );
@@ -156,7 +156,7 @@ describe('method', () => {
       {
         _id: '5d84f869b7e67963c6523704',
         type: 'intervention',
-        customer: { _id: new ObjectID() },
+        customer: { _id: new ObjectId() },
         subscription: '5d4422b306ab3d00147caf13',
         auxiliary: '5d121abe9ff937001403b6c6',
         startDate: '2020-02-02T10:20:00',
@@ -174,14 +174,14 @@ describe('method', () => {
         parentId: '5d84f869b7e67963c65236a9',
       },
     ];
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetitions]));
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries(repetitions));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
 
     const futureEvent = new Event({
       type: 'internal_hour',
-      company: new ObjectID(),
+      company: new ObjectId(),
       auxiliary: '5d121abe9ff937001403b6c6',
       startDate: moment().add(90, 'd').set({ hours: 10, minutes: 20, seconds: 0, milliseconds: 0 }).toDate(),
       endDate: moment().add(90, 'd').set({ hours: 12, minutes: 20, seconds: 0, milliseconds: 0 }).toDate(),
@@ -197,7 +197,7 @@ describe('method', () => {
 
     expect(result).toMatchObject({ results: [futureEvent], errors: [], deletedRepetitions: [] });
     sinon.assert.calledWith(formatEventBasedOnRepetitionStub, repetitions[1], new Date());
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRepetition,
       [
         { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -205,7 +205,7 @@ describe('method', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCompany,
       [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
     );
@@ -218,7 +218,7 @@ describe('method', () => {
     const repetition = [{
       _id: '5d84f869b7e67963c6523704',
       type: 'intervention',
-      customer: { _id: new ObjectID() },
+      customer: { _id: new ObjectId() },
       subscription: '5d4422b306ab3d00147caf13',
       auxiliary: '5d121abe9ff937001403b6c6',
       sector: '5d1a40b7ecb0da251cfa4ff2',
@@ -228,17 +228,17 @@ describe('method', () => {
       parentId: '5d84f869b7e67963c65236a9',
     }];
 
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries(repetition));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
 
     formatEventBasedOnRepetitionStub.returns(Promise.reject(error));
 
     const result = await eventRepetitions.method(server);
 
     expect(result).toMatchObject({ results: [], errors: [repetition[0]._id], deletedRepetitions: [] });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRepetition,
       [
         { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -246,7 +246,7 @@ describe('method', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCompany,
       [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
     );
@@ -254,15 +254,15 @@ describe('method', () => {
   });
 
   it('should not create an event of a repetition if customer is absent', async () => {
-    const companyId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const subscriptionId = new ObjectID();
-    const sectorId = new ObjectID();
-    const parentId = new ObjectID();
+    const companyId = new ObjectId();
+    const auxiliaryId = new ObjectId();
+    const subscriptionId = new ObjectId();
+    const sectorId = new ObjectId();
+    const parentId = new ObjectId();
     const repetition = [{
       _id: '5d84f869b7e67963c6523704',
       type: 'intervention',
-      customer: { _id: new ObjectID() },
+      customer: { _id: new ObjectId() },
       subscription: subscriptionId,
       auxiliary: auxiliaryId,
       sector: sectorId,
@@ -275,8 +275,8 @@ describe('method', () => {
       .set({ hours: 8, minutes: 0, seconds: 0, milliseconds: 0 });
     const futureEvent = {
       type: 'intervention',
-      company: new ObjectID(),
-      customer: { _id: new ObjectID() },
+      company: new ObjectId(),
+      customer: { _id: new ObjectId() },
       subscription: subscriptionId,
       auxiliary: auxiliaryId,
       sector: sectorId,
@@ -285,15 +285,15 @@ describe('method', () => {
       repetition: { frequency: 'every_day', parentId },
     };
 
-    findRepetition.returns(SinonMongoose.stubChainedQueries([repetition]));
-    findCompany.returns(SinonMongoose.stubChainedQueries([[{ _id: companyId }]], ['lean']));
+    findRepetition.returns(SinonMongoose.stubChainedQueries(repetition));
+    findCompany.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
     formatEventBasedOnRepetitionStub.returns(futureEvent);
     isAbsent.returns(true);
 
     const result = await eventRepetitions.method(server);
 
     expect(result).toMatchObject({ results: [], errors: [], deletedRepetitions: [] });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findRepetition,
       [
         { query: 'find', args: [{ startDate: { $lt: fakeDate }, company: companyId }] },
@@ -301,7 +301,7 @@ describe('method', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCompany,
       [{ query: 'find', args: [{ 'subscriptions.erp': true }] }, { query: 'lean' }]
     );

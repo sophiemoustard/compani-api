@@ -1,7 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const randomize = require('randomatic');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Boom = require('@hapi/boom');
 
 const Payment = require('../models/Payment');
@@ -120,7 +120,7 @@ exports.createPayment = async (payload, credentials) => {
 
 exports.formatPayment = (payment, company, number) => ({
   ...payment,
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   number: exports.formatPaymentNumber(company.prefixNumber, number.prefix, number.seq, payment.nature),
   company: company._id,
 });

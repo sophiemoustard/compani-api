@@ -8,7 +8,7 @@ const isEqual = require('lodash/isEqual');
 const groupBy = require('lodash/groupBy');
 const cloneDeep = require('lodash/cloneDeep');
 const momentRange = require('moment-range');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const {
   INTERVENTION,
   INTERNAL_HOUR,
@@ -28,6 +28,7 @@ const EventsRepetitionHelper = require('./eventsRepetition');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
+const DatesHelper = require('./dates');
 const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
@@ -94,7 +95,7 @@ exports.createEvent = async (payload, credentials) => {
   if (payload.type === ABSENCE) {
     const { startDate, endDate } = populatedEvent;
     const dates = { startDate, endDate };
-    const auxiliary = await User.findOne({ _id: populatedEvent.auxiliary })
+    const auxiliary = await User.findOne({ _id: populatedEvent.auxiliary._id })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
     await exports.deleteConflictInternalHoursAndUnavailabilities(populatedEvent, auxiliary, credentials);
@@ -125,7 +126,7 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
 };
 
 exports.getListQuery = (query, credentials) => {
-  const rules = [{ company: new ObjectID(get(credentials, 'company._id', null)) }];
+  const rules = [{ company: new ObjectId(get(credentials, 'company._id', null)) }];
   const { auxiliary, type, customer, sector, startDate, endDate, isCancelled } = query;
 
   if (type) rules.push({ type });
@@ -361,7 +362,7 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
 exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const query = {
-    customer: new ObjectID(customer),
+    customer: new ObjectId(customer),
     startDate: { $gte: moment(startDate).toDate() },
     company: companyId,
   };
@@ -496,9 +497,10 @@ exports.getPaidTransportStatsBySector = async (query, credentials) => {
     const promises = [];
     for (const auxiliary of sector.auxiliaries) {
       for (const day of auxiliary.days) {
-        if (day.events.length > 1) {
-          for (let i = 1; i < day.events.length; i++) {
-            promises.push(DraftPayHelper.getPaidTransportInfo(day.events[i], day.events[i - 1], distanceMatrix));
+        const dayEventList = [...day.events].sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
+        if (dayEventList.length > 1) {
+          for (let i = 1; i < dayEventList.length; i++) {
+            promises.push(DraftPayHelper.getPaidTransportInfo(dayEventList[i], dayEventList[i - 1], distanceMatrix));
           }
         }
       }

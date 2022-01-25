@@ -1,6 +1,6 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require('./seed/courseSlotsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
@@ -525,7 +525,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/courseslots/${new ObjectID()}`,
+        url: `/courseslots/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -728,7 +728,7 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
     it('should return 404 if slot not found', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courseslots/${new ObjectID()}`,
+        url: `/courseslots/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

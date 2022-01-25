@@ -31,15 +31,16 @@ const {
   PRIVATE_TRANSPORT,
   COMPANY_TRANSPORT,
   PUBLIC_TRANSPORT,
+  HALF_DAILY,
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { billEventSurchargesSchemaDefinition, billingItemsInEventDefinition } = require('./schemaDefinitions/billing');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const { TIME_STAMPING_ACTIONS } = require('./EventHistory');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
-const ABSENCE_NATURES = [HOURLY, DAILY];
+const ABSENCE_NATURES = [HOURLY, DAILY, HALF_DAILY];
 const ABSENCE_TYPES = [
   PAID_LEAVE,
   UNPAID_LEAVE,
@@ -161,6 +162,7 @@ EventSchema.virtual(
 
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
+formatQueryMiddlewareList().map(middleware => EventSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Event', EventSchema);
 module.exports.EVENT_TYPES = EVENT_TYPES;

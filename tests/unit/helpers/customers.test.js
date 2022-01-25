@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
@@ -45,23 +45,23 @@ describe('getCustomersBySector', () => {
   });
 
   it('should return customer by sector', async () => {
-    const sectorId = new ObjectID();
+    const sectorId = new ObjectId();
     const query = { startDate: '2019-04-14T09:00:00', endDate: '2019-05-14T09:00:00', sector: sectorId.toHexString() };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryIds = [new ObjectID(), new ObjectID()];
-    const customerIds = [new ObjectID(), new ObjectID()];
+    const auxiliaryIds = [new ObjectId(), new ObjectId()];
+    const customerIds = [new ObjectId(), new ObjectId()];
 
     findSectorHistories.returns(SinonMongoose.stubChainedQueries(
-      [[{ auxiliary: auxiliaryIds[1] }, { auxiliary: auxiliaryIds[0] }]],
+      [{ auxiliary: auxiliaryIds[1] }, { auxiliary: auxiliaryIds[0] }],
       ['lean']
     ));
     findEvents.returns(SinonMongoose.stubChainedQueries(
-      [[
+      [
         { customer: { _id: customerIds[0] } },
         { customer: { _id: customerIds[0] } },
         { customer: { _id: customerIds[1] } },
-      ]],
+      ],
       ['populate', 'lean']
     ));
     populateSubscriptionsServices.onCall(0).returns({ _id: customerIds[0], identity: {} });
@@ -73,7 +73,7 @@ describe('getCustomersBySector', () => {
 
     sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(0), { _id: customerIds[0] });
     sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(1), { _id: customerIds[1] });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findSectorHistories,
       [
         {
@@ -91,7 +91,7 @@ describe('getCustomersBySector', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvents,
       [
         {
@@ -134,7 +134,7 @@ describe('getCustomersWithBilledEvents', () => {
   });
 
   it('should return customer by sector', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     await CustomerHelper.getCustomersWithBilledEvents(credentials);
 
@@ -162,17 +162,17 @@ describe('getCustomers', () => {
   });
 
   it('should return empty array if no customer', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([[]]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await CustomerHelper.getCustomers(credentials);
 
     expect(result).toEqual([]);
     sinon.assert.notCalled(subscriptionsAccepted);
     sinon.assert.notCalled(populateSubscriptionsServices);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
@@ -183,11 +183,11 @@ describe('getCustomers', () => {
   });
 
   it('should return customers', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const customers = [{ identity: { firstname: 'Emmanuel' }, company: companyId }, { company: companyId }];
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
     populateSubscriptionsServices.onCall(0).returns({
       identity: { firstname: 'Emmanuel' },
       company: companyId,
@@ -226,7 +226,7 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Emmanuel' }, company: companyId }
     );
     sinon.assert.calledWithExactly(populateSubscriptionsServices.getCall(1), { company: companyId });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId }] },
@@ -237,7 +237,7 @@ describe('getCustomers', () => {
   });
 
   it('should return only archived customer', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { archived: true };
     const customers = [
@@ -245,7 +245,7 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
     ];
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([[customers[0]]]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers[0]]));
     populateSubscriptionsServices.returns({
       identity: { firstname: 'Emmanuel' },
       company: companyId,
@@ -280,7 +280,7 @@ describe('getCustomers', () => {
       populateSubscriptionsServices,
       { identity: { firstname: 'Emmanuel' }, company: companyId, archivedAt: '2021-09-10T00:00:00' }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId, archivedAt: { $ne: null } }] },
@@ -291,7 +291,7 @@ describe('getCustomers', () => {
   });
 
   it('should return only non-archived customer', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { archived: false };
     const customers = [
@@ -299,7 +299,7 @@ describe('getCustomers', () => {
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId },
     ];
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([[customers[1]]]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries([customers[1]]));
     populateSubscriptionsServices.returns({
       identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' },
       company: companyId,
@@ -332,7 +332,7 @@ describe('getCustomers', () => {
       populateSubscriptionsServices,
       { identity: { firstname: 'Jean-Paul', lastname: 'Belmondot' }, company: companyId }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ company: companyId, archivedAt: { $eq: null } }] },
@@ -358,11 +358,11 @@ describe('getCustomersFirstIntervention', () => {
       { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
     ];
 
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { company: companyId };
 
-    findCustomer.returns(SinonMongoose.stubChainedQueries([customers]));
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
 
     const result = await CustomerHelper.getCustomersFirstIntervention(query, credentials);
 
@@ -370,7 +370,7 @@ describe('getCustomersFirstIntervention', () => {
       123456: { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },
       '0987': { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [query, { _id: 1 }] },
@@ -394,9 +394,9 @@ describe('getCustomersWithIntervention', () => {
   });
 
   it('should return an array of customers', async () => {
-    const customer = { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'test' } };
+    const customer = { _id: new ObjectId(), identity: { firstname: 'toto', lastname: 'test' } };
     getCustomersWithInterventionStub.returns([customer]);
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
     const result = await CustomerHelper.getCustomersWithIntervention(credentials);
 
@@ -409,7 +409,7 @@ describe('getCustomersWithIntervention', () => {
 describe('formatSubscriptionInPopulate', () => {
   it('should return subscription with last version only', () => {
     const subscription = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [{ startDate: '2021-01-10' }, { startDate: '2021-09-20' }, { startDate: '2020-12-10' }],
     };
 
@@ -434,17 +434,14 @@ describe('getCustomersWithSubscriptions', () => {
   });
 
   it('should return customers with subscriptions', async () => {
-    const companyId = new ObjectID();
-    const customersWithSubscriptions = [{ identity: { lastname: 'Fred' }, subscriptions: [{ _id: new ObjectID() }] }];
-    findCustomer.returns(SinonMongoose.stubChainedQueries(
-      [customersWithSubscriptions],
-      ['find', 'populate', 'select', 'lean']
-    ));
+    const companyId = new ObjectId();
+    const customersWithSubscriptions = [{ identity: { lastname: 'Fred' }, subscriptions: [{ _id: new ObjectId() }] }];
+    findCustomer.returns(SinonMongoose.stubChainedQueries(customersWithSubscriptions, ['populate', 'select', 'lean']));
 
     const rep = await CustomerHelper.getCustomersWithSubscriptions({ company: { _id: companyId } });
 
     expect(rep).toEqual(customersWithSubscriptions);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [
         { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },
@@ -490,14 +487,14 @@ describe('getCustomer', () => {
 
   it('should return null if no customer', async () => {
     const customerId = 'qwertyuiop';
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([null]));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(null));
 
     const result = await CustomerHelper.getCustomer(customerId, credentials);
 
     expect(result).toBeNull();
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
@@ -515,10 +512,10 @@ describe('getCustomer', () => {
 
   it('should return customer', async () => {
     const customerId = 'qwertyuiop';
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const customer = { identity: { firstname: 'Emmanuel' } };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer));
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
@@ -527,7 +524,7 @@ describe('getCustomer', () => {
     expect(result).toEqual({ identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true });
     sinon.assert.calledOnce(populateSubscriptionsServices);
     sinon.assert.calledOnce(subscriptionsAccepted);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
@@ -545,10 +542,10 @@ describe('getCustomer', () => {
 
   it('should return customer with fundings', async () => {
     const customerId = 'qwertyuiop';
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const customer = { identity: { firstname: 'Emmanuel' }, fundings: [{ _id: '1234' }, { _id: '09876' }] };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer));
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
     populateFundingsList.returnsArg(0);
@@ -569,7 +566,7 @@ describe('getCustomer', () => {
       populateFundingsList,
       { ...customer, subscriptions: 2, subscriptionsAccepted: true }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         { query: 'findOne', args: [{ _id: customerId }] },
@@ -595,13 +592,13 @@ describe('getRumNumber', () => {
     findOneAndUpdateRum.restore();
   });
   it('should get RUM number', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
-    findOneAndUpdateRum.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdateRum.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await CustomerHelper.getRumNumber(companyId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateRum,
       [
         {
@@ -612,6 +609,7 @@ describe('getRumNumber', () => {
             { new: true, upsert: true, setDefaultsOnInsert: true },
           ],
         },
+        { query: 'lean' },
       ]
     );
   });
@@ -664,14 +662,14 @@ describe('formatPaymentPayload', () => {
   });
 
   it('should generate a new mandate', async () => {
-    const company = { _id: new ObjectID(), prefixNumber: 101 };
+    const company = { _id: new ObjectId(), prefixNumber: 101 };
     const rumNumber = { prefix: '1219', seq: 1 };
     const formattedRumNumber = 'R-1011219000010987654321';
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const customer = { payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] } };
     const payload = { payment: { iban: 'FR8312739000501844178231W37' } };
 
-    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
     getRumNumber.returns(rumNumber);
     formatRumNumber.returns(formattedRumNumber);
 
@@ -685,16 +683,19 @@ describe('formatPaymentPayload', () => {
     sinon.assert.calledWithExactly(getRumNumber, company._id);
     sinon.assert.calledWithExactly(formatRumNumber, company.prefixNumber, rumNumber.prefix, 1);
     sinon.assert.calledWithExactly(updateOne, { prefix: rumNumber.prefix, company: company._id }, { $inc: { seq: 1 } });
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'finById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
-    const company = { _id: new ObjectID(), prefixNumber: 101 };
-    const customerId = new ObjectID();
+    const company = { _id: new ObjectId(), prefixNumber: 101 };
+    const customerId = new ObjectId();
     const customer = { payment: { bankAccountNumber: '', iban: '', bic: '', mandates: [] } };
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
 
-    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
 
     const result = await CustomerHelper.formatPaymentPayload(customerId, payload, company);
 
@@ -702,14 +703,17 @@ describe('formatPaymentPayload', () => {
     sinon.assert.notCalled(getRumNumber);
     sinon.assert.notCalled(formatRumNumber);
     sinon.assert.notCalled(updateOne);
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 });
 
 describe('updateCustomerEvents', () => {
   let updateMany;
   let findByIdCustomer;
-  const customerId = new ObjectID();
+  const customerId = new ObjectId();
   beforeEach(() => {
     updateMany = sinon.stub(Event, 'updateMany');
     findByIdCustomer = sinon.stub(Customer, 'findById');
@@ -723,7 +727,7 @@ describe('updateCustomerEvents', () => {
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      { contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } },
       ['lean']
     ));
 
@@ -738,14 +742,17 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: payload.contact.primaryAddress } }
     );
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 
   it('should update events if secondaryAddress is changed', async () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{ contact: { secondaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      { contact: { secondaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } },
       ['lean']
     ));
 
@@ -760,21 +767,27 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: payload.contact.secondaryAddress } }
     );
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
     findByIdCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{ contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } }],
+      { contact: { primaryAddress: { fullAddress: '37 rue Ponthieu 75008 Paris' } } },
       ['lean']
     ));
 
     await CustomerHelper.updateCustomerEvents(customerId, payload);
 
     sinon.assert.notCalled(updateMany);
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
@@ -786,7 +799,7 @@ describe('updateCustomerEvents', () => {
       },
     };
 
-    findByIdCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findByIdCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
 
     await CustomerHelper.updateCustomerEvents(customerId, payload);
 
@@ -799,7 +812,10 @@ describe('updateCustomerEvents', () => {
       },
       { $set: { address: customer.contact.primaryAddress } }
     );
-    SinonMongoose.calledWithExactly(findByIdCustomer, [{ query: 'findById', args: [customerId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findByIdCustomer,
+      [{ query: 'findById', args: [customerId] }, { query: 'lean' }]
+    );
   });
 });
 
@@ -810,7 +826,7 @@ describe('updateCustomer', () => {
   let updateCustomerReferent;
   let deleteCustomerEvents;
   let updateCustomerAbsencesOnCustomerStop;
-  const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
+  const credentials = { company: { _id: new ObjectId(), prefixNumber: 101 } };
   beforeEach(() => {
     findOneAndUpdateCustomer = sinon.stub(Customer, 'findOneAndUpdate');
     formatPaymentPayload = sinon.stub(CustomerHelper, 'formatPaymentPayload');
@@ -829,12 +845,12 @@ describe('updateCustomer', () => {
   });
 
   it('should unset the referent of a customer', async () => {
-    const customer = { _id: new ObjectID(), referent: 'asdfghjkl' };
+    const customer = { _id: new ObjectId(), referent: 'asdfghjkl' };
     const payload = { referent: '' };
 
     const customerResult = { _id: customer._id };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customer._id, payload, credentials);
 
@@ -843,7 +859,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(updateCustomerReferent, customer._id, payload.referent, credentials.company);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         { query: 'findOneAndUpdate', args: [{ _id: customer._id }, { $set: flat({}, { safe: true }) }, { new: true }] },
@@ -854,13 +870,13 @@ describe('updateCustomer', () => {
 
   it('should generate a new mandate', async () => {
     const formattedRumNumber = 'R-1011219000010987654321';
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { payment: { iban: 'FR8312739000501844178231W37' } };
     const customerResult = {
       payment: { bankAccountNumber: '', iban: 'FR8312739000501844178231W37', bic: '', mandates: [formattedRumNumber] },
     };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     formatPaymentPayload.returns({
       $set: flat(payload, { safe: true }),
@@ -875,7 +891,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -896,7 +912,7 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { payment: { iban: 'FR4717569000303461796573B36' } };
     const customerResult = {
       payment: { bankAccountNumber: '', iban: 'FR4717569000303461796573B36', bic: '', mandates: [] },
@@ -904,7 +920,7 @@ describe('updateCustomer', () => {
 
     formatPaymentPayload.returns(payload);
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -913,18 +929,18 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
     sinon.assert.calledOnceWithExactly(formatPaymentPayload, customerId, payload, credentials.company);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [{ query: 'findOneAndUpdate', args: [{ _id: customerId }, payload, { new: true }] }, { query: 'lean' }]
     );
   });
 
   it('should update events if primaryAddress is changed', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -933,7 +949,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -946,11 +962,11 @@ describe('updateCustomer', () => {
   });
 
   it('should update events if secondaryAddress is changed', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -959,7 +975,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -972,11 +988,11 @@ describe('updateCustomer', () => {
   });
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { contact: { secondaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
     const customerResult = { contact: { primaryAddress: { fullAddress: '27 rue des renaudes 75017 Paris' } } };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -985,7 +1001,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -998,7 +1014,7 @@ describe('updateCustomer', () => {
   });
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { contact: { secondaryAddress: { fullAddress: '' } } };
     const customerResult = {
       contact: {
@@ -1007,7 +1023,7 @@ describe('updateCustomer', () => {
       },
     };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -1016,7 +1032,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(formatPaymentPayload);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -1029,11 +1045,11 @@ describe('updateCustomer', () => {
   });
 
   it('should delete customer\'s events and absences when customer is stopped', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const customerResult = { identity: { firstname: 'Molly', lastname: 'LeGrosChat' } };
     const payload = { stoppedAt: '2019-06-25T16:34:04.144Z', stopReason: 'hospitalization' };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -1047,7 +1063,7 @@ describe('updateCustomer', () => {
       credentials
     );
     sinon.assert.calledOnceWithExactly(updateCustomerAbsencesOnCustomerStop, customerId, '2019-06-25T16:34:04.144Z');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -1063,11 +1079,11 @@ describe('updateCustomer', () => {
   });
 
   it('should update a customer', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
     const customerResult = { identity: { firstname: 'Raymond', lastname: 'Holt' } };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customerResult], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customerResult, ['lean']));
 
     const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
@@ -1076,7 +1092,7 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateCustomerEvents);
     sinon.assert.notCalled(updateCustomerReferent);
     sinon.assert.notCalled(deleteCustomerEvents);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -1178,26 +1194,26 @@ describe('removeCustomer', () => {
   });
 
   it('should delete customer and his drive folder', async () => {
-    const companyId = new ObjectID();
-    const customerId = new ObjectID();
+    const companyId = new ObjectId();
+    const customerId = new ObjectId();
     const customer = { _id: customerId, driveFolder: { driveId: 'https://skusku.com' }, company: companyId };
-    const helper1Id = new ObjectID();
-    const helper2Id = new ObjectID();
+    const helper1Id = new ObjectId();
+    const helper2Id = new ObjectId();
     const helpers = [
       { customer: customerId, user: helper1Id, company: companyId },
       { customer: customerId, user: helper2Id, company: companyId },
     ];
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findHelper.returns(SinonMongoose.stubChainedQueries([helpers], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries(helpers, ['lean']));
 
     await CustomerHelper.removeCustomer(customerId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findHelper,
       [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -1216,22 +1232,22 @@ describe('removeCustomer', () => {
   });
 
   it('should delete customer but not his drive folder', async () => {
-    const companyId = new ObjectID();
-    const customerId = new ObjectID();
+    const companyId = new ObjectId();
+    const customerId = new ObjectId();
     const customer = { _id: customerId, company: companyId };
-    const helperId = new ObjectID();
+    const helperId = new ObjectId();
     const helper = { customer: customerId, user: helperId, company: companyId };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findHelper.returns(SinonMongoose.stubChainedQueries([[helper]], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries([helper], ['lean']));
 
     await CustomerHelper.removeCustomer(customerId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findHelper,
       [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -1247,20 +1263,20 @@ describe('removeCustomer', () => {
   });
 
   it('should delete customer even without a helper', async () => {
-    const companyId = new ObjectID();
-    const customerId = new ObjectID();
+    const companyId = new ObjectId();
+    const customerId = new ObjectId();
     const customer = { _id: customerId, company: companyId };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findHelper.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findHelper.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await CustomerHelper.removeCustomer(customerId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: customerId }, { driveFolder: 1, company: 1 }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findHelper,
       [{ query: 'find', args: [{ customer: customerId, company: companyId }, { user: 1 }] }, { query: 'lean' }]
     );
@@ -1317,11 +1333,11 @@ describe('generateQRCode', () => {
   });
 
   it('should generate customer\'s qr code pdf', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const customer = { _id: customerId, identity: { firstname: 'N\'Golo', lastname: 'Compté' } };
 
     toDataURL.returns('my_pic_in_base_64');
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
     getPdfContent.returns('template');
     generatePdf.returns('pdf');
 
@@ -1329,7 +1345,7 @@ describe('generateQRCode', () => {
 
     expect(result).toEqual({ fileName: 'qrcode.pdf', pdf: 'pdf' });
     sinon.assert.calledOnceWithExactly(toDataURL, `${customerId}`, { margin: 0 });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }, { identity: 1 }] }, { query: 'lean' }]
     );

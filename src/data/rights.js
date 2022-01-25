@@ -11,8 +11,8 @@ const {
 } = require('../helpers/constants');
 
 const rights = [
-  { permission: 'attendancesheets:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Uploader et supprimer des feuilles d\'émargement' },
-  { permission: 'attendancesheets:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER, CLIENT_ADMIN, COACH], description: 'Consulter et télécharger des feuilles d\'émargement' },
+  { permission: 'attendances:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Uploader et supprimer des feuilles d\'émargement' },
+  { permission: 'attendances:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER, CLIENT_ADMIN, COACH], description: 'Consulter et télécharger des feuilles d\'émargement' },
   { permission: 'bills:edit', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Editer une facture ou un avoir' },
   { permission: 'bills:read', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Consulter les informations de facturation' },
   { permission: 'companies:create', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Créer une entreprise' },
@@ -36,7 +36,7 @@ const rights = [
   { permission: 'events:edit', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Editer un évènement' },
   { permission: 'events:read', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter les évènements' },
   { permission: 'exports:edit', rolesConcerned: [CLIENT_ADMIN, COACH], description: 'Exports' },
-  { permission: 'exports:read', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Exporter des données' },
+  { permission: 'exports:read', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], subscription: ERP, description: 'Exporter des données' },
   { permission: 'helpers:list', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter la liste des aidants' },
   { permission: 'helpers:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Modifier un(e) aidant(e)' },
   { permission: 'pay:edit', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Edition de la paie' },

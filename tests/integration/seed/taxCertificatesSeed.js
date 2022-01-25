@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -13,7 +13,7 @@ const { helperRoleId } = require('../../seed/authRolesSeed');
 
 const customersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { lastname: 'Picsou', title: 'mr' },
     contact: {
@@ -26,7 +26,7 @@ const customersList = [
       },
     },
   }, {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: otherCompany._id,
     identity: { lastname: 'Donald', title: 'mr' },
     contact: {
@@ -42,7 +42,7 @@ const customersList = [
 ];
 
 const helper = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_taxcertificates@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
@@ -50,17 +50,17 @@ const helper = {
   origin: WEBAPP,
 };
 
-const userCompaniesList = [{ _id: new ObjectID(), company: authCompany._id, user: helper._id }];
+const userCompaniesList = [{ _id: new ObjectId(), company: authCompany._id, user: helper._id }];
 
 const taxCertificatesList = [
-  { _id: new ObjectID(), company: authCompany._id, customer: customersList[0]._id, year: '2019' },
-  { _id: new ObjectID(), company: authCompany._id, customer: customersList[0]._id, year: '2020' },
-  { _id: new ObjectID(), company: otherCompany._id, customer: customersList[1]._id, year: '2019' },
+  { _id: new ObjectId(), company: authCompany._id, customer: customersList[0]._id, year: '2019' },
+  { _id: new ObjectId(), company: authCompany._id, customer: customersList[0]._id, year: '2020' },
+  { _id: new ObjectId(), company: otherCompany._id, customer: customersList[1]._id, year: '2019' },
 ];
 
 const paymentList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'cesu',
     nature: 'payment',
     number: 'REG-101031900203',
@@ -70,7 +70,7 @@ const paymentList = [
     company: authCompany._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'bank_transfer',
     nature: 'refund',
     number: 'REMB-101031900201',
@@ -80,7 +80,7 @@ const paymentList = [
     company: authCompany._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'direct_debit',
     number: 'REG-101031900201',
     nature: 'payment',
@@ -90,7 +90,7 @@ const paymentList = [
     company: authCompany._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'direct_debit',
     number: 'REG-101031900202',
     nature: 'payment',

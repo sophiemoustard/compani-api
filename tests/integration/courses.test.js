@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const path = require('path');
 const moment = require('moment');
 const { fn: momentProto } = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
@@ -204,12 +204,12 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(course).toEqual(expect.objectContaining({
         company: pick(otherCompany, ['_id', 'name']),
         subProgram: expect.objectContaining({
-          _id: expect.any(ObjectID),
+          _id: expect.any(ObjectId),
           program: {
             _id: programsList[0]._id,
             name: programsList[0].name,
             image: programsList[0].image,
-            subPrograms: [expect.any(ObjectID)],
+            subPrograms: [expect.any(ObjectId)],
           },
         }),
         trainer: pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname']),
@@ -217,13 +217,13 @@ describe('COURSES ROUTES - GET /courses', () => {
           startDate: moment('2020-03-20T09:00:00').toDate(),
           endDate: moment('2020-03-20T11:00:00').toDate(),
           course: coursesList[3]._id,
-          _id: expect.any(ObjectID),
+          _id: expect.any(ObjectId),
         }],
         trainees: expect.arrayContaining([expect.objectContaining({
-          _id: expect.any(ObjectID),
+          _id: expect.any(ObjectId),
           company: expect.objectContaining(pick(authCompany, ['_id', 'name'])),
         })]),
-        slotsToPlan: [{ _id: expect.any(ObjectID), course: course._id }],
+        slotsToPlan: [{ _id: expect.any(ObjectId), course: course._id }],
       }));
       expect(course.trainees[0].local).toBeUndefined();
       expect(course.trainees[0].refreshtoken).toBeUndefined();
@@ -627,7 +627,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/questionnaires', () => {
     it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${new ObjectID()}/questionnaires`,
+        url: `/courses/${new ObjectId()}/questionnaires`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -708,7 +708,7 @@ describe('COURSES ROUTES - GET /courses/user', () => {
 
     it('should throw 404 if invalid traineeId', async () => {
       authToken = await getToken('vendor_admin');
-      const traineeId = new ObjectID();
+      const traineeId = new ObjectId();
       const response = await app.inject({
         method: 'GET',
         url: `/courses/user?traineeId=${traineeId.toHexString()}`,
@@ -841,8 +841,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     it('should update course', async () => {
       const payload = {
         misc: 'new name',
-        trainer: new ObjectID(),
-        contact: new ObjectID(),
+        trainer: new ObjectId(),
+        contact: new ObjectId(),
       };
       const response = await app.inject({
         method: 'PUT',
@@ -859,9 +859,9 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
     const payloads = [
       { misc: 'new name' },
-      { trainer: new ObjectID() },
-      { contact: new ObjectID() },
-      { salesRepresentative: new ObjectID() },
+      { trainer: new ObjectId() },
+      { contact: new ObjectId() },
+      { salesRepresentative: new ObjectId() },
     ];
     payloads.forEach((payload) => {
       it(`should return 403 if course is archived (update ${Object.keys(payload)})`, async () => {
@@ -1054,8 +1054,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     it('should update course as user is coach in the company of the course', async () => {
       const payload = {
         misc: 'new name',
-        trainer: new ObjectID(),
-        contact: new ObjectID(),
+        trainer: new ObjectId(),
+        contact: new ObjectId(),
       };
       authToken = await getToken('coach');
 
@@ -1072,8 +1072,8 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     it('should return 403 as user is client_admin but not in the company of the course', async () => {
       const payload = {
         misc: 'new name',
-        trainer: new ObjectID(),
-        contact: new ObjectID(),
+        trainer: new ObjectId(),
+        contact: new ObjectId(),
       };
       authToken = await getToken('client_admin');
 
@@ -1117,7 +1117,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
     it('should return 404 if course does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${new ObjectID()}`,
+        url: `/courses/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1758,7 +1758,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
     it('should return 404 if course does not exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${new ObjectID()}/register-e-learning`,
+        url: `/courses/${new ObjectId()}/register-e-learning`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -1922,7 +1922,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
     });
 
     it('should return a 404 if course does not exist', async () => {
-      const invalidId = (new ObjectID()).toHexString();
+      const invalidId = (new ObjectId()).toHexString();
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${invalidId}/attendance-sheets`,
@@ -2034,7 +2034,7 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
     });
 
     it('should return a 404 error if course does not exist', async () => {
-      const invalidId = (new ObjectID()).toHexString();
+      const invalidId = (new ObjectId()).toHexString();
       const response = await app.inject({
         method: 'GET',
         url: `/courses/${invalidId}/completion-certificates`,
@@ -2141,7 +2141,7 @@ describe('COURSES ROUTES - POST /:_id/accessrules', () => {
     it('should return 404 if course doen\'t exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/courses/${new ObjectID()}/accessrules`,
+        url: `/courses/${new ObjectId()}/accessrules`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { company: otherCompany._id },
       });
@@ -2165,7 +2165,7 @@ describe('COURSES ROUTES - POST /:_id/accessrules', () => {
         method: 'POST',
         url: `/courses/${coursesList[8]._id}/accessrules`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { company: new ObjectID() },
+        payload: { company: new ObjectId() },
       });
 
       expect(response.statusCode).toBe(400);
@@ -2222,7 +2222,7 @@ describe('COURSES ROUTES - DELETE /:_id/accessrules/:accessRuleId', () => {
     it('should return 404 if course doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${new ObjectID()}/accessrules/${authCompany._id}`,
+        url: `/courses/${new ObjectId()}/accessrules/${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -2278,7 +2278,7 @@ describe('COURSES ROUTES - GET /:_id/convocations', () => {
     it('should return 404 if course doen\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/courses/${new ObjectID()}/convocations`,
+        url: `/courses/${new ObjectId()}/convocations`,
       });
 
       expect(response.statusCode).toBe(404);

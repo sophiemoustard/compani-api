@@ -1,6 +1,8 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('../../../src/extensions/moment');
+const Attendance = require('../../../src/models/Attendance');
+const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -12,6 +14,7 @@ const Payment = require('../../../src/models/Payment');
 const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const Step = require('../../../src/models/Step');
 const InternalHour = require('../../../src/models/InternalHour');
 const FinalPay = require('../../../src/models/FinalPay');
 const ReferentHistory = require('../../../src/models/ReferentHistory');
@@ -20,6 +23,12 @@ const Establishment = require('../../../src/models/Establishment');
 const EventHistory = require('../../../src/models/EventHistory');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
+const Program = require('../../../src/models/Program');
+const SubProgram = require('../../../src/models/SubProgram');
+const Course = require('../../../src/models/Course');
+const CourseSlot = require('../../../src/models/CourseSlot');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
@@ -43,49 +52,54 @@ const {
   MANUAL_TIME_STAMPING,
   QRCODE_MISSING,
   QR_CODE_TIME_STAMPING,
+  INTRA,
+  INTER_B2B,
+  ON_SITE,
+  REMOTE,
+  E_LEARNING,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
-const sector = { _id: new ObjectID(), name: 'Etoile', company: authCompany._id };
+const sector = { _id: new ObjectId(), name: 'Etoile', company: authCompany._id };
 
-const surcharge = { _id: new ObjectID(), name: 'test' };
+const surcharge = { _id: new ObjectId(), name: 'test' };
 
 const serviceList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       name: 'Service 1',
       surcharge: surcharge._id,
       exemptFromCharges: false,
-      startDate: '2019-01-16 17:58:15.519',
+      startDate: '2019-01-16T17:58:15.519Z',
       defaultUnitAmount: 24,
     }],
     nature: HOURLY,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
       surcharge: surcharge._id,
       exemptFromCharges: false,
-      startDate: '2019-01-18 19:58:15.519',
+      startDate: '2019-01-18T19:58:15.519Z',
       vat: 12,
     }],
     nature: HOURLY,
   },
 ];
 
-const authBillService = { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'fixed' };
+const authBillService = { serviceId: new ObjectId(), name: 'Temps de qualité - autonomie', nature: 'fixed' };
 
-const contract1Id = new ObjectID();
-const contract2Id = new ObjectID();
-const contract3Id = new ObjectID();
+const contract1Id = new ObjectId();
+const contract2Id = new ObjectId();
+const contract3Id = new ObjectId();
 
 const establishment = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Toto',
   siret: '12345678901234',
   address: {
@@ -102,7 +116,7 @@ const establishment = {
 };
 
 const auxiliaryList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   establishment: establishment._id,
   identity: {
     firstname: 'Lulu',
@@ -115,6 +129,7 @@ const auxiliaryList = [{
     nationality: 'FR',
     socialSecurityNumber: '012345678912345',
   },
+  administrative: { transportInvoice: { transportType: 'public' } },
   contact: {
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -131,7 +146,7 @@ const auxiliaryList = [{
   contracts: [contract1Id, contract2Id],
   origin: WEBAPP,
 }, {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   establishment: establishment._id,
   identity: {
     firstname: 'Lili',
@@ -159,6 +174,7 @@ const auxiliaryList = [{
   refreshToken: uuidv4(),
   contracts: [contract3Id],
   origin: WEBAPP,
+  administrative: { transportInvoice: { transportType: 'private' } },
 }];
 
 const contractList = [{
@@ -166,49 +182,59 @@ const contractList = [{
   serialNumber: 'safsdgsdgsd',
   user: auxiliaryList[0]._id,
   versions: [
-    { weeklyHours: 12, grossHourlyRate: 10, startDate: '2018-01-01T00:00:00', endDate: '2020-01-01T00:00:00' },
+    {
+      weeklyHours: 12,
+      grossHourlyRate: 10,
+      startDate: '2018-01-01T00:00:00.000Z',
+      endDate: '2020-01-01T00:00:00.000Z',
+    },
   ],
-  startDate: '2018-01-01T00:00:00',
-  endDate: '2020-01-01T00:00:00',
-  endNotificationDate: '2020-01-01t00:00:00',
+  startDate: '2018-01-01T00:00:00.000Z',
+  endDate: '2020-01-01T00:00:00.000Z',
+  endNotificationDate: '2020-01-01T00:00:00.000Z',
   endReason: 'mutation',
   company: authCompany._id,
 }, {
   _id: contract2Id,
   serialNumber: 'sfasdfsdf',
   user: auxiliaryList[0]._id,
-  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
-  startDate: '2020-02-01T00:00:00',
+  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01T10:00:00.000Z' }],
+  startDate: '2020-02-01T00:00:00.000Z',
   company: authCompany._id,
 }, {
   _id: contract3Id,
   serialNumber: 'nckxavhsasidf',
   user: auxiliaryList[1]._id,
-  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01' }],
-  startDate: '2020-02-01',
+  versions: [{ weeklyHours: 12, grossHourlyRate: 10, startDate: '2020-02-01T10:00:00.000Z' }],
+  startDate: '2020-02-01T10:00:00.000Z',
   company: authCompany._id,
 }];
 
 const sectorHistories = [
-  { auxiliary: auxiliaryList[0]._id, sector: sector._id, company: authCompany._id, startDate: '2018-12-10T00:00:00' },
+  {
+    auxiliary: auxiliaryList[0]._id,
+    sector: sector._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T00:00:00.000Z',
+  },
 ];
 
-const internalHour = { _id: new ObjectID(), name: 'planning', company: authCompany._id };
+const internalHour = { _id: new ObjectId(), name: 'planning', company: authCompany._id };
 
-const subscriptionId = new ObjectID();
+const subscriptionId = new ObjectId();
 
 const thirdPartyPayer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
   billingMode: 'direct',
 };
 
-const customerSubscriptionId = new ObjectID();
+const customerSubscriptionId = new ObjectId();
 const customersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Christopher', lastname: 'Froome', birthDate: moment('1940-01-01').toDate() },
     contact: {
@@ -227,16 +253,16 @@ const customersList = [
         service: serviceList[0]._id,
         versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 30, evenings: 1, sundays: 2 }],
       },
-      { _id: new ObjectID(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000+01:00' }] },
+      { _id: new ObjectId(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000Z' }] },
     ],
     fundings: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       nature: FIXED,
       thirdPartyPayer: thirdPartyPayer._id,
       subscription: subscriptionId,
       frequency: MONTHLY,
       versions: [{
-        startDate: '2018-02-03T22:00:00.000+01:00',
+        startDate: '2018-02-03T22:00:00.000Z',
         folderNumber: '12345',
         unitTTCRate: 10,
         amountTTC: 21,
@@ -247,12 +273,12 @@ const customersList = [
     }],
     payment: { bankAccountOwner: 'Test Toto', iban: 'FR6930003000405885475816L80', bic: 'ABNAFRPP' },
     followUp: { situation: 'home', misc: '123456789', environment: 'test', objectives: 'toto' },
-    stoppedAt: '2021-02-03T22:00:00.000+01:00',
+    stoppedAt: '2021-02-03T22:00:00.000Z',
     stopReason: 'death',
-    archivedAt: '2021-06-03T22:00:00.000+01:00',
+    archivedAt: '2021-06-03T22:00:00.000Z',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
@@ -266,11 +292,11 @@ const customersList = [
       phone: '0612345678',
     },
     followUp: { situation: 'nursing_home' },
-    stoppedAt: '2021-06-10T22:00:00.000+01:00',
+    stoppedAt: '2021-06-10T22:00:00.000Z',
     stopReason: 'quality',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
     contact: {
@@ -286,7 +312,7 @@ const customersList = [
     followUp: { situation: 'home' },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
@@ -303,32 +329,32 @@ const customersList = [
       _id: customerSubscriptionId,
       service: serviceList[0]._id,
       versions: [
-        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
-        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00.000Z' },
+        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
       ],
     }],
     fundings: [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayer._id,
         subscription: customerSubscriptionId,
         frequency: ONCE,
         versions: [{
           folderNumber: 'D123456',
-          startDate: new Date('2019-10-01'),
-          createdAt: new Date('2019-10-01'),
-          endDate: new Date('2020-02-01'),
-          effectiveDate: new Date('2019-10-01'),
+          startDate: '2019-10-01T10:00:00.000Z',
+          createdAt: '2019-10-01T10:00:00.000Z',
+          endDate: '2020-02-01T10:00:00.000Z',
+          effectiveDate: '2019-10-01T10:00:00.000Z',
           amountTTC: 1200,
           customerParticipationRate: 66,
           careDays: [0, 1, 2, 3, 4, 5, 6],
         },
         {
           folderNumber: 'D123456',
-          startDate: new Date('2020-02-02'),
-          createdAt: new Date('2020-02-02'),
-          effectiveDate: new Date('2020-02-02'),
+          startDate: '2020-02-02T10:00:00.000Z',
+          createdAt: '2020-02-02T10:00:00.000Z',
+          effectiveDate: '2020-02-02T10:00:00.000Z',
           amountTTC: 1600,
           customerParticipationRate: 66,
           careDays: [0, 1, 2, 3, 4, 5],
@@ -343,49 +369,70 @@ const referentList = [
     auxiliary: auxiliaryList[0]._id,
     customer: customersList[0]._id,
     company: customersList[0].company,
-    startDate: '2020-01-31T00:00:00',
+    startDate: '2020-01-31T00:00:00.000Z',
   },
   {
     auxiliary: auxiliaryList[1]._id,
     customer: customersList[0]._id,
     company: customersList[0].company,
-    startDate: '2019-03-12T00:00:00',
-    endDate: '2020-01-30T00:00:00',
+    startDate: '2019-03-12T00:00:00.000Z',
+    endDate: '2020-01-30T00:00:00.000Z',
   },
   {
     auxiliary: auxiliaryList[0]._id,
     customer: customersList[1]._id,
     company: customersList[1].company,
-    startDate: '2019-06-23T00:00:00',
+    startDate: '2019-06-23T00:00:00.000Z',
+  },
+];
+
+const distanceMatrixList = [
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    origins: '42 Rue de la Procession 75015 Paris',
+    destinations: '37 Rue de Ponthieu 75008 Paris',
+    mode: 'transit',
+    distance: 230,
+    duration: 230,
+  },
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    origins: '42 Rue de la Procession 75015 Paris',
+    destinations: '35 Rue du Test 75015 Paris',
+    mode: 'driving',
+    distance: 230,
+    duration: 3900,
   },
 ];
 
 const eventList = [
-  {
-    _id: new ObjectID(),
+  { // 0
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
-    startDate: '2019-01-19T00:00:00',
-    endDate: '2019-01-21T22:59:00',
+    startDate: '2019-01-18T23:00:00.000Z',
+    endDate: '2019-01-21T22:59:00.000Z',
     auxiliary: auxiliaryList[0]._id,
   },
-  {
-    _id: new ObjectID(),
+  { // 1
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: ABSENCE,
     absence: UNJUSTIFIED,
     absenceNature: HOURLY,
-    startDate: moment('2019-01-19T14:00:00').toDate(),
-    endDate: moment('2019-01-19T16:00:00').toDate(),
+    startDate: '2019-01-19T13:00:00.000Z',
+    endDate: '2019-01-19T15:00:00.000Z',
     auxiliary: auxiliaryList[0]._id,
     misc: 'test absence',
   },
-  {
-    _id: new ObjectID(),
+  { // 2
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
@@ -406,8 +453,8 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
-  {
-    _id: new ObjectID(),
+  { // 3
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
@@ -416,7 +463,7 @@ const eventList = [
     customer: customersList[3]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customersList[3].subscriptions[0]._id,
-    repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
+    repetition: { frequency: EVERY_DAY, parentId: new ObjectId() },
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -427,8 +474,8 @@ const eventList = [
     transportMode: 'public',
     kmDuringEvent: 23,
   },
-  {
-    _id: new ObjectID(),
+  { // 4
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
@@ -437,7 +484,7 @@ const eventList = [
     customer: customersList[0]._id,
     createdAt: '2020-01-16T14:30:19.543Z',
     subscription: customersList[3].subscriptions[0]._id,
-    repetition: { frequency: EVERY_DAY, parentId: new ObjectID() },
+    repetition: { frequency: EVERY_DAY, parentId: new ObjectId() },
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -447,8 +494,8 @@ const eventList = [
     },
     isBilled: true,
   },
-  {
-    _id: new ObjectID(),
+  { // 5
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     auxiliary: auxiliaryList[0]._id,
@@ -458,30 +505,112 @@ const eventList = [
     endDate: '2019-01-17T16:30:19.543Z',
     createdAt: '2019-01-16T14:30:19.543Z',
   },
-  {
-    _id: new ObjectID(),
+  { // 6 - transport event destination
+    _id: new ObjectId(),
     company: authCompany._id,
     sector,
     type: INTERVENTION,
-    startDate: '2019-01-11T09:30:19.543Z',
-    endDate: '2019-01-11T11:30:21.653Z',
+    startDate: '2019-01-11T09:30:00.000Z',
+    endDate: '2019-01-11T11:30:00.000Z',
     auxiliary: auxiliaryList[0]._id,
     customer: customersList[3]._id,
     createdAt: '2019-01-09T11:33:14.343Z',
     subscription: customersList[3].subscriptions[0]._id,
     address: {
-      fullAddress: '37 rue de ponthieu 75008 Paris',
+      fullAddress: '37 Rue de Ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
       street: '37 rue de Ponthieu',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  { // 7 - transport event origin
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T06:30:00.000Z',
+    endDate: '2019-01-11T08:30:00.000Z',
+    auxiliary: auxiliaryList[0]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '42 Rue de la Procession 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '42 Rue de la Procession',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // 8 - origin cancelled event invoiced and paid
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T09:30:00.000Z',
+    endDate: '2019-01-11T10:30:00.000Z',
+    auxiliary: auxiliaryList[1]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '42 Rue de la Procession 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '42 Rue de la Procession',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    isCancelled: true,
+    cancel: { condition: 'invoiced_and_paid', reason: 'customer_initiative' },
+    misc: 'bénéficiaire absent',
+  },
+  { // 9 - destination
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T11:35:00.000Z',
+    endDate: '2019-01-11T12:30:00.000Z',
+    auxiliary: auxiliaryList[1]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '35 Rue du Test 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '42 Rue de la Procession',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // 10 - cancelled event - invoiced and not paid
+    _id: new ObjectId(),
+    company: authCompany._id,
+    sector,
+    type: INTERVENTION,
+    startDate: '2019-01-11T08:00:00.000Z',
+    endDate: '2019-01-11T09:00:00.000Z',
+    auxiliary: auxiliaryList[1]._id,
+    customer: customersList[3]._id,
+    createdAt: '2019-01-09T11:33:14.343Z',
+    subscription: customersList[3].subscriptions[0]._id,
+    address: {
+      fullAddress: '35 Rue du Test 75015 Paris',
+      zipCode: '75015',
+      city: 'Paris',
+      street: '42 Rue de la Procession',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+    isCancelled: true,
+    cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
+    misc: 'auxiliaire absente',
+  },
 ];
 
 const eventHistoriesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     event: { eventId: eventList[3]._id },
     action: MANUAL_TIME_STAMPING,
@@ -489,7 +618,7 @@ const eventHistoriesList = [
     update: { startHour: { from: '2019-01-17T14:30:19.543Z', to: '2019-01-17T14:35:19.543Z' } },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     event: { eventId: eventList[3]._id },
     action: QR_CODE_TIME_STAMPING,
@@ -499,25 +628,25 @@ const eventHistoriesList = [
 
 const billsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
-    date: '2019-05-29',
+    date: '2019-05-29T10:00:00.000Z',
     number: 'FACT-1905002',
     company: authCompany._id,
     customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 75.96,
     subscriptions: [{
-      startDate: '2019-05-29',
-      endDate: '2019-11-29',
+      startDate: '2019-05-29T10:00:00.000Z',
+      endDate: '2019-11-29T10:00:00.000Z',
       subscription: customersList[3].subscriptions[0]._id,
       vat: 5.5,
       service: authBillService,
       events: [{
-        eventId: new ObjectID(),
+        eventId: new ObjectId(),
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: new ObjectId(),
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
@@ -530,23 +659,23 @@ const billsList = [
     }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
-    date: '2019-05-25',
+    date: '2019-05-25T10:00:00.000Z',
     number: 'FACT-1905003',
     company: authCompany._id,
     customer: customersList[3]._id,
     netInclTaxes: 101.28,
     subscriptions: [{
-      startDate: '2019-05-25',
-      endDate: '2019-11-25',
+      startDate: '2019-05-25T10:00:00.000Z',
+      endDate: '2019-11-25T10:00:00.000Z',
       subscription: customersList[3].subscriptions[0]._id,
       vat: 5.5,
       events: [{
-        eventId: new ObjectID(),
+        eventId: new ObjectId(),
         startDate: '2019-01-16T10:30:19.543Z',
         endDate: '2019-01-16T12:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: new ObjectId(),
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
@@ -563,10 +692,10 @@ const billsList = [
 
 const paymentsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903201',
-    date: '2019-05-26T19:47:42',
+    date: '2019-05-26T19:47:42.000Z',
     customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 190,
@@ -574,20 +703,20 @@ const paymentsList = [
     type: 'direct_debit',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903202',
-    date: '2019-05-24T15:47:42',
+    date: '2019-05-24T15:47:42.000Z',
     customer: customersList[3]._id,
     netInclTaxes: 390,
     nature: PAYMENT,
     type: 'check',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-1903203',
-    date: '2019-05-27T09:10:20',
+    date: '2019-05-27T09:10:20.000Z',
     customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     netInclTaxes: 220,
@@ -598,7 +727,7 @@ const paymentsList = [
 
 const payList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaryList[0]._id,
@@ -617,7 +746,7 @@ const payList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2019-01-31T14:00:18',
+    endDate: '2019-01-31T14:00:18.000Z',
     hoursBalance: -8,
     hoursCounter: -20,
     hoursToWork: 30,
@@ -632,7 +761,7 @@ const payList = [
     mutual: false,
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2019-01-01T14:00:18',
+    startDate: '2019-01-01T14:00:18.000Z',
     transport: 10,
     paidKm: 12,
     travelledKm: 14,
@@ -642,7 +771,7 @@ const payList = [
     absencesHours: 5,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaryList[0]._id,
@@ -661,7 +790,7 @@ const payList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2019-02-28T14:00:18',
+    endDate: '2019-02-28T14:00:18.000Z',
     holidaysHours: 12,
     hoursBalance: -8,
     hoursCounter: -20,
@@ -676,7 +805,7 @@ const payList = [
     surchargedAndNotExemptDetails: [],
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2019-01-01T14:00:18',
+    startDate: '2019-01-01T14:00:18.000Z',
     transport: 10,
     paidKm: 12,
     travelledKm: 14,
@@ -689,7 +818,7 @@ const payList = [
 
 const finalPayList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaryList[0]._id,
@@ -709,8 +838,8 @@ const finalPayList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2019-01-31T14:00:18',
-    endNotificationDate: '2019-01-25T14:00:18',
+    endDate: '2019-01-31T14:00:18.000Z',
+    endNotificationDate: '2019-01-25T14:00:18.000Z',
     endReason: 'salut',
     holidaysHours: 12,
     hoursBalance: -8,
@@ -726,7 +855,7 @@ const finalPayList = [
     surchargedAndNotExemptDetails: [],
     overtimeHours: 0,
     phoneFees: 0,
-    startDate: '2019-01-01T14:00:18',
+    startDate: '2019-01-01T14:00:18.000Z',
     transport: 10,
     paidKm: 12,
     travelledKm: 14,
@@ -736,7 +865,7 @@ const finalPayList = [
     absencesHours: 5,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaryList[0]._id,
@@ -756,8 +885,8 @@ const finalPayList = [
       internalHours: 9,
       absencesHours: 5,
     },
-    endDate: '2019-02-28T14:00:18',
-    endNotificationDate: '2019-02-25T14:00:18',
+    endDate: '2019-02-28T14:00:18.000Z',
+    endNotificationDate: '2019-02-25T14:00:18.000Z',
     endReason: 'salut',
     holidaysHours: 12,
     hoursBalance: -8,
@@ -769,7 +898,7 @@ const finalPayList = [
     notSurchargedAndNotExempt: 43,
     phoneFees: 0,
     overtimeHours: 0,
-    startDate: '2019-01-01T14:00:18',
+    startDate: '2019-01-01T14:00:18.000Z',
     surchargedAndExempt: 0,
     surchargedAndExemptDetails: [],
     surchargedAndNotExempt: 3,
@@ -786,11 +915,11 @@ const finalPayList = [
 
 const creditNotesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    date: '2019-05-28',
-    startDate: '2019-05-27',
-    endDate: '2019-11-25',
+    date: '2019-05-28T10:00:00.000Z',
+    startDate: '2019-05-27T10:00:00.000Z',
+    endDate: '2019-11-25T10:00:00.000Z',
     customer: customersList[3]._id,
     thirdPartyPayer: thirdPartyPayer._id,
     exclTaxesCustomer: 100,
@@ -798,11 +927,11 @@ const creditNotesList = [
     exclTaxesTpp: 10,
     inclTaxesTpp: 90,
     events: [{
-      eventId: new ObjectID(),
+      eventId: new ObjectId(),
       serviceName: 'Temps de qualité - autonomie',
       startDate: '2019-01-16T10:30:19.543Z',
       endDate: '2019-01-16T12:30:21.653Z',
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       bills: {
         inclTaxesCustomer: 10,
         exclTaxesCustomer: 8,
@@ -812,7 +941,7 @@ const creditNotesList = [
     subscription: {
       _id: customersList[3].subscriptions[0]._id,
       service: {
-        serviceId: new ObjectID(),
+        serviceId: new ObjectId(),
         nature: 'fixed',
         name: 'toto',
       },
@@ -822,7 +951,7 @@ const creditNotesList = [
 ];
 
 const user = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   contact: { phone: '0123456789' },
   identity: { firstname: 'test', lastname: 'Toto' },
   local: { email: 'toto@alenvi.io' },
@@ -836,9 +965,169 @@ const helpersList = [
 ];
 
 const userCompanies = [
-  { _id: new ObjectID(), user: auxiliaryList[0]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: auxiliaryList[1]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: user._id, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryList[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: user._id, company: authCompany._id },
+];
+
+const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1' }, { _id: new ObjectId(), name: 'subProgram 2' }];
+
+const programList = [
+  { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] },
+  { _id: new ObjectId(), name: 'Program 2', subPrograms: [subProgramList[1]._id] },
+];
+
+const trainer = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Gilles', lastname: 'Formateur' },
+  origin: WEBAPP,
+  local: { email: 'formateur@compani.fr' },
+};
+const salesRepresentative = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Aline', lastname: 'Contact-Com' },
+  origin: WEBAPP,
+  local: { email: 'srepresentative@compani.fr' },
+};
+
+const traineeList = [
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Jacques', lastname: 'Trainee' },
+    origin: WEBAPP,
+    local: { email: 'trainee1@compani.fr' },
+    firstMobileConnection: '2019-01-16T10:30:19.543Z',
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Paul', lastname: 'Trainee' },
+    origin: WEBAPP,
+    local: { email: 'trainee2@compani.fr' },
+    firstMobileConnection: '2019-01-16T10:30:19.543Z',
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Marie', lastname: 'Trainee' },
+    local: { email: 'trainee3@compani.fr' },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Annie', lastname: 'Trainee' },
+    local: { email: 'trainee4@compani.fr' },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Luc', lastname: 'Trainee' },
+    local: { email: 'trainee5@compani.fr' },
+    origin: WEBAPP,
+  },
+];
+
+const courseList = [
+  {
+    _id: new ObjectId(),
+    type: INTRA,
+    company: authCompany._id,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 1',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+
+  },
+  {
+    _id: new ObjectId(),
+    type: INTER_B2B,
+    subProgram: subProgramList[1]._id,
+    misc: 'group 2',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[3]._id, traineeList[4]._id],
+  },
+];
+
+const stepList = [
+  { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+  { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+  { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
+  { _id: new ObjectId(), name: 'étape 4', type: ON_SITE },
+];
+
+const slotAddress = {
+  street: '24 Avenue Daumesnil',
+  fullAddress: '24 Avenue Daumesnil 75012 Paris',
+  zipCode: '75012',
+  city: 'Paris',
+  location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+};
+
+const courseSlotList = [
+  {
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    step: stepList[0]._id,
+    startDate: '2021-05-01T08:00:00.000Z',
+    endDate: '2021-05-01T10:00:00.000Z',
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:00.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    step: stepList[1]._id,
+    startDate: '2021-05-01T14:00:00.000Z',
+    endDate: '2021-05-01T16:00:00.000Z',
+    meetingLink: 'https://meet.google.com',
+    createdAt: '2020-12-12T10:00:01.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    step: stepList[0]._id,
+    startDate: '2021-02-01T08:00:00.000Z',
+    endDate: '2021-02-01T10:00:00.000Z',
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:02.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    step: stepList[2]._id,
+    startDate: '2021-02-02T08:00:00.000Z',
+    endDate: '2021-02-02T10:00:00.000Z',
+    createdAt: '2020-12-12T10:00:03.000Z',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    step: stepList[3]._id,
+    address: slotAddress,
+    createdAt: '2020-12-12T10:00:04.000Z',
+  },
+];
+
+const attendanceList = [
+  { trainee: traineeList[0]._id, courseSlot: courseSlotList[0]._id },
+  { trainee: traineeList[0]._id, courseSlot: courseSlotList[1]._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[1]._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[2]._id },
+  { trainee: traineeList[1]._id, courseSlot: courseSlotList[3]._id },
+  { trainee: traineeList[3]._id, courseSlot: courseSlotList[2]._id },
+  { trainee: traineeList[3]._id, courseSlot: courseSlotList[3]._id },
+];
+
+const attendanceSheetList = [
+  { course: courseList[0]._id, trainee: traineeList[0]._id, file: { link: 'link', publicId: '123' } },
+];
+
+const smsList = [
+  { _id: new ObjectId(), type: 'convocation', message: 'SMS 1', sender: traineeList[0]._id, course: courseList[0]._id },
+  { _id: new ObjectId(), type: 'convocation', message: 'SMS 2', sender: traineeList[1]._id, course: courseList[0]._id },
+  { _id: new ObjectId(), type: 'convocation', message: 'SMS 3', sender: traineeList[3]._id, course: courseList[1]._id },
 ];
 
 const populateDB = async () => {
@@ -862,9 +1151,17 @@ const populateDB = async () => {
     SectorHistory.create(sectorHistories),
     Service.create(serviceList),
     ThirdPartyPayer.create(thirdPartyPayer),
-    User.create(user),
-    User.create(auxiliaryList),
+    User.create([...auxiliaryList, ...traineeList, user, trainer, salesRepresentative]),
     UserCompany.create(userCompanies),
+    SubProgram.create(subProgramList),
+    Program.create(programList),
+    Course.create(courseList),
+    CourseSlot.create(courseSlotList),
+    CourseSmsHistory.create(smsList),
+    Attendance.create(attendanceList),
+    AttendanceSheet.create(attendanceSheetList),
+    Step.create(stepList),
+    DistanceMatrix.create(distanceMatrixList),
   ]);
 };
 
@@ -878,4 +1175,7 @@ module.exports = {
   auxiliaryList,
   establishment,
   thirdPartyPayer,
+  courseList,
+  courseSlotList,
+  distanceMatrixList,
 };

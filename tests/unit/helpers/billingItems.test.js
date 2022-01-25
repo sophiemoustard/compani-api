@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const BillingItem = require('../../../src/models/BillingItem');
 const BillingItemsHelper = require('../../../src/helpers/billingItems');
 
@@ -13,7 +13,7 @@ describe('create', () => {
   });
 
   it('should create a billing item', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const newBillingItem = { name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, vat: 2 };
 
@@ -38,7 +38,7 @@ describe('list', () => {
   });
 
   it('should every billing items from user\'s company', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     find.returns([{ name: 'Billing Eilish', type: 'manual', defaultUnitAmount: 20, company: companyId, vat: 2 }]);
@@ -59,7 +59,7 @@ describe('remove', () => {
   });
 
   it('should remove a billing item', async () => {
-    const billingItemId = new ObjectID();
+    const billingItemId = new ObjectId();
 
     deleteOne.returns(billingItemId);
 

@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { fn: momentProto } = require('moment');
 const Customer = require('../../../src/models/Customer');
 const Drive = require('../../../src/models/Google/Drive');
@@ -22,15 +22,15 @@ describe('getMandates', () => {
   });
 
   it('should return customer mandates', async () => {
-    const customerId = (new ObjectID()).toHexString();
-    const mandate = { _id: new ObjectID() };
+    const customerId = (new ObjectId()).toHexString();
+    const mandate = { _id: new ObjectId() };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([mandate], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(mandate, ['lean']));
 
     const result = await MandatesHelper.getMandates(customerId);
 
     expect(result).toMatchObject(mandate);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         {
@@ -57,16 +57,16 @@ describe('updateMandate', () => {
   });
 
   it('should update customer mandates', async () => {
-    const customerId = (new ObjectID()).toHexString();
+    const customerId = (new ObjectId()).toHexString();
     const mandateId = '1234567890';
     const payload = { startDate: '2019-12-12T00:00:00' };
 
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([{ ...payload, _id: mandateId }], ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries({ ...payload, _id: mandateId }, ['lean']));
 
     const result = await MandatesHelper.updateMandate(customerId, mandateId, payload);
 
     expect(result).toMatchObject({ ...payload, _id: mandateId });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -99,8 +99,8 @@ describe('getSignatureRequest', () => {
   });
 
   it('should generate signature request', async () => {
-    const customerId = (new ObjectID()).toHexString();
-    const mandateId = new ObjectID();
+    const customerId = (new ObjectId()).toHexString();
+    const mandateId = new ObjectId();
     const payload = {
       fileId: 'fileId',
       fields: 'fields',
@@ -111,9 +111,9 @@ describe('getSignatureRequest', () => {
     };
     const customer = {
       _id: customerId,
-      payment: { mandates: [{ _id: new ObjectID() }, { _id: mandateId, rum: 'rum' }] },
+      payment: { mandates: [{ _id: new ObjectId() }, { _id: mandateId, rum: 'rum' }] },
     };
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
     generateSignatureRequest.returns({
       data: { document_hash: 'document_hash', signers: [{ embedded_signing_url: 'embedded_signing_url' }] },
     });
@@ -126,7 +126,7 @@ describe('getSignatureRequest', () => {
       { _id: customerId, 'payment.mandates._id': mandateId.toHexString() },
       { $set: flat({ 'payment.mandates.$.everSignId': 'document_hash' }) }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [
         {
@@ -139,8 +139,8 @@ describe('getSignatureRequest', () => {
   });
 
   it('should throw error if error on generate', async () => {
-    const customerId = (new ObjectID()).toHexString();
-    const mandateId = new ObjectID();
+    const customerId = (new ObjectId()).toHexString();
+    const mandateId = new ObjectId();
     try {
       const payload = {
         fileId: 'fileId',
@@ -152,10 +152,10 @@ describe('getSignatureRequest', () => {
       };
       const customer = {
         _id: customerId,
-        payment: { mandates: [{ _id: new ObjectID() }, { _id: mandateId, rum: 'rum' }] },
+        payment: { mandates: [{ _id: new ObjectId() }, { _id: mandateId, rum: 'rum' }] },
       };
 
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+      findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
       generateSignatureRequest.returns({ data: { error: 'error' } });
 
       await MandatesHelper.getSignatureRequest(customerId, mandateId.toHexString(), payload);
@@ -163,7 +163,7 @@ describe('getSignatureRequest', () => {
       expect(e.output.statusCode).toEqual(400);
     } finally {
       sinon.assert.notCalled(updateOneCustomer);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [
           {
@@ -209,7 +209,7 @@ describe('saveSignedMandate', () => {
 
   it('should save signed mandate', async () => {
     const customerId = '1234567890';
-    const mandateId = new ObjectID();
+    const mandateId = new ObjectId();
     const customer = {
       _id: customerId,
       payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },
@@ -217,8 +217,8 @@ describe('saveSignedMandate', () => {
     };
     const drive = { driveId: 'fileId', link: 'webViewLink' };
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     getDocument.returns({ data: { log: [{ event: 'document_signed' }] } });
     downloadFinalDocument.returns({ data: 'data' });
     createAndReadFile.returns('file');
@@ -236,11 +236,11 @@ describe('saveSignedMandate', () => {
       { driveFolderId: 'driveFolder', name: 'rum', type: 'application/pdf', body: 'file' }
     );
     sinon.assert.calledWithExactly(getFileById, { fileId: 'fileId' });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -258,14 +258,14 @@ describe('saveSignedMandate', () => {
   it('should throw an error if esign returns an error', async () => {
     const customerId = '1234567890';
     try {
-      const mandateId = new ObjectID();
+      const mandateId = new ObjectId();
       const customer = {
         _id: customerId,
         payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },
         driveFolder: { driveId: 'driveFolder' },
       };
 
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+      findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
       getDocument.returns({ data: { error: 'error', log: [{ event: 'document_signed' }] } });
 
       await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());
@@ -278,7 +278,7 @@ describe('saveSignedMandate', () => {
       sinon.assert.notCalled(addFile);
       sinon.assert.notCalled(getFileById);
       sinon.assert.notCalled(findOneAndUpdateCustomer);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
       );
@@ -288,14 +288,14 @@ describe('saveSignedMandate', () => {
   it('should throw an error if no signed doc in esign response', async () => {
     const customerId = '1234567890';
     try {
-      const mandateId = new ObjectID();
+      const mandateId = new ObjectId();
       const customer = {
         _id: customerId,
         payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },
         driveFolder: { driveId: 'driveFolder' },
       };
 
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries([customer], ['lean']));
+      findOneCustomer.returns(SinonMongoose.stubChainedQueries(customer, ['lean']));
       getDocument.returns({ data: { log: [{ event: 'document_not_signed' }] } });
 
       await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());
@@ -308,7 +308,7 @@ describe('saveSignedMandate', () => {
       sinon.assert.notCalled(addFile);
       sinon.assert.notCalled(getFileById);
       sinon.assert.notCalled(findOneAndUpdateCustomer);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
       );

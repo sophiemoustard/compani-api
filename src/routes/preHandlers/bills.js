@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Bill = require('../../models/Bill');
 const BillingItem = require('../../models/BillingItem');
 const Customer = require('../../models/Customer');
@@ -92,7 +92,7 @@ exports.authorizeBillListCreation = async (req) => {
   const eventsCount = await Event.countDocuments({ _id: { $in: [...ids.eventsIds] }, company: companyId });
   if (eventsCount !== ids.eventsIds.size) throw Boom.forbidden();
 
-  const subscriptionIds = [...ids.subscriptionsIds].map(sub => new ObjectID(sub));
+  const subscriptionIds = [...ids.subscriptionsIds].map(sub => new ObjectId(sub));
   const subscriptions = await CustomerRepository.getSubscriptions(subscriptionIds, companyId);
   if (subscriptions.length !== ids.subscriptionsIds.size) throw Boom.forbidden();
 

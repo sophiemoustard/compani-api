@@ -64,9 +64,9 @@ exports.computeDraftFinalPay = async (auxiliaries, query, credentials) => {
 
   const draftFinalPay = [];
   for (const aux of auxiliaries) {
-    const events = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === aux._id.toHexString()) ||
+    const events = eventsByAuxiliary.find(group => UtilsHelper.areObjectIdsEquals(group.auxiliary._id, aux._id)) ||
       { absences: [], events: [] };
-    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux._id.toHexString());
+    const prevPay = prevPayList.find(prev => UtilsHelper.areObjectIdsEquals(prev.auxiliary, aux._id));
     const draft =
       await exports.computeAuxiliaryDraftFinalPay(aux, events, prevPay, company, query, dm, surcharges);
     if (draft) draftFinalPay.push(draft);

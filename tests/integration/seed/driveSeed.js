@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
@@ -8,7 +8,7 @@ const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const auxiliary = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Harry', lastname: 'Potter' },
   local: { email: 'h@p.com' },
   administrative: {
@@ -20,7 +20,7 @@ const auxiliary = {
   origin: WEBAPP,
 };
 
-const userCompany = { _id: new ObjectID(), user: auxiliary._id, company: authCompany._id };
+const userCompany = { _id: new ObjectId(), user: auxiliary._id, company: authCompany._id };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();

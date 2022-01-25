@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const Bill = require('../../../src/models/Bill');
@@ -7,9 +7,9 @@ const Helper = require('../../../src/models/Helper');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 
-const customerId = new ObjectID();
+const customerId = new ObjectId();
 const bill = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   type: 'automatic',
   shouldBeSent: true,
   customer: customerId,
@@ -34,7 +34,7 @@ const customer = {
   },
 };
 
-const userId = new ObjectID();
+const userId = new ObjectId();
 const user = {
   _id: userId,
   identity: { lastname: 'test' },
@@ -42,9 +42,9 @@ const user = {
   origin: 'webapp',
 };
 
-const userCompany = { _id: new ObjectID(), user: userId, company: authCompany._id };
+const userCompany = { _id: new ObjectId(), user: userId, company: authCompany._id };
 
-const helper = { _id: new ObjectID(), customer: customerId, user: userId, company: authCompany._id, referent: false };
+const helper = { _id: new ObjectId(), customer: customerId, user: userId, company: authCompany._id, referent: false };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();

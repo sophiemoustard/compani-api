@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
@@ -12,7 +12,7 @@ const { vendorAdminRoleId } = require('../../seed/authRolesSeed');
 
 const userList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'sales', lastname: 'representative' },
     refreshToken: uuidv4(),
     local: { email: 'salesrep@compani.fr' },
@@ -20,14 +20,14 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'learner', lastname: 'nocompany' },
     refreshToken: uuidv4(),
     local: { email: 'learner@compani.fr', password: '123456!eR' },
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'traineeFromINTERB2B', lastname: 'withOtherCompany' },
     local: { email: 'traineeFromINTERB2B@alenvi.io' },
     origin: WEBAPP,
@@ -35,39 +35,39 @@ const userList = [
 ];
 
 const userCompaniesList = [
-  { _id: new ObjectID(), user: userList[0]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: userList[1]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: userList[2]._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: userList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: userList[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: userList[2]._id, company: otherCompany._id },
 ];
 
 const coursesList = [
   { // 0
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'intra',
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
   },
   { // 1
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'inter_b2b',
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
   },
   { // 2
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     type: 'intra',
     company: otherCompany._id,
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
   },
   { // 3 - archived
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     type: 'inter_b2b',
     archivedAt: new Date(),
     company: otherCompany._id,
@@ -78,31 +78,31 @@ const coursesList = [
 
 const attendanceSheetsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     course: coursesList[0],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     date: '2020-04-03T10:00:00',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     course: coursesList[0],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     course: coursesList[1],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[2]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     course: coursesList[3],
     file: { publicId: 'mon upload', link: 'www.test.com' },
     trainee: userList[1]._id,
@@ -110,7 +110,7 @@ const attendanceSheetsList = [
 ];
 
 const slotsList = [
-  { startDate: '2020-01-23T09:00:00', endDate: '2020-01-23T11:00:00', course: coursesList[0], step: new ObjectID() },
+  { startDate: '2020-01-23T09:00:00', endDate: '2020-01-23T11:00:00', course: coursesList[0], step: new ObjectId() },
 ];
 
 const populateDB = async () => {

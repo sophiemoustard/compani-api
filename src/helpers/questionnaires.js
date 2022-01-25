@@ -40,7 +40,8 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
 
   if (course.format === STRICTLY_E_LEARNING) return [];
 
-  const isCourseStarted = get(course, 'slots.length') && DatesHelper.isAfter(Date.now(), course.slots[0].startDate);
+  const sortedCourseSlots = course.slots.sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
+  const isCourseStarted = sortedCourseSlots.length && DatesHelper.isAfter(Date.now(), sortedCourseSlots[0].startDate);
   if (!isCourseStarted) {
     const questionnaire = await this.findQuestionnaire(course, credentials, EXPECTATIONS);
 
@@ -49,8 +50,8 @@ exports.getUserQuestionnaires = async (courseId, credentials) => {
 
   if (get(course, 'slotsToPlan.length')) return [];
 
-  const isCourseEnded = get(course, 'slots.length') &&
-    DatesHelper.isAfter(Date.now(), course.slots[course.slots.length - 1].startDate);
+  const isCourseEnded = sortedCourseSlots.length &&
+    DatesHelper.isAfter(Date.now(), sortedCourseSlots[sortedCourseSlots.length - 1].startDate);
   if (isCourseEnded) {
     const questionnaire = await this.findQuestionnaire(course, credentials, END_OF_COURSE);
 

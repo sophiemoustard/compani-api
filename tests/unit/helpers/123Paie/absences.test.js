@@ -2,12 +2,12 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Event = require('../../../../src/models/Event');
 const Pay = require('../../../../src/models/Pay');
 const Absences123PayHelper = require('../../../../src/helpers/123paie/absences');
 const FileHelper = require('../../../../src/helpers/file');
-const HistoryExportHelper = require('../../../../src/helpers/historyExport');
+const DraftPayHelper = require('../../../../src/helpers/draftPay');
 const {
   PAID_LEAVE,
   UNPAID_LEAVE,
@@ -34,19 +34,19 @@ describe('getAbsences', () => {
   });
 
   it('should return absence from previous month pay date', async () => {
-    const companyId = new ObjectID();
-    const absences = [{ _id: new ObjectID() }];
+    const companyId = new ObjectId();
+    const absences = [{ _id: new ObjectId() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
 
     findPay.returns(
-      SinonMongoose.stubChainedQueries([[{ createdAt: '2020-10-29T10:31:00' }]], ['sort', 'limit', 'lean'])
+      SinonMongoose.stubChainedQueries([{ createdAt: '2020-10-29T10:31:00' }], ['sort', 'limit', 'lean'])
     );
-    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries(absences, ['populate', 'sort', 'lean']));
 
     const result = await Absences123PayHelper.getAbsences(query, { company: { _id: companyId } });
 
     expect(result).toEqual(absences);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [{ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId }] },
@@ -55,7 +55,7 @@ describe('getAbsences', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvent,
       [
         {
@@ -84,17 +84,17 @@ describe('getAbsences', () => {
   });
 
   it('should return absence from query start date', async () => {
-    const companyId = new ObjectID();
-    const absences = [{ _id: new ObjectID() }];
+    const companyId = new ObjectId();
+    const absences = [{ _id: new ObjectId() }];
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
 
-    findPay.returns(SinonMongoose.stubChainedQueries([[]], ['sort', 'limit', 'lean']));
-    findEvent.returns(SinonMongoose.stubChainedQueries([absences], ['populate', 'sort', 'lean']));
+    findPay.returns(SinonMongoose.stubChainedQueries([], ['sort', 'limit', 'lean']));
+    findEvent.returns(SinonMongoose.stubChainedQueries(absences, ['populate', 'sort', 'lean']));
 
     const result = await Absences123PayHelper.getAbsences(query, { company: { _id: companyId } });
 
     expect(result).toEqual(absences);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findPay,
       [
         { query: 'find', args: [{ date: { $gte: moment('2020-10-01T00:00:00').toDate() }, company: companyId }] },
@@ -103,7 +103,7 @@ describe('getAbsences', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findEvent,
       [
         {
@@ -139,7 +139,7 @@ describe('exportsAbsence', () => {
   let exportToTxt;
   beforeEach(() => {
     getAbsences = sinon.stub(Absences123PayHelper, 'getAbsences');
-    getAbsenceHours = sinon.stub(HistoryExportHelper, 'getAbsenceHours');
+    getAbsenceHours = sinon.stub(DraftPayHelper, 'getAbsenceHours');
     exportToTxt = sinon.stub(FileHelper, 'exportToTxt');
     process.env.AP_SOC = 'ap_soc';
   });
@@ -151,7 +151,7 @@ describe('exportsAbsence', () => {
   });
 
   it('should export daily absence for auxiliary with contract', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
     const absences = [{
       absenceNature: 'daily',
@@ -166,7 +166,7 @@ describe('exportsAbsence', () => {
         serialNumber: '0987654321',
         identity: { lastname: 'Compani' },
       },
-      extension: { _id: new ObjectID(), startDate: '2020-11-19T00:00:00' },
+      extension: { _id: new ObjectId(), startDate: '2020-11-19T00:00:00' },
     }];
 
     getAbsences.returns(absences);
@@ -207,7 +207,7 @@ describe('exportsAbsence', () => {
   });
 
   it('should export hourly absence for auxiliary with contract', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const query = { startDate: '2020-11-01T00:00:00', endDate: '2020-11-30T22:00:00' };
     const absences = [{
       absenceNature: 'hourly',

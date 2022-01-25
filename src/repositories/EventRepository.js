@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
@@ -268,7 +268,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
 
 exports.getEventsToBill = async (query, companyId) => {
   const rules = [];
-  if (has(query, 'eventIds')) rules.push({ _id: { $in: query.eventIds.map(id => new ObjectID(id)) } });
+  if (has(query, 'eventIds')) rules.push({ _id: { $in: query.eventIds.map(id => new ObjectId(id)) } });
   else {
     rules.push(
       { endDate: { $lt: query.endDate } },
@@ -278,7 +278,7 @@ exports.getEventsToBill = async (query, companyId) => {
       { 'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } } }
     );
     if (query.startDate) rules.push({ startDate: { $gte: query.startDate } });
-    if (query.customer) rules.push({ customer: new ObjectID(query.customer) });
+    if (query.customer) rules.push({ customer: new ObjectId(query.customer) });
   }
 
   return Event.aggregate([
@@ -603,4 +603,52 @@ exports.getEventsToCheckEventConsistency = async (rules, companyId) => Event.agg
     },
   },
   { $group: { _id: { $ifNull: ['$auxiliary', '$sector'] }, events: { $push: '$$ROOT' } } },
+]).option({ company: companyId });
+
+exports.getEventsByDayAndAuxiliary = async (startDate, endDate, companyId) => Event.aggregate([
+  {
+    $match: {
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
+      auxiliary: { $exists: true },
+      $or: [{ isCancelled: false }, { 'cancel.condition': { $in: [INVOICED_AND_PAID] } }],
+      type: { $in: [INTERNAL_HOUR, INTERVENTION] },
+    },
+  },
+  {
+    $project: {
+      auxiliary: 1,
+      startDate: 1,
+      endDate: 1,
+      address: 1,
+      transportMode: 1,
+      hasFixedService: 1,
+      company: 1,
+    },
+  },
+  {
+    $group: {
+      _id: {
+        auxiliary: '$auxiliary',
+        month: { $month: '$startDate' },
+        day: { $dayOfMonth: '$startDate' },
+      },
+      eventsByDay: { $push: '$$ROOT' },
+    },
+  },
+  {
+    $group: {
+      _id: { auxiliary: '$_id.auxiliary' },
+      auxiliary: { $first: '$_id.auxiliary' },
+      eventsByDay: { $push: '$eventsByDay' },
+    },
+  },
+  { $lookup: { from: 'users', as: 'auxiliary', localField: 'auxiliary', foreignField: '_id' } },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $project: {
+      auxiliary: { _id: 1, identity: { firstname: 1, lastname: 1 }, administrative: 1 },
+      eventsByDay: 1,
+    },
+  },
 ]).option({ company: companyId });

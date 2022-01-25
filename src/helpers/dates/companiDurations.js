@@ -1,35 +1,42 @@
+const { DURATION_UNITS } = require('../constants');
 const luxon = require('./luxon');
 
 exports.CompaniDuration = (...args) => companiDurationFactory(exports._formatMiscToCompaniDuration(...args));
 
-const companiDurationFactory = _duration => ({
-  _duration,
+const companiDurationFactory = (inputDuration) => {
+  const _duration = inputDuration;
 
-  format() {
-    const durationInHoursAndMinutes = this._duration.shiftTo('hours', 'minutes');
-    const format = Math.floor(durationInHoursAndMinutes.get('minutes')) > 0 ? 'h\'h\'mm' : 'h\'h\'';
+  return {
+    get _getDuration() {
+      return _duration;
+    },
 
-    return this._duration.toFormat(format);
-  },
+    format() {
+      const durationInHoursAndMinutes = _duration.shiftTo('hours', 'minutes');
+      const format = Math.floor(durationInHoursAndMinutes.get('minutes')) > 0 ? 'h\'h\'mm' : 'h\'h\'';
 
-  add(miscTypeOtherDuration) {
-    const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
+      return _duration.toFormat(format);
+    },
 
-    this._duration = this._duration.plus(otherDuration);
+    add(miscTypeOtherDuration) {
+      const otherDuration = exports._formatMiscToCompaniDuration(miscTypeOtherDuration);
 
-    return this;
-  },
-});
+      return companiDurationFactory(_duration.plus(otherDuration));
+    },
+
+    asHours() {
+      return _duration.as('hours');
+    },
+  };
+};
 
 exports._formatMiscToCompaniDuration = (...args) => {
   if (args.length === 0) return luxon.Duration.fromObject({});
 
   if (args.length === 1) {
-    if (args[0] instanceof Object && args[0]._duration && args[0]._duration instanceof luxon.Duration) {
-      return args[0]._duration;
-    }
-    if (typeof args[0] === 'number') {
-      return luxon.Duration.fromMillis(args[0]);
+    if (args[0] instanceof Object) {
+      if (args[0]._getDuration && args[0]._getDuration instanceof luxon.Duration) return args[0]._getDuration;
+      if (Object.keys(args[0]).every(key => DURATION_UNITS.includes(key))) return luxon.Duration.fromObject(args[0]);
     }
   }
   return luxon.Duration.invalid('wrong arguments');

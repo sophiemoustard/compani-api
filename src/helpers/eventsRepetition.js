@@ -121,7 +121,7 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
   }
   let sectorId = eventFromDb.sector;
   if (!eventFromDb.sector) {
-    const user = await User.findOne({ _id: eventFromDb.auxiliary })
+    const user = await User.findOne({ _id: eventFromDb.auxiliary._id })
       .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .lean({ autopopulate: true, virtuals: true });
     sectorId = user.sector;

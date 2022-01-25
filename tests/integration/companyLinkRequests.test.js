@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const {
   populateDB,
@@ -56,7 +56,7 @@ describe('POST /companylinkrequests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companylinkrequests',
-        payload: { company: new ObjectID() },
+        payload: { company: new ObjectId() },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

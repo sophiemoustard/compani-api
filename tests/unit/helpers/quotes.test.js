@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const expect = require('expect');
 const SinonMongoose = require('../sinonMongoose');
@@ -20,11 +20,11 @@ describe('getQuotes', () => {
   it('should get customer quotes', async () => {
     const customerId = '12345678io0';
 
-    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await QuoteHelper.getQuotes(customerId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         {
@@ -49,13 +49,13 @@ describe('getQuoteNumber', () => {
   });
 
   it('should return quote number', async () => {
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await QuoteHelper.getQuoteNumber(company._id);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
@@ -106,17 +106,17 @@ describe('createQuote', () => {
     const payload = {
       subscriptions: [{ service: { name: 'Autonomie' }, unitTTCRate: 24, estimatedWeeklyVolume: 12 }],
     };
-    const credentials = { company: { _id: new ObjectID(), prefixNumber: 101 } };
+    const credentials = { company: { _id: new ObjectId(), prefixNumber: 101 } };
 
     getQuoteNumberStub.returns({ prefix: 'pre', seq: 2 });
     formatQuoteNumberStub.returns('pre-002');
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await QuoteHelper.createQuote(customerId, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(getQuoteNumberStub, credentials.company._id);
     sinon.assert.calledOnceWithExactly(formatQuoteNumberStub, credentials.company.prefixNumber, 'pre', 2);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {

@@ -17,7 +17,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['attendancesheets:read'] },
+        auth: { scope: ['attendances:read'] },
         validate: {
           query: Joi.object({ course: Joi.objectId() }),
         },
@@ -39,7 +39,7 @@ exports.plugin = {
             date: Joi.date(),
           }),
         },
-        auth: { scope: ['attendancesheets:edit'] },
+        auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceSheetCreation }],
       },
       handler: create,
@@ -52,7 +52,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['attendancesheets:edit'] },
+        auth: { scope: ['attendances:edit'] },
         pre: [{ method: authorizeAttendanceSheetDeletion, assign: 'attendanceSheet' }],
       },
       handler: deleteAttendanceSheet,

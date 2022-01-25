@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const CourseSlotSchema = mongoose.Schema({
@@ -9,5 +10,9 @@ const CourseSlotSchema = mongoose.Schema({
   meetingLink: { type: String, trim: true },
   step: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required() { return !!this.startDate; } },
 }, { timestamps: true });
+
+formatQueryMiddlewareList().map(middleware => CourseSlotSchema.pre(middleware, formatQuery));
+
+CourseSlotSchema.virtual('attendances', { ref: 'Attendance', localField: '_id', foreignField: 'courseSlot' });
 
 module.exports = mongoose.model('CourseSlot', CourseSlotSchema);

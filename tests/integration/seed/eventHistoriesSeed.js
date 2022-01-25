@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -23,7 +23,7 @@ const { coachRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const users = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Mimi', lastname: 'Mita' },
     local: { email: 'lili@alenvi.io' },
     role: { client: coachRoleId },
@@ -31,7 +31,7 @@ const users = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Joséphine', lastname: 'Mita' },
     local: { email: 'lili2@alenvi.io' },
     role: { client: coachRoleId },
@@ -39,7 +39,7 @@ const users = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Bob', lastname: 'Marley' },
     local: { email: 'lala@alenvi.io' },
     role: { client: clientAdminRoleId },
@@ -47,7 +47,7 @@ const users = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'test', lastname: 'Mita' },
     local: { email: 'otherCompany@alenvi.io' },
     role: { client: coachRoleId },
@@ -66,12 +66,12 @@ const userCompanies = [
   { user: users[3], company: otherCompany._id },
 ];
 
-const sectors = [{ _id: new ObjectID(), company: authCompany._id }, { _id: new ObjectID(), company: authCompany._id }];
+const sectors = [{ _id: new ObjectId(), company: authCompany._id }, { _id: new ObjectId(), company: authCompany._id }];
 
-const sectorFromOtherCompany = { _id: new ObjectID(), company: otherCompany._id };
+const sectorFromOtherCompany = { _id: new ObjectId(), company: otherCompany._id };
 
 const customer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   identity: { firstname: 'Julian', lastname: 'Alaphilippe' },
   contact: {
@@ -88,7 +88,7 @@ const customer = {
 
 const events = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     startDate: '2019-01-20T09:38:18',
@@ -102,21 +102,21 @@ const events = [
       street: '37 rue de Ponthieu',
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     isBilled: false,
   },
   { // 1
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERNAL_HOUR,
     startDate: '2019-01-20T09:38:18',
     endDate: '2019-01-20T11:38:18',
-    internalHour: { name: 'Réunion', _id: new ObjectID() },
+    internalHour: { name: 'Réunion', _id: new ObjectId() },
     auxiliary: auxiliaries[0]._id,
     misc: 'Je suis une note',
   },
   { // 2
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: ABSENCE,
     absenceNature: 'daily',
@@ -127,14 +127,14 @@ const events = [
     misc: 'Je suis une note',
   },
   { // billed - 3
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     startDate: '2019-01-20T09:38:18',
     endDate: '2019-01-20T11:38:18',
     customer: customer._id,
     auxiliary: auxiliaries[0]._id,
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -148,7 +148,7 @@ const events = [
 
 const eventHistoryList = [
   {
-    _id: ObjectID(),
+    _id: ObjectId(),
     company: authCompany._id,
     action: EVENT_CREATION,
     createdBy: users[2]._id,
@@ -164,7 +164,7 @@ const eventHistoryList = [
     },
   },
   { // 1
-    _id: ObjectID(),
+    _id: ObjectId(),
     company: authCompany._id,
     action: EVENT_DELETION,
     createdBy: users[2]._id,
@@ -175,13 +175,13 @@ const eventHistoryList = [
       type: INTERNAL_HOUR,
       startDate: '2019-01-20T09:38:18',
       endDate: '2019-01-20T11:38:18',
-      internalHour: { name: 'Réunion', _id: new ObjectID() },
+      internalHour: { name: 'Réunion', _id: new ObjectId() },
       auxiliary: auxiliaries[0]._id,
       misc: 'Je suis une note',
     },
   },
   { // 2
-    _id: ObjectID(),
+    _id: ObjectId(),
     company: authCompany._id,
     action: EVENT_UPDATE,
     createdBy: users[2]._id,
@@ -198,7 +198,7 @@ const eventHistoryList = [
     },
   },
   { // time stamping - 3
-    _id: ObjectID(),
+    _id: ObjectId(),
     company: authCompany._id,
     action: QR_CODE_TIME_STAMPING,
     createdBy: users[2]._id,
@@ -215,7 +215,7 @@ const eventHistoryList = [
     isCancelled: false,
   },
   { // time stamping cancelled - 4
-    _id: ObjectID(),
+    _id: ObjectId(),
     company: authCompany._id,
     action: QR_CODE_TIME_STAMPING,
     createdBy: users[2]._id,
@@ -232,7 +232,7 @@ const eventHistoryList = [
     isCancelled: true,
   },
   { // time stamping from other company - 5
-    _id: ObjectID(),
+    _id: ObjectId(),
     company: otherCompany._id,
     action: QR_CODE_TIME_STAMPING,
     createdBy: users[2]._id,
@@ -249,7 +249,7 @@ const eventHistoryList = [
     isCancelled: false,
   },
   { // billed event - 6
-    _id: ObjectID(),
+    _id: ObjectId(),
     company: authCompany._id,
     action: QR_CODE_TIME_STAMPING,
     createdBy: users[2]._id,

@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Category = require('../../../src/models/Category');
 const CategoryHelper = require('../../../src/helpers/categories');
 const SinonMongoose = require('../sinonMongoose');
@@ -34,12 +34,12 @@ describe('list', () => {
   it('should return categories', async () => {
     const categoriesList = [{ name: 'ma première catégorie' }, { name: 'ma seconde catégorie' }];
 
-    list.returns(SinonMongoose.stubChainedQueries([categoriesList]));
+    list.returns(SinonMongoose.stubChainedQueries(categoriesList));
 
     const result = await CategoryHelper.list();
 
     expect(result).toMatchObject(categoriesList);
-    SinonMongoose.calledWithExactly(list, [
+    SinonMongoose.calledOnceWithExactly(list, [
       { query: 'find' },
       { query: 'populate', args: [{ path: 'programsCount' }] },
       { query: 'lean' },
@@ -57,7 +57,7 @@ describe('update', () => {
   });
 
   it('should update name', async () => {
-    const category = { _id: new ObjectID(), name: 'jour' };
+    const category = { _id: new ObjectId(), name: 'jour' };
     const payload = { name: 'nuit' };
     await CategoryHelper.update(category._id, payload);
 
@@ -75,7 +75,7 @@ describe('delete', () => {
   });
 
   it('should remove a category', async () => {
-    const categoryId = new ObjectID();
+    const categoryId = new ObjectId();
     await CategoryHelper.delete(categoryId);
 
     sinon.assert.calledWithExactly(deleteCategory, { _id: categoryId });

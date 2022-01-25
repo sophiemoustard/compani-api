@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -14,7 +14,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
@@ -28,8 +28,8 @@ const customer = {
     phone: '0123456789',
   },
   subscriptions: [{
-    _id: new ObjectID(),
-    service: new ObjectID(),
+    _id: new ObjectId(),
+    service: new ObjectId(),
     versions: [{
       unitTTCRate: 12,
       estimatedWeeklyVolume: 12,
@@ -43,20 +43,20 @@ const customer = {
 };
 
 const otherContractUser = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'OCCU', lastname: 'OCCU' },
   local: { email: 'other-company-contract-user@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: auxiliaryRoleId },
-  contracts: [new ObjectID()],
+  contracts: [new ObjectId()],
   prefixNumber: 103,
   origin: WEBAPP,
 };
 
-const sector = { _id: new ObjectID(), company: authCompany._id };
+const sector = { _id: new ObjectId(), company: authCompany._id };
 
 const establishment = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Tata',
   siret: '09876543210987',
   address: {
@@ -74,7 +74,7 @@ const establishment = {
 
 const contractUsers = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     establishment: establishment._id,
     identity: {
       firstname: 'Test7',
@@ -88,7 +88,7 @@ const contractUsers = [
     local: { email: 'test7@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     contact: {
       address: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -101,7 +101,7 @@ const contractUsers = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: {
       firstname: 'ayolo',
       lastname: 'Toto',
@@ -111,11 +111,11 @@ const contractUsers = [
       birthCity: 'Paris',
       birthState: 75,
     },
-    establishment: new ObjectID(),
+    establishment: new ObjectId(),
     local: { email: 'tototest@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     contact: {
       address: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -128,7 +128,7 @@ const contractUsers = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: {
       firstname: 'ok',
       lastname: 'Titi',
@@ -138,7 +138,7 @@ const contractUsers = [
       birthCity: 'Paris',
       birthState: 75,
     },
-    establishment: new ObjectID(),
+    establishment: new ObjectId(),
     local: { email: 'ok@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
@@ -151,41 +151,41 @@ const contractUsers = [
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     },
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'contract', lastname: 'Titi' },
     local: { email: 'contract@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     sector: sector._id,
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'contract', lastname: 'Uelle' },
     local: { email: 'dfghjkscs@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     sector: sector._id,
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'contract', lastname: 'ant' },
     local: { email: 'iuytr@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     sector: sector._id,
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: {
       firstname: 'contract',
       lastname: 'ion',
@@ -207,10 +207,10 @@ const contractUsers = [
     local: { email: 'dfghjk@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     sector: sector._id,
     origin: WEBAPP,
-    establishment: new ObjectID(),
+    establishment: new ObjectId(),
   },
 ];
 
@@ -265,18 +265,18 @@ const otherContract = {
   startDate: '2018-12-03T23:00:00.000Z',
   _id: otherContractUser.contracts[0],
   company: otherCompany._id,
-  versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectID() }],
+  versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectId() }],
 };
 
 const contractUserCompanies = [
-  { _id: new ObjectID(), user: contractUsers[0]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: contractUsers[1]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: contractUsers[2]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: contractUsers[3]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: contractUsers[4]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: contractUsers[5]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: contractUsers[6]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: otherContractUser._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: contractUsers[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: contractUsers[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: contractUsers[2]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: contractUsers[3]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: contractUsers[4]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: contractUsers[5]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: contractUsers[6]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: otherContractUser._id, company: otherCompany._id },
 ];
 
 const contractsList = [
@@ -286,7 +286,7 @@ const contractsList = [
     startDate: '2018-12-03T23:00:00.000Z',
     _id: contractUsers[0].contracts[0],
     company: authCompany._id,
-    versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectID() }],
+    versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectId() }],
   },
   {
     serialNumber: 'sdfgtresddbgr',
@@ -297,7 +297,7 @@ const contractsList = [
     endReason: 'mutation',
     _id: contractUsers[1].contracts[0],
     company: authCompany._id,
-    versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectID() }],
+    versions: [{ grossHourlyRate: 10.28, startDate: '2018-12-03T23:00:00.000Z', weeklyHours: 9, _id: new ObjectId() }],
   },
   {
     serialNumber: 'qwdfgbnhygfc',
@@ -306,7 +306,7 @@ const contractsList = [
     user: contractUsers[2]._id,
     startDate: '2018-08-02T00:00:00',
     _id: contractUsers[2].contracts[0],
-    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
+    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectId() }],
   },
   {
     serialNumber: 'cvfdjsbjknvkaskdj',
@@ -319,7 +319,7 @@ const contractsList = [
       grossHourlyRate: 10.12,
       startDate: '2018-08-02T00:00:00',
       weeklyHours: 15,
-      _id: new ObjectID(),
+      _id: new ObjectId(),
     }],
   },
   {
@@ -334,14 +334,14 @@ const contractsList = [
         grossHourlyRate: 10.12,
         startDate: '2017-08-02T00:00:00',
         weeklyHours: 15,
-        _id: new ObjectID(),
+        _id: new ObjectId(),
       },
       {
         endDate: '2017-10-10T23:59:59',
         grossHourlyRate: 10.12,
         startDate: '2017-09-03T00:00:00',
         weeklyHours: 22,
-        _id: new ObjectID(),
+        _id: new ObjectId(),
       },
     ],
   },
@@ -351,7 +351,7 @@ const contractsList = [
     startDate: '2018-08-02T00:00:00',
     _id: contractUsers[3].contracts[0],
     company: authCompany._id,
-    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectID() }],
+    versions: [{ grossHourlyRate: 10.12, startDate: '2018-08-02T00:00:00', weeklyHours: 15, _id: new ObjectId() }],
   },
   {
     serialNumber: 'lkjhgfdcdsvbnjckasdf',
@@ -366,7 +366,7 @@ const contractsList = [
       grossHourlyRate: 10.12,
       startDate: '2018-08-02T00:00:00',
       weeklyHours: 15,
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: '2019-09-02T23:59:59',
     }],
   },
@@ -374,19 +374,19 @@ const contractsList = [
 
 const contractEvents = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: INTERNAL_HOUR,
     startDate: '2019-08-08T14:00:18.653Z',
     endDate: '2019-08-08T16:00:18.653Z',
     auxiliary: contractUsers[0]._id,
-    internalHour: { _id: new ObjectID(), name: 'Formation' },
+    internalHour: { _id: new ObjectId(), name: 'Formation' },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
@@ -395,9 +395,9 @@ const contractEvents = [
     auxiliary: contractUsers[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: ABSENCE,
     absence: PAID_LEAVE,
     absenceNature: DAILY,
@@ -406,9 +406,9 @@ const contractEvents = [
     auxiliary: contractUsers[0]._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: INTERVENTION,
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
@@ -424,9 +424,9 @@ const contractEvents = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     type: INTERVENTION,
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',

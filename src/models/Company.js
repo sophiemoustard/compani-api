@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const { MONTH, TWO_WEEKS, COMPANY, ASSOCIATION } = require('../helpers/constants');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
@@ -57,6 +58,8 @@ const CompanySchema = mongoose.Schema({
     },
   },
 }, { timestamps: true });
+
+formatQueryMiddlewareList().map(middleware => CompanySchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Company', CompanySchema);
 module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;

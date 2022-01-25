@@ -4,30 +4,9 @@ const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 
-exports.mongooseConnection = (server) => {
-  if (process.env.NODE_ENV === 'test') {
-    mongoose.connect(
-      'mongodb://localhost:27017/hapitest',
-      {
-        useNewUrlParser: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
-        useUnifiedTopology: true,
-        retryWrites: false,
-      }
-    );
-  } else {
-    mongoose.connect(
-      process.env.MONGODB_URI,
-      {
-        useNewUrlParser: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
-        useUnifiedTopology: true,
-        retryWrites: false,
-      }
-    );
-  }
+exports.mongooseConnection = async (server) => {
+  const uri = process.env.NODE_ENV === 'test' ? 'mongodb://localhost:27017/hapitest' : process.env.MONGODB_URI;
+  await mongoose.connect(uri, { retryWrites: false });
 
   // When successfully connected
   mongoose.connection.once('connected', () => server.log(['info', 'db'], 'Successfully connected to MongoDB'));

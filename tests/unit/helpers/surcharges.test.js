@@ -1,7 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Surcharge = require('../../../src/models/Surcharge');
 const SurchargesHelper = require('../../../src/helpers/surcharges');
 const SinonMongoose = require('../sinonMongoose');
@@ -16,15 +16,15 @@ describe('list', () => {
   });
 
   it('should return a list of every surcharges from company', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    find.returns(SinonMongoose.stubChainedQueries([[{ company: companyId, name: 'Coucou' }]], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([{ company: companyId, name: 'Coucou' }], ['lean']));
 
     const result = await SurchargesHelper.list(credentials);
     expect(result).toEqual([{ company: companyId, name: 'Coucou' }]);
 
-    SinonMongoose.calledWithExactly(find, [
+    SinonMongoose.calledOnceWithExactly(find, [
       { query: 'find', args: [{ company: companyId }] },
       { query: 'lean' },
     ]);
@@ -40,7 +40,7 @@ describe('create', () => {
     create.restore();
   });
   it('should create a surcharge', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     await SurchargesHelper.create({ name: 'Salut toi' }, credentials);
@@ -58,7 +58,7 @@ describe('update', () => {
     updateOne.restore();
   });
   it('should update a surcharge', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
 
     await SurchargesHelper.update({ _id: surchargeId }, { name: 'Skusku' });
 
@@ -75,7 +75,7 @@ describe('delete', () => {
     deleteOne.restore();
   });
   it('should delete a surcharge', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
 
     await SurchargesHelper.delete({ _id: surchargeId });
 

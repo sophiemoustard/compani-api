@@ -102,7 +102,7 @@ exports.forgotPassword = async (payload) => {
   const { email, origin, type } = payload;
   if (origin === MOBILE) {
     const code = String(Math.floor(Math.random() * 9000 + 1000));
-    let verification = await IdentityVerification.findOneAndUpdate({ email }, { $set: { code } }, { new: true });
+    let verification = await IdentityVerification.findOneAndUpdate({ email }, { $set: { code } }, { new: true }).lean();
     if (!verification) verification = await IdentityVerification.create({ email, code });
 
     if (type === EMAIL) return EmailHelper.sendVerificationCodeEmail(email, verification.code);

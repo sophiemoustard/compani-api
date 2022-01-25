@@ -13,7 +13,7 @@ const {
   TIME_STAMP_CANCELLATION,
 } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const EVENTS_HISTORY_ACTIONS = [
   EVENT_CREATION,
@@ -73,6 +73,7 @@ const EventHistorySchema = mongoose.Schema({
 
 EventHistorySchema.pre('find', validateQuery);
 EventHistorySchema.pre('aggregate', validateAggregation);
+formatQueryMiddlewareList().map(middleware => EventHistorySchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('EventHistory', EventHistorySchema);
 module.exports.EVENTS_HISTORY_ACTIONS = EVENTS_HISTORY_ACTIONS;

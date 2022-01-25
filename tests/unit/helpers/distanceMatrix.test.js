@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
@@ -14,7 +14,7 @@ describe('getDistanceMatrices', () => {
     },
     status: 200,
   };
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let find;
 
   beforeEach(() => {
@@ -25,13 +25,13 @@ describe('getDistanceMatrices', () => {
   });
 
   it('should return a distance matrix', async () => {
-    find.returns(SinonMongoose.stubChainedQueries([distanceMatrix], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
 
     const credentials = { company: { _id: companyId } };
     const result = await DistanceMatrixHelper.getDistanceMatrices(credentials);
 
     expect(result).toEqual(distanceMatrix);
-    SinonMongoose.calledWithExactly(find, [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]);
   });
 });
 
@@ -68,7 +68,7 @@ describe('createDistanceMatrix', () => {
     },
     status: 200,
   };
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let save;
   let getDistanceMatrix;
 

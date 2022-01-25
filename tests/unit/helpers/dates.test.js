@@ -3,25 +3,25 @@ const DatesHelper = require('../../../src/helpers/dates');
 
 describe('isBefore', () => {
   it('should return true if date1 is before date2', () => {
-    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00', '2020-01-01T11:00:00');
+    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00.000Z', '2020-01-01T11:00:00.000Z');
 
     expect(isBefore).toBe(true);
   });
 
   it('should return false if date1 is after date2', () => {
-    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00', '2020-01-01T07:00:00');
+    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00.000Z', '2020-01-01T07:00:00.000Z');
 
     expect(isBefore).toBe(false);
   });
 
   it('should return false if date1 is equal to date2', () => {
-    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00', '2020-01-01T09:00:00');
+    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00.000Z', '2020-01-01T09:00:00.000Z');
 
     expect(isBefore).toBe(false);
   });
 
   it('should return false if date1 and date2 are on same day, comparing days', () => {
-    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00', '2020-01-01T07:00:00', 'd');
+    const isBefore = DatesHelper.isBefore('2020-01-01T09:00:00.000Z', '2020-01-01T07:00:00.000Z', 'd');
 
     expect(isBefore).toBe(false);
   });
@@ -29,25 +29,25 @@ describe('isBefore', () => {
 
 describe('isSameOrBefore', () => {
   it('should return true if date1 is before date2', () => {
-    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00', '2021-01-11T09:00:00');
+    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00.000Z', '2021-01-11T09:00:00.000Z');
 
     expect(isBefore).toBe(true);
   });
 
   it('should return false if date1 is after date2', () => {
-    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00', '2019-02-03');
+    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00.000Z', '2019-02-03T09:00:00.000Z');
 
     expect(isBefore).toBe(false);
   });
 
   it('should return true if date1 is after date2 but on same day, comparing days', () => {
-    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T11:00:00', '2020-01-01T09:00:00', 'd');
+    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T11:00:00.000Z', '2020-01-01T09:00:00.000Z', 'd');
 
     expect(isBefore).toBe(true);
   });
 
   it('should return true if date1 is equal to date2', () => {
-    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00', '2020-01-01T09:00:00');
+    const isBefore = DatesHelper.isSameOrBefore('2020-01-01T09:00:00.000Z', '2020-01-01T09:00:00.000Z');
 
     expect(isBefore).toBe(true);
   });
@@ -55,19 +55,19 @@ describe('isSameOrBefore', () => {
 
 describe('isAfter', () => {
   it('should return true if date1 is after date2', () => {
-    const isAfter = DatesHelper.isAfter(new Date('2020-12-25'), '2020-07-14');
+    const isAfter = DatesHelper.isAfter(new Date('2020-12-25T12:00:00.000Z'), '2020-07-14T12:00:00.000Z');
 
     expect(isAfter).toBe(true);
   });
 
   it('should return false if date1 is before date2', () => {
-    const isAfter = DatesHelper.isAfter('2020-01-01', new Date());
+    const isAfter = DatesHelper.isAfter('2020-01-01T12:00:00.000Z', new Date());
 
     expect(isAfter).toBe(false);
   });
 
   it('should return false if date1 is equal to date2', () => {
-    const isAfter = DatesHelper.isAfter('2020-01-01', '2020-01-01');
+    const isAfter = DatesHelper.isAfter('2020-01-01T12:00:00.000Z', '2020-01-01T12:00:00.000Z');
 
     expect(isAfter).toBe(false);
   });
@@ -93,19 +93,19 @@ describe('isAfter', () => {
 
 describe('isSameOrAfter', () => {
   it('should return true if date1 is after date2', () => {
-    const isAfter = DatesHelper.isSameOrAfter(new Date('2020-12-25'), '2020-07-14');
+    const isAfter = DatesHelper.isSameOrAfter(new Date('2020-12-25T12:00:00.000Z'), '2020-07-14T12:00:00.000Z');
 
     expect(isAfter).toBe(true);
   });
 
   it('should return false if date1 is before date2', () => {
-    const isAfter = DatesHelper.isSameOrAfter('2020-01-01', new Date());
+    const isAfter = DatesHelper.isSameOrAfter('2020-01-01T12:00:00.000Z', new Date());
 
     expect(isAfter).toBe(false);
   });
 
   it('should return true if date1 is equal to date2', () => {
-    const isAfter = DatesHelper.isSameOrAfter('2020-01-01', '2020-01-01');
+    const isAfter = DatesHelper.isSameOrAfter('2020-01-01T12:00:00.000Z', '2020-01-01T12:00:00.000Z');
 
     expect(isAfter).toBe(true);
   });
@@ -131,8 +131,8 @@ describe('isSameOrAfter', () => {
 
 describe('dayDiff', () => {
   it('should return a positive number of days between to dates as the first date is later than the second', () => {
-    const date1 = '2021-01-05T10:04:34';
-    const date2 = '2021-01-01T09:15:24';
+    const date1 = '2021-01-05T10:04:34.000Z';
+    const date2 = '2021-01-01T09:15:24.000Z';
 
     const result = DatesHelper.dayDiff(date1, date2);
 
@@ -140,8 +140,8 @@ describe('dayDiff', () => {
   });
 
   it('should return 0 as the date difference is smaller than 24h', () => {
-    const date1 = '2021-01-05T10:04:34';
-    const date2 = '2021-01-04T11:04:54';
+    const date1 = '2021-01-05T10:04:34.000Z';
+    const date2 = '2021-01-04T11:04:54.000Z';
 
     const result = DatesHelper.dayDiff(date1, date2);
 
@@ -149,8 +149,8 @@ describe('dayDiff', () => {
   });
 
   it('should return 0 as the two dates are the same day ', () => {
-    const date1 = '2021-01-05T10:04:34';
-    const date2 = '2021-01-05T11:04:54';
+    const date1 = '2021-01-05T10:04:34.000Z';
+    const date2 = '2021-01-05T11:04:54.000Z';
 
     const result = DatesHelper.dayDiff(date1, date2);
 
@@ -158,8 +158,8 @@ describe('dayDiff', () => {
   });
 
   it('should return a negative number of days between two dates as the first date is earlier than the seconde ', () => {
-    const date1 = '2021-01-04T10:04:34';
-    const date2 = '2021-01-05T11:04:54';
+    const date1 = '2021-01-04T10:04:34.000Z';
+    const date2 = '2021-01-05T11:04:54.000Z';
 
     const result = DatesHelper.dayDiff(date1, date2);
 
@@ -169,8 +169,8 @@ describe('dayDiff', () => {
 
 describe('addDays', () => {
   it('should add days to date', () => {
-    const newDate = DatesHelper.addDays('2020-12-25', 9);
-    const resultDate = new Date('2021-01-03');
+    const newDate = DatesHelper.addDays('2020-12-25T12:00:00.000Z', 9);
+    const resultDate = new Date('2021-01-03T12:00:00.000Z');
 
     expect(newDate.toString()).toBe(resultDate.toString());
   });
@@ -232,5 +232,45 @@ describe('format', () => {
   it('should return numeric year', () => {
     const formattedDate = DatesHelper.format('2020-12-31T23:00:00.000Z', 'YYYY');
     expect(formattedDate).toEqual('2021');
+  });
+});
+
+describe('descendingSort', () => {
+  it('should return a positive value if b > a', () => {
+    const result = DatesHelper
+      .descendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+    expect(result > 0).toBe(true);
+  });
+
+  it('should return a positive value if b < a', () => {
+    const result = DatesHelper
+      .descendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
+    expect(result < 0).toBe(true);
+  });
+
+  it('should return 0 if b = a', () => {
+    const result = DatesHelper
+      .descendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+    expect(result).toBe(0);
+  });
+});
+
+describe('ascendingSort', () => {
+  it('should return a positive value if b < a', () => {
+    const result = DatesHelper
+      .ascendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2020-12-01T12:00:00.000Z' });
+    expect(result > 0).toBe(true);
+  });
+
+  it('should return a positive value if b > a', () => {
+    const result = DatesHelper
+      .ascendingSort('date')({ date: '2020-12-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+    expect(result < 0).toBe(true);
+  });
+
+  it('should return 0 if b = a', () => {
+    const result = DatesHelper
+      .ascendingSort('date')({ date: '2021-01-01T12:00:00.000Z' }, { date: '2021-01-01T12:00:00.000Z' });
+    expect(result).toBe(0);
   });
 });

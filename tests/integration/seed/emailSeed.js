@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const User = require('../../../src/models/User');
@@ -8,7 +8,7 @@ const { clientAdminRoleId, trainerRoleId, helperRoleId, coachRoleId } = require(
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const emailUser = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'emailUser', lastname: 'Test' },
   local: { email: 'email_user@alenvi.io' },
   refreshToken: uuidv4(),
@@ -17,7 +17,7 @@ const emailUser = {
 };
 
 const emailUserFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'otherCompany', lastname: 'Test' },
   local: { email: 'email_user_other_company@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
@@ -26,7 +26,7 @@ const emailUserFromOtherCompany = {
 };
 
 const coachFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'coach', lastname: 'Test' },
   local: { email: 'coach_email_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
@@ -35,7 +35,7 @@ const coachFromOtherCompany = {
 };
 
 const trainerFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'trainer', lastname: 'Test' },
   local: { email: 'trainer_email_other_company@alenvi.io' },
   refreshToken: uuidv4(),
@@ -44,7 +44,7 @@ const trainerFromOtherCompany = {
 };
 
 const helperFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'helper', lastname: 'Test' },
   local: { email: 'helper_email_user@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
@@ -61,9 +61,9 @@ const emailUsers = [
 ];
 
 const userCompanies = [
-  { _id: new ObjectID(), user: emailUser._id, company: authCompany._id },
-  { _id: new ObjectID(), user: emailUserFromOtherCompany._id, company: otherCompany._id },
-  { _id: new ObjectID(), user: trainerFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: emailUser._id, company: authCompany._id },
+  { _id: new ObjectId(), user: emailUserFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: trainerFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const populateDB = async () => {

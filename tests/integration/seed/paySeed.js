@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
@@ -14,22 +14,22 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { WEBAPP, UNPAID_LEAVE, PAID_LEAVE, DAILY, ABSENCE } = require('../../../src/helpers/constants');
 const { coachRoleId, auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
-const contractId0 = new ObjectID();
-const contractId1 = new ObjectID();
-const auxiliaryId0 = new ObjectID();
-const auxiliaryId1 = new ObjectID();
-const customerId = new ObjectID();
-const subscriptionId = new ObjectID();
-const serviceId = new ObjectID();
+const contractId0 = new ObjectId();
+const contractId1 = new ObjectId();
+const auxiliaryId0 = new ObjectId();
+const auxiliaryId1 = new ObjectId();
+const customerId = new ObjectId();
+const subscriptionId = new ObjectId();
+const serviceId = new ObjectId();
 const sectors = [
-  { name: 'Toto', _id: new ObjectID(), company: authCompany._id },
-  { name: 'Titi', _id: new ObjectID(), company: authCompany._id },
-  { name: 'Tutu', _id: new ObjectID(), company: otherCompany._id },
+  { name: 'Toto', _id: new ObjectId(), company: authCompany._id },
+  { name: 'Titi', _id: new ObjectId(), company: authCompany._id },
+  { name: 'Tutu', _id: new ObjectId(), company: otherCompany._id },
 ];
-const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
+const sectorFromOtherCompany = { _id: new ObjectId(), name: 'Titi', company: otherCompany._id };
 
 const user = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   local: { email: 'test4@alenvi.io' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
@@ -59,7 +59,7 @@ const auxiliaries = [
 ];
 
 const auxiliaryFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'otherCompany', lastname: 'Chloe' },
   local: { email: 'othercompany@alenvi.io' },
   refreshToken: uuidv4(),
@@ -70,10 +70,10 @@ const auxiliaryFromOtherCompany = {
 };
 
 const userCompanyList = [
-  { _id: new ObjectID(), user: auxiliaryId0, company: authCompany },
-  { _id: new ObjectID(), user: auxiliaryId1, company: authCompany },
-  { _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany },
-  { _id: new ObjectID(), user: user._id, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryId0, company: authCompany },
+  { _id: new ObjectId(), user: auxiliaryId1, company: authCompany },
+  { _id: new ObjectId(), user: auxiliaryFromOtherCompany._id, company: otherCompany },
+  { _id: new ObjectId(), user: user._id, company: authCompany._id },
 ];
 
 const contracts = [
@@ -91,7 +91,7 @@ const contracts = [
         grossHourlyRate: 10.28,
         startDate: '2021-12-10T08:00:00.000Z',
         weeklyHours: 35,
-        _id: new ObjectID(),
+        _id: new ObjectId(),
       },
     ],
   },
@@ -112,7 +112,7 @@ const contracts = [
         grossHourlyRate: 10.28,
         startDate: '2021-12-03T23:00:00.000Z',
         weeklyHours: 7,
-        _id: new ObjectID(),
+        _id: new ObjectId(),
       },
       {
         createdAt: '2021-12-04T16:34:04.000Z',
@@ -120,7 +120,7 @@ const contracts = [
         grossHourlyRate: 10.28,
         startDate: '2021-12-03T23:00:00.000Z',
         weeklyHours: 7,
-        _id: new ObjectID(),
+        _id: new ObjectId(),
       },
       {
         createdAt: '2021-12-04T16:34:04.000Z',
@@ -128,14 +128,14 @@ const contracts = [
         grossHourlyRate: 10.28,
         startDate: '2022-10-01T23:00:01.000Z',
         weeklyHours: 7,
-        _id: new ObjectID(),
+        _id: new ObjectId(),
       },
     ],
   },
 ];
 
 const event = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   type: 'intervention',
   startDate: '2022-05-12T09:00:00.000Z',
@@ -143,7 +143,7 @@ const event = {
   auxiliary: auxiliaries[0],
   customer: customerId,
   createdAt: '2022-05-01T09:00:00.000Z',
-  sector: new ObjectID(),
+  sector: new ObjectId(),
   subscription: subscriptionId,
   address: {
     fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -156,7 +156,7 @@ const event = {
 
 const absences = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: ABSENCE,
     company: authCompany._id,
     auxiliary: auxiliaryId0,
@@ -166,7 +166,7 @@ const absences = [
     endDate: '2022-11-16T21:29:29.000Z',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: ABSENCE,
     company: authCompany._id,
     auxiliary: auxiliaryId0,
@@ -251,7 +251,7 @@ const sectorHistories = [
 
 const payList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaries[0]._id,
@@ -295,7 +295,7 @@ const payList = [
     absencesHours: 5,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     additionalHours: 0,
     auxiliary: auxiliaries[0]._id,

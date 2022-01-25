@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const { fn: momentProto } = require('moment');
 const sinon = require('sinon');
@@ -44,12 +44,12 @@ describe('authenticate', () => {
   it('should authenticate user and set firstMobileConnection', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       refreshToken: 'refreshToken',
       local: { password: 'toto' },
     };
     momentToDate.onCall(0).returns('2020-12-08T13:45:25.437Z');
-    findOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
     compare.returns(true);
     encode.returns('token');
 
@@ -61,7 +61,7 @@ describe('authenticate', () => {
       refreshToken: 'refreshToken',
       user: { _id: user._id.toHexString() },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': 'toto@email.com' }] },
@@ -81,9 +81,9 @@ describe('authenticate', () => {
 
   it('should authenticate user but not set firstMobileConnection (authentication from webapp)', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'webapp' };
-    const user = { _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'toto' } };
+    const user = { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'toto' } };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
     compare.returns(true);
     encode.returns('token');
 
@@ -95,7 +95,7 @@ describe('authenticate', () => {
       refreshToken: 'refreshToken',
       user: { _id: user._id.toHexString() },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': payload.email.toLowerCase() }] },
@@ -113,13 +113,13 @@ describe('authenticate', () => {
   it('should authenticate user but not set firstMobileConnection (firstMobileConnection already set)', async () => {
     const payload = { email: 'toto@email.com', password: 'toto', origin: 'mobile' };
     const user = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       refreshToken: 'refreshToken',
       local: { password: 'toto' },
       firstMobileConnection: '2020-12-08T13:45:25.437Z',
     };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
     compare.returns(true);
     encode.returns('token');
 
@@ -131,7 +131,7 @@ describe('authenticate', () => {
       refreshToken: 'refreshToken',
       user: { _id: user._id.toHexString() },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ 'local.email': payload.email.toLowerCase() }] },
@@ -150,13 +150,13 @@ describe('authenticate', () => {
     const payload = { email: 'toto@email.com', password: '123456!eR' };
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([], ['select', 'lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries(null, ['select', 'lean']));
 
       await AuthenticationHelper.authenticate(payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOne,
         [
           { query: 'findOne', args: [{ 'local.email': payload.email.toLowerCase() }] },
@@ -175,13 +175,13 @@ describe('authenticate', () => {
   it('should throw an error if refresh token does not exist', async () => {
     const payload = { email: 'toto@email.com', password: '123456!eR' };
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectID() }], ['select', 'lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries({ _id: new ObjectId() }, ['select', 'lean']));
 
       await AuthenticationHelper.authenticate(payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOne,
         [
           { query: 'findOne', args: [{ 'local.email': payload.email.toLowerCase() }] },
@@ -202,7 +202,7 @@ describe('authenticate', () => {
       const payload = { email: 'toto@email.com', password: '123456!eR' };
 
       findOne.returns(SinonMongoose.stubChainedQueries(
-        [{ _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'password_hash' } }],
+        { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'password_hash' } },
         ['select', 'lean']
       ));
       compare.returns(false);
@@ -211,7 +211,7 @@ describe('authenticate', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(401);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOne,
         [
           { query: 'findOne', args: [{ 'local.email': 'toto@email.com' }] },
@@ -245,13 +245,13 @@ describe('refreshToken', () => {
 
   it('should throw an error if user does not exist', async () => {
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
       await AuthenticationHelper.refreshToken('refreshToken');
     } catch (e) {
       expect(e).toEqual(Boom.unauthorized());
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOne,
         [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }] }, { query: 'lean' }]
       );
@@ -261,9 +261,9 @@ describe('refreshToken', () => {
   });
 
   it('should return refresh token', async () => {
-    const user = { _id: new ObjectID(), refreshToken: 'refreshToken', local: { password: 'toto' } };
+    const user = { _id: new ObjectId(), refreshToken: 'refreshToken', local: { password: 'toto' } };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
     encode.returns('token');
 
     const result = await AuthenticationHelper.refreshToken('refreshToken');
@@ -274,7 +274,7 @@ describe('refreshToken', () => {
       refreshToken: 'refreshToken',
       user: { _id: user._id.toHexString() },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ refreshToken: 'refreshToken' }] }, { query: 'lean' }]
     );
@@ -293,18 +293,18 @@ describe('updatePassword', () => {
   });
 
   it('should update a user password', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const payload = { local: { password: '123456!eR' } };
 
     findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(
-      [{ _id: userId, local: { password: '123456!eR' } }],
+      { _id: userId, local: { password: '123456!eR' } },
       ['lean']
     ));
 
     const result = await AuthenticationHelper.updatePassword(userId, payload);
 
     expect(result).toEqual({ _id: userId, local: { password: '123456!eR' } });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
@@ -332,7 +332,7 @@ describe('sendToken', () => {
 
   it('should return token with user', async () => {
     const email = 'carolyn@alenvi.io';
-    const user = { _id: new ObjectID(), local: { email } };
+    const user = { _id: new ObjectId(), local: { email } };
     const userPayload = { _id: user._id, email };
 
     encode.returns('1234567890');
@@ -367,13 +367,13 @@ describe('checkPasswordToken', () => {
     const filter = { passwordToken: { token: '1234567890', expiresIn: { $gt: date } } };
 
     try {
-      userFindOne.returns(SinonMongoose.stubChainedQueries([], ['select', 'lean']));
+      userFindOne.returns(SinonMongoose.stubChainedQueries(null, ['select', 'lean']));
 
       await AuthenticationHelper.checkPasswordToken('1234567890');
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         userFindOne,
         [
           { query: 'findOne', args: [flat(filter, { maxDepth: 2 })] },
@@ -388,23 +388,23 @@ describe('checkPasswordToken', () => {
   it('(should return a token if code match (mobile)', async () => {
     const token = '3310';
     const email = 'carolyn@alenvi.io';
-    const user = { _id: new ObjectID(), local: { email } };
+    const user = { _id: new ObjectId(), local: { email } };
     const userPayload = { _id: user._id, email };
 
-    userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
-    identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries([
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
+    identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries(
       { code: '3310', email, updatedAt: new Date('2021-01-25T10:05:32.582Z') },
-    ], ['lean']));
+      ['lean']));
     fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
     sendToken.returns({ token: '1234567890', user: userPayload });
 
     const result = await AuthenticationHelper.checkPasswordToken(token, email);
     expect(result).toEqual({ token: '1234567890', user: userPayload });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       identityVerificationFindOne,
       [{ query: 'findOne', args: [{ email, code: token }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [{ 'local.email': email }] },
@@ -421,13 +421,13 @@ describe('checkPasswordToken', () => {
     const token = '3311';
 
     try {
-      identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+      identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
       await AuthenticationHelper.checkPasswordToken(token, email);
     } catch (e) {
       expect(e).toEqual(Boom.notFound());
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         identityVerificationFindOne,
         [{ query: 'findOne', args: [{ email, code: token }] }, { query: 'lean' }]
       );
@@ -440,15 +440,15 @@ describe('checkPasswordToken', () => {
     fakeDate.returns(new Date('2021-01-25T10:08:32.582Z'));
     const email = 'carolyn@alenvi.io';
     const token = '3310';
-    identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries([
+    identityVerificationFindOne.returns(SinonMongoose.stubChainedQueries(
       { code: '3310', email, updatedAt: new Date('2021-01-25T09:05:32.582Z') },
-    ], ['lean']));
+      ['lean']));
     try {
       await AuthenticationHelper.checkPasswordToken(token, email);
     } catch (e) {
       expect(e).toEqual(Boom.unauthorized());
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         identityVerificationFindOne,
         [{ query: 'findOne', args: [{ email, code: token }] }, { query: 'lean' }]
       );
@@ -460,16 +460,16 @@ describe('checkPasswordToken', () => {
   it('should return a new access token after checking reset password token (webapp)', async () => {
     fakeDate.returns(date);
     const filter = { passwordToken: { token: '1234567890', expiresIn: { $gt: date } } };
-    const user = { _id: new ObjectID(), local: { email: 'toto@toto.com' } };
+    const user = { _id: new ObjectId(), local: { email: 'toto@toto.com' } };
     const userPayload = { _id: user._id, email: user.local.email };
 
-    userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['select', 'lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['select', 'lean']));
     sendToken.returns({ token: '1234567890', user: userPayload });
 
     const result = await AuthenticationHelper.checkPasswordToken('1234567890');
 
     expect(result).toEqual({ token: '1234567890', user: userPayload });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
         { query: 'findOne', args: [flat(filter, { maxDepth: 2 })] },
@@ -554,7 +554,7 @@ describe('forgotPassword', () => {
   it('should create and send a verification code if origin mobile and type email', async () => {
     const email = 'toto@toto.com';
     codeVerification.returns(0.1111);
-    identityVerificationFindOneAndUpdate.returns(null);
+    identityVerificationFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     identityVerificationCreate.returns({ email, code: '1999' });
     sendVerificationCodeEmail.returns({ sent: true });
 
@@ -566,16 +566,16 @@ describe('forgotPassword', () => {
     sinon.assert.notCalled(generatePasswordTokenStub);
     sinon.assert.notCalled(sendVerificationCodeSms);
     sinon.assert.calledOnceWithExactly(identityVerificationCreate, { email, code: '1999' });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       identityVerificationFindOneAndUpdate,
-      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }]
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }, { query: 'lean' }]
     );
   });
 
   it('should update and send new verification code if already exists one', async () => {
     const email = 'toto@toto.com';
     codeVerification.returns(0.1111);
-    identityVerificationFindOneAndUpdate.returns({ email, code: '1999' });
+    identityVerificationFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries({ email, code: '1999' }, ['lean']));
     identityVerificationCreate.returns(null);
     sendVerificationCodeEmail.returns({ sent: true });
 
@@ -588,9 +588,9 @@ describe('forgotPassword', () => {
     sinon.assert.notCalled(identityVerificationCreate);
     sinon.assert.notCalled(userFindOne);
     sinon.assert.notCalled(sendVerificationCodeSms);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       identityVerificationFindOneAndUpdate,
-      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }]
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }, { query: 'lean' }]
     );
   });
 
@@ -598,9 +598,9 @@ describe('forgotPassword', () => {
     const email = 'toto@toto.com';
     const user = { local: { email: 'toto@toto.com' }, contact: { phone: '0687654321' } };
     codeVerification.returns(0.1111);
-    identityVerificationFindOneAndUpdate.returns({ email, code: '1999' });
+    identityVerificationFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries({ email, code: '1999' }, ['lean']));
     identityVerificationCreate.returns(null);
-    userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
     sendVerificationCodeSms.returns({ phone: '0687654321' });
 
     const result = await AuthenticationHelper.forgotPassword({ email, origin: MOBILE, type: PHONE });
@@ -611,31 +611,36 @@ describe('forgotPassword', () => {
     sinon.assert.notCalled(generatePasswordTokenStub);
     sinon.assert.notCalled(identityVerificationCreate);
     sinon.assert.calledOnceWithExactly(sendVerificationCodeSms, '0687654321', '1999');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       identityVerificationFindOneAndUpdate,
-      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }]
+      [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [{ query: 'findOne', args: [{ 'local.email': 'toto@toto.com' }, { 'contact.phone': 1 }] }, { query: 'lean' }]
     );
   });
 
   it('should throw 409 if no phone in user', async () => {
+    const email = 'toto@toto.com';
     try {
-      const email = 'toto@toto.com';
       const user = { local: { email: 'toto@toto.com' } };
       codeVerification.returns(0.1111);
-      identityVerificationFindOneAndUpdate.returns({ email, code: '1999' });
+      identityVerificationFindOneAndUpdate
+        .returns(SinonMongoose.stubChainedQueries({ email, code: '1999' }, ['lean']));
       identityVerificationCreate.returns(null);
-      userFindOne.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
+      userFindOne.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
       sendVerificationCodeSms.returns({ phone: '06P87654321' });
 
       await AuthenticationHelper.forgotPassword({ email, origin: MOBILE, type: PHONE });
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
+        identityVerificationFindOneAndUpdate,
+        [{ query: 'findOneAndUpdate', args: [{ email }, { $set: { code: '1999' } }, { new: true }] }, { query: 'lean' }]
+      );
+      SinonMongoose.calledOnceWithExactly(
         userFindOne,
         [{ query: 'findOne', args: [{ 'local.email': 'toto@toto.com' }, { 'contact.phone': 1 }] }, { query: 'lean' }]
       );
@@ -659,13 +664,13 @@ describe('generatePasswordToken', () => {
 
   it('should throw an error if user does not exist', async () => {
     try {
-      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+      findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
       await AuthenticationHelper.generatePasswordToken('toto@toto.com', 3600000);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].userNotFound));
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneAndUpdate,
         [
           {
@@ -684,17 +689,17 @@ describe('generatePasswordToken', () => {
 
   it('should return a new access token after checking reset password token', async () => {
     const user = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       local: { email: 'toto@toto.com' },
       passwordToken: { token: sinon.match.string, expiresIn: date.getTime() + 3600000 },
     };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([user], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(user, ['lean']));
 
     const result = await AuthenticationHelper.generatePasswordToken('toto@toto.com', 3600000);
 
     expect(result).toEqual({ token: expect.any(String), expiresIn: date.getTime() + 3600000 });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {

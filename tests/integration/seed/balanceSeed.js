@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('../../../src/extensions/moment');
 const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
@@ -14,7 +14,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const balanceThirdPartyPayer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   name: 'Toto',
   company: authCompany._id,
   isApa: true,
@@ -23,7 +23,7 @@ const balanceThirdPartyPayer = {
 
 const customerServiceList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
@@ -35,7 +35,7 @@ const customerServiceList = [
     nature: HOURLY,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
@@ -50,7 +50,7 @@ const customerServiceList = [
 
 const balanceCustomerList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
@@ -67,10 +67,10 @@ const balanceCustomerList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: '2020-01-23T00:00:00' }],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: '2020-01-23T00:00:00' }],
     },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: customerServiceList[0]._id,
       versions: [{
         unitTTCRate: 12,
@@ -80,7 +80,7 @@ const balanceCustomerList = [
         startDate: '2018-01-01T10:00:00.000+01:00',
       }],
     }, {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: customerServiceList[1]._id,
       versions: [{
         unitTTCRate: 12,
@@ -92,7 +92,7 @@ const balanceCustomerList = [
     }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: {
       title: 'mr',
@@ -110,7 +110,7 @@ const balanceCustomerList = [
       phone: '0612345678',
     },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: customerServiceList[0]._id,
       versions: [{
         unitTTCRate: 12,
@@ -124,16 +124,16 @@ const balanceCustomerList = [
       bankAccountOwner: 'David gaudu',
       iban: '',
       bic: '',
-      mandates: [{ rum: 'R012345678903456789', _id: new ObjectID(), signedAt: '2020-01-23T00:00:00' }],
+      mandates: [{ rum: 'R012345678903456789', _id: new ObjectId(), signedAt: '2020-01-23T00:00:00' }],
     },
   },
 ];
 
-const authBillService = { serviceId: new ObjectID(), name: 'Temps de qualité - autonomie', nature: 'hourly' };
+const authBillService = { serviceId: new ObjectId(), name: 'Temps de qualité - autonomie', nature: 'hourly' };
 
 const balanceBillList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
     date: '2019-05-25',
     number: 'FACT-1905001',
@@ -146,10 +146,10 @@ const balanceBillList = [
       subscription: balanceCustomerList[0].subscriptions[0]._id,
       vat: 5.5,
       events: [{
-        eventId: new ObjectID(),
+        eventId: new ObjectId(),
         startDate: '2019-01-16T10:30:19.543Z',
         endDate: '2019-01-16T12:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: new ObjectId(),
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
@@ -163,7 +163,7 @@ const balanceBillList = [
     }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
     date: '2019-05-29',
     number: 'FACT-1905002',
@@ -178,10 +178,10 @@ const balanceBillList = [
       vat: 5.5,
       service: authBillService,
       events: [{
-        eventId: new ObjectID(),
+        eventId: new ObjectId(),
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: new ObjectId(),
         inclTaxesCustomer: 12,
         exclTaxesCustomer: 10,
       }],
@@ -196,7 +196,7 @@ const balanceBillList = [
 ];
 
 const balanceUserList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_balance@alenvi.io', password: '123456!eR' },
   refreshToken: uuidv4(),
@@ -204,7 +204,7 @@ const balanceUserList = [{
   origin: WEBAPP,
 }];
 
-const balanceUserCompanies = [{ _id: ObjectID(), user: balanceUserList[0]._id, company: authCompany._id }];
+const balanceUserCompanies = [{ _id: ObjectId(), user: balanceUserList[0]._id, company: authCompany._id }];
 
 const helpersList = [{
   customer: balanceCustomerList[0]._id,
@@ -214,7 +214,7 @@ const helpersList = [{
 }];
 
 const customerFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   identity: { title: 'mr', firstname: 'test', lastname: 'toto' },
   contact: {

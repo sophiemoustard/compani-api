@@ -1,16 +1,16 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 
-const customerId = new ObjectID();
-const companyId = new ObjectID();
-const auxiliaryId = new ObjectID();
-const tppId = new ObjectID();
-const subscriptionId = new ObjectID();
-const serviceId = new ObjectID();
-const serviceVersionId = new ObjectID();
-const eventId1 = new ObjectID();
-const eventId2 = new ObjectID();
-const fundingId = new ObjectID();
-const surchargeId = new ObjectID();
+const customerId = new ObjectId();
+const companyId = new ObjectId();
+const auxiliaryId = new ObjectId();
+const tppId = new ObjectId();
+const subscriptionId = new ObjectId();
+const serviceId = new ObjectId();
+const serviceVersionId = new ObjectId();
+const eventId1 = new ObjectId();
+const eventId2 = new ObjectId();
+const fundingId = new ObjectId();
+const surchargeId = new ObjectId();
 
 const bills = [
   {
@@ -29,7 +29,7 @@ const bills = [
       shouldBeSent: true,
       bills: [
         {
-          _id: new ObjectID(),
+          _id: new ObjectId(),
           subscription: {
             _id: subscriptionId,
             service: {
@@ -108,14 +108,14 @@ const bills = [
       {
         bills: [
           {
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             subscription: {
               _id: subscriptionId,
               service: {
                 _id: serviceId,
                 nature: 'hourly',
                 createdAt: '2019-01-09 09:36:06.169',
-                company: new ObjectID(),
+                company: new ObjectId(),
                 versions: [
                   {
                     exemptFromCharges: true,

@@ -2,7 +2,7 @@ const expect = require('expect');
 const qs = require('qs');
 const omit = require('lodash/omit');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const {
   populateDB,
@@ -115,13 +115,13 @@ describe('BILL ROUTES - POST /bills/list', () => {
       customerBills: {
         bills: [
           {
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             subscription: {
               _id: billCustomerList[0].subscriptions[0]._id,
               service: billServices[0],
               versions: [
                 {
-                  _id: new ObjectID(),
+                  _id: new ObjectId(),
                   unitTTCRate: 12,
                   estimatedWeeklyVolume: 12,
                   evenings: 2,
@@ -141,7 +141,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
             eventsList: [
               {
                 event: eventList[4]._id,
-                auxiliary: new ObjectID(),
+                auxiliary: new ObjectId(),
                 startDate: '2019-05-02T08:00:00.000Z',
                 endDate: '2019-05-02T10:00:00.000Z',
                 inclTaxesCustomer: 24,
@@ -160,13 +160,13 @@ describe('BILL ROUTES - POST /bills/list', () => {
         {
           bills: [
             {
-              _id: new ObjectID(),
+              _id: new ObjectId(),
               subscription: {
                 _id: billCustomerList[0].subscriptions[0]._id,
                 service: billServices[0],
                 versions: [
                   {
-                    _id: new ObjectID(),
+                    _id: new ObjectId(),
                     unitTTCRate: 12,
                     estimatedWeeklyVolume: 12,
                     evenings: 2,
@@ -189,7 +189,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
               eventsList: [
                 {
                   event: eventList[4]._id,
-                  auxiliary: new ObjectID(),
+                  auxiliary: new ObjectId(),
                   startDate: '2019-05-02T08:00:00.000Z',
                   endDate: '2019-05-02T10:00:00.000Z',
                   inclTaxesTpp: 24,
@@ -218,13 +218,13 @@ describe('BILL ROUTES - POST /bills/list', () => {
       customerBills: {
         bills: [
           {
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             subscription: {
               _id: billCustomerList[0].subscriptions[1]._id,
               service: billServices[1],
               versions: [
                 {
-                  _id: new ObjectID(),
+                  _id: new ObjectId(),
                   unitTTCRate: 12,
                   estimatedWeeklyVolume: 12,
                   evenings: 2,
@@ -244,7 +244,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
             eventsList: [
               {
                 event: eventList[4]._id,
-                auxiliary: new ObjectID(),
+                auxiliary: new ObjectId(),
                 startDate: '2019-05-02T08:00:00.000Z',
                 endDate: '2019-05-02T10:00:00.000Z',
                 inclTaxesCustomer: 24,
@@ -257,13 +257,13 @@ describe('BILL ROUTES - POST /bills/list', () => {
             inclTaxes: 24,
           },
           {
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             subscription: {
               _id: billCustomerList[0].subscriptions[0]._id,
               service: billServices[0],
               versions: [
                 {
-                  _id: new ObjectID(),
+                  _id: new ObjectId(),
                   unitTTCRate: 12,
                   estimatedWeeklyVolume: 12,
                   evenings: 2,
@@ -283,7 +283,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
             eventsList: [
               {
                 event: eventList[4]._id,
-                auxiliary: new ObjectID(),
+                auxiliary: new ObjectId(),
                 startDate: '2019-05-02T08:00:00.000Z',
                 endDate: '2019-05-02T10:00:00.000Z',
                 inclTaxesCustomer: 24,
@@ -378,7 +378,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
           customerBills: {
             bills: [
               {
-                _id: new ObjectID(),
+                _id: new ObjectId(),
                 subscription: {
                   _id: billCustomerList[0].subscriptions[0]._id,
                   service: {
@@ -392,7 +392,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
                   },
                   versions: [
                     {
-                      _id: new ObjectID(),
+                      _id: new ObjectId(),
                       unitTTCRate: 12,
                       estimatedWeeklyVolume: 12,
                       evenings: 2,
@@ -412,7 +412,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
                 eventsList: [
                   {
                     event: eventList[4]._id,
-                    auxiliary: new ObjectID(),
+                    auxiliary: new ObjectId(),
                     startDate: '2019-05-02T08:00:00.000Z',
                     endDate: '2019-05-02T10:00:00.000Z',
                     inclTaxesCustomer: 24,
@@ -442,19 +442,19 @@ describe('BILL ROUTES - POST /bills/list', () => {
     });
 
     it('should create a new external bill', async () => {
-      const fundingId = new ObjectID();
+      const fundingId = new ObjectId();
       const draftBillPayload = [{
         customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
         endDate: '2019-05-31T23:59:59.999Z',
         customerBills: { bills: [], total: 0 },
         thirdPartyPayerBills: [{
           bills: [{
-            _id: new ObjectID(),
+            _id: new ObjectId(),
             subscription: {
               _id: billCustomerList[0].subscriptions[0]._id,
               service: billServices[0],
               versions: [{
-                _id: new ObjectID(),
+                _id: new ObjectId(),
                 unitTTCRate: 12,
                 estimatedWeeklyVolume: 12,
                 evenings: 2,
@@ -475,7 +475,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
             hours: 2,
             eventsList: [{
               event: eventList[4]._id,
-              auxiliary: new ObjectID(),
+              auxiliary: new ObjectId(),
               startDate: '2019-05-02T08:00:00.000Z',
               endDate: '2019-05-02T10:00:00.000Z',
               inclTaxesTpp: 24,
@@ -523,7 +523,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
           bills: [
             payload[0].customerBills.bills[0],
             {
-              _id: new ObjectID(),
+              _id: new ObjectId(),
               discount: 0,
               startDate: '2019-05-01T00:00:00.000Z',
               endDate: '2019-05-31T23:59:59.999Z',
@@ -532,7 +532,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
               vat: 12,
               eventsList: [{
                 event: eventList[4]._id,
-                auxiliary: new ObjectID(),
+                auxiliary: new ObjectId(),
                 startDate: '2019-05-02T08:00:00.000Z',
                 endDate: '2019-05-02T10:00:00.000Z',
                 inclTaxesCustomer: 24,
@@ -618,7 +618,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
             ...payload[0].customerBills.bills[0],
             eventsList: [{
               event: eventList[5]._id,
-              auxiliary: new ObjectID(),
+              auxiliary: new ObjectId(),
               startDate: '2019-05-02T08:00:00.000Z',
               endDate: '2019-05-02T10:00:00.000Z',
               inclTaxesCustomer: 24,
@@ -650,7 +650,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
               _id: billCustomerList[2].subscriptions[0]._id,
               service: billServices[1],
               versions: [{
-                _id: new ObjectID(),
+                _id: new ObjectId(),
                 unitTTCRate: 12,
                 estimatedWeeklyVolume: 12,
                 evenings: 2,
@@ -681,7 +681,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
         customerBills: {
           bills: [
             {
-              _id: new ObjectID(),
+              _id: new ObjectId(),
               discount: 0,
               startDate: '2019-05-01T00:00:00.000Z',
               endDate: '2019-05-31T23:59:59.999Z',
@@ -690,7 +690,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
               vat: 12,
               eventsList: [{
                 event: eventList[4]._id,
-                auxiliary: new ObjectID(),
+                auxiliary: new ObjectId(),
                 startDate: '2019-05-02T08:00:00.000Z',
                 endDate: '2019-05-02T10:00:00.000Z',
                 inclTaxesCustomer: 24,
@@ -868,7 +868,7 @@ describe('BILL ROUTES - POST /bills', () => {
 
     it('should return 403 if customer doesn\'t exists', async () => {
       const payload = {
-        customer: new ObjectID(),
+        customer: new ObjectId(),
         date: new Date('2021-09-02T20:00:00'),
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
       };
@@ -888,7 +888,7 @@ describe('BILL ROUTES - POST /bills', () => {
         date: new Date('2021-09-02T20:00:00'),
         billingItemList: [
           { billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 },
-          { billingItem: new ObjectID(), unitInclTaxes: 15, count: 2 },
+          { billingItem: new ObjectId(), unitInclTaxes: 15, count: 2 },
         ],
       };
       const response = await app.inject({
@@ -968,7 +968,7 @@ describe('BILL ROUTES - POST /bills', () => {
         authToken = await getToken(role.name, role.erp);
 
         const payload = {
-          customer: new ObjectID(),
+          customer: new ObjectId(),
           date: '2021-09-02T20:00:00',
           billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
         };

@@ -1,11 +1,11 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Role = require('../../../src/models/Role');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const rolesList = [
-  { _id: new ObjectID(), name: 'general', interface: 'client' },
-  { _id: new ObjectID(), name: 'chef', interface: 'client' },
-  { _id: new ObjectID(), name: 'adjudant', interface: 'client' },
+  { _id: new ObjectId(), name: 'general', interface: 'client' },
+  { _id: new ObjectId(), name: 'chef', interface: 'client' },
+  { _id: new ObjectId(), name: 'adjudant', interface: 'client' },
 ];
 
 const rolePayload = { name: 'Test', interface: 'client' };

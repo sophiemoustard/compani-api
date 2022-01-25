@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const { thirdPartyPayersList, populateDB, thirdPartyPayerFromOtherCompany } = require('./seed/thirdPartyPayersSeed');
@@ -176,7 +176,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
     it('should return a 404 error if third party payer does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/thirdpartypayers/${new ObjectID().toHexString()}`,
+        url: `/thirdpartypayers/${new ObjectId().toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -235,7 +235,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
     it('should return a 404 error if company does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/thirdpartypayers/${new ObjectID().toHexString()}`,
+        url: `/thirdpartypayers/${new ObjectId().toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(404);

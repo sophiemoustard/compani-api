@@ -1,7 +1,6 @@
 const expect = require('expect');
-const moment = require('moment');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 
@@ -247,30 +246,9 @@ describe('getDaysRatioBetweenTwoDates', () => {
   });
 });
 
-describe('formatDuration', () => {
-  it('should format duration with minutes', () => {
-    const duration = moment.duration({ minutes: 20, hours: 2 });
-    const result = UtilsHelper.formatDuration(duration);
-
-    expect(result).toEqual('2h20');
-  });
-  it('should format duration with padded minutes', () => {
-    const duration = moment.duration({ minutes: 2, hours: 2 });
-    const result = UtilsHelper.formatDuration(duration);
-
-    expect(result).toEqual('2h02');
-  });
-  it('should format duration with days', () => {
-    const duration = moment.duration({ days: 2, hours: 2 });
-    const result = UtilsHelper.formatDuration(duration);
-
-    expect(result).toEqual('50h');
-  });
-});
-
 describe('areObjectIdsEquals', () => {
   it('should return true if object ids are the same', () => {
-    const id1 = new ObjectID();
+    const id1 = new ObjectId();
     const id2 = id1.toHexString();
 
     const result = UtilsHelper.areObjectIdsEquals(id1, id2);
@@ -279,8 +257,8 @@ describe('areObjectIdsEquals', () => {
   });
 
   it('should return false if object ids are not the same', () => {
-    const id1 = new ObjectID();
-    const id2 = new ObjectID().toHexString();
+    const id1 = new ObjectId();
+    const id2 = new ObjectId().toHexString();
 
     const result = UtilsHelper.areObjectIdsEquals(id1, id2);
 
@@ -289,7 +267,7 @@ describe('areObjectIdsEquals', () => {
 
   it('should return false if one object id is missing', () => {
     const id1 = '';
-    const id2 = new ObjectID().toHexString();
+    const id2 = new ObjectId().toHexString();
 
     const result = UtilsHelper.areObjectIdsEquals(id1, id2);
 
@@ -314,8 +292,8 @@ describe('doesArrayIncludeId', () => {
   afterEach(() => { areObjectIdsEqualStub.restore(); });
 
   it('should return true if the array includes the id', () => {
-    const correctId = new ObjectID();
-    const incorrectId = new ObjectID();
+    const correctId = new ObjectId();
+    const incorrectId = new ObjectId();
     areObjectIdsEqualStub.onCall(0).returns(false);
     areObjectIdsEqualStub.onCall(1).returns(true);
 
@@ -330,7 +308,7 @@ describe('doesArrayIncludeId', () => {
     areObjectIdsEqualStub.onCall(0).returns(false);
     areObjectIdsEqualStub.onCall(1).returns(false);
 
-    const result = UtilsHelper.doesArrayIncludeId([new ObjectID(), new ObjectID()], new ObjectID());
+    const result = UtilsHelper.doesArrayIncludeId([new ObjectId(), new ObjectId()], new ObjectId());
 
     expect(result).toBe(false);
   });
@@ -358,5 +336,153 @@ describe('computeExclTaxesWithDiscount', () => {
   it('should return excluded taxes price with discount', () => {
     const result = UtilsHelper.computeExclTaxesWithDiscount(18, 1.2, 20);
     expect(result).toEqual(17);
+  });
+});
+
+describe('getTotalDuration', () => {
+  it('should return duration with minutes', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
+      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:30:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getTotalDuration(slots);
+
+    expect(result).toEqual('4h30');
+  });
+
+  it('should return duration with leading zero minutes', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:08:00.000Z' },
+      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:00:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getTotalDuration(slots);
+
+    expect(result).toEqual('4h08');
+  });
+
+  it('should return duration without minutes', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
+      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:00:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getTotalDuration(slots);
+
+    expect(result).toEqual('4h');
+  });
+
+  it('should return duration with days', () => {
+    const slots = [
+      { startDate: '2020-03-20T07:00:00.000Z', endDate: '2020-03-20T22:00:00.000Z' },
+      { startDate: '2020-04-21T07:00:00.000Z', endDate: '2020-04-21T22:00:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getTotalDuration(slots);
+
+    expect(result).toEqual('30h');
+  });
+});
+
+describe('getTotalDurationForExport', () => {
+  it('should return duration with minutes', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
+      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:30:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getTotalDurationForExport(slots);
+
+    expect(result).toEqual('4,50');
+  });
+
+  it('should return duration without minutes', () => {
+    const slots = [
+      { startDate: '2020-03-20T09:00:00.000Z', endDate: '2020-03-20T11:00:00.000Z' },
+      { startDate: '2020-04-21T09:00:00.000Z', endDate: '2020-04-21T11:00:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getTotalDurationForExport(slots);
+
+    expect(result).toEqual('4,00');
+  });
+
+  it('should return duration with days', () => {
+    const slots = [
+      { startDate: '2020-03-20T07:00:00.000Z', endDate: '2020-03-20T22:00:00.000Z' },
+      { startDate: '2020-04-21T07:00:00.000Z', endDate: '2020-04-21T22:00:00.000Z' },
+    ];
+
+    const result = UtilsHelper.getTotalDurationForExport(slots);
+
+    expect(result).toEqual('30,00');
+  });
+});
+
+describe('getDuration', () => {
+  it('should return duration with minutes', () => {
+    const startDate = '2020-03-20T09:00:00.000Z';
+    const endDate = '2020-03-20T11:30:00.000Z';
+
+    const result = UtilsHelper.getDuration(startDate, endDate);
+
+    expect(result).toEqual('2h30');
+  });
+
+  it('should return duration with leading zero minutes', () => {
+    const startDate = '2020-03-20T09:00:00.000Z';
+    const endDate = '2020-03-20T11:08:00.000Z';
+
+    const result = UtilsHelper.getDuration(startDate, endDate);
+
+    expect(result).toEqual('2h08');
+  });
+
+  it('should return duration without minutes', () => {
+    const startDate = '2020-03-20T09:00:00.000Z';
+    const endDate = '2020-03-20T11:00:00.000Z';
+
+    const result = UtilsHelper.getDuration(startDate, endDate);
+
+    expect(result).toEqual('2h');
+  });
+
+  it('should return duration with days', () => {
+    const startDate = '2020-03-20T09:00:00.000Z';
+    const endDate = '2020-03-21T15:00:00.000Z';
+
+    const result = UtilsHelper.getDuration(startDate, endDate);
+
+    expect(result).toEqual('30h');
+  });
+});
+
+describe('getDurationForExport', () => {
+  it('should return duration with minutes', () => {
+    const startDate = '2020-03-20T09:00:00.000Z';
+    const endDate = '2020-03-20T11:30:00.000Z';
+
+    const result = UtilsHelper.getDurationForExport(startDate, endDate);
+
+    expect(result).toEqual('2,50');
+  });
+
+  it('should return duration without minutes', () => {
+    const startDate = '2020-03-20T09:00:00.000Z';
+    const endDate = '2020-03-20T11:00:00.000Z';
+
+    const result = UtilsHelper.getDurationForExport(startDate, endDate);
+
+    expect(result).toEqual('2,00');
+  });
+
+  it('should return duration with days', () => {
+    const startDate = '2020-03-20T09:00:00.000Z';
+    const endDate = '2020-03-21T15:00:00.000Z';
+
+    const result = UtilsHelper.getDurationForExport(startDate, endDate);
+
+    expect(result).toEqual('30,00');
   });
 });

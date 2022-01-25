@@ -1,5 +1,5 @@
 const get = require('lodash/get');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { getLastVersion } = require('./utils');
 const { PAYMENT, CESU } = require('./constants');
 const BillRepository = require('../repositories/BillRepository');
@@ -136,7 +136,7 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
   const companyId = get(credentials, 'company._id', null);
   let customersIds = [];
 
-  if (customerId) customersIds.push(new ObjectID(customerId));
+  if (customerId) customersIds.push(new ObjectId(customerId));
   else {
     const notArchivedCustomers = await Customer.find(
       { company: credentials.company._id, archivedAt: { $eq: null } },

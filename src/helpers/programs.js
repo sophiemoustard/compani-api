@@ -51,7 +51,7 @@ exports.getProgram = async (programId) => {
       populate: {
         path: 'steps',
         populate: [
-          { path: 'activities ', populate: 'cards' },
+          { path: 'activities', populate: 'cards' },
           { path: 'subPrograms', select: 'name -steps', populate: { path: 'program', select: 'name -subPrograms' } },
         ],
       },

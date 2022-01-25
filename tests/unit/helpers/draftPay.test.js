@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
@@ -115,7 +115,7 @@ describe('applyCustomSurcharge', () => {
 });
 
 describe('getSurchargeDetails', () => {
-  const surchargeId = new ObjectID();
+  const surchargeId = new ObjectId();
   it('Case 1. surcharge plan and type included in details', () => {
     const surcharge = { _id: surchargeId, name: 'Super Mario', Noel: 35 };
     const details = { [surchargeId]: { Noel: { hours: 3 } } };
@@ -139,7 +139,7 @@ describe('getSurchargeDetails', () => {
   });
 
   it('Case 3. surcharge plan and type not included in details', () => {
-    const detailsId = new ObjectID();
+    const detailsId = new ObjectId();
     const surcharge = { _id: surchargeId, name: 'Luigi', Noel: 35 };
     const details = { [detailsId]: { 10: { hours: 3 } } };
     const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
@@ -163,7 +163,7 @@ describe('applySurcharge', () => {
 
   it('should apply surcharge', () => {
     getSurchargeDetails.returns({});
-    const surcharge = { _id: new ObjectID(), name: 'Luigi', Noel: 35 };
+    const surcharge = { _id: new ObjectId(), name: 'Luigi', Noel: 35 };
     const details = { planId: { 10: { hours: 3 } } };
     const result = DraftPayHelper.applySurcharge(2.8, surcharge, 'name', details);
 
@@ -384,7 +384,7 @@ describe('getSurchargeSplit', () => {
 });
 
 describe('getTransportInfo', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   let createDistanceMatrix;
   beforeEach(() => {
     createDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'createDistanceMatrix');
@@ -461,7 +461,16 @@ describe('getPaidTransportInfo', () => {
     const event = {};
     const result = await DraftPayHelper.getPaidTransportInfo(event, null, []);
 
-    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
+    expect(result).toEqual({
+      duration: 0,
+      destinations: null,
+      breakDuration: 0,
+      origins: null,
+      paidKm: 0,
+      travelledKm: 0,
+      pickTransportDuration: false,
+      transportDuration: 0,
+    });
   });
 
   it('should return 0 if prevEvent has fixed service', async () => {
@@ -469,7 +478,16 @@ describe('getPaidTransportInfo', () => {
     const prevEvent = { hasFixedService: true };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
+    expect(result).toEqual({
+      duration: 0,
+      paidKm: 0,
+      travelledKm: 0,
+      destinations: null,
+      breakDuration: 0,
+      origins: null,
+      pickTransportDuration: false,
+      transportDuration: 0,
+    });
   });
 
   it('should return 0 if event has fixed service', async () => {
@@ -477,7 +495,16 @@ describe('getPaidTransportInfo', () => {
     const prevEvent = { hasFixedService: false };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 0, paidKm: 0, travelledKm: 0 });
+    expect(result).toEqual({
+      duration: 0,
+      paidKm: 0,
+      travelledKm: 0,
+      destinations: null,
+      breakDuration: 0,
+      origins: null,
+      pickTransportDuration: false,
+      transportDuration: 0,
+    });
   });
 
   it('should return 0 if no address in event', async () => {
@@ -542,7 +569,7 @@ describe('getPaidTransportInfo', () => {
       startDate: '2019-01-18T16:46:30',
       auxiliary: { administrative: { transportInvoice: { transportType: 'private' } } },
       address: { fullAddress: 'jébobolà' },
-      company: new ObjectID(),
+      company: new ObjectId(),
     };
     const prevEvent = {
       hasFixedService: false,
@@ -553,7 +580,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 40, paidKm: 10, travelledKm: 10 });
+    expect(result).toEqual({
+      duration: 40,
+      paidKm: 10,
+      travelledKm: 10,
+      origins: 'tamalou',
+      destinations: 'jébobolà',
+      transportDuration: 40,
+      breakDuration: 60,
+      pickTransportDuration: true,
+    });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
@@ -576,7 +612,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 40, paidKm: 0, travelledKm: 10 });
+    expect(result).toEqual({
+      duration: 40,
+      paidKm: 0,
+      travelledKm: 10,
+      destinations: 'jébobolà',
+      breakDuration: 180,
+      origins: 'tamalou',
+      pickTransportDuration: true,
+      transportDuration: 40,
+    });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'transit', event.company);
   });
 
@@ -598,7 +643,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.returns({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ duration: 40, paidKm: 0, travelledKm: 10 });
+    expect(result).toEqual({
+      duration: 40,
+      paidKm: 0,
+      travelledKm: 10,
+      breakDuration: 180,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: true,
+      transportDuration: 40,
+    });
     sinon.assert.calledOnceWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
@@ -619,7 +673,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 40 });
+    expect(result).toEqual({
+      paidKm: 10,
+      travelledKm: 10,
+      duration: 40,
+      breakDuration: 180,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: true,
+      transportDuration: 40,
+    });
   });
 
   it('should return break duration', async () => {
@@ -639,7 +702,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 70 });
+    expect(result).toEqual({
+      paidKm: 10,
+      travelledKm: 10,
+      duration: 70,
+      breakDuration: 70,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: false,
+      transportDuration: 60,
+    });
   });
 
   it('should return 0 if break duration is selected but is negative', async () => {
@@ -659,7 +731,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 0 });
+    expect(result).toEqual({
+      paidKm: 10,
+      travelledKm: 10,
+      duration: 0,
+      breakDuration: -50,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: false,
+      transportDuration: 60,
+    });
   });
 
   it('should return transport duration if transport duration is shorter than break duration', async () => {
@@ -679,7 +760,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 10, travelledKm: 10, duration: 60 });
+    expect(result).toEqual({
+      paidKm: 10,
+      travelledKm: 10,
+      duration: 60,
+      breakDuration: 180,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: true,
+      transportDuration: 60,
+    });
   });
 
   it('should return break if break is shorter than transport duration', async () => {
@@ -699,7 +789,16 @@ describe('getPaidTransportInfo', () => {
     getTransportInfo.resolves({ distance: 8, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
-    expect(result).toEqual({ paidKm: 8, travelledKm: 8, duration: 30 });
+    expect(result).toEqual({
+      paidKm: 8,
+      travelledKm: 8,
+      duration: 30,
+      breakDuration: 30,
+      destinations: 'jébobolà',
+      origins: 'tamalou',
+      pickTransportDuration: false,
+      transportDuration: 60,
+    });
   });
 });
 
@@ -931,7 +1030,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should get matching service version for intervention', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
@@ -948,7 +1047,7 @@ describe('getPayFromEvents', () => {
     ];
     const surcharges = [
       { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
+      { _id: new ObjectId(), sunday: 14 },
     ];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
@@ -966,7 +1065,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return pay for event exempted from charge service', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
@@ -983,7 +1082,7 @@ describe('getPayFromEvents', () => {
     ];
     const surcharges = [
       { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
+      { _id: new ObjectId(), sunday: 14 },
     ];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
@@ -1023,7 +1122,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return pay for not exempted from charge service', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
@@ -1040,7 +1139,7 @@ describe('getPayFromEvents', () => {
     ];
     const surcharges = [
       { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
+      { _id: new ObjectId(), sunday: 14 },
     ];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
@@ -1080,9 +1179,9 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return pay for internal hour', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [[{ startDate: '2019-07-12T09:00:00', endDate: '2019-07-01T11:00:00', type: INTERNAL_HOUR }]];
-    const surcharges = [{ _id: surchargeId, sunday: 10 }, { _id: new ObjectID(), sunday: 14 }];
+    const surcharges = [{ _id: surchargeId, sunday: 10 }, { _id: new ObjectId(), sunday: 14 }];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
     getEventHours.returns({
@@ -1114,7 +1213,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return pay from multiple events', async () => {
-    const surchargeId = new ObjectID();
+    const surchargeId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
@@ -1155,7 +1254,7 @@ describe('getPayFromEvents', () => {
     ];
     const surcharges = [
       { _id: surchargeId, sunday: 10 },
-      { _id: new ObjectID(), sunday: 14 },
+      { _id: new ObjectId(), sunday: 14 },
     ];
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
@@ -1317,6 +1416,84 @@ describe('getHoursFromDailyAbsence', () => {
       expect(result).toBe(30);
       sinon.assert.notCalled(getMatchingVersion);
     });
+  });
+});
+
+describe('getAbsenceHours', () => {
+  let getHoursFromDailyAbsence;
+  beforeEach(() => {
+    getHoursFromDailyAbsence = sinon.stub(DraftPayHelper, 'getHoursFromDailyAbsence');
+  });
+  afterEach(() => {
+    getHoursFromDailyAbsence.restore();
+  });
+
+  it('should return daily absence hours', async () => {
+    const absence = { absenceNature: 'daily', startDate: '2019-07-17T10:00:00', endDate: '2019-07-20T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    getHoursFromDailyAbsence.onCall(0).returns(4);
+    getHoursFromDailyAbsence.onCall(1).returns(4);
+    const absenceHours = await DraftPayHelper.getAbsenceHours(absence, contracts);
+
+    expect(absenceHours).toEqual(8);
+    sinon.assert.calledTwice(getHoursFromDailyAbsence);
+    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absence, contracts[0], absence);
+    sinon.assert.calledWithExactly(getHoursFromDailyAbsence, absence, contracts[1], absence);
+  });
+
+  it('should return half-daily absence hours', async () => {
+    const absence = { absenceNature: 'half-daily', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    getHoursFromDailyAbsence.returns(1);
+    const absenceHours = await DraftPayHelper.getAbsenceHours(absence, contracts, absence);
+
+    expect(absenceHours).toEqual(1);
+    sinon.assert.calledOnceWithExactly(getHoursFromDailyAbsence, absence, contracts[0], absence);
+  });
+
+  it('should return hourly absence hours', async () => {
+    const absence = { absenceNature: 'hourly', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' };
+    const contracts = [
+      {
+        startDate: '2019-02-18T07:00:00',
+        endDate: '2019-07-18T22:00:00',
+        versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }],
+      },
+      {
+        startDate: '2019-07-19T07:00:00',
+        endDate: '2019-09-18T22:00:00',
+        versions: [{ weeklyHours: 12 }],
+      },
+    ];
+
+    const absenceHours = await DraftPayHelper.getAbsenceHours(absence, contracts);
+
+    expect(absenceHours).toEqual(2);
+    sinon.assert.notCalled(getHoursFromDailyAbsence);
   });
 });
 
@@ -1777,7 +1954,7 @@ describe('computePrevPayDiff', () => {
   it('should return diff without prevPay', async () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
     const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
-    const events = [{ _id: new ObjectID() }];
+    const events = [{ _id: new ObjectId() }];
     const hours = {
       workedHours: 24,
       notSurchargedAndNotExempt: 12,
@@ -1820,7 +1997,7 @@ describe('computePrevPayDiff', () => {
   it('should return diff with prevPay', async () => {
     const query = { startDate: '2019-09-01T00:00:00', endDate: '2019-09-30T23:59:59' };
     const auxiliary = { _id: '1234567890', contracts: [{ _id: 'poiuytre' }] };
-    const events = [{ _id: new ObjectID() }];
+    const events = [{ _id: new ObjectId() }];
     const prevPay = {
       contractHours: 34,
       workedHours: 26,
@@ -1882,7 +2059,7 @@ describe('computePrevPayDiff', () => {
 });
 
 describe('getPreviousMonthPay', () => {
-  const auxiliaryId = new ObjectID();
+  const auxiliaryId = new ObjectId();
   let getEventsToPay;
   let computePrevPayDiff;
   beforeEach(() => {
@@ -1917,12 +2094,12 @@ describe('getPreviousMonthPay', () => {
       }, {
         events: [{ startDate: '2019-05-04T10:00:00' }],
         absences: [{ startDate: '2019-05-07T10:00:00' }],
-        auxiliary: { _id: new ObjectID() },
+        auxiliary: { _id: new ObjectId() },
       },
     ];
-    const dm = [{ _id: new ObjectID() }];
-    const surcharges = [{ _id: new ObjectID() }];
-    const companyId = new ObjectID();
+    const dm = [{ _id: new ObjectId() }];
+    const surcharges = [{ _id: new ObjectId() }];
+    const companyId = new ObjectId();
 
     getEventsToPay.returns(payData);
 
@@ -1979,36 +2156,36 @@ describe('computeDraftPay', () => {
   });
 
   it('should return an empty array if no auxiliary', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
-    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
-    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
 
     const result = await DraftPayHelper.computeDraftPay([], query, credentials);
 
     expect(result).toEqual([]);
     sinon.assert.calledOnceWithExactly(getPreviousMonthPay, [], query, [{ _id: 'sur' }], [{ _id: 'dm' }], companyId);
     sinon.assert.notCalled(computeAuxiliaryDraftPay);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       companyFindOne,
       [{ query: 'findOne', args: [{ _id: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       surchargeFind,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       distanceMatrixFind,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
   });
 
   it('should not return draft pay as no matching contracts', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const aux = {
       _id: auxiliaryId,
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
@@ -2026,9 +2203,9 @@ describe('computeDraftPay', () => {
 
     getEventsToPay.returns(payData);
     getPreviousMonthPay.returns(prevPay);
-    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
-    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
-    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns(null);
 
@@ -2047,10 +2224,10 @@ describe('computeDraftPay', () => {
   });
 
   it('should return draft pay by auxiliary', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] }];
     const payData = [
       {
@@ -2059,21 +2236,21 @@ describe('computeDraftPay', () => {
         auxiliary: { _id: auxiliaryId },
       },
       {
-        events: [{ _id: new ObjectID(), events: [{ startDate: '2019-05-04T10:00:00' }] }],
-        absences: [{ _id: new ObjectID(), events: [{ startDate: '2019-05-07T10:00:00' }] }],
-        auxiliary: { _id: new ObjectID() },
+        events: [{ _id: new ObjectId(), events: [{ startDate: '2019-05-04T10:00:00' }] }],
+        absences: [{ _id: new ObjectId(), events: [{ startDate: '2019-05-07T10:00:00' }] }],
+        auxiliary: { _id: new ObjectId() },
       },
     ];
     const prevPay = [
       { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
-      { auxiliary: new ObjectID(), hoursCounter: 25, diff: -3 },
+      { auxiliary: new ObjectId(), hoursCounter: 25, diff: -3 },
     ];
 
     getEventsToPay.returns(payData);
     getPreviousMonthPay.returns(prevPay);
-    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
-    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
-    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns({ _id: '1234567890' });
 
@@ -2107,10 +2284,10 @@ describe('computeDraftPay', () => {
   });
 
   it('should return draft pay by auxiliary on january without computing previous pay', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { startDate: '2019-01-01T00:00:00', endDate: '2019-01-31T23:59:59' };
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] }];
     const payData = [{
       events: [{ _id: auxiliaryId, events: [{ startDate: '2019-01-03T10:00:00' }] }],
@@ -2119,9 +2296,9 @@ describe('computeDraftPay', () => {
     }];
 
     getEventsToPay.returns(payData);
-    companyFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: companyId }], ['lean']));
-    surchargeFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'sur' }]], ['lean']));
-    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([[{ _id: 'dm' }]], ['lean']));
+    companyFindOne.returns(SinonMongoose.stubChainedQueries({ _id: companyId }, ['lean']));
+    surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'sur' }], ['lean']));
+    distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns({ _id: '1234567890' });
 
@@ -2183,7 +2360,7 @@ describe('getDraftPay', () => {
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const end = moment(query.endDate).endOf('d').toDate();
-    const auxiliaries = [{ _id: new ObjectID(), sector: { name: 'Abeilles' } }];
+    const auxiliaries = [{ _id: new ObjectId(), sector: { name: 'Abeilles' } }];
     const credentials = { company: { _id: '1234567890' } };
     getAuxiliariesToPay.returns(auxiliaries);
     await DraftPayHelper.getDraftPay(query, credentials);
