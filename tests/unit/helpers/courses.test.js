@@ -161,14 +161,14 @@ describe('list', () => {
 });
 
 describe('getCourseProgress', () => {
-  it('should get progress for course', async () => {
+  it('should get progress for course whose steps only have one progress', async () => {
     const steps = [{
       _id: new ObjectId(),
       activities: [{ activityHistories: [{}, {}] }],
       name: 'Développement personnel full stack',
       type: E_LEARNING,
       areActivitiesValid: false,
-      progress: 1,
+      progress: { eLearning: 1 },
     },
     {
       _id: new ObjectId(),
@@ -176,18 +176,61 @@ describe('getCourseProgress', () => {
       name: 'Développement personnel full stack',
       type: ON_SITE,
       areActivitiesValid: false,
-      progress: 1,
+      progress: { live: 1 },
     }];
 
     const result = await CourseHelper.getCourseProgress(steps);
-    expect(result).toBe(1);
+    expect(result).toEqual({ blended: 1, eLearning: 1 });
   });
 
-  it('should return 0 if no step', async () => {
+  it('should get progress for course whose on site steps have two progresses', async () => {
+    const steps = [{
+      _id: new ObjectId(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+      progress: { eLearning: 1 },
+    },
+    {
+      _id: new ObjectId(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: ON_SITE,
+      areActivitiesValid: false,
+      progress: { live: 1, eLearning: 0.5 },
+    }];
+
+    const result = await CourseHelper.getCourseProgress(steps);
+    expect(result).toEqual({ blended: 0.975, eLearning: 0.75 });
+  });
+  it('should get progress for course whose a step has progress at 0', async () => {
+    const steps = [{
+      _id: new ObjectId(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: E_LEARNING,
+      areActivitiesValid: false,
+      progress: { eLearning: 0 },
+    },
+    {
+      _id: new ObjectId(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: ON_SITE,
+      areActivitiesValid: false,
+      progress: { live: 1 },
+    }];
+
+    const result = await CourseHelper.getCourseProgress(steps);
+    expect(result).toEqual({ blended: 0.5, eLearning: 0 });
+  });
+
+  it('should return empty object if no step', async () => {
     const steps = [];
 
     const result = await CourseHelper.getCourseProgress(steps);
-    expect(result).toBe(0);
+    expect(result).toEqual({});
   });
 });
 
@@ -699,7 +742,6 @@ describe('getCourseFollowUp', () => {
             populate: { path: 'company' },
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
         { query: 'lean' },
       ],
       1
@@ -712,8 +754,8 @@ describe('getCourseFollowUp', () => {
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
       trainees: [
-        { _id: '123213123', steps: { progress: 1 }, elearningProgress: 1, company: companyId },
-        { _id: '123213342', steps: { progress: 1 }, elearningProgress: 1, company: new ObjectId() },
+        { _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId },
+        { _id: '123213342', steps: { progress: 1 }, progress: 1, company: new ObjectId() },
       ],
       slots: [{ _id: '123456789' }],
     };
@@ -722,14 +764,14 @@ describe('getCourseFollowUp', () => {
     findOne.onCall(0).returns(SinonMongoose.stubChainedQueries({ trainees }, ['lean']));
     findOne.onCall(1).returns(SinonMongoose.stubChainedQueries(course));
     formatStep.callsFake(s => s);
-    getTraineeElearningProgress.returns({ steps: { progress: 1 }, elearningProgress: 1 });
+    getTraineeElearningProgress.returns({ steps: { progress: 1 }, progress: 1 });
 
     const result = await CourseHelper.getCourseFollowUp(course, companyId);
 
     expect(result).toEqual({
       _id: '1234567890',
       subProgram: { name: 'je suis un sous programme', steps: [{ _id: 'abc' }, { _id: 'def' }, { _id: 'ghi' }] },
-      trainees: [{ _id: '123213123', steps: { progress: 1 }, elearningProgress: 1, company: companyId }],
+      trainees: [{ _id: '123213123', steps: { progress: 1 }, progress: 1, company: companyId }],
       slots: [{ _id: '123456789' }],
     });
 
@@ -773,7 +815,6 @@ describe('getCourseFollowUp', () => {
             populate: { path: 'company' },
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: '_id' } }] },
         { query: 'lean' },
       ],
       1
@@ -997,7 +1038,7 @@ describe('getTraineeElearningProgress', () => {
 
     expect(result).toEqual({
       steps: [{ activities: [{ activityHistories: [{ user: traineeId }] }], type: E_LEARNING, progress: 1 }],
-      elearningProgress: 1,
+      progress: 1,
     });
     sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(0), traineeId, traineeId);
     sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(1), otherTraineeId, traineeId);

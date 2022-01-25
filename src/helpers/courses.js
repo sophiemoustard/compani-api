@@ -29,6 +29,7 @@ const {
   REJECTED,
   ON_SITE,
   E_LEARNING,
+  LIVE_PROGRESS_WEIGHT,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -72,10 +73,30 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-exports.getCourseProgress = (steps) => {
-  if (!steps || !steps.length) return 0;
+const getStepBlendedProgress = (step) => {
+  if (step.progress.live >= 0 && step.progress.eLearning >= 0) {
+    return parseFloat((step.progress.live * LIVE_PROGRESS_WEIGHT
+      + step.progress.eLearning * (1 - LIVE_PROGRESS_WEIGHT)).toFixed(2));
+  }
+  if (step.progress.live >= 0) return step.progress.live;
+  return step.progress.eLearning;
+};
 
-  return steps.map(step => step.progress).reduce((acc, value) => acc + value, 0) / steps.length;
+exports.getCourseProgress = (steps) => {
+  if (!steps || !steps.length) return {};
+
+  const elearningProgressSteps = steps.filter(step => step.progress.eLearning >= 0);
+
+  return {
+    blended: steps.map(step => getStepBlendedProgress(step)).reduce((acc, value) => acc + value, 0) / steps.length,
+    ...(elearningProgressSteps.length &&
+      {
+        eLearning: elearningProgressSteps
+          .map(step => step.progress.eLearning)
+          .reduce((acc, value) => acc + value, 0)
+          / elearningProgressSteps.length,
+      }),
+  };
 };
 
 exports.formatCourseWithProgress = (course) => {
@@ -220,7 +241,6 @@ exports.getCourseFollowUp = async (course, company) => {
       select: 'identity.firstname identity.lastname firstMobileConnection',
       populate: { path: 'company' },
     })
-    .populate({ path: 'slots', populate: { path: 'step', select: '_id' } })
     .lean();
 
   return {
@@ -233,7 +253,7 @@ exports.getCourseFollowUp = async (course, company) => {
       .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company))
       .map(t => ({
         ...t,
-        ...exports.getTraineeElearningProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+        ...exports.getTraineeElearningProgress(t._id, courseFollowUp.subProgram.steps),
       })),
   };
 };
@@ -280,7 +300,7 @@ exports.getTraineeElearningProgress = (traineeId, steps, slots) => {
       return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
     });
 
-  return { steps: formattedSteps, elearningProgress: exports.getCourseProgress(formattedSteps) };
+  return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
 };
 
 exports.getTraineeCourse = async (courseId, credentials) => {
