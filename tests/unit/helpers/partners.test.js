@@ -1,5 +1,5 @@
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Partner = require('../../../src/models/Partner');
 const PartnersHelper = require('../../../src/helpers/partners');
 const SinonMongoose = require('../sinonMongoose');
@@ -14,13 +14,13 @@ describe('list', () => {
   });
 
   it('should list partner from my company', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
 
-    find.returns(SinonMongoose.stubChainedQueries([[{ _id: new ObjectID() }]], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectId() }], ['lean']));
 
     await PartnersHelper.list(credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
     );
@@ -37,7 +37,7 @@ describe('update', () => {
   });
 
   it('should update a partner', async () => {
-    const partnerId = new ObjectID();
+    const partnerId = new ObjectId();
     const payload = {
       identity: { firstname: 'Titouan', lastname: 'Kerouac' },
       email: 'vive+la+bretagne@alenvi.io',

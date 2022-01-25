@@ -1,10 +1,12 @@
 const omit = require('lodash/omit');
 const isEmpty = require('lodash/isEmpty');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Intl = require('intl');
 const moment = require('../extensions/moment');
 const { CIVILITY_LIST } = require('./constants');
 const DatesHelper = require('./dates');
+const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const NumbersHelper = require('./numbers');
 
 exports.getLastVersion = (versions, dateKey) => {
@@ -160,21 +162,12 @@ exports.formatIdentity = (identity, format) => {
   return values.join(' ');
 };
 
-exports.formatObjectIdsArray = ids => (Array.isArray(ids) ? ids.map(id => new ObjectID(id)) : [new ObjectID(ids)]);
+exports.formatObjectIdsArray = ids => (Array.isArray(ids) ? ids.map(id => new ObjectId(id)) : [new ObjectId(ids)]);
 
 exports.formatIdsArray = ids => (Array.isArray(ids) ? ids : [ids]);
 
-exports.formatDuration = (duration) => {
-  const paddedMinutes = duration.minutes() > 0 && duration.minutes() < 10
-    ? duration.minutes().toString().padStart(2, 0)
-    : duration.minutes();
-  const hours = (duration.days() * 24) + duration.hours();
-
-  return paddedMinutes ? `${hours}h${paddedMinutes}` : `${hours}h`;
-};
-
 exports.areObjectIdsEquals = (id1, id2) => !!id1 && !!id2 &&
-  new ObjectID(id1).toHexString() === new ObjectID(id2).toHexString();
+  new ObjectId(id1).toHexString() === new ObjectId(id2).toHexString();
 
 exports.doesArrayIncludeId = (array, id) => array.some(item => exports.areObjectIdsEquals(item, id));
 
@@ -214,3 +207,27 @@ exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
 
   return NumbersHelper.subtract(exclTaxes, discountExclTaxes);
 };
+
+exports.getTotalDuration = (timePeriods) => {
+  const totalDuration = timePeriods.reduce(
+    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes'))),
+    CompaniDuration()
+  );
+
+  return totalDuration.format();
+};
+
+exports.getTotalDurationForExport = (timePeriods) => {
+  const totalDuration = timePeriods.reduce(
+    (acc, tp) => acc.add(CompaniDuration(CompaniDate(tp.endDate).diff(tp.startDate, 'minutes'))),
+    CompaniDuration()
+  );
+
+  return exports.formatFloatForExport(totalDuration.asHours());
+};
+
+exports.getDuration = (startDate, endDate) =>
+  CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).format();
+
+exports.getDurationForExport = (startDate, endDate) =>
+  exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).asHours());

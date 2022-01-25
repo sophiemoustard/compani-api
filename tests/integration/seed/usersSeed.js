@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -28,7 +28,7 @@ const {
 
 const establishmentList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Toto',
     siret: '12345678901234',
     address: {
@@ -44,7 +44,7 @@ const establishmentList = [
     company: authCompany._id,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Tata',
     siret: '09876543210987',
     address: {
@@ -62,7 +62,7 @@ const establishmentList = [
 ];
 
 const customerFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { title: 'mr', firstname: 'toto', lastname: 'test' },
   company: otherCompany._id,
   contact: {
@@ -79,7 +79,7 @@ const customerFromOtherCompany = {
 };
 
 const helperFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Guigui', lastname: 'toto' },
   local: { email: 'othercompany@alenvi.io', password: '123456!eR' },
   role: { client: helperRoleId },
@@ -88,7 +88,7 @@ const helperFromOtherCompany = {
 };
 
 const coachFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Arnaud', lastname: 'toto' },
   local: { email: 'othercompanycoach@alenvi.io', password: '123456!eR' },
   role: { client: coachRoleId },
@@ -97,7 +97,7 @@ const coachFromOtherCompany = {
 };
 
 const auxiliaryFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Philou', lastname: 'toto' },
   local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: auxiliaryRoleId },
@@ -107,13 +107,13 @@ const auxiliaryFromOtherCompany = {
 
 const usersFromOtherCompanyList = [helperFromOtherCompany, coachFromOtherCompany, auxiliaryFromOtherCompany];
 
-const contractId = new ObjectID();
-const contractNotStartedId = new ObjectID();
-const endedContractId = new ObjectID();
+const contractId = new ObjectId();
+const contractNotStartedId = new ObjectId();
+const endedContractId = new ObjectId();
 
 const usersSeedList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
     local: { email: 'black@alenvi.io', password: '123456!eR' },
     role: { client: auxiliaryRoleId },
@@ -127,7 +127,7 @@ const usersSeedList = [
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456!eR' },
     role: { client: auxiliaryRoleId },
@@ -137,7 +137,7 @@ const usersSeedList = [
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnAutreIdExpo]'],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Coach3', lastname: 'Kitty' },
     local: { email: 'kitty@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -146,17 +146,17 @@ const usersSeedList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Helper1', lastname: 'Carolyn' },
     local: { email: 'carolyn@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
-    contracts: [new ObjectID()],
+    contracts: [new ObjectId()],
     passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary2', lastname: 'Yellow' },
     local: { email: 'aux@alenvi.io', password: '123456!eR' },
     role: { client: planningReferentRoleId },
@@ -166,7 +166,7 @@ const usersSeedList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'Green' },
     local: { email: 'withouCompany@alenvi.io', password: '123456!eR' },
     role: { client: auxiliaryWithoutCompanyRoleId },
@@ -175,7 +175,7 @@ const usersSeedList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'adminion', lastname: 'Kitty' },
     local: { email: 'cae@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -183,28 +183,28 @@ const usersSeedList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'no_role_trainee', lastname: 'test' },
     local: { email: 'no_role_trainee@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'trainee_to_auxiliary', lastname: 'test' },
     local: { email: 'trainee_to_auxiliary@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'user_without_company', lastname: 'test' },
     local: { email: 'user_without_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'vendor', lastname: 'test' },
     local: { email: 'vendor@alenvi.io', password: '123456!eR' },
     role: { vendor: vendorAdminRoleId },
@@ -212,7 +212,7 @@ const usersSeedList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'trainer', lastname: 'no_company' },
     local: { email: 'traisner_no_company@compani.io', password: '123456!eR' },
     role: { vendor: trainerRoleId },
@@ -222,7 +222,7 @@ const usersSeedList = [
 ];
 
 const customer = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
   contact: {
@@ -239,14 +239,14 @@ const customer = {
 
 const helpers = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     customer: customer._id,
     user: usersSeedList[3]._id,
     company: authCompany._id,
     referent: true,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     customer: customerFromOtherCompany._id,
     user: helperFromOtherCompany._id,
     company: otherCompany._id,
@@ -271,9 +271,9 @@ const userCompanies = [
 ];
 
 const userSectors = [
-  { _id: new ObjectID(), name: 'Terre', company: authCompany._id },
-  { _id: new ObjectID(), name: 'Lune', company: authCompany._id },
-  { _id: new ObjectID(), name: 'Soleil', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Terre', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Lune', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Soleil', company: authCompany._id },
 ];
 
 const contracts = [
@@ -311,24 +311,24 @@ const sectorHistories = [
 
 const followingCourses = [
   {
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     type: 'inter_b2b',
     trainees: [helperFromOtherCompany._id, usersSeedList[0]._id],
     salesRepresentative: vendorAdmin._id,
   },
   {
-    _id: new ObjectID(),
-    subProgram: new ObjectID(),
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
     type: 'intra',
-    company: new ObjectID(),
+    company: new ObjectId(),
     trainees: [usersSeedList[0]._id],
     salesRepresentative: vendorAdmin._id,
   },
 ];
 
 const identityVerifications = [
-  { _id: new ObjectID(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
+  { _id: new ObjectId(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
 ];
 
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());

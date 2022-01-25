@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Boom = require('@hapi/boom');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
@@ -9,8 +9,8 @@ const Customer = require('../../../src/models/Customer');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('checkSubscriptionFunding', () => {
-  const checkedFundingSubscriptionId = new ObjectID();
-  const fundingId = new ObjectID();
+  const checkedFundingSubscriptionId = new ObjectId();
+  const fundingId = new ObjectId();
   const checkedFunding = {
     _id: fundingId.toHexString(),
     subscription: checkedFundingSubscriptionId.toHexString(),
@@ -26,15 +26,15 @@ describe('checkSubscriptionFunding', () => {
   });
 
   it('should return an error if customer does not exists', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     try {
-      findOneCustomer.returns(SinonMongoose.stubChainedQueries([null], ['lean']));
+      findOneCustomer.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
       await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
     } catch (e) {
       expect(e).toEqual(Boom.notFound('Error while checking subscription funding: customer not found.'));
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneCustomer,
         [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
       );
@@ -42,182 +42,182 @@ describe('checkSubscriptionFunding', () => {
   });
 
   it('should return true if customer does not have fundings', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{}], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({}, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
   });
 
   it('should return true if customer does not have fundings', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings: [] }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings: [] }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
   });
 
   it('should return true if the only fundings customer has is the one being updated', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
 
     findOneCustomer.returns(SinonMongoose.stubChainedQueries(
-      [{
+      {
         fundings: [{
           _id: fundingId,
           subscription: checkedFundingSubscriptionId,
           versions: [{ careDays: [0, 1, 2], startDate: '2019-10-01', endDate: '2019-11-02' }],
         }],
-      }],
+      },
       ['lean']
     ));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
   });
 
   it('should return true if checkedFunding does not have careDays in common with the other funding', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const fundings = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         subscription: checkedFundingSubscriptionId,
         versions: [{ careDays: [4, 5], startDate: '2018-10-01', endDate: '2019-12-01' }],
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
   });
 
   it('should return true if checkedFunding startDate is after the other funding endDate', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const fundings = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         subscription: checkedFundingSubscriptionId,
         versions: [{ careDays: [0, 1, 2, 3], startDate: '2018-10-01', endDate: '2018-12-01' }],
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
   });
 
   it('should return true if checkedFunding endDate is before the other funding startDate', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const fundings = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         subscription: checkedFundingSubscriptionId,
         versions: [{ careDays: [0, 1, 2, 3], startDate: '2019-11-03', endDate: '2019-12-01' }],
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
   });
 
   it('should return true if checkedFunding and other fundings are not for the same subscription', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const fundings = [
       {
-        _id: new ObjectID(),
-        subscription: new ObjectID(),
+        _id: new ObjectId(),
+        subscription: new ObjectId(),
         versions: [{ careDays: [0, 1, 2, 3], startDate: '2018-11-03', endDate: '2019-10-22' }],
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
   });
 
   it('should return false if checkedFunding has careDays in common with other fundings on same period', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const fundings = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         subscription: checkedFundingSubscriptionId,
         versions: [{ careDays: [0, 1, 2, 3], startDate: '2018-11-03', endDate: '2019-10-22' }],
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
   });
 
   it('should return false if one of the fundings have a conflict with checked fundings', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const fundings = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         subscription: checkedFundingSubscriptionId,
         versions: [{ careDays: [0, 1, 2, 3], startDate: '2018-11-03', endDate: '2019-10-22' }],
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         subscription: checkedFundingSubscriptionId,
         versions: [{ careDays: [0, 1, 2, 3], startDate: '2018-10-01', endDate: '2018-12-01' }],
       },
     ];
 
-    findOneCustomer.returns(SinonMongoose.stubChainedQueries([{ fundings }], ['lean']));
+    findOneCustomer.returns(SinonMongoose.stubChainedQueries({ fundings }, ['lean']));
 
     const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
 
     expect(res).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneCustomer,
       [{ query: 'findOne', args: [{ _id: customerId }] }, { query: 'lean' }]
     );
@@ -235,7 +235,7 @@ describe('populateFunding', () => {
 
   it('should return null if no funding', () => {
     const funding = null;
-    const subscriptions = [{ _id: new ObjectID() }];
+    const subscriptions = [{ _id: new ObjectId() }];
 
     const result = FundingsHelper.populateFunding(funding, subscriptions);
 
@@ -244,12 +244,12 @@ describe('populateFunding', () => {
   });
 
   it('should return funding with corresponding subscription and service populated', () => {
-    const subId = new ObjectID();
-    const fundingId = new ObjectID();
+    const subId = new ObjectId();
+    const fundingId = new ObjectId();
     const funding = { _id: fundingId, subscription: subId };
     const subscriptions = [
       { _id: subId, service: { versions: [{ name: 'Version 1' }] } },
-      { _id: new ObjectID(), service: { versions: [{ name: 'Version 2' }] } },
+      { _id: new ObjectId(), service: { versions: [{ name: 'Version 2' }] } },
     ];
 
     populateService.returns({ name: 'Version 1' });
@@ -261,13 +261,13 @@ describe('populateFunding', () => {
   });
 
   it('should return funding with corresponding subscription if no service versions', () => {
-    const subId = new ObjectID();
-    const fundingId = new ObjectID();
-    const serviceId = new ObjectID();
+    const subId = new ObjectId();
+    const fundingId = new ObjectId();
+    const serviceId = new ObjectId();
     const funding = { _id: fundingId, subscription: subId };
     const subscriptions = [
       { _id: subId, service: { _id: serviceId } },
-      { _id: new ObjectID(), service: { versions: [{ name: 'Version 2' }] } },
+      { _id: new ObjectId(), service: { versions: [{ name: 'Version 2' }] } },
     ];
 
     const result = FundingsHelper.populateFunding(funding, subscriptions);
@@ -293,18 +293,18 @@ describe('createFunding', () => {
   });
 
   it('should create funding if no conflict', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { subscription: '1234567890', fundingPlanId: '123456' };
     const customer = { _id: customerId };
 
     checkSubscriptionFunding.returns(true);
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customer));
 
     await FundingsHelper.createFunding(customerId, payload);
 
     sinon.assert.calledOnceWithExactly(checkSubscriptionFunding, customerId, payload);
     sinon.assert.calledOnceWithExactly(populateFundingsList, customer);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -323,7 +323,7 @@ describe('createFunding', () => {
   });
 
   it('should throw an error if conflict', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const payload = { subscription: '1234567890' };
 
     try {
@@ -355,7 +355,7 @@ describe('updateFunding', () => {
   });
 
   it('should update funding if no conflict', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const fundingId = 'mnbvcxz';
     const payload = { subscription: '1234567890', fundingPlanId: '12345' };
     const customer = { _id: customerId };
@@ -366,13 +366,13 @@ describe('updateFunding', () => {
     };
 
     checkSubscriptionFunding.returns(true);
-    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries([customer]));
+    findOneAndUpdateCustomer.returns(SinonMongoose.stubChainedQueries(customer));
 
     await FundingsHelper.updateFunding(customerId, fundingId, payload);
 
     sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, checkPayload);
     sinon.assert.calledWithExactly(populateFundingsList, customer);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateCustomer,
       [
         {
@@ -391,7 +391,7 @@ describe('updateFunding', () => {
   });
 
   it('should throw an error if conflict', async () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const fundingId = 'mnbvcxz';
     const payload = { subscription: '1234567890' };
     const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{}] };

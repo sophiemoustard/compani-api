@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Sector = require('../../../src/models/Sector');
 const SectorsHelper = require('../../../src/helpers/sectors');
 const SinonMongoose = require('../sinonMongoose');
@@ -16,19 +16,22 @@ describe('create', () => {
 
   it('should create a new sector', async () => {
     const payload = { name: 'toto' };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    create.returns(SinonMongoose.stubChainedQueries([{ name: 'toto', company: companyId }], ['toObject']));
+    create.returns(SinonMongoose.stubChainedQueries({ name: 'toto', company: companyId }, ['toObject']));
 
     const result = await SectorsHelper.create(payload, credentials);
 
     expect(result).toMatchObject({ name: 'toto', company: companyId });
 
-    SinonMongoose.calledWithExactly(create, [
-      { query: 'create', args: [{ name: 'toto', company: companyId }] },
-      { query: 'toObject' },
-    ]);
+    SinonMongoose.calledOnceWithExactly(
+      create,
+      [
+        { query: 'create', args: [{ name: 'toto', company: companyId }] },
+        { query: 'toObject' },
+      ]
+    );
   });
 });
 
@@ -42,17 +45,20 @@ describe('list', () => {
   });
 
   it('should list sectors', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const companyId = credentials.company._id;
 
-    find.returns(SinonMongoose.stubChainedQueries([{ name: 'toto', company: companyId }], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries({ name: 'toto', company: companyId }, ['lean']));
 
     await SectorsHelper.list(credentials);
 
-    SinonMongoose.calledWithExactly(find, [
-      { query: 'find', args: [{ company: companyId }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: companyId }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -67,18 +73,21 @@ describe('update', () => {
 
   it('should update a sector', async () => {
     const payload = { name: 'Tutu' };
-    const sectorId = new ObjectID();
-    const companyId = new ObjectID();
+    const sectorId = new ObjectId();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await SectorsHelper.update(sectorId, payload, credentials);
 
-    SinonMongoose.calledWithExactly(findOneAndUpdate, [
-      { query: 'findOneAndUpdate', args: [{ _id: sectorId }, { $set: payload }, { new: true }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findOneAndUpdate,
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: sectorId }, { $set: payload }, { new: true }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
@@ -92,7 +101,7 @@ describe('remove', () => {
   });
 
   it('should remove an sector', async () => {
-    const sectorId = new ObjectID();
+    const sectorId = new ObjectId();
 
     await SectorsHelper.remove(sectorId);
 

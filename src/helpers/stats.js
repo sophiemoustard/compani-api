@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
@@ -110,7 +110,7 @@ exports.getPaidInterventionStats = async (query, credentials) => {
       companyId
     );
   }
-  return SectorHistoryRepository.getPaidInterventionStats([new ObjectID(query.auxiliary)], query.month, companyId);
+  return SectorHistoryRepository.getPaidInterventionStats([new ObjectId(query.auxiliary)], query.month, companyId);
 };
 
 exports.getCustomersAndDurationBySector = async (query, credentials) => {

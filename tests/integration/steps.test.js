@@ -1,6 +1,6 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Step = require('../../src/models/Step');
 const { populateDB, programsList, stepsList, activitiesList, cardsList } = require('./seed/stepsSeed');
@@ -74,7 +74,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     it('should return a 404 if step is invalid', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${new ObjectID()}`,
+        url: `/steps/${new ObjectId()}`,
         payload: { name: 'une nouvelle étape super innovante' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -129,7 +129,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     });
 
     it('should return a 400 if activities from payload and from db are not strict equal', async () => {
-      const payload = { activities: [stepsList[0].activities[1], new ObjectID()] };
+      const payload = { activities: [stepsList[0].activities[1], new ObjectId()] };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}`,
@@ -245,11 +245,11 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
         status: 'draft',
         activities: expect.arrayContaining([
           {
-            _id: expect.any(ObjectID),
+            _id: expect.any(ObjectId),
             type: 'lesson',
             name: 'chanter',
             cards: expect.arrayContaining([
-              { _id: expect.any(ObjectID), template: 'transition', title: 'do mi sol do' },
+              { _id: expect.any(ObjectId), template: 'transition', title: 'do mi sol do' },
             ]),
           },
         ]),
@@ -312,7 +312,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       const payload = { name: 'new activity', type: 'video' };
       const response = await app.inject({
         method: 'POST',
-        url: `/steps/${new ObjectID()}/activities`,
+        url: `/steps/${new ObjectId()}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -406,7 +406,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       const payload = { activities: activitiesList[0]._id };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${new ObjectID()}/activities`,
+        url: `/steps/${new ObjectId()}/activities`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -427,7 +427,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
     });
 
     it('should return a 404 if invalid activity id', async () => {
-      const payload = { activities: (new ObjectID()) };
+      const payload = { activities: (new ObjectId()) };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}/activities`,
@@ -506,7 +506,7 @@ describe('STEPS ROUTES - DELETE /steps/{_id}/activities/{activityId}', () => {
     it('should return a 404 if step doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/steps/${new ObjectID()}/activities/${activityId}`,
+        url: `/steps/${new ObjectId()}/activities/${activityId}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -580,16 +580,16 @@ describe('STEPS ROUTES - GET /steps', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.steps.length).toEqual(3);
       expect(response.result.data.steps).toEqual(expect.arrayContaining([
-        { _id: expect.any(ObjectID), name: 'etape 1', type: 'on_site' },
-        { _id: expect.any(ObjectID), name: 'etape 2', type: 'e_learning' },
-        { _id: expect.any(ObjectID), name: 'etape 3', type: 'e_learning' },
+        { _id: expect.any(ObjectId), name: 'etape 1', type: 'on_site' },
+        { _id: expect.any(ObjectId), name: 'etape 2', type: 'e_learning' },
+        { _id: expect.any(ObjectId), name: 'etape 3', type: 'e_learning' },
       ]));
     });
 
     it('should return a 404 if program doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/steps?program=${new ObjectID()}`,
+        url: `/steps?program=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

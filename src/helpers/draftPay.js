@@ -18,13 +18,16 @@ const {
   DRIVING,
   PRIVATE_TRANSPORT,
   INTERVENTION,
-  DAILY,
   INTERNAL_HOUR,
   WEEKS_PER_MONTH,
+  HOURLY,
+  HALF_DAILY,
 } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 const ContractHelper = require('./contracts');
+const DatesHelper = require('./dates');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.getContractMonthInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('M').toDate();
@@ -150,35 +153,54 @@ exports.getTransportMode = (event) => {
 };
 
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
-  let paidTransportDuration = 0;
-  let paidKm = 0;
-  let travelledKm = 0;
+  let transportMode;
 
-  if (prevEvent && !prevEvent.hasFixedService && !event.hasFixedService) {
-    const origins = get(prevEvent, 'address.fullAddress', null);
-    const destinations = get(event, 'address.fullAddress', null);
-    let transportMode = null;
-    if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
-      transportMode = exports.getTransportMode(event);
-    }
-
-    if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, paidKm, travelledKm };
-
-    const transport = await exports.getTransportInfo(
-      dm,
-      origins,
-      destinations,
-      transportMode.specific || transportMode.default,
-      event.company
-    );
-    const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
-    const pickTransportDuration = breakDuration > (transport.duration + 15);
-    paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
-    paidKm = transportMode.shouldPayKm ? transport.distance : 0;
-    travelledKm = transport.distance;
+  if (!prevEvent || prevEvent.hasFixedService || event.hasFixedService) {
+    return {
+      duration: 0,
+      paidKm: 0,
+      travelledKm: 0,
+      origins: null,
+      destinations: null,
+      transportDuration: 0,
+      breakDuration: 0,
+      pickTransportDuration: false,
+    };
   }
 
-  return { duration: paidTransportDuration, paidKm, travelledKm };
+  const origins = get(prevEvent, 'address.fullAddress', null);
+  const destinations = get(event, 'address.fullAddress', null);
+
+  if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
+    transportMode = exports.getTransportMode(event);
+  }
+
+  if (!origins || !destinations || !transportMode) return { duration: 0, paidKm: 0, travelledKm: 0 };
+
+  const transport = await exports.getTransportInfo(
+    dm,
+    origins,
+    destinations,
+    transportMode.specific || transportMode.default,
+    event.company
+  );
+  const breakDuration = CompaniDate(event.startDate).diff(prevEvent.endDate, 'minutes').minutes;
+  const pickTransportDuration = breakDuration > (transport.duration + 15);
+  const paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
+  const paidKm = transportMode.shouldPayKm ? transport.distance : 0;
+  const travelledKm = transport.distance;
+  const transportDuration = transport.duration;
+
+  return {
+    duration: paidTransportDuration,
+    paidKm,
+    travelledKm,
+    origins,
+    destinations,
+    transportDuration,
+    breakDuration,
+    pickTransportDuration,
+  };
 };
 
 exports.getEventHours = async (event, prevEvent, service, details, dm) => {
@@ -259,7 +281,7 @@ const incrementHours = (total, hours, surchargedKey) => {
 exports.getPayFromEvents = async (events, auxiliary, dm, surcharges, query) => {
   let paidHours = exports.initializePaidHours();
   for (const eventsPerDay of events) {
-    const sortedEvents = [...eventsPerDay].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    const sortedEvents = [...eventsPerDay].sort(DatesHelper.ascendingSort('startDate'));
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
       const paidEvent = {
         ...sortedEvents[i],
@@ -315,11 +337,22 @@ exports.getHoursFromDailyAbsence = (absence, contract, query = absence) => {
   return hours;
 };
 
-exports.getPayFromAbsences = (absences, contract, query) => absences.reduce((acc, abs) => {
-  if (abs.absenceNature !== DAILY) return acc + moment(abs.endDate).diff(abs.startDate, 'm') / 60;
+exports.getAbsenceHours = (absence, contracts, query = absence) => {
+  if (absence.absenceNature === HOURLY) {
+    const absenceDuration = CompaniDate(absence.endDate).diff(absence.startDate, 'minutes');
+    return absenceDuration.minutes / 60;
+  }
 
-  return acc + exports.getHoursFromDailyAbsence(abs, contract, query);
-}, 0);
+  const dailyAbsenceHours = contracts
+    .filter(c => CompaniDate(c.startDate).isSameOrBefore(absence.endDate) &&
+      (!c.endDate || CompaniDate(c.endDate).isAfter(absence.startDate)))
+    .reduce((acc, c) => acc + this.getHoursFromDailyAbsence(absence, c, query), 0);
+
+  return absence.absenceNature === HALF_DAILY ? dailyAbsenceHours / 2 : dailyAbsenceHours;
+};
+
+exports.getPayFromAbsences = (absences, contract, query) => absences
+  .reduce((acc, abs) => acc + exports.getAbsenceHours(abs, [contract], query), 0);
 
 exports.getContract = (contracts, endDate) => contracts.find((cont) => {
   const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);

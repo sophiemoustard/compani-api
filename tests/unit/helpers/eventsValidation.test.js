@@ -1,14 +1,14 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const EventHistory = require('../../../src/models/EventHistory');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const { INTERVENTION, ABSENCE, INTERNAL_HOUR, UNAVAILABILITY } = require('../../../src/helpers/constants');
+const { INTERVENTION, ABSENCE, INTERNAL_HOUR, UNAVAILABILITY, HOURLY } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('isCustomerSubscriptionValid', () => {
@@ -21,12 +21,11 @@ describe('isCustomerSubscriptionValid', () => {
   });
 
   it('should return true if event subscription is in customer subscriptions', async () => {
-    const subscriptionId = new ObjectID();
     const event = {
-      auxiliary: (new ObjectID()).toHexString(),
-      customer: (new ObjectID()).toHexString(),
+      auxiliary: new ObjectId(),
+      customer: new ObjectId(),
       type: INTERVENTION,
-      subscription: subscriptionId.toHexString(),
+      subscription: new ObjectId(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
     };
@@ -48,10 +47,10 @@ describe('isCustomerSubscriptionValid', () => {
 
   it('should return false if event subscription is not in customer subscriptions', async () => {
     const event = {
-      auxiliary: (new ObjectID()).toHexString(),
-      customer: (new ObjectID()).toHexString(),
+      auxiliary: new ObjectId(),
+      customer: new ObjectId(),
       type: INTERVENTION,
-      subscription: (new ObjectID()).toHexString(),
+      subscription: new ObjectId(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
     };
@@ -82,15 +81,15 @@ describe('isUserContractValidOnEventDates', () => {
   });
 
   it('should return false as user has no contract', async () => {
-    const event = { auxiliary: (new ObjectID()).toHexString() };
+    const event = { auxiliary: new ObjectId() };
     const user = { _id: event.auxiliary };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -101,15 +100,15 @@ describe('isUserContractValidOnEventDates', () => {
   });
 
   it('should return false as user contracts are empty', async () => {
-    const event = { auxiliary: (new ObjectID()).toHexString() };
+    const event = { auxiliary: new ObjectId() };
     const user = { _id: event.auxiliary, contracts: [] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -120,16 +119,16 @@ describe('isUserContractValidOnEventDates', () => {
   });
 
   it('should return false if contract and no active contract on day and event not absence', async () => {
-    const event = { auxiliary: new ObjectID(), startDate: '2020-04-30T09:00:00', type: INTERVENTION };
+    const event = { auxiliary: new ObjectId(), startDate: '2020-04-30T09:00:00', type: INTERVENTION };
     const contract = { user: event.auxiliary, startDate: '2020-12-05T00:00:00' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -140,16 +139,16 @@ describe('isUserContractValidOnEventDates', () => {
   });
 
   it('should return true if contract and active contract on day and event not absence', async () => {
-    const event = { auxiliary: new ObjectID(), startDate: '2020-04-30T09:00:00', type: INTERNAL_HOUR };
+    const event = { auxiliary: new ObjectId(), startDate: '2020-04-30T09:00:00', type: INTERNAL_HOUR };
     const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -161,7 +160,7 @@ describe('isUserContractValidOnEventDates', () => {
 
   it('should return false if contract and no active contract on day and event is absence', async () => {
     const event = {
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       startDate: '2020-04-30T09:00:00',
       endDate: '2020-05-12T23:25:59',
       type: ABSENCE,
@@ -169,12 +168,12 @@ describe('isUserContractValidOnEventDates', () => {
     const contract = { user: event.auxiliary, startDate: '2020-05-04T00:00:00' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(false);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -186,7 +185,7 @@ describe('isUserContractValidOnEventDates', () => {
 
   it('should return true if contract and active contract on day and event is absence', async () => {
     const event = {
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       startDate: '2020-04-30T09:00:00',
       endDate: '2020-05-12T23:25:59',
       type: ABSENCE,
@@ -194,12 +193,12 @@ describe('isUserContractValidOnEventDates', () => {
     const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([user]));
+    findOne.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await EventsValidationHelper.isUserContractValidOnEventDates(event);
 
     expect(result).toBe(true);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: event.auxiliary }] },
@@ -221,14 +220,14 @@ describe('hasConflicts', () => {
 
   it('should return true if event has conflicts', async () => {
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-10-02T09:00:00.000Z',
       endDate: '2019-10-02T11:00:00.000Z',
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
     };
 
     getAuxiliaryEventsBetweenDates.returns([
-      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
+      { _id: new ObjectId(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
     ]);
     const result = await EventsValidationHelper.hasConflicts(event);
 
@@ -237,10 +236,10 @@ describe('hasConflicts', () => {
 
   it('should return false if event does not have conflicts', async () => {
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-10-02T15:00:00.000Z',
       endDate: '2019-10-02T16:00:00.000Z',
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
     };
 
     getAuxiliaryEventsBetweenDates.returns([
@@ -253,14 +252,14 @@ describe('hasConflicts', () => {
 
   it('should return false if event has conflicts only with cancelled events', async () => {
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-10-02T09:00:00.000Z',
       endDate: '2019-10-02T11:00:00.000Z',
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
     };
 
     getAuxiliaryEventsBetweenDates.returns([{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-10-02T08:00:00.000Z',
       endDate: '2019-10-02T12:00:00.000Z',
       isCancelled: true,
@@ -271,18 +270,18 @@ describe('hasConflicts', () => {
   });
 
   it('should only check conflicts with absence when absence is created', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-10-02T09:00:00.000Z',
       endDate: '2019-10-02T11:00:00.000Z',
       auxiliary: auxiliaryId,
       type: ABSENCE,
-      company: new ObjectID(),
+      company: new ObjectId(),
     };
 
     getAuxiliaryEventsBetweenDates.returns([{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-10-02T08:00:00.000Z',
       endDate: '2019-10-02T12:00:00.000Z',
       type: ABSENCE,
@@ -317,10 +316,10 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false as event is not absence and not on one day', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const event = {
-      auxiliary: (new ObjectID()).toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
@@ -333,11 +332,29 @@ describe('isEditionAllowed', () => {
     sinon.assert.notCalled(isCustomerSubscriptionValid);
   });
 
-  it('should return false as event has no auxiliary and is not intervention', async () => {
-    const companyId = new ObjectID();
+  it('should return false as event is not a daily absence and not on one day', async () => {
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const event = {
-      sector: (new ObjectID()).toHexString(),
+      auxiliary: new ObjectId(),
+      type: ABSENCE,
+      absenceNature: HOURLY,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-14T11:00:00',
+    };
+
+    const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
+
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(isUserContractValidOnEventDates);
+    sinon.assert.notCalled(isCustomerSubscriptionValid);
+  });
+
+  it('should return false as event has no auxiliary and is not intervention', async () => {
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId } };
+    const event = {
+      sector: new ObjectId(),
       type: ABSENCE,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -351,11 +368,10 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false as auxiliary does not have contracts', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -371,11 +387,10 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false if event is intervention and customer is absent', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const customerId = new ObjectID();
     const event = {
-      customer: customerId.toHexString(),
+      customer: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -396,11 +411,10 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false if event is intervention and customer subscription is not valid', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -417,11 +431,10 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return true if event is intervention and customer subscription is valid', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -438,9 +451,9 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return true', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const event = {
-      auxiliary: new ObjectID().toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERNAL_HOUR,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -469,11 +482,10 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return 409 as event is not absence and has conflicts', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -492,11 +504,10 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return true', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectID();
     const event = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -513,11 +524,10 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return true as there is no conflict when no auxiliary assigned', async () => {
-    const companyId = new ObjectID();
-    const sectorId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const event = {
-      sector: sectorId.toHexString(),
+      sector: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -536,7 +546,7 @@ describe('isCreationAllowed', () => {
 describe('isUpdateAllowed', () => {
   let isEditionAllowed;
   let hasConflicts;
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   beforeEach(() => {
     isEditionAllowed = sinon.stub(EventsValidationHelper, 'isEditionAllowed');
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
@@ -547,7 +557,7 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return true if everything is ok', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = { startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
     const eventFromDB = { auxiliary: auxiliaryId, type: INTERVENTION, repetition: { frequency: 'every_week' } };
     hasConflicts.returns(false);
@@ -578,9 +588,9 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is startDate timeStamped and start date updated', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:05:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -600,9 +610,9 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is startDate timeStamped and auxiliary updated', async () => {
-    const payload = { auxiliary: new ObjectID(), startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
+    const payload = { auxiliary: new ObjectId(), startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
     const eventFromDB = {
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -617,7 +627,7 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is startDate timeStamped and user cancels event', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
@@ -640,9 +650,9 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is endDate timeStamped and end date updated', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:05:00',
     };
@@ -662,9 +672,9 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is endDate timeStamped and auxiliary updated', async () => {
-    const payload = { auxiliary: new ObjectID(), startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
+    const payload = { auxiliary: new ObjectId(), startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
     const eventFromDB = {
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -679,7 +689,7 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is endDate timeStamped and user cancels event', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
@@ -702,9 +712,9 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is billed', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       endDateTimeStamp: 1,
@@ -720,7 +730,7 @@ describe('isUpdateAllowed', () => {
 
   it('should return false as event is absence and auxiliary is updated', async () => {
     const payload = {
-      auxiliary: (new ObjectID()).toHexString(),
+      auxiliary: new ObjectId(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -728,7 +738,7 @@ describe('isUpdateAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       endDateTimeStamp: 1,
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       type: ABSENCE,
     };
 
@@ -741,7 +751,7 @@ describe('isUpdateAllowed', () => {
 
   it('should return false as event is unavailability and auxiliary is updated', async () => {
     const payload = {
-      auxiliary: (new ObjectID()).toHexString(),
+      auxiliary: new ObjectId(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -749,7 +759,7 @@ describe('isUpdateAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       endDateTimeStamp: 1,
-      auxiliary: new ObjectID(),
+      auxiliary: new ObjectId(),
       type: UNAVAILABILITY,
     };
 
@@ -761,9 +771,9 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should throw 409 if event has auxiliairy, is single intervention not cancelled and has conflicts', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -778,7 +788,7 @@ describe('isUpdateAllowed', () => {
       sinon.assert.calledOnceWithExactly(
         hasConflicts,
         {
-          auxiliary: auxiliaryId.toHexString(),
+          auxiliary: auxiliaryId,
           startDate: '2019-04-13T09:00:00',
           endDate: '2019-04-13T11:00:00',
           type: INTERVENTION,
@@ -789,9 +799,9 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should throw 409 if event has auxiliairy, has conflicts and cancellation is undone', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = {
-      auxiliary: auxiliaryId.toHexString(),
+      auxiliary: auxiliaryId,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       isCancelled: false,
@@ -813,7 +823,7 @@ describe('isUpdateAllowed', () => {
       sinon.assert.calledOnceWithExactly(
         hasConflicts,
         {
-          auxiliary: auxiliaryId.toHexString(),
+          auxiliary: auxiliaryId,
           startDate: '2019-04-13T09:00:00',
           endDate: '2019-04-13T11:00:00',
           type: INTERVENTION,
@@ -826,7 +836,7 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if edition is not allowed', async () => {
-    const auxiliaryId = new ObjectID();
+    const auxiliaryId = new ObjectId();
     const payload = { startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
     const eventFromDB = { auxiliary: auxiliaryId, type: INTERVENTION, repetition: { frequency: 'every_week' } };
     hasConflicts.returns(false);
@@ -867,7 +877,7 @@ describe('checkDeletionIsAllowed', () => {
   });
 
   it('should return nothing if events are not interventions', async () => {
-    const events = [{ _id: new ObjectID(), type: INTERNAL_HOUR, isBilled: true }];
+    const events = [{ _id: new ObjectId(), type: INTERNAL_HOUR, isBilled: true }];
 
     eventHistoryCountDocuments.returns(0);
 
@@ -884,7 +894,7 @@ describe('checkDeletionIsAllowed', () => {
   });
 
   it('should return nothing if events are not billed and not timestamped', async () => {
-    const events = [{ _id: new ObjectID(), type: INTERVENTION, isBilled: false }];
+    const events = [{ _id: new ObjectId(), type: INTERVENTION, isBilled: false }];
 
     eventHistoryCountDocuments.returns(0);
 
@@ -902,8 +912,8 @@ describe('checkDeletionIsAllowed', () => {
 
   it('should return conflict if at least one event is a billed intervention', async () => {
     const events = [
-      { _id: new ObjectID(), type: INTERVENTION, isBilled: true },
-      { _id: new ObjectID(), type: INTERVENTION, isBilled: false },
+      { _id: new ObjectId(), type: INTERVENTION, isBilled: true },
+      { _id: new ObjectId(), type: INTERVENTION, isBilled: false },
     ];
     try {
       await EventsValidationHelper.checkDeletionIsAllowed(events);
@@ -918,8 +928,8 @@ describe('checkDeletionIsAllowed', () => {
 
   it('should return conflict if at least one event is a timestamped intervention', async () => {
     const events = [
-      { _id: new ObjectID(), type: INTERVENTION, isBilled: false },
-      { _id: new ObjectID(), type: INTERVENTION, isBilled: false },
+      { _id: new ObjectId(), type: INTERVENTION, isBilled: false },
+      { _id: new ObjectId(), type: INTERVENTION, isBilled: false },
     ];
 
     eventHistoryCountDocuments.returns(1);

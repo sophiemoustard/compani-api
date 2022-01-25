@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const Boom = require('@hapi/boom');
 const TaxCertificateHelper = require('../../../src/helpers/taxCertificates');
@@ -24,16 +24,16 @@ describe('list', () => {
   });
 
   it('should return tax certificates list', async () => {
-    const taxCertificates = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
-    const companyId = new ObjectID();
-    const customer = new ObjectID();
+    const taxCertificates = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
+    const companyId = new ObjectId();
+    const customer = new ObjectId();
 
-    find.returns(SinonMongoose.stubChainedQueries([taxCertificates], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(taxCertificates, ['lean']));
 
     const result = await TaxCertificateHelper.list(customer, { company: { _id: companyId } });
 
     expect(result).toEqual(taxCertificates);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ customer, company: companyId }] }, { query: 'lean' }]
     );
@@ -213,12 +213,12 @@ describe('generateTaxCertificatePdf', () => {
   });
 
   it('should generate pdf', async () => {
-    const taxCertificateId = new ObjectID();
-    const companyId = new ObjectID();
+    const taxCertificateId = new ObjectId();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const taxCertificate = { _id: taxCertificateId, year: '2019' };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([taxCertificate]));
+    findOne.returns(SinonMongoose.stubChainedQueries(taxCertificate));
     getTaxCertificateInterventions.returns(['interventions']);
     getTaxCertificatesPayments.returns({ paid: 1200, cesu: 500 });
     formatPdf.returns('data');
@@ -228,7 +228,7 @@ describe('generateTaxCertificatePdf', () => {
     const result = await TaxCertificateHelper.generateTaxCertificatePdf(taxCertificateId, credentials);
 
     expect(result).toEqual('pdf');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: taxCertificateId }] },
@@ -268,10 +268,10 @@ describe('create', () => {
     mimeType: 'application/pdf',
     date: date.toISOString(),
     year: moment(date).format('YYYY'),
-    company: new ObjectID(),
-    customer: new ObjectID(),
+    company: new ObjectId(),
+    customer: new ObjectId(),
   };
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   const createPayload = {
     company: credentials.company._id,
     date: payload.date,
@@ -340,29 +340,29 @@ describe('remove', () => {
   });
 
   it('should delete tax certificate', async () => {
-    const taxCertificateId = new ObjectID();
+    const taxCertificateId = new ObjectId();
 
-    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectID() }], ['lean']));
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries({ _id: new ObjectId() }, ['lean']));
 
     await TaxCertificateHelper.remove(taxCertificateId);
 
     sinon.assert.notCalled(deleteFileStub);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndDelete,
       [{ query: 'findOneAndDelete', args: [{ _id: taxCertificateId }] }, { query: 'lean' }]
     );
   });
 
   it('should delete tax certificate and drive file if there is one', async () => {
-    const taxCertificateId = new ObjectID();
-    const taxCertificate = { _id: new ObjectID(), driveFile: { driveId: new ObjectID() } };
+    const taxCertificateId = new ObjectId();
+    const taxCertificate = { _id: new ObjectId(), driveFile: { driveId: new ObjectId() } };
 
-    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([taxCertificate], ['lean']));
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries(taxCertificate, ['lean']));
 
     await TaxCertificateHelper.remove(taxCertificateId);
 
     sinon.assert.calledWithExactly(deleteFileStub, taxCertificate.driveFile.driveId);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndDelete,
       [{ query: 'findOneAndDelete', args: [{ _id: taxCertificateId }] }, { query: 'lean' }]
     );

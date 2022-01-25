@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const { HOURLY, MONTHLY, INTERVENTION, NEVER, WEBAPP } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
@@ -13,7 +13,7 @@ const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const teletransmissionTppList = [
   { // 0
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Toto',
     company: authCompany._id,
     isApa: true,
@@ -23,7 +23,7 @@ const teletransmissionTppList = [
     teletransmissionType: 'APA',
   },
   { // 1
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Tata',
     company: authCompany._id,
     isApa: true,
@@ -33,7 +33,7 @@ const teletransmissionTppList = [
     teletransmissionType: 'APA',
   },
   { // 2 - different company
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Toto',
     company: otherCompany._id,
     isApa: true,
@@ -43,7 +43,7 @@ const teletransmissionTppList = [
     teletransmissionType: 'APA',
   },
   { // 3 - different companyCode
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Tata',
     company: authCompany._id,
     isApa: true,
@@ -53,7 +53,7 @@ const teletransmissionTppList = [
     teletransmissionType: 'APA',
   },
   { // 4 - different teletransmissionId
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Toto',
     company: authCompany._id,
     isApa: true,
@@ -63,7 +63,7 @@ const teletransmissionTppList = [
     teletransmissionType: 'PCH',
   },
   { // 5 - missing teletransmissionId
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Tata',
     company: authCompany._id,
     isApa: true,
@@ -72,7 +72,7 @@ const teletransmissionTppList = [
     teletransmissionType: 'APA',
   },
   { // 6 - missing teletransmissionType
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Toto',
     company: authCompany._id,
     isApa: true,
@@ -81,7 +81,7 @@ const teletransmissionTppList = [
     teletransmissionId: 'CG77',
   },
   { // 7 - missing companyCode
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Tata',
     company: authCompany._id,
     isApa: true,
@@ -93,7 +93,7 @@ const teletransmissionTppList = [
 
 const serviceList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
@@ -105,7 +105,7 @@ const serviceList = [
     nature: HOURLY,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
@@ -118,10 +118,10 @@ const serviceList = [
   },
 ];
 
-const subscriptionId = new ObjectID();
+const subscriptionId = new ObjectId();
 const customersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
@@ -133,14 +133,14 @@ const customersList = [
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     },
-    payment: { mandates: [{ rum: 'R09876543456765432', _id: new ObjectID() }] },
+    payment: { mandates: [{ rum: 'R09876543456765432', _id: new ObjectId() }] },
     subscriptions: [{
       _id: subscriptionId,
       service: serviceList[0]._id,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
     fundings: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       nature: HOURLY,
       frequency: MONTHLY,
       thirdPartyPayer: teletransmissionTppList[0]._id,
@@ -157,11 +157,11 @@ const customersList = [
   },
 ];
 
-const auxiliaryId = new ObjectID();
+const auxiliaryId = new ObjectId();
 
 const contractList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     serialNumber: 'sdfklasdkljfjsldfjksdss',
     user: auxiliaryId,
     startDate: '2010-09-03T00:00:00',
@@ -185,7 +185,7 @@ const auxiliaryList = [
 
 const eventList = [
   { // 0
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     repetition: { frequency: NEVER },
@@ -203,7 +203,7 @@ const eventList = [
     },
   },
   { // 1
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     type: INTERVENTION,
     repetition: { frequency: NEVER },

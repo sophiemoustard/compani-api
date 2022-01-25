@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Card = require('../../../src/models/Card');
 const CardHelper = require('../../../src/helpers/cards');
 const GCloudStorageHelper = require('../../../src/helpers/gCloudStorage');
@@ -34,7 +34,7 @@ describe('createCard', () => {
 
 describe('updateCard', () => {
   let updateOne;
-  const cardId = new ObjectID();
+  const cardId = new ObjectId();
   const payload = { title: 'transition' };
 
   beforeEach(() => {
@@ -64,7 +64,7 @@ describe('addCardAnswer', () => {
   });
 
   it('should add card answer without correct', async () => {
-    const card = { _id: new ObjectID(), template: QUESTION_ANSWER };
+    const card = { _id: new ObjectId(), template: QUESTION_ANSWER };
     getAnswerKeyToUpdate.returns('qcAnswers');
 
     await CardHelper.addCardAnswer(card);
@@ -73,7 +73,7 @@ describe('addCardAnswer', () => {
   });
 
   it('should add card answer with correct', async () => {
-    const card = { _id: new ObjectID(), template: MULTIPLE_CHOICE_QUESTION };
+    const card = { _id: new ObjectId(), template: MULTIPLE_CHOICE_QUESTION };
     getAnswerKeyToUpdate.returns('qcAnswers');
 
     await CardHelper.addCardAnswer(card);
@@ -118,8 +118,8 @@ describe('updateCardAnswer', () => {
   });
 
   it('should update card answer', async () => {
-    const card = { _id: new ObjectID() };
-    const params = { answerId: new ObjectID() };
+    const card = { _id: new ObjectId() };
+    const params = { answerId: new ObjectId() };
     getAnswerKeyToUpdate.returns('qcAnswers');
 
     await CardHelper.updateCardAnswer(card, params, { text: 'test text' });
@@ -146,7 +146,7 @@ describe('deleteCardAnswer', () => {
 
   it('should delete card answer', async () => {
     const card = { template: 'multiple_choice_question' };
-    const params = { _id: new ObjectID(), answerId: new ObjectID() };
+    const params = { _id: new ObjectId(), answerId: new ObjectId() };
     getAnswerKeyToUpdate.returns('qcAnswers');
 
     await CardHelper.deleteCardAnswer(card, params);
@@ -169,7 +169,7 @@ describe('removeCard', () => {
   });
 
   it('should delete card', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
 
     await CardHelper.removeCard(cardId);
 
@@ -195,7 +195,7 @@ describe('uploadMedia', () => {
       link: 'https://storage.googleapis.com/BucketKFC/myMedia',
     });
 
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
     const payload = { file: new ArrayBuffer(32), fileName: 'illustration' };
 
     await CardHelper.uploadMedia(cardId, payload);
@@ -226,7 +226,7 @@ describe('deleteMedia', () => {
   });
 
   it('should do nothing as publicId is not set', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
     await CardHelper.deleteMedia(cardId, '');
 
     sinon.assert.notCalled(updateOne);
@@ -234,7 +234,7 @@ describe('deleteMedia', () => {
   });
 
   it('should update card and delete media', async () => {
-    const cardId = new ObjectID();
+    const cardId = new ObjectId();
     await CardHelper.deleteMedia(cardId, 'publicId');
 
     sinon.assert.calledOnceWithExactly(

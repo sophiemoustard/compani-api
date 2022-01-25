@@ -9,6 +9,7 @@ module.exports = {
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',
+  HALF_DAILY: 'half_daily',
   UNAVAILABILITY: 'unavailability',
   UNJUSTIFIED: 'unjustified_absence',
   INTERNAL_HOUR: 'internal_hour',
@@ -50,6 +51,7 @@ module.exports = {
     return {
       [this.HOURLY]: 'Horaire',
       [this.DAILY]: 'Journalière',
+      [this.HALF_DAILY]: 'Demi-journalière',
     };
   },
   PLANNING_VIEW_END_HOUR: 22,
@@ -217,7 +219,44 @@ module.exports = {
     7: 'Jours fériés',
   },
   // EXPORTS HISTORY
+  TRANSPORT: 'transport',
   WORKING_EVENT: 'working_event', // intervention or internal hours
+  COURSE: 'course',
+  COURSE_SLOT: 'course_slot',
+  get HISTORY_EXPORT_TYPES() {
+    return [
+      this.WORKING_EVENT,
+      this.BILL,
+      this.PAYMENT,
+      this.ABSENCE,
+      this.PAY,
+      this.CONTRACT,
+      this.COURSE,
+      this.COURSE_SLOT,
+      this.TRANSPORT,
+    ];
+  },
+  get CLIENT_EXPORT_TYPES() {
+    return [
+      this.WORKING_EVENT,
+      this.BILL,
+      this.PAYMENT,
+      this.ABSENCE,
+      this.PAY,
+      this.CONTRACT,
+      this.SERVICE,
+      this.AUXILIARY,
+      this.HELPER,
+      this.CUSTOMER,
+      this.FUNDING,
+      this.SUBSCRIPTION,
+      this.SECTOR,
+      this.RUP,
+      this.REFERENT,
+      this.TRANSPORT,
+    ];
+  },
+  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT]; },
   // BILLING
   BILL: 'bill',
   CREDIT_NOTE: 'credit_note',
@@ -243,11 +282,13 @@ module.exports = {
   TRANSIT: 'transit',
   WALKING: 'walking',
   DRIVING: 'driving',
+  NONE: 'none',
   get EVENT_TRANSPORT_MODE_LIST() {
     return {
       [this.PUBLIC_TRANSPORT]: 'Transports en commun / À pied',
       [this.PRIVATE_TRANSPORT]: 'Véhicule personnel',
       [this.COMPANY_TRANSPORT]: 'Véhicule d\'entreprise',
+      [this.NONE]: 'Aucun',
     };
   },
   // PAY
@@ -317,6 +358,13 @@ module.exports = {
   REMOTE: 'remote',
   get LIVE_STEPS() {
     return [this.ON_SITE, this.REMOTE];
+  },
+  get STEP_TYPES() {
+    return {
+      [this.E_LEARNING]: 'eLearning',
+      [this.ON_SITE]: 'présentiel',
+      [this.REMOTE]: 'distanciel',
+    };
   },
   // ACTIVITY
   LESSON: 'lesson',
@@ -471,4 +519,25 @@ module.exports = {
   ACTIVATED: 'Actif',
   STOPPED: 'Arrêté',
   ARCHIVED: 'Archivé',
+  // DURATION
+  YEARS: 'years',
+  QUARTERS: 'quarters',
+  MONTHS: 'months',
+  WEEKS: 'weeks',
+  DAYS: 'days',
+  HOURS: 'hours',
+  MINUTES: 'minutes',
+  SECONDS: 'seconds',
+  get DURATION_UNITS() {
+    return [
+      this.YEARS,
+      this.QUARTERS,
+      this.MONTHS,
+      this.WEEKS,
+      this.DAYS,
+      this.HOURS,
+      this.MINUTES,
+      this.SECONDS,
+    ];
+  },
 };

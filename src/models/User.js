@@ -25,6 +25,7 @@ const {
   MOBILE,
   WEBAPP,
 } = require('../helpers/constants');
+const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 const TOKEN_EXPIRE_TIME = 86400;
@@ -366,6 +367,7 @@ UserSchema.pre('validate', validate);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('updateOne', findOneAndUpdate);
+formatQueryMiddlewareList().map(middleware => UserSchema.pre(middleware, formatQuery));
 
 UserSchema.post('find', populateSectors);
 UserSchema.post('find', populateCompanies);

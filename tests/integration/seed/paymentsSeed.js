@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
 const Payment = require('../../../src/models/Payment');
@@ -14,13 +14,13 @@ const Helper = require('../../../src/models/Helper');
 const { helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const paymentTppList = [
-  { _id: new ObjectID(), name: 'Toto', company: authCompany._id, isApa: true, billingMode: 'direct' },
-  { _id: new ObjectID(), name: 'Tata', company: authCompany._id, isApa: true, billingMode: 'direct' },
+  { _id: new ObjectId(), name: 'Toto', company: authCompany._id, isApa: true, billingMode: 'direct' },
+  { _id: new ObjectId(), name: 'Tata', company: authCompany._id, isApa: true, billingMode: 'direct' },
 ];
 
 const paymentCustomerList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
@@ -37,11 +37,11 @@ const paymentCustomerList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
     },
     subscriptions: [{
-      _id: new ObjectID(),
-      service: new ObjectID(),
+      _id: new ObjectId(),
+      service: new ObjectId(),
       versions: [{
         unitTTCRate: 12,
         estimatedWeeklyVolume: 12,
@@ -52,7 +52,7 @@ const paymentCustomerList = [
     }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
@@ -66,8 +66,8 @@ const paymentCustomerList = [
       phone: '0612345678',
     },
     subscriptions: [{
-      _id: new ObjectID(),
-      service: new ObjectID(),
+      _id: new ObjectId(),
+      service: new ObjectId(),
       versions: [{
         unitTTCRate: 12,
         estimatedWeeklyVolume: 12,
@@ -80,11 +80,11 @@ const paymentCustomerList = [
       bankAccountOwner: 'David gaudu',
       iban: '',
       bic: '',
-      mandates: [{ rum: 'R012345678903456789', _id: new ObjectID() }],
+      mandates: [{ rum: 'R012345678903456789', _id: new ObjectId() }],
     },
   },
   { // 2 - archived customer
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Edgar', lastname: 'Chivé' },
     stopReason: 'hospitalization',
@@ -104,11 +104,11 @@ const paymentCustomerList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
     },
     subscriptions: [{
-      _id: new ObjectID(),
-      service: new ObjectID(),
+      _id: new ObjectId(),
+      service: new ObjectId(),
       versions: [{
         unitTTCRate: 12,
         estimatedWeeklyVolume: 12,
@@ -122,7 +122,7 @@ const paymentCustomerList = [
 
 const paymentsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-101031900201',
     date: '2019-05-26T15:47:42',
@@ -133,7 +133,7 @@ const paymentsList = [
     type: 'direct_debit',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REG-101031900202',
     date: '2019-05-24T15:47:42',
@@ -143,7 +143,7 @@ const paymentsList = [
     type: 'check',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REMB-101031900201',
     date: '2019-05-27T12:10:20',
@@ -154,7 +154,7 @@ const paymentsList = [
     type: 'direct_debit',
   },
   { // 3 - archived customer
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     number: 'REMB-101031900202',
     date: '2019-05-27T12:10:20',
@@ -171,7 +171,7 @@ const paymentNumberList = [
 ];
 
 const paymentUser = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
   local: { email: 'helper_for_customer_payment@alenvi.io' },
   refreshToken: uuidv4(),
@@ -188,7 +188,7 @@ const helpersList = [{
 }];
 
 const userFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   refreshToken: uuidv4(),
   identity: { firstname: 'toto', lastname: 'toto' },
@@ -198,12 +198,12 @@ const userFromOtherCompany = {
 };
 
 const userCompanies = [
-  { _id: new ObjectID(), user: paymentUser._id, company: authCompany._id },
-  { _id: new ObjectID(), user: userFromOtherCompany._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: paymentUser._id, company: authCompany._id },
+  { _id: new ObjectId(), user: userFromOtherCompany._id, company: otherCompany._id },
 ];
 
 const customerFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   identity: { firstname: 'customer', lastname: 'toto' },
   contact: {
@@ -219,7 +219,7 @@ const customerFromOtherCompany = {
 };
 
 const tppFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   name: 'test',
   isApa: false,

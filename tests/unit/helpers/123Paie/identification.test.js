@@ -1,7 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const User = require('../../../../src/models/User');
 const Contract = require('../../../../src/models/Contract');
 const Identification123PayHelper = require('../../../../src/helpers/123paie/identification');
@@ -181,7 +181,7 @@ describe('exportDpae', () => {
     };
     const auxiliary = { serialNumber: 'serialNumber' };
 
-    findOneUser.returns(SinonMongoose.stubChainedQueries([auxiliary]));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(auxiliary));
     formatIdentificationInfo.returns({ ap_matr: 'serialNumber' });
     formatBankingInfo.returns({ fs_bq_dom: 'BANK AUDI FRANCE' });
     formatContractInfo.returns({ ap_contrat: '1234567890' });
@@ -197,7 +197,7 @@ describe('exportDpae', () => {
       exportToTxt,
       [['ap_matr', 'fs_bq_dom', 'ap_contrat'], ['serialNumber', 'BANK AUDI FRANCE', '1234567890']]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         {
@@ -231,9 +231,9 @@ describe('exportIdentification', () => {
 
   it('should export contracts', async () => {
     const endDate = moment('2020-01-11T14:00:00').toDate();
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
 
-    findContract.returns(SinonMongoose.stubChainedQueries([[{ user: 'first user' }, { user: 'second user' }]]));
+    findContract.returns(SinonMongoose.stubChainedQueries([{ user: 'first user' }, { user: 'second user' }]));
     formatIdentificationInfo.onFirstCall().returns({ identity: 1 }).onSecondCall().returns({ identity: 2 });
     formatBankingInfo.onFirstCall().returns({ bank: 1 }).onSecondCall().returns({ bank: 2 });
     exportToTxt.returns('file');
@@ -248,7 +248,7 @@ describe('exportIdentification', () => {
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(0), 'first user');
     sinon.assert.calledWithExactly(formatBankingInfo.getCall(1), 'second user');
     sinon.assert.calledOnceWithExactly(exportToTxt, [['identity', 'bank'], [1, 1], [2, 2]]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         {

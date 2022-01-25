@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const qs = require('qs');
 const omit = require('lodash/omit');
@@ -957,8 +957,8 @@ describe('POST /events', () => {
         type: 'intervention',
         startDate: '2019-01-23T10:00:00',
         endDate: '2019-01-23T12:30:00',
-        auxiliary: new ObjectID(),
-        customer: new ObjectID(),
+        auxiliary: new ObjectId(),
+        customer: new ObjectId(),
         subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
         sector: sectors[0]._id.toHexString(),
         address: {
@@ -1698,7 +1698,7 @@ describe('DELETE /events/{_id}', () => {
     it('should return a 404 error as event is not found', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/events/${new ObjectID()}`,
+        url: `/events/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1972,7 +1972,7 @@ describe('DELETE /events', () => {
   });
 });
 
-describe('DELETE /{_id}/repetition', () => {
+describe('DELETE /events/{_id}/repetition', () => {
   let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
@@ -2071,7 +2071,7 @@ describe('DELETE /{_id}/repetition', () => {
   });
 });
 
-describe('PUT /{_id}/timestamping', () => {
+describe('PUT /events/{_id}/timestamping', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
@@ -2120,7 +2120,7 @@ describe('PUT /{_id}/timestamping', () => {
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/events/${new ObjectID()}/timestamping`,
+        url: `/events/${new ObjectId()}/timestamping`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { startDate: new Date(), action: 'manual_time_stamping', reason: 'camera_error' },
       });

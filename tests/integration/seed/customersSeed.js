@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
@@ -31,21 +31,21 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
-const subId1 = new ObjectID();
-const subId2 = new ObjectID();
-const subId3 = new ObjectID();
-const subId4 = new ObjectID();
-const subId5 = new ObjectID();
-const service1 = new ObjectID();
-const service2 = new ObjectID();
-const service3 = new ObjectID();
-const service4 = new ObjectID();
-const archivedService = new ObjectID();
-const otherCompanyCustomerId = new ObjectID();
+const subId1 = new ObjectId();
+const subId2 = new ObjectId();
+const subId3 = new ObjectId();
+const subId4 = new ObjectId();
+const subId5 = new ObjectId();
+const service1 = new ObjectId();
+const service2 = new ObjectId();
+const service3 = new ObjectId();
+const service4 = new ObjectId();
+const archivedService = new ObjectId();
+const otherCompanyCustomerId = new ObjectId();
 
 const referentList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Referent', lastname: 'Test', title: 'mr' },
     local: { email: 'auxiliaryreferent@alenvi.io' },
     contact: { phone: '0987654321' },
@@ -55,7 +55,7 @@ const referentList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'SuperReferent', lastname: 'Test', title: 'mr' },
     local: { email: 'auxiliaryreferent2@alenvi.io' },
     refreshToken: uuidv4(),
@@ -129,9 +129,9 @@ const customerServiceList = [
 ];
 
 const customerThirdPartyPayers = [
-  { _id: new ObjectID(), company: authCompany._id, isApa: true, billingMode: 'direct', name: 'Toto' },
+  { _id: new ObjectId(), company: authCompany._id, isApa: true, billingMode: 'direct', name: 'Toto' },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     isApa: true,
     billingMode: 'direct',
@@ -142,7 +142,7 @@ const customerThirdPartyPayers = [
 
 const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
@@ -232,7 +232,7 @@ const customersList = [
     }],
     payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
     quotes: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       subscriptions: [
         { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
         { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
@@ -240,7 +240,7 @@ const customersList = [
     }],
     fundings: [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[1]._id,
         subscription: subId3,
@@ -257,7 +257,7 @@ const customersList = [
         }],
       },
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[1]._id,
         subscription: subId3,
@@ -276,7 +276,7 @@ const customersList = [
     ],
   },
   { // Customer with mandates
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Egan', lastname: 'Bernal' },
     contact: {
@@ -294,15 +294,15 @@ const customersList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [{ rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() }],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
     },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: archivedService,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
     fundings: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       nature: FIXED,
       thirdPartyPayer: customerThirdPartyPayers[0]._id,
       subscription: subId3,
@@ -319,7 +319,7 @@ const customersList = [
     }],
   },
   { // 2
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
     contact: {
@@ -336,7 +336,7 @@ const customersList = [
     payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
   },
   { // 3
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Volgarr', lastname: 'Theviking' },
     driveFolder: { driveId: '1234567890' },
@@ -353,12 +353,12 @@ const customersList = [
   },
   // 4 - customer with bill
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'withBills', lastname: 'customer' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: service1,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
@@ -375,12 +375,12 @@ const customersList = [
   },
   // 5 - customer with payment
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'withPayments', lastname: 'Kilian' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: service1,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
@@ -397,12 +397,12 @@ const customersList = [
   },
   // 6 - customer with creditNote
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'withCreditNote', lastname: 'Antoine' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: service1,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
@@ -419,12 +419,12 @@ const customersList = [
   },
   // 7 - customer with taxcertificate
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'withBills', lastname: 'Hugo' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: service1,
       versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
     }],
@@ -440,7 +440,7 @@ const customersList = [
     },
   },
   { // 8 - Helper's customer
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Duris' },
     contact: {
@@ -474,7 +474,7 @@ const customersList = [
     payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
     fundings: [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[0]._id,
         subscription: subId2,
@@ -502,7 +502,7 @@ const customersList = [
     ],
   },
   { // 9 - stopped with billed events
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Theresa' },
     contact: {
@@ -518,7 +518,7 @@ const customersList = [
     stopReason: DEATH,
   },
   { // 10
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Bedot' },
     contact: {
@@ -533,7 +533,7 @@ const customersList = [
     createdAt: new Date('2021-05-24'),
   },
   { // 11
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'alex', lastname: 'terieur' },
     contact: {
@@ -550,7 +550,7 @@ const customersList = [
     archivedAt: new Date(),
   },
   { // 12
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'testons', lastname: 'larchivage' },
     contact: {
@@ -566,7 +566,7 @@ const customersList = [
     stopReason: DEATH,
   },
   { // 13 - stopped with non billed, to invoice events
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'thepower', lastname: 'agathe' },
     contact: {
@@ -583,7 +583,7 @@ const customersList = [
   },
   // 14 - customer with bill and archived
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     stoppedAt: '2021-06-01T23:00:00',
     stopReason: QUALITY,
@@ -607,7 +607,7 @@ const customersList = [
     },
   },
   { // 15 - stopped with non billed, not to invoice events
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'agathe', lastname: 'lenoir' },
     contact: {
@@ -626,7 +626,7 @@ const customersList = [
 
 const billList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
     company: customersList[4].company,
     number: 'FACT-1901001',
@@ -638,13 +638,13 @@ const billList = [
       endDate: '2019-11-29',
       subscription: customersList[5].subscriptions[0]._id,
       service: {
-        serviceId: new ObjectID(),
+        serviceId: new ObjectId(),
         name: 'Temps de qualité - autonomie',
         nature: 'fixed',
       },
       vat: 5.5,
       events: [{
-        eventId: new ObjectID(),
+        eventId: new ObjectId(),
         startDate: '2019-01-16T09:30:19',
         endDate: '2019-01-16T11:30:21',
         auxiliary: referentList[0]._id,
@@ -660,7 +660,7 @@ const billList = [
     }],
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'automatic',
     company: customersList[14].company,
     number: 'FACT-1901002',
@@ -672,13 +672,13 @@ const billList = [
       endDate: '2019-11-29',
       subscription: customersList[5].subscriptions[0]._id,
       service: {
-        serviceId: new ObjectID(),
+        serviceId: new ObjectId(),
         name: 'Temps de qualité - autonomie',
         nature: 'fixed',
       },
       vat: 5.5,
       events: [{
-        eventId: new ObjectID(),
+        eventId: new ObjectId(),
         startDate: '2019-01-16T09:30:19',
         endDate: '2019-01-16T11:30:21',
         auxiliary: referentList[0]._id,
@@ -696,7 +696,7 @@ const billList = [
 ];
 
 const payment = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: customersList[5].company,
   number: 'REG-101031900201',
   date: '2019-05-26T15:47:42',
@@ -707,7 +707,7 @@ const payment = {
 };
 
 const creditNote = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   date: '2020-01-01',
   startDate: '2020-01-01',
   endDate: '2020-01-12',
@@ -719,7 +719,7 @@ const creditNote = {
 };
 
 const taxCertificate = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: authCompany._id,
   customer: customersList[7]._id,
   year: '2019',
@@ -763,7 +763,7 @@ const otherCompanyCustomer = {
   },
   subscriptions: [
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: service1,
       versions: [{
         unitTTCRate: 12,
@@ -773,7 +773,7 @@ const otherCompanyCustomer = {
       }],
     },
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       service: service2,
       versions: [{
         unitTTCRate: 12,
@@ -810,13 +810,13 @@ const otherCompanyCustomer = {
     bic: '',
     mandates: [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         rum: 'R012345678903456789',
       },
     ],
   },
   quotes: [{
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     subscriptions: [{
       service: { name: 'Test', nature: 'hourly' },
       unitTTCRate: 23,
@@ -829,7 +829,7 @@ const otherCompanyCustomer = {
   }],
   fundings: [
     {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       nature: FIXED,
       thirdPartyPayer: customerThirdPartyPayers[0]._id,
       subscription: subId3,
@@ -849,7 +849,7 @@ const otherCompanyCustomer = {
 
 const userList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer', lastname: 'TheEtMoselle' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -857,7 +857,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer2', lastname: 'Rtre' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -865,7 +865,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -873,7 +873,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Caragua' },
     local: { email: 'helper_for_customer_other_company@alenvi.io' },
     refreshToken: uuidv4(),
@@ -881,7 +881,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -889,7 +889,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Devo' },
     local: { email: 'auxforevent@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -897,7 +897,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Vé' },
     local: { email: 'auxforcustomer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
@@ -907,8 +907,8 @@ const userList = [
 ];
 
 const sectorsList = [
-  { _id: new ObjectID(), name: 'Super Equipe', company: authCompany._id },
-  { _id: new ObjectID(), name: 'Equipe Genial', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Super Equipe', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Equipe Genial', company: authCompany._id },
 ];
 
 const sectorHistoriesList = [
@@ -918,7 +918,7 @@ const sectorHistoriesList = [
 
 const eventList = [
   { // 0
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     isBilled: true,
     customer: customersList[0]._id,
@@ -936,12 +936,12 @@ const eventList = [
     },
   },
   { // 1
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     isBilled: true,
     customer: customersList[14]._id,
     type: 'intervention',
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subId5,
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
@@ -954,12 +954,12 @@ const eventList = [
     },
   },
   { // 2
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     isBilled: false,
     company: authCompany._id,
     customer: customersList[0]._id,
     type: 'intervention',
-    sector: new ObjectID(),
+    sector: new ObjectId(),
     subscription: subId5,
     startDate: '2019-01-17T14:30:19',
     endDate: '2019-01-17T15:30:21',
@@ -972,8 +972,8 @@ const eventList = [
     },
   },
   { // 3
-    _id: new ObjectID(),
-    sector: new ObjectID(),
+    _id: new ObjectId(),
+    sector: new ObjectId(),
     company: authCompany._id,
     type: 'intervention',
     startDate: '2020-12-14T09:30:19',
@@ -990,8 +990,8 @@ const eventList = [
     },
   },
   { // 4
-    _id: new ObjectID(),
-    sector: new ObjectID(),
+    _id: new ObjectId(),
+    sector: new ObjectId(),
     company: authCompany._id,
     type: 'intervention',
     startDate: '2019-01-16T09:30:19',
@@ -1006,7 +1006,7 @@ const eventList = [
       exclTaxesCustomer: 15,
       inclTaxesTpp: 10,
       exclTaxesTpp: 5,
-      fundingId: new ObjectID(),
+      fundingId: new ObjectId(),
       nature: 'hourly',
       careHours: 2,
     },
@@ -1019,23 +1019,23 @@ const eventList = [
     },
   },
   { // 5
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: otherCompany._id,
     isBilled: true,
     customer: otherCompanyCustomerId,
     type: 'intervention',
     bills: {
-      thirdPartyPayer: new ObjectID(),
+      thirdPartyPayer: new ObjectId(),
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
       inclTaxesTpp: 10,
       exclTaxesTpp: 5,
-      fundingId: new ObjectID(),
+      fundingId: new ObjectId(),
       nature: 'hourly',
       careHours: 2,
     },
     sector: sectorsList[1]._id,
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -1047,12 +1047,12 @@ const eventList = [
     },
   },
   { // 6
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[1]._id,
     auxiliary: userList[5]._id,
     type: 'intervention',
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -1064,12 +1064,12 @@ const eventList = [
     },
   },
   { // 7
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[2]._id,
     auxiliary: userList[6]._id,
     type: 'intervention',
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -1081,12 +1081,12 @@ const eventList = [
     },
   },
   { // 8
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[12]._id,
     auxiliary: userList[6]._id,
     type: 'intervention',
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -1098,13 +1098,13 @@ const eventList = [
     },
   },
   { // 9
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[9]._id,
     isBilled: true,
     auxiliary: userList[6]._id,
     type: 'intervention',
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -1116,7 +1116,7 @@ const eventList = [
     },
   },
   { // 10
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[13]._id,
     isBilled: false,
@@ -1125,7 +1125,7 @@ const eventList = [
     misc: 'skusku',
     auxiliary: userList[6]._id,
     type: 'intervention',
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -1137,7 +1137,7 @@ const eventList = [
     },
   },
   { // 11
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[15]._id,
     isBilled: false,
@@ -1146,7 +1146,7 @@ const eventList = [
     misc: 'skusku',
     auxiliary: userList[6]._id,
     type: 'intervention',
-    subscription: new ObjectID(),
+    subscription: new ObjectId(),
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -1158,7 +1158,7 @@ const eventList = [
     },
   },
   { // 12
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     customer: customersList[0]._id,
     type: 'intervention',
@@ -1184,9 +1184,9 @@ const customerAbsenceList = [{
   absenceType: HOSPITALIZATION,
 }];
 
-const repetitionParentId = new ObjectID();
+const repetitionParentId = new ObjectId();
 const repetition = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   parentId: repetitionParentId,
   subscription: subId4,
   repetition: { frequency: EVERY_WEEK },
@@ -1201,13 +1201,13 @@ const helpersList = [
 ];
 
 const userCompanies = [
-  { _id: new ObjectID(), user: referentList[0]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: referentList[1]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: userList[0]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: userList[1]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: userList[2]._id, company: authCompany._id },
-  { _id: new ObjectID(), user: userList[3]._id, company: otherCompany._id },
-  { _id: new ObjectID(), user: userList[4]._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: referentList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: referentList[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: userList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: userList[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: userList[2]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: userList[3]._id, company: otherCompany._id },
+  { _id: new ObjectId(), user: userList[4]._id, company: otherCompany._id },
 ];
 
 const populateDB = async () => {

@@ -1,7 +1,7 @@
 const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const PayDocumentHelper = require('../../../src/helpers/payDocuments');
@@ -30,14 +30,13 @@ describe('create', () => {
   });
 
   it('should throw a 424 error if file is not uploaded to Google Drive', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
-    const credentials = { company: { _id: new ObjectID() } };
-    findOne.returns(SinonMongoose.stubChainedQueries([{
-      _id: userId,
-      administrative: { driveFolder: { driveId: 'driveId' } },
-      identity: { lastname: 'lastname' },
-    }]));
+    const credentials = { company: { _id: new ObjectId() } };
+    findOne.returns(SinonMongoose.stubChainedQueries(
+      { _id: userId, administrative: { driveFolder: { driveId: 'driveId' } }, identity: { lastname: 'lastname' } },
+      ['lean']
+    ));
     formatIdentity.returns('bonjour');
     addFile.returns(null);
 
@@ -46,10 +45,13 @@ describe('create', () => {
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive: File not uploaded'));
     } finally {
-      SinonMongoose.calledWithExactly(findOne, [
-        { query: '', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
-        { query: 'lean' },
-      ]);
+      SinonMongoose.calledOnceWithExactly(
+        findOne,
+        [
+          { query: 'findOne', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
+          { query: 'lean' },
+        ]
+      );
       sinon.assert.calledWithExactly(formatIdentity, { lastname: 'lastname' }, 'FL');
       sinon.assert.calledWithExactly(addFile, {
         driveFolderId: 'driveId',
@@ -62,15 +64,14 @@ describe('create', () => {
   });
 
   it('should save document to drive and db', async () => {
-    const userId = new ObjectID();
-    const companyId = new ObjectID();
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
     const payload = { file: 'stream', mimeType: 'pdf', date: '2020-12-31T00:00:00', nature: 'payslip', user: userId };
     const credentials = { company: { _id: companyId } };
-    findOne.returns(SinonMongoose.stubChainedQueries([{
-      _id: userId,
-      administrative: { driveFolder: { driveId: 'driveId' } },
-      identity: { lastname: 'lastname' },
-    }]));
+    findOne.returns(SinonMongoose.stubChainedQueries(
+      { _id: userId, administrative: { driveFolder: { driveId: 'driveId' } }, identity: { lastname: 'lastname' } },
+      ['lean']
+    ));
     formatIdentity.returns('bonjour');
     addFile.returns({ id: '0987654321', webViewLink: 'http://test.com/test.pdf' });
 
@@ -80,10 +81,13 @@ describe('create', () => {
       addFile,
       { driveFolderId: 'driveId', name: 'bulletin_de_paie_31_12_2020_0000_bonjour', type: 'pdf', body: 'stream' }
     );
-    SinonMongoose.calledWithExactly(findOne, [
-      { query: '', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
-      { query: 'lean' },
-    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: userId }, { identity: 1, 'administrative.driveFolder': 1 }] },
+        { query: 'lean' },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(
       create,
       {
@@ -108,7 +112,7 @@ describe('removeFromDriveAndDb', () => {
 
   it('should remove document from db and drive', async () => {
     const deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
-    const id = new ObjectID();
+    const id = new ObjectId();
     const doc = { file: { driveId: '1234567890', link: 'http://test.com/test.pdf' } };
     findByIdAndRemoveStub.returns(doc);
     await PayDocumentHelper.removeFromDriveAndDb(id);

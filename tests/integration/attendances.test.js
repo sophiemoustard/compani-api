@@ -1,6 +1,7 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Attendance = require('../../src/models/Attendance');
+const Course = require('../../src/models/Course');
 const app = require('../../server');
 const {
   populateDB,
@@ -11,6 +12,7 @@ const {
   companyTraineesList,
 } = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -68,7 +70,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
         method: 'POST',
         url: '/attendances',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { trainee: coursesList[0].trainees[1], courseSlot: new ObjectID() },
+        payload: { trainee: coursesList[0].trainees[1], courseSlot: new ObjectId() },
       });
 
       expect(response.statusCode).toBe(404);
@@ -171,7 +173,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendances.length).toEqual(1);
+      expect(response.result.data.attendances.length).toEqual(3);
     });
 
     it('should get courseSlot attendances', async () => {
@@ -182,7 +184,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.attendances.length).toEqual(1);
+      expect(response.result.data.attendances.length).toEqual(3);
     });
 
     it('should get course attendances not filtered by company for inter course', async () => {
@@ -219,7 +221,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
     it('should return 404 if invalid course', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?course=${new ObjectID()}`,
+        url: `/attendances?course=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -229,7 +231,7 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
     it('should return 404 if invalid courseSlot', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/attendances?courseSlot=${new ObjectID()}`,
+        url: `/attendances?courseSlot=${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -310,6 +312,146 @@ describe('ATTENDANCES ROUTES - GET /attendances', () => {
   });
 });
 
+describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('TRAINER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('trainer');
+    });
+
+    it('should get attendances in other course (course trainer)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/unsubscribed?course=${coursesList[6]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const unsubscribedTrainees = Object.keys(response.result.data.unsubscribedAttendances);
+      expect(unsubscribedTrainees.length).toEqual(2);
+
+      const isACourseTrainee = await Course.countDocuments({ trainees: { $in: unsubscribedTrainees } });
+      expect(isACourseTrainee).toBeTruthy();
+    });
+
+    it('return 403 if not course trainer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/unsubscribed?course=${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('return 404 if course doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/unsubscribed?course=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should get attendances in other course (not course trainer)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/unsubscribed?course=${coursesList[6]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const unsubscribedTrainees = Object.keys(response.result.data.unsubscribedAttendances);
+      expect(unsubscribedTrainees.length).toEqual(2);
+
+      const isACourseTrainee = await Course.countDocuments({ trainees: { $in: unsubscribedTrainees } });
+      expect(isACourseTrainee).toBeTruthy();
+    });
+  });
+
+  describe('COACH', () => {
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
+
+    it('should get company trainees\' attendances in other course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/unsubscribed?course=${coursesList[6]._id}&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const unsubscribedTrainees = Object.keys(response.result.data.unsubscribedAttendances);
+      expect(unsubscribedTrainees.length).toEqual(1);
+
+      const isACourseTrainee = await Course.countDocuments({ trainees: { $in: unsubscribedTrainees } });
+      expect(isACourseTrainee).toBeTruthy();
+    });
+
+    it('should return 400 if no company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/unsubscribed?course=${coursesList[6]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 403 if course is inter_b2b without company trainees', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/unsubscribed?course=${coursesList[4]._id}&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if course is intra from other company ', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/attendances/unsubscribed?course=${coursesList[2]._id}&company=${authCompany._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?course=${coursesList[6]._id}&company=${authCompany._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
@@ -334,7 +476,7 @@ describe('ATTENDANCES ROUTES - DELETE /attendances/{_id}', () => {
     it('should return a 404 if attendance does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/attendances/${new ObjectID()}`,
+        url: `/attendances/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

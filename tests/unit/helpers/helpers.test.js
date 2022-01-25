@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
 const HelpersHelper = require('../../../src/helpers/helpers');
@@ -15,15 +15,15 @@ describe('list', () => {
   });
 
   it('should get helpers', async () => {
-    const query = { customer: new ObjectID() };
-    const companyId = new ObjectID();
+    const query = { customer: new ObjectId() };
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const helpers = [
-      { _id: new ObjectID(), user: { local: { email: 'helper1@test.fr' } }, customer: query.customer, referent: true },
-      { _id: new ObjectID(), user: { local: { email: 'helper2@test.fr' } }, customer: query.customer, referent: false },
+      { _id: new ObjectId(), user: { local: { email: 'helper1@test.fr' } }, customer: query.customer, referent: true },
+      { _id: new ObjectId(), user: { local: { email: 'helper2@test.fr' } }, customer: query.customer, referent: false },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([helpers]));
+    find.returns(SinonMongoose.stubChainedQueries(helpers));
 
     const result = await HelpersHelper.list(query, credentials);
 
@@ -41,7 +41,7 @@ describe('list', () => {
         customer: query.customer,
       },
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ customer: query.customer, company: companyId }] },
@@ -65,15 +65,15 @@ describe('update', () => {
   });
 
   it('should update the referent helper', async () => {
-    const helperId = new ObjectID();
-    const customerId = new ObjectID();
+    const helperId = new ObjectId();
+    const customerId = new ObjectId();
     const helper = { _id: helperId, customer: customerId };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([helper], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(helper, ['lean']));
 
     await HelpersHelper.update(helperId, { referent: true });
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [{ query: 'findOneAndUpdate', args: [{ _id: helperId }, { $set: { referent: true } }] }, { query: 'lean' }]
     );
@@ -98,9 +98,9 @@ describe('create', () => {
   });
 
   it('should create a non referent helper', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const userId = new ObjectID();
-    const customerId = new ObjectID();
+    const credentials = { company: { _id: new ObjectId() } };
+    const userId = new ObjectId();
+    const customerId = new ObjectId();
 
     countDocuments.returns(1);
 
@@ -113,9 +113,9 @@ describe('create', () => {
   });
 
   it('should create a referent helper', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const userId = new ObjectID();
-    const customerId = new ObjectID();
+    const credentials = { company: { _id: new ObjectId() } };
+    const userId = new ObjectId();
+    const customerId = new ObjectId();
 
     countDocuments.returns(0);
 
@@ -138,7 +138,7 @@ describe('remove', () => {
   });
 
   it('should delete a helper', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
 
     await HelpersHelper.remove(userId);
 

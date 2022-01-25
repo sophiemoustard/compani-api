@@ -3,7 +3,13 @@ const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const momentRange = require('moment-range');
-const { INTERVENTION, ABSENCE, UNAVAILABILITY, NEVER } = require('./constants');
+const {
+  INTERVENTION,
+  ABSENCE,
+  UNAVAILABILITY,
+  NEVER,
+  DAILY,
+} = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
 const EventHistory = require('../models/EventHistory');
@@ -58,7 +64,7 @@ const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary &&
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.isEditionAllowed = async (event) => {
-  if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
+  if ((event.type !== ABSENCE || event.absenceNature !== DAILY) && !isOneDayEvent(event)) return false;
   if (event.type !== INTERVENTION && !event.auxiliary) return false;
 
   if (event.auxiliary) {

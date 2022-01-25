@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
 const Boom = require('@hapi/boom');
@@ -10,7 +10,7 @@ const AdministrativeDocumentHelper = require('../../../src/helpers/administrativ
 const SinonMongoose = require('../sinonMongoose');
 
 describe('createAdministrativeDocument', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
   const payload = { name: 'test', mimeType: 'pdf', file: 'file' };
 
@@ -36,7 +36,7 @@ describe('createAdministrativeDocument', () => {
     const uploadedFile = { id: '12345', webViewLink: 'www.12345.fr' };
     addFileStub.returns(uploadedFile);
 
-    findByIdCompany.returns(SinonMongoose.stubChainedQueries([{ folderId: '1234' }], ['lean']));
+    findByIdCompany.returns(SinonMongoose.stubChainedQueries({ folderId: '1234' }, ['lean']));
 
     await AdministrativeDocumentHelper.createAdministrativeDocument(payload, credentials);
 
@@ -52,13 +52,13 @@ describe('createAdministrativeDocument', () => {
       createAdministrativeDocument,
       { company: companyId, name: payload.name, driveFile: { driveId: '12345', link: 'www.12345.fr' } }
     );
-    SinonMongoose.calledWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
   });
 
   it('should return an error if uploaded file is not defined', async () => {
     try {
       addFileStub.returns();
-      findByIdCompany.returns(SinonMongoose.stubChainedQueries([{ folderId: '1234' }], ['lean']));
+      findByIdCompany.returns(SinonMongoose.stubChainedQueries({ folderId: '1234' }, ['lean']));
 
       await AdministrativeDocumentHelper.createAdministrativeDocument(payload, credentials);
     } catch (e) {
@@ -70,13 +70,16 @@ describe('createAdministrativeDocument', () => {
       );
       sinon.assert.notCalled(createPermissionStub);
       sinon.assert.notCalled(createAdministrativeDocument);
-      SinonMongoose.calledWithExactly(findByIdCompany, [{ query: 'findById', args: [companyId] }, { query: 'lean' }]);
+      SinonMongoose.calledOnceWithExactly(
+        findByIdCompany,
+        [{ query: 'findById', args: [companyId] }, { query: 'lean' }]
+      );
     }
   });
 });
 
 describe('listAdministrativeDocuments', () => {
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
 
   let findAdministrativeDocument;
@@ -89,14 +92,14 @@ describe('listAdministrativeDocuments', () => {
   });
 
   it('should create an administrative document', async () => {
-    const administrativeDocuments = [{ _id: new ObjectID() }];
+    const administrativeDocuments = [{ _id: new ObjectId() }];
 
-    findAdministrativeDocument.returns(SinonMongoose.stubChainedQueries([administrativeDocuments], ['lean']));
+    findAdministrativeDocument.returns(SinonMongoose.stubChainedQueries(administrativeDocuments, ['lean']));
 
     const res = await AdministrativeDocumentHelper.listAdministrativeDocuments(credentials);
 
     expect(res).toEqual(administrativeDocuments);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findAdministrativeDocument,
       [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
     );
@@ -104,7 +107,7 @@ describe('listAdministrativeDocuments', () => {
 });
 
 describe('removeAdministrativeDocument', () => {
-  const administrativeDocumentId = new ObjectID();
+  const administrativeDocumentId = new ObjectId();
 
   let findOneAndDelete;
   let deleteFileStub;
@@ -120,12 +123,12 @@ describe('removeAdministrativeDocument', () => {
 
   it('should remove a document from bdd + drive', async () => {
     deleteFileStub.returns();
-    findOneAndDelete.returns(SinonMongoose.stubChainedQueries([{ driveFile: { driveId: '1234' } }], ['lean']));
+    findOneAndDelete.returns(SinonMongoose.stubChainedQueries({ driveFile: { driveId: '1234' } }, ['lean']));
 
     await AdministrativeDocumentHelper.removeAdministrativeDocument(administrativeDocumentId);
 
     sinon.assert.calledWithExactly(deleteFileStub, '1234');
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndDelete,
       [{ query: 'findOneAndDelete', args: [{ _id: administrativeDocumentId }] }, { query: 'lean' }]
     );

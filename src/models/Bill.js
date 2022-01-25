@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const ServiceSchema = require('./Service').schema;
 const { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition } = require('./schemaDefinitions/billing');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const { COMPANI, THIRD_PARTY, OGUST, AUTOMATIC, MANUAL } = require('../helpers/constants');
 const { minLength } = require('./validations/utils');
 
@@ -60,6 +60,7 @@ const BillSchema = mongoose.Schema({
 
 BillSchema.pre('find', validateQuery);
 BillSchema.pre('aggregate', validateAggregation);
+formatQueryMiddlewareList().map(middleware => BillSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('Bill', BillSchema);
 module.exports.BILL_ORIGINS = BILL_ORIGINS;

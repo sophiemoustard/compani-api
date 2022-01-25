@@ -19,6 +19,23 @@ const list = async (req) => {
   }
 };
 
+const listUnsubscribed = async (req) => {
+  try {
+    const { course, company } = req.query;
+    const unsubscribedAttendances = await AttendanceHelper.listUnsubscribed(course, company);
+
+    return {
+      message: unsubscribedAttendances.length
+        ? translate[language].attendancesFound
+        : translate[language].attendancesNotFound,
+      data: { unsubscribedAttendances },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const create = async (req) => {
   try {
     await AttendanceHelper.create(req.payload);
@@ -41,4 +58,4 @@ const remove = async (req) => {
   }
 };
 
-module.exports = { list, create, remove };
+module.exports = { list, listUnsubscribed, create, remove };

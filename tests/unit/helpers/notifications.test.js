@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const { BLENDED_COURSE_REGISTRATION, NEW_ELEARNING_COURSE } = require('../../../src/helpers/constants');
 const NotificationHelper = require('../../../src/helpers/notifications');
@@ -18,7 +18,7 @@ describe('sendNotificationToAPI', () => {
 
   it('should call expo api', async () => {
     const EXPO_NOTIFICATION_API_URL = 'https://exp.host/--/api/v2/push/send/';
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const payload = {
       to: 'ExponentPushToken[JeSuisUnTokenExpo]',
       title: 'Bonjour, c\'est Philippe Etchebest',
@@ -51,7 +51,7 @@ describe('sendNotificationToUser', () => {
   });
 
   it('should call expo api to send notification', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const payload = {
       title: 'Bonjour, c\'est Philippe Etchebest',
       body: '#TeamMathias',
@@ -89,7 +89,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
     const trainee = {
       formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
     };
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const course = {
       _id: courseId,
       subProgram: { program: { name: 'La communication avec Patrick' } },
@@ -97,11 +97,11 @@ describe('sendBlendedCourseRegistrationNotification', () => {
       slots: [{ startDate: '2020-01-02' }],
     };
 
-    findOne.returns(SinonMongoose.stubChainedQueries([course]));
+    findOne.returns(SinonMongoose.stubChainedQueries(course));
 
     await NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -136,7 +136,7 @@ describe('sendBlendedCourseRegistrationNotification', () => {
 
   it('should do nothing if trainee has no formationExpoTokenList', async () => {
     const trainee = {};
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
 
     await NotificationHelper.sendBlendedCourseRegistrationNotification(trainee, courseId);
 
@@ -166,20 +166,20 @@ describe('sendNewElearningCourseNotification', () => {
     const trainees = [{
       formationExpoTokenList: ['ExponentPushToken[jeSuisUnTokenExpo]', 'ExponentPushToken[jeSuisUnAutreTokenExpo]'],
     }];
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const course = {
       _id: courseId,
-      subProgram: { program: { _id: new ObjectID(), name: 'La communication avec Patrick' } },
+      subProgram: { program: { _id: new ObjectId(), name: 'La communication avec Patrick' } },
       misc: 'skusku',
       slots: [{ startDate: '2020-01-02' }],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
-    userFind.returns(SinonMongoose.stubChainedQueries([trainees], ['lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    userFind.returns(SinonMongoose.stubChainedQueries(trainees, ['lean']));
 
     await NotificationHelper.sendNewElearningCourseNotification(courseId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -190,7 +190,7 @@ describe('sendNewElearningCourseNotification', () => {
         { query: 'lean', args: [] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         {
@@ -224,7 +224,7 @@ describe('sendNewElearningCourseNotification', () => {
   });
 
   it('should do nothing if no trainee', async () => {
-    const courseId = new ObjectID();
+    const courseId = new ObjectId();
     const course = {
       _id: courseId,
       subProgram: { program: { name: 'La communication avec Patrick' } },
@@ -232,12 +232,12 @@ describe('sendNewElearningCourseNotification', () => {
       slots: [{ startDate: '2020-01-02' }],
     };
 
-    courseFindOne.returns(SinonMongoose.stubChainedQueries([course]));
-    userFind.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
+    userFind.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     await NotificationHelper.sendNewElearningCourseNotification(courseId);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       courseFindOne,
       [
         { query: 'findOne', args: [{ _id: courseId }] },
@@ -248,7 +248,7 @@ describe('sendNewElearningCourseNotification', () => {
         { query: 'lean', args: [] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       userFind,
       [
         {

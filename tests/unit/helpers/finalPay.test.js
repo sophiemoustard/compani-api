@@ -1,11 +1,11 @@
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const FinalPay = require('../../../src/models/FinalPay');
 const PayHelper = require('../../../src/helpers/pay');
 const FinalPayHelper = require('../../../src/helpers/finalPay');
 
 describe('createFinalPayList', () => {
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
   let formatPayStub;
   let insertMany;
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe('createFinalPayList', () => {
   });
 
   it('should create pay', async () => {
-    const finalPayToCreate = [{ _id: new ObjectID() }];
+    const finalPayToCreate = [{ _id: new ObjectId() }];
 
     formatPayStub.returns(finalPayToCreate[0]);
 

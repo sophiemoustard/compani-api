@@ -1,11 +1,11 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Surcharge = require('../../../src/models/Surcharge');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const surchargesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     name: 'Chasse aux monstres hivernaux',
     saturday: 25,
@@ -22,7 +22,7 @@ const surchargesList = [
     customEndTime: '14:01',
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     name: 'Chasse aux monstres estivaux',
     saturday: 30,
@@ -41,7 +41,7 @@ const surchargesList = [
 ];
 
 const surchargeFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   company: otherCompany._id,
   name: 'Chasse aux monstres estivaux',
   saturday: 30,

@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventRepository = require('../../../src/repositories/EventRepository');
 
@@ -14,7 +14,7 @@ describe('formatEvents', () => {
   });
 
   it('should format event', () => {
-    const event = { _id: new ObjectID(), internalHour: new ObjectID() };
+    const event = { _id: new ObjectId(), internalHour: new ObjectId() };
     expect(EventRepository.formatEvent(event)).toEqual(event);
 
     sinon.assert.notCalled(getMatchingObject);
@@ -22,8 +22,8 @@ describe('formatEvents', () => {
 
   it('should format event auxiliary', () => {
     const event = {
-      _id: new ObjectID(),
-      internalHour: new ObjectID(),
+      _id: new ObjectId(),
+      internalHour: new ObjectId(),
       auxiliary: { sectorHistories: [{ startDate: '2021-02-12T09:00:00' }, { startDate: '2021-01-12T09:00:00' }] },
       startDate: '2021-03-12T09:00:00',
     };
@@ -47,11 +47,11 @@ describe('formatEvents', () => {
   });
 
   it('should format event subscription', () => {
-    const subId = new ObjectID();
-    const otherSubId = new ObjectID();
+    const subId = new ObjectId();
+    const otherSubId = new ObjectId();
     const event = {
-      _id: new ObjectID(),
-      internalHour: new ObjectID(),
+      _id: new ObjectId(),
+      internalHour: new ObjectId(),
       startDate: '2021-03-12T09:00:00',
       customer: { subscriptions: [{ _id: subId }, { _id: otherSubId }] },
       subscription: subId,

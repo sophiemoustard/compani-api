@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
 const StepHelper = require('../../../src/helpers/steps');
@@ -17,7 +17,7 @@ describe('updateStep', () => {
   });
 
   it('should update a step\'s name', async () => {
-    const step = { _id: new ObjectID(), name: 'jour' };
+    const step = { _id: new ObjectId(), name: 'jour' };
     const payload = { name: 'nuit' };
 
     await StepHelper.updateStep(step._id, payload);
@@ -41,9 +41,9 @@ describe('addStep', () => {
   });
 
   it('should create a step', async () => {
-    const subProgram = { _id: new ObjectID() };
+    const subProgram = { _id: new ObjectId() };
     const newStep = { name: 'c\'est une étape !', type: 'lesson' };
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     createStep.returns({ _id: stepId });
 
     await StepHelper.addStep(subProgram._id, newStep);
@@ -63,8 +63,8 @@ describe('reuseActivity', () => {
   });
 
   it('should push a reused activity', async () => {
-    const step = { _id: new ObjectID() };
-    const payload = { activities: new ObjectID() };
+    const step = { _id: new ObjectId() };
+    const payload = { activities: new ObjectId() };
 
     await StepHelper.reuseActivity(step._id, payload);
 
@@ -84,8 +84,8 @@ describe('detachStep', () => {
   });
 
   it('remove stepId of subProgram', async () => {
-    const stepId = new ObjectID();
-    const subProgramId = new ObjectID();
+    const stepId = new ObjectId();
+    const subProgramId = new ObjectId();
 
     await StepHelper.detachStep(subProgramId, stepId);
 
@@ -132,7 +132,7 @@ describe('liveStepProgress', () => {
   });
 
   it('should get live steps progress', async () => {
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     const step = {
       _id: stepId,
       activities: [],
@@ -149,10 +149,10 @@ describe('liveStepProgress', () => {
   });
 
   it('should get live steps progress with progress of elearning activities', async () => {
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     const step = {
       _id: stepId,
-      activities: [{ _id: new ObjectID() }],
+      activities: [{ _id: new ObjectId() }],
     };
 
     const slots = [
@@ -168,10 +168,10 @@ describe('liveStepProgress', () => {
   });
 
   it('should return 0 if no slots', async () => {
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     const step = {
       _id: stepId,
-      activities: [{ _id: new ObjectID() }],
+      activities: [{ _id: new ObjectId() }],
     };
 
     const slots = [];
@@ -197,7 +197,7 @@ describe('getProgress', () => {
   });
   it('should get progress for elearning step', async () => {
     const step = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       activities: [{ activityHistories: [{}, {}] }],
       name: 'Développement personnel full stack',
       type: E_LEARNING,
@@ -212,7 +212,7 @@ describe('getProgress', () => {
   });
 
   it('should get progress for live step', async () => {
-    const stepId = new ObjectID();
+    const stepId = new ObjectId();
     const step = {
       _id: stepId,
       activities: [],
@@ -242,12 +242,12 @@ describe('list', () => {
   });
 
   it('should return steps linked to program id', async () => {
-    const programId = new ObjectID();
-    const subProgramId1 = new ObjectID();
-    const subProgramId2 = new ObjectID();
-    const stepId1 = new ObjectID();
-    const stepId2 = new ObjectID();
-    const stepId3 = new ObjectID();
+    const programId = new ObjectId();
+    const subProgramId1 = new ObjectId();
+    const subProgramId2 = new ObjectId();
+    const stepId1 = new ObjectId();
+    const stepId2 = new ObjectId();
+    const stepId3 = new ObjectId();
 
     const steps = [
       {
@@ -260,7 +260,7 @@ describe('list', () => {
         _id: stepId2,
         name: 'etape 2',
         type: 'remote',
-        subPrograms: [{ _id: subProgramId1, program: { _id: new ObjectID() } }],
+        subPrograms: [{ _id: subProgramId1, program: { _id: new ObjectId() } }],
       },
       {
         _id: stepId3,
@@ -270,7 +270,7 @@ describe('list', () => {
       },
     ];
 
-    stepFind.returns(SinonMongoose.stubChainedQueries([steps], ['populate', 'lean']));
+    stepFind.returns(SinonMongoose.stubChainedQueries(steps, ['populate', 'lean']));
 
     const result = await StepHelper.list(programId);
 
@@ -278,7 +278,7 @@ describe('list', () => {
       { _id: stepId1, name: 'etape 1', type: 'on_site' },
       { _id: stepId3, name: 'etape 3', type: 'remote' },
     ]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       stepFind,
       [
         { query: 'find', args: [] },

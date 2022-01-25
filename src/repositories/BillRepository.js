@@ -111,7 +111,7 @@ exports.getBillsSlipList = async companyId => Bill.aggregate([
 
 exports.getBillsFromBillSlip = async (billSlip, companyId) => {
   const query = {
-    thirdPartyPayer: billSlip.thirdPartyPayer,
+    thirdPartyPayer: billSlip.thirdPartyPayer._id,
     date: {
       $gte: moment(billSlip.month, 'MM-YYYY').startOf('month').toDate(),
       $lte: moment(billSlip.month, 'MM-YYYY').endOf('month').toDate(),

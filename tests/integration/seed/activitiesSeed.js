@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const Step = require('../../../src/models/Step');
@@ -15,34 +15,34 @@ const {
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const cardsList = [
-  { _id: new ObjectID(), template: TRANSITION, title: 'ceci est un titre' },
-  { _id: new ObjectID(), template: TITLE_TEXT, title: 'ceci est un titre', text: 'test' },
+  { _id: new ObjectId(), template: TRANSITION, title: 'ceci est un titre' },
+  { _id: new ObjectId(), template: TITLE_TEXT, title: 'ceci est un titre', text: 'test' },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     template: TITLE_TEXT_MEDIA,
     title: 'ceci est un titre',
     text: 'text',
     media: { link: 'lien', publicId: 'id' },
   },
-  { _id: new ObjectID(), template: FLASHCARD, backText: 'ceci est un backText', text: 'ceci est un text' },
-  { _id: new ObjectID(), template: TITLE_TEXT },
-  { _id: new ObjectID(), template: TRANSITION },
-  { _id: new ObjectID(), template: FILL_THE_GAPS },
-  { _id: new ObjectID(), template: ORDER_THE_SEQUENCE },
+  { _id: new ObjectId(), template: FLASHCARD, backText: 'ceci est un backText', text: 'ceci est un text' },
+  { _id: new ObjectId(), template: TITLE_TEXT },
+  { _id: new ObjectId(), template: TRANSITION },
+  { _id: new ObjectId(), template: FILL_THE_GAPS },
+  { _id: new ObjectId(), template: ORDER_THE_SEQUENCE },
 ];
 
 const activitiesList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'manger',
     type: 'quiz',
     status: 'draft',
     cards: [cardsList[0]._id, cardsList[1]._id, cardsList[2]._id, cardsList[3]._id],
   },
-  { _id: new ObjectID(), name: 'bouger', type: 'lesson' },
-  { _id: new ObjectID(), name: 'fumer', type: 'video', cards: [cardsList[0]._id, cardsList[6]._id, cardsList[7]._id] },
+  { _id: new ObjectId(), name: 'bouger', type: 'lesson' },
+  { _id: new ObjectId(), name: 'fumer', type: 'video', cards: [cardsList[6]._id, cardsList[7]._id] },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'publiée',
     type: 'video',
     status: 'published',
@@ -52,17 +52,17 @@ const activitiesList = [
 
 const stepsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     type: 'e_learning',
     name: 'rouge',
     activities: [activitiesList[0]._id, activitiesList[1]._id],
   },
-  { _id: new ObjectID(), type: 'on_site', name: 'bleu', activities: [activitiesList[2]._id] },
+  { _id: new ObjectId(), type: 'on_site', name: 'bleu', activities: [activitiesList[2]._id] },
 ];
 
-const subProgramsList = [{ _id: new ObjectID(), name: '2_7_4124', steps: [stepsList[0]._id] }];
+const subProgramsList = [{ _id: new ObjectId(), name: '2_7_4124', steps: [stepsList[0]._id] }];
 
-const programsList = [{ _id: new ObjectID(), name: 'au programme télévisé', subPrograms: [subProgramsList[0]._id] }];
+const programsList = [{ _id: new ObjectId(), name: 'au programme télévisé', subPrograms: [subProgramsList[0]._id] }];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();

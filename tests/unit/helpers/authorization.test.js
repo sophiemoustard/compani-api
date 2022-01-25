@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const AuthorizationHelper = require('../../../src/helpers/authorization');
 const User = require('../../../src/models/User');
 const { AUXILIARY_WITHOUT_COMPANY } = require('../../../src/helpers/constants');
@@ -21,10 +21,10 @@ describe('validate', () => {
   });
 
   it('should authenticate user without role and company', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const user = { _id: userId, identity: { lastname: 'lastname' }, local: { email: 'email@email.com' } };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -40,7 +40,7 @@ describe('validate', () => {
         company: null,
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -53,8 +53,8 @@ describe('validate', () => {
   });
 
   it('should authenticate user with company without erp subscription', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -67,7 +67,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -84,7 +84,7 @@ describe('validate', () => {
           `user:edit-${userId}`,
           'client_admin',
           'vendor_admin',
-          'attendancesheets:read',
+          'attendances:read',
           'companylinkrequests:edit',
           'courses:edit',
           'courses:read',
@@ -94,11 +94,12 @@ describe('validate', () => {
           'users:edit',
           'users:exist',
           'users:list',
-          'attendancesheets:edit',
+          'attendances:edit',
           'companies:create',
           'companies:edit',
           'companies:read',
           'courses:create',
+          'exports:read',
           'programs:edit',
           'programs:read',
           'questionnaires:edit',
@@ -109,7 +110,7 @@ describe('validate', () => {
         role: { client: { name: 'client_admin' }, vendor: { name: 'vendor_admin' } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -122,8 +123,8 @@ describe('validate', () => {
   });
 
   it('should authenticate user with company with erp subscription', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -133,7 +134,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -149,7 +150,7 @@ describe('validate', () => {
           `user:read-${userId}`,
           `user:edit-${userId}`,
           'client_admin',
-          'attendancesheets:read',
+          'attendances:read',
           'bills:edit',
           'bills:read',
           'companylinkrequests:edit',
@@ -191,7 +192,7 @@ describe('validate', () => {
         role: { client: { name: 'client_admin' } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -204,9 +205,9 @@ describe('validate', () => {
   });
 
   it('should authenticate user with customers', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
-    const customerId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
+    const customerId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -217,7 +218,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -233,7 +234,7 @@ describe('validate', () => {
         role: { client: { name: 'helper' } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -246,8 +247,8 @@ describe('validate', () => {
   });
 
   it('should authenticate auxiliary without company', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -257,7 +258,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -273,7 +274,7 @@ describe('validate', () => {
         role: { client: { name: AUXILIARY_WITHOUT_COMPANY } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },
@@ -286,8 +287,8 @@ describe('validate', () => {
   });
 
   it('should authenticate a user with coach and trainer role', async () => {
-    const userId = new ObjectID();
-    const sectorId = new ObjectID();
+    const userId = new ObjectId();
+    const sectorId = new ObjectId();
     const user = {
       _id: userId,
       identity: { lastname: 'lastname' },
@@ -297,7 +298,7 @@ describe('validate', () => {
       sector: sectorId,
     };
 
-    findById.returns(SinonMongoose.stubChainedQueries([user], ['populate', 'lean']));
+    findById.returns(SinonMongoose.stubChainedQueries(user, ['populate', 'lean']));
 
     const result = await AuthorizationHelper.validate({ _id: userId });
 
@@ -314,7 +315,7 @@ describe('validate', () => {
           `user:edit-${userId}`,
           'coach',
           'trainer',
-          'attendancesheets:read',
+          'attendances:read',
           'bills:read',
           'companylinkrequests:edit',
           'config:read',
@@ -346,13 +347,13 @@ describe('validate', () => {
           'users:edit',
           'users:exist',
           'users:list',
-          'attendancesheets:edit',
+          'attendances:edit',
           'questionnaires:read',
         ],
         role: { client: { name: 'coach' }, vendor: { name: 'trainer' } },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findById,
       [
         { query: 'findById', args: [userId, '_id identity role local'] },

@@ -1,11 +1,11 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 
 const partnerOrganizationsList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     name: 'Gooogle',
     phone: '0123456789',
     email: 'skulysse@alenvi.io',
@@ -18,7 +18,7 @@ const partnerOrganizationsList = [
     },
     company: authCompany._id,
   },
-  { _id: new ObjectID(), name: 'EHPAD UTOUT', company: otherCompany._id },
+  { _id: new ObjectId(), name: 'EHPAD UTOUT', company: otherCompany._id },
 ];
 
 const populateDB = async () => {

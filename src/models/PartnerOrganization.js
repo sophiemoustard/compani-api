@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const { validateQuery, validateAggregation } = require('./preHooks/validate');
+const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const PartnerOrganizationSchema = mongoose.Schema({
   name: { type: String, required: true },
@@ -18,5 +18,6 @@ PartnerOrganizationSchema.virtual(
 PartnerOrganizationSchema.pre('find', validateQuery);
 PartnerOrganizationSchema.pre('findOne', validateQuery);
 PartnerOrganizationSchema.pre('aggregate', validateAggregation);
+formatQueryMiddlewareList().map(middleware => PartnerOrganizationSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('PartnerOrganization', PartnerOrganizationSchema);

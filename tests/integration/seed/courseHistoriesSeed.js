@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
@@ -10,7 +10,7 @@ const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed')
 
 const userList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'course', lastname: 'Trainer' },
     refreshToken: uuidv4(),
     local: { email: 'trainerCourseHistories@alenvi.io', password: '123456!eR' },
@@ -18,7 +18,7 @@ const userList = [
     origin: WEBAPP,
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'salesrep', lastname: 'noCourse' },
     refreshToken: uuidv4(),
     local: { email: 'salerep@compani.fr' },
@@ -27,10 +27,10 @@ const userList = [
   },
 ];
 
-const subProgramsList = [{ _id: new ObjectID(), name: 'sous-programme A', steps: [] }];
+const subProgramsList = [{ _id: new ObjectId(), name: 'sous-programme A', steps: [] }];
 
 const coursesList = [{
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   subProgram: subProgramsList[0]._id,
   company: authCompany._id,
   misc: 'first session',
@@ -40,17 +40,17 @@ const coursesList = [{
   salesRepresentative: userList[1]._id,
 },
 {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   subProgram: subProgramsList[0]._id,
-  company: new ObjectID(),
+  company: new ObjectId(),
   misc: 'first session',
   type: 'intra',
-  trainer: new ObjectID(),
+  trainer: new ObjectId(),
   trainees: [],
   salesRepresentative: userList[1]._id,
 },
 {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   subProgram: subProgramsList[0]._id,
   misc: 'inter b2b session',
   type: 'inter_b2b',
@@ -61,7 +61,7 @@ const coursesList = [{
 }];
 
 const courseHistoriesList = [{
-  createdBy: new ObjectID(),
+  createdBy: new ObjectId(),
   action: SLOT_CREATION,
   course: coursesList[0]._id,
   slot: {
@@ -77,7 +77,7 @@ const courseHistoriesList = [{
   },
 },
 {
-  createdBy: new ObjectID(),
+  createdBy: new ObjectId(),
   action: SLOT_CREATION,
   course: coursesList[1]._id,
   slot: {
@@ -93,7 +93,7 @@ const courseHistoriesList = [{
   },
 },
 {
-  createdBy: new ObjectID(),
+  createdBy: new ObjectId(),
   action: SLOT_CREATION,
   course: coursesList[2]._id,
   slot: {
@@ -110,7 +110,7 @@ const courseHistoriesList = [{
   createdAt: '2020-06-26T05:00:00',
 },
 {
-  createdBy: new ObjectID(),
+  createdBy: new ObjectId(),
   action: SLOT_CREATION,
   course: coursesList[2]._id,
   slot: {

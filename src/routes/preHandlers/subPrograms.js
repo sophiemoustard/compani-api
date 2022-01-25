@@ -64,7 +64,7 @@ exports.authorizeSubProgramUpdate = async (req) => {
       if (!company) throw Boom.badRequest();
     }
 
-    const prog = await Program.findOne({ _id: subProgram.program })
+    const prog = await Program.findOne({ _id: subProgram.program._id })
       .populate({
         path: 'subPrograms',
         select: 'steps',

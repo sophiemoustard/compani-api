@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -24,9 +24,9 @@ describe('getCreditNotes', () => {
   let getDateQueryStub;
   let find;
   let populateSubscriptionsServicesStub;
-  const companyId = new ObjectID();
+  const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
-  const customerId = new ObjectID();
+  const customerId = new ObjectId();
 
   beforeEach(() => {
     getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
@@ -51,14 +51,14 @@ describe('getCreditNotes', () => {
     };
 
     getDateQueryStub.returns(dateQuery);
-    find.returns(SinonMongoose.stubChainedQueries([[{ customer: { _id: customerId } }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ customer: { _id: customerId } }]));
     populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
 
     expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
     sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ date: dateQuery, customer: customerId, company: companyId }] },
@@ -82,14 +82,14 @@ describe('getCreditNotes', () => {
       customer: customerId,
     };
 
-    find.returns(SinonMongoose.stubChainedQueries([[{ customer: { _id: customerId } }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ customer: { _id: customerId } }]));
     populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
 
     expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
     sinon.assert.notCalled(getDateQueryStub);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ customer: customerId, company: companyId }] },
@@ -120,13 +120,13 @@ describe('getCreditNotes', () => {
     };
 
     getDateQueryStub.returns(dateQuery);
-    find.returns(SinonMongoose.stubChainedQueries([[]]));
+    find.returns(SinonMongoose.stubChainedQueries([]));
 
     const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
 
     expect(result).toEqual([]);
     sinon.assert.calledOnceWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ date: dateQuery, customer: customerId, company: companyId }] },
@@ -165,41 +165,41 @@ describe('updateEventAndFundingHistory', () => {
   });
 
   it('should increment history for hourly and once funding', async () => {
-    const fundingId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const fundingId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const events = [{
-      _id: new ObjectID(),
-      company: new ObjectID(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
       startDate: new Date('2019/01/19'),
     }];
 
     find.returns(events);
     findOneAndUpdate.returns(null);
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
 
     sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: -3 } });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
     sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { careHours: -3 } });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
     );
   });
 
   it('should increment history for hourly and monthly funding', async () => {
-    const fundingId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const fundingId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const events = [{
-      _id: new ObjectID(),
-      company: new ObjectID(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
       startDate: new Date('2019/01/19'),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     findOneAndUpdate.returns(new FundingHistory());
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
@@ -207,23 +207,23 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: -3 } });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
     sinon.assert.notCalled(updateOneFundingHistory);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
     );
   });
 
   it('should decrement history for hourly and monthly funding', async () => {
-    const fundingId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const fundingId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const events = [{
-      _id: new ObjectID(),
-      company: new ObjectID(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
       startDate: new Date('2019/01/19'),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     findOneAndUpdate.returns(null);
 
     await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
@@ -231,31 +231,31 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: 3 } });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: true });
     sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { careHours: 3 } });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
     );
   });
 
   it('should increment history for fixed and once funding', async () => {
-    const fundingId = new ObjectID();
-    const eventId = new ObjectID();
-    const credentials = { company: { _id: new ObjectID() } };
+    const fundingId = new ObjectId();
+    const eventId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
     const eventsToUpdate = [{ eventId }];
     const events = [{
-      _id: new ObjectID(),
-      company: new ObjectID(),
-      bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectID(), inclTaxesTpp: 666 },
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectId(), inclTaxesTpp: 666 },
       startDate: new Date('2019/01/19'),
     }];
 
-    find.returns(SinonMongoose.stubChainedQueries([events], ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await CreditNoteHelper.updateEventAndFundingHistory(eventsToUpdate, false, credentials);
 
     sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { amountTTC: -666 } });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [eventId] }, company: credentials.company._id }] }, { query: 'lean' }]
     );
@@ -333,17 +333,17 @@ describe('getCreditNoteNumber', () => {
 
   it('should get credit note number', async () => {
     const payload = { date: '2019-09-19T00:00:00' };
-    const company = { _id: new ObjectID() };
+    const company = { _id: new ObjectId() };
 
-    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneAndUpdate.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await CreditNoteHelper.getCreditNoteNumber(payload, company._id);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdate,
       [
         {
-          query: 'find',
+          query: 'findOneAndUpdate',
           args: [
             { prefix: '0919', company: company._id },
             {},
@@ -363,7 +363,7 @@ describe('createCreditNotes', () => {
   let updateEventAndFundingHistory;
   let getCreditNoteNumber;
   let createBillSlips;
-  const credentials = { company: { _id: new ObjectID(), prefixNumber: 'prefixNumber' } };
+  const credentials = { company: { _id: new ObjectId(), prefixNumber: 'prefixNumber' } };
   const prefix = 'AV-0719';
 
   beforeEach(() => {
@@ -532,7 +532,7 @@ describe('updateCreditNotes', () => {
   let findByIdAndUpdate;
   let updateOne;
   const creditNote = {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     number: 1,
     events: [{
       auxiliary: { identity: { firstname: 'Nathanaelle', lastname: 'Tata' } },
@@ -544,7 +544,7 @@ describe('updateCreditNotes', () => {
     customer: {
       identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
       contact: { primaryAddress: { fullAddress: 'La ruche' } },
-      subscriptions: [{ _id: new ObjectID(), service: { versions: [{ name: 'Toto' }] } }],
+      subscriptions: [{ _id: new ObjectId(), service: { versions: [{ name: 'Toto' }] } }],
     },
     date: '2019-04-29T22:00:00.000Z',
     exclTaxesCustomer: 221,
@@ -552,7 +552,7 @@ describe('updateCreditNotes', () => {
     exclTaxesTpp: 21,
     inclTaxesTpp: 34,
   };
-  const credentials = { company: { _id: new ObjectID() } };
+  const credentials = { company: { _id: new ObjectId() } };
 
   beforeEach(() => {
     updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
@@ -606,7 +606,7 @@ describe('updateCreditNotes', () => {
   });
 
   it('should update a customer credit note and its tpp linked credit note', async () => {
-    const creditNoteWithLink = { ...creditNote, linkedCreditNote: new ObjectID() };
+    const creditNoteWithLink = { ...creditNote, linkedCreditNote: new ObjectId() };
     const payload = {
       events: [{
         auxiliary: {
@@ -647,8 +647,8 @@ describe('updateCreditNotes', () => {
   });
 
   it('should update a tpp credit note and its customer linked credit note', async () => {
-    const tppId = new ObjectID();
-    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: tppId, linkedCreditNote: new ObjectID() };
+    const tppId = new ObjectId();
+    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: tppId, linkedCreditNote: new ObjectId() };
     const payload = {
       events: [{
         auxiliary: {
@@ -719,7 +719,7 @@ describe('formatPdf', () => {
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     };
-    const subId = new ObjectID();
+    const subId = new ObjectId();
     const creditNote = {
       number: 1,
       events: [{
@@ -780,7 +780,7 @@ describe('formatPdf', () => {
   });
 
   it('should format correct credit note pdf with events for tpp', () => {
-    const subId = new ObjectID();
+    const subId = new ObjectId();
     const creditNote = {
       number: 1,
       events: [{
@@ -895,7 +895,7 @@ describe('removeCreditNote', () => {
   let updateEventAndFundingHistoryStub;
   let deleteOneStub;
   const creditNote = {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     number: 1,
     events: [{
       auxiliary: {
@@ -909,7 +909,7 @@ describe('removeCreditNote', () => {
     customer: {
       identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
       contact: { primaryAddress: { fullAddress: 'La ruche' } },
-      subscriptions: [{ _id: new ObjectID(), service: { versions: [{ name: 'Toto' }] } }],
+      subscriptions: [{ _id: new ObjectId(), service: { versions: [{ name: 'Toto' }] } }],
     },
     date: '2019-04-29T22:00:00.000Z',
     exclTaxesCustomer: 221,
@@ -917,8 +917,8 @@ describe('removeCreditNote', () => {
     exclTaxesTpp: 21,
     inclTaxesTpp: 34,
   };
-  const credentials = { company: { _id: new ObjectID() } };
-  const params = { _id: new ObjectID() };
+  const credentials = { company: { _id: new ObjectId() } };
+  const params = { _id: new ObjectId() };
   beforeEach(() => {
     updateEventAndFundingHistoryStub = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
     deleteOneStub = sinon.stub(CreditNote, 'deleteOne');
@@ -936,7 +936,7 @@ describe('removeCreditNote', () => {
   });
 
   it('should delete the linked creditNote if it has one', async () => {
-    creditNote.linkedCreditNote = new ObjectID();
+    creditNote.linkedCreditNote = new ObjectId();
     await CreditNoteHelper.removeCreditNote(creditNote, credentials, params);
     sinon.assert.calledOnceWithExactly(updateEventAndFundingHistoryStub, creditNote.events, true, credentials);
     expect(deleteOneStub.getCall(0).calledWithExactly(deleteOneStub, { _id: params._id }));
@@ -951,8 +951,8 @@ describe('generateCreditNotePdf', () => {
   let getPdfContent;
   let generatePdf;
 
-  const params = { _id: new ObjectID() };
-  const credentials = { company: { _id: new ObjectID() } };
+  const params = { _id: new ObjectId() };
+  const credentials = { company: { _id: new ObjectId() } };
   beforeEach(() => {
     creditNoteFindOne = sinon.stub(CreditNote, 'findOne');
     companyNoteFindOne = sinon.stub(Company, 'findOne');
@@ -970,8 +970,8 @@ describe('generateCreditNotePdf', () => {
   });
 
   it('should generate a pdf', async () => {
-    creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: COMPANI, number: '12345' }]));
-    companyNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ _id: credentials.company._id }], ['lean']));
+    creditNoteFindOne.returns(SinonMongoose.stubChainedQueries({ origin: COMPANI, number: '12345' }));
+    companyNoteFindOne.returns(SinonMongoose.stubChainedQueries({ _id: credentials.company._id }, ['lean']));
     formatPdf.returns({ name: 'creditNotePdf' });
     getPdfContent.returns({ content: ['creditNotePdf'] });
     generatePdf.returns({ title: 'creditNote' });
@@ -979,10 +979,10 @@ describe('generateCreditNotePdf', () => {
     const result = await CreditNoteHelper.generateCreditNotePdf(params, credentials);
 
     expect(result).toEqual({ pdf: { title: 'creditNote' }, creditNoteNumber: '12345' });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       creditNoteFindOne,
       [
-        { query: 'find', args: [{ _id: params._id }] },
+        { query: 'findOne', args: [{ _id: params._id }] },
         {
           query: 'populate',
           args: [{
@@ -996,9 +996,9 @@ describe('generateCreditNotePdf', () => {
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       companyNoteFindOne,
-      [{ query: 'find', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
+      [{ query: 'findOne', args: [{ _id: credentials.company._id }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       formatPdf,
@@ -1011,7 +1011,7 @@ describe('generateCreditNotePdf', () => {
 
   it('should return a 404 if creditnote is not found', async () => {
     try {
-      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([]));
+      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries(null));
 
       await CreditNoteHelper.generateCreditNotePdf(params, credentials);
     } catch (e) {
@@ -1020,10 +1020,10 @@ describe('generateCreditNotePdf', () => {
       sinon.assert.notCalled(formatPdf);
       sinon.assert.notCalled(getPdfContent);
       sinon.assert.notCalled(generatePdf);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         creditNoteFindOne,
         [
-          { query: 'find', args: [{ _id: params._id }] },
+          { query: 'findOne', args: [{ _id: params._id }] },
           {
             query: 'populate',
             args: [{
@@ -1042,7 +1042,7 @@ describe('generateCreditNotePdf', () => {
 
   it('should return a 400 if creditnote origin is not compani', async () => {
     try {
-      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries([{ origin: OGUST }]));
+      creditNoteFindOne.returns(SinonMongoose.stubChainedQueries({ origin: OGUST }));
 
       await CreditNoteHelper.generateCreditNotePdf(params, credentials);
     } catch (e) {
@@ -1051,10 +1051,10 @@ describe('generateCreditNotePdf', () => {
       sinon.assert.notCalled(formatPdf);
       sinon.assert.notCalled(getPdfContent);
       sinon.assert.notCalled(generatePdf);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         creditNoteFindOne,
         [
-          { query: 'find', args: [{ _id: params._id }] },
+          { query: 'findOne', args: [{ _id: params._id }] },
           {
             query: 'populate',
             args: [{

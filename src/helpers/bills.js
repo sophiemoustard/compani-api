@@ -243,7 +243,7 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
 };
 
 exports.list = async (query, credentials) => Bill
-  .find({ ...query, company: credentials.company })
+  .find({ ...query, company: credentials.company._id })
   .populate({ path: 'customer', select: 'identity' })
   .populate({ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } })
   .lean();

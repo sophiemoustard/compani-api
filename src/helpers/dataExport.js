@@ -14,6 +14,7 @@ const {
   STOPPED,
   ARCHIVED,
   ACTIVATED,
+  EVENT_TRANSPORT_MODE_LIST,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const Customer = require('../models/Customer');
@@ -127,29 +128,6 @@ exports.exportCustomers = async (credentials) => {
   return rows;
 };
 
-const auxiliaryExportHeader = [
-  'Email',
-  'Équipe',
-  'Id Auxiliaire',
-  'Titre',
-  'Nom',
-  'Prénom',
-  'Date de naissance',
-  'Pays de naissance',
-  'Departement de naissance',
-  'Ville de naissance',
-  'Nationalité',
-  'N° de sécurité sociale',
-  'Addresse',
-  'Téléphone',
-  'Nombre de contracts',
-  'Établissement',
-  'Date de début de contrat prestataire',
-  'Date de fin de contrat prestataire',
-  'Date d\'inactivité',
-  'Date de création',
-];
-
 const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
   const nationality = get(aux, 'identity.nationality');
   const lastname = get(aux, 'identity.lastname');
@@ -157,33 +135,39 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
   const address = get(aux, 'contact.address.fullAddress');
   const birthCountry = get(aux, 'identity.birthCountry');
   const { inactivityDate, createdAt } = aux;
+  const transport = get(aux, 'administrative.transportInvoice.transportType');
 
-  return [
-    get(aux, 'local.email') || '',
-    get(aux, 'sector.name') || '',
-    aux._id || '',
-    CIVILITY_LIST[get(aux, 'identity.title')] || '',
-    lastname ? lastname.toUpperCase() : '',
-    get(aux, 'identity.firstname') || '',
-    birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
-    countries[birthCountry] || '',
-    get(aux, 'identity.birthState') || '',
-    get(aux, 'identity.birthCity') || '',
-    nationality ? nationalities[nationality] : '',
-    get(aux, 'identity.socialSecurityNumber') || '',
-    address || '',
-    get(aux, 'contact.phone') || '',
-    contractsLength,
-    get(aux, 'establishment.name') || '',
-    get(contract, 'startDate', null) ? moment(contract.startDate).format('DD/MM/YYYY') : '',
-    get(contract, 'endDate', null) ? moment(contract.endDate).format('DD/MM/YYYY') : '',
-    inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
-    createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
-  ];
+  return {
+    Email: get(aux, 'local.email') || '',
+    Équipe: get(aux, 'sector.name') || '',
+    'Id Auxiliaire': aux._id || '',
+    Titre: CIVILITY_LIST[get(aux, 'identity.title')] || '',
+    Nom: lastname ? lastname.toUpperCase() : '',
+    Prénom: get(aux, 'identity.firstname') || '',
+    'Date de naissance': birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
+    'Pays de naissance': countries[birthCountry] || '',
+    'Departement de naissance': get(aux, 'identity.birthState') || '',
+    'Ville de naissance': get(aux, 'identity.birthCity') || '',
+    Nationalité: nationality ? nationalities[nationality] : '',
+    'N° de sécurité sociale': get(aux, 'identity.socialSecurityNumber') || '',
+    Addresse: address || '',
+    Téléphone: get(aux, 'contact.phone') || '',
+    'Nombre de contrats': contractsLength,
+    Établissement: get(aux, 'establishment.name') || '',
+    'Date de début de contrat prestataire': get(contract, 'startDate', null)
+      ? moment(contract.startDate).format('DD/MM/YYYY')
+      : '',
+    'Date de fin de contrat prestataire': get(contract, 'endDate', null)
+      ? moment(contract.endDate).format('DD/MM/YYYY')
+      : '',
+    'Date d\'inactivité': inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
+    'Date de création': createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
+    'Mode de transport par défaut': EVENT_TRANSPORT_MODE_LIST[transport] || '',
+  };
 };
 
 exports.exportAuxiliaries = async (credentials) => {
-  const rows = [auxiliaryExportHeader];
+  const rows = [];
 
   const companyId = get(credentials, 'company._id');
   const userCompanies = await UserCompany.find({ company: companyId }, { user: 1 }).lean();
@@ -197,18 +181,20 @@ exports.exportAuxiliaries = async (credentials) => {
     .populate({ path: 'establishment', select: 'name', match: { company: companyId } })
     .lean();
 
-  for (const aux of auxiliaries) {
-    const { contracts } = aux;
-    if (contracts && contracts.length) {
-      for (const contract of contracts) {
-        rows.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
+  if (!auxiliaries.length) rows.push(getDataForAuxiliariesExport({}, 0));
+  else {
+    for (const aux of auxiliaries) {
+      const { contracts } = aux;
+      if (contracts && contracts.length) {
+        for (const contract of contracts) {
+          rows.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
+        }
+      } else {
+        rows.push(getDataForAuxiliariesExport(aux, 0));
       }
-    } else {
-      rows.push(getDataForAuxiliariesExport(aux, 0));
     }
   }
-
-  return rows;
+  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
 };
 
 const helperExportHeader = [

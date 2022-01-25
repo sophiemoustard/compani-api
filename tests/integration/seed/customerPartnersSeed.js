@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const Customer = require('../../../src/models/Customer');
 const Partner = require('../../../src/models/Partner');
@@ -12,7 +12,7 @@ const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 
 const customersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: authCompany._id,
     identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
     contact: {
@@ -26,7 +26,7 @@ const customersList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     company: otherCompany._id,
     identity: { title: 'mr', firstname: 'Julian', lastname: 'Alaphilippe' },
     contact: {
@@ -43,32 +43,45 @@ const customersList = [
 
 const partnersList = [
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Anne', lastname: 'Onyme' },
     company: authCompany._id,
-    partnerOrganization: new ObjectID(),
+    partnerOrganization: new ObjectId(),
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Anne', lastname: 'Onyme' },
     company: otherCompany._id,
-    partnerOrganization: new ObjectID(),
+    partnerOrganization: new ObjectId(),
   },
   {
-    _id: new ObjectID(),
+    _id: new ObjectId(),
     identity: { firstname: 'Alain', lastname: 'Terrieur' },
     company: authCompany._id,
-    partnerOrganization: new ObjectID(),
+    partnerOrganization: new ObjectId(),
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Alex', lastname: 'Terrieur' },
+    company: authCompany._id,
+    partnerOrganization: new ObjectId(),
   },
 ];
 
 const customerPartnersList = [
-  { _id: new ObjectID(), partner: partnersList[1]._id, customer: customersList[1], company: otherCompany._id },
-  { _id: new ObjectID(), partner: partnersList[2]._id, customer: customersList[0], company: authCompany._id },
+  { _id: new ObjectId(), partner: partnersList[1]._id, customer: customersList[1], company: otherCompany._id },
+  { _id: new ObjectId(), partner: partnersList[2]._id, customer: customersList[0], company: authCompany._id },
+  {
+    _id: new ObjectId(),
+    partner: partnersList[3]._id,
+    customer: customersList[0],
+    company: authCompany._id,
+    prescriber: true,
+  },
 ];
 
 const auxiliaryFromOtherCompany = {
-  _id: new ObjectID(),
+  _id: new ObjectId(),
   identity: { firstname: 'Philou', lastname: 'toto' },
   local: { email: 'othercompanyauxiliary@alenvi.io', password: '123456!eR' },
   role: { client: auxiliaryRoleId },
@@ -76,7 +89,7 @@ const auxiliaryFromOtherCompany = {
   origin: WEBAPP,
 };
 
-const userCompanies = [{ _id: new ObjectID(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id }];
+const userCompanies = [{ _id: new ObjectId(), user: auxiliaryFromOtherCompany._id, company: otherCompany._id }];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();

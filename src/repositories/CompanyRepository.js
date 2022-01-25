@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const get = require('lodash/get');
 const Customer = require('../models/Customer');
 
@@ -6,7 +6,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
   const now = new Date();
 
   const aggregateHourlySubscriptions = [
-    { $match: { _id: new ObjectID(customerId) } },
+    { $match: { _id: new ObjectId(customerId) } },
     { $unwind: { path: '$subscriptions' } },
     { $lookup: { from: 'services', localField: 'subscriptions.service', foreignField: '_id', as: 'service' } },
     { $unwind: { path: '$service' } },

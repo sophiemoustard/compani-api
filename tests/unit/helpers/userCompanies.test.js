@@ -1,4 +1,4 @@
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Boom = require('@hapi/boom');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -25,43 +25,43 @@ describe('create', () => {
   });
 
   it('should create UserCompany', async () => {
-    const userId = new ObjectID();
-    const companyId = new ObjectID();
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await UserCompaniesHelper.create(userId, companyId);
 
     sinon.assert.calledOnceWithExactly(create, { user: userId, company: companyId });
     sinon.assert.calledOnceWithExactly(deleteManyCompanyLinkRequest, { user: userId });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
     );
   });
 
   it('should do nothing if already userCompany for this user and this company', async () => {
-    const userId = new ObjectID();
-    const companyId = new ObjectID();
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ user: userId, company: companyId }], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: companyId }, ['lean']));
 
     await UserCompaniesHelper.create(userId, companyId);
 
     sinon.assert.notCalled(create);
     sinon.assert.notCalled(deleteManyCompanyLinkRequest);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
     );
   });
 
   it('should throw an error if already userCompany for this user and an other company', async () => {
-    const userId = new ObjectID();
-    const companyId = new ObjectID();
+    const userId = new ObjectId();
+    const companyId = new ObjectId();
 
     try {
-      findOne.returns(SinonMongoose.stubChainedQueries([{ user: userId, company: new ObjectID() }], ['lean']));
+      findOne.returns(SinonMongoose.stubChainedQueries({ user: userId, company: new ObjectId() }, ['lean']));
 
       await UserCompaniesHelper.create(userId, companyId);
 
@@ -70,7 +70,7 @@ describe('create', () => {
       expect(e).toEqual(Boom.conflict());
       sinon.assert.notCalled(create);
       sinon.assert.notCalled(deleteManyCompanyLinkRequest);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOne,
         [{ query: 'findOne', args: [{ user: userId }, { company: 1 }] }, { query: 'lean' }]
       );

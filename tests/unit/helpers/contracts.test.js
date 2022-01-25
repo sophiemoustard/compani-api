@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const EventHelper = require('../../../src/helpers/events');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
@@ -23,7 +23,7 @@ const ContractRepository = require('../../../src/repositories/ContractRepository
 const SinonMongoose = require('../sinonMongoose');
 
 describe('getContractList', () => {
-  const contracts = [{ _id: new ObjectID() }];
+  const contracts = [{ _id: new ObjectId() }];
   let findContract;
   beforeEach(() => {
     findContract = sinon.stub(Contract, 'find');
@@ -36,12 +36,12 @@ describe('getContractList', () => {
     const credentials = { company: { _id: '1234567890' } };
     const query = { user: '1234567890' };
 
-    findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
+    findContract.returns(SinonMongoose.stubChainedQueries(contracts));
 
     const result = await ContractHelper.getContractList(query, credentials);
 
     expect(result).toEqual(contracts);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ $and: [{ company: '1234567890' }, { user: '1234567890' }] }] },
@@ -62,12 +62,12 @@ describe('getContractList', () => {
     const credentials = { company: { _id: '1234567890' } };
     const query = { startDate: '2019-09-09T00:00:00', endDate: '2019-09-09T00:00:00' };
 
-    findContract.returns(SinonMongoose.stubChainedQueries([contracts]));
+    findContract.returns(SinonMongoose.stubChainedQueries(contracts));
 
     const result = await ContractHelper.getContractList(query, credentials);
 
     expect(result).toEqual(contracts);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         {
@@ -112,11 +112,11 @@ describe('allContractsEnded', () => {
   });
 
   it('should return true if contract not ended', async () => {
-    const companyId = new ObjectID();
-    const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
+    const companyId = new ObjectId();
+    const contract = { user: new ObjectId(), startDate: '2020-01-15T00:00:00' };
     getUserContracts.returns([
-      { _id: new ObjectID() },
-      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
+      { _id: new ObjectId() },
+      { _id: new ObjectId(), endDate: '2019-02-01T23:59:59' },
     ]);
     const result = await ContractHelper.allContractsEnded(contract, companyId);
 
@@ -124,11 +124,11 @@ describe('allContractsEnded', () => {
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return true if contract startDate before existing contracts end date', async () => {
-    const companyId = new ObjectID();
-    const contract = { user: new ObjectID(), startDate: '2020-01-15T00:00:00' };
+    const companyId = new ObjectId();
+    const contract = { user: new ObjectId(), startDate: '2020-01-15T00:00:00' };
     getUserContracts.returns([
-      { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
-      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
+      { _id: new ObjectId(), endDate: '2020-02-01T23:59:59' },
+      { _id: new ObjectId(), endDate: '2019-02-01T23:59:59' },
     ]);
     const result = await ContractHelper.allContractsEnded(contract, companyId);
 
@@ -136,8 +136,8 @@ describe('allContractsEnded', () => {
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return false if no contract', async () => {
-    const companyId = new ObjectID();
-    const contract = { user: new ObjectID() };
+    const companyId = new ObjectId();
+    const contract = { user: new ObjectId() };
     getUserContracts.returns([]);
     const result = await ContractHelper.allContractsEnded(contract, companyId);
 
@@ -145,11 +145,11 @@ describe('allContractsEnded', () => {
     sinon.assert.calledWithExactly(getUserContracts, contract.user, companyId);
   });
   it('should return false if startDate after existing contracts end date', async () => {
-    const companyId = new ObjectID();
-    const contract = { user: new ObjectID(), startDate: '2020-04-15T00:00:00' };
+    const companyId = new ObjectId();
+    const contract = { user: new ObjectId(), startDate: '2020-04-15T00:00:00' };
     getUserContracts.returns([
-      { _id: new ObjectID(), endDate: '2019-02-01T23:59:59' },
-      { _id: new ObjectID(), endDate: '2020-02-01T23:59:59' },
+      { _id: new ObjectId(), endDate: '2019-02-01T23:59:59' },
+      { _id: new ObjectId(), endDate: '2020-02-01T23:59:59' },
     ]);
     const result = await ContractHelper.allContractsEnded(contract, companyId);
 
@@ -168,7 +168,7 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false if not ended contract', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const contract = { user: userId };
     const user = { _id: userId, contractCreationMissingInfo: [] };
     allContractsEnded.returns(false);
@@ -179,9 +179,9 @@ describe('isCreationAllowed', () => {
     sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
   it('should return false if user does not have mandatoy info', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const contract = { user: userId };
-    const user = { _id: new ObjectID(), contractCreationMissingInfo: ['establishment'] };
+    const user = { _id: new ObjectId(), contractCreationMissingInfo: ['establishment'] };
     allContractsEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
@@ -190,9 +190,9 @@ describe('isCreationAllowed', () => {
     sinon.assert.calledWithExactly(allContractsEnded, contract, '1234567890');
   });
   it('should return true if all contract ended and user has mandatoy info', async () => {
-    const userId = new ObjectID();
+    const userId = new ObjectId();
     const contract = { user: userId };
-    const user = { _id: new ObjectID(), contractCreationMissingInfo: [] };
+    const user = { _id: new ObjectId(), contractCreationMissingInfo: [] };
     allContractsEnded.returns(true);
 
     const result = await ContractHelper.isCreationAllowed(contract, user, '1234567890');
@@ -236,22 +236,22 @@ describe('createContract', () => {
 
   it('should create a new contract', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
-    const role = { _id: new ObjectID(), interface: 'client' };
+    const role = { _id: new ObjectId(), interface: 'client' };
     const user = { name: 'toto', contracts: [] };
     const contract = { ...payload, company: '1234567890', serialNumber: 'CT1234567890' };
 
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
     createContract.returns(contract);
-    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
+    findOneRole.returns(SinonMongoose.stubChainedQueries(role, ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -266,14 +266,14 @@ describe('createContract', () => {
       { _id: payload.user },
       { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneRole,
       [
         { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: payload.user }] },
@@ -285,9 +285,9 @@ describe('createContract', () => {
 
   it('should create a new contract and generate a signature request', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       versions: [
         {
@@ -304,15 +304,15 @@ describe('createContract', () => {
       ...contract,
       versions: [{ ...contract.versions[0], signature: { eversignId: '1234567890' } }],
     };
-    const role = { _id: new ObjectID(), interface: 'client' };
+    const role = { _id: new ObjectId(), interface: 'client' };
 
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
 
     createContract.returns(contractWithDoc);
-    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
+    findOneRole.returns(SinonMongoose.stubChainedQueries(role, ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -327,14 +327,14 @@ describe('createContract', () => {
       { _id: payload.user },
       { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneRole,
       [
         { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: payload.user }] },
@@ -346,27 +346,27 @@ describe('createContract', () => {
 
   it('should create a new contract and create sector history', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890', serialNumber: 'CT1234567890' };
-    const role = { _id: new ObjectID(), interface: 'client' };
+    const role = { _id: new ObjectId(), interface: 'client' };
     const user = {
       name: 'toto',
-      sector: new ObjectID(),
-      _id: new ObjectID(),
+      sector: new ObjectId(),
+      _id: new ObjectId(),
       contracts: [],
     };
 
     isCreationAllowed.returns(true);
     formatSerialNumber.returns('CT1234567890');
     createContract.returns(contract);
-    findOneRole.returns(SinonMongoose.stubChainedQueries([role], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
+    findOneRole.returns(SinonMongoose.stubChainedQueries(role, ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries(user));
 
     const result = await ContractHelper.createContract(payload, credentials);
 
@@ -381,14 +381,14 @@ describe('createContract', () => {
       { _id: payload.user },
       { $push: { contracts: payload._id }, $unset: { inactivityDate: '' }, $set: { 'role.client': role._id } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneRole,
       [
         { query: 'findOne', args: [{ name: AUXILIARY }, { _id: 1, interface: 1 }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: payload.user }] },
@@ -400,9 +400,9 @@ describe('createContract', () => {
 
   it('should throw a 400 error if new contract startDate is before last ended contract', async () => {
     const payload = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
     };
@@ -412,7 +412,7 @@ describe('createContract', () => {
     try {
       isCreationAllowed.returns(false);
 
-      findOneUser.returns(SinonMongoose.stubChainedQueries([user]));
+      findOneUser.returns(SinonMongoose.stubChainedQueries(user));
       await ContractHelper.createContract(payload, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
@@ -424,7 +424,7 @@ describe('createContract', () => {
       sinon.assert.notCalled(updateOneUser);
       sinon.assert.notCalled(findOneRole);
       sinon.assert.notCalled(createContract);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneUser,
         [
           { query: 'findOne', args: [{ _id: payload.user }] },
@@ -486,22 +486,22 @@ describe('endContract', () => {
       otherMisc: 'test',
     };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: '2018-12-03T23:00:00',
-      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+      versions: [{ _id: new ObjectId(), startDate: '2018-12-03T23:00:00' }],
     };
     const updatedContract = {
       ...contract,
       ...payload,
-      user: { _id: new ObjectID(), sector: new ObjectID() },
+      user: { _id: new ObjectId(), sector: new ObjectId() },
       versions: [{ ...contract.versions[0], endDate: payload.endDate }],
     };
-    const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
+    const credentials = { _id: new ObjectId(), company: { _id: '1234567890' } };
 
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(updatedContract));
     countDocumentHistories.returns(0);
     eventCountDocuments.returns(0);
 
@@ -520,14 +520,14 @@ describe('endContract', () => {
       credentials
     );
     sinon.assert.calledWithExactly(updateEndDateStub, updatedContract.user._id, updatedContract.endDate);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
       [
         { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [
         {
@@ -548,7 +548,7 @@ describe('endContract', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       countDocumentHistories,
       [
         {
@@ -567,7 +567,7 @@ describe('endContract', () => {
         },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       eventCountDocuments,
       [
         {
@@ -579,16 +579,16 @@ describe('endContract', () => {
   });
 
   it('should throw a 403 error if there are timestamped events after contract end date', async () => {
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
-    const credential = { _id: new ObjectID(), company: { _id: companyId } };
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
+    const credential = { _id: new ObjectId(), company: { _id: companyId } };
 
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
       user: auxiliaryId,
       startDate: '2018-12-03T23:00:00',
-      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+      versions: [{ _id: new ObjectId(), startDate: '2018-12-03T23:00:00' }],
     };
 
     const contractToEnd = {
@@ -601,13 +601,13 @@ describe('endContract', () => {
     const updatedContract = {
       ...contract,
       ...contractToEnd,
-      user: { _id: auxiliaryId, sector: new ObjectID() },
+      user: { _id: auxiliaryId, sector: new ObjectId() },
       versions: [{ ...contract.versions[0], endDate: contractToEnd.endDate }],
     };
 
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(updatedContract));
       countDocumentHistories.returns(1);
       eventCountDocuments.returns(0);
 
@@ -624,14 +624,14 @@ describe('endContract', () => {
       sinon.assert.notCalled(updateAbsencesOnContractEnd);
       sinon.assert.notCalled(updateEndDateStub);
       sinon.assert.notCalled(findOneAndUpdateContract);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [
           { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         countDocumentHistories,
         [
           {
@@ -650,7 +650,7 @@ describe('endContract', () => {
           },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         eventCountDocuments,
         [
           {
@@ -663,16 +663,16 @@ describe('endContract', () => {
   });
 
   it('should throw a 403 error if there are billed events after contract end date', async () => {
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
-    const credential = { _id: new ObjectID(), company: { _id: companyId } };
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
+    const credential = { _id: new ObjectId(), company: { _id: companyId } };
 
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
       user: auxiliaryId,
       startDate: '2018-12-03T23:00:00',
-      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+      versions: [{ _id: new ObjectId(), startDate: '2018-12-03T23:00:00' }],
     };
 
     const contractToEnd = {
@@ -685,13 +685,13 @@ describe('endContract', () => {
     const updatedContract = {
       ...contract,
       ...contractToEnd,
-      user: { _id: auxiliaryId, sector: new ObjectID() },
+      user: { _id: auxiliaryId, sector: new ObjectId() },
       versions: [{ ...contract.versions[0], endDate: contractToEnd.endDate }],
     };
 
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([updatedContract]));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+      findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(updatedContract));
       eventCountDocuments.returns(1);
       countDocumentHistories.returns(0);
 
@@ -710,14 +710,14 @@ describe('endContract', () => {
       sinon.assert.notCalled(findOneAndUpdateContract);
       sinon.assert.notCalled(countDocumentHistories);
 
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [
           { query: 'findOne', args: [{ _id: contract._id.toHexString() }] },
           { query: 'lean' },
         ]
       );
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         eventCountDocuments,
         [
           {
@@ -730,7 +730,7 @@ describe('endContract', () => {
   });
 
   it('should throw an error if contract end date is before last version start date', async () => {
-    const contractId = new ObjectID();
+    const contractId = new ObjectId();
     const payload = {
       endDate: '2018-12-03T23:00:00',
       endNotificationDate: '2018-12-02T23:00:00',
@@ -738,15 +738,15 @@ describe('endContract', () => {
       otherMisc: 'test',
     };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       endDate: null,
-      user: new ObjectID(),
+      user: new ObjectId(),
       startDate: '2018-12-05T23:00:00',
-      versions: [{ _id: new ObjectID(), startDate: '2018-12-05T23:00:00' }],
+      versions: [{ _id: new ObjectId(), startDate: '2018-12-05T23:00:00' }],
     };
-    const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
+    const credentials = { _id: new ObjectId(), company: { _id: '1234567890' } };
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
 
       await ContractHelper.endContract(contractId.toHexString(), payload, credentials);
       expect(true).toBe(false);
@@ -761,7 +761,7 @@ describe('endContract', () => {
       sinon.assert.notCalled(updateAbsencesOnContractEnd);
       sinon.assert.notCalled(updateEndDateStub);
       sinon.assert.notCalled(findOneAndUpdateContract);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [
           { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
@@ -796,31 +796,34 @@ describe('createVersion', () => {
   it('should create version and update previous one', async () => {
     const newVersion = { startDate: new Date('2019-09-13T00:00:00') };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-09-09T00:00:00',
       versions: [{ startDate: '2019-09-01T00:00:00' }, { startDate: '2019-09-10T00:00:00' }],
     };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     canCreateVersion.returns(true);
 
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
-      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }, { query: 'lean' }]
     );
     sinon.assert.calledOnceWithExactly(
       updateOneContract,
       { _id: contract._id.toHexString() },
       { $set: { [`versions.${1}.endDate`]: moment('2019-09-13T00:00:00').subtract(1, 'd').endOf('d').toISOString() } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
-      [{ query: 'findOneAndUpdate', args: [{ _id: contract._id.toHexString() }, { $push: { versions: newVersion } }] }]
+      [
+        { query: 'findOneAndUpdate', args: [{ _id: contract._id.toHexString() }, { $push: { versions: newVersion } }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.notCalled(generateSignatureRequest);
     sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
@@ -828,22 +831,22 @@ describe('createVersion', () => {
 
   it('should generate signature request', async () => {
     const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
-    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
-    const companyId = new ObjectID();
+    const contract = { _id: new ObjectId(), startDate: '2019-09-09T00:00:00' };
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
     canCreateVersion.returns(true);
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([], ['lean']));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
 
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
 
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
-      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+      [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [{
         query: 'findOneAndUpdate',
@@ -851,7 +854,9 @@ describe('createVersion', () => {
           { _id: contract._id.toHexString() },
           { $push: { versions: { ...newVersion, signature: { eversignId: '1234567890' } } } },
         ],
-      }]
+      },
+      { query: 'lean' },
+      ]
     );
     sinon.assert.calledOnceWithExactly(generateSignatureRequest, { templateId: '1234567890' });
     sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
@@ -859,13 +864,13 @@ describe('createVersion', () => {
   });
 
   it('should throw on signature generation error', async () => {
-    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const contract = { _id: new ObjectId(), startDate: '2019-09-09T00:00:00' };
     const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
       generateSignatureRequest.returns({ data: { error: { type: '1234567890' } } });
       canCreateVersion.returns(true);
 
@@ -873,9 +878,9 @@ describe('createVersion', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
     } finally {
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
-        [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }]
+        [{ query: 'findOne', args: [{ _id: contract._id.toHexString() }] }, { query: 'lean' }]
       );
       sinon.assert.calledOnceWithExactly(canCreateVersion, contract, newVersion, companyId);
       sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });
@@ -885,13 +890,13 @@ describe('createVersion', () => {
   });
 
   it('should throw if creation not allowed', async () => {
-    const contract = { _id: new ObjectID(), startDate: '2019-09-09T00:00:00' };
+    const contract = { _id: new ObjectId(), startDate: '2019-09-09T00:00:00' };
     const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
 
     try {
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
       canCreateVersion.returns(false);
 
       await ContractHelper.createVersion(contract._id.toHexString(), newVersion, credentials);
@@ -919,7 +924,7 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if contract is ended', async () => {
-    const contract = { _id: new ObjectID(), endDate: '2020-08-12T00:00:00', versions: [{ _id: new ObjectID() }] };
+    const contract = { _id: new ObjectId(), endDate: '2020-08-12T00:00:00', versions: [{ _id: new ObjectId() }] };
     const versionToUpdate = { startDate: '2020-12-03T00:00:00' };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
@@ -931,7 +936,7 @@ describe('canUpdateVersion', () => {
   it('should return false if not last version', async () => {
     const versionToUpdate = { startDate: '2020-01-03T00:00:00' };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [versionToUpdate, { startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
@@ -943,7 +948,7 @@ describe('canUpdateVersion', () => {
 
   it('should return true if contract not ended and start date is after previous version startDate', async () => {
     const versionToUpdate = { startDate: '2020-12-03T00:00:00' };
-    const contract = { _id: new ObjectID(), versions: [{ startDate: '2020-09-03T00:00:00' }, versionToUpdate] };
+    const contract = { _id: new ObjectId(), versions: [{ startDate: '2020-09-03T00:00:00' }, versionToUpdate] };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
 
     expect(result).toBeTruthy();
@@ -954,7 +959,7 @@ describe('canUpdateVersion', () => {
   it('should return false if contract not ended and start date is before previous version startDate', async () => {
     const versionToUpdate = { startDate: '2018-01-03T00:00:00' };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [{ startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }, versionToUpdate],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
@@ -967,7 +972,7 @@ describe('canUpdateVersion', () => {
   it('should return false if  start date is before previous contract startDate', async () => {
     const versionToUpdate = { startDate: '2018-01-03T00:00:00' };
     const contract = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       versions: [{ startDate: '2019-09-03T00:00:00', endDate: '2019-12-03T00:00:00' }, versionToUpdate],
     };
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 1, '1234567890');
@@ -978,11 +983,11 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return true if first version and no event', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID(), versions: [{ _id: new ObjectID() }] };
+    const contract = { _id: new ObjectId(), user: new ObjectId(), versions: [{ _id: new ObjectId() }] };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(0);
-    findContract.returns(SinonMongoose.stubChainedQueries([[contract]], ['sort', 'lean']));
+    findContract.returns(SinonMongoose.stubChainedQueries([contract], ['sort', 'lean']));
 
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
 
@@ -991,7 +996,7 @@ describe('canUpdateVersion', () => {
       countAuxiliaryEventsBetweenDates,
       { auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
@@ -1003,16 +1008,16 @@ describe('canUpdateVersion', () => {
 
   it('should return true if first version and no event since last contract', async () => {
     const contract = {
-      _id: new ObjectID(),
-      user: new ObjectID(),
+      _id: new ObjectId(),
+      user: new ObjectId(),
       startDate: '2020-06-02T00:00:00',
-      versions: [{ _id: new ObjectID() }],
+      versions: [{ _id: new ObjectId() }],
     };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(0);
     findContract.returns(SinonMongoose.stubChainedQueries(
-      [[contract, { startDate: '2018-06-02T00:00:00', endDate: '2018-10-02T23:59:59' }]],
+      [contract, { startDate: '2018-06-02T00:00:00', endDate: '2018-10-02T23:59:59' }],
       ['sort', 'lean']
     ));
 
@@ -1028,7 +1033,7 @@ describe('canUpdateVersion', () => {
         startDate: '2018-10-02T23:59:59',
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
@@ -1039,11 +1044,11 @@ describe('canUpdateVersion', () => {
   });
 
   it('should return false if first version and existing events', async () => {
-    const contract = { _id: new ObjectID(), user: new ObjectID(), versions: [{ _id: new ObjectID() }] };
+    const contract = { _id: new ObjectId(), user: new ObjectId(), versions: [{ _id: new ObjectId() }] };
     const versionToUpdate = { startDate: '2020-08-02T00:00:00' };
 
     countAuxiliaryEventsBetweenDates.returns(5);
-    findContract.returns(SinonMongoose.stubChainedQueries([[contract]], ['sort', 'lean']));
+    findContract.returns(SinonMongoose.stubChainedQueries([contract], ['sort', 'lean']));
 
     const result = await ContractHelper.canUpdateVersion(contract, versionToUpdate, 0, '1234567890');
 
@@ -1052,7 +1057,7 @@ describe('canUpdateVersion', () => {
       countAuxiliaryEventsBetweenDates,
       { auxiliary: contract.user, endDate: versionToUpdate.startDate, company: '1234567890' }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findContract,
       [
         { query: 'find', args: [{ company: '1234567890', user: contract.user }] },
@@ -1142,9 +1147,9 @@ describe('formatVersionEditionPayload', () => {
 });
 
 describe('updateVersion', () => {
-  const contractId = new ObjectID();
-  const versionId = new ObjectID();
-  const credentials = { company: { _id: new ObjectID() } };
+  const contractId = new ObjectId();
+  const versionId = new ObjectId();
+  const credentials = { company: { _id: new ObjectId() } };
   const companyId = credentials.company._id;
   let findOneContract;
   let findOneAndUpdateContract;
@@ -1182,8 +1187,8 @@ describe('updateVersion', () => {
     canUpdateVersion.returns(true);
     formatVersionEditionPayload.returns({ $set: {}, $push: {} });
 
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
 
     updateHistoryOnContractUpdateStub.returns();
 
@@ -1203,14 +1208,14 @@ describe('updateVersion', () => {
       companyId
     );
     sinon.assert.notCalled(updateOneContract);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
       [
         { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [
         { query: 'findOneAndUpdate', args: [{ _id: contractId.toHexString() }, { $set: {}, $push: {} }] },
@@ -1228,15 +1233,15 @@ describe('updateVersion', () => {
     const contract = {
       startDate: '2019-09-09T00:00:00',
       versions: [
-        { _id: new ObjectID(), startDate: '2019-07-10T00:00:00', auxiliaryDoc: 'Tutu' },
+        { _id: new ObjectId(), startDate: '2019-07-10T00:00:00', auxiliaryDoc: 'Tutu' },
         { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' },
       ],
     };
     canUpdateVersion.returns(true);
     formatVersionEditionPayload.returns({ $set: {}, $push: {}, $unset: { auxiliaryDoc: '' } });
 
-    findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
-    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
+    findOneAndUpdateContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
 
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate, credentials);
 
@@ -1253,14 +1258,14 @@ describe('updateVersion', () => {
       { _id: contractId.toHexString() },
       { $unset: { auxiliaryDoc: '' } }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneContract,
       [
         { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
         { query: 'lean' },
       ]
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOneAndUpdateContract,
       [
         { query: 'findOneAndUpdate', args: [{ _id: contractId.toHexString() }, { $set: {}, $push: {} }] },
@@ -1277,7 +1282,7 @@ describe('updateVersion', () => {
         versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
       };
 
-      findOneContract.returns(SinonMongoose.stubChainedQueries([contract], ['lean']));
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract, ['lean']));
       canUpdateVersion.returns(false);
       updateHistoryOnContractUpdateStub.returns();
 
@@ -1299,7 +1304,7 @@ describe('updateVersion', () => {
       sinon.assert.notCalled(formatVersionEditionPayload);
       sinon.assert.notCalled(updateOneContract);
       sinon.assert.notCalled(findOneAndUpdateContract);
-      SinonMongoose.calledWithExactly(
+      SinonMongoose.calledOnceWithExactly(
         findOneContract,
         [
           { query: 'findOne', args: [{ _id: contractId.toHexString() }] },
@@ -1319,9 +1324,9 @@ describe('deleteVersion', () => {
   let deleteFile;
   let countAuxiliaryEventsBetweenDates;
   let updateHistoryOnContractDeletionStub;
-  const versionId = new ObjectID();
-  const contractId = new ObjectID();
-  const credentials = { company: { _id: new ObjectID() } };
+  const versionId = new ObjectId();
+  const contractId = new ObjectId();
+  const credentials = { company: { _id: new ObjectId() } };
   beforeEach(() => {
     findOneContract = sinon.stub(Contract, 'findOne');
     saveContract = sinon.stub(Contract.prototype, 'save');
@@ -1400,7 +1405,7 @@ describe('deleteVersion', () => {
     const contract = new Contract({
       _id: contractId,
       user: 'toot',
-      versions: [{ _id: new ObjectID() }, { _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
+      versions: [{ _id: new ObjectId() }, { _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     });
     findOneContract.returns(contract);
 
@@ -1502,7 +1507,7 @@ describe('uploadFile', () => {
   });
 
   it('should upload a file', async () => {
-    const params = { driveId: 'fakeDriveId', _id: new ObjectID() };
+    const params = { driveId: 'fakeDriveId', _id: new ObjectId() };
     const payload = {
       file: 'test',
       type: 'signedContract',
@@ -1579,15 +1584,15 @@ describe('getStaffRegister', () => {
   });
 
   it('should get staff register ', async () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const staffRegister = [
       {
-        _id: new ObjectID(),
+        _id: new ObjectId(),
         serialNumber: '123',
-        user: { _id: new ObjectID() },
+        user: { _id: new ObjectId() },
         startDate: new Date(),
         company: companyId,
-        versions: [{ _id: new ObjectID() }],
+        versions: [{ _id: new ObjectId() }],
       },
     ];
 

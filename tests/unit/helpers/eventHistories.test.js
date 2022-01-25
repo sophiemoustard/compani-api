@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventHistoryHelper = require('../../../src/helpers/eventHistories');
@@ -25,7 +25,7 @@ describe('list', () => {
 
   it('should get event histories', async () => {
     const query = { createdAt: '2019-11-10' };
-    const credentials = { company: { _id: new ObjectID() } };
+    const credentials = { company: { _id: new ObjectId() } };
     const listQuery = {
       $and: [
         { company: credentials.company._id },
@@ -43,8 +43,8 @@ describe('list', () => {
   });
 
   it('should get event histories for one event', async () => {
-    const eventId = new ObjectID();
-    const companyId = new ObjectID();
+    const eventId = new ObjectId();
+    const companyId = new ObjectId();
 
     const query = { eventId, action: [EVENT_CREATION], isCancelled: false };
     const credentials = { company: { _id: companyId } };
@@ -76,7 +76,7 @@ describe('getListQuery', () => {
   });
 
   it('should return at least company if no query', () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const result = EventHistoryHelper.getListQuery({}, credentials);
 
@@ -84,7 +84,7 @@ describe('getListQuery', () => {
   });
 
   it('should format query with sectors', () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { sectors: ['toto', 'tata'] };
     formatArrayOrStringQueryParam.returns([{ sectors: 'toto' }, { sectors: 'tata' }]);
@@ -94,7 +94,7 @@ describe('getListQuery', () => {
   });
 
   it('should format query with auxiliaries', () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { auxiliaries: ['toto', 'tata'] };
     formatArrayOrStringQueryParam.returns([{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }]);
@@ -104,7 +104,7 @@ describe('getListQuery', () => {
   });
 
   it('should format query with createdAt', () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { createdAt: '2019-10-11' };
     const result = EventHistoryHelper.getListQuery(query, credentials);
@@ -113,7 +113,7 @@ describe('getListQuery', () => {
   });
 
   it('should format query with action', () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { action: [EVENT_CREATION, EVENT_DELETION] };
     const result = EventHistoryHelper.getListQuery(query, credentials);
@@ -122,7 +122,7 @@ describe('getListQuery', () => {
   });
 
   it('should format query with sectors and auxiliaries and createdAt', () => {
-    const companyId = new ObjectID();
+    const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const query = { sectors: ['toto', 'tata'], auxiliaries: ['toto', 'tata'], createdAt: '2019-10-11' };
     formatArrayOrStringQueryParam.onCall(0).returns([{ sectors: 'toto' }, { sectors: 'tata' }]);
@@ -150,12 +150,12 @@ describe('createEventHistory', () => {
   });
 
   it('should save event history with auxiliary in payload', async () => {
-    const sectorId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
-    const payload = { _id: new ObjectID(), auxiliary: auxiliaryId.toHexString() };
-    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ sector: sectorId }]));
+    const sectorId = new ObjectId();
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
+    const payload = { _id: new ObjectId(), auxiliary: auxiliaryId.toHexString() };
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
+    findOne.returns(SinonMongoose.stubChainedQueries({ sector: sectorId }));
 
     await EventHistoryHelper.createEventHistory(payload, credentials, 'event_creation');
 
@@ -170,7 +170,7 @@ describe('createEventHistory', () => {
         event: { eventId: payload._id, auxiliary: auxiliaryId.toHexString() },
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: payload.auxiliary }] },
@@ -184,10 +184,10 @@ describe('createEventHistory', () => {
   });
 
   it('should save event history with sector in payload', async () => {
-    const companyId = new ObjectID();
-    const sectorId = new ObjectID();
-    const payload = { _id: new ObjectID(), sector: sectorId.toHexString(), type: 'intervention' };
-    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
+    const companyId = new ObjectId();
+    const sectorId = new ObjectId();
+    const payload = { _id: new ObjectId(), sector: sectorId.toHexString(), type: 'intervention' };
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
 
     await EventHistoryHelper.createEventHistory(payload, credentials, 'event_creation');
 
@@ -215,8 +215,8 @@ describe('createEventHistoryOnCreate', () => {
   });
 
   it('should call createEventHistory with creation action', async () => {
-    const payload = { _id: new ObjectID(), auxiliary: new ObjectID() };
-    const credentials = { _id: new ObjectID() };
+    const payload = { _id: new ObjectId(), auxiliary: new ObjectId() };
+    const credentials = { _id: new ObjectId() };
     await EventHistoryHelper.createEventHistoryOnCreate(payload, credentials);
 
     sinon.assert.calledWithExactly(createEventHistory, payload, credentials, 'event_creation');
@@ -233,8 +233,8 @@ describe('createEventHistoryOnDelete', () => {
   });
 
   it('should call createEventHistory with creation action', async () => {
-    const payload = { _id: new ObjectID(), auxiliary: new ObjectID() };
-    const credentials = { _id: new ObjectID() };
+    const payload = { _id: new ObjectId(), auxiliary: new ObjectId() };
+    const credentials = { _id: new ObjectId() };
     await EventHistoryHelper.createEventHistoryOnDelete(payload, credentials);
 
     sinon.assert.calledWithExactly(createEventHistory, payload, credentials, 'event_deletion');
@@ -242,7 +242,7 @@ describe('createEventHistoryOnDelete', () => {
 });
 
 describe('createEventHistoryOnUpdate', () => {
-  const customerId = new ObjectID();
+  const customerId = new ObjectId();
   let formatHistoryForAuxiliaryUpdate;
   let formatHistoryForDatesUpdate;
   let formatHistoryForCancelUpdate;
@@ -270,14 +270,14 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
-      _id: new ObjectID(),
-      auxiliary: new ObjectID(),
+      _id: new ObjectId(),
+      auxiliary: new ObjectId(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
       customer: customerId,
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectId() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
@@ -313,13 +313,13 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-01-22T09:38:18',
       endDate: '2019-01-22T09:38:18',
       customer: customerId,
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectId() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
@@ -357,13 +357,13 @@ describe('createEventHistoryOnUpdate', () => {
       cancel: { reason: 'toto', condition: 'payé' },
     };
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectId() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
@@ -398,13 +398,13 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-01-21T10:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectId() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
@@ -442,13 +442,13 @@ describe('createEventHistoryOnUpdate', () => {
       cancel: { reason: 'toto', condition: 'payé' },
     };
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-21T11:38:18',
       customer: customerId,
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectId() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
@@ -502,15 +502,15 @@ describe('createEventHistoryOnUpdate', () => {
       shouldUpdateRepetition: true,
     };
     const event = {
-      _id: new ObjectID(),
-      auxiliary: new ObjectID(),
+      _id: new ObjectId(),
+      auxiliary: new ObjectId(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
       customer: customerId,
       type: 'intervention',
       repetition: { frequency: 'every_two_weeks' },
     };
-    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectId() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
@@ -547,15 +547,15 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
-      _id: new ObjectID(),
-      auxiliary: new ObjectID(),
+      _id: new ObjectId(),
+      auxiliary: new ObjectId(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
       customer: customerId,
       type: INTERNAL_HOUR,
       internalHour: { name: 'meeting' },
     };
-    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectId() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
@@ -592,15 +592,15 @@ describe('createEventHistoryOnUpdate', () => {
       misc: 'Toto',
     };
     const event = {
-      _id: new ObjectID(),
-      auxiliary: new ObjectID(),
+      _id: new ObjectId(),
+      auxiliary: new ObjectId(),
       startDate: '2019-01-21T09:38:18',
       endDate: '2019-01-22T09:38:18',
       customer: customerId,
       type: 'absence',
       absence: 'leave',
     };
-    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectId() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
@@ -644,13 +644,13 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
   });
 
   it('should format event history when auxiliary is updated', async () => {
-    const sectorId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
+    const sectorId = new ObjectId();
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { auxiliary: 'qwertyuiop' };
     const event = { auxiliary: auxiliaryId };
-    find.returns(SinonMongoose.stubChainedQueries([[{ _id: auxiliaryId, sector: sectorId }]]));
+    find.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
@@ -662,7 +662,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId],
       auxiliaries: [auxiliaryId, 'qwertyuiop'],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       find,
       [
         { query: 'find', args: [{ _id: { $in: [auxiliaryId, 'qwertyuiop'] } }] },
@@ -674,13 +674,13 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
   });
 
   it('should format event history when auxiliary is removed (Unassign)', async () => {
-    const sectorId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
+    const sectorId = new ObjectId();
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { sector: sectorId };
     const event = { auxiliary: auxiliaryId };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
@@ -692,7 +692,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId],
       auxiliaries: [auxiliaryId],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -704,14 +704,14 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
   });
 
   it('should format event history when auxiliary is added (Assign)', async () => {
-    const sectorId = new ObjectID();
-    const eventSectorId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
+    const sectorId = new ObjectId();
+    const eventSectorId = new ObjectId();
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = { auxiliary: auxiliaryId };
     const event = { sector: eventSectorId };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
@@ -723,7 +723,7 @@ describe('formatHistoryForAuxiliaryUpdate', () => {
       sectors: [sectorId, eventSectorId],
       auxiliaries: [auxiliaryId],
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -745,9 +745,9 @@ describe('formatHistoryForCancelUpdate', () => {
   });
 
   it('should format event history with one auxiliary', async () => {
-    const sectorId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
+    const sectorId = new ObjectId();
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -757,7 +757,7 @@ describe('formatHistoryForCancelUpdate', () => {
       cancel: { reason: 'toto', condition: 'tata' },
       auxiliary: auxiliaryId.toHexString(),
     };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForCancelUpdate(mainInfo, payload, companyId);
 
@@ -775,7 +775,7 @@ describe('formatHistoryForCancelUpdate', () => {
         cancel: { reason: 'toto', condition: 'tata' },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
@@ -786,7 +786,7 @@ describe('formatHistoryForCancelUpdate', () => {
   });
 
   it('should format event history without auxiliary', async () => {
-    const sectorId = new ObjectID();
+    const sectorId = new ObjectId();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -814,7 +814,7 @@ describe('formatHistoryForCancelUpdate', () => {
 });
 
 describe('formatHistoryForDatesUpdate', () => {
-  const sectorId = new ObjectID();
+  const sectorId = new ObjectId();
   let findOne;
   beforeEach(() => {
     findOne = sinon.stub(User, 'findOne');
@@ -824,8 +824,8 @@ describe('formatHistoryForDatesUpdate', () => {
   });
 
   it('should format event history with one auxiliary', async () => {
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -837,7 +837,7 @@ describe('formatHistoryForDatesUpdate', () => {
       auxiliary: auxiliaryId.toHexString(),
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForDatesUpdate(mainInfo, payload, event, companyId);
 
@@ -852,7 +852,7 @@ describe('formatHistoryForDatesUpdate', () => {
         startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
@@ -914,9 +914,9 @@ describe('formatHistoryForHoursUpdate', () => {
   });
 
   it('should format event history with one auxiliary', async () => {
-    const sectorId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const companyId = new ObjectID();
+    const sectorId = new ObjectId();
+    const auxiliaryId = new ObjectId();
+    const companyId = new ObjectId();
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
@@ -924,7 +924,7 @@ describe('formatHistoryForHoursUpdate', () => {
       auxiliary: auxiliaryId.toHexString(),
     };
     const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForHoursUpdate(mainInfo, payload, event, companyId);
 
@@ -943,7 +943,7 @@ describe('formatHistoryForHoursUpdate', () => {
         endHour: { from: '2019-01-21T10:38:18', to: '2019-01-21T11:38:18' },
       },
     });
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId.toHexString() }] },
@@ -954,7 +954,7 @@ describe('formatHistoryForHoursUpdate', () => {
   });
 
   it('should format event history without auxiliary', async () => {
-    const sectorId = new ObjectID();
+    const sectorId = new ObjectId();
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = {
       startDate: '2019-01-21T09:38:18',
@@ -989,16 +989,16 @@ describe('createTimeStampHistory', () => {
 
   it('should create and event history of type timestamp for startDate', async () => {
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2021-05-01T10:00:00',
       endDate: '2021-05-01T12:00:00',
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       misc: 'test',
-      company: new ObjectID(),
-      repetition: { frequency: 'every_day', parentID: new ObjectID() },
+      company: new ObjectId(),
+      repetition: { frequency: 'every_day', parentID: new ObjectId() },
     };
     const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode', action: 'manual_time_stamping' };
-    const credentials = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
 
     await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
 
@@ -1018,16 +1018,16 @@ describe('createTimeStampHistory', () => {
 
   it('should create and event history of type timestamp for endDate', async () => {
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2021-05-01T10:00:00',
       endDate: '2021-05-01T12:00:00',
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       misc: 'test',
-      company: new ObjectID(),
-      repetition: { frequency: 'every_day', parentID: new ObjectID() },
+      company: new ObjectId(),
+      repetition: { frequency: 'every_day', parentID: new ObjectId() },
     };
     const payload = { endDate: '2021-05-01T12:05:00', reason: 'qrcode', action: 'manual_time_stamping' };
-    const credentials = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
 
     await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
 
@@ -1047,16 +1047,16 @@ describe('createTimeStampHistory', () => {
 
   it('shouldn’t add manualTimeStampingReason to query if reason isn’t in payload', async () => {
     const event = {
-      _id: new ObjectID(),
+      _id: new ObjectId(),
       startDate: '2021-05-01T10:00:00',
       endDate: '2021-05-01T12:00:00',
-      customer: new ObjectID(),
+      customer: new ObjectId(),
       misc: 'test',
-      company: new ObjectID(),
-      repetition: { frequency: 'every_day', parentID: new ObjectID() },
+      company: new ObjectId(),
+      repetition: { frequency: 'every_day', parentID: new ObjectId() },
     };
     const payload = { endDate: '2021-05-01T12:05:00', action: 'qr_code_time_stamping' };
-    const credentials = { _id: new ObjectID() };
+    const credentials = { _id: new ObjectId() };
 
     await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
 
@@ -1093,16 +1093,16 @@ describe('createTimeStampCancellationHistory', () => {
   });
 
   it('should create a time stamp cancellation history for event with auxiliary', async () => {
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const payload = { isCancelled: true, timeStampCancellationReason: 'je m\'ai trompé' };
-    const eventHistoryId = new ObjectID();
-    const eventId = new ObjectID();
-    const auxiliaryId = new ObjectID();
-    const sectorId = new ObjectID();
+    const eventHistoryId = new ObjectId();
+    const eventId = new ObjectId();
+    const auxiliaryId = new ObjectId();
+    const sectorId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: eventHistoryId, event: { eventId } }], ['lean']));
-    findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, auxiliary: auxiliaryId }], ['lean']));
-    findOneUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, sector: sectorId }]));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: eventHistoryId, event: { eventId } }, ['lean']));
+    findOneEvent.returns(SinonMongoose.stubChainedQueries({ _id: eventId, auxiliary: auxiliaryId }, ['lean']));
+    findOneUser.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     await EventHistoryHelper.createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
 
@@ -1119,12 +1119,15 @@ describe('createTimeStampCancellationHistory', () => {
         sectors: [sectorId],
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: eventHistoryId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(findOneEvent, [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]);
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
+      findOneEvent,
+      [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
       findOneUser,
       [
         { query: 'findOne', args: [{ _id: auxiliaryId }] },
@@ -1138,14 +1141,14 @@ describe('createTimeStampCancellationHistory', () => {
   });
 
   it('should create a time stamp cancellation history for event with sector', async () => {
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const payload = { isCancelled: true, timeStampCancellationReason: 'je m\'ai trompé' };
-    const eventHistoryId = new ObjectID();
-    const eventId = new ObjectID();
-    const sectorId = new ObjectID();
+    const eventHistoryId = new ObjectId();
+    const eventId = new ObjectId();
+    const sectorId = new ObjectId();
 
-    findOne.returns(SinonMongoose.stubChainedQueries([{ _id: eventHistoryId, event: { eventId } }], ['lean']));
-    findOneEvent.returns(SinonMongoose.stubChainedQueries([{ _id: eventId, sector: sectorId }], ['lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: eventHistoryId, event: { eventId } }, ['lean']));
+    findOneEvent.returns(SinonMongoose.stubChainedQueries({ _id: eventId, sector: sectorId }, ['lean']));
 
     await EventHistoryHelper.createTimeStampCancellationHistory(eventHistoryId, payload, credentials);
 
@@ -1162,11 +1165,14 @@ describe('createTimeStampCancellationHistory', () => {
         sectors: [sectorId],
       }
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: eventHistoryId }] }, { query: 'lean' }]
     );
-    SinonMongoose.calledWithExactly(findOneEvent, [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findOneEvent,
+      [{ query: 'findOne', args: [{ _id: eventId }] }, { query: 'lean' }]
+    );
     sinon.assert.notCalled(findOneUser);
   });
 });
@@ -1184,9 +1190,9 @@ describe('update', () => {
   });
 
   it('should cancel a time stamp history and create a time stamp cancellation history', async () => {
-    const credentials = { _id: new ObjectID(), company: { _id: new ObjectID() } };
+    const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const payload = { isCancelled: true, timeStampCancellationReason: 'je m\'ai trompé' };
-    const eventHistoryId = new ObjectID();
+    const eventHistoryId = new ObjectId();
 
     await EventHistoryHelper.update(eventHistoryId, payload, credentials);
 

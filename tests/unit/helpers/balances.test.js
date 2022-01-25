@@ -1,6 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const _ = require('lodash');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
@@ -140,7 +140,7 @@ describe('computePayments', () => {
   });
 
   it('should compute payments for customer', () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const ids = { customer: customerId };
     const payments = [
       { netInclTaxes: 14, nature: 'payment' },
@@ -168,25 +168,25 @@ describe('formatParticipationRate', () => {
   it('should return 0 if no funding and thirdPartyPayer', () => {
     const balanceDocument = {
       customer: {},
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
     const result = BalanceHelper.formatParticipationRate(balanceDocument, tppList);
 
     expect(result).toEqual(0);
   });
   it('should return 0 if thirdPartyPayer', () => {
-    const thirdPartyPayerId = new ObjectID();
+    const thirdPartyPayerId = new ObjectId();
     const balanceDocument = {
       customer: {
         fundings: [
           { thirdPartyPayer: thirdPartyPayerId, versions: [{ customerParticipationRate: 30 }] },
-          { thirdPartyPayer: new ObjectID(), versions: [] },
+          { thirdPartyPayer: new ObjectId(), versions: [] },
         ],
       },
-      thirdPartyPayer: { _id: new ObjectID() },
+      thirdPartyPayer: { _id: new ObjectId() },
     };
-    const tppList = [{ _id: thirdPartyPayerId, isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: thirdPartyPayerId, isApa: false }, { _id: new ObjectId(), isApa: true }];
     const result = BalanceHelper.formatParticipationRate(balanceDocument, tppList);
 
     expect(result).toEqual(0);
@@ -201,27 +201,27 @@ describe('formatParticipationRate', () => {
     const balanceDocument = {
       customer: {
         fundings: [
-          { thirdPartyPayer: new ObjectID(), versions: [] },
-          { thirdPartyPayer: new ObjectID(), versions: [] },
+          { thirdPartyPayer: new ObjectId(), versions: [] },
+          { thirdPartyPayer: new ObjectId(), versions: [] },
         ],
       },
     };
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
     const result = BalanceHelper.formatParticipationRate(balanceDocument, tppList);
 
     expect(result).toEqual(100);
   });
   it('should return participation rate for customer', () => {
-    const thirdPartyPayerId = new ObjectID();
+    const thirdPartyPayerId = new ObjectId();
     const balanceDocument = {
       customer: {
         fundings: [
           { thirdPartyPayer: thirdPartyPayerId, versions: [{ customerParticipationRate: 30 }] },
-          { thirdPartyPayer: new ObjectID(), versions: [] },
+          { thirdPartyPayer: new ObjectId(), versions: [] },
         ],
       },
     };
-    const tppList = [{ _id: thirdPartyPayerId, isApa: true }, { _id: new ObjectID(), isApa: false }];
+    const tppList = [{ _id: thirdPartyPayerId, isApa: true }, { _id: new ObjectId(), isApa: false }];
     mergeLastVersionWithBaseObject.returns({ customerParticipationRate: 30 });
 
     const result = BalanceHelper.formatParticipationRate(balanceDocument, tppList);
@@ -246,7 +246,7 @@ describe('getBalance', () => {
   });
 
   it('should format balance for customer without credit notes and payment', () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const bill = {
       _id: { customer: customerId },
       billed: 70,
@@ -255,11 +255,11 @@ describe('getBalance', () => {
           bankAccountOwner: 'Test',
           bid: 'QWERTYUIOP',
           iban: 'FR2345672344523455432234',
-          mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
+          mandates: [{ _id: new ObjectId(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
         },
       },
     };
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
     canBeDirectDebited.returns(true);
     formatParticipationRate.returns(10);
 
@@ -275,7 +275,7 @@ describe('getBalance', () => {
   });
 
   it('should format balance for customer with credit notes and without payment', () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const bill = {
       _id: { customer: customerId },
       billed: 70,
@@ -284,15 +284,15 @@ describe('getBalance', () => {
           bankAccountOwner: 'Test',
           bid: 'QWERTYUIOP',
           iban: 'FR2345672344523455432234',
-          mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
+          mandates: [{ _id: new ObjectId(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
         },
       },
     };
     const customerCreditNotes = [
       { _id: { customer: customerId }, customer: { _id: customerId }, refund: 50 },
-      { _id: { customer: new ObjectID() }, refund: 90 },
+      { _id: { customer: new ObjectId() }, refund: 90 },
     ];
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
     canBeDirectDebited.returns(true);
     formatParticipationRate.returns(10);
 
@@ -308,7 +308,7 @@ describe('getBalance', () => {
   });
 
   it('should format balance for customer with credit notes and payments', () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const bill = {
       _id: { customer: customerId },
       billed: 170,
@@ -317,13 +317,13 @@ describe('getBalance', () => {
           bankAccountOwner: 'Test',
           bid: 'QWERTYUIOP',
           iban: 'FR2345672344523455432234',
-          mandates: [{ _id: new ObjectID(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
+          mandates: [{ _id: new ObjectId(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
         },
       },
     };
     const customerCreditNotes = [
       { _id: { customer: customerId }, customer: { _id: customerId }, refund: 50 },
-      { _id: { customer: new ObjectID() }, refund: 90 },
+      { _id: { customer: new ObjectId() }, refund: 90 },
     ];
     const payments = [
       {
@@ -333,9 +333,9 @@ describe('getBalance', () => {
           { nature: 'payment', netInclTaxes: 30 },
         ],
       },
-      { _id: { customer: new ObjectID() }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
+      { _id: { customer: new ObjectId() }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
     ];
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
     canBeDirectDebited.returns(true);
     computePayments.returns(110);
     formatParticipationRate.returns(10);
@@ -351,8 +351,8 @@ describe('getBalance', () => {
   });
 
   it('should format balance for tpp with credit notes and without payment', () => {
-    const customerId = new ObjectID();
-    const tppId = new ObjectID();
+    const customerId = new ObjectId();
+    const tppId = new ObjectId();
     const bill = {
       _id: { customer: customerId, tpp: tppId },
       billed: 70,
@@ -361,16 +361,16 @@ describe('getBalance', () => {
           bankAccountOwner: 'Test',
           bid: 'QWERTYUIOP',
           iban: 'FR2345672344523455432234',
-          mandates: [{ _id: new ObjectID(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
+          mandates: [{ _id: new ObjectId(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
         },
       },
     };
     const tppCreditNotes = [
       { _id: { customer: customerId, tpp: tppId }, refund: 40, customer: customerId },
-      { _id: { customer: new ObjectID(), tpp: tppId }, refund: 40 },
-      { _id: { customer: customerId, tpp: new ObjectID() }, refund: 50 },
+      { _id: { customer: new ObjectId(), tpp: tppId }, refund: 40 },
+      { _id: { customer: customerId, tpp: new ObjectId() }, refund: 50 },
     ];
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
     canBeDirectDebited.returns(false);
     formatParticipationRate.returns(10);
 
@@ -387,8 +387,8 @@ describe('getBalance', () => {
   });
 
   it('should format balance for tpp with credit notes and payments', () => {
-    const customerId = new ObjectID();
-    const tppId = new ObjectID();
+    const customerId = new ObjectId();
+    const tppId = new ObjectId();
     const bill = {
       _id: { customer: customerId, tpp: tppId },
       billed: 70,
@@ -397,14 +397,14 @@ describe('getBalance', () => {
           bankAccountOwner: 'Test',
           bid: 'QWERTYUIOP',
           iban: 'FR2345672344523455432234',
-          mandates: [{ _id: new ObjectID(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
+          mandates: [{ _id: new ObjectId(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
         },
       },
     };
     const tppCreditNotes = [
       { _id: { customer: customerId, tpp: tppId }, refund: 40 },
-      { _id: { customer: customerId, tpp: new ObjectID() }, refund: 50 },
-      { _id: { customer: new ObjectID(), tpp: tppId }, refund: 50 },
+      { _id: { customer: customerId, tpp: new ObjectId() }, refund: 50 },
+      { _id: { customer: new ObjectId(), tpp: tppId }, refund: 50 },
     ];
     const payments = [
       {
@@ -421,7 +421,7 @@ describe('getBalance', () => {
         payments: [{ nature: 'payment', netInclTaxes: 50, type: 'direct_debit' }],
       },
     ];
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
     canBeDirectDebited.returns(false);
     computePayments.returns(-50);
     formatParticipationRate.returns(10);
@@ -452,7 +452,7 @@ describe('getBalancesFromCreditNotes', () => {
   });
 
   it('should format balance for customer credit note', () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const creditNote = {
       _id: { customer: customerId },
       customer: { identity: {} },
@@ -460,9 +460,9 @@ describe('getBalancesFromCreditNotes', () => {
     };
     const payments = [
       { _id: { customer: customerId }, payments: [{ refund: 12 }] },
-      { _id: { customer: customerId, tpp: new ObjectID() }, payments: [{ refund: 15 }] },
+      { _id: { customer: customerId, tpp: new ObjectId() }, payments: [{ refund: 15 }] },
     ];
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
 
     computePayments.returns(12);
     formatParticipationRate.returns(30);
@@ -481,8 +481,8 @@ describe('getBalancesFromCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(formatParticipationRate, creditNote, tppList);
   });
   it('should format balance for tpp credit note', () => {
-    const customerId = new ObjectID();
-    const tppId = new ObjectID();
+    const customerId = new ObjectId();
+    const tppId = new ObjectId();
     const creditNote = {
       _id: { customer: customerId, tpp: tppId },
       customer: { identity: {} },
@@ -493,7 +493,7 @@ describe('getBalancesFromCreditNotes', () => {
       { _id: { customer: customerId }, payments: [{ refund: 12 }] },
       { _id: { customer: customerId, tpp: tppId }, payments: [{ refund: 15 }] },
     ];
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
 
     computePayments.returns(15);
     formatParticipationRate.returns(30);
@@ -513,16 +513,16 @@ describe('getBalancesFromCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(formatParticipationRate, creditNote, tppList);
   });
   it('should format not call compute payments as no payment', () => {
-    const customerId = new ObjectID();
+    const customerId = new ObjectId();
     const creditNote = {
       _id: { customer: customerId },
       customer: { identity: {} },
       refund: 25,
     };
     const payments = [
-      { _id: { customer: customerId, tpp: new ObjectID() }, payments: [{ refund: 15 }] },
+      { _id: { customer: customerId, tpp: new ObjectId() }, payments: [{ refund: 15 }] },
     ];
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
 
     computePayments.returns(12);
     formatParticipationRate.returns(30);
@@ -559,7 +559,7 @@ describe('getBalancesFromPayments', () => {
       customer: { identity: {} },
       payments: [{ refund: 12 }],
     };
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
 
     computePayments.returns(12);
     formatParticipationRate.returns(30);
@@ -583,7 +583,7 @@ describe('getBalancesFromPayments', () => {
       payments: [{ refund: 12 }],
       thirdPartyPayer: { isApa: true },
     };
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
 
     computePayments.returns(12);
     formatParticipationRate.returns(30);
@@ -607,7 +607,7 @@ describe('getBalancesFromPayments', () => {
       customer: { identity: {} },
       thirdPartyPayer: { isApa: true },
     };
-    const tppList = [{ _id: new ObjectID(), isApa: false }, { _id: new ObjectID(), isApa: true }];
+    const tppList = [{ _id: new ObjectId(), isApa: false }, { _id: new ObjectId(), isApa: true }];
 
     formatParticipationRate.returns(30);
 
@@ -638,9 +638,9 @@ describe('getBalances', () => {
   let getBalancesFromPayments;
   let findThirdPartyPayer;
 
-  const nonArchivedCustomers = [new ObjectID(), new ObjectID(), new ObjectID()];
-  const tpps = [new ObjectID(), new ObjectID(), new ObjectID()];
-  const credentials = { company: { _id: new ObjectID() } };
+  const nonArchivedCustomers = [new ObjectId(), new ObjectId(), new ObjectId()];
+  const tpps = [new ObjectId(), new ObjectId(), new ObjectId()];
+  const credentials = { company: { _id: new ObjectId() } };
   const maxDate = new Date('2019-01-01');
 
   beforeEach(() => {
@@ -690,12 +690,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -732,7 +732,7 @@ describe('getBalances', () => {
       nonArchivedCustomers,
       maxDate
     );
-    SinonMongoose.calledWithExactly(
+    SinonMongoose.calledOnceWithExactly(
       findThirdPartyPayer,
       [{ query: 'find', args: [{ company: credentials.company._id }] }, { query: 'lean' }]
     );
@@ -789,7 +789,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -833,12 +833,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[0], tpp: tpps[0] }, billed: 450 },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -858,12 +858,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[1] }, refund: 40 },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -883,12 +883,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1], refund: 50 } },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -909,12 +909,12 @@ describe('getBalances', () => {
       { _id: { customer: nonArchivedCustomers[1], tpp: tpps[1] }, payments: [{ netInclTaxes: 145 }] },
     ];
 
-    findCustomers.returns(SinonMongoose.stubChainedQueries([nonArchivedCustomers], ['lean']));
+    findCustomers.returns(SinonMongoose.stubChainedQueries(nonArchivedCustomers, ['lean']));
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([tpps], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries(tpps, ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, null, maxDate);
 
@@ -937,7 +937,7 @@ describe('getBalances', () => {
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
-    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([[]], ['lean']));
+    findThirdPartyPayer.returns(SinonMongoose.stubChainedQueries([], ['lean']));
 
     const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
@@ -968,8 +968,8 @@ describe('getBalancesWithDetails', () => {
   });
 
   it('should get balances with details', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
-    const query = { customer: new ObjectID(), startDate: '2019-12-01', endDate: '2019-12-05' };
+    const credentials = { company: { _id: new ObjectId() } };
+    const query = { customer: new ObjectId(), startDate: '2019-12-01', endDate: '2019-12-05' };
 
     getBalancesStub.returns({ balance: 10 });
     getBillsStub.returns([{ name: 'bills' }]);
