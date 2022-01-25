@@ -198,11 +198,11 @@ describe('getCourseProgress', () => {
       name: 'Développement personnel full stack',
       type: ON_SITE,
       areActivitiesValid: false,
-      progress: { live: 1, eLearning: 0.5 },
+      progress: { live: 0.75, eLearning: 0.5 },
     }];
 
     const result = await CourseHelper.getCourseProgress(steps);
-    expect(result).toEqual({ blended: 0.975, eLearning: 0.75 });
+    expect(result).toEqual({ blended: 0.875, eLearning: 0.75 });
   });
   it('should get progress for course whose a step has progress at 0', async () => {
     const steps = [{

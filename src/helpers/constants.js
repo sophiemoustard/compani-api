@@ -540,5 +540,4 @@ module.exports = {
       this.SECONDS,
     ];
   },
-  LIVE_PROGRESS_WEIGHT: 0.9,
 };

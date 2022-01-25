@@ -3,7 +3,9 @@ const Step = require('../models/Step');
 const SubProgram = require('../models/SubProgram');
 const moment = require('../extensions/moment');
 const UtilsHelper = require('./utils');
-const { E_LEARNING, LIVE_PROGRESS_WEIGHT } = require('./constants');
+const { E_LEARNING } = require('./constants');
+
+const LIVE_PROGRESS_WEIGHT = 0.9;
 
 exports.updateStep = async (stepId, payload) => Step.updateOne({ _id: stepId }, { $set: payload });
 

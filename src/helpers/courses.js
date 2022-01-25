@@ -29,7 +29,6 @@ const {
   REJECTED,
   ON_SITE,
   E_LEARNING,
-  LIVE_PROGRESS_WEIGHT,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -73,11 +72,7 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-const getStepBlendedProgress = (step) => {
-  if (step.progress.live >= 0 && step.progress.eLearning >= 0) {
-    return parseFloat((step.progress.live * LIVE_PROGRESS_WEIGHT
-      + step.progress.eLearning * (1 - LIVE_PROGRESS_WEIGHT)).toFixed(2));
-  }
+const getStepProgress = (step) => {
   if (step.progress.live >= 0) return step.progress.live;
   return step.progress.eLearning;
 };
@@ -88,7 +83,7 @@ exports.getCourseProgress = (steps) => {
   const elearningProgressSteps = steps.filter(step => step.progress.eLearning >= 0);
 
   return {
-    blended: steps.map(step => getStepBlendedProgress(step)).reduce((acc, value) => acc + value, 0) / steps.length,
+    blended: steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0) / steps.length,
     ...(elearningProgressSteps.length &&
       {
         eLearning: elearningProgressSteps
