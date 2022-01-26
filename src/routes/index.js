@@ -56,4 +56,5 @@ exports.routes = [
   { plugin: require('./companyLinkRequests'), routes: { prefix: '/companylinkrequests' } },
   { plugin: require('./teletransmission'), routes: { prefix: '/teletransmission' } },
   { plugin: require('./customerAbsences'), routes: { prefix: '/customerabsences' } },
+  { plugin: require('./courseFundingOrganisations'), routes: { prefix: '/coursefundingorganisations' } },
 ];
