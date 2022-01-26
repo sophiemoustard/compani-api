@@ -1,7 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
-const CourseFundingOrganisationHelper = require('../../../src/helpers/CourseFundingOrganisations');
+const CourseFundingOrganisationHelper = require('../../../src/helpers/courseFundingOrganisations');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('list', () => {

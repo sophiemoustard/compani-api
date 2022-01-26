@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('COURSE FUNDING ORGANISATION ROUTES - GET /coursefundingorganisation #tag', () => {
+describe('COURSE FUNDING ORGANISATION ROUTES - GET /coursefundingorganisation', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -55,7 +55,7 @@ describe('COURSE FUNDING ORGANISATION ROUTES - GET /coursefundingorganisation #t
   });
 });
 
-describe('COURSE FUNDING ORGANISATION ROUTES - POST /coursefundingorganisation #tag', () => {
+describe('COURSE FUNDING ORGANISATION ROUTES - POST /coursefundingorganisation', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = {

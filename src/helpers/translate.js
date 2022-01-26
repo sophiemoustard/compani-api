@@ -667,7 +667,7 @@ module.exports = {
     /* Course funding organisation */
     courseFundingOrganisationFound: 'Organismes de financement de formations trouvés.',
     courseFundingOrganisationNotFound: 'Organismes de financement de formations non trouvés.',
-    courseFundingOrganisationCreated: 'Organisme de financement de formations créé,',
+    courseFundingOrganisationCreated: 'Organisme de financement de formations créé.',
     /* Activities */
     activityHistoryCreated: 'Historique d\'activité créé.',
     activityHistoriesFound: 'Historiques d\'activité trouvés.',
