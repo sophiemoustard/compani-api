@@ -83,15 +83,15 @@ exports.getCourseProgress = (steps) => {
 
   const elearningProgressSteps = steps.filter(step => has(step, 'progress.eLearning'));
 
+  const blendedStepsCombinedProgress = steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0);
+
+  const eLearningStepsCombinedProgress = elearningProgressSteps
+    .map(step => step.progress.eLearning)
+    .reduce((acc, value) => acc + value, 0);
+
   return {
-    blended: steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0) / steps.length,
-    ...(elearningProgressSteps.length &&
-      {
-        eLearning: elearningProgressSteps
-          .map(step => step.progress.eLearning)
-          .reduce((acc, value) => acc + value, 0)
-          / elearningProgressSteps.length,
-      }),
+    blended: blendedStepsCombinedProgress / steps.length,
+    ...(elearningProgressSteps.length && { eLearning: eLearningStepsCombinedProgress / elearningProgressSteps.length }),
   };
 };
 

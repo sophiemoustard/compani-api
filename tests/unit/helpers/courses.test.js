@@ -204,6 +204,7 @@ describe('getCourseProgress', () => {
     const result = await CourseHelper.getCourseProgress(steps);
     expect(result).toEqual({ blended: 0.875, eLearning: 0.75 });
   });
+
   it('should get progress for course whose a step has progress at 0', async () => {
     const steps = [{
       _id: new ObjectId(),
