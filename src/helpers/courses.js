@@ -1,5 +1,6 @@
 const path = require('path');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const fs = require('fs');
@@ -72,10 +73,26 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-exports.getCourseProgress = (steps) => {
-  if (!steps || !steps.length) return 0;
+const getStepProgress = (step) => {
+  if (has(step, 'progress.live')) return step.progress.live;
+  return step.progress.eLearning;
+};
 
-  return steps.map(step => step.progress).reduce((acc, value) => acc + value, 0) / steps.length;
+exports.getCourseProgress = (steps) => {
+  if (!steps || !steps.length) return {};
+
+  const elearningProgressSteps = steps.filter(step => has(step, 'progress.eLearning'));
+
+  const blendedStepsCombinedProgress = steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0);
+
+  const eLearningStepsCombinedProgress = elearningProgressSteps
+    .map(step => step.progress.eLearning)
+    .reduce((acc, value) => acc + value, 0);
+
+  return {
+    blended: blendedStepsCombinedProgress / steps.length,
+    ...(elearningProgressSteps.length && { eLearning: eLearningStepsCombinedProgress / elearningProgressSteps.length }),
+  };
 };
 
 exports.formatCourseWithProgress = (course) => {
@@ -220,7 +237,6 @@ exports.getCourseFollowUp = async (course, company) => {
       select: 'identity.firstname identity.lastname firstMobileConnection',
       populate: { path: 'company' },
     })
-    .populate({ path: 'slots', populate: { path: 'step', select: '_id' } })
     .lean();
 
   return {
@@ -233,7 +249,7 @@ exports.getCourseFollowUp = async (course, company) => {
       .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company))
       .map(t => ({
         ...t,
-        ...exports.getTraineeElearningProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+        ...exports.getTraineeElearningProgress(t._id, courseFollowUp.subProgram.steps),
       })),
   };
 };
@@ -265,7 +281,7 @@ exports.getQuestionnaireAnswers = async (courseId) => {
   return activitiesWithFollowUp.filter(act => act.followUp.length).map(act => act.followUp).flat();
 };
 
-exports.getTraineeElearningProgress = (traineeId, steps, slots) => {
+exports.getTraineeElearningProgress = (traineeId, steps) => {
   const formattedSteps = steps
     .filter(step => step.type === E_LEARNING)
     .map((s) => {
@@ -277,10 +293,10 @@ exports.getTraineeElearningProgress = (traineeId, steps, slots) => {
         })),
       };
 
-      return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
+      return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep) };
     });
 
-  return { steps: formattedSteps, elearningProgress: exports.getCourseProgress(formattedSteps) };
+  return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
 };
 
 exports.getTraineeCourse = async (courseId, credentials) => {

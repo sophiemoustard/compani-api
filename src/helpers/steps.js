@@ -20,26 +20,31 @@ exports.reuseActivity = async (stepId, payload) =>
 exports.detachStep = async (subProgramId, stepId) =>
   SubProgram.updateOne({ _id: subProgramId }, { $pull: { steps: stepId } });
 
-exports.elearningStepProgress = (step) => {
+exports.getElearningStepProgress = (step) => {
   const progress = step.activities.filter(activity => activity.activityHistories.length > 0).length;
   const maxProgress = step.activities.length;
 
   return maxProgress ? progress / maxProgress : 0;
 };
 
-exports.liveStepProgress = (step, slots) => {
+exports.getLiveStepProgress = (step, slots) => {
   const nextSlots = slots.filter(slot => moment().isSameOrBefore(slot.endDate));
   const liveProgress = slots.length ? 1 - nextSlots.length / slots.length : 0;
 
   return step.activities.length
     ? parseFloat((liveProgress * LIVE_PROGRESS_WEIGHT
-        + exports.elearningStepProgress(step) * (1 - LIVE_PROGRESS_WEIGHT)).toFixed(2))
+        + exports.getElearningStepProgress(step) * (1 - LIVE_PROGRESS_WEIGHT)).toFixed(2))
     : liveProgress;
 };
 
-exports.getProgress = (step, slots) => (step.type === E_LEARNING
-  ? exports.elearningStepProgress(step)
-  : exports.liveStepProgress(step, slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))));
+exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
+  ? { eLearning: exports.getElearningStepProgress(step) }
+  : {
+    ...(step.activities.length && { eLearning: exports.getElearningStepProgress(step) }),
+    live: exports
+      .getLiveStepProgress(step, slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))),
+  }
+);
 
 exports.list = async (programId) => {
   const steps = await Step.find()
