@@ -1021,7 +1021,6 @@ describe('getTraineeElearningProgress', () => {
         type: E_LEARNING,
       },
     ];
-    const slots = [{ endDate: '2020-11-03T09:00:00.000Z' }];
 
     const formattedSteps = [{
       activities: [{ activityHistories: [{ user: traineeId }] }],
@@ -1034,7 +1033,7 @@ describe('getTraineeElearningProgress', () => {
     getProgress.returns(1);
     getCourseProgress.returns(1);
 
-    const result = CourseHelper.getTraineeElearningProgress(traineeId, steps, slots);
+    const result = CourseHelper.getTraineeElearningProgress(traineeId, steps);
 
     expect(result).toEqual({
       steps: [{ activities: [{ activityHistories: [{ user: traineeId }] }], type: E_LEARNING, progress: 1 }],
@@ -1044,8 +1043,7 @@ describe('getTraineeElearningProgress', () => {
     sinon.assert.calledWithExactly(areObjectIdsEquals.getCall(1), otherTraineeId, traineeId);
     sinon.assert.calledOnceWithExactly(
       getProgress,
-      { activities: [{ activityHistories: [{ user: traineeId }] }], type: E_LEARNING },
-      slots
+      { activities: [{ activityHistories: [{ user: traineeId }] }], type: E_LEARNING }
     );
     sinon.assert.calledOnceWithExactly(getCourseProgress, formattedSteps);
   });

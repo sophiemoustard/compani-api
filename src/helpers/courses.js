@@ -1,5 +1,6 @@
 const path = require('path');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const fs = require('fs');
@@ -73,14 +74,14 @@ exports.list = async (query) => {
 };
 
 const getStepProgress = (step) => {
-  if (step.progress.live >= 0) return step.progress.live;
+  if (has(step, 'progress.live')) return step.progress.live;
   return step.progress.eLearning;
 };
 
 exports.getCourseProgress = (steps) => {
   if (!steps || !steps.length) return {};
 
-  const elearningProgressSteps = steps.filter(step => step.progress.eLearning >= 0);
+  const elearningProgressSteps = steps.filter(step => has(step, 'progress.eLearning'));
 
   return {
     blended: steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0) / steps.length,
@@ -280,7 +281,7 @@ exports.getQuestionnaireAnswers = async (courseId) => {
   return activitiesWithFollowUp.filter(act => act.followUp.length).map(act => act.followUp).flat();
 };
 
-exports.getTraineeElearningProgress = (traineeId, steps, slots) => {
+exports.getTraineeElearningProgress = (traineeId, steps) => {
   const formattedSteps = steps
     .filter(step => step.type === E_LEARNING)
     .map((s) => {
@@ -292,7 +293,7 @@ exports.getTraineeElearningProgress = (traineeId, steps, slots) => {
         })),
       };
 
-      return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
+      return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep) };
     });
 
   return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
