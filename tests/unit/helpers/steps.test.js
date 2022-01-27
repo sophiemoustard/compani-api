@@ -184,6 +184,22 @@ describe('getLiveStepProgress', () => {
   });
 });
 
+describe('getPresenceStepProgress', () => {
+  it('should get presence progress', async () => {
+    const slots = [
+      {
+        startDate: '2020-11-03T09:00:00.000Z',
+        endDate: '2020-11-03T12:00:00.000Z',
+        attendances: [{ _id: new ObjectId() }],
+      },
+      { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T12:00:00.000Z', attendances: [] },
+    ];
+
+    const result = await StepHelper.getPresenceStepProgress(slots);
+    expect(result).toEqual({ attendanceDuration: 180, maxDuration: 360 });
+  });
+});
+
 describe('getProgress', () => {
   let getElearningStepProgress;
   let getLiveStepProgress;
@@ -220,13 +236,18 @@ describe('getProgress', () => {
       areActivitiesValid: true,
     };
     const slots = [
-      { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
-      { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+      { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
+      {
+        startDate: '2020-11-04T09:00:00.000Z',
+        endDate: '2020-11-04T16:01:00.000Z',
+        step: stepId,
+        attendances: [{ _id: new ObjectId() }],
+      },
     ];
     getLiveStepProgress.returns(1);
 
     const result = await StepHelper.getProgress(step, slots);
-    expect(result).toEqual({ live: 1 });
+    expect(result).toEqual({ live: 1, presence: { attendanceDuration: 421, maxDuration: 601 } });
     sinon.assert.calledOnceWithExactly(getLiveStepProgress, step, slots);
   });
 });

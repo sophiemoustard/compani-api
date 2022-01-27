@@ -83,15 +83,27 @@ exports.getCourseProgress = (steps) => {
 
   const elearningProgressSteps = steps.filter(step => has(step, 'progress.eLearning'));
 
+  const presenceProgressSteps = steps.filter(step => step.progress.presence);
+
   const blendedStepsCombinedProgress = steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0);
 
   const eLearningStepsCombinedProgress = elearningProgressSteps
     .map(step => step.progress.eLearning)
     .reduce((acc, value) => acc + value, 0);
 
+  const combinedPresenceProgress = presenceProgressSteps
+    .map(step => step.progress.presence)
+    .reduce((acc, value) => ({
+      attendanceDuration: acc.attendanceDuration + value.attendanceDuration,
+      maxDuration: acc.maxDuration + value.maxDuration,
+    }),
+    { attendanceDuration: 0, maxDuration: 0 }
+    );
+
   return {
     blended: blendedStepsCombinedProgress / steps.length,
     ...(elearningProgressSteps.length && { eLearning: eLearningStepsCombinedProgress / elearningProgressSteps.length }),
+    ...(presenceProgressSteps.length && { presence: combinedPresenceProgress }),
   };
 };
 
@@ -130,7 +142,11 @@ exports.listUserCourses = async (trainee) => {
         },
       ],
     })
-    .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+    .populate({
+      path: 'slots',
+      select: 'startDate endDate step',
+      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+    })
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
@@ -323,7 +339,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step address meetingLink',
-      populate: { path: 'step', select: 'type' },
+      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: credentials._id } }],
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })

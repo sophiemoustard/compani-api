@@ -174,16 +174,16 @@ describe('getCourseProgress', () => {
       _id: new ObjectId(),
       activities: [{ activityHistories: [{}, {}] }],
       name: 'Développement personnel full stack',
-      type: ON_SITE,
+      type: E_LEARNING,
       areActivitiesValid: false,
-      progress: { live: 1 },
+      progress: { eLearning: 1 },
     }];
 
     const result = await CourseHelper.getCourseProgress(steps);
     expect(result).toEqual({ blended: 1, eLearning: 1 });
   });
 
-  it('should get progress for course whose on site steps have two progresses', async () => {
+  it('should get progress for course whose on site steps have severals progresses', async () => {
     const steps = [{
       _id: new ObjectId(),
       activities: [{ activityHistories: [{}, {}] }],
@@ -198,11 +198,15 @@ describe('getCourseProgress', () => {
       name: 'Développement personnel full stack',
       type: ON_SITE,
       areActivitiesValid: false,
-      progress: { live: 0.75, eLearning: 0.5 },
+      progress: { live: 0.75, eLearning: 0.5, presence: { attendanceDuration: 120, maxDuration: 180 } },
     }];
 
     const result = await CourseHelper.getCourseProgress(steps);
-    expect(result).toEqual({ blended: 0.875, eLearning: 0.75 });
+    expect(result).toEqual({
+      blended: 0.875,
+      eLearning: 0.75,
+      presence: { attendanceDuration: 120, maxDuration: 180 },
+    });
   });
 
   it('should get progress for course whose a step has progress at 0', async () => {
@@ -220,11 +224,33 @@ describe('getCourseProgress', () => {
       name: 'Développement personnel full stack',
       type: ON_SITE,
       areActivitiesValid: false,
-      progress: { live: 1 },
+      progress: { live: 1, presence: { attendanceDuration: 120, maxDuration: 180 } },
     }];
 
     const result = await CourseHelper.getCourseProgress(steps);
-    expect(result).toEqual({ blended: 0.5, eLearning: 0 });
+    expect(result).toEqual({ blended: 0.5, eLearning: 0, presence: { attendanceDuration: 120, maxDuration: 180 } });
+  });
+
+  it('should get progress for course whose steps have presence progress', async () => {
+    const steps = [{
+      _id: new ObjectId(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: ON_SITE,
+      areActivitiesValid: false,
+      progress: { eLearning: 1, live: 0.5, presence: { attendanceDuration: 120, maxDuration: 240 } },
+    },
+    {
+      _id: new ObjectId(),
+      activities: [{ activityHistories: [{}, {}] }],
+      name: 'Développement personnel full stack',
+      type: ON_SITE,
+      areActivitiesValid: false,
+      progress: { live: 1, presence: { attendanceDuration: 120, maxDuration: 180 } },
+    }];
+
+    const result = await CourseHelper.getCourseProgress(steps);
+    expect(result).toEqual({ blended: 0.75, eLearning: 1, presence: { attendanceDuration: 240, maxDuration: 420 } });
   });
 
   it('should return empty object if no step', async () => {
@@ -356,8 +382,13 @@ describe('listUserCourses', () => {
           }],
         },
         slots: [
-          { endDate: '2019-11-06T09:00:00.000Z', step: stepId },
-          { endDate: '2019-12-22T16:01:00.000Z', step: stepId },
+          {
+            startDate: '2019-11-06T09:00:00.000Z',
+            endDate: '2019-11-06T12:00:00.000Z',
+            step: stepId,
+            attendances: [{ _id: new ObjectId() }],
+          },
+          { startDate: '2019-12-22T16:01:00.000Z', endDate: '2019-11-06T12:00:00.000Z', step: stepId, attendances: [] },
         ],
       },
     ];
@@ -427,7 +458,11 @@ describe('listUserCourses', () => {
         },
         {
           query: 'populate',
-          args: [{ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } }],
+          args: [{
+            path: 'slots',
+            select: 'startDate endDate step',
+            populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+          }],
         },
         { query: 'select', args: ['_id misc'] },
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
@@ -1084,8 +1119,13 @@ describe('getTraineeCourse', () => {
         ],
       },
       slots: [
-        { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
-        { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+        {
+          startDate: '2020-11-03T09:00:00.000Z',
+          endDate: '2020-11-03T12:00:00.000Z',
+          step: stepId,
+          attendances: [{ _id: new ObjectId() }],
+        },
+        { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T16:01:00.000Z', step: stepId, attendances: [] },
       ],
     };
     const credentials = { _id: new ObjectId() };
@@ -1143,7 +1183,10 @@ describe('getTraineeCourse', () => {
             {
               path: 'slots',
               select: 'startDate endDate step address meetingLink',
-              populate: { path: 'step', select: 'type' },
+              populate: [
+                { path: 'step', select: 'type' },
+                { path: 'attendances', match: { trainee: credentials._id } },
+              ],
             },
           ],
         },
