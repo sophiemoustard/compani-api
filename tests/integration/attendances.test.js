@@ -483,6 +483,35 @@ describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
       });
     });
 
+    describe('COACH', () => {
+      beforeEach(async () => {
+        authToken = await getToken('coach');
+      });
+
+      it('should get company trainee\'s attendances', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
+        expect(unsubscribedAttendances.length).toEqual(2);
+      });
+
+      it('should return 404 if trainee is from other company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[1]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+    });
+
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },

@@ -80,11 +80,11 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
   const loggedUserClientRole = get(credentials, 'role.client.name');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
 
-  if (!loggedUserHasVendorRole && [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && !req.query.company) {
-    throw Boom.badRequest();
-  }
-
   if (courseId) {
+    if (!loggedUserHasVendorRole && [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && !req.query.company) {
+      throw Boom.badRequest();
+    }
+
     const course = await Course.findOne({ _id: courseId })
       .populate({ path: 'trainees', select: 'company', populate: 'company' })
       .lean();
@@ -98,7 +98,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
       .lean();
     if (!trainee) throw Boom.notFound();
 
-    if (!loggedUserHasVendorRole && !UtilsHelper.areObjectIdsEquals(trainee.company, credentials.company)) {
+    if (!loggedUserHasVendorRole && !UtilsHelper.areObjectIdsEquals(trainee.company, credentials.company._id)) {
       throw Boom.notFound();
     }
 
