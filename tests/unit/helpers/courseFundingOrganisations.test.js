@@ -28,18 +28,20 @@ describe('list', () => {
 });
 
 describe('create', () => {
-  let save;
+  let create;
+
   beforeEach(() => {
-    save = sinon.stub(CourseFundingOrganisation.prototype, 'save').returnsThis();
+    create = sinon.stub(CourseFundingOrganisation, 'create');
   });
+
   afterEach(() => {
-    save.restore();
+    create.restore();
   });
 
   it('should create a course funding organisation', async () => {
     const newOrganisation = { name: 'APA du Val de Marne', address: { fullAddress: '22 rue de Paris, 94000 Créteil' } };
-    const result = await CourseFundingOrganisationHelper.create(newOrganisation);
+    await CourseFundingOrganisationHelper.create(newOrganisation);
 
-    expect(result).toMatchObject(newOrganisation);
+    sinon.assert.calledOnceWithExactly(create, newOrganisation);
   });
 });
