@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create } = require('../controllers/courseFundingOrganisationController');
-const { authorizeCourseFundingOrganisationEdit } = require('./preHandlers/courseFundingOrganisation');
+const { authorizeCourseFundingOrganisationCreate } = require('./preHandlers/courseFundingOrganisation');
 const { addressValidation } = require('./validations/utils');
 
 exports.plugin = {
@@ -27,7 +27,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['config:vendor'] },
-        pre: [{ method: authorizeCourseFundingOrganisationEdit }],
+        pre: [{ method: authorizeCourseFundingOrganisationCreate }],
       },
       handler: create,
     });
