@@ -316,6 +316,154 @@ describe('listUnsubscribed', () => {
   });
 });
 
+describe('getTraineeUnsubscribedAttendances', () => {
+  let attendanceFind;
+  beforeEach(() => {
+    attendanceFind = sinon.stub(Attendance, 'find');
+  });
+  afterEach(() => {
+    attendanceFind.restore();
+  });
+
+  it('should return trainee\'s unsubscribed attendances', async () => {
+    const traineeId = new ObjectId();
+    const programAId = new ObjectId();
+    const programBId = new ObjectId();
+    const attendances = [
+      {
+        _id: new ObjectId(),
+        trainee: traineeId,
+        courseSlot: {
+          _id: new ObjectId(),
+          course: null,
+          endDate: '2021-12-20T11:30:00.000Z',
+          startDate: '2021-12-20T08:00:00.000Z',
+          step: { _id: new ObjectId(), name: 'Le mont Ventoux' },
+        },
+      },
+      {
+        _id: new ObjectId(),
+        trainee: traineeId,
+        courseSlot: {
+          _id: new ObjectId(),
+          course: {
+            trainer: { _id: new ObjectId(), identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+            misc: 'équipe 1',
+            subProgram: { _id: ObjectId(), program: { _id: programAId, name: '1000 pompes' } },
+          },
+          endDate: '2021-11-10T11:30:00.000Z',
+          startDate: '2021-11-10T08:00:00.000Z',
+          step: { _id: new ObjectId(), name: 'L\'Alpe d\'Huez' },
+        },
+      },
+      {
+        _id: new ObjectId(),
+        trainee: traineeId,
+        courseSlot: {
+          _id: new ObjectId(),
+          course: {
+            trainer: { _id: new ObjectId(), identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+            misc: 'équipe 1',
+            subProgram: { _id: ObjectId(), program: { _id: programAId, name: '1000 pompes' } },
+          },
+          endDate: '2021-12-24T11:30:00.000Z',
+          startDate: '2021-12-24T08:00:00.000Z',
+          step: { _id: new ObjectId(), name: 'L\'Alpe d\'Huez' },
+        },
+      },
+      {
+        _id: new ObjectId(),
+        trainee: traineeId,
+        courseSlot: {
+          _id: new ObjectId(),
+          course: {
+            trainer: { _id: new ObjectId(), identity: { firstname: 'Didier', lastname: 'Deschamps' } },
+            misc: 'équipe 2',
+            subProgram: { _id: ObjectId(), program: { _id: programBId, name: '2 tractions' } },
+          },
+          endDate: '2022-01-27T11:30:00.000Z',
+          startDate: '2022-01-27T08:00:00.000Z',
+          step: { _id: new ObjectId(), name: 'Paris - Brest' },
+        },
+      },
+    ];
+
+    attendanceFind.returns(SinonMongoose.stubChainedQueries(attendances));
+
+    const result = await AttendanceHelper.getTraineeUnsubscribedAttendances(traineeId);
+
+    expect(result).toMatchObject({
+      [programAId]: [
+        {
+          courseSlot: {
+            endDate: '2021-11-10T11:30:00.000Z',
+            startDate: '2021-11-10T08:00:00.000Z',
+          },
+          course: {
+            trainer: { identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+            misc: 'équipe 1',
+          },
+          step: { name: 'L\'Alpe d\'Huez' },
+          program: { _id: programAId, name: '1000 pompes' },
+        },
+        {
+          courseSlot: {
+            endDate: '2021-12-24T11:30:00.000Z',
+            startDate: '2021-12-24T08:00:00.000Z',
+          },
+          course: {
+            trainer: { identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
+            misc: 'équipe 1',
+          },
+          step: { name: 'L\'Alpe d\'Huez' },
+          program: { _id: programAId, name: '1000 pompes' },
+        },
+      ],
+      [programBId]: [
+        {
+          courseSlot: {
+            endDate: '2022-01-27T11:30:00.000Z',
+            startDate: '2022-01-27T08:00:00.000Z',
+          },
+          course: {
+            trainer: { identity: { firstname: 'Didier', lastname: 'Deschamps' } },
+            misc: 'équipe 2',
+          },
+          step: { name: 'Paris - Brest' },
+          program: { _id: programBId, name: '2 tractions' },
+        },
+      ],
+    });
+
+    SinonMongoose.calledOnceWithExactly(
+      attendanceFind,
+      [
+        { query: 'find', args: [{ trainee: traineeId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'courseSlot',
+            select: 'step course startDate endDate',
+            populate: [
+              {
+                path: 'course',
+                match: { trainees: { $ne: traineeId } },
+                select: 'trainer misc subProgram',
+                populate: [
+                  { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+                  { path: 'trainer', select: 'identity' },
+                ],
+              },
+              { path: 'step', select: 'name' },
+            ],
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
 describe('delete', () => {
   let deleteOne;
   beforeEach(() => {

@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
+const User = require('../../models/User');
 const Attendance = require('../../models/Attendance');
 const {
   TRAINER,
@@ -73,21 +74,36 @@ exports.authorizeAttendancesGet = async (req) => {
 };
 
 exports.authorizeUnsubscribedAttendancesGet = async (req) => {
-  const { course: courseId } = req.query;
+  const { course: courseId, trainee: traineeId } = req.query;
   const { credentials } = req.auth;
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
 
   if (!loggedUserHasVendorRole && [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && !req.query.company) {
     throw Boom.badRequest();
   }
 
-  const course = await Course.findOne({ _id: courseId })
-    .populate({ path: 'trainees', select: 'company', populate: 'company' })
-    .lean();
-  if (!course) throw Boom.notFound();
+  if (courseId) {
+    const course = await Course.findOne({ _id: courseId })
+      .populate({ path: 'trainees', select: 'company', populate: 'company' })
+      .lean();
+    if (!course) throw Boom.notFound();
 
-  checkRole(course, credentials);
+    checkRole(course, credentials);
+  }
+  if (traineeId) {
+    const trainee = await User.findOne({ _id: traineeId })
+      .populate({ path: 'company' })
+      .lean();
+    if (!trainee) throw Boom.notFound();
+
+    if (!loggedUserHasVendorRole && !UtilsHelper.areObjectIdsEquals(trainee.company, credentials.company)) {
+      throw Boom.notFound();
+    }
+
+    if (loggedUserVendorRole === TRAINER) throw Boom.forbidden();
+  }
 
   return null;
 };

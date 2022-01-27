@@ -21,8 +21,10 @@ const list = async (req) => {
 
 const listUnsubscribed = async (req) => {
   try {
-    const { course, company } = req.query;
-    const unsubscribedAttendances = await AttendanceHelper.listUnsubscribed(course, company);
+    const { course, company, trainee } = req.query;
+    const unsubscribedAttendances = course
+      ? await AttendanceHelper.listUnsubscribed(course, company)
+      : await AttendanceHelper.getTraineeUnsubscribedAttendances(trainee);
 
     return {
       message: unsubscribedAttendances.length
