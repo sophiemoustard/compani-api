@@ -7,6 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
@@ -91,19 +92,19 @@ exports.getCourseProgress = (steps) => {
     .map(step => step.progress.eLearning)
     .reduce((acc, value) => acc + value, 0);
 
-  const combinedPresenceProgress = presenceProgressSteps
-    .map(step => step.progress.presence)
-    .reduce((acc, value) => ({
-      attendanceDuration: { minutes: acc.attendanceDuration.minutes + value.attendanceDuration.minutes },
-      maxDuration: { minutes: acc.maxDuration.minutes + value.maxDuration.minutes },
-    }),
-    { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } }
-    );
+  const combinedPresenceProgress = presenceProgressSteps.length
+    ? {
+      attendanceDuration: presenceProgressSteps
+        .reduce((acc, step) => acc.add(step.progress.presence.attendanceDuration), CompaniDuration()).toObject(),
+      maxDuration: presenceProgressSteps
+        .reduce((acc, step) => acc.add(step.progress.presence.maxDuration), CompaniDuration()).toObject(),
+    }
+    : null;
 
   return {
     blended: blendedStepsCombinedProgress / steps.length,
     ...(elearningProgressSteps.length && { eLearning: eLearningStepsCombinedProgress / elearningProgressSteps.length }),
-    ...(presenceProgressSteps.length && { presence: combinedPresenceProgress }),
+    ...(combinedPresenceProgress && { presence: combinedPresenceProgress }),
   };
 };
 

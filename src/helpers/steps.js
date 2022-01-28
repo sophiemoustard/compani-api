@@ -4,6 +4,7 @@ const SubProgram = require('../models/SubProgram');
 const UtilsHelper = require('./utils');
 const { E_LEARNING } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 
 const LIVE_PROGRESS_WEIGHT = 0.9;
 
@@ -37,24 +38,19 @@ exports.getLiveStepProgress = (step, slots) => {
     : liveProgress;
 };
 
-exports.getPresenceStepProgress = (slots) => {
-  let maxDuration = 0;
-  let attendanceDuration = 0;
-  attendanceDuration = slots
-    .reduce((acc, value) => ({
-      minutes: value.attendances.length
-        ? acc.minutes + CompaniDate(value.endDate).diff(value.startDate, 'minutes').minutes
-        : acc.minutes + 0,
-    }), { minutes: 0 }
-    );
-
-  maxDuration = slots
-    .reduce((acc, value) => ({
-      minutes: acc.minutes + CompaniDate(value.endDate).diff(value.startDate, 'minutes').minutes,
-    }), { minutes: 0 });
-
-  return { attendanceDuration, maxDuration };
-};
+exports.getPresenceStepProgress = slots =>
+  ({
+    attendanceDuration: slots
+      .reduce((acc, slot) => (
+        slot.attendances.length
+          ? acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'))
+          : acc.add({ minutes: 0 })),
+      CompaniDuration())
+      .toObject(),
+    maxDuration: slots
+      .reduce((acc, slot) => acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes')), CompaniDuration())
+      .toObject(),
+  });
 
 exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
   ? { eLearning: exports.getElearningStepProgress(step) }
