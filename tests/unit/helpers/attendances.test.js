@@ -338,7 +338,6 @@ describe('getTraineeUnsubscribedAttendances', () => {
           course: null,
           endDate: '2021-12-20T11:30:00.000Z',
           startDate: '2021-12-20T08:00:00.000Z',
-          step: { _id: new ObjectId(), name: 'Le mont Ventoux' },
         },
       },
       {
@@ -353,7 +352,6 @@ describe('getTraineeUnsubscribedAttendances', () => {
           },
           endDate: '2021-11-10T11:30:00.000Z',
           startDate: '2021-11-10T08:00:00.000Z',
-          step: { _id: new ObjectId(), name: 'L\'Alpe d\'Huez' },
         },
       },
       {
@@ -368,7 +366,6 @@ describe('getTraineeUnsubscribedAttendances', () => {
           },
           endDate: '2021-12-24T11:30:00.000Z',
           startDate: '2021-12-24T08:00:00.000Z',
-          step: { _id: new ObjectId(), name: 'L\'Alpe d\'Huez' },
         },
       },
       {
@@ -383,7 +380,6 @@ describe('getTraineeUnsubscribedAttendances', () => {
           },
           endDate: '2022-01-27T11:30:00.000Z',
           startDate: '2022-01-27T08:00:00.000Z',
-          step: { _id: new ObjectId(), name: 'Paris - Brest' },
         },
       },
     ];
@@ -403,7 +399,6 @@ describe('getTraineeUnsubscribedAttendances', () => {
             trainer: { identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
             misc: 'équipe 1',
           },
-          step: { name: 'L\'Alpe d\'Huez' },
           program: { _id: programAId, name: '1000 pompes' },
         },
         {
@@ -415,7 +410,6 @@ describe('getTraineeUnsubscribedAttendances', () => {
             trainer: { identity: { firstname: 'Zinedine', lastname: 'Zidane' } },
             misc: 'équipe 1',
           },
-          step: { name: 'L\'Alpe d\'Huez' },
           program: { _id: programAId, name: '1000 pompes' },
         },
       ],
@@ -429,7 +423,6 @@ describe('getTraineeUnsubscribedAttendances', () => {
             trainer: { identity: { firstname: 'Didier', lastname: 'Deschamps' } },
             misc: 'équipe 2',
           },
-          step: { name: 'Paris - Brest' },
           program: { _id: programBId, name: '2 tractions' },
         },
       ],
@@ -443,7 +436,7 @@ describe('getTraineeUnsubscribedAttendances', () => {
           query: 'populate',
           args: [{
             path: 'courseSlot',
-            select: 'step course startDate endDate',
+            select: 'course startDate endDate',
             populate: [
               {
                 path: 'course',
@@ -454,7 +447,6 @@ describe('getTraineeUnsubscribedAttendances', () => {
                   { path: 'trainer', select: 'identity' },
                 ],
               },
-              { path: 'step', select: 'name' },
             ],
           }],
         },

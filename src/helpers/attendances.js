@@ -69,7 +69,7 @@ exports.getTraineeUnsubscribedAttendances = async (trainee) => {
   const attendances = await Attendance.find({ trainee })
     .populate({
       path: 'courseSlot',
-      select: 'step course startDate endDate',
+      select: 'course startDate endDate',
       populate: [
         {
           path: 'course',
@@ -80,7 +80,6 @@ exports.getTraineeUnsubscribedAttendances = async (trainee) => {
             { path: 'trainer', select: 'identity' },
           ],
         },
-        { path: 'step', select: 'name' },
       ],
     })
     .lean();
@@ -90,7 +89,6 @@ exports.getTraineeUnsubscribedAttendances = async (trainee) => {
     .map(a => ({
       courseSlot: pick(a.courseSlot, ['startDate', 'endDate']),
       course: pick(a.courseSlot.course, ['trainer.identity', 'misc']),
-      step: pick(a.courseSlot.step, 'name'),
       program: pick(a.courseSlot.course.subProgram.program, ['_id', 'name']),
     }));
 
