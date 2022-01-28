@@ -99,9 +99,23 @@ const traineeList = [
   },
   { // 7
     _id: new ObjectId(),
-    identity: { firstname: 'noCompany', lastname: 'unsubscribed' },
+    identity: { firstname: 'noCompany 2', lastname: 'unsubscribed' },
     refreshToken: uuidv4(),
-    local: { email: 'trainee2@no-company.fr' },
+    local: { email: 'trainee3@no-company.fr' },
+    origin: WEBAPP,
+  },
+  { // 8
+    _id: new ObjectId(),
+    identity: { firstname: 'from auth company', lastname: 'unsubscribed' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainee4@no-company.fr' },
+    origin: WEBAPP,
+  },
+  { // 9
+    _id: new ObjectId(),
+    identity: { firstname: 'without company', lastname: 'subscribed for 1, unsubscribed for 2' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainee5@no-company.fr' },
     origin: WEBAPP,
   },
 ];
@@ -130,7 +144,7 @@ const coursesList = [
     subProgram: subProgramList[1]._id,
     company: otherCompany._id,
     type: 'intra',
-    trainees: [new ObjectId()],
+    trainees: [traineeList[9]._id, new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
@@ -155,7 +169,7 @@ const coursesList = [
     subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'intra',
-    trainees: [traineeList[7]._id, new ObjectId()],
+    trainees: [traineeList[7]._id, traineeList[8]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
     archivedAt: '2021-11-17T23:00:00.000Z',
@@ -222,9 +236,9 @@ const attendancesList = [
   { _id: new ObjectId(), courseSlot: slotsList[5], trainee: traineeList[7]._id },
   { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[5]._id },
   { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[6]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[0]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[2], trainee: traineeList[0]._id },
-  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: traineeList[0]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[9]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[2], trainee: traineeList[9]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: traineeList[9]._id },
 ];
 
 const userCompanyList = [
@@ -234,6 +248,7 @@ const userCompanyList = [
   { user: traineeList[4]._id, company: otherCompany._id },
   { user: traineeList[5]._id, company: authCompany._id },
   { user: traineeList[6]._id, company: otherCompany._id },
+  { user: traineeList[8]._id, company: authCompany._id },
 ];
 
 const populateDB = async () => {
