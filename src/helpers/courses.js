@@ -94,10 +94,10 @@ exports.getCourseProgress = (steps) => {
   const combinedPresenceProgress = presenceProgressSteps
     .map(step => step.progress.presence)
     .reduce((acc, value) => ({
-      attendanceDuration: acc.attendanceDuration + value.attendanceDuration,
-      maxDuration: acc.maxDuration + value.maxDuration,
+      attendanceDuration: { minutes: acc.attendanceDuration.minutes + value.attendanceDuration.minutes },
+      maxDuration: { minutes: acc.maxDuration.minutes + value.maxDuration.minutes },
     }),
-    { attendanceDuration: 0, maxDuration: 0 }
+    { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } }
     );
 
   return {

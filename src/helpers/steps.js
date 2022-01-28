@@ -1,7 +1,6 @@
 const { pick, get } = require('lodash');
 const Step = require('../models/Step');
 const SubProgram = require('../models/SubProgram');
-const moment = require('../extensions/moment');
 const UtilsHelper = require('./utils');
 const { E_LEARNING } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
@@ -29,7 +28,7 @@ exports.getElearningStepProgress = (step) => {
 };
 
 exports.getLiveStepProgress = (step, slots) => {
-  const nextSlots = slots.filter(slot => moment().isSameOrBefore(slot.endDate));
+  const nextSlots = slots.filter(slot => CompaniDate().isSameOrBefore(slot.endDate));
   const liveProgress = slots.length ? 1 - nextSlots.length / slots.length : 0;
 
   return step.activities.length
@@ -41,12 +40,19 @@ exports.getLiveStepProgress = (step, slots) => {
 exports.getPresenceStepProgress = (slots) => {
   let maxDuration = 0;
   let attendanceDuration = 0;
-  for (const slot of slots) {
-    if (slot.attendances.length) {
-      attendanceDuration += CompaniDate(slot.endDate).diff(slot.startDate, 'minutes').minutes;
-    }
-    maxDuration += CompaniDate(slot.endDate).diff(slot.startDate, 'minutes').minutes;
-  }
+  attendanceDuration = slots
+    .reduce((acc, value) => ({
+      minutes: value.attendances.length
+        ? acc.minutes + CompaniDate(value.endDate).diff(value.startDate, 'minutes').minutes
+        : acc.minutes + 0,
+    }), { minutes: 0 }
+    );
+
+  maxDuration = slots
+    .reduce((acc, value) => ({
+      minutes: acc.minutes + CompaniDate(value.endDate).diff(value.startDate, 'minutes').minutes,
+    }), { minutes: 0 });
+
   return { attendanceDuration, maxDuration };
 };
 
