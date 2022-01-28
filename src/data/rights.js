@@ -21,6 +21,7 @@ const rights = [
   { permission: 'companylinkrequests:edit', rolesConcerned: [CLIENT_ADMIN, COACH], description: 'Consulter les demandes de rattachement à la structure' },
   { permission: 'config:edit', rolesConcerned: [CLIENT_ADMIN], subscription: ERP, description: 'Editer les infos de configuration' },
   { permission: 'config:read', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter les infos de configuration' },
+  { permission: 'config:vendor', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Consulter et éditer les infos de configuration de facturation des formations' },
   { permission: 'contracts:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Editer les contrats' },
   { permission: 'courses:create', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Créer une formation' },
   { permission: 'courses:edit', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Editer les formations' },

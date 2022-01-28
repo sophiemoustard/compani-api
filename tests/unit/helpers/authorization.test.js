@@ -98,6 +98,7 @@ describe('validate', () => {
           'companies:create',
           'companies:edit',
           'companies:read',
+          'config:vendor',
           'courses:create',
           'exports:read',
           'programs:edit',
