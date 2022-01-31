@@ -12,6 +12,7 @@ const {
   traineeList,
 } = require('./seed/attendancesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
+const { trainerAndCoach } = require('../seed/authUsersSeed');
 const { authCompany } = require('../seed/authCompaniesSeed');
 
 describe('NODE ENV', () => {
@@ -156,7 +157,7 @@ describe('ATTENDANCES ROUTES - POST /attendances', () => {
   });
 });
 
-describe('ATTENDANCES ROUTES - GET /attendances #tag', () => {
+describe('ATTENDANCES ROUTES - GET /attendances', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -509,6 +510,35 @@ describe('ATTENDANCES ROUTES - GET /attendances/unsubscribed', () => {
         });
 
         expect(response.statusCode).toBe(404);
+      });
+    });
+
+    describe('TRAINER AND COACH', () => {
+      beforeEach(async () => {
+        authToken = await getTokenByCredentials(trainerAndCoach.local);
+      });
+
+      it('should get attendances if trainee is from coach company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[5]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const unsubscribedAttendances = Object.values(response.result.data.unsubscribedAttendances).flat();
+        expect(unsubscribedAttendances.length).toEqual(1);
+      });
+
+      it('should return 403 if trainee is not from coach company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/attendances/unsubscribed?trainee=${traineeList[1]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(403);
       });
     });
 
