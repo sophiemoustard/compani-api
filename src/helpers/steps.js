@@ -38,19 +38,22 @@ exports.getLiveStepProgress = (step, slots) => {
     : liveProgress;
 };
 
-exports.getPresenceStepProgress = slots =>
-  ({
+exports.getPresenceStepProgress = (slots) => {
+  if (!slots.length) return { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } };
+
+  return {
     attendanceDuration: slots
       .reduce((acc, slot) => (
         slot.attendances.length
           ? acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'))
-          : acc.add({ minutes: 0 })),
-      CompaniDuration())
+          : acc),
+      CompaniDuration({ minutes: 0 }))
       .toObject(),
     maxDuration: slots
       .reduce((acc, slot) => acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes')), CompaniDuration())
       .toObject(),
-  });
+  };
+};
 
 exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
   ? { eLearning: exports.getElearningStepProgress(step) }

@@ -198,6 +198,13 @@ describe('getPresenceStepProgress', () => {
     const result = await StepHelper.getPresenceStepProgress(slots);
     expect(result).toEqual({ attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 360 } });
   });
+
+  it('should return presence at 0 if no slot', async () => {
+    const slots = [];
+
+    const result = await StepHelper.getPresenceStepProgress(slots);
+    expect(result).toEqual({ attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } });
+  });
 });
 
 describe('getProgress', () => {
