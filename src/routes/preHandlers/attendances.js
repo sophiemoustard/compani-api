@@ -22,7 +22,7 @@ const isTrainerAuthorized = (loggedUserId, trainer) => {
   return null;
 };
 
-const checkRole = (course, credentials) => {
+const checkPermissionOnCourse = (course, credentials) => {
   const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserClientRole = get(credentials, 'role.client.name');
@@ -65,7 +65,7 @@ exports.authorizeAttendancesGet = async (req) => {
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   const { course } = courseSlots[0];
 
-  checkRole(course, credentials);
+  checkPermissionOnCourse(course, credentials);
 
   return {
     courseSlotsIds: courseSlots.map(cs => cs._id),
@@ -90,7 +90,7 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
       .lean();
     if (!course) throw Boom.notFound();
 
-    checkRole(course, credentials);
+    checkPermissionOnCourse(course, credentials);
   }
   if (traineeId) {
     const trainee = await User.findOne({ _id: traineeId })
@@ -98,11 +98,10 @@ exports.authorizeUnsubscribedAttendancesGet = async (req) => {
       .lean();
     if (!trainee) throw Boom.notFound();
 
-    if (!loggedUserHasVendorRole && !UtilsHelper.areObjectIdsEquals(trainee.company, credentials.company._id)) {
-      throw Boom.notFound();
+    if (!UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id'))) {
+      if (!loggedUserVendorRole) throw Boom.notFound();
+      if (loggedUserVendorRole === TRAINER) throw Boom.forbidden();
     }
-
-    if (loggedUserVendorRole === TRAINER) throw Boom.forbidden();
   }
 
   return null;
