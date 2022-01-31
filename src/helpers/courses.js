@@ -7,7 +7,6 @@ const fs = require('fs');
 const os = require('os');
 const Boom = require('@hapi/boom');
 const { CompaniDate } = require('./dates/companiDates');
-const { CompaniDuration } = require('./dates/companiDurations');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
@@ -94,10 +93,12 @@ exports.getCourseProgress = (steps) => {
 
   const combinedPresenceProgress = presenceProgressSteps.length
     ? {
-      attendanceDuration: presenceProgressSteps
-        .reduce((acc, step) => acc.add(step.progress.presence.attendanceDuration), CompaniDuration()).toObject(),
-      maxDuration: presenceProgressSteps
-        .reduce((acc, step) => acc.add(step.progress.presence.maxDuration), CompaniDuration()).toObject(),
+      attendanceDuration: UtilsHelper
+        .computeDuration(presenceProgressSteps.map(step => step.progress.presence.attendanceDuration))
+        .toObject(),
+      maxDuration: UtilsHelper
+        .computeDuration(presenceProgressSteps.map(step => step.progress.presence.maxDuration))
+        .toObject(),
     }
     : null;
 

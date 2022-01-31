@@ -486,3 +486,13 @@ describe('getDurationForExport', () => {
     expect(result).toEqual('30,00');
   });
 });
+
+describe('computeDuration', () => {
+  it('should return total duration', () => {
+    const durations = [{ minutes: 13 }, { minutes: 12 }];
+
+    const result = UtilsHelper.computeDuration(durations);
+
+    expect(result.toObject()).toEqual({ minutes: 25 });
+  });
+});

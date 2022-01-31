@@ -43,11 +43,12 @@ exports.getPresenceStepProgress = (slots) => {
 
   return {
     attendanceDuration: slots
-      .reduce((acc, slot) => (
-        slot.attendances.length
+      .reduce(
+        (acc, slot) => (slot.attendances.length
           ? acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'))
           : acc),
-      CompaniDuration({ minutes: 0 }))
+        CompaniDuration({ minutes: 0 })
+      )
       .toObject(),
     maxDuration: slots
       .reduce((acc, slot) => acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes')), CompaniDuration())
@@ -55,16 +56,17 @@ exports.getPresenceStepProgress = (slots) => {
   };
 };
 
-exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
-  ? { eLearning: exports.getElearningStepProgress(step) }
-  : {
-    ...(step.activities.length && { eLearning: exports.getElearningStepProgress(step) }),
-    live: exports
-      .getLiveStepProgress(step, slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))),
-    presence: exports
-      .getPresenceStepProgress(slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))),
-  }
-);
+exports.getProgress = (step, slots = []) => {
+  const stepSlotList = slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
+
+  return step.type === E_LEARNING
+    ? { eLearning: exports.getElearningStepProgress(step) }
+    : {
+      ...(step.activities.length && { eLearning: exports.getElearningStepProgress(step) }),
+      live: exports.getLiveStepProgress(step, stepSlotList),
+      presence: exports.getPresenceStepProgress(stepSlotList),
+    };
+};
 
 exports.list = async (programId) => {
   const steps = await Step.find()
