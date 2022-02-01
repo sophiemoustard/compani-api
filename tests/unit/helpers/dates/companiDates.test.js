@@ -369,7 +369,7 @@ describe('QUERY', () => {
       expect(result).toEqual(true);
     });
 
-    it('should return false if holiday business day', () => {
+    it('should return false if holiday during the week', () => {
       const day = CompaniDatesHelper.CompaniDate('2022-07-14T07:00:00.000Z'); // national day on thursday
       const result = day.isBusinessDay();
 
@@ -383,7 +383,7 @@ describe('QUERY', () => {
       expect(result).toEqual(false);
     });
 
-    it('should return false if week-end holiday day', () => {
+    it('should return false if holiday during the week-end', () => {
       const day = CompaniDatesHelper.CompaniDate('2022-01-01T07:00:00.000Z'); // new year on saturday
       const result = day.isBusinessDay();
 

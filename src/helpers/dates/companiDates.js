@@ -66,7 +66,7 @@ const CompaniDateFactory = (inputDate) => {
     isBusinessDay() {
       const day = _date.weekday;
 
-      return !!(WORKING_DAYS.includes(day) && !this.isHoliday(_date));
+      return !!(WORKING_DAYS.includes(day) && !this.isHoliday());
     },
 
     // MANIPULATE
