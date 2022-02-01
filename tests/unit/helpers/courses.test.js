@@ -345,12 +345,13 @@ describe('formatCourseWithProgress', () => {
         presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } },
       },
     });
-    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], course.slots);
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], []);
     sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
     sinon.assert.calledWithExactly(getCourseProgress.getCall(0), [
-      { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+      { ...course.subProgram.steps[0], slots: [], progress: { eLearning: 1 } },
       {
         ...course.subProgram.steps[1],
+        slots: course.slots,
         progress: { live: 1, presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } } },
       },
     ]);
