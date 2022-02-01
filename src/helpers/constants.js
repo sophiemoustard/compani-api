@@ -293,6 +293,7 @@ module.exports = {
   },
   // PAY
   PAY: 'pay',
+  WORKING_DAYS: [1, 2, 3, 4, 5, 6],
   // CONTRACTS
   CONTRACT: 'contract',
   CONTRACT_VERSION: 'contract_version',
