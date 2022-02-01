@@ -325,52 +325,39 @@ describe('QUERY', () => {
   });
 
   describe('isHoliday', () => {
-    const christmas = CompaniDatesHelper.CompaniDate('2000-12-25T07:00:00.000Z');
-    const laborDay = CompaniDatesHelper.CompaniDate('2010-05-01T07:00:00.000Z');
-    const mothersDay = CompaniDatesHelper.CompaniDate('2025-05-25T07:00:00.000Z'); // 'sunday before 06.01'
-    const pentecost = CompaniDatesHelper.CompaniDate('2022-06-05T07:00:00.000Z'); // 'easter 49'
-    const mondayAfterPentecost = CompaniDatesHelper.CompaniDate('2022-06-06T07:00:00.000Z'); // 'easter 50'
-    let _formatMiscToCompaniDate;
-    beforeEach(() => {
-      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
-    });
-    afterEach(() => {
-      _formatMiscToCompaniDate.restore();
-    });
-
     it('should return true, Christmas is a holiday', () => {
+      const christmas = CompaniDatesHelper.CompaniDate('2000-12-25T07:00:00.000Z');
       const result = christmas.isHoliday();
 
       expect(result).toEqual(true);
-      sinon.assert.notCalled(_formatMiscToCompaniDate);
     });
 
     it('should return true, Labor day is a holiday', () => {
+      const laborDay = CompaniDatesHelper.CompaniDate('2010-05-01T07:00:00.000Z');
       const result = laborDay.isHoliday();
 
       expect(result).toEqual(true);
-      sinon.assert.notCalled(_formatMiscToCompaniDate);
     });
 
     it('should return false, Mother\'s day isn\'t a holiday', () => {
+      const mothersDay = CompaniDatesHelper.CompaniDate('2025-05-25T07:00:00.000Z'); // 'sunday before 06.01'
       const result = mothersDay.isHoliday();
 
       expect(result).toEqual(false);
-      sinon.assert.notCalled(_formatMiscToCompaniDate);
     });
 
     it('should return false, Pentecost isn\'t a holiday', () => {
+      const pentecost = CompaniDatesHelper.CompaniDate('2022-06-05T07:00:00.000Z'); // 'easter 49'
       const result = pentecost.isHoliday();
 
       expect(result).toEqual(false);
-      sinon.assert.notCalled(_formatMiscToCompaniDate);
     });
 
     it('should return false, monday after Pentecost isn\'t a holiday', () => {
+      const mondayAfterPentecost = CompaniDatesHelper.CompaniDate('2022-06-06T07:00:00.000Z'); // 'easter 50'
       const result = mondayAfterPentecost.isHoliday();
 
       expect(result).toEqual(false);
-      sinon.assert.notCalled(_formatMiscToCompaniDate);
     });
   });
 });
