@@ -1,9 +1,10 @@
 const { pick, get } = require('lodash');
 const Step = require('../models/Step');
 const SubProgram = require('../models/SubProgram');
-const moment = require('../extensions/moment');
 const UtilsHelper = require('./utils');
 const { E_LEARNING } = require('./constants');
+const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 
 const LIVE_PROGRESS_WEIGHT = 0.9;
 
@@ -28,7 +29,7 @@ exports.getElearningStepProgress = (step) => {
 };
 
 exports.getLiveStepProgress = (step, slots) => {
-  const nextSlots = slots.filter(slot => moment().isSameOrBefore(slot.endDate));
+  const nextSlots = slots.filter(slot => CompaniDate().isSameOrBefore(slot.endDate));
   const liveProgress = slots.length ? 1 - nextSlots.length / slots.length : 0;
 
   return step.activities.length
@@ -37,14 +38,35 @@ exports.getLiveStepProgress = (step, slots) => {
     : liveProgress;
 };
 
-exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
-  ? { eLearning: exports.getElearningStepProgress(step) }
-  : {
-    ...(step.activities.length && { eLearning: exports.getElearningStepProgress(step) }),
-    live: exports
-      .getLiveStepProgress(step, slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id))),
-  }
-);
+exports.getPresenceStepProgress = (slots) => {
+  if (!slots.length) return { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } };
+
+  return {
+    attendanceDuration: slots
+      .reduce(
+        (acc, slot) => (slot.attendances.length
+          ? acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes'))
+          : acc),
+        CompaniDuration({ minutes: 0 })
+      )
+      .toObject(),
+    maxDuration: slots
+      .reduce((acc, slot) => acc.add(CompaniDate(slot.endDate).diff(slot.startDate, 'minutes')), CompaniDuration())
+      .toObject(),
+  };
+};
+
+exports.getProgress = (step, slots = []) => {
+  const stepSlotList = slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
+
+  return step.type === E_LEARNING
+    ? { eLearning: exports.getElearningStepProgress(step) }
+    : {
+      ...(step.activities.length && { eLearning: exports.getElearningStepProgress(step) }),
+      live: exports.getLiveStepProgress(step, stepSlotList),
+      presence: exports.getPresenceStepProgress(stepSlotList),
+    };
+};
 
 exports.list = async (programId) => {
   const steps = await Step.find()

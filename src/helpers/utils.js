@@ -231,3 +231,6 @@ exports.getDuration = (startDate, endDate) =>
 
 exports.getDurationForExport = (startDate, endDate) =>
   exports.formatFloatForExport(CompaniDuration(CompaniDate(endDate).diff(startDate, 'minutes')).asHours());
+
+exports.computeDuration = durations => durations
+  .reduce((acc, duration) => acc.add(duration), CompaniDuration());

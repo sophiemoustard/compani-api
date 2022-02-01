@@ -184,16 +184,42 @@ describe('getLiveStepProgress', () => {
   });
 });
 
+describe('getPresenceStepProgress', () => {
+  it('should get presence progress', async () => {
+    const slots = [
+      {
+        startDate: '2020-11-03T09:00:00.000Z',
+        endDate: '2020-11-03T12:00:00.000Z',
+        attendances: [{ _id: new ObjectId() }],
+      },
+      { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T12:00:00.000Z', attendances: [] },
+    ];
+
+    const result = await StepHelper.getPresenceStepProgress(slots);
+    expect(result).toEqual({ attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 360 } });
+  });
+
+  it('should return presence at 0 if no slot', async () => {
+    const slots = [];
+
+    const result = await StepHelper.getPresenceStepProgress(slots);
+    expect(result).toEqual({ attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } });
+  });
+});
+
 describe('getProgress', () => {
   let getElearningStepProgress;
   let getLiveStepProgress;
+  let getPresenceStepProgress;
   beforeEach(() => {
     getElearningStepProgress = sinon.stub(StepHelper, 'getElearningStepProgress');
     getLiveStepProgress = sinon.stub(StepHelper, 'getLiveStepProgress');
+    getPresenceStepProgress = sinon.stub(StepHelper, 'getPresenceStepProgress');
   });
   afterEach(() => {
     getElearningStepProgress.restore();
     getLiveStepProgress.restore();
+    getPresenceStepProgress.restore();
   });
   it('should get progress for elearning step', async () => {
     const step = {
@@ -208,6 +234,8 @@ describe('getProgress', () => {
     const result = await StepHelper.getProgress(step);
     expect(result).toEqual({ eLearning: 1 });
     sinon.assert.calledOnceWithExactly(getElearningStepProgress, step);
+    sinon.assert.notCalled(getLiveStepProgress);
+    sinon.assert.notCalled(getPresenceStepProgress);
   });
 
   it('should get progress for live step', async () => {
@@ -220,14 +248,21 @@ describe('getProgress', () => {
       areActivitiesValid: true,
     };
     const slots = [
-      { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
-      { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+      { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
+      {
+        startDate: '2020-11-04T09:00:00.000Z',
+        endDate: '2020-11-04T16:01:00.000Z',
+        step: stepId,
+        attendances: [{ _id: new ObjectId() }],
+      },
     ];
     getLiveStepProgress.returns(1);
+    getPresenceStepProgress.returns({ attendanceDuration: 421, maxDuration: 601 });
 
     const result = await StepHelper.getProgress(step, slots);
-    expect(result).toEqual({ live: 1 });
+    expect(result).toEqual({ live: 1, presence: { attendanceDuration: 421, maxDuration: 601 } });
     sinon.assert.calledOnceWithExactly(getLiveStepProgress, step, slots);
+    sinon.assert.calledOnceWithExactly(getPresenceStepProgress, slots);
   });
 });
 
