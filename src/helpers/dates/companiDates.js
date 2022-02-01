@@ -1,5 +1,6 @@
 const pick = require('lodash/pick');
 const luxon = require('./luxon');
+const { getHolidays } = require('./holidays');
 
 exports.CompaniDate = (...args) => CompaniDateFactory(exports._formatMiscToCompaniDate(...args));
 
@@ -52,6 +53,13 @@ const CompaniDateFactory = (inputDate) => {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
       return (_date.hasSame(otherDate, unit) || _date.startOf(unit) < otherDate.startOf(unit));
+    },
+
+    isHoliday() {
+      const { year } = _date;
+      const holidays = getHolidays(year);
+
+      return !!holidays.find(h => _date.hasSame(h, 'day'));
     },
 
     // MANIPULATE
