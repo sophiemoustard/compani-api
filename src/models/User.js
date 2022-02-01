@@ -24,6 +24,10 @@ const {
   STRICTLY_E_LEARNING,
   MOBILE,
   WEBAPP,
+  PUBLIC_TRANSPORT,
+  PRIVATE_TRANSPORT,
+  COMPANY_TRANSPORT,
+  NONE,
 } = require('../helpers/constants');
 const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
@@ -49,6 +53,8 @@ const USER_ROLE_LIST = [
   TRAINER,
   HELPER,
 ];
+
+const TRANSPORT_TYPE = [PUBLIC_TRANSPORT, PRIVATE_TRANSPORT, COMPANY_TRANSPORT, NONE];
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -128,7 +134,7 @@ const UserSchema = mongoose.Schema({
     navigoInvoice: driveResourceSchemaDefinition,
     transportInvoice: {
       ...driveResourceSchemaDefinition,
-      transportType: { type: String },
+      transportType: { type: String, enum: TRANSPORT_TYPE },
     },
     mutualFund: {
       ...driveResourceSchemaDefinition,
