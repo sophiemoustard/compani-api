@@ -56,17 +56,13 @@ exports.getPresenceStepProgress = (slots) => {
   };
 };
 
-exports.getProgress = (step, slots = []) => {
-  const stepSlotList = slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
-
-  return step.type === E_LEARNING
-    ? { eLearning: exports.getElearningStepProgress(step) }
-    : {
-      ...(step.activities.length && { eLearning: exports.getElearningStepProgress(step) }),
-      live: exports.getLiveStepProgress(step, stepSlotList),
-      presence: exports.getPresenceStepProgress(stepSlotList),
-    };
-};
+exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
+  ? { eLearning: exports.getElearningStepProgress(step) }
+  : {
+    ...(step.activities.length && { eLearning: exports.getElearningStepProgress(step) }),
+    live: exports.getLiveStepProgress(step, slots),
+    presence: exports.getPresenceStepProgress(slots),
+  });
 
 exports.list = async (programId) => {
   const steps = await Step.find()

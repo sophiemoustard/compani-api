@@ -111,7 +111,11 @@ exports.getCourseProgress = (steps) => {
 
 exports.formatCourseWithProgress = (course) => {
   const steps = course.subProgram.steps
-    .map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) }));
+    .map((step) => {
+      const slots = course.slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
+
+      return { ...step, slots, progress: StepsHelper.getProgress(step, slots) };
+    });
 
   return {
     ...course,
