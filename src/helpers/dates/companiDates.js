@@ -18,6 +18,10 @@ const CompaniDateFactory = (inputDate) => {
       return pick(_date.toObject(), units);
     },
 
+    weekday() {
+      return _date.weekday;
+    },
+
     // DISPLAY
     format(fmt) {
       return _date.toFormat(fmt);
@@ -89,6 +93,11 @@ const CompaniDateFactory = (inputDate) => {
     add(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.plus(amount));
+    },
+
+    subtract(amount) {
+      if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
+      return CompaniDateFactory(_date.minus(amount));
     },
 
     set(values) {
