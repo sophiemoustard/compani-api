@@ -1,5 +1,6 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
+const { ObjectId } = require('mongodb');
 const CourseFundingOrganisation = require('../../src/models/CourseFundingOrganisation');
 const app = require('../../server');
 const { populateDB, courseFundingOrganisationsList } = require('./seed/courseFundingOrganisationsSeed');
@@ -133,6 +134,62 @@ describe('COURSE FUNDING ORGANISATION ROUTES - POST /coursefundingorganisation',
           url: '/coursefundingorganisations',
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSE FUNDING ORGANISATION ROUTES - DELETE /coursefundingorganisation #tag', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should delete course funding organisation', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursefundingorganisations/${courseFundingOrganisationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      const count = await CourseFundingOrganisation.countDocuments();
+
+      expect(response.statusCode).toBe(200);
+      expect(count).toBe(courseFundingOrganisationsList.length - 1);
+    });
+
+    it('should return 404 if course funding organisation not found', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursefundingorganisations/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/coursefundingorganisations/${courseFundingOrganisationsList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

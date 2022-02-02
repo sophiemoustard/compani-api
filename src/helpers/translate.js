@@ -308,6 +308,7 @@ module.exports = {
     courseFundingOrganisationNotFound: 'Course funding organisations not found.',
     courseFundingOrganisationCreated: 'Course funding organisation created.',
     courseFundingOrganisationExists: 'Course funding organisation already exists.',
+    courseFundingOrganisationDelected: 'Course funding organisation deleted.',
     /* Activities */
     activityHistoryCreated: 'Activity history created.',
     activityHistoriesFound: 'Activity histories found.',
@@ -670,6 +671,7 @@ module.exports = {
     courseFundingOrganisationNotFound: 'Financeurs non trouvés.',
     courseFundingOrganisationCreated: 'Financeur créé.',
     courseFundingOrganisationExists: 'Financeur déjà existant.',
+    courseFundingOrganisationDelected: 'Financeur supprimé.',
     /* Activities */
     activityHistoryCreated: 'Historique d\'activité créé.',
     activityHistoriesFound: 'Historiques d\'activité trouvés.',

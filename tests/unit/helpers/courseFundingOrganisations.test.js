@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const { ObjectId } = require('mongodb');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CourseFundingOrganisationHelper = require('../../../src/helpers/courseFundingOrganisations');
 const SinonMongoose = require('../sinonMongoose');
@@ -43,5 +44,24 @@ describe('create', () => {
     await CourseFundingOrganisationHelper.create(newOrganisation);
 
     sinon.assert.calledOnceWithExactly(create, newOrganisation);
+  });
+});
+
+describe('remove', () => {
+  let deleteOne;
+
+  beforeEach(() => {
+    deleteOne = sinon.stub(CourseFundingOrganisation, 'deleteOne');
+  });
+
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should delete a course funding organisation', async () => {
+    const organisationId = new ObjectId();
+    await CourseFundingOrganisationHelper.remove({ _id: organisationId });
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: organisationId });
   });
 });

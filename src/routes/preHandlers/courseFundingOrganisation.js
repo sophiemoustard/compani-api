@@ -11,3 +11,10 @@ exports.authorizeCourseFundingOrganisationCreate = async (req) => {
 
   return null;
 };
+
+exports.authorizeCourseFundingOrganisationDelete = async (req) => {
+  const organisationExists = await CourseFundingOrganisation.countDocuments(req.params);
+  if (!organisationExists) throw Boom.notFound();
+
+  return null;
+};
