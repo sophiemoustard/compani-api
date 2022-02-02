@@ -38,12 +38,12 @@ exports.getCustomerFollowUp = async (customerId, credentials) =>
 
 exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   const fundingsDate = {
-    maxStartDate: CompaniDate().endOf('month').toDate(),
-    minEndDate: CompaniDate().startOf('month').toDate(),
+    maxStartDate: CompaniDate().endOf('month').toISO(),
+    minEndDate: CompaniDate().startOf('month').toISO(),
   };
   const eventsDate = {
-    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toDate(),
-    maxDate: CompaniDate().endOf('month').toDate(),
+    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toISO(),
+    maxDate: CompaniDate().endOf('month').toISO(),
   };
   const eventsGroupedByFundings = await StatRepository.getEventsGroupedByFundings(
     customerId,
@@ -54,7 +54,7 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   const customerFundingsMonitoring = [];
 
   for (const funding of eventsGroupedByFundings) {
-    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month').toDate());
+    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month').toISO());
     customerFundingsMonitoring.push({
       thirdPartyPayer: funding.thirdPartyPayer.name,
       careHours: funding.careHours,
@@ -68,12 +68,12 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
 
 exports.getAllCustomersFundingsMonitoring = async (credentials) => {
   const fundingsDate = {
-    maxStartDate: CompaniDate().endOf('month').toDate(),
-    minEndDate: CompaniDate().startOf('month').toDate(),
+    maxStartDate: CompaniDate().endOf('month').toISO(),
+    minEndDate: CompaniDate().startOf('month').toISO(),
   };
   const eventsDate = {
-    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toDate(),
-    maxDate: CompaniDate().add({ months: 1 }).endOf('month').toDate(),
+    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toISO(),
+    maxDate: CompaniDate().add({ months: 1 }).endOf('month').toISO(),
   };
   const eventsGroupedByFundingsforAllCustomers = await StatRepository.getEventsGroupedByFundingsforAllCustomers(
     fundingsDate,
@@ -83,9 +83,9 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
 
   const allCustomersFundingsMonitoring = [];
   for (const funding of eventsGroupedByFundingsforAllCustomers) {
-    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month').toDate());
+    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month').toISO());
     const isNextMonthRelevant = !funding.endDate ||
-      CompaniDate(funding.endDate).isAfter(CompaniDate().endOf('month').toDate());
+      CompaniDate(funding.endDate).isAfter(CompaniDate().endOf('month').toISO());
 
     allCustomersFundingsMonitoring.push({
       ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
