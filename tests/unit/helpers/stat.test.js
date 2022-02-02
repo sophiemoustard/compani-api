@@ -47,12 +47,12 @@ describe('getCustomerFollowUp', () => {
 
 describe('getCustomerFundingsMonitoring', () => {
   const fundingsDate = {
-    maxStartDate: moment().endOf('month').toDate(),
-    minEndDate: moment().startOf('month').toDate(),
+    maxStartDate: CompaniDate().endOf('month').toDate(),
+    minEndDate: CompaniDate().startOf('month').toDate(),
   };
   const eventsDate = {
-    minDate: moment().subtract(1, 'month').startOf('month').toDate(),
-    maxDate: moment().endOf('month').toDate(),
+    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toDate(),
+    maxDate: CompaniDate().endOf('month').toDate(),
   };
 
   let getEventsGroupedByFundingsStub;
@@ -174,40 +174,26 @@ describe('getCustomerFundingsMonitoring', () => {
       currentMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .add(2, 'd')
-            .hours(14)
-            .toDate(),
-          endDate: moment()
-            .startOf('month')
-            .add(2, 'd')
-            .hours(16)
-            .toDate(),
+          startDate: CompaniDate().startOf('month').add({ days: 2, hours: 14 }).toDate(),
+          endDate: CompaniDate().startOf('month').add({ days: 2, hours: 16 }).toDate(),
         },
         {
           type: 'intervention',
-          startDate: moment().startOf('month').hours(11).toDate(),
-          endDate: moment().startOf('month').hours(15).toDate(),
+          startDate: CompaniDate().startOf('month').add({ hours: 11 }).toDate(),
+          endDate: CompaniDate().startOf('month').add({ hours: 15 }).toDate(),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().subtract(1, 'M').hours(10).toDate(),
-          endDate: moment().subtract(1, 'M').hours(12).toDate(),
+          startDate: CompaniDate().subtract({ months: 1 }).add({ hours: 10 }).toDate(),
+          endDate: CompaniDate().subtract({ months: 1 }).add({ hours: 12 }).toDate(),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .subtract(1, 'M')
-            .startOf('month')
-            .hours(10)
+          startDate: CompaniDate().subtract({ months: 1 }).startOf('month').add({ hours: 10 })
             .toDate(),
-          endDate: moment()
-            .subtract(1, 'M')
-            .startOf('month')
-            .hours(12)
+          endDate: CompaniDate().subtract({ months: 1 }).startOf('month').add({ hours: 12 })
             .toDate(),
         },
       ],
@@ -237,12 +223,12 @@ describe('getCustomerFundingsMonitoring', () => {
 
 describe('getAllCustomersFundingsMonitoring', () => {
   const fundingsDate = {
-    maxStartDate: moment().endOf('month').toDate(),
-    minEndDate: moment().startOf('month').toDate(),
+    maxStartDate: CompaniDate().endOf('month').toDate(),
+    minEndDate: CompaniDate().startOf('month').toDate(),
   };
   const eventsDate = {
-    minDate: moment().subtract(1, 'month').startOf('month').toDate(),
-    maxDate: moment().add(1, 'month').endOf('month').toDate(),
+    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toDate(),
+    maxDate: CompaniDate().add({ months: 1 }).endOf('month').toDate(),
   };
   const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
