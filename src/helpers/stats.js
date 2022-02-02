@@ -54,7 +54,7 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   const customerFundingsMonitoring = [];
 
   for (const funding of eventsGroupedByFundings) {
-    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month').toISO());
+    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month'));
     customerFundingsMonitoring.push({
       thirdPartyPayer: funding.thirdPartyPayer.name,
       careHours: funding.careHours,
@@ -83,9 +83,9 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
 
   const allCustomersFundingsMonitoring = [];
   for (const funding of eventsGroupedByFundingsforAllCustomers) {
-    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month').toISO());
+    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month'));
     const isNextMonthRelevant = !funding.endDate ||
-      CompaniDate(funding.endDate).isAfter(CompaniDate().endOf('month').toISO());
+      CompaniDate(funding.endDate).isAfter(CompaniDate().endOf('month'));
 
     allCustomersFundingsMonitoring.push({
       ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),

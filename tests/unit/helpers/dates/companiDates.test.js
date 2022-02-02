@@ -100,13 +100,6 @@ describe('GETTER', () => {
 
       expect(result).toEqual(3);
     });
-
-    it('should return only valid units', () => {
-      const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:12:08.000Z');
-      const result = companiDate.getUnits(['days', 'second', 'mois']);
-
-      expect(result).toEqual({ second: 8 });
-    });
   });
 });
 
