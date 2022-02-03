@@ -16,7 +16,7 @@ const { CompaniDate } = require('../helpers/dates/companiDates');
 const getVersionMatch = fundingsDate => ({
   startDate: { $lte: new Date(fundingsDate.maxStartDate) },
   $or: [
-    { endDate: { $exists: false } },
+    { endDate: null },
     { endDate: { $gte: new Date(fundingsDate.minEndDate) } },
   ],
 });
@@ -34,7 +34,7 @@ const getPopulatedFundings = (fundingsMatch, fundingsDate) => [
       ...fundingsMatch,
       'version.startDate': { $lte: new Date(fundingsDate.maxStartDate) },
       $or: [
-        { 'version.endDate': { $exists: false } },
+        { 'version.endDate': null },
         { 'version.endDate': { $gte: new Date(fundingsDate.minEndDate) } },
       ],
     },
@@ -155,7 +155,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         'customer.fundings.nature': HOURLY,
         'customer.fundings.version.startDate': { $lte: new Date(fundingsDate.maxStartDate) },
         $or: [
-          { 'customer.fundings.version.endDate': { $exists: false } },
+          { 'customer.fundings.version.endDate': null },
           { 'customer.fundings.version.endDate': { $exists: true, $gte: new Date(fundingsDate.minEndDate) } },
         ],
       },
