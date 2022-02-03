@@ -142,7 +142,7 @@ describe('COURSE FUNDING ORGANISATION ROUTES - POST /coursefundingorganisation',
   });
 });
 
-describe('COURSE FUNDING ORGANISATION ROUTES - DELETE /coursefundingorganisation #tag', () => {
+describe('COURSE FUNDING ORGANISATION ROUTES - DELETE /coursefundingorganisation', () => {
   let authToken;
   beforeEach(populateDB);
 
