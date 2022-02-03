@@ -11,12 +11,13 @@ const {
   INTERVENTION,
   INTERNAL_HOUR,
 } = require('../helpers/constants');
+const { CompaniDate } = require('../helpers/dates/companiDates');
 
 const getVersionMatch = fundingsDate => ({
-  startDate: { $lte: fundingsDate.maxStartDate },
+  startDate: { $lte: new Date(fundingsDate.maxStartDate) },
   $or: [
-    { endDate: { $exists: false } },
-    { endDate: { $gte: fundingsDate.minEndDate } },
+    { endDate: null },
+    { endDate: { $gte: new Date(fundingsDate.minEndDate) } },
   ],
 });
 
@@ -31,10 +32,10 @@ const getPopulatedFundings = (fundingsMatch, fundingsDate) => [
   {
     $match: {
       ...fundingsMatch,
-      'version.startDate': { $lte: fundingsDate.maxStartDate },
+      'version.startDate': { $lte: new Date(fundingsDate.maxStartDate) },
       $or: [
-        { 'version.endDate': { $exists: false } },
-        { 'version.endDate': { $gte: fundingsDate.minEndDate } },
+        { 'version.endDate': null },
+        { 'version.endDate': { $gte: new Date(fundingsDate.minEndDate) } },
       ],
     },
   },
@@ -52,8 +53,8 @@ const getMatchEvents = eventsDate => [
         {
           $match: {
             $and: [
-              { startDate: { $gte: eventsDate.minDate } },
-              { endDate: { $lte: eventsDate.maxDate } },
+              { startDate: { $gte: new Date(eventsDate.minDate) } },
+              { endDate: { $lte: new Date(eventsDate.maxDate) } },
               { type: INTERVENTION },
               { $expr: { $and: [{ $eq: ['$subscription', '$$subscriptionId'] }] } },
               {
@@ -85,15 +86,15 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     { $unwind: { path: '$fundings' } },
   ];
 
-  const startOfMonth = moment().startOf('month').toDate();
+  const startOfMonth = CompaniDate().startOf('month').toISO();
   const formatFundings = [
     {
       $addFields: {
         prevMonthEvents: {
-          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', startOfMonth] } },
+          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', new Date(startOfMonth)] } },
         },
         currentMonthEvents: {
-          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', startOfMonth] } },
+          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', new Date(startOfMonth)] } },
         },
       },
     },
@@ -124,13 +125,13 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
 exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsDate, companyId) => {
   const versionMatch = getVersionMatch(fundingsDate);
   const fundingsMatch = getFundingsMatch();
-  const startOfMonth = moment().startOf('month').toDate();
-  const endOfMonth = moment().endOf('month').toDate();
+  const startOfMonth = CompaniDate().startOf('month').toISO();
+  const endOfMonth = CompaniDate().endOf('month').toISO();
 
   const matchAndGroupEvents = [
     {
       $match: {
-        startDate: { $gte: eventsDate.minDate, $lte: eventsDate.maxDate },
+        startDate: { $gte: new Date(eventsDate.minDate), $lte: new Date(eventsDate.maxDate) },
         type: INTERVENTION,
         $or: [
           { isCancelled: false },
@@ -152,10 +153,10 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
       $match: {
         'customer.fundings.frequency': MONTHLY,
         'customer.fundings.nature': HOURLY,
-        'customer.fundings.version.startDate': { $lte: fundingsDate.maxStartDate },
+        'customer.fundings.version.startDate': { $lte: new Date(fundingsDate.maxStartDate) },
         $or: [
-          { 'customer.fundings.version.endDate': { $exists: false } },
-          { 'customer.fundings.version.endDate': { $exists: true, $gte: fundingsDate.minEndDate } },
+          { 'customer.fundings.version.endDate': null },
+          { 'customer.fundings.version.endDate': { $exists: true, $gte: new Date(fundingsDate.minEndDate) } },
         ],
       },
     },
@@ -177,8 +178,10 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
           {
             $match: {
               $and: [
-                { $or: [{ endDate: { $exists: false } }, { endDate: { $gte: moment().startOf('day').toDate() } }] },
-                { startDate: { $lte: moment().endOf('day').toDate() } },
+                {
+                  $or: [{ endDate: { $exists: false } }, { endDate: { $gte: CompaniDate().startOf('day').toDate() } }],
+                },
+                { startDate: { $lte: CompaniDate().endOf('day').toDate() } },
                 { $expr: { $and: [{ $eq: ['$customer', '$$customerId'] }] } },
               ],
             },
@@ -220,19 +223,22 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     {
       $addFields: {
         prevMonthEvents: {
-          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', startOfMonth] } },
+          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', new Date(startOfMonth)] } },
         },
         currentMonthEvents: {
           $filter: {
             input: '$events',
             as: 'event',
             cond: {
-              $and: [{ $gte: ['$$event.startDate', startOfMonth] }, { $lte: ['$$event.startDate', endOfMonth] }],
+              $and: [
+                { $gte: ['$$event.startDate', new Date(startOfMonth)] },
+                { $lte: ['$$event.startDate', new Date(endOfMonth)] },
+              ],
             },
           },
         },
         nextMonthEvents: {
-          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', endOfMonth] } },
+          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', new Date(endOfMonth)] } },
         },
       },
     },

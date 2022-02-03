@@ -3,26 +3,33 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
 const UtilsHelper = require('./utils');
+const { CompaniDate } = require('./dates/companiDates');
+const { CompaniDuration } = require('./dates/companiDurations');
 const StatRepository = require('../repositories/StatRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 const CompanyRepository = require('../repositories/CompanyRepository');
 
-const isHoliday = day => moment(day).startOf('d').isHoliday();
+const isHoliday = day => CompaniDate(day).startOf('day').isHoliday();
 
-const isInCareDays = (careDays, day) => (careDays.includes(moment(day).isoWeekday() - 1) && !isHoliday(day)) ||
+const isInCareDays = (careDays, day) => (careDays.includes(CompaniDate(day).weekday() - 1) && !isHoliday(day)) ||
   (careDays.includes(7) && isHoliday(day));
 
-const isNotStarted = (eventStartDate, fundingStartDate) => moment(fundingStartDate).isAfter(eventStartDate);
+const isNotStarted = (eventStartDate, fundingStartDate) => CompaniDate(fundingStartDate).isAfter(eventStartDate);
 
-const isEnded = (eventStartDate, fundingEndDate) => fundingEndDate && moment(fundingEndDate).isBefore(eventStartDate);
+const isEnded = (eventStartDate, fundingEndDate) => fundingEndDate &&
+  CompaniDate(fundingEndDate).isBefore(eventStartDate);
 
 const getMonthCareHours = (events, funding) => {
-  let monthCareHours = 0;
-  for (const event of events) {
-    if (!isInCareDays(funding.careDays, event.startDate) || isNotStarted(event.startDate, funding.startDate) ||
-      isEnded(event.startDate, funding.endDate)) continue;
-    monthCareHours += moment(event.endDate).diff(event.startDate, 'h', true);
-  }
+  const monthCareHours = events
+    .reduce(
+      (acc, event) => (!isInCareDays(funding.careDays, event.startDate) ||
+      isNotStarted(event.startDate, funding.startDate) || isEnded(event.startDate, funding.endDate)
+        ? acc
+        : acc.add(CompaniDuration(CompaniDate(event.endDate).diff(event.startDate, 'minutes')))),
+      CompaniDuration()
+    )
+    .asHours();
+
   return monthCareHours;
 };
 
@@ -31,12 +38,12 @@ exports.getCustomerFollowUp = async (customerId, credentials) =>
 
 exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   const fundingsDate = {
-    maxStartDate: moment().endOf('month').toDate(),
-    minEndDate: moment().startOf('month').toDate(),
+    maxStartDate: CompaniDate().endOf('month').toISO(),
+    minEndDate: CompaniDate().startOf('month').toISO(),
   };
   const eventsDate = {
-    minDate: moment().subtract(1, 'month').startOf('month').toDate(),
-    maxDate: moment().endOf('month').toDate(),
+    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toISO(),
+    maxDate: CompaniDate().endOf('month').toISO(),
   };
   const eventsGroupedByFundings = await StatRepository.getEventsGroupedByFundings(
     customerId,
@@ -47,7 +54,7 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   const customerFundingsMonitoring = [];
 
   for (const funding of eventsGroupedByFundings) {
-    const isPrevMonthRelevant = moment(funding.startDate).isBefore(moment().startOf('month').toDate());
+    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month'));
     customerFundingsMonitoring.push({
       thirdPartyPayer: funding.thirdPartyPayer.name,
       careHours: funding.careHours,
@@ -61,12 +68,12 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
 
 exports.getAllCustomersFundingsMonitoring = async (credentials) => {
   const fundingsDate = {
-    maxStartDate: moment().endOf('month').toDate(),
-    minEndDate: moment().startOf('month').toDate(),
+    maxStartDate: CompaniDate().endOf('month').toISO(),
+    minEndDate: CompaniDate().startOf('month').toISO(),
   };
   const eventsDate = {
-    minDate: moment().subtract(1, 'month').startOf('month').toDate(),
-    maxDate: moment().add(1, 'month').endOf('month').toDate(),
+    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toISO(),
+    maxDate: CompaniDate().add({ months: 1 }).endOf('month').toISO(),
   };
   const eventsGroupedByFundingsforAllCustomers = await StatRepository.getEventsGroupedByFundingsforAllCustomers(
     fundingsDate,
@@ -76,8 +83,9 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
 
   const allCustomersFundingsMonitoring = [];
   for (const funding of eventsGroupedByFundingsforAllCustomers) {
-    const isPrevMonthRelevant = moment(funding.startDate).isBefore(moment().startOf('month').toDate());
-    const isNextMonthRelevant = !funding.endDate || moment(funding.endDate).isAfter(moment().endOf('month').toDate());
+    const isPrevMonthRelevant = CompaniDate(funding.startDate).isBefore(CompaniDate().startOf('month'));
+    const isNextMonthRelevant = !funding.endDate ||
+      CompaniDate(funding.endDate).isAfter(CompaniDate().endOf('month'));
 
     allCustomersFundingsMonitoring.push({
       ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
