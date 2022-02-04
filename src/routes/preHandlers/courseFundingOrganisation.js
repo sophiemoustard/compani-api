@@ -4,7 +4,7 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizeCourseFundingOrganisationCreate = async (req) => {
+exports.authorizeCourseFundingOrganisationCreation = async (req) => {
   const { name } = req.payload;
   const nameAlreadyExists = await CourseFundingOrganisation.countDocuments({ name }, { limit: 1 });
   if (nameAlreadyExists) throw Boom.conflict(translate[language].courseFundingOrganisationExists);
@@ -12,7 +12,7 @@ exports.authorizeCourseFundingOrganisationCreate = async (req) => {
   return null;
 };
 
-exports.authorizeCourseFundingOrganisationDelete = async (req) => {
+exports.authorizeCourseFundingOrganisationDeletion = async (req) => {
   const organisationExists = await CourseFundingOrganisation.countDocuments(req.params);
   if (!organisationExists) throw Boom.notFound();
 

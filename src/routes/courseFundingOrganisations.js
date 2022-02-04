@@ -4,8 +4,8 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list, create, remove } = require('../controllers/courseFundingOrganisationController');
 const {
-  authorizeCourseFundingOrganisationCreate,
-  authorizeCourseFundingOrganisationDelete,
+  authorizeCourseFundingOrganisationCreation,
+  authorizeCourseFundingOrganisationDeletion,
 } = require('./preHandlers/courseFundingOrganisation');
 const { addressValidation } = require('./validations/utils');
 
@@ -30,7 +30,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['config:vendor'] },
-        pre: [{ method: authorizeCourseFundingOrganisationCreate }],
+        pre: [{ method: authorizeCourseFundingOrganisationCreation }],
       },
       handler: create,
     });
@@ -43,7 +43,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         auth: { scope: ['config:vendor'] },
-        pre: [{ method: authorizeCourseFundingOrganisationDelete }],
+        pre: [{ method: authorizeCourseFundingOrganisationDeletion }],
       },
       handler: remove,
     });

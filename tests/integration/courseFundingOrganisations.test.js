@@ -12,7 +12,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('COURSE FUNDING ORGANISATION ROUTES - GET /coursefundingorganisation', () => {
+describe('COURSE FUNDING ORGANISATION ROUTES - GET /coursefundingorganisations', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -56,7 +56,7 @@ describe('COURSE FUNDING ORGANISATION ROUTES - GET /coursefundingorganisation', 
   });
 });
 
-describe('COURSE FUNDING ORGANISATION ROUTES - POST /coursefundingorganisation', () => {
+describe('COURSE FUNDING ORGANISATION ROUTES - POST /coursefundingorganisations', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = {
@@ -142,7 +142,7 @@ describe('COURSE FUNDING ORGANISATION ROUTES - POST /coursefundingorganisation',
   });
 });
 
-describe('COURSE FUNDING ORGANISATION ROUTES - DELETE /coursefundingorganisation', () => {
+describe('COURSE FUNDING ORGANISATION ROUTES - DELETE /coursefundingorganisations', () => {
   let authToken;
   beforeEach(populateDB);
 
