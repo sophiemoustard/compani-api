@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const CourseSlot = require('../../models/CourseSlot');
 const Course = require('../../models/Course');
+const User = require('../../models/User');
 const Attendance = require('../../models/Attendance');
 const {
   TRAINER,
@@ -21,7 +22,7 @@ const isTrainerAuthorized = (loggedUserId, trainer) => {
   return null;
 };
 
-const checkRole = (course, credentials) => {
+const checkPermissionOnCourse = (course, credentials) => {
   const loggedUserCompany = get(credentials, 'company._id');
   const loggedUserVendorRole = get(credentials, 'role.vendor.name');
   const loggedUserClientRole = get(credentials, 'role.client.name');
@@ -64,7 +65,7 @@ exports.authorizeAttendancesGet = async (req) => {
   const loggedUserHasVendorRole = get(credentials, 'role.vendor');
   const { course } = courseSlots[0];
 
-  checkRole(course, credentials);
+  checkPermissionOnCourse(course, credentials);
 
   return {
     courseSlotsIds: courseSlots.map(cs => cs._id),
@@ -73,21 +74,35 @@ exports.authorizeAttendancesGet = async (req) => {
 };
 
 exports.authorizeUnsubscribedAttendancesGet = async (req) => {
-  const { course: courseId } = req.query;
+  const { course: courseId, trainee: traineeId } = req.query;
   const { credentials } = req.auth;
   const loggedUserHasVendorRole = has(credentials, 'role.vendor');
   const loggedUserClientRole = get(credentials, 'role.client.name');
+  const loggedUserVendorRole = get(credentials, 'role.vendor.name');
 
-  if (!loggedUserHasVendorRole && [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && !req.query.company) {
-    throw Boom.badRequest();
+  if (courseId) {
+    if (!loggedUserHasVendorRole && [COACH, CLIENT_ADMIN].includes(loggedUserClientRole) && !req.query.company) {
+      throw Boom.badRequest();
+    }
+
+    const course = await Course.findOne({ _id: courseId })
+      .populate({ path: 'trainees', select: 'company', populate: 'company' })
+      .lean();
+    if (!course) throw Boom.notFound();
+
+    checkPermissionOnCourse(course, credentials);
   }
+  if (traineeId) {
+    const trainee = await User.findOne({ _id: traineeId })
+      .populate({ path: 'company' })
+      .lean();
+    if (!trainee) throw Boom.notFound();
 
-  const course = await Course.findOne({ _id: courseId })
-    .populate({ path: 'trainees', select: 'company', populate: 'company' })
-    .lean();
-  if (!course) throw Boom.notFound();
-
-  checkRole(course, credentials);
+    if (!UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id'))) {
+      if (!loggedUserVendorRole) throw Boom.notFound();
+      if (loggedUserVendorRole === TRAINER) throw Boom.forbidden();
+    }
+  }
 
   return null;
 };

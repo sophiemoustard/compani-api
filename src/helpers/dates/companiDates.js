@@ -1,5 +1,7 @@
 const pick = require('lodash/pick');
 const luxon = require('./luxon');
+const { getHolidays } = require('./holidays');
+const { WORKING_DAYS } = require('../constants');
 
 exports.CompaniDate = (...args) => CompaniDateFactory(exports._formatMiscToCompaniDate(...args));
 
@@ -14,6 +16,10 @@ const CompaniDateFactory = (inputDate) => {
 
     getUnits(units) {
       return pick(_date.toObject(), units);
+    },
+
+    weekday() {
+      return _date.weekday;
     },
 
     // DISPLAY
@@ -54,6 +60,19 @@ const CompaniDateFactory = (inputDate) => {
       return (_date.hasSame(otherDate, unit) || _date.startOf(unit) < otherDate.startOf(unit));
     },
 
+    isHoliday() {
+      const { year } = _date;
+      const holidays = getHolidays(year);
+
+      return !!holidays.find(h => _date.hasSame(h, 'day'));
+    },
+
+    isBusinessDay() {
+      const day = _date.weekday;
+
+      return !!(WORKING_DAYS.includes(day) && !this.isHoliday());
+    },
+
     // MANIPULATE
     startOf(unit) {
       return CompaniDateFactory(_date.startOf(unit));
@@ -74,6 +93,11 @@ const CompaniDateFactory = (inputDate) => {
     add(amount) {
       if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
       return CompaniDateFactory(_date.plus(amount));
+    },
+
+    subtract(amount) {
+      if (amount instanceof Number) throw Error('Invalid argument: expected to be an object, got number');
+      return CompaniDateFactory(_date.minus(amount));
     },
 
     set(values) {

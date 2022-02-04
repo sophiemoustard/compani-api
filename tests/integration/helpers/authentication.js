@@ -67,6 +67,7 @@ const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { sector, sectorHistories } = require('../../seed/authSectorsSeed');
 const { authCustomer, helperCustomer } = require('../../seed/authCustomers');
+const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 
 const getUser = (roleName, erp = true) => {
   const role = rolesList.find(r => r.name === roleName);
@@ -122,6 +123,7 @@ const deleteNonAuthenticationSeeds = async () => {
     Contract.deleteMany(),
     CourseHistory.deleteMany(),
     Course.deleteMany(),
+    CourseFundingOrganisation.deleteMany(),
     CourseSlot.deleteMany(),
     CourseSmsHistory.deleteMany(),
     CreditNoteNumber.deleteMany(),

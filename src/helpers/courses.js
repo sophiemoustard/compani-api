@@ -1,5 +1,6 @@
 const path = require('path');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const omit = require('lodash/omit');
 const groupBy = require('lodash/groupBy');
 const fs = require('fs');
@@ -72,15 +73,49 @@ exports.list = async (query) => {
   return CourseRepository.findCourseAndPopulate(query);
 };
 
-exports.getCourseProgress = (steps) => {
-  if (!steps || !steps.length) return 0;
+const getStepProgress = (step) => {
+  if (has(step, 'progress.live')) return step.progress.live;
+  return step.progress.eLearning;
+};
 
-  return steps.map(step => step.progress).reduce((acc, value) => acc + value, 0) / steps.length;
+exports.getCourseProgress = (steps) => {
+  if (!steps || !steps.length) return {};
+
+  const elearningProgressSteps = steps.filter(step => has(step, 'progress.eLearning'));
+
+  const presenceProgressSteps = steps.filter(step => step.progress.presence);
+
+  const blendedStepsCombinedProgress = steps.map(step => getStepProgress(step)).reduce((acc, value) => acc + value, 0);
+
+  const eLearningStepsCombinedProgress = elearningProgressSteps
+    .map(step => step.progress.eLearning)
+    .reduce((acc, value) => acc + value, 0);
+
+  const combinedPresenceProgress = presenceProgressSteps.length
+    ? {
+      attendanceDuration: UtilsHelper
+        .computeDuration(presenceProgressSteps.map(step => step.progress.presence.attendanceDuration))
+        .toObject(),
+      maxDuration: UtilsHelper
+        .computeDuration(presenceProgressSteps.map(step => step.progress.presence.maxDuration))
+        .toObject(),
+    }
+    : null;
+
+  return {
+    blended: blendedStepsCombinedProgress / steps.length,
+    ...(elearningProgressSteps.length && { eLearning: eLearningStepsCombinedProgress / elearningProgressSteps.length }),
+    ...(combinedPresenceProgress && { presence: combinedPresenceProgress }),
+  };
 };
 
 exports.formatCourseWithProgress = (course) => {
   const steps = course.subProgram.steps
-    .map(step => ({ ...step, progress: StepsHelper.getProgress(step, course.slots) }));
+    .map((step) => {
+      const slots = course.slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
+
+      return { ...step, slots, progress: StepsHelper.getProgress(step, slots) };
+    });
 
   return {
     ...course,
@@ -113,7 +148,11 @@ exports.listUserCourses = async (trainee) => {
         },
       ],
     })
-    .populate({ path: 'slots', select: 'startDate endDate step', populate: { path: 'step', select: 'type' } })
+    .populate({
+      path: 'slots',
+      select: 'startDate endDate step',
+      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: trainee._id } }],
+    })
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
@@ -220,7 +259,6 @@ exports.getCourseFollowUp = async (course, company) => {
       select: 'identity.firstname identity.lastname firstMobileConnection',
       populate: { path: 'company' },
     })
-    .populate({ path: 'slots', populate: { path: 'step', select: '_id' } })
     .lean();
 
   return {
@@ -233,7 +271,7 @@ exports.getCourseFollowUp = async (course, company) => {
       .filter(t => !company || UtilsHelper.areObjectIdsEquals(t.company, company))
       .map(t => ({
         ...t,
-        ...exports.getTraineeElearningProgress(t._id, courseFollowUp.subProgram.steps, courseFollowUp.slots),
+        ...exports.getTraineeElearningProgress(t._id, courseFollowUp.subProgram.steps),
       })),
   };
 };
@@ -265,7 +303,7 @@ exports.getQuestionnaireAnswers = async (courseId) => {
   return activitiesWithFollowUp.filter(act => act.followUp.length).map(act => act.followUp).flat();
 };
 
-exports.getTraineeElearningProgress = (traineeId, steps, slots) => {
+exports.getTraineeElearningProgress = (traineeId, steps) => {
   const formattedSteps = steps
     .filter(step => step.type === E_LEARNING)
     .map((s) => {
@@ -277,10 +315,10 @@ exports.getTraineeElearningProgress = (traineeId, steps, slots) => {
         })),
       };
 
-      return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep, slots) };
+      return { ...traineeStep, progress: StepsHelper.getProgress(traineeStep) };
     });
 
-  return { steps: formattedSteps, elearningProgress: exports.getCourseProgress(formattedSteps) };
+  return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
 };
 
 exports.getTraineeCourse = async (courseId, credentials) => {
@@ -307,7 +345,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .populate({
       path: 'slots',
       select: 'startDate endDate step address meetingLink',
-      populate: { path: 'step', select: 'type' },
+      populate: [{ path: 'step', select: 'type' }, { path: 'attendances', match: { trainee: credentials._id } }],
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography picture' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })

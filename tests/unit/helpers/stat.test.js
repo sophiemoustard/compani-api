@@ -2,6 +2,7 @@ const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const moment = require('../../../src/extensions/moment');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const StatsHelper = require('../../../src/helpers/stats');
 const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const StatRepository = require('../../../src/repositories/StatRepository');
@@ -46,12 +47,12 @@ describe('getCustomerFollowUp', () => {
 
 describe('getCustomerFundingsMonitoring', () => {
   const fundingsDate = {
-    maxStartDate: moment().endOf('month').toDate(),
-    minEndDate: moment().startOf('month').toDate(),
+    maxStartDate: CompaniDate().endOf('month').toISO(),
+    minEndDate: CompaniDate().startOf('month').toISO(),
   };
   const eventsDate = {
-    minDate: moment().subtract(1, 'month').startOf('month').toDate(),
-    maxDate: moment().endOf('month').toDate(),
+    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toISO(),
+    maxDate: CompaniDate().endOf('month').toISO(),
   };
 
   let getEventsGroupedByFundingsStub;
@@ -88,7 +89,7 @@ describe('getCustomerFundingsMonitoring', () => {
     getEventsGroupedByFundingsStub.returns([{
       thirdPartyPayer: { name: 'Tiers payeur' },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: moment().startOf('month').subtract(1, 'month'),
+      startDate: CompaniDate().startOf('month').subtract({ months: 1 }),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       prevMonthEvents: [],
@@ -115,38 +116,29 @@ describe('getCustomerFundingsMonitoring', () => {
     const eventsGroupedByFundings = [{
       thirdPartyPayer: { name: 'Tiers payeur' },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: moment().startOf('month').subtract(1, 'month'),
+      startDate: CompaniDate().startOf('month').subtract({ months: 1 }),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
-          startDate: moment().startOf('month').hours(14),
-          endDate: moment().startOf('month').hours(16),
+          startDate: CompaniDate().startOf('month').add({ hours: 14 }),
+          endDate: CompaniDate().startOf('month').add({ hours: 16 }),
         },
         {
-          startDate: moment().startOf('month').add(1, 'd').hours(11),
-          endDate: moment().startOf('month').add(1, 'd').hours(15),
+          startDate: CompaniDate().startOf('month').add({ days: 1, hours: 11 }),
+          endDate: CompaniDate().startOf('month').add({ days: 1, hours: 15 }),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().startOf('month').subtract(1, 'month').hours(10),
-          endDate: moment().startOf('month').subtract(1, 'month').hours(12),
+          startDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ hours: 10 }),
+          endDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(9),
-          endDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(10)
-            .minutes(30),
+          startDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ days: 1, hours: 10, minutes: 30 }),
         },
       ],
     }];
@@ -176,47 +168,33 @@ describe('getCustomerFundingsMonitoring', () => {
     const eventsGroupedByFundings = [{
       thirdPartyPayer: { name: 'Tiers payeur' },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: moment().startOf('month').toDate(),
+      startDate: CompaniDate().startOf('month').toISO(),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .add(2, 'd')
-            .hours(14)
-            .toDate(),
-          endDate: moment()
-            .startOf('month')
-            .add(2, 'd')
-            .hours(16)
-            .toDate(),
+          startDate: CompaniDate().startOf('month').add({ days: 2, hours: 14 }).toISO(),
+          endDate: CompaniDate().startOf('month').add({ days: 2, hours: 16 }).toISO(),
         },
         {
           type: 'intervention',
-          startDate: moment().startOf('month').hours(11).toDate(),
-          endDate: moment().startOf('month').hours(15).toDate(),
+          startDate: CompaniDate().startOf('month').add({ hours: 11 }).toISO(),
+          endDate: CompaniDate().startOf('month').add({ hours: 15 }).toISO(),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().subtract(1, 'M').hours(10).toDate(),
-          endDate: moment().subtract(1, 'M').hours(12).toDate(),
+          startDate: CompaniDate().subtract({ months: 1 }).add({ hours: 10 }).toISO(),
+          endDate: CompaniDate().subtract({ months: 1 }).add({ hours: 12 }).toISO(),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .subtract(1, 'M')
-            .startOf('month')
-            .hours(10)
-            .toDate(),
-          endDate: moment()
-            .subtract(1, 'M')
-            .startOf('month')
-            .hours(12)
-            .toDate(),
+          startDate: CompaniDate().subtract({ months: 1 }).startOf('month').add({ hours: 10 })
+            .toISO(),
+          endDate: CompaniDate().subtract({ months: 1 }).startOf('month').add({ hours: 12 })
+            .toISO(),
         },
       ],
     }];
@@ -245,12 +223,12 @@ describe('getCustomerFundingsMonitoring', () => {
 
 describe('getAllCustomersFundingsMonitoring', () => {
   const fundingsDate = {
-    maxStartDate: moment().endOf('month').toDate(),
-    minEndDate: moment().startOf('month').toDate(),
+    maxStartDate: CompaniDate().endOf('month').toISO(),
+    minEndDate: CompaniDate().startOf('month').toISO(),
   };
   const eventsDate = {
-    minDate: moment().subtract(1, 'month').startOf('month').toDate(),
-    maxDate: moment().add(1, 'month').endOf('month').toDate(),
+    minDate: CompaniDate().subtract({ months: 1 }).startOf('month').toISO(),
+    maxDate: CompaniDate().add({ months: 1 }).endOf('month').toISO(),
   };
   const companyId = new ObjectId();
   const credentials = { company: { _id: companyId } };
@@ -283,7 +261,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
     getEventsGroupedByFundingsforAllCustomersStub.returns([{
       thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: moment().startOf('month').subtract(1, 'month'),
+      startDate: CompaniDate().startOf('month').subtract({ months: 1 }),
       careHours: 5,
       unitTTCRate: 12,
       customerParticipationRate: 10,
@@ -323,7 +301,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
     const eventsGroupedByFundings = [{
       thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: moment().startOf('month').subtract(1, 'month'),
+      startDate: CompaniDate().startOf('month').subtract({ months: 1 }),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       unitTTCRate: 12,
@@ -333,53 +311,36 @@ describe('getAllCustomersFundingsMonitoring', () => {
       sector: { name: 'equipe', _id: sectorId },
       currentMonthEvents: [
         {
-          startDate: moment().startOf('month').hours(14),
-          endDate: moment().startOf('month').hours(16),
+          startDate: CompaniDate().startOf('month').add({ hours: 14 }),
+          endDate: CompaniDate().startOf('month').add({ hours: 16 }),
         },
         {
-          startDate: moment().startOf('month').add(1, 'd').hours(11),
-          endDate: moment().startOf('month').add(1, 'd').hours(15),
+          startDate: CompaniDate().startOf('month').add({ days: 1, hours: 11 }),
+          endDate: CompaniDate().startOf('month').add({ days: 1, hours: 15 }),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().startOf('month').subtract(1, 'month').hours(10),
-          endDate: moment().startOf('month').subtract(1, 'month').hours(12),
+          startDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ hours: 10 }),
+          endDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(9),
-          endDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(10)
-            .minutes(30),
+          startDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ days: 1, hours: 10, minutes: 30 }),
         },
       ],
       nextMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().startOf('month').add(1, 'month').hours(8),
-          endDate: moment().startOf('month').add(1, 'month').hours(10),
+          startDate: CompaniDate().startOf('month').add({ months: 1, hours: 8 }),
+          endDate: CompaniDate().startOf('month').add({ months: 1, hours: 10 }),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .add(1, 'month')
-            .add(1, 'd')
-            .hours(9),
-          endDate: moment()
-            .startOf('month')
-            .add(1, 'month')
-            .add(1, 'd')
-            .hours(10),
+          startDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 10 }),
         },
       ],
     }];
@@ -415,7 +376,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
       customerParticipationRate: 10,
       thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: moment().startOf('month'),
+      startDate: CompaniDate().startOf('month'),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       customer: { firstname: 'toto', lastname: 'test' },
@@ -423,53 +384,36 @@ describe('getAllCustomersFundingsMonitoring', () => {
       sector: { name: 'equipe', _id: sectorId },
       currentMonthEvents: [
         {
-          startDate: moment().startOf('month').hours(14),
-          endDate: moment().startOf('month').hours(16),
+          startDate: CompaniDate().startOf('month').add({ hours: 14 }),
+          endDate: CompaniDate().startOf('month').add({ hours: 16 }),
         },
         {
-          startDate: moment().startOf('month').add(1, 'd').hours(11),
-          endDate: moment().startOf('month').add(1, 'd').hours(15),
+          startDate: CompaniDate().startOf('month').add({ days: 1, hours: 11 }),
+          endDate: CompaniDate().startOf('month').add({ days: 1, hours: 15 }),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().startOf('month').subtract(1, 'month').hours(10),
-          endDate: moment().startOf('month').subtract(1, 'month').hours(12),
+          startDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ hours: 10 }),
+          endDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(9),
-          endDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(10)
-            .minutes(30),
+          startDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ days: 1, hours: 10, minutes: 30 }),
         },
       ],
       nextMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().startOf('month').add(1, 'month').hours(8),
-          endDate: moment().startOf('month').add(1, 'month').hours(10),
+          startDate: CompaniDate().startOf('month').add({ months: 1, hours: 8 }),
+          endDate: CompaniDate().startOf('month').add({ months: 1, hours: 10 }),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .add(1, 'month')
-            .add(1, 'd')
-            .hours(9),
-          endDate: moment()
-            .startOf('month')
-            .add(1, 'month')
-            .add(1, 'd')
-            .hours(10),
+          startDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 10 }),
         },
       ],
     }];
@@ -504,7 +448,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
       thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
       startDate: '2019-11-01',
-      endDate: moment().endOf('month'),
+      endDate: CompaniDate().endOf('month'),
       careHours: 5,
       unitTTCRate: 12,
       customerParticipationRate: 10,
@@ -514,54 +458,36 @@ describe('getAllCustomersFundingsMonitoring', () => {
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
-          startDate: moment().startOf('month').hours(14),
-          endDate: moment().startOf('month').hours(16),
+          startDate: CompaniDate().startOf('month').add({ hours: 14 }),
+          endDate: CompaniDate().startOf('month').add({ hours: 16 }),
         },
         {
-          startDate: moment().startOf('month').add(1, 'd').hours(11),
-          endDate: moment().startOf('month').add(1, 'd').hours(15),
+          startDate: CompaniDate().startOf('month').add({ days: 1, hours: 11 }),
+          endDate: CompaniDate().startOf('month').add({ days: 1, hours: 15 }),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().startOf('month').subtract(1, 'month').hours(10),
-          endDate: moment().startOf('month').subtract(1, 'month').hours(12),
+          startDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ hours: 10 }),
+          endDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(9),
-          endDate: moment()
-            .startOf('month')
-            .subtract(1, 'month')
-            .add(1, 'd')
-            .hours(10)
-            .minutes(30),
+          startDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').subtract({ months: 1 }).add({ days: 1, hours: 10, minutes: 30 }),
         },
       ],
       nextMonthEvents: [
         {
           type: 'intervention',
-          startDate: moment().startOf('month').add(1, 'month').hours(10),
-          endDate: moment().startOf('month').add(1, 'month').hours(12),
+          startDate: CompaniDate().startOf('month').add({ months: 1, hours: 10 }),
+          endDate: CompaniDate().startOf('month').add({ months: 1, hours: 12 }),
         },
         {
           type: 'intervention',
-          startDate: moment()
-            .startOf('month')
-            .add(1, 'month')
-            .add(1, 'd')
-            .hours(9),
-          endDate: moment()
-            .startOf('month')
-            .add(1, 'month')
-            .add(1, 'd')
-            .hours(10)
-            .minutes(30),
+          startDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 9 }),
+          endDate: CompaniDate().startOf('month').add({ months: 1, days: 1, hours: 10, minutes: 30 }),
         },
       ],
     }];

@@ -40,17 +40,93 @@ const userList = [
   },
 ];
 
-const subProgramId = new ObjectId();
-const program = { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramId] };
-const subProgram = { _id: subProgramId, name: 'Subprogram 1', program };
+const subProgramIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
+const programList = [
+  { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramIdList[0]] },
+  { _id: new ObjectId(), name: 'Program 2', subPrograms: [subProgramIdList[1]] },
+  { _id: new ObjectId(), name: 'Program 3', subPrograms: [subProgramIdList[2]] },
+];
+const subProgramList = [
+  { _id: subProgramIdList[0], name: 'Subprogram 1', program: programList[0] },
+  { _id: subProgramIdList[1], name: 'Subprogram 2', program: programList[1] },
+  { _id: subProgramIdList[2], name: 'Subprogram 3', program: programList[2] },
+];
+
+const traineeList = [
+  { // 0
+    _id: new ObjectId(),
+    identity: { firstname: 'Trainee', lastname: 'withCompany' },
+    local: { email: 'traineeWithCompany@alenvi.io' },
+    origin: WEBAPP,
+  },
+  { // 1
+    _id: new ObjectId(),
+    identity: { firstname: 'Player', lastname: 'withoutCompany' },
+    local: { email: 'traineeWithoutCompany@alenvi.io' },
+    origin: WEBAPP,
+  },
+  { // 2
+    _id: new ObjectId(),
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'otherCompany' },
+    local: { email: 'traineeFromINTERB2B@alenvi.io' },
+    origin: WEBAPP,
+  },
+  { // 3
+    _id: new ObjectId(),
+    identity: { firstname: 'traineeFromINTERB2B', lastname: 'authCompany' },
+    local: { email: 'authTraineeFromINTERB2B@alenvi.io' },
+    origin: WEBAPP,
+  },
+  { // 4
+    _id: new ObjectId(),
+    identity: { firstname: 'interB2Btrainee', lastname: 'withOtherCompany' },
+    local: { email: 'otherTraineeFromINTERB2B@alenvi.io' },
+    origin: WEBAPP,
+  },
+  { // 5
+    _id: new ObjectId(),
+    identity: { firstname: 'authCompanyTrainee', lastname: 'unsubscribed' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainee@compani.fr' },
+    origin: WEBAPP,
+  },
+  { // 6
+    _id: new ObjectId(),
+    identity: { firstname: 'otherCompanyTrainee', lastname: 'unsubscribed' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainee2@compani.fr' },
+    origin: WEBAPP,
+  },
+  { // 7
+    _id: new ObjectId(),
+    identity: { firstname: 'noCompany 2', lastname: 'unsubscribed' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainee3@no-company.fr' },
+    origin: WEBAPP,
+  },
+  { // 8
+    _id: new ObjectId(),
+    identity: { firstname: 'from auth company', lastname: 'unsubscribed' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainee4@no-company.fr' },
+    origin: WEBAPP,
+  },
+  { // 9
+    _id: new ObjectId(),
+    identity: { firstname: 'without company', lastname: 'subscribed for 1, unsubscribed for 2' },
+    refreshToken: uuidv4(),
+    local: { email: 'trainee5@no-company.fr' },
+    origin: WEBAPP,
+  },
+];
 
 const coursesList = [
   { // 0
     _id: new ObjectId(),
-    subProgram: subProgramId,
+    subProgram: subProgramList[0]._id,
     company: authCompany._id,
     type: 'intra',
-    trainees: [userList[2]._id, new ObjectId()],
+    trainees: [userList[2]._id, traineeList[0]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
@@ -65,18 +141,18 @@ const coursesList = [
   },
   { // 2
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgramList[1]._id,
     company: otherCompany._id,
     type: 'intra',
-    trainees: [new ObjectId()],
+    trainees: [traineeList[9]._id, new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
   { // 3 interb2b
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgramList[2]._id,
     type: 'inter_b2b',
-    trainees: [new ObjectId(), new ObjectId()],
+    trainees: [traineeList[2]._id, traineeList[3]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
@@ -84,7 +160,7 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: new ObjectId(),
     type: 'inter_b2b',
-    trainees: [new ObjectId()],
+    trainees: [traineeList[4]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
   },
@@ -93,16 +169,16 @@ const coursesList = [
     subProgram: new ObjectId(),
     company: authCompany._id,
     type: 'intra',
-    trainees: [new ObjectId(), new ObjectId()],
+    trainees: [traineeList[7]._id, traineeList[8]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
-    archivedAt: '2021-11-17T23:00:00',
+    archivedAt: '2021-11-17T23:00:00.000Z',
   },
   { // 6 trainer is authTrainer
     _id: new ObjectId(),
-    subProgram: subProgramId,
+    subProgram: subProgramList[0],
     type: 'inter_b2b',
-    trainees: [new ObjectId(), new ObjectId()],
+    trainees: [traineeList[5]._id, traineeList[6]._id],
     trainer,
     salesRepresentative: userList[2]._id,
   },
@@ -111,111 +187,68 @@ const coursesList = [
 const slotsList = [
   { // 0
     _id: new ObjectId(),
-    startDate: new Date('2020-01-23').toISOString(),
-    endDate: new Date('2020-01-23').toISOString(),
+    startDate: '2020-01-20T10:00:00.000Z',
+    endDate: '2020-01-20T14:00:00.000Z',
     course: coursesList[0],
     step: new ObjectId(),
   },
   { // 1
     _id: new ObjectId(),
-    startDate: new Date('2020-01-23').toISOString(),
-    endDate: new Date('2020-01-23').toISOString(),
+    startDate: '2020-01-21T10:00:00.000Z',
+    endDate: '2020-01-21T14:00:00.000Z',
     course: coursesList[0],
     step: new ObjectId(),
   },
   { // 2 - slot from other company's course
     _id: new ObjectId(),
-    startDate: new Date('2020-01-23').toISOString(),
-    endDate: new Date('2020-01-23').toISOString(),
+    startDate: '2020-01-22T10:00:00.000Z',
+    endDate: '2020-01-22T14:00:00.000Z',
     course: coursesList[2],
     step: new ObjectId(),
   },
   { // 3 - slot for coursesList[3]
     _id: new ObjectId(),
-    startDate: new Date('2020-01-23').toISOString(),
-    endDate: new Date('2020-01-23').toISOString(),
+    startDate: '2020-01-23T10:00:00.000Z',
+    endDate: '2020-01-23T14:00:00.000Z',
     course: coursesList[3],
     step: new ObjectId(),
   },
   { // 4 - slot for coursesList[4]
     _id: new ObjectId(),
-    startDate: new Date('2020-01-23').toISOString(),
-    endDate: new Date('2020-01-23').toISOString(),
+    startDate: '2020-01-24T10:00:00.000Z',
+    endDate: '2020-01-24T14:00:00.000Z',
     course: coursesList[4],
     step: new ObjectId(),
   },
   { // 5 - slot for coursesList[5]
     _id: new ObjectId(),
-    startDate: new Date('2020-01-23').toISOString(),
-    endDate: new Date('2020-01-23').toISOString(),
+    startDate: '2020-01-25T10:00:00.000Z',
+    endDate: '2020-01-25T14:00:00.000Z',
     course: coursesList[5],
     step: new ObjectId(),
   },
 ];
 
 const attendancesList = [
-  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: coursesList[0].trainees[0] },
-  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[0] },
-  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: coursesList[3].trainees[1] },
-  { _id: new ObjectId(), courseSlot: slotsList[5], trainee: coursesList[5].trainees[1] },
-  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: coursesList[6].trainees[0] },
-  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: coursesList[6].trainees[1] },
-];
-
-const companyTraineesList = [
-  {
-    _id: coursesList[0].trainees[1],
-    identity: { firstname: 'Trainee', lastname: 'withCompany' },
-    local: { email: 'traineeWithCompany@alenvi.io' },
-    origin: WEBAPP,
-  },
-  {
-    _id: new ObjectId(),
-    identity: { firstname: 'Player', lastname: 'withoutCompany' },
-    local: { email: 'traineeWithoutCompany@alenvi.io' },
-    origin: WEBAPP,
-  },
-  {
-    _id: coursesList[3].trainees[0],
-    identity: { firstname: 'traineeFromINTERB2B', lastname: 'otherCompany' },
-    local: { email: 'traineeFromINTERB2B@alenvi.io' },
-    origin: WEBAPP,
-  },
-  {
-    _id: coursesList[3].trainees[1],
-    identity: { firstname: 'traineeFromINTERB2B', lastname: 'authCompany' },
-    local: { email: 'authTraineeFromINTERB2B@alenvi.io' },
-    origin: WEBAPP,
-  },
-  {
-    _id: coursesList[4].trainees[0],
-    identity: { firstname: 'interB2Btrainee', lastname: 'withOtherCompany' },
-    local: { email: 'otherTraineeFromINTERB2B@alenvi.io' },
-    origin: WEBAPP,
-  },
-  {
-    _id: coursesList[6].trainees[0],
-    identity: { firstname: 'authCompanyTrainee', lastname: 'unsubscribed' },
-    refreshToken: uuidv4(),
-    local: { email: 'trainee@compani.fr' },
-    origin: WEBAPP,
-  },
-  {
-    _id: coursesList[6].trainees[1],
-    identity: { firstname: 'otherCompanyTrainee', lastname: 'unsubscribed' },
-    refreshToken: uuidv4(),
-    local: { email: 'trainee2@compani.fr' },
-    origin: WEBAPP,
-  },
+  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: userList[2]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: traineeList[2]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: traineeList[3]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[5], trainee: traineeList[7]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[5]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[6]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[0], trainee: traineeList[9]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[2], trainee: traineeList[9]._id },
+  { _id: new ObjectId(), courseSlot: slotsList[3], trainee: traineeList[9]._id },
 ];
 
 const userCompanyList = [
-  { user: companyTraineesList[0]._id, company: authCompany._id },
-  { user: companyTraineesList[2]._id, company: otherCompany._id },
-  { user: companyTraineesList[3]._id, company: authCompany._id },
-  { user: companyTraineesList[4]._id, company: otherCompany._id },
-  { user: companyTraineesList[5]._id, company: authCompany._id },
-  { user: companyTraineesList[6]._id, company: otherCompany._id },
+  { user: traineeList[0]._id, company: authCompany._id },
+  { user: traineeList[2]._id, company: otherCompany._id },
+  { user: traineeList[3]._id, company: authCompany._id },
+  { user: traineeList[4]._id, company: otherCompany._id },
+  { user: traineeList[5]._id, company: authCompany._id },
+  { user: traineeList[6]._id, company: otherCompany._id },
+  { user: traineeList[8]._id, company: authCompany._id },
 ];
 
 const populateDB = async () => {
@@ -225,10 +258,10 @@ const populateDB = async () => {
     Attendance.create(attendancesList),
     Course.create(coursesList),
     CourseSlot.create(slotsList),
-    User.create([...userList, ...companyTraineesList]),
+    User.create([...userList, ...traineeList]),
     UserCompany.create(userCompanyList),
-    Program.create(program),
-    SubProgram.create(subProgram),
+    Program.create(programList),
+    SubProgram.create(subProgramList),
   ]);
 };
 
@@ -238,6 +271,6 @@ module.exports = {
   coursesList,
   slotsList,
   userList,
-  companyTraineesList,
+  traineeList,
   userCompanyList,
 };

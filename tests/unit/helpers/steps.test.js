@@ -93,7 +93,7 @@ describe('detachStep', () => {
   });
 });
 
-describe('elearningStepProgress', () => {
+describe('getElearningStepProgress', () => {
   it('should get elearning steps progress', async () => {
     const step = {
       _id: '5fa159a1795723a10b12825a',
@@ -103,7 +103,7 @@ describe('elearningStepProgress', () => {
       areActivitiesValid: false,
     };
 
-    const result = await StepHelper.elearningStepProgress(step);
+    const result = await StepHelper.getElearningStepProgress(step);
     expect(result).toBe(1);
   });
 
@@ -116,15 +116,15 @@ describe('elearningStepProgress', () => {
       areActivitiesValid: false,
     };
 
-    const result = await StepHelper.elearningStepProgress(step);
+    const result = await StepHelper.getElearningStepProgress(step);
     expect(result).toBe(0);
   });
 });
 
-describe('liveStepProgress', () => {
+describe('getLiveStepProgress', () => {
   let eLearningStepProgressStub;
   beforeEach(() => {
-    eLearningStepProgressStub = sinon.stub(StepHelper, 'elearningStepProgress');
+    eLearningStepProgressStub = sinon.stub(StepHelper, 'getElearningStepProgress');
   });
 
   afterEach(() => {
@@ -143,7 +143,7 @@ describe('liveStepProgress', () => {
       { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
     ];
 
-    const result = await StepHelper.liveStepProgress(step, slots);
+    const result = await StepHelper.getLiveStepProgress(step, slots);
     expect(result).toBe(1);
     sinon.assert.notCalled(eLearningStepProgressStub);
   });
@@ -162,7 +162,7 @@ describe('liveStepProgress', () => {
 
     eLearningStepProgressStub.returns(0.5);
 
-    const result = await StepHelper.liveStepProgress(step, slots);
+    const result = await StepHelper.getLiveStepProgress(step, slots);
     expect(result).toBe(0.95);
     sinon.assert.calledOnceWithExactly(eLearningStepProgressStub, step);
   });
@@ -177,23 +177,49 @@ describe('liveStepProgress', () => {
     const slots = [];
     eLearningStepProgressStub.returns(0.5);
 
-    const result = await StepHelper.liveStepProgress(step, slots);
+    const result = await StepHelper.getLiveStepProgress(step, slots);
 
     expect(result).toBe(0.05);
     sinon.assert.calledOnceWithExactly(eLearningStepProgressStub, step);
   });
 });
 
+describe('getPresenceStepProgress', () => {
+  it('should get presence progress', async () => {
+    const slots = [
+      {
+        startDate: '2020-11-03T09:00:00.000Z',
+        endDate: '2020-11-03T12:00:00.000Z',
+        attendances: [{ _id: new ObjectId() }],
+      },
+      { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T12:00:00.000Z', attendances: [] },
+    ];
+
+    const result = await StepHelper.getPresenceStepProgress(slots);
+    expect(result).toEqual({ attendanceDuration: { minutes: 180 }, maxDuration: { minutes: 360 } });
+  });
+
+  it('should return presence at 0 if no slot', async () => {
+    const slots = [];
+
+    const result = await StepHelper.getPresenceStepProgress(slots);
+    expect(result).toEqual({ attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 0 } });
+  });
+});
+
 describe('getProgress', () => {
-  let elearningStepProgress;
-  let liveStepProgress;
+  let getElearningStepProgress;
+  let getLiveStepProgress;
+  let getPresenceStepProgress;
   beforeEach(() => {
-    elearningStepProgress = sinon.stub(StepHelper, 'elearningStepProgress');
-    liveStepProgress = sinon.stub(StepHelper, 'liveStepProgress');
+    getElearningStepProgress = sinon.stub(StepHelper, 'getElearningStepProgress');
+    getLiveStepProgress = sinon.stub(StepHelper, 'getLiveStepProgress');
+    getPresenceStepProgress = sinon.stub(StepHelper, 'getPresenceStepProgress');
   });
   afterEach(() => {
-    elearningStepProgress.restore();
-    liveStepProgress.restore();
+    getElearningStepProgress.restore();
+    getLiveStepProgress.restore();
+    getPresenceStepProgress.restore();
   });
   it('should get progress for elearning step', async () => {
     const step = {
@@ -203,12 +229,13 @@ describe('getProgress', () => {
       type: E_LEARNING,
       areActivitiesValid: false,
     };
-    const slots = [];
-    elearningStepProgress.returns(1);
+    getElearningStepProgress.returns(1);
 
-    const result = await StepHelper.getProgress(step, slots);
-    expect(result).toBe(1);
-    sinon.assert.calledOnceWithExactly(elearningStepProgress, step);
+    const result = await StepHelper.getProgress(step);
+    expect(result).toEqual({ eLearning: 1 });
+    sinon.assert.calledOnceWithExactly(getElearningStepProgress, step);
+    sinon.assert.notCalled(getLiveStepProgress);
+    sinon.assert.notCalled(getPresenceStepProgress);
   });
 
   it('should get progress for live step', async () => {
@@ -221,14 +248,21 @@ describe('getProgress', () => {
       areActivitiesValid: true,
     };
     const slots = [
-      { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
-      { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
+      { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
+      {
+        startDate: '2020-11-04T09:00:00.000Z',
+        endDate: '2020-11-04T16:01:00.000Z',
+        step: stepId,
+        attendances: [{ _id: new ObjectId() }],
+      },
     ];
-    liveStepProgress.returns(1);
+    getLiveStepProgress.returns(1);
+    getPresenceStepProgress.returns({ attendanceDuration: 421, maxDuration: 601 });
 
     const result = await StepHelper.getProgress(step, slots);
-    expect(result).toBe(1);
-    sinon.assert.calledOnceWithExactly(liveStepProgress, step, slots);
+    expect(result).toEqual({ live: 1, presence: { attendanceDuration: 421, maxDuration: 601 } });
+    sinon.assert.calledOnceWithExactly(getLiveStepProgress, step, slots);
+    sinon.assert.calledOnceWithExactly(getPresenceStepProgress, slots);
   });
 });
 

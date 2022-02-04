@@ -65,4 +65,34 @@ exports.listUnsubscribed = async (courseId, companyId) => {
   return groupBy(unsubscribedAttendances.flat(3), 'trainee._id');
 };
 
+exports.getTraineeUnsubscribedAttendances = async (trainee) => {
+  const attendances = await Attendance.find({ trainee })
+    .populate({
+      path: 'courseSlot',
+      select: 'course startDate endDate',
+      populate: [
+        {
+          path: 'course',
+          match: { trainees: { $ne: trainee } },
+          select: 'trainer misc subProgram',
+          populate: [
+            { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+            { path: 'trainer', select: 'identity' },
+          ],
+        },
+      ],
+    })
+    .lean();
+
+  const unsubscribedAttendances = attendances
+    .filter(a => a.courseSlot.course)
+    .map(a => ({
+      courseSlot: pick(a.courseSlot, ['startDate', 'endDate']),
+      course: pick(a.courseSlot.course, ['trainer.identity', 'misc']),
+      program: pick(a.courseSlot.course.subProgram.program, ['_id', 'name']),
+    }));
+
+  return groupBy(unsubscribedAttendances, 'program._id');
+};
+
 exports.delete = async attendanceId => Attendance.deleteOne({ _id: attendanceId });

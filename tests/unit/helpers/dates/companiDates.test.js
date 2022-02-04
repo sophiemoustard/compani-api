@@ -33,6 +33,7 @@ describe('CompaniDate', () => {
         .toEqual(expect.objectContaining({
           _getDate: expect.any(luxon.DateTime),
           getUnits: expect.any(Function),
+          weekday: expect.any(Function),
           format: expect.any(Function),
           toDate: expect.any(Function),
           toISO: expect.any(Function),
@@ -40,10 +41,13 @@ describe('CompaniDate', () => {
           isAfter: expect.any(Function),
           isSame: expect.any(Function),
           isSameOrBefore: expect.any(Function),
+          isHoliday: expect.any(Function),
+          isBusinessDay: expect.any(Function),
           startOf: expect.any(Function),
           endOf: expect.any(Function),
           diff: expect.any(Function),
           add: expect.any(Function),
+          subtract: expect.any(Function),
           set: expect.any(Function),
         }));
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, date);
@@ -86,6 +90,15 @@ describe('GETTER', () => {
       const result = companiDate.getUnits(['days', 'second', 'mois']);
 
       expect(result).toEqual({ second: 8 });
+    });
+  });
+
+  describe('weekday', () => {
+    it('should return week day', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2022-02-02T07:12:08.000Z'); // wednesday
+      const result = companiDate.weekday();
+
+      expect(result).toEqual(3);
     });
   });
 });
@@ -323,6 +336,73 @@ describe('QUERY', () => {
       }
     });
   });
+
+  describe('isHoliday', () => {
+    it('should return true, Christmas is a holiday', () => {
+      const christmas = CompaniDatesHelper.CompaniDate('2000-12-25T07:00:00.000Z');
+      const result = christmas.isHoliday();
+
+      expect(result).toEqual(true);
+    });
+
+    it('should return true, Labor day is a holiday', () => {
+      const laborDay = CompaniDatesHelper.CompaniDate('2010-05-01T07:00:00.000Z');
+      const result = laborDay.isHoliday();
+
+      expect(result).toEqual(true);
+    });
+
+    it('should return false, Mother\'s day isn\'t a holiday', () => {
+      const mothersDay = CompaniDatesHelper.CompaniDate('2025-05-25T07:00:00.000Z'); // 'sunday before 06.01'
+      const result = mothersDay.isHoliday();
+
+      expect(result).toEqual(false);
+    });
+
+    it('should return false, Pentecost isn\'t a holiday', () => {
+      const pentecost = CompaniDatesHelper.CompaniDate('2022-06-05T07:00:00.000Z'); // 'easter 49'
+      const result = pentecost.isHoliday();
+
+      expect(result).toEqual(false);
+    });
+
+    it('should return false, monday after Pentecost isn\'t a holiday', () => {
+      const mondayAfterPentecost = CompaniDatesHelper.CompaniDate('2022-06-06T07:00:00.000Z'); // 'easter 50'
+      const result = mondayAfterPentecost.isHoliday();
+
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('isBusinessDay', () => {
+    it('should return true if random business day', () => {
+      const day = CompaniDatesHelper.CompaniDate('2022-02-02T07:00:00.000Z'); // random wednesday
+      const result = day.isBusinessDay();
+
+      expect(result).toEqual(true);
+    });
+
+    it('should return false if holiday during the week', () => {
+      const day = CompaniDatesHelper.CompaniDate('2022-07-14T07:00:00.000Z'); // national day on thursday
+      const result = day.isBusinessDay();
+
+      expect(result).toEqual(false);
+    });
+
+    it('should return false if week-end random day', () => {
+      const day = CompaniDatesHelper.CompaniDate('2022-01-30T07:00:00.000Z'); // random sunday
+      const result = day.isBusinessDay();
+
+      expect(result).toEqual(false);
+    });
+
+    it('should return false if holiday during the week-end', () => {
+      const day = CompaniDatesHelper.CompaniDate('2022-01-01T07:00:00.000Z'); // new year on saturday
+      const result = day.isBusinessDay();
+
+      expect(result).toEqual(false);
+    });
+  });
 });
 
 describe('MANIPULATE', () => {
@@ -482,6 +562,33 @@ describe('MANIPULATE', () => {
     it('should return error if amount is number', () => {
       try {
         companiDate.add(11111);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
+      }
+    });
+  });
+
+  describe('subtract', () => {
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-12-01T07:00:00.000Z');
+
+    it('should return a newly constructed companiDate, decreased by amount', () => {
+      const result = companiDate.subtract({ months: 1, hours: 2 });
+
+      expect(result).toEqual(expect.objectContaining({ _getDate: expect.any(luxon.DateTime) }));
+      expect(result._getDate.toUTC().toISO()).toEqual('2021-11-01T05:00:00.000Z');
+    });
+
+    it('should return error if invalid unit', () => {
+      try {
+        companiDate.subtract({ jour: 1, hours: 2 });
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit jour'));
+      }
+    });
+
+    it('should return error if amount is number', () => {
+      try {
+        companiDate.subtract(11111);
       } catch (e) {
         expect(e).toEqual(new Error('Invalid argument: expected to be an object, got number'));
       }
