@@ -307,6 +307,8 @@ module.exports = {
     courseFundingOrganisationFound: 'Course funding organisations found.',
     courseFundingOrganisationNotFound: 'Course funding organisations not found.',
     courseFundingOrganisationCreated: 'Course funding organisation created.',
+    courseFundingOrganisationExists: 'Course funding organisation already exists.',
+    courseFundingOrganisationDeleted: 'Course funding organisation deleted.',
     /* Activities */
     activityHistoryCreated: 'Activity history created.',
     activityHistoriesFound: 'Activity histories found.',
@@ -665,9 +667,11 @@ module.exports = {
     courseSlotNotFound: 'Créneau de formation non trouvé.',
     courseSlotConflict: 'Créneau de formation en conflit.',
     /* Course funding organisation */
-    courseFundingOrganisationFound: 'Organismes de financement de formations trouvés.',
-    courseFundingOrganisationNotFound: 'Organismes de financement de formations non trouvés.',
-    courseFundingOrganisationCreated: 'Organisme de financement de formations créé.',
+    courseFundingOrganisationFound: 'Financeurs trouvés.',
+    courseFundingOrganisationNotFound: 'Financeurs non trouvés.',
+    courseFundingOrganisationCreated: 'Financeur créé.',
+    courseFundingOrganisationExists: 'Financeur déjà existant.',
+    courseFundingOrganisationDeleted: 'Financeur supprimé.',
     /* Activities */
     activityHistoryCreated: 'Historique d\'activité créé.',
     activityHistoriesFound: 'Historiques d\'activité trouvés.',
