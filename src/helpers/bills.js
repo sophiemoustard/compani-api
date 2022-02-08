@@ -14,6 +14,7 @@ const NumbersHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
 const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL, ROUNDING_ERROR } = require('./constants');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -304,18 +305,24 @@ exports.getBills = async (query, credentials) => {
   return Bill.find(billsQuery).populate({ path: 'thirdPartyPayer', select: '_id name' }).lean();
 };
 
+const getFunding = (fundings, thirdPartyPayer, event) => fundings
+  .map(fund => UtilsHelper.mergeLastVersionWithBaseObject(fund, 'createdAt'))
+  .find(fund => UtilsHelper.areObjectIdsEquals(fund.thirdPartyPayer, thirdPartyPayer._id) &&
+    CompaniDate(fund.startDate).isSameOrBefore(event.startDate) &&
+    (!fund.endDate || CompaniDate(fund.endDate).isSameOrAfter(event.startDate)));
+
 exports.getUnitInclTaxes = (bill, subscription) => {
   if (!bill.thirdPartyPayer) return subscription.unitInclTaxes;
 
-  const funding = bill.customer.fundings
-    .find(fund => fund.thirdPartyPayer.toHexString() === bill.thirdPartyPayer._id.toHexString());
-  if (!funding) return 0;
-  const version = UtilsHelper.getLastVersion(funding.versions, 'createdAt');
+  const lastEvent = UtilsHelper.getLastVersion(subscription.events, 'startDate');
+  const matchingVersion = getFunding(bill.customer.fundings, bill.thirdPartyPayer, lastEvent);
+  if (!matchingVersion) return 0;
 
-  if (funding.nature === HOURLY) {
-    const customerParticipationRate = NumbersHelper.divide(version.customerParticipationRate, 100);
+  if (matchingVersion.nature === HOURLY) {
+    const customerParticipationRate = NumbersHelper.divide(matchingVersion.customerParticipationRate, 100);
     const tppParticipationRate = NumbersHelper.subtract(1, customerParticipationRate);
-    return NumbersHelper.multiply(version.unitTTCRate, tppParticipationRate);
+
+    return NumbersHelper.multiply(matchingVersion.unitTTCRate, tppParticipationRate);
   }
 
   return subscription.unitInclTaxes;

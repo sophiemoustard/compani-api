@@ -271,7 +271,7 @@ describe('QUERY', () => {
       _formatMiscToCompaniDate.restore();
     });
 
-    it('should return true if same moment', () => {
+    it('should return true if same', () => {
       const otherDate = '2021-11-24T07:00:00.000Z';
 
       const result = companiDate.isSameOrBefore(otherDate);
@@ -328,7 +328,85 @@ describe('QUERY', () => {
     it('should return error if unit is plural', () => {
       const otherDate = '2021-11-24T06:00:00.000Z';
       try {
-        companiDate.isSame(otherDate, 'minutes');
+        companiDate.isSameOrBefore(otherDate, 'minutes');
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit minutes'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      }
+    });
+  });
+
+  describe('isSameOrAfter', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
+
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return true if same', () => {
+      const otherDate = '2021-11-24T07:00:00.000Z';
+
+      const result = companiDate.isSameOrAfter(otherDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return false if before', () => {
+      const otherDate = '2021-11-25T10:00:00.000Z';
+      const result = companiDate.isSameOrAfter(otherDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return true if before but same as specified unit', () => {
+      const otherDate = '2021-11-24T08:00:00.000Z';
+
+      const result = companiDate.isSameOrAfter(otherDate, 'day');
+
+      expect(result).toBe(true);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return true if after', () => {
+      const otherDate = '2021-11-23T10:00:00.000Z';
+
+      const result = companiDate.isSameOrAfter(otherDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return false if before specified unit', () => {
+      const otherDate = '2021-11-24T08:00:00.000Z';
+
+      const result = companiDate.isSameOrAfter(otherDate, 'minute');
+
+      expect(result).toBe(false);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return error if invalid otherDate', () => {
+      try {
+        companiDate.isSameOrAfter(null);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, null);
+      }
+    });
+
+    it('should return error if unit is plural', () => {
+      const otherDate = '2021-11-24T06:00:00.000Z';
+      try {
+        companiDate.isSameOrAfter(otherDate, 'minutes');
       } catch (e) {
         expect(e).toEqual(new Error('Invalid unit minutes'));
       } finally {
