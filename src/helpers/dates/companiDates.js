@@ -60,6 +60,12 @@ const CompaniDateFactory = (inputDate) => {
       return (_date.hasSame(otherDate, unit) || _date.startOf(unit) < otherDate.startOf(unit));
     },
 
+    isSameOrAfter(miscTypeOtherDate, unit = 'millisecond') {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+
+      return (_date.hasSame(otherDate, unit) || _date.startOf(unit) > otherDate.startOf(unit));
+    },
+
     isHoliday() {
       const { year } = _date;
       const holidays = getHolidays(year);

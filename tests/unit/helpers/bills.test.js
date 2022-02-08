@@ -23,6 +23,7 @@ const {
 } = require('../data/bills');
 const BillPdf = require('../../../src/data/pdf/billing/bill');
 const SinonMongoose = require('../sinonMongoose');
+const { FIXED } = require('../../../src/helpers/constants');
 
 describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
@@ -2043,11 +2044,14 @@ describe('getBills', () => {
 });
 
 describe('getUnitInclTaxes', () => {
+  let mergeLastVersionWithBaseObject;
   let getLastVersion;
   beforeEach(() => {
+    mergeLastVersionWithBaseObject = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
   });
   afterEach(() => {
+    mergeLastVersionWithBaseObject.restore();
     getLastVersion.restore();
   });
 
@@ -2062,16 +2066,20 @@ describe('getUnitInclTaxes', () => {
   });
 
   it('should return 0 if no matching funding found', () => {
+    const tppId = new ObjectId();
     const bill = {
-      thirdPartyPayer: { _id: new ObjectId() },
-      customer: { fundings: [{ thirdPartyPayer: new ObjectId() }] },
+      thirdPartyPayer: { _id: tppId },
+      customer: { fundings: [{ thirdPartyPayer: new ObjectId(), versions: [{ startDate: '2022-09-10T00:00:00' }] }] },
     };
-    const subscription = { unitInclTaxes: 20 };
+    const subscription = { unitInclTaxes: 20, events: [{ startDate: '2022-01-24T09:00:00' }] };
+    mergeLastVersionWithBaseObject.returns({ thirdPartyPayer: tppId, startDate: '2022-09-10T00:00:00' });
+    getLastVersion.returns({ startDate: '2022-01-24T09:00:00' });
+
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
-    expect(result).toBeDefined();
     expect(result).toBe(0);
-    sinon.assert.notCalled(getLastVersion);
+    sinon.assert.calledOnceWithExactly(getLastVersion, [{ startDate: '2022-01-24T09:00:00' }], 'startDate');
+    sinon.assert.calledOnceWithExactly(mergeLastVersionWithBaseObject, bill.customer.fundings[0], 'createdAt');
   });
 
   it('should return subscription unitInclTaxes for FIXED funding', () => {
@@ -2080,15 +2088,21 @@ describe('getUnitInclTaxes', () => {
       thirdPartyPayer: { _id: tppId },
       customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] },
     };
-    const subscription = { vat: 20, unitInclTaxes: 12 };
-
-    getLastVersion.returns({ amountTTC: 14.4 });
+    const subscription = { vat: 20, unitInclTaxes: 12, events: [{ startDate: '2022-01-24T09:00:00' }] };
+    mergeLastVersionWithBaseObject.returns({
+      thirdPartyPayer: tppId,
+      nature: FIXED,
+      amountTTC: 14.4,
+      startDate: '2022-01-24T00:00:00',
+      createdAt: '2022-01-17T13:59:23',
+    });
+    getLastVersion.returns({ startDate: '2022-01-24T09:00:00' });
 
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
-    expect(result).toBeDefined();
     expect(result).toBe(12);
-    sinon.assert.calledOnceWithExactly(getLastVersion, [{ amountTTC: 14.4 }], 'createdAt');
+    sinon.assert.calledOnceWithExactly(getLastVersion, [{ startDate: '2022-01-24T09:00:00' }], 'startDate');
+    sinon.assert.calledOnceWithExactly(mergeLastVersionWithBaseObject, bill.customer.fundings[0], 'createdAt');
   });
 
   it('should return unit incl taxes from funding if HOURLY funding', () => {
@@ -2100,20 +2114,64 @@ describe('getUnitInclTaxes', () => {
           {
             thirdPartyPayer: tppId,
             nature: 'hourly',
-            versions: [{ unitTTCRate: 18, customerParticipationRate: 20 }],
+            versions: [
+              {
+                unitTTCRate: 18,
+                customerParticipationRate: 20,
+                startDate: '2022-01-23T00:00:00',
+                createdAt: '2022-01-13T13:59:23',
+              },
+              {
+                unitTTCRate: 24,
+                customerParticipationRate: 25,
+                startDate: '2022-01-24T00:00:00',
+                createdAt: '2022-01-17T13:59:23',
+              },
+            ],
+          },
+          {
+            thirdPartyPayer: tppId,
+            nature: 'hourly',
+            versions: [
+              {
+                unitTTCRate: 10,
+                customerParticipationRate: 0,
+                startDate: '2022-01-21T00:00:00',
+                endDate: '2022-01-22T22:59:59',
+                createdAt: '2022-01-13T13:59:23',
+              },
+            ],
           },
         ],
       },
     };
-    const subscription = { vat: 20 };
+    const subscription = {
+      vat: 20,
+      events: [{ startDate: '2022-01-24T09:00:00' }, { startDate: '2022-01-25T09:00:00' }],
+    };
 
-    getLastVersion.returns({ unitTTCRate: 18, customerParticipationRate: 20 });
+    getLastVersion.returns({ startDate: '2022-01-25T09:00:00' });
+    mergeLastVersionWithBaseObject.returns({
+      thirdPartyPayer: tppId,
+      nature: 'hourly',
+      unitTTCRate: 24,
+      customerParticipationRate: 25,
+      startDate: '2022-01-24T00:00:00',
+      createdAt: '2022-01-17T13:59:23',
+    });
 
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
-    expect(result).toBe(14.4);
-    sinon.assert.called(getLastVersion);
+    expect(result).toBe(18);
+    sinon.assert.calledOnceWithExactly(
+      getLastVersion,
+      [{ startDate: '2022-01-24T09:00:00' }, { startDate: '2022-01-25T09:00:00' }],
+      'startDate'
+    );
+    sinon.assert.calledTwice(mergeLastVersionWithBaseObject);
+    sinon.assert.calledWithExactly(mergeLastVersionWithBaseObject.getCall(0), bill.customer.fundings[0], 'createdAt');
+    sinon.assert.calledWithExactly(mergeLastVersionWithBaseObject.getCall(1), bill.customer.fundings[1], 'createdAt');
   });
 });
 
