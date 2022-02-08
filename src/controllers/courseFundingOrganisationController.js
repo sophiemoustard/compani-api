@@ -10,8 +10,8 @@ const list = async (req) => {
 
     return {
       message: courseFundingOrganisations.length
-        ? translate[language].courseFundingOrganisationFound
-        : translate[language].courseFundingOrganisationNotFound,
+        ? translate[language].courseFundingOrganisationsFound
+        : translate[language].courseFundingOrganisationsNotFound,
       data: { courseFundingOrganisations },
     };
   } catch (e) {
