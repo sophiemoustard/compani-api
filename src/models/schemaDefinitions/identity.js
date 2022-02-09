@@ -7,5 +7,5 @@ module.exports.identitySchemaDefinition = {
   title: { type: String, enum: CIVILITY_OPTIONS },
   firstname: { type: String, trim: true },
   lastname: { type: String, required: true, trim: true },
-  birthDate: Date,
+  birthDate: { type: Date },
 };
