@@ -298,7 +298,7 @@ module.exports = {
     courseQuestionnairesFound: 'Questionnaires found.',
     courseAttendanceNotGenerated: 'Failed to download attendance sheet, no on-site slot.',
     /* Course billing items */
-    courseBillingItemExists: 'Course billing item exists',
+    courseBillingItemExists: 'Course billing item exists.',
     courseBillingItemsFound: 'Course billing items found.',
     courseBillingItemsNotFound: 'Course billing items not found.',
     courseBillingItemCreated: 'Course billing item created.',
