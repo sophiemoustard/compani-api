@@ -662,12 +662,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
         {
           path: 'steps',
           select: 'type activities',
-          populate: {
-            path: 'activities',
-            populate: {
-              path: 'activityHistories',
-            },
-          },
+          populate: { path: 'activities', populate: { path: 'activityHistories' } },
         },
       ],
     })
@@ -719,11 +714,13 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       .filter(qh => UtilsHelper.areObjectIdsEquals(qh.course, course._id))
       .length;
 
-    const combinedElearningProgress = course.trainees
+    const traineeProgressList = course.trainees
       .map(trainee => CourseHelper.getTraineeElearningProgress(trainee._id, course.subProgram.steps))
-      .filter(trainee => trainee.progress.eLearning)
-      .map(trainee => trainee.progress.eLearning)
-      .reduce((acc, value) => acc + value, 0);
+      .filter(trainee => trainee.progress.eLearning >= 0)
+      .map(trainee => trainee.progress.eLearning);
+    const combinedElearningProgress = traineeProgressList.length
+      ? traineeProgressList.reduce((acc, value) => acc + value, 0)
+      : null;
 
     rows.push({
       Identifiant: course._id,
@@ -754,7 +751,9 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswersCount,
       'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswersCount,
       'Complétion eLearning moyenne':
-        UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length) || '',
+        (combinedElearningProgress || combinedElearningProgress === 0) && course.trainees.length
+          ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
+          : '',
     });
   }
 

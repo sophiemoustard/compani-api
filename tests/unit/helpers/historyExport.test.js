@@ -13,6 +13,7 @@ const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Pay = require('../../../src/models/Pay');
 const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
+const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const CourseHelper = require('../../../src/helpers/courses');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -20,7 +21,19 @@ const DraftPayHelper = require('../../../src/helpers/draftPay');
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const UserRepository = require('../../../src/repositories/UserRepository');
-const { INTERNAL_HOUR, INTERVENTION, INTRA, INTER_B2B, ON_SITE, REMOTE, E_LEARNING } = require('../../../src/helpers/constants');
+const {
+  INTERNAL_HOUR,
+  INTERVENTION,
+  INTRA,
+  INTER_B2B,
+  ON_SITE,
+  REMOTE,
+  E_LEARNING,
+  LESSON,
+  PUBLISHED,
+  EXPECTATIONS,
+  END_OF_COURSE,
+} = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
 const { TIME_STAMPING_ACTIONS } = require('../../../src/models/EventHistory');
@@ -1592,12 +1605,6 @@ describe('exportPaymentsHistory', () => {
 });
 
 describe('exportCourseHistory', () => {
-  const subProgramList = [
-    { _id: new ObjectId(), name: 'subProgram 1', program: { name: 'Program 1' } },
-    { _id: new ObjectId(), name: 'subProgram 2', program: { name: 'Program 2' } },
-  ];
-  const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
-  const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
   const traineeList = [
     { _id: new ObjectId(), firstMobileConnection: new Date() },
     { _id: new ObjectId(), firstMobileConnection: new Date() },
@@ -1605,6 +1612,61 @@ describe('exportCourseHistory', () => {
     { _id: new ObjectId() },
     { _id: new ObjectId() },
   ];
+  const activityListIds = [new ObjectId(), new ObjectId(), new ObjectId()];
+  const activityHistoryList = [
+    { _id: new ObjectId(), user: traineeList[3]._id, activity: activityListIds[0] },
+    { _id: new ObjectId(), user: traineeList[3]._id, activity: activityListIds[1] },
+    { _id: new ObjectId(), user: traineeList[3]._id, activity: activityListIds[2] },
+    { _id: new ObjectId(), user: traineeList[4]._id, activity: activityListIds[2] },
+  ];
+
+  const activityList = [
+    {
+      _id: activityListIds[0],
+      name: 'activity 1',
+      type: LESSON,
+      status: PUBLISHED,
+      activityHistories: [activityHistoryList[0]],
+    },
+    {
+      _id: activityListIds[1],
+      name: 'activity 2',
+      type: LESSON,
+      status: PUBLISHED,
+      activityHistories: [activityHistoryList[1]],
+
+    },
+    {
+      _id: activityListIds[2],
+      name: 'activity 3',
+      type: LESSON,
+      status: PUBLISHED,
+      activityHistories: [activityHistoryList[2], activityHistoryList[3]],
+    },
+  ];
+
+  const stepList = [
+    { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+    { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+    { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING, activities: activityList.map(activity => activity) },
+  ];
+
+  const subProgramList = [
+    {
+      _id: new ObjectId(),
+      name: 'subProgram 1',
+      program: { name: 'Program 1' },
+      steps: [stepList[0], stepList[1]],
+    },
+    {
+      _id: new ObjectId(),
+      name: 'subProgram 2',
+      program: { name: 'Program 2' },
+      steps: [stepList[0], stepList[2]],
+    },
+  ];
+  const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
+  const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
 
   const courseIdList = [new ObjectId(), new ObjectId()];
 
@@ -1672,12 +1734,26 @@ describe('exportCourseHistory', () => {
     },
   ];
 
+  const questionnaireList = [
+    { _id: new ObjectId(), type: EXPECTATIONS, name: 'attentes', status: PUBLISHED },
+    { _id: new ObjectId(), type: END_OF_COURSE, name: 'satisfaction', status: PUBLISHED },
+  ];
+  const questionnaireHistoriesList = [
+    { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[0] },
+    { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[1] },
+    { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[1]._id, questionnaire: questionnaireList[1] },
+    { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[2]._id, questionnaire: questionnaireList[0] },
+    { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0] },
+    { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1] },
+  ];
+
   let findCourseSlot;
   let findCourse;
   let groupSlotsByDate;
   let getTotalDuration;
   let countDocumentsCourseSmsHistory;
   let countDocumentsAttendanceSheet;
+  let findQuestionnaireHistory;
 
   beforeEach(() => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
@@ -1686,6 +1762,7 @@ describe('exportCourseHistory', () => {
     getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
     countDocumentsCourseSmsHistory = sinon.stub(CourseSmsHistory, 'countDocuments');
     countDocumentsAttendanceSheet = sinon.stub(AttendanceSheet, 'countDocuments');
+    findQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'find');
   });
 
   afterEach(() => {
@@ -1695,11 +1772,13 @@ describe('exportCourseHistory', () => {
     getTotalDuration.restore();
     countDocumentsCourseSmsHistory.restore();
     countDocumentsAttendanceSheet.restore();
+    findQuestionnaireHistory.restore();
   });
 
   it('should return an array with the header and 2 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
+    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
     getTotalDuration.onCall(0).returns('4h');
@@ -1737,6 +1816,9 @@ describe('exportCourseHistory', () => {
         'Nombre de stagiaires non prévus',
         'Nombre de présences non prévues',
         'Avancement',
+        'Nombre de réponses au questionnaire de recueil des attentes',
+        'Nombre de réponses au questionnaire de satisfaction',
+        'Complétion eLearning moyenne',
       ],
       [
         courseList[0]._id,
@@ -1763,6 +1845,9 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '1,00',
+        2,
+        2,
+        '',
       ],
       [
         courseList[1]._id,
@@ -1789,6 +1874,9 @@ describe('exportCourseHistory', () => {
         1,
         2,
         '0,67',
+        1,
+        1,
+        '0,67',
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(
@@ -1808,7 +1896,19 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         {
           query: 'populate',
-          args: [{ path: 'subProgram', select: 'name program', populate: [{ path: 'program', select: 'name' }] }],
+          args: [
+            {
+              path: 'subProgram',
+              select: 'name steps program',
+              populate: [
+                { path: 'program', select: 'name' },
+                {
+                  path: 'steps',
+                  select: 'type activities',
+                  populate: { path: 'activities', populate: { path: 'activityHistories' } },
+                },
+              ],
+            }],
         },
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
@@ -1816,6 +1916,14 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
         { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findQuestionnaireHistory,
+      [
+        { query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'lean' },
       ]
     );
