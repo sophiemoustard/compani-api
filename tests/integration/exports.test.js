@@ -98,9 +98,9 @@ const clientHistoryExportTypes = [
   {
     exportType: TRANSPORT,
     expectedRows: [
-      '\ufeff"Id de l\'auxiliaire";"Prénom  de l\'auxiliaire";"Nom  de l\'auxiliaire";"Heure de départ du trajet";"Heure d\'arrivée du trajet";"Adresse de départ";"Adresse d\'arrivée";"Distance";"Mode de transport";"Durée du trajet";"Durée inter vacation";"Pause prise en compte";"Heures prise en compte"',
-      `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11/01/2019 09:30:00";"11/01/2019 10:30:00";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";"0,23";"Transports en commun / À pied";"0,06";"1,00";"Non";"0,0639"`,
-      `"${auxiliaryList[1]._id}";"Lili";"Lolo";"11/01/2019 11:30:00";"11/01/2019 12:35:00";"42 Rue de la Procession 75015 Paris";"35 Rue du Test 75015 Paris";"0,23";"Véhicule personnel";"1,08";"1,08";"Oui";"1,0833"`,
+      '\ufeff"Id de l\'auxiliaire";"Prénom  de l\'auxiliaire";"Nom  de l\'auxiliaire";"Heure de départ du trajet";"Heure d\'arrivée du trajet";"Adresse de départ";"Adresse d\'arrivée";"Distance";"Mode de transport";"Durée du trajet";"Durée inter vacation";"Pause prise en compte";"Heures prises en compte"',
+      `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11/01/2019 09:30:00";"11/01/2019 10:30:00";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";"0,230";"Transports en commun / À pied";"0,0639";"1,0000";"Non";"0,0639"`,
+      `"${auxiliaryList[1]._id}";"Lili";"Lolo";"11/01/2019 11:30:00";"11/01/2019 12:35:00";"42 Rue de la Procession 75015 Paris";"35 Rue du Test 75015 Paris";"0,230";"Véhicule personnel";"1,0833";"1,0833";"Oui";"1,0833"`,
     ],
     query: 'startDate=2019-01-01&endDate=2019-01-31',
   },
@@ -280,9 +280,9 @@ const dataExportTypes = [
     exportType: SUBSCRIPTION,
     expectedRows: [
       '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
-      `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"Service 1";"12,00";"30,00";1;2`,
+      `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"Service 1";"12,00";"30,00";"1,00";"2,00"`,
       `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"Service 2";;;;`,
-      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";2;1`,
+      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";"2,00";"1,00"`,
     ],
   },
   {

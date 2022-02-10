@@ -794,8 +794,6 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           distanceMatrix
         );
 
-        const formattedDuration = (duration / 60).toFixed(4).replace('.', ',');
-
         rows.push({
           'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
           'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
@@ -804,16 +802,16 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Heure d\'arrivée du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy HH:mm:ss'),
           'Adresse de départ': origins,
           'Adresse d\'arrivée': destinations,
-          Distance: UtilsHelper.formatFloatForExport(travelledKm),
+          Distance: UtilsHelper.formatFloatForExport(travelledKm, 3),
           'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
             get(group, 'auxiliary.administrative.transportInvoice.transportType')
           ],
           'Durée du trajet': UtilsHelper
-            .formatFloatForExport(CompaniDuration({ minutes: transportDuration }).asHours()),
+            .formatFloatForExport(CompaniDuration({ minutes: transportDuration }).asHours(), 4),
           'Durée inter vacation': UtilsHelper
-            .formatFloatForExport(CompaniDuration({ minutes: breakDuration }).asHours()),
+            .formatFloatForExport(CompaniDuration({ minutes: breakDuration }).asHours(), 4),
           'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
-          'Heures prise en compte': formattedDuration,
+          'Heures prises en compte': UtilsHelper.formatFloatForExport((duration / 60), 4),
         });
       }
     }
