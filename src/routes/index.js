@@ -15,6 +15,7 @@ exports.routes = [
   { plugin: require('./companies'), routes: { prefix: '/companies' } },
   { plugin: require('./companyLinkRequests'), routes: { prefix: '/companylinkrequests' } },
   { plugin: require('./contracts'), routes: { prefix: '/contracts' } },
+  { plugin: require('./courseBillingItems'), routes: { prefix: '/coursebillingitems' } },
   { plugin: require('./courseFundingOrganisations'), routes: { prefix: '/coursefundingorganisations' } },
   { plugin: require('./courseHistories'), routes: { prefix: '/coursehistories' } },
   { plugin: require('./courses'), routes: { prefix: '/courses' } },

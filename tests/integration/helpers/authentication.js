@@ -20,6 +20,8 @@ const ContractNumber = require('../../../src/models/ContractNumber');
 const Contract = require('../../../src/models/Contract');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const Course = require('../../../src/models/Course');
+const CourseBillingItem = require('../../../src/models/CourseBillingItem');
+const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
@@ -67,7 +69,6 @@ const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
 const { authCompany, otherCompany, companyWithoutSubscription } = require('../../seed/authCompaniesSeed');
 const { sector, sectorHistories } = require('../../seed/authSectorsSeed');
 const { authCustomer, helperCustomer } = require('../../seed/authCustomers');
-const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 
 const getUser = (roleName, erp = true) => {
   const role = rolesList.find(r => r.name === roleName);
@@ -123,6 +124,7 @@ const deleteNonAuthenticationSeeds = async () => {
     Contract.deleteMany(),
     CourseHistory.deleteMany(),
     Course.deleteMany(),
+    CourseBillingItem.deleteMany(),
     CourseFundingOrganisation.deleteMany(),
     CourseSlot.deleteMany(),
     CourseSmsHistory.deleteMany(),
