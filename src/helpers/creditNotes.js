@@ -6,6 +6,7 @@ const omit = require('lodash/omit');
 const translate = require('./translate');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
+const BillingItem = require('../models/BillingItem');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
@@ -16,6 +17,7 @@ const BillSlipHelper = require('./billSlips');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 const { COMPANI } = require('./constants');
 const CreditNotePdf = require('../data/pdf/billing/creditNote');
+const { formatBillingItem } = require('./bills');
 
 const { language } = translate;
 
@@ -74,12 +76,21 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
 exports.formatCreditNoteNumber = (companyPrefix, prefix, seq) =>
   `AV-${companyPrefix}${prefix}${seq.toString().padStart(5, '0')}`;
 
-exports.formatCreditNote = (payload, companyPrefix, prefix, seq) => {
+exports.formatCreditNote = async (payload, companyPrefix, prefix, seq) => {
   const creditNote = { ...payload, number: exports.formatCreditNoteNumber(companyPrefix, prefix, seq) };
   if (payload.inclTaxesCustomer) {
     creditNote.inclTaxesCustomer = UtilsHelper.getFixedNumber(payload.inclTaxesCustomer, 2);
   }
+
   if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = UtilsHelper.getFixedNumber(payload.inclTaxesTpp, 2);
+
+  if (get(payload, 'billingItemList.length')) {
+    const bddBillingItemList = await BillingItem
+      .find({ _id: { $in: payload.billingItemList.map(bi => bi.billingItem) } }, { vat: 1, name: 1 })
+      .lean();
+
+    creditNote.billingItemList = payload.billingItemList.map(bi => formatBillingItem(bi, bddBillingItemList));
+  }
 
   return new CreditNote(creditNote);
 };
