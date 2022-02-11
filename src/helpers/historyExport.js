@@ -166,7 +166,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
-      event.kmDuringEvent ? event.kmDuringEvent.toString() : '',
+      event.kmDuringEvent ? UtilsHelper.formatFloatForExport(event.kmDuringEvent) : '',
       EVENT_TRANSPORT_MODE_LIST[get(event, 'transportMode')] || '',
       get(event, 'sector.name') || get(auxiliarySector, 'sector.name') || '',
       get(auxiliary, '_id') || '',
@@ -794,8 +794,6 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           distanceMatrix
         );
 
-        const formattedDuration = (duration / 60).toFixed(4).replace('.', ',');
-
         rows.push({
           'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
           'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
@@ -804,14 +802,17 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Heure d\'arrivée du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy HH:mm:ss'),
           'Adresse de départ': origins,
           'Adresse d\'arrivée': destinations,
-          Distance: travelledKm,
+          Distance: UtilsHelper.formatFloatForExport(travelledKm, 3),
           'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
             get(group, 'auxiliary.administrative.transportInvoice.transportType')
           ],
-          'Durée du trajet': CompaniDuration({ minutes: transportDuration }).format(),
-          'Durée inter vacation': CompaniDuration({ minutes: breakDuration }).format(),
+          'Durée du trajet': UtilsHelper
+            .formatFloatForExport(CompaniDuration({ minutes: transportDuration }).asHours(), 4),
+          'Durée inter vacation': UtilsHelper
+            .formatFloatForExport(CompaniDuration({ minutes: breakDuration }).asHours(), 4),
           'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
-          'Heures prise en compte': formattedDuration,
+          'Heures prises en compte': UtilsHelper
+            .formatFloatForExport(CompaniDuration({ minutes: duration }).asHours(), 4),
         });
       }
     }

@@ -112,9 +112,9 @@ exports.getFullTitleFromIdentity = (identity) => {
   return fullTitle.join(' ');
 };
 
-exports.formatFloatForExport = (number) => {
+exports.formatFloatForExport = (number, decimals = 2) => {
   if (number == null || Number.isNaN(number)) return '';
-  return number.toFixed(2).replace('.', ',');
+  return number.toFixed(decimals).replace('.', ',');
 };
 
 exports.formatArrayOrStringQueryParam = (param, keyName) =>

@@ -429,8 +429,8 @@ exports.exportSubscriptions = async (credentials) => {
         lastServiceVersion ? lastServiceVersion.name : '',
         lastVersion ? UtilsHelper.formatFloatForExport(lastVersion.unitTTCRate) : '',
         lastVersion ? UtilsHelper.formatFloatForExport(lastVersion.estimatedWeeklyVolume) : '',
-        lastVersion ? get(lastVersion, 'evenings', '') : '',
-        lastVersion ? get(lastVersion, 'sundays', '') : '',
+        lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'evenings')) : '',
+        lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'sundays')) : '',
       ]);
     }
   }
