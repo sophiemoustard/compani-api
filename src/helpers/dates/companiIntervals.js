@@ -1,4 +1,5 @@
 const luxon = require('./luxon');
+const { CompaniDuration } = require('./companiDurations');
 
 exports.CompaniInterval = (...args) => CompaniIntervalFactory(exports._formatMiscToCompaniInterval(...args));
 
@@ -8,6 +9,20 @@ const CompaniIntervalFactory = (inputInterval) => {
   return ({
     get _getInterval() {
       return _interval;
+    },
+
+    rangeBy(miscTypeDurationStep, excludeEnd = false) {
+      const luxonDurationStep = CompaniDuration(miscTypeDurationStep)._getDuration;
+      if (luxonDurationStep.toMillis() === 0) throw new Error('invalid argument : duration is zero');
+
+      const fragmentedIntervals = _interval.splitBy(luxonDurationStep);
+      const dates = fragmentedIntervals.map(fi => fi.start.toUTC().toISO());
+
+      const lastFragmentEqualsDurationStep =
+        fragmentedIntervals[fragmentedIntervals.length - 1].toDuration().toMillis() === luxonDurationStep.toMillis();
+      if (lastFragmentEqualsDurationStep) dates.push(_interval.end.toUTC().toISO());
+
+      return excludeEnd ? dates.slice(0, -1) : dates;
     },
   });
 };

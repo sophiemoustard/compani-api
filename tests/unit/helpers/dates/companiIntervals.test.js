@@ -71,6 +71,43 @@ describe('getInterval', () => {
   });
 });
 
+describe('rangeBy', () => {
+  const interval = CompaniIntervalsHelper.CompaniInterval('2022-02-11T09:00:00.000Z/2022-02-13T10:30:00.000Z');
+
+  it('should return sequence of dates, endDate is not included', () => {
+    const result = interval.rangeBy({ days: 1 });
+
+    expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z', '2022-02-13T09:00:00.000Z']);
+  });
+
+  it('should return sequence of dates, endDate is the last element of the sequence', () => {
+    const otherInterval = CompaniIntervalsHelper.CompaniInterval('2022-02-11T09:00:00.000Z/2022-02-13T09:00:00.000Z');
+    const result = otherInterval.rangeBy({ days: 1 });
+
+    expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z', '2022-02-13T09:00:00.000Z']);
+  });
+
+  it('should return sequence of dates, last element is excluded', () => {
+    const result = interval.rangeBy({ days: 1 }, true);
+
+    expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T09:00:00.000Z']);
+  });
+
+  it('should return sequence of dates, step is not 1', () => {
+    const result = interval.rangeBy({ days: 1.5 });
+
+    expect(result).toEqual(['2022-02-11T09:00:00.000Z', '2022-02-12T21:00:00.000Z']);
+  });
+
+  it('should return error if duration is zero', () => {
+    try {
+      interval.rangeBy({});
+    } catch (e) {
+      expect(e).toEqual(new Error('invalid argument : duration is zero'));
+    }
+  });
+});
+
 describe('_formatMiscToCompaniInterval', () => {
   let datefromISO;
   let intervalfromISO;
