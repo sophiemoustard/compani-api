@@ -727,7 +727,14 @@ const getAddress = (slot) => {
 exports.exportCourseSlotHistory = async (startDate, endDate) => {
   const courseSlots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
     .populate({ path: 'step', select: 'type name' })
-    .populate({ path: 'course', select: 'trainees' })
+    .populate({
+      path: 'course',
+      select: 'trainees misc subProgram company',
+      populate: [
+        { path: 'company', select: 'name' },
+        { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+      ],
+    })
     .populate({ path: 'attendances' })
     .lean();
 
@@ -742,9 +749,14 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
 
     const absencesCount = slot.course.trainees.length - subscribedTraineesAttendancesCount;
 
+    const courseName = get(slot, 'course.company')
+      ? `${slot.course.company.name} - ${slot.course.subProgram.program.name} - ${slot.course.misc}`
+      : `${slot.course.subProgram.program.name} - ${slot.course.misc}`;
+
     rows.push({
       'Id Créneau': slot._id,
       'Id Formation': slot.course._id,
+      Formation: courseName,
       Étape: get(slot, 'step.name') || '',
       Type: STEP_TYPES[get(slot, 'step.type')] || '',
       'Date de création': CompaniDate(slot.createdAt).format('dd/LL/yyyy HH:mm:ss') || '',
