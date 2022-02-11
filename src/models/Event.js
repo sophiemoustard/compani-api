@@ -142,6 +142,16 @@ EventSchema.virtual(
   }
 );
 
+const isStartDateTimeStamped = event => (event.startDateTimeStamp ? !!event.startDateTimeStamp : false);
+
+function setIsStartDateTimeStamped() {
+  return isStartDateTimeStamped(this);
+}
+
+EventSchema.statics.isStartDateTimeStamped = isStartDateTimeStamped;
+
+EventSchema.virtual('isStartDateTimeStamped').get(setIsStartDateTimeStamped);
+
 EventSchema.virtual(
   'endDateTimeStamp',
   {
@@ -159,6 +169,15 @@ EventSchema.virtual(
     count: true,
   }
 );
+
+const isEndDateTimeStamped = event => (event.endDateTimeStamp ? !!event.endDateTimeStamp : false);
+
+function setIsEndDateTimeStamped() {
+  return isEndDateTimeStamped(this);
+}
+
+EventSchema.statics.isEndDateTimeStamped = isEndDateTimeStamped;
+EventSchema.virtual('isEndDateTimeStamped').get(setIsEndDateTimeStamped);
 
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
