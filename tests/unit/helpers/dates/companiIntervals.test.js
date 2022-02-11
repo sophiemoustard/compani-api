@@ -36,6 +36,18 @@ describe('CompaniInterval', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniInterval.getCall(0), intervalISO);
     });
 
+    it('should return error if endDate is before startDate', () => {
+      const intervalISO = '2021-11-24T08:00:00.000Z/2021-11-20T09:30:00.000Z';
+      try {
+        CompaniIntervalsHelper.CompaniInterval(intervalISO);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid Interval: end before start: The end of an interval must be after '
+          + 'its start, but you had start=2021-11-24T09:00:00.000+01:00 and end=2021-11-20T10:30:00.000+01:00'));
+      } finally {
+        sinon.assert.calledOnceWithExactly(_formatMiscToCompaniInterval, intervalISO);
+      }
+    });
+
     it('should return error if invalid argument', () => {
       try {
         CompaniIntervalsHelper.CompaniInterval(null);
