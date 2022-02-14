@@ -658,6 +658,7 @@ describe('populateEventSubscription', () => {
         ],
       },
       subscription: subId,
+      histories: [],
     };
 
     const result = await EventHelper.populateEventSubscription(event);

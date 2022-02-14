@@ -143,7 +143,8 @@ EventSchema.virtual(
   }
 );
 
-const isStartDateTimeStamped = event => !!event.histories.find(history => get(history, 'update.startHour', ''));
+const isStartDateTimeStamped = event =>
+  (event.histories ? !!event.histories.find(history => get(history, 'update.startHour', '')) : false);
 
 EventSchema.methods.isStartDateTimeStamped = function () {
   return isStartDateTimeStamped(this);
@@ -167,7 +168,8 @@ EventSchema.virtual(
   }
 );
 
-const isEndDateTimeStamped = event => !!event.histories.find(history => get(history, 'update.endHour', ''));
+const isEndDateTimeStamped = event =>
+  (event.histories ? !!event.histories.find(history => get(history, 'update.endHour', '')) : false);
 
 EventSchema.methods.isEndDateTimeStamped = function () {
   return isEndDateTimeStamped(this);
