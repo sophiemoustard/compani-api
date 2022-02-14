@@ -1837,10 +1837,17 @@ describe('exportCourseSlotHistory', () => {
     {
       _id: courseIdList[0],
       trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+      type: INTRA,
+      company: { _id: new ObjectId(), name: 'Enbonne Company' },
+      subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Program 1' } },
+      misc: 'group 1',
     },
     {
       _id: courseIdList[1],
       trainees: [traineeList[3]._id, traineeList[4]._id],
+      type: INTER_B2B,
+      subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Program 2' } },
+      misc: 'group 2',
     },
   ];
 
@@ -1919,6 +1926,7 @@ describe('exportCourseSlotHistory', () => {
       [
         'Id Créneau',
         'Id Formation',
+        'Formation',
         'Étape',
         'Type',
         'Date de création',
@@ -1933,6 +1941,7 @@ describe('exportCourseSlotHistory', () => {
       [
         courseSlotList[0]._id,
         courseIdList[0],
+        'Enbonne Company - Program 1 - group 1',
         'étape 1',
         'présentiel',
         '12/12/2020 11:00:00',
@@ -1947,6 +1956,7 @@ describe('exportCourseSlotHistory', () => {
       [
         courseSlotList[1]._id,
         courseIdList[0],
+        'Enbonne Company - Program 1 - group 1',
         'étape 2',
         'distanciel',
         '12/12/2020 11:00:01',
@@ -1961,6 +1971,7 @@ describe('exportCourseSlotHistory', () => {
       [
         courseSlotList[2]._id,
         courseIdList[1],
+        'Program 2 - group 2',
         'étape 1',
         'présentiel',
         '12/12/2020 11:00:02',
@@ -1975,6 +1986,7 @@ describe('exportCourseSlotHistory', () => {
       [
         courseSlotList[3]._id,
         courseIdList[1],
+        'Program 2 - group 2',
         'étape 3',
         'eLearning',
         '12/12/2020 11:00:03',
@@ -1996,7 +2008,17 @@ describe('exportCourseSlotHistory', () => {
           args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
         },
         { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
-        { query: 'populate', args: [{ path: 'course', select: 'trainees' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'type trainees misc subProgram company',
+            populate: [
+              { path: 'company', select: 'name' },
+              { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+            ],
+          }],
+        },
         { query: 'populate', args: [{ path: 'attendances' }] },
         { query: 'lean' },
       ]
