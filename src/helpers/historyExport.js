@@ -26,6 +26,8 @@ const {
   ON_SITE,
   REMOTE,
   STEP_TYPES,
+  EXPECTATIONS,
+  END_OF_COURSE,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
@@ -49,6 +51,7 @@ const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
+const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 
 const workingEventExportHeader = [
   'Type',
@@ -651,7 +654,18 @@ exports.exportCourseHistory = async (startDate, endDate) => {
   const courses = await Course
     .find({ _id: { $in: courseIds } })
     .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'subProgram', select: 'name program', populate: [{ path: 'program', select: 'name' }] })
+    .populate({
+      path: 'subProgram',
+      select: 'name steps program',
+      populate: [
+        { path: 'program', select: 'name' },
+        {
+          path: 'steps',
+          select: 'type activities',
+          populate: { path: 'activities', populate: { path: 'activityHistories' } },
+        },
+      ],
+    })
     .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'salesRepresentative', select: 'identity' })
     .populate({ path: 'contact', select: 'identity' })
@@ -660,12 +674,22 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     .populate({ path: 'trainees', select: 'firstMobileConnection' })
     .lean();
 
+  const questionnaireHistories = await QuestionnaireHistory
+    .find({ course: { $in: courseIds } })
+    .populate({ path: 'questionnaire', select: 'type' })
+    .lean();
+
+  const smsList = await CourseSmsHistory.find({ course: { $in: courseIds } }).lean();
+  const attendanceSheetList = await AttendanceSheet.find({ course: { $in: courseIds } }).lean();
+
   const rows = [];
 
   for (const course of courses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
-    const smsCount = await CourseSmsHistory.countDocuments({ course: course._id });
-    const attendanceSheetsCount = await AttendanceSheet.countDocuments({ course: course._id });
+    const smsCount = smsList.filter(sms => UtilsHelper.areObjectIdsEquals(sms.course, course._id)).length;
+    const attendanceSheetsCount = attendanceSheetList
+      .filter(attendanceSheet => UtilsHelper.areObjectIdsEquals(attendanceSheet.course, course._id))
+      .length;
 
     const attendances = course.slots.map(slot => slot.attendances).flat();
     const courseTraineeList = course.trainees.map(trainee => trainee._id);
@@ -684,6 +708,22 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       .length;
 
     const pastSlotsCount = course.slots.length - upComingSlotsCount;
+
+    const expectactionQuestionnaireAnswersCount = questionnaireHistories
+      .filter(qh => qh.questionnaire.type === EXPECTATIONS)
+      .filter(qh => UtilsHelper.areObjectIdsEquals(qh.course, course._id))
+      .length;
+
+    const endQuestionnaireAnswersCount = questionnaireHistories
+      .filter(qh => qh.questionnaire.type === END_OF_COURSE)
+      .filter(qh => UtilsHelper.areObjectIdsEquals(qh.course, course._id))
+      .length;
+
+    const traineeProgressList = course.trainees
+      .map(trainee => CourseHelper.getTraineeElearningProgress(trainee._id, course.subProgram.steps))
+      .filter(trainee => trainee.progress.eLearning >= 0)
+      .map(trainee => trainee.progress.eLearning);
+    const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
 
     rows.push({
       Identifiant: course._id,
@@ -711,6 +751,11 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
       'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
       Avancement: UtilsHelper.formatFloatForExport(pastSlotsCount / (course.slots.length + course.slotsToPlan.length)),
+      'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswersCount,
+      'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswersCount,
+      'Complétion eLearning moyenne': traineeProgressList.length
+        ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
+        : '',
     });
   }
 

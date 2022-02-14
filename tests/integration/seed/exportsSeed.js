@@ -1,6 +1,8 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('../../../src/extensions/moment');
+const Activity = require('../../../src/models/Activity');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Attendance = require('../../../src/models/Attendance');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Event = require('../../../src/models/Event');
@@ -29,6 +31,8 @@ const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
+const Questionnaire = require('../../../src/models/Questionnaire');
+const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
@@ -57,6 +61,10 @@ const {
   ON_SITE,
   REMOTE,
   E_LEARNING,
+  EXPECTATIONS,
+  PUBLISHED,
+  END_OF_COURSE,
+  LESSON,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -970,7 +978,23 @@ const userCompanies = [
   { _id: new ObjectId(), user: user._id, company: authCompany._id },
 ];
 
-const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1' }, { _id: new ObjectId(), name: 'subProgram 2' }];
+const activityList = [
+  { _id: new ObjectId(), name: 'activity 1', type: LESSON, status: PUBLISHED },
+  { _id: new ObjectId(), name: 'activity 2', type: LESSON, status: PUBLISHED },
+  { _id: new ObjectId(), name: 'activity 3', type: LESSON, status: PUBLISHED },
+];
+
+const stepList = [
+  { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
+  { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
+  { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING, activities: activityList.map(activity => activity._id) },
+  { _id: new ObjectId(), name: 'étape 4', type: ON_SITE },
+];
+
+const subProgramList = [
+  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepList[0]._id, stepList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 2', steps: [stepList[0]._id, stepList[2]._id, stepList[3]._id] },
+];
 
 const programList = [
   { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] },
@@ -1050,11 +1074,11 @@ const courseList = [
   },
 ];
 
-const stepList = [
-  { _id: new ObjectId(), name: 'étape 1', type: ON_SITE },
-  { _id: new ObjectId(), name: 'étape 2', type: REMOTE },
-  { _id: new ObjectId(), name: 'étape 3', type: E_LEARNING },
-  { _id: new ObjectId(), name: 'étape 4', type: ON_SITE },
+const activityHistoryList = [
+  { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[0]._id },
+  { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[1]._id },
+  { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[2]._id },
+  { _id: new ObjectId(), user: traineeList[4]._id, activity: activityList[2]._id },
 ];
 
 const slotAddress = {
@@ -1130,6 +1154,19 @@ const smsList = [
   { _id: new ObjectId(), type: 'convocation', message: 'SMS 3', sender: traineeList[3]._id, course: courseList[1]._id },
 ];
 
+const questionnaireList = [
+  { _id: new ObjectId(), type: EXPECTATIONS, name: 'attentes', status: PUBLISHED },
+  { _id: new ObjectId(), type: END_OF_COURSE, name: 'satisfaction', status: PUBLISHED },
+];
+const questionnaireHistoriesList = [
+  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[0]._id },
+  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[1]._id },
+  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[1]._id, questionnaire: questionnaireList[1]._id },
+  { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[2]._id, questionnaire: questionnaireList[0]._id },
+  { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0]._id },
+  { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1]._id },
+];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -1162,6 +1199,10 @@ const populateDB = async () => {
     AttendanceSheet.create(attendanceSheetList),
     Step.create(stepList),
     DistanceMatrix.create(distanceMatrixList),
+    Questionnaire.create(questionnaireList),
+    QuestionnaireHistory.create(questionnaireHistoriesList),
+    Activity.create(activityList),
+    ActivityHistory.create(activityHistoryList),
   ]);
 };
 
