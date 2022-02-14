@@ -2012,7 +2012,7 @@ describe('exportCourseSlotHistory', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'trainees misc subProgram company',
+            select: 'type trainees misc subProgram company',
             populate: [
               { path: 'company', select: 'name' },
               { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
