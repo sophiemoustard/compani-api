@@ -679,12 +679,17 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     .populate({ path: 'questionnaire', select: 'type' })
     .lean();
 
+  const smsList = await CourseSmsHistory.find({ course: { $in: courseIds } }).lean();
+  const attendanceSheetList = await AttendanceSheet.find({ course: { $in: courseIds } }).lean();
+
   const rows = [];
 
   for (const course of courses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
-    const smsCount = await CourseSmsHistory.countDocuments({ course: course._id });
-    const attendanceSheetsCount = await AttendanceSheet.countDocuments({ course: course._id });
+    const smsCount = smsList.filter(sms => UtilsHelper.areObjectIdsEquals(sms.course, course._id)).length;
+    const attendanceSheetsCount = attendanceSheetList
+      .filter(attendanceSheet => UtilsHelper.areObjectIdsEquals(attendanceSheet.course, course._id))
+      .length;
 
     const attendances = course.slots.map(slot => slot.attendances).flat();
     const courseTraineeList = course.trainees.map(trainee => trainee._id);

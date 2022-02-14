@@ -1751,8 +1751,8 @@ describe('exportCourseHistory', () => {
   let findCourse;
   let groupSlotsByDate;
   let getTotalDuration;
-  let countDocumentsCourseSmsHistory;
-  let countDocumentsAttendanceSheet;
+  let findCourseSmsHistory;
+  let findAttendanceSheet;
   let findQuestionnaireHistory;
 
   beforeEach(() => {
@@ -1760,8 +1760,8 @@ describe('exportCourseHistory', () => {
     findCourse = sinon.stub(Course, 'find');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
     getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
-    countDocumentsCourseSmsHistory = sinon.stub(CourseSmsHistory, 'countDocuments');
-    countDocumentsAttendanceSheet = sinon.stub(AttendanceSheet, 'countDocuments');
+    findCourseSmsHistory = sinon.stub(CourseSmsHistory, 'find');
+    findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
     findQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'find');
   });
 
@@ -1770,8 +1770,8 @@ describe('exportCourseHistory', () => {
     findCourse.restore();
     groupSlotsByDate.restore();
     getTotalDuration.restore();
-    countDocumentsCourseSmsHistory.restore();
-    countDocumentsAttendanceSheet.restore();
+    findCourseSmsHistory.restore();
+    findAttendanceSheet.restore();
     findQuestionnaireHistory.restore();
   });
 
@@ -1783,10 +1783,14 @@ describe('exportCourseHistory', () => {
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
     getTotalDuration.onCall(0).returns('4h');
     getTotalDuration.onCall(1).returns('4h');
-    countDocumentsCourseSmsHistory.onCall(0).returns(2);
-    countDocumentsCourseSmsHistory.onCall(1).returns(1);
-    countDocumentsAttendanceSheet.onCall(0).returns(1);
-    countDocumentsAttendanceSheet.onCall(1).returns(0);
+    findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
+      [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
+      ['lean']
+    ));
+    findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
+      [{ course: courseList[0]._id }],
+      ['lean']
+    ));
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
@@ -1926,6 +1930,14 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'lean' },
       ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSmsHistory,
+      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findAttendanceSheet,
+      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
     );
   });
 });
