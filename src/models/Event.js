@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { get } = require('lodash');
 const {
   INTERNAL_HOUR,
   ABSENCE,
@@ -142,15 +143,11 @@ EventSchema.virtual(
   }
 );
 
-const isStartDateTimeStamped = event => (event.startDateTimeStamp ? !!event.startDateTimeStamp : false);
+const isStartDateTimeStamped = event => event.histories.find(history => get(history, 'update.startHour'));
 
-function setIsStartDateTimeStamped() {
+EventSchema.methods.isStartDateTimeStamped = function setIsStartDateTimeStamped() {
   return isStartDateTimeStamped(this);
-}
-
-EventSchema.statics.isStartDateTimeStamped = isStartDateTimeStamped;
-
-EventSchema.virtual('isStartDateTimeStamped').get(setIsStartDateTimeStamped);
+};
 
 EventSchema.virtual(
   'endDateTimeStamp',
@@ -170,14 +167,11 @@ EventSchema.virtual(
   }
 );
 
-const isEndDateTimeStamped = event => (event.endDateTimeStamp ? !!event.endDateTimeStamp : false);
+const isEndDateTimeStamped = event => event.histories.find(history => get(history, 'update.endHour'));
 
-function setIsEndDateTimeStamped() {
+EventSchema.methods.isEndDateTimeStamped = function setIsEndDateTimeStamped() {
   return isEndDateTimeStamped(this);
-}
-
-EventSchema.statics.isEndDateTimeStamped = isEndDateTimeStamped;
-EventSchema.virtual('isEndDateTimeStamped').get(setIsEndDateTimeStamped);
+};
 
 EventSchema.pre('find', validateQuery);
 EventSchema.pre('aggregate', validateAggregation);
