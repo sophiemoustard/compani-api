@@ -32,6 +32,7 @@ describe('CompaniInterval', () => {
       expect(result)
         .toEqual(expect.objectContaining({
           _getInterval: expect.any(luxon.Interval),
+          rangeBy: expect.any(Function),
         }));
       sinon.assert.calledWithExactly(_formatMiscToCompaniInterval.getCall(0), intervalISO);
     });

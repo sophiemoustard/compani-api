@@ -26,8 +26,8 @@ const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
 const DatesHelper = require('./dates');
-const translate = require('./translate');
 const { CompaniInterval } = require('./dates/companiIntervals');
+const translate = require('./translate');
 
 const { language } = translate;
 
