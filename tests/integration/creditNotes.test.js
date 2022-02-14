@@ -51,6 +51,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         billingItems: [{ billingItem: billingItem._id, exclTaxes: 12, inclTaxes: 14 }],
       },
     }],
+    misc: 'Je suis un motif',
   };
 
   const payloadWithSubscription = {
@@ -65,6 +66,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       service: { serviceId: new ObjectId(), nature: FIXED, name: 'toto' },
       vat: 5.5,
     },
+    misc: 'Je suis un motif',
   };
 
   describe('CLIENT_ADMIN', () => {

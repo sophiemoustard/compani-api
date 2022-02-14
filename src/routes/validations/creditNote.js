@@ -47,4 +47,5 @@ exports.creditNoteValidations = {
     vat: Joi.number(),
     unitInclTaxes: Joi.number(),
   }),
+  misc: Joi.string(),
 };

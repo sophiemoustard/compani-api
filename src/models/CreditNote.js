@@ -66,6 +66,7 @@ const CreditNoteSchema = mongoose.Schema(
     driveFile: driveResourceSchemaDefinition,
     company: { type: mongoose.Schema.Types.ObjectId, required: true, immutable: true },
     isEditable: { type: Boolean, default: true },
+    misc: { type: String },
   },
   { timestamps: true }
 );
