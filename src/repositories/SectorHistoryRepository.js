@@ -1,6 +1,7 @@
 const moment = require('moment');
 const SectorHistory = require('../models/SectorHistory');
 const { ABSENCE, INTERVENTION, INVOICED_AND_PAID } = require('../helpers/constants');
+const { CompaniDate } = require('../helpers/dates/companiDates');
 
 exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
   const minDate = moment(month, 'MMYYYY').startOf('month').toDate();
@@ -144,8 +145,8 @@ exports.getUsersFromSectorHistories = async (startDate, endDate, sectors, compan
 ]).option({ company: companyId });
 
 exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
-  const minDate = moment(month, 'MMYYYY').startOf('month').toDate();
-  const maxDate = moment(month, 'MMYYYY').endOf('month').toDate();
+  const minDate = CompaniDate(month, 'MM-yyyy').startOf('month').toDate();
+  const maxDate = CompaniDate(month, 'MM-yyyy').endOf('month').toDate();
 
   return SectorHistory.aggregate([
     {
