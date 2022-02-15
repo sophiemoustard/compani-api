@@ -4,6 +4,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
 const FundingHistory = require('../../../src/models/FundingHistory');
+const BillingItem = require('../../../src/models/BillingItem');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const CreditNote = require('../../../src/models/CreditNote');
 const Company = require('../../../src/models/Company');
@@ -272,13 +273,16 @@ describe('formatCreditNoteNumber', () => {
 describe('formatCreditNote', () => {
   let formatCreditNoteNumber;
   let getFixedNumber;
+  let findBillingItem;
   beforeEach(() => {
     formatCreditNoteNumber = sinon.stub(CreditNoteHelper, 'formatCreditNoteNumber');
     getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
+    findBillingItem = sinon.stub(BillingItem, 'find');
   });
   afterEach(() => {
     formatCreditNoteNumber.restore();
     getFixedNumber.restore();
+    findBillingItem.restore();
   });
 
   it('should format credit note with number', async () => {
@@ -286,39 +290,78 @@ describe('formatCreditNote', () => {
     const companyPrefix = 12345;
     const prefix = 12;
     const seq = 432;
+
     formatCreditNoteNumber.returns('number');
 
     await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
+
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
     sinon.assert.notCalled(getFixedNumber);
   });
+
   it('should format credit note for customer', async () => {
     const payload = { inclTaxesCustomer: 98 };
     const companyPrefix = 12345;
     const prefix = 12;
     const seq = 432;
+
     formatCreditNoteNumber.returns('number');
     getFixedNumber.returnsArg(0);
 
     const creditNote = await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
+
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
     sinon.assert.calledOnceWithExactly(getFixedNumber, 98, 2);
     expect(creditNote.number).toEqual('number');
     expect(creditNote.inclTaxesCustomer).toEqual(98);
   });
+
   it('should format credit note for third party payer', async () => {
     const payload = { inclTaxesTpp: 98 };
     const companyPrefix = 12345;
     const prefix = 12;
     const seq = 432;
+
     formatCreditNoteNumber.returns('number');
     getFixedNumber.returnsArg(0);
 
     const creditNote = await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
+
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
     sinon.assert.calledOnceWithExactly(getFixedNumber, 98, 2);
     expect(creditNote.number).toEqual('number');
     expect(creditNote.inclTaxesTpp).toEqual(98);
+  });
+
+  it('should format credit note for customer with billing items #tag', async () => {
+    const billingItemId = new ObjectId();
+    const payload = {
+      inclTaxesCustomer: 98,
+      billingItemList: [{ billingItem: billingItemId, unitInclTaxes: 25, count: 1 }],
+    };
+    const companyPrefix = 12345;
+    const prefix = 12;
+    const seq = 432;
+
+    formatCreditNoteNumber.returns('number');
+    getFixedNumber.returnsArg(0);
+    findBillingItem.returns(
+      SinonMongoose.stubChainedQueries([{ _id: billingItemId, vat: 10, name: 'skusku' }], ['lean'])
+    );
+
+    const creditNote = await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
+
+    expect(creditNote.number).toEqual('number');
+    expect(creditNote.inclTaxesCustomer).toEqual(98);
+    sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
+    sinon.assert.calledOnceWithExactly(getFixedNumber, 98, 2);
+    SinonMongoose.calledOnceWithExactly(
+      findBillingItem,
+      [
+        { query: 'find', args: [{ _id: { $in: [billingItemId] } }, { vat: 1, name: 1 }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 

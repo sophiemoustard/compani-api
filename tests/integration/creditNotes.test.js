@@ -15,7 +15,7 @@ const {
   otherCompanyEvent,
   otherCompanyUser,
   otherCompanyCreditNote,
-  billingItem,
+  billingItemList,
   archivedCustomer,
 } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
@@ -48,7 +48,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       bills: {
         inclTaxesCustomer: 10,
         exclTaxesCustomer: 8,
-        billingItems: [{ billingItem: billingItem._id, exclTaxes: 12, inclTaxes: 14 }],
+        billingItems: [{ billingItem: billingItemList[0]._id, exclTaxes: 12, inclTaxes: 14 }],
       },
     }],
     misc: 'Je suis un motif',
@@ -67,6 +67,26 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       vat: 5.5,
     },
     misc: 'Je suis un motif',
+  };
+
+  const payloadWithBillingItems = {
+    date: '2019-07-19T14:00:18',
+    customer: creditNoteCustomer._id,
+    exclTaxesCustomer: 43.5,
+    inclTaxesCustomer: 50,
+    misc: 'Je suis un motif',
+    billingItemList: [
+      {
+        billingItem: billingItemList[1]._id,
+        unitInclTaxes: 25,
+        count: 1,
+      },
+      {
+        billingItem: billingItemList[1]._id,
+        unitInclTaxes: 25,
+        count: 1,
+      },
+    ],
   };
 
   describe('CLIENT_ADMIN', () => {
@@ -124,6 +144,31 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         expect.objectContaining({ number: 'AV-101071900002' }),
       ]));
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
+    });
+
+    it('should create a new credit notes with billing items', async () => {
+      const initialCreditNotesNumber = creditNotesList.length;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: payloadWithBillingItems,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const creditNotesCount = await CreditNote.countDocuments({ company: authCompany._id });
+      expect(creditNotesCount).toEqual(initialCreditNotesNumber + 1);
+
+      const creditNotesWithBillingItems = await CreditNote.find({
+        company: authCompany._id,
+        billingItemList: { $exists: true },
+      })
+        .lean();
+      expect(creditNotesWithBillingItems.length).toEqual(1);
+      expect(creditNotesWithBillingItems).toEqual(expect.arrayContaining([
+        expect.objectContaining({ number: 'AV-101071900001' }),
+      ]));
     });
 
     it('should return a 403 error if customer is not from same company', async () => {
