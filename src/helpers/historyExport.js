@@ -743,6 +743,11 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
         .filter(trainee => trainee.firstMobileConnection).length,
+      'Complétion eLearning moyenne': traineeProgressList.length
+        ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
+        : '',
+      'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswersCount,
+      'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswersCount,
       'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss') || '',
       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
       'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
@@ -751,11 +756,6 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
       'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
       Avancement: UtilsHelper.formatFloatForExport(pastSlotsCount / (course.slots.length + course.slotsToPlan.length)),
-      'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswersCount,
-      'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswersCount,
-      'Complétion eLearning moyenne': traineeProgressList.length
-        ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
-        : '',
     });
   }
 
