@@ -868,7 +868,7 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Durée inter vacation': UtilsHelper
             .formatFloatForExport(CompaniDuration({ minutes: breakDuration }).asHours(), 4),
           'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
-          'Heures prises en compte': UtilsHelper
+          'Durée rémunérée': UtilsHelper
             .formatFloatForExport(CompaniDuration({ minutes: duration }).asHours(), 4),
         });
       }

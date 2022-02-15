@@ -2253,7 +2253,7 @@ describe('exportTransportsHistory', () => {
         'Durée du trajet',
         'Durée inter vacation',
         'Pause prise en compte',
-        'Heures prises en compte',
+        'Durée rémunérée',
       ],
       [
         `${auxiliaryList[0]._id}`,
