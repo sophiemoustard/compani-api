@@ -129,10 +129,10 @@ exports.getUsersFromSectorHistories = async (startDate, endDate, sectors, compan
     {
       $match: {
         sector: { $in: sectors },
-        startDate: { $lte: endDate },
+        startDate: { $lte: new Date(endDate) },
         $or: [
           { endDate: { $exists: false } },
-          { endDate: { $gte: startDate } },
+          { endDate: { $gte: new Date(startDate) } },
         ],
       },
     },
