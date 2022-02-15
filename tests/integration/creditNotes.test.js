@@ -149,10 +149,8 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       const creditNotesCount = await CreditNote.countDocuments({ company: authCompany._id });
       expect(creditNotesCount).toEqual(initialCreditNotesNumber + 1);
 
-      const creditNotesWithBillingItems = await CreditNote.find({
-        company: authCompany._id,
-        billingItemList: { $exists: true },
-      })
+      const creditNotesWithBillingItems = await CreditNote
+        .find({ company: authCompany._id, billingItemList: { $exists: true } })
         .lean();
       expect(creditNotesWithBillingItems.length).toEqual(1);
       expect(creditNotesWithBillingItems).toEqual(expect.arrayContaining([
@@ -292,8 +290,11 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       { param: 'events[0].serviceName', payload: payloadWithEvents },
       { param: 'events[0].startDate', payload: payloadWithEvents },
       { param: 'events[0].endDate', payload: payloadWithEvents },
-      { param: 'events[0].bills', payload: { ...payloadWithEvents } },
-      { param: 'subscription.service', payload: { ...payloadWithSubscription } },
+      { param: 'events[0].bills', payload: payloadWithEvents },
+      { param: 'subscription.service', payload: payloadWithSubscription },
+      { param: 'billingItemList[0].billingItem', payload: payloadWithBillingItems },
+      { param: 'billingItemList[0].unitInclTaxes', payload: payloadWithBillingItems },
+      { param: 'billingItemList[0].count', payload: payloadWithBillingItems },
     ];
     missingParams.forEach((test) => {
       it(`should return a 400 error if '${test.param}' params is missing`, async () => {

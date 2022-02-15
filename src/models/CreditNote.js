@@ -5,7 +5,7 @@ const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource
 const {
   billEventSurchargesSchemaDefinition,
   billingItemsInEventDefinition,
-  billingItemSchemaDefinition,
+  billingItemsInCreditNoteDefinition,
 } = require('./schemaDefinitions/billing');
 const { SERVICE_NATURES } = require('./Service');
 const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
@@ -72,7 +72,7 @@ const CreditNoteSchema = mongoose.Schema(
     isEditable: { type: Boolean, default: true },
     misc: { type: String },
     billingItemList: {
-      type: [billingItemSchemaDefinition],
+      type: [billingItemsInCreditNoteDefinition],
       required() { return !this.events && !this.subscription; },
       default: undefined,
     },

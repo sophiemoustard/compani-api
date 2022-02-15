@@ -297,6 +297,7 @@ describe('formatCreditNote', () => {
 
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
     sinon.assert.notCalled(getFixedNumber);
+    sinon.assert.notCalled(findBillingItem);
   });
 
   it('should format credit note for customer', async () => {
@@ -312,6 +313,7 @@ describe('formatCreditNote', () => {
 
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
     sinon.assert.calledOnceWithExactly(getFixedNumber, 98, 2);
+    sinon.assert.notCalled(findBillingItem);
     expect(creditNote.number).toEqual('number');
     expect(creditNote.inclTaxesCustomer).toEqual(98);
   });
@@ -329,11 +331,12 @@ describe('formatCreditNote', () => {
 
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
     sinon.assert.calledOnceWithExactly(getFixedNumber, 98, 2);
+    sinon.assert.notCalled(findBillingItem);
     expect(creditNote.number).toEqual('number');
     expect(creditNote.inclTaxesTpp).toEqual(98);
   });
 
-  it('should format credit note for customer with billing items #tag', async () => {
+  it('should format credit note for customer with billing items', async () => {
     const billingItemId = new ObjectId();
     const payload = {
       inclTaxesCustomer: 98,
