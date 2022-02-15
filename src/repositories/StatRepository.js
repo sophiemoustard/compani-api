@@ -1,4 +1,3 @@
-const moment = require('moment');
 const { ObjectId } = require('mongodb');
 const Customer = require('../models/Customer');
 const Event = require('../models/Event');
@@ -278,15 +277,15 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
 };
 
 exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
-  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
-  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
+  const minStartDate = CompaniDate(month, 'MM-yyyy').startOf('month').toISO();
+  const maxStartDate = CompaniDate(month, 'MM-yyyy').endOf('month').toISO();
 
   const sectorsCustomers = [
     {
       $match: {
         sector: { $in: sectors },
-        startDate: { $lt: maxStartDate },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
+        startDate: { $lt: new Date(maxStartDate) },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: new Date(minStartDate) } }],
       },
     },
     {
@@ -297,8 +296,8 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         pipeline: [
           {
             $match: {
-              $or: [{ endDate: { $exists: false } }, { endDate: { $exists: true, $gte: minStartDate } }],
-              startDate: { $lte: maxStartDate },
+              $or: [{ endDate: { $exists: false } }, { endDate: { $exists: true, $gte: new Date(minStartDate) } }],
+              startDate: { $lte: new Date(maxStartDate) },
               $and: [{ $expr: { $and: [{ $eq: ['$auxiliary', '$$referentId'] }] } }],
             },
           },
@@ -323,8 +322,8 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         as: 'event',
         let: {
           customerId: '$customer',
-          startDate: { $max: ['$startDate', minStartDate] },
-          endDate: { $min: [{ $ifNull: ['$endDate', maxStartDate] }, maxStartDate] },
+          startDate: { $max: ['$startDate', new Date(minStartDate)] },
+          endDate: { $min: [{ $ifNull: ['$endDate', new Date(maxStartDate)] }, new Date(maxStartDate)] },
         },
         pipeline: [
           {
@@ -384,15 +383,15 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
 };
 
 exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => {
-  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
-  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
+  const minStartDate = CompaniDate(month, 'MM-yyyy').startOf('month').toISO();
+  const maxStartDate = CompaniDate(month, 'MM-yyyy').endOf('month').toISO();
 
   return SectorHistory.aggregate([
     {
       $match: {
         sector: { $in: sectors },
-        startDate: { $lt: maxStartDate },
-        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
+        startDate: { $lt: new Date(maxStartDate) },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: new Date(minStartDate) } }],
       },
     },
     {
@@ -401,8 +400,8 @@ exports.getIntenalAndBilledHoursBySector = async (sectors, month, companyId) => 
         as: 'event',
         let: {
           auxiliaryId: '$auxiliary',
-          startDate: { $max: ['$startDate', minStartDate] },
-          endDate: { $min: [{ $ifNull: ['$endDate', maxStartDate] }, maxStartDate] },
+          startDate: { $max: ['$startDate', new Date(minStartDate)] },
+          endDate: { $min: [{ $ifNull: ['$endDate', new Date(maxStartDate)] }, new Date(maxStartDate)] },
         },
         pipeline: [
           {
