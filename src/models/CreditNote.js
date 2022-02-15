@@ -2,7 +2,11 @@ const mongoose = require('mongoose');
 const get = require('lodash/get');
 const { COMPANI, OGUST } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { billEventSurchargesSchemaDefinition, billingItemsInEventDefinition, billingItemSchemaDefinition } = require('./schemaDefinitions/billing');
+const {
+  billEventSurchargesSchemaDefinition,
+  billingItemsInEventDefinition,
+  billingItemSchemaDefinition,
+} = require('./schemaDefinitions/billing');
 const { SERVICE_NATURES } = require('./Service');
 const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 

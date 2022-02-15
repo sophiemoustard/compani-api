@@ -75,18 +75,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
     exclTaxesCustomer: 43.5,
     inclTaxesCustomer: 50,
     misc: 'Je suis un motif',
-    billingItemList: [
-      {
-        billingItem: billingItemList[1]._id,
-        unitInclTaxes: 25,
-        count: 1,
-      },
-      {
-        billingItem: billingItemList[1]._id,
-        unitInclTaxes: 25,
-        count: 1,
-      },
-    ],
+    billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 25, count: 1 }],
   };
 
   describe('CLIENT_ADMIN', () => {
@@ -169,6 +158,20 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(creditNotesWithBillingItems).toEqual(expect.arrayContaining([
         expect.objectContaining({ number: 'AV-101071900001' }),
       ]));
+    });
+
+    it('should return 404 if billingItemList contains invalid item', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          ...payloadWithBillingItems,
+          billingItemList: [{ billingItem: new ObjectId(), unitInclTaxes: 25, count: 1 }],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return a 403 error if customer is not from same company', async () => {
