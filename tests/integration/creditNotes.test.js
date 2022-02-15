@@ -464,6 +464,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     endDate: '2019-07-31T23:59:59',
     exclTaxesCustomer: 200,
     inclTaxesCustomer: 224,
+    misc: 'Je suis un motif',
   };
 
   describe('CLIENT_ADMIN', () => {
