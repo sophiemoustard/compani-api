@@ -15,14 +15,24 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
-const billingItem = {
-  _id: new ObjectId(),
-  defaultUnitAmount: 12,
-  company: authCompany._id,
-  type: 'per_intervention',
-  vat: 10,
-  name: 'Billing Idol',
-};
+const billingItemList = [
+  {
+    _id: new ObjectId(),
+    defaultUnitAmount: 12,
+    company: authCompany._id,
+    type: 'per_intervention',
+    vat: 10,
+    name: 'Billing Idol',
+  },
+  {
+    _id: new ObjectId(),
+    defaultUnitAmount: 25,
+    company: authCompany._id,
+    type: 'manual',
+    vat: 10,
+    name: 'Billing Jean',
+  },
+];
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectId(),
@@ -410,7 +420,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    BillingItem.create([billingItem]),
+    BillingItem.create(billingItemList),
     CreditNote.create([...creditNotesList, otherCompanyCreditNote]),
     Customer.create([creditNoteCustomer, otherCompanyCustomer, archivedCustomer]),
     Event.create([creditNoteEvent, otherCompanyEvent]),
@@ -424,7 +434,7 @@ const populateDB = async () => {
 
 module.exports = {
   creditNotesList,
-  billingItem,
+  billingItemList,
   populateDB,
   creditNoteCustomer,
   archivedCustomer,

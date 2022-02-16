@@ -7,15 +7,21 @@ const billEventSurchargesSchemaDefinition = [{
   endHour: { type: Date },
 }];
 
-const billingItemSchemaDefinition = {
+const billingItemsDefinition = {
   billingItem: { type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem', required: true },
   unitInclTaxes: { type: Number, required: true },
   name: { type: String, required: true },
   count: { type: Number, required: true },
   inclTaxes: { type: Number, required: true },
   exclTaxes: { type: Number, required: true },
-  discount: { type: Number, default: 0 },
   vat: { type: Number, required: true },
+};
+
+const billingItemsInCreditNoteDefinition = billingItemsDefinition;
+
+const billingItemsInBillDefinition = {
+  ...billingItemsDefinition,
+  discount: { type: Number, default: 0 },
   startDate: { type: Date },
   endDate: { type: Date },
   events: [{
@@ -32,4 +38,9 @@ const billingItemsInEventDefinition = [{
   inclTaxes: { type: Number, required: true },
 }];
 
-module.exports = { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition, billingItemsInEventDefinition };
+module.exports = {
+  billEventSurchargesSchemaDefinition,
+  billingItemsInCreditNoteDefinition,
+  billingItemsInEventDefinition,
+  billingItemsInBillDefinition,
+};

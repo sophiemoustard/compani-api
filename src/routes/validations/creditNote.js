@@ -48,4 +48,9 @@ exports.creditNoteValidations = {
     unitInclTaxes: Joi.number(),
   }),
   misc: Joi.string(),
+  billingItemList: Joi.array().items(Joi.object({
+    billingItem: Joi.objectId().required(),
+    unitInclTaxes: Joi.number().required(),
+    count: Joi.number().required(),
+  })),
 };
