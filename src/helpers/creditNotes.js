@@ -147,7 +147,7 @@ exports.createCreditNotes = async (payload, credentials) => {
 };
 
 exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
-  const query = payload;
+  const query = { ...payload };
   if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true, credentials);
 
   let creditNote;

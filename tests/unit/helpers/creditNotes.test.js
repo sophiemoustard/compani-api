@@ -577,6 +577,8 @@ describe('updateCreditNotes', () => {
   let updateEventAndFundingHistory;
   let findByIdAndUpdate;
   let updateOne;
+  let findBillingItem;
+
   const creditNote = {
     _id: new ObjectId(),
     number: 1,
@@ -604,12 +606,14 @@ describe('updateCreditNotes', () => {
     updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
     findByIdAndUpdate = sinon.stub(CreditNote, 'findByIdAndUpdate');
     updateOne = sinon.stub(CreditNote, 'updateOne');
+    findBillingItem = sinon.stub(BillingItem, 'find');
   });
 
   afterEach(() => {
     updateEventAndFundingHistory.restore();
     findByIdAndUpdate.restore();
     updateOne.restore();
+    findBillingItem.restore();
   });
 
   it('should update a credit note', async () => {
@@ -649,6 +653,7 @@ describe('updateCreditNotes', () => {
       { $set: { date: '2020-04-29T22:00:00.000Z' } },
       { new: true }
     );
+    sinon.assert.notCalled(findBillingItem);
   });
 
   it('should update a customer credit note and its tpp linked credit note', async () => {
@@ -690,6 +695,7 @@ describe('updateCreditNotes', () => {
       { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
       { new: true }
     );
+    sinon.assert.notCalled(findBillingItem);
   });
 
   it('should update a tpp credit note and its customer linked credit note', async () => {
@@ -730,6 +736,155 @@ describe('updateCreditNotes', () => {
       { _id: creditNoteWithLink.linkedCreditNote },
       { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
       { new: true }
+    );
+    sinon.assert.notCalled(findBillingItem);
+  });
+
+  it('should update a creditNote with billing items #tag', async () => {
+    const creditNoteWithBillingItem = {
+      _id: new ObjectId(),
+      number: 1,
+      date: '2019-04-29T22:00:00.000Z',
+      exclTaxesCustomer: 28,
+      inclTaxesCustomer: 30,
+      exclTaxesTpp: 0,
+      inclTaxesTpp: 0,
+      billingItemList: [{
+        billingItem: new ObjectId(),
+        unitInclTaxes: 30,
+        name: 'Frais de dossier',
+        count: 1,
+        inclTaxes: 30,
+        exclTaxes: 28,
+        vat: 2,
+      }],
+    };
+
+    const billingItemId1 = new ObjectId();
+    const billingItemId2 = new ObjectId();
+    const payload = {
+      billingItemList: [
+        {
+          billingItem: billingItemId1,
+          unitInclTaxes: 30,
+          name: 'Frais de dossier',
+          count: 2,
+          inclTaxes: 60,
+          exclTaxes: 58.8235294117647,
+          vat: 2,
+        },
+        {
+          billingItem: billingItemId2,
+          unitInclTaxes: 10,
+          name: 'sku',
+          count: 1,
+          inclTaxes: 10,
+          exclTaxes: 9.523809523809524,
+          vat: 5,
+        },
+      ],
+    };
+
+    findByIdAndUpdate.returns({
+      _id: creditNoteWithBillingItem._id,
+      number: 1,
+      date: '2019-04-29T22:00:00.000Z',
+      exclTaxesCustomer: 28,
+      inclTaxesCustomer: 30,
+      exclTaxesTpp: 0,
+      inclTaxesTpp: 0,
+      billingItemList: [
+        {
+          billingItem: billingItemId1,
+          unitInclTaxes: 30,
+          name: 'Frais de dossier',
+          count: 2,
+          inclTaxes: 60,
+          exclTaxes: 58.8235294117647,
+          vat: 2,
+        },
+        {
+          billingItem: billingItemId2,
+          unitInclTaxes: 10,
+          name: 'sku',
+          count: 1,
+          inclTaxes: 10,
+          exclTaxes: 9.523809523809524,
+          vat: 5,
+        },
+      ],
+    });
+    findBillingItem.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: billingItemId1, vat: 2, name: 'Frais de dossier' }, { _id: billingItemId2, vat: 5, name: 'sku' }],
+      ['lean']
+    ));
+
+    const result = await CreditNoteHelper.updateCreditNotes(creditNote, payload, credentials);
+
+    expect(result).toMatchObject({
+      _id: creditNoteWithBillingItem._id,
+      number: 1,
+      date: '2019-04-29T22:00:00.000Z',
+      exclTaxesCustomer: 28,
+      inclTaxesCustomer: 30,
+      exclTaxesTpp: 0,
+      inclTaxesTpp: 0,
+      billingItemList: [
+        {
+          billingItem: billingItemId1,
+          unitInclTaxes: 30,
+          name: 'Frais de dossier',
+          count: 2,
+          inclTaxes: 60,
+          exclTaxes: 58.8235294117647,
+          vat: 2,
+        },
+        {
+          billingItem: billingItemId2,
+          unitInclTaxes: 10,
+          name: 'sku',
+          count: 1,
+          inclTaxes: 10,
+          exclTaxes: 9.523809523809524,
+          vat: 5,
+        },
+      ],
+    });
+    sinon.assert.calledOnceWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      {
+        $set: {
+          billingItemList: [
+            {
+              billingItem: billingItemId1,
+              unitInclTaxes: 30,
+              name: 'Frais de dossier',
+              count: 2,
+              inclTaxes: 60,
+              exclTaxes: 58.8235294117647,
+              vat: 2,
+            },
+            {
+              billingItem: billingItemId2,
+              unitInclTaxes: 10,
+              name: 'sku',
+              count: 1,
+              inclTaxes: 10,
+              exclTaxes: 9.523809523809524,
+              vat: 5,
+            },
+          ],
+        },
+      },
+      { new: true }
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findBillingItem,
+      [
+        { query: 'find', args: [{ _id: { $in: [billingItemId1, billingItemId2] } }, { vat: 1, name: 1 }] },
+        { query: 'lean' },
+      ]
     );
   });
 });
