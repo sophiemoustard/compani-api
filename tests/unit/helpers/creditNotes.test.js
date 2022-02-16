@@ -740,7 +740,7 @@ describe('updateCreditNotes', () => {
     sinon.assert.notCalled(findBillingItem);
   });
 
-  it('should update a creditNote with billing items #tag', async () => {
+  it('should update a creditNote with billing items', async () => {
     const creditNoteWithBillingItem = {
       _id: new ObjectId(),
       number: 1,

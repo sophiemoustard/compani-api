@@ -531,6 +531,20 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.result.data.creditNote.exclTaxesCustomer).toEqual(payload.exclTaxesCustomer);
     });
 
+    it('should update a credit note with billing items', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          date: '2019-07-19T14:00:18',
+          billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 25, count: 1 }],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return a 400 error if date isn\'t in payload', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -548,6 +562,20 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         url: `/creditNotes/${new ObjectId()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should update if a billing item does not exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          date: '2019-07-19T14:00:18',
+          billingItemList: [{ billingItem: new ObjectId(), unitInclTaxes: 25, count: 1 }],
+        },
       });
 
       expect(response.statusCode).toBe(404);

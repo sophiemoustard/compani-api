@@ -281,6 +281,27 @@ const creditNotesList = [
     company: authCompany._id,
     isEditable: true,
   },
+  { // 4 - with billing items
+    _id: new ObjectId(),
+    date: moment().toDate(),
+    startDate: moment().startOf('month').toDate(),
+    endDate: moment().set('date', 15).toDate(),
+    customer: creditNoteCustomer._id,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    billingItemList: [{
+      billingItem: billingItemList[1]._id,
+      unitInclTaxes: 35,
+      name: 'Billing Jean',
+      count: 2,
+      vat: 10,
+      inclTaxes: 30,
+      exclTaxes: 25,
+    }],
+    origin: 'compani',
+    company: authCompany._id,
+    isEditable: true,
+  },
 ];
 
 const otherCompanyThirdPartyPayer = {
