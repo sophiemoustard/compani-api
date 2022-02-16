@@ -143,10 +143,14 @@ EventSchema.virtual(
   }
 );
 
-const isStartDateTimeStamped = event =>
-  (event.histories
-    ? !!event.histories.find(history => get(history, 'update.startHour', '') && !get(history, 'isCancelled'))
-    : false);
+const isStartDateTimeStamped = (event) => {
+  if (get(event, 'histories')) {
+    return !!event.histories.find(h =>
+      TIME_STAMPING_ACTIONS.includes(get(h, 'action')) && get(h, 'update.startHour', '') && !get(h, 'isCancelled')
+    );
+  }
+  return false;
+};
 
 EventSchema.methods.isStartDateTimeStamped = function () {
   return isStartDateTimeStamped(this);
@@ -170,10 +174,14 @@ EventSchema.virtual(
   }
 );
 
-const isEndDateTimeStamped = event =>
-  (event.histories
-    ? !!event.histories.find(history => get(history, 'update.endHour', '') && !get(history, 'isCancelled'))
-    : false);
+const isEndDateTimeStamped = (event) => {
+  if (event.histories) {
+    return !!event.histories.find(h =>
+      TIME_STAMPING_ACTIONS.includes(get(h, 'action')) && get(h, 'update.endHour', '') && !get(h, 'isCancelled')
+    );
+  }
+  return false;
+};
 
 EventSchema.methods.isEndDateTimeStamped = function () {
   return isEndDateTimeStamped(this);
