@@ -145,15 +145,15 @@ exports.getUsersFromSectorHistories = async (startDate, endDate, sectors, compan
 ]).option({ company: companyId });
 
 exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
-  const minDate = CompaniDate(month, 'MM-yyyy').startOf('month').toDate();
-  const maxDate = CompaniDate(month, 'MM-yyyy').endOf('month').toDate();
+  const minDate = CompaniDate(month, 'MM-yyyy').startOf('month').toISO();
+  const maxDate = CompaniDate(month, 'MM-yyyy').endOf('month').toISO();
 
   return SectorHistory.aggregate([
     {
       $match: {
         auxiliary: { $in: auxiliaryIds },
-        startDate: { $lte: maxDate },
-        $or: [{ endDate: { $gte: minDate } }, { endDate: { $exists: false } }],
+        startDate: { $lte: new Date(maxDate) },
+        $or: [{ endDate: { $gte: new Date(minDate) } }, { endDate: { $exists: false } }],
       },
     },
     {
@@ -163,14 +163,14 @@ exports.getPaidInterventionStats = async (auxiliaryIds, month, companyId) => {
         let: {
           auxiliaryId: '$auxiliary',
           sectorStartDate: '$startDate',
-          sectorEndDate: { $ifNull: ['$endDate', maxDate] },
+          sectorEndDate: { $ifNull: ['$endDate', new Date(maxDate)] },
         },
         pipeline: [
           {
             $match: {
               type: INTERVENTION,
-              startDate: { $lte: maxDate },
-              endDate: { $gte: minDate },
+              startDate: { $lte: new Date(maxDate) },
+              endDate: { $gte: new Date(minDate) },
               $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }],
               $expr: {
                 $and: [
