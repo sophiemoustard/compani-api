@@ -20,6 +20,7 @@ describe('formatEvents', () => {
       _id: eventId,
       type: INTERVENTION,
       histories: [{
+        action: 'manual_time_stamping',
         update: { startHour: { from: '2022-02-11T15:00:00Z', to: '2022-02-11T15:04:00Z' } },
       }],
     };
