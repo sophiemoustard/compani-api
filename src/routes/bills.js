@@ -19,6 +19,7 @@ const {
 } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 const { BILL_TYPES } = require('../models/Bill');
+const { billingItemListValidations } = require('./validations/billingItem');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -169,11 +170,7 @@ exports.plugin = {
           payload: Joi.object({
             customer: Joi.objectId().required(),
             date: Joi.date().required(),
-            billingItemList: Joi.array().items(Joi.object({
-              billingItem: Joi.objectId().required(),
-              unitInclTaxes: Joi.number().required(),
-              count: Joi.number().min(1).required(),
-            })),
+            ...billingItemListValidations,
           }),
         },
         pre: [{ method: authorizeBillCreation }],

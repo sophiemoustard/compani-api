@@ -14,10 +14,10 @@ const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
+const BillsHelper = require('./bills');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 const { COMPANI } = require('./constants');
 const CreditNotePdf = require('../data/pdf/billing/creditNote');
-const { formatBillingItem } = require('./bills');
 
 const { language } = translate;
 
@@ -81,7 +81,7 @@ const formatBillingItemList = async (billingItemList) => {
     .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1, name: 1 })
     .lean();
 
-  return billingItemList.map(bi => formatBillingItem(bi, bddBillingItemList));
+  return billingItemList.map(bi => BillsHelper.formatBillingItem(bi, bddBillingItemList));
 };
 
 exports.formatCreditNote = async (payload, companyPrefix, prefix, seq) => {
@@ -147,16 +147,16 @@ exports.createCreditNotes = async (payload, credentials) => {
 };
 
 exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
-  const query = { ...payload };
   if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true, credentials);
 
   let creditNote;
   if (!creditNoteFromDB.linkedCreditNote) {
-    if (query.billingItemList) query.billingItemList = await formatBillingItemList(query.billingItemList);
-    creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: query }, { new: true });
+    const payloadToSet = { ...payload };
+    if (payload.billingItemList) payloadToSet.billingItemList = await formatBillingItemList(payload.billingItemList);
+    creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payloadToSet }, { new: true });
   } else {
-    const tppPayload = { ...query, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
-    const customerPayload = { ...query, inclTaxesTpp: 0, exclTaxesTpp: 0 };
+    const tppPayload = { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
+    const customerPayload = { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
 
     if (creditNoteFromDB.thirdPartyPayer) {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });
@@ -167,7 +167,7 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
     }
   }
 
-  if (query.events) await exports.updateEventAndFundingHistory(query.events, false, credentials);
+  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false, credentials);
 
   return creditNote;
 };
