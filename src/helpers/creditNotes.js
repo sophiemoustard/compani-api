@@ -185,6 +185,14 @@ const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTp
   ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
   : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
+const formatBillingItemForPdf = billingItem => ({
+  name: billingItem.name,
+  unitInclTaxes: billingItem.unitInclTaxes,
+  vat: billingItem.vat,
+  volume: billingItem.count,
+  total: billingItem.inclTaxes,
+});
+
 exports.formatPdf = (creditNote, company) => {
   const computedData = {
     totalVAT: 0,
@@ -209,11 +217,17 @@ exports.formatPdf = (creditNote, company) => {
       computedData.formattedEvents.push(formatEventForPdf(event));
       computedData.totalVAT += computeCreditNoteEventVat(creditNote, event);
     }
-  } else {
+  } else if (creditNote.subscription) {
     computedData.subscription = {
       service: creditNote.subscription.service.name,
       unitInclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitInclTaxes),
     };
+  } else {
+    computedData.billingItems = [];
+    for (const billingItem of creditNote.billingItemList) {
+      computedData.billingItems.push(formatBillingItemForPdf(billingItem));
+      computedData.totalVAT += billingItem.inclTaxes - billingItem.exclTaxes;
+    }
   }
 
   computedData.totalVAT = UtilsHelper.formatPrice(computedData.totalVAT);

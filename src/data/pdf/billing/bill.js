@@ -3,7 +3,7 @@ const { BILL, AUTOMATIC } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const UtilsHelper = require('../../../helpers/utils');
 
-const formatBillingPrice = price => (price === 0 || price ? UtilsHelper.formatPrice(price) : '-');
+exports.formatBillingPrice = price => (price === 0 || price ? UtilsHelper.formatPrice(price) : '-');
 
 exports.getPdfContent = async (data) => {
   const { bill } = data;
