@@ -32,7 +32,6 @@ describe('formatEvents', () => {
       startDateTimeStamp: true,
       endDateTimeStamp: false,
     });
-
     sinon.assert.notCalled(getMatchingObject);
   });
 
