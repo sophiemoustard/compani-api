@@ -567,7 +567,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should update if a billing item does not exist', async () => {
+    it('should not update if a billing item does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/creditNotes/${creditNotesList[4]._id}`,
