@@ -152,7 +152,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       const creditNotesWithBillingItems = await CreditNote
         .find({ company: authCompany._id, billingItemList: { $exists: true } })
         .lean();
-      expect(creditNotesWithBillingItems.length).toEqual(1);
+      expect(creditNotesWithBillingItems.length).toEqual(2);
       expect(creditNotesWithBillingItems).toEqual(expect.arrayContaining([
         expect.objectContaining({ number: 'AV-101071900001' }),
       ]));
