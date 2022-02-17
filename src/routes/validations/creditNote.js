@@ -1,12 +1,13 @@
 const Joi = require('joi');
 const { SERVICE_NATURES } = require('../../models/Service');
+const { billingItemListValidations } = require('./billingItem');
 
 exports.creditNoteValidations = {
   date: Joi.date().required(),
   startDate: Joi.date(),
   endDate: Joi.date(),
-  exclTaxesCustomer: Joi.number(),
-  inclTaxesCustomer: Joi.number(),
+  exclTaxesCustomer: Joi.number().when('billingItemList', { is: Joi.exist(), then: Joi.required() }),
+  inclTaxesCustomer: Joi.number().when('billingItemList', { is: Joi.exist(), then: Joi.required() }),
   exclTaxesTpp: Joi.number(),
   inclTaxesTpp: Joi.number(),
   events: Joi.array().items(Joi.object().keys({
@@ -48,9 +49,5 @@ exports.creditNoteValidations = {
     unitInclTaxes: Joi.number(),
   }),
   misc: Joi.string(),
-  billingItemList: Joi.array().items(Joi.object({
-    billingItem: Joi.objectId().required(),
-    unitInclTaxes: Joi.number().required(),
-    count: Joi.number().required(),
-  })),
+  ...billingItemListValidations,
 };
