@@ -539,10 +539,14 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload: {
           date: '2019-07-19T14:00:18',
           billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 25, count: 1 }],
+          exclTaxesCustomer: 20,
+          inclTaxesCustomer: 25,
         },
       });
 
       expect(response.statusCode).toBe(200);
+      expect(response.result.data.creditNote.inclTaxesCustomer).toEqual(25);
+      expect(response.result.data.creditNote.exclTaxesCustomer).toEqual(20);
     });
 
     it('should return a 400 error if date isn\'t in payload', async () => {
@@ -575,6 +579,8 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload: {
           date: '2019-07-19T14:00:18',
           billingItemList: [{ billingItem: new ObjectId(), unitInclTaxes: 25, count: 1 }],
+          exclTaxesCustomer: 20,
+          inclTaxesCustomer: 25,
         },
       });
 

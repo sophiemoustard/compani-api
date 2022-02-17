@@ -6,8 +6,8 @@ exports.creditNoteValidations = {
   date: Joi.date().required(),
   startDate: Joi.date(),
   endDate: Joi.date(),
-  exclTaxesCustomer: Joi.number(),
-  inclTaxesCustomer: Joi.number(),
+  exclTaxesCustomer: Joi.number().when('billingItemList', { is: Joi.exist(), then: Joi.required() }),
+  inclTaxesCustomer: Joi.number().when('billingItemList', { is: Joi.exist(), then: Joi.required() }),
   exclTaxesTpp: Joi.number(),
   inclTaxesTpp: Joi.number(),
   events: Joi.array().items(Joi.object().keys({
