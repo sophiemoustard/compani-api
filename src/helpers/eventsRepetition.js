@@ -16,6 +16,12 @@ const {
   UNAVAILABILITY,
   INTERVENTION,
   INTERNAL_HOUR,
+  MONDAY,
+  TUESDAY,
+  WEDNESDAY,
+  THURSDAY,
+  FRIDAY,
+  FORCAST_PERIOD_FOR_CREATING_EVENTS,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -25,19 +31,19 @@ const CustomerAbsencesHelper = require('./customerAbsences');
 const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
-const DatesHelper = require('./dates');
 const { CompaniInterval } = require('./dates/companiIntervals');
 const translate = require('./translate');
+const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
 
-exports.formatRepeatedPayload = async (event, sector, momentDay) => {
-  const step = momentDay.diff(event.startDate, 'd');
+exports.formatRepeatedPayload = async (event, sector, date) => {
+  const step = CompaniDate(date).diff(event.startDate, 'days');
   const isIntervention = event.type === INTERVENTION;
   let payload = {
     ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
-    startDate: moment(event.startDate).add(step, 'd'),
-    endDate: moment(event.endDate).add(step, 'd'),
+    startDate: CompaniDate(event.startDate).add(step).toISO(),
+    endDate: CompaniDate(event.endDate).add(step).toISO(),
   };
   const hasConflicts = await EventsValidationHelper.hasConflicts(payload);
 
@@ -53,7 +59,7 @@ exports.formatRepeatedPayload = async (event, sector, momentDay) => {
   return new Event(payload);
 };
 
-exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetition) => {
+exports.createRepeatedEvents = async (payload, range, sector) => {
   const repeatedEvents = [];
   const isIntervention = payload.type === INTERVENTION;
 
@@ -61,56 +67,22 @@ exports.createRepeatedEvents = async (payload, range, sector, isWeekDayRepetitio
     ? await Customer.findOne({ _id: payload.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }).lean()
     : null;
 
-  for (let i = 0, l = range.length; i < l; i++) {
-    if (!isWeekDayRepetition || ![0, 6].includes(moment(range[i]).day())) {
-      const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, range[i]);
-      if (isIntervention && has(customer, 'stoppedAt') && get(repeatedEvent, 'startDate') > customer.stoppedAt) break;
-      if (repeatedEvent) repeatedEvents.push(repeatedEvent);
-    }
+  for (const date of range) {
+    const repeatedEvent = await exports.formatRepeatedPayload(payload, sector, date);
+    if (isIntervention && has(customer, 'stoppedAt') && get(repeatedEvent, 'startDate') > customer.stoppedAt) break;
+    if (repeatedEvent) repeatedEvents.push(repeatedEvent);
   }
 
   await Event.insertMany(repeatedEvents);
 };
 
-const getNumberOfDays = (startDate) => {
-  const formattedCurrentDate = moment().startOf('d').toDate();
-  const formattedStartDate = moment(startDate).startOf('d').toDate();
-  const dayDiffWithStartDate = DatesHelper.dayDiff(formattedCurrentDate, formattedStartDate);
+exports.getRange = (startDate, stepDuration) => {
+  const lastestDate = CompaniDate().isAfter(startDate) ? CompaniDate() : CompaniDate(startDate);
 
-  return dayDiffWithStartDate > 0 ? dayDiffWithStartDate + 90 : 90;
-};
+  const start = CompaniDate(startDate).add(stepDuration);
+  const end = lastestDate.startOf('day').add(FORCAST_PERIOD_FOR_CREATING_EVENTS);
 
-exports.createRepetitionsEveryDay = async (payload, sector) => {
-  const numberOfDays = getNumberOfDays(payload.startDate);
-
-  const start = moment(payload.startDate).add(1, 'd').toISOString();
-  const end = moment(payload.startDate).add(numberOfDays, 'd').toISOString();
-  const range = CompaniInterval(start, end).rangeBy({ days: 1 });
-  const momentDates = range.map(date => moment(date));
-
-  await exports.createRepeatedEvents(payload, momentDates, sector, false);
-};
-
-exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
-  const numberOfDays = getNumberOfDays(payload.startDate);
-
-  const start = moment(payload.startDate).add(1, 'd').toISOString();
-  const end = moment(payload.startDate).add(numberOfDays, 'd').toISOString();
-  const range = CompaniInterval(start, end).rangeBy({ days: 1 });
-  const momentDates = range.map(date => moment(date));
-
-  await exports.createRepeatedEvents(payload, momentDates, sector, true);
-};
-
-exports.createRepetitionsByWeek = async (payload, sector, step) => {
-  const numberOfDays = getNumberOfDays(payload.startDate);
-
-  const start = moment(payload.startDate).add(step, 'w').toISOString();
-  const end = moment(payload.startDate).add(numberOfDays, 'd').toISOString();
-  const range = CompaniInterval(start, end).rangeBy({ weeks: step });
-  const momentDates = range.map(date => moment(date));
-
-  await exports.createRepeatedEvents(payload, momentDates, sector, false);
+  return CompaniInterval(start, end).rangeBy(stepDuration);
 };
 
 exports.createRepetitions = async (eventFromDb, payload, credentials) => {
@@ -128,22 +100,27 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
     sectorId = user.sector;
   }
 
+  let range;
   switch (payload.repetition.frequency) {
     case EVERY_DAY:
-      await exports.createRepetitionsEveryDay(payload, sectorId);
+      range = exports.getRange(payload.startDate, { days: 1 });
       break;
-    case EVERY_WEEK_DAY:
-      await exports.createRepetitionsEveryWeekDay(payload, sectorId);
+    case EVERY_WEEK_DAY: {
+      const rangeByDay = exports.getRange(payload.startDate, { days: 1 });
+      range = rangeByDay
+        .filter(date => [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY].includes(CompaniDate(date).weekday()));
       break;
-    case EVERY_WEEK:
-      await exports.createRepetitionsByWeek(payload, sectorId, 1);
+    } case EVERY_WEEK:
+      range = exports.getRange(payload.startDate, { weeks: 1 });
       break;
     case EVERY_TWO_WEEKS:
-      await exports.createRepetitionsByWeek(payload, sectorId, 2);
+      range = exports.getRange(payload.startDate, { weeks: 2 });
       break;
     default:
       break;
   }
+
+  await exports.createRepeatedEvents(payload, range, sectorId);
 
   await (new Repetition({ ...payload, ...payload.repetition })).save();
 

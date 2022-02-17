@@ -103,8 +103,8 @@ exports.countAuxiliaryEventsBetweenDates = (filters) => {
 exports.getAuxiliaryEventsBetweenDates = async (auxiliary, startDate, endDate, companyId, type = null) => {
   const query = {
     auxiliary,
-    startDate: { $lt: endDate },
-    endDate: { $gt: startDate },
+    startDate: { $lt: new Date(endDate) },
+    endDate: { $gt: new Date(startDate) },
     company: companyId,
   };
   if (type) query.type = type;
