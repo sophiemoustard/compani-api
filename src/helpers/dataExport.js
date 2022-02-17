@@ -6,7 +6,7 @@ const {
   CIVILITY_LIST,
   HELPER,
   AUXILIARY_ROLES,
-  DAYS_INDEX,
+  CARE_DAYS_INDEX,
   FUNDING_FREQUENCIES,
   CUSTOMER_SITUATIONS,
   FUNDING_NATURES,
@@ -472,7 +472,7 @@ exports.exportFundings = async (credentials) => {
     const frequency = FUNDING_FREQUENCIES.find(freq => freq.value === funding.frequency);
     let careDays = '';
     if (funding.careDays) {
-      careDays = funding.careDays.map(dayIndex => DAYS_INDEX[dayIndex]).join(' ');
+      careDays = funding.careDays.map(dayIndex => CARE_DAYS_INDEX[dayIndex]).join(' ');
     }
 
     data.push([

@@ -6,6 +6,7 @@ const Customer = require('../models/Customer');
 const SubscriptionsHelper = require('./subscriptions');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
+const { CARE_HOLIDAY } = require('./constants');
 
 const { language } = translate;
 
@@ -103,7 +104,7 @@ exports.getMatchingFunding = (eventDate, fundings) => {
     (!fund.endDate || moment(fund.endDate).isAfter(eventDate)));
 
   if (moment(eventDate).startOf('d').isHoliday()) {
-    return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
+    return filteredByDateFundings.find(funding => funding.careDays.includes(CARE_HOLIDAY)) || null;
   }
 
   return filteredByDateFundings.find(funding => funding.careDays.includes(moment(eventDate).isoWeekday() - 1)) || null;

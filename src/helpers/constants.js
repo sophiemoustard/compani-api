@@ -209,7 +209,8 @@ module.exports = {
   CUSTOMER: 'customer',
   SUBSCRIPTION: 'subscription',
   FUNDING: 'funding',
-  DAYS_INDEX: {
+  CARE_HOLIDAY: 7,
+  CARE_DAYS_INDEX: {
     0: 'Lundi',
     1: 'Mardi',
     2: 'Mercredi',
