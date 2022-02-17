@@ -88,7 +88,11 @@ describe('EVENTS ROUTES - GET /events', () => {
       expect(response.statusCode).toEqual(200);
       const { events } = response.result.data;
       const customerId = Object.keys(events)[0];
-      events[customerId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.customer._id, customerId)).toBeTruthy());
+      events[customerId].forEach((e) => {
+        expect(UtilsHelper.areObjectIdsEquals(e.customer._id, customerId)).toBeTruthy();
+        expect(e.startDateTimeStamp).toBeDefined();
+        expect(e.endDateTimeStamp).toBeDefined();
+      });
     });
 
     it('should return a list of events groupedBy auxiliaries', async () => {
@@ -101,7 +105,11 @@ describe('EVENTS ROUTES - GET /events', () => {
       expect(response.statusCode).toEqual(200);
       const { events } = response.result.data;
       const auxId = Object.keys(events)[0];
-      events[auxId].forEach(e => expect(UtilsHelper.areObjectIdsEquals(e.auxiliary._id, auxId)).toBeTruthy());
+      events[auxId].forEach((e) => {
+        expect(UtilsHelper.areObjectIdsEquals(e.auxiliary._id, auxId)).toBeTruthy();
+        expect(e.startDateTimeStamp).toBeDefined();
+        expect(e.endDateTimeStamp).toBeDefined();
+      });
     });
 
     it('should return a 200 if same id send twice - sectors', async () => {
