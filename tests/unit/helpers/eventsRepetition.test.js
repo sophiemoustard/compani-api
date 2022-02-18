@@ -1156,8 +1156,8 @@ describe('formatEventBasedOnRepetition', () => {
       company: new ObjectId(),
       frequency: 'every_day',
       parentId: new ObjectId(),
-      startDate: new Date('2019-12-01T09:00:00.000Z'),
-      endDate: new Date('2019-12-01T10:00:00.000Z'),
+      startDate: moment('2019-12-01T09:00:00').toDate(),
+      endDate: moment('2019-12-01T10:00:00').toDate(),
     };
 
     hasConflicts.returns(false);
@@ -1180,8 +1180,8 @@ describe('formatEventBasedOnRepetition', () => {
       company: new ObjectId(),
       frequency: 'every_day',
       parentId: new ObjectId(),
-      startDate: new Date('2019-12-01T09:00:00.000Z'),
-      endDate: new Date('2019-12-01T10:00:00.000Z'),
+      startDate: moment('2019-12-01T09:00:00').toDate(),
+      endDate: moment('2019-12-01T10:00:00').toDate(),
     };
 
     hasConflicts.returns(true);
@@ -1218,8 +1218,8 @@ describe('formatEventBasedOnRepetition', () => {
       company,
       frequency: 'every_day',
       parentId,
-      startDate: new Date('2019-12-01T09:00:00.000Z'),
-      endDate: new Date('2019-12-01T10:00:00.000Z'),
+      startDate: moment('2019-12-01T09:00:00').toDate(),
+      endDate: moment('2019-12-01T10:00:00').toDate(),
     };
 
     hasConflicts.returns(true);
