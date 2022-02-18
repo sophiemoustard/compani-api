@@ -45,7 +45,7 @@ const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
 const CustomerAbsence = require('../../src/models/CustomerAbsence');
-const { mockCurrentDate } = require('../unit/mockCurrentDate');
+const { mockCurrentDateAndRunAsync } = require('../unit/mockCurrentDate');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -786,40 +786,40 @@ describe('POST /events', () => {
     });
 
     it('should create a repetition', async () => {
-      mockCurrentDate('2019-01-24T15:00:00.000Z');
+      await mockCurrentDateAndRunAsync(async () => {
+        const payload = {
+          type: INTERVENTION,
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-01-23T12:30:00.000Z',
+          auxiliary: auxiliaries[0]._id.toHexString(),
+          customer: customerAuxiliaries[0]._id.toHexString(),
+          subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
+          repetition: { frequency: EVERY_DAY },
+        };
 
-      const payload = {
-        type: INTERVENTION,
-        startDate: '2019-01-23T10:00:00.000Z',
-        endDate: '2019-01-23T12:30:00.000Z',
-        auxiliary: auxiliaries[0]._id.toHexString(),
-        customer: customerAuxiliaries[0]._id.toHexString(),
-        subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
-        address: {
-          fullAddress: '4 rue du test 92160 Antony',
-          street: '4 rue du test',
-          zipCode: '92160',
-          city: 'Antony',
-          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-        },
-        repetition: { frequency: EVERY_DAY },
-      };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
 
-      const response = await app.inject({
-        method: 'POST',
-        url: '/events',
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toEqual(200);
-      const repeatedEventsCount = await Event.countDocuments({
-        'repetition.parentId': response.result.data.event._id,
-        company: authCompany._id,
-      });
-      expect(repeatedEventsCount).toEqual(91);
-      const repetition = await Repetition.countDocuments({ parentId: response.result.data.event._id });
-      expect(repetition).toBe(1);
+        expect(response.statusCode).toEqual(200);
+        const repeatedEventsCount = await Event.countDocuments({
+          'repetition.parentId': response.result.data.event._id,
+          company: authCompany._id,
+        });
+        expect(repeatedEventsCount).toEqual(91);
+        const repetition = await Repetition.countDocuments({ parentId: response.result.data.event._id });
+        expect(repetition).toBe(1);
+      }, '2019-01-24T15:00:00.000Z');
     });
 
     const baseInterventionPayload = {
