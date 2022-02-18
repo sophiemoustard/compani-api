@@ -112,6 +112,12 @@ const CompaniDateFactory = (inputDate) => {
   });
 };
 
+exports.mockCurrentDate = (miscTypeExpectedNow) => {
+  const luxonExpectedNow = exports._formatMiscToCompaniDate(miscTypeExpectedNow);
+
+  luxon.Settings.now = () => luxonExpectedNow.toMillis();
+};
+
 exports._formatMiscToCompaniDate = (...args) => {
   if (!args.length) return luxon.DateTime.now();
 

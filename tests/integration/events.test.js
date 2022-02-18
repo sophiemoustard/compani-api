@@ -41,7 +41,7 @@ const {
   AUXILIARY_INITIATIVE,
 } = require('../../src/helpers/constants');
 const UtilsHelper = require('../../src/helpers/utils');
-const DatesHelper = require('../../src/helpers/dates');
+const CompaniDatesHelper = require('../../src/helpers/dates/companiDates');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
@@ -73,8 +73,8 @@ describe('EVENTS ROUTES - GET /events', () => {
 
       expect(response.statusCode).toEqual(200);
       response.result.data.events.forEach((event) => {
-        expect(DatesHelper.isSameOrAfter(event.startDate, startDate)).toBeTruthy();
-        expect(DatesHelper.isSameOrBefore(event.startDate, endDate)).toBeTruthy();
+        expect(CompaniDatesHelper.CompaniDate(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
+        expect(CompaniDatesHelper.CompaniDate(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
       });
     });
 
@@ -620,15 +620,10 @@ describe('GET /events/unassigned-hours', () => {
 
 describe('POST /events', () => {
   let authToken;
-  let DatesHelperDayDiff;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('planning_referent');
-      DatesHelperDayDiff = sinon.stub(DatesHelper, 'dayDiff');
-    });
-    afterEach(() => {
-      DatesHelperDayDiff.restore();
     });
 
     it('should create an internal hour', async () => {
@@ -772,8 +767,8 @@ describe('POST /events', () => {
     it('should create an unavailability', async () => {
       const payload = {
         type: UNAVAILABILITY,
-        startDate: '2019-01-23T10:00:00',
-        endDate: '2019-01-23T12:30:00',
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-01-23T12:30:00.000Z',
         auxiliary: auxiliaries[0]._id,
       };
 
@@ -791,10 +786,12 @@ describe('POST /events', () => {
     });
 
     it('should create a repetition', async () => {
+      CompaniDatesHelper.mockCurrentDate('2019-01-24T15:00:00.000Z');
+
       const payload = {
         type: INTERVENTION,
-        startDate: '2019-01-23T10:00:00',
-        endDate: '2019-01-23T12:30:00',
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-01-23T12:30:00.000Z',
         auxiliary: auxiliaries[0]._id.toHexString(),
         customer: customerAuxiliaries[0]._id.toHexString(),
         subscription: customerAuxiliaries[0].subscriptions[0]._id.toHexString(),
@@ -807,8 +804,6 @@ describe('POST /events', () => {
         },
         repetition: { frequency: EVERY_DAY },
       };
-
-      DatesHelperDayDiff.returns(0);
 
       const response = await app.inject({
         method: 'POST',
