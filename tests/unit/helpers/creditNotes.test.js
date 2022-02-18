@@ -1130,8 +1130,8 @@ describe('formatPdf', () => {
 
     expect(result).toBeDefined();
     expect(result.creditNote.billingItems).toEqual([
-      { name: 'Billing Murray', unitInclTaxes: 25, vat: 10, volume: 2, total: 50 },
-      { name: 'Billing Burr', unitInclTaxes: 50, vat: 10, volume: 1, total: 50 },
+      { name: 'Billing Murray', unitInclTaxes: 25, vat: 10, count: 2, inclTaxes: 50 },
+      { name: 'Billing Burr', unitInclTaxes: 50, vat: 10, count: 1, inclTaxes: 50 },
     ]);
   });
 });

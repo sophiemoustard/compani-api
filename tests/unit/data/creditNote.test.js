@@ -317,8 +317,8 @@ describe('getPdfContent', () => {
           name: 'Ekip',
         },
         billingItems: [
-          { name: 'Billing Murray', unitInclTaxes: 25, vat: 10, volume: 2, total: 50 },
-          { name: 'Billing Burr', unitInclTaxes: 50, vat: 10, volume: 1, total: 50 },
+          { name: 'Billing Murray', unitInclTaxes: 25, vat: 10, count: 2, inclTaxes: 50 },
+          { name: 'Billing Burr', unitInclTaxes: 50, vat: 10, count: 1, inclTaxes: 50 },
         ],
       },
     };
@@ -348,6 +348,23 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
+          table: {
+            body: [
+              [
+                { text: 'Intitulé', bold: true },
+                { text: 'Prix unitaire TTC', bold: true },
+                { text: 'Volume', bold: true },
+                { text: 'Total TTC', bold: true },
+              ],
+              [{ text: 'Billing Murray (TVA 10,00 %)' }, { text: '25,00 €' }, { text: '2' }, { text: '50,00 €' }],
+              [{ text: 'Billing Burr (TVA 10,00 %)' }, { text: '50,00 €' }, { text: '1' }, { text: '50,00 €' }],
+            ],
+            widths: ['*', 'auto', 'auto', 'auto'],
+          },
+          margin: [0, 8, 0, 8],
+          layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
+        },
+        {
           columns: [
             { width: '*', text: '' },
             {
@@ -366,23 +383,6 @@ describe('getPdfContent', () => {
               layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
             },
           ],
-        },
-        {
-          table: {
-            body: [
-              [
-                { text: 'Intitulé', bold: true },
-                { text: 'Prix unitaire TTC', bold: true },
-                { text: 'Volume', bold: true },
-                { text: 'Total TTC', bold: true },
-              ],
-              [{ text: 'Billing Murray (TVA 10,00 %)' }, { text: '25,00 €' }, { text: '2' }, { text: '50,00 €' }],
-              [{ text: 'Billing Burr (TVA 10,00 %)' }, { text: '50,00 €' }, { text: '1' }, { text: '50,00 €' }],
-            ],
-            widths: ['*', 'auto', 'auto', 'auto'],
-          },
-          margin: [0, 8, 0, 8],
-          layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
         },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },

@@ -122,3 +122,5 @@ exports.getEventsTable = (item, displaySurcharge) => {
     },
   ];
 };
+
+exports.formatBillingPrice = price => (price == null ? '-' : UtilsHelper.formatPrice(price));

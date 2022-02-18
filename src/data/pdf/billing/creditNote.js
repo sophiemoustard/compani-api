@@ -1,7 +1,6 @@
 const { CREDIT_NOTE } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const UtilsHelper = require('../../../helpers/utils');
-const { formatBillingPrice } = require('./bill');
 
 exports.getSubscriptionTableBody = creditNote => [
   [{ text: 'Service', bold: true }, { text: 'Prix unitaire TTC', bold: true }, { text: 'Total TTC*', bold: true }],
@@ -37,9 +36,9 @@ exports.getBillingItemsTable = (creditNote) => {
     billingItemsTableBody.push(
       [
         { text: `${bi.name}${bi.vat ? ` (TVA ${UtilsHelper.formatPercentage(bi.vat / 100)})` : ''}` },
-        { text: formatBillingPrice(bi.unitInclTaxes) },
-        { text: `${bi.volume}` },
-        { text: formatBillingPrice(bi.total) },
+        { text: UtilsPdfHelper.formatBillingPrice(bi.unitInclTaxes) },
+        { text: `${bi.count}` },
+        { text: UtilsPdfHelper.formatBillingPrice(bi.inclTaxes) },
       ]
     );
   });
@@ -64,10 +63,10 @@ exports.getPdfContent = async (data) => {
     );
   } else if (creditNote.subscription) {
     content.push(exports.getSubscriptionTable(creditNote));
-  } else {
+  } else if (creditNote.billingItems) {
     content.push(
-      UtilsPdfHelper.getPriceTable(creditNote),
-      exports.getBillingItemsTable(creditNote)
+      exports.getBillingItemsTable(creditNote),
+      UtilsPdfHelper.getPriceTable(creditNote)
     );
   }
 
