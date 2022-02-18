@@ -865,16 +865,3 @@ describe('_formatMiscToCompaniDate', () => {
     }
   });
 });
-
-describe('mockCurrentDate', () => {
-  it('should mock now', () => {
-    const expectedCurrentDate = '2021-12-20T07:00:00.000Z';
-    const expectedCurrentDateInMillis = CompaniDatesHelper.CompaniDate(expectedCurrentDate)._getDate.toMillis();
-    CompaniDatesHelper.mockCurrentDate(expectedCurrentDate);
-
-    const actual = CompaniDatesHelper.CompaniDate()._getDate.toMillis();
-
-    expect(actual).toBeGreaterThanOrEqual(expectedCurrentDateInMillis);
-    expect(actual).toBeLessThan(expectedCurrentDateInMillis + 1000);
-  });
-});

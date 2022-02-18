@@ -45,6 +45,7 @@ const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
 const CustomerAbsence = require('../../src/models/CustomerAbsence');
+const { mockCurrentDate } = require('../unit/mockCurrentDate');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -785,7 +786,7 @@ describe('POST /events', () => {
     });
 
     it('should create a repetition', async () => {
-      CompaniDatesHelper.mockCurrentDate('2019-01-24T15:00:00.000Z');
+      mockCurrentDate('2019-01-24T15:00:00.000Z');
 
       const payload = {
         type: INTERVENTION,
