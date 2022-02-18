@@ -18,6 +18,7 @@ const BillsHelper = require('./bills');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 const { COMPANI } = require('./constants');
 const CreditNotePdf = require('../data/pdf/billing/creditNote');
+const NumbersHelper = require('./numbers');
 
 const { language } = translate;
 
@@ -185,6 +186,11 @@ const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTp
   ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
   : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
+const formatBillingItemForPdf = billingItem => pick(
+  billingItem,
+  ['name', 'unitInclTaxes', 'vat', 'count', 'inclTaxes']
+);
+
 exports.formatPdf = (creditNote, company) => {
   const computedData = {
     totalVAT: 0,
@@ -209,11 +215,20 @@ exports.formatPdf = (creditNote, company) => {
       computedData.formattedEvents.push(formatEventForPdf(event));
       computedData.totalVAT += computeCreditNoteEventVat(creditNote, event);
     }
-  } else {
+  } else if (creditNote.subscription) {
     computedData.subscription = {
       service: creditNote.subscription.service.name,
       unitInclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitInclTaxes),
     };
+  } else if (creditNote.billingItemList) {
+    computedData.billingItems = [];
+    for (const billingItem of creditNote.billingItemList) {
+      computedData.billingItems.push(formatBillingItemForPdf(billingItem));
+      computedData.totalVAT = NumbersHelper.add(
+        computedData.totalVAT,
+        NumbersHelper.subtract(billingItem.inclTaxes, billingItem.exclTaxes)
+      );
+    }
   }
 
   computedData.totalVAT = UtilsHelper.formatPrice(computedData.totalVAT);

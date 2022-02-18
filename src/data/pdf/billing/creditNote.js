@@ -22,6 +22,36 @@ exports.getSubscriptionTable = (creditNote) => {
   ];
 };
 
+exports.getBillingItemsTable = (creditNote) => {
+  const billingItemsTableBody = [
+    [
+      { text: 'Intitulé', bold: true },
+      { text: 'Prix unitaire TTC', bold: true },
+      { text: 'Volume', bold: true },
+      { text: 'Total TTC', bold: true },
+    ],
+  ];
+
+  creditNote.billingItems.forEach((bi) => {
+    billingItemsTableBody.push(
+      [
+        { text: `${bi.name}${bi.vat ? ` (TVA ${UtilsHelper.formatPercentage(bi.vat / 100)})` : ''}` },
+        { text: UtilsPdfHelper.formatBillingPrice(bi.unitInclTaxes) },
+        { text: `${bi.count}` },
+        { text: UtilsPdfHelper.formatBillingPrice(bi.inclTaxes) },
+      ]
+    );
+  });
+
+  return [
+    {
+      table: { body: billingItemsTableBody, widths: ['*', 'auto', 'auto', 'auto'] },
+      margin: [0, 8, 0, 8],
+      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
+    },
+  ];
+};
+
 exports.getPdfContent = async (data) => {
   const { creditNote } = data;
   const content = [await UtilsPdfHelper.getHeader(creditNote.company, creditNote, CREDIT_NOTE)];
@@ -31,8 +61,13 @@ exports.getPdfContent = async (data) => {
       UtilsPdfHelper.getPriceTable(creditNote),
       UtilsPdfHelper.getEventsTable(creditNote, !creditNote.forTpp)
     );
-  } else {
+  } else if (creditNote.subscription) {
     content.push(exports.getSubscriptionTable(creditNote));
+  } else if (creditNote.billingItems) {
+    content.push(
+      exports.getBillingItemsTable(creditNote),
+      UtilsPdfHelper.getPriceTable(creditNote)
+    );
   }
 
   return {

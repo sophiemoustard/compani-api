@@ -274,4 +274,129 @@ describe('getPdfContent', () => {
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
+
+  it('it should format and return pdf content for credit note with billing items', async () => {
+    const paths = ['src/data/pdf/tmp/logo.png'];
+    const data = {
+      creditNote: {
+        totalVAT: '17,74 €',
+        date: '30/04/2021',
+        number: 'AV-101042100272',
+        recipient: {
+          address: {
+            fullAddress: '35 rue du test 75012 Paris',
+            street: '35 rue du test',
+            city: 'Paris',
+            zipCode: '75012',
+          },
+          name: 'M. Alain TERIEUR',
+        },
+        forTpp: false,
+        customer: {
+          identity: { title: 'mr', lastname: 'TERIEUR', firstname: 'Alain' },
+          contact: {
+            primaryAddress: {
+              fullAddress: '124 boulevard Daumesnil 75012 Paris',
+              street: '124 boulevard Daumesnil',
+              city: 'Paris',
+              zipCode: '75012',
+            },
+          },
+        },
+        netInclTaxes: '340,26 €',
+        totalExclTaxes: '322,52 €',
+        company: {
+          rcs: '667 667 667',
+          address: {
+            city: 'Paris',
+            fullAddress: '12 rue Daumesnil 75012 Paris',
+            street: '12 rue Daumesnil',
+            zipCode: '75012',
+          },
+          logo: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png',
+          name: 'Ekip',
+        },
+        billingItems: [
+          { name: 'Billing Murray', unitInclTaxes: 25, vat: 10, count: 2, inclTaxes: 50 },
+          { name: 'Billing Burr', unitInclTaxes: 50, vat: 10, count: 1, inclTaxes: 50 },
+        ],
+      },
+    };
+
+    const pdf = {
+      content: [
+        {
+          columns: [
+            [
+              { image: paths[0], fit: [160, 40], margin: [0, 0, 0, 40] },
+              { text: 'Ekip' },
+              { text: '12 rue Daumesnil' },
+              { text: '75012 Paris' },
+              { text: 'RCS : 667 667 667' },
+              { text: '' },
+            ],
+            [
+              { text: 'Avoir', alignment: 'right' },
+              { text: 'AV-101042100272', alignment: 'right' },
+              { text: '30/04/2021', alignment: 'right' },
+              { text: '', alignment: 'right', marginBottom: 32 },
+              { text: 'M. Alain TERIEUR', alignment: 'right' },
+              { text: '35 rue du test', alignment: 'right' },
+              { text: '75012 Paris', alignment: 'right' },
+            ],
+          ],
+          marginBottom: 20,
+        },
+        {
+          table: {
+            body: [
+              [
+                { text: 'Intitulé', bold: true },
+                { text: 'Prix unitaire TTC', bold: true },
+                { text: 'Volume', bold: true },
+                { text: 'Total TTC', bold: true },
+              ],
+              [{ text: 'Billing Murray (TVA 10,00 %)' }, { text: '25,00 €' }, { text: '2' }, { text: '50,00 €' }],
+              [{ text: 'Billing Burr (TVA 10,00 %)' }, { text: '50,00 €' }, { text: '1' }, { text: '50,00 €' }],
+            ],
+            widths: ['*', 'auto', 'auto', 'auto'],
+          },
+          margin: [0, 8, 0, 8],
+          layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
+        },
+        {
+          columns: [
+            { width: '*', text: '' },
+            {
+              table: {
+                body: [
+                  [{ text: 'Total HT', bold: true }, { text: 'TVA', bold: true }, { text: 'Total TTC', bold: true }],
+                  [
+                    { text: '322,52 €', style: 'marginRightLarge' },
+                    { text: '17,74 €', style: 'marginRightLarge' },
+                    { text: '340,26 €', style: 'marginRightLarge' },
+                  ],
+                ],
+              },
+              width: 'auto',
+              margin: [0, 8, 0, 40],
+              layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
+            },
+          ],
+        },
+      ],
+      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      styles: { marginRightLarge: { marginRight: 40 } },
+    };
+    const imageList = [
+      { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
+    ];
+
+    downloadImages.returns(paths);
+
+    const result = await CreditNotePdf.getPdfContent(data);
+
+    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
+    sinon.assert.calledOnceWithExactly(downloadImages, imageList);
+  });
 });
