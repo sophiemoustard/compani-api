@@ -1090,6 +1090,50 @@ describe('formatPdf', () => {
     expect(result.creditNote.subscription.service).toBe('service');
     expect(result.creditNote.subscription.unitInclTaxes).toBe('12,00 €');
   });
+
+  it('should format correct credit note pdf with billing items', () => {
+    const creditNote = {
+      number: 1,
+      billingItemList: [
+        { name: 'Billing Murray', unitInclTaxes: 25, vat: 10, count: 2, inclTaxes: 50, exclTaxes: 48 },
+        { name: 'Billing Burr', unitInclTaxes: 50, vat: 10, count: 1, inclTaxes: 50, exclTaxes: 48 },
+      ],
+      customer: {
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'couple' },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
+      },
+      date: '2019-04-29T22:00:00.000Z',
+      exclTaxesTpp: 21,
+      inclTaxesTpp: 34,
+      exclTaxesCustomer: 221,
+      inclTaxesCustomer: 234,
+      thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } },
+    };
+    const company = {
+      name: 'Alcatraz',
+      logo: 'company_logo',
+      rcs: 'rcs',
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    };
+
+    formatPrice.onCall(0).returns('4,00 €');
+    formatPrice.onCall(1).returns('96,00 €');
+    formatPrice.onCall(2).returns('100,00 €');
+
+    const result = CreditNoteHelper.formatPdf(creditNote, company);
+
+    expect(result).toBeDefined();
+    expect(result.creditNote.billingItems).toEqual([
+      { name: 'Billing Murray', unitInclTaxes: 25, vat: 10, volume: 2, total: 50 },
+      { name: 'Billing Burr', unitInclTaxes: 50, vat: 10, volume: 1, total: 50 },
+    ]);
+  });
 });
 
 describe('removeCreditNote', () => {

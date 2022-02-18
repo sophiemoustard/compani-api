@@ -38,7 +38,7 @@ exports.getBillingItemsTable = (creditNote) => {
       [
         { text: `${bi.name}${bi.vat ? ` (TVA ${UtilsHelper.formatPercentage(bi.vat / 100)})` : ''}` },
         { text: formatBillingPrice(bi.unitInclTaxes) },
-        { text: bi.volume || '-' },
+        { text: `${bi.volume}` },
         { text: formatBillingPrice(bi.total) },
       ]
     );

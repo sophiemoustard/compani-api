@@ -22,9 +22,9 @@ exports.getPdfContent = async (data) => {
     billDetailsTableBody.push(
       [
         { text: `${detail.name}${detail.vat ? ` (TVA ${UtilsHelper.formatPercentage(detail.vat / 100)})` : ''}` },
-        { text: formatBillingPrice(detail.unitInclTaxes) },
+        { text: exports.formatBillingPrice(detail.unitInclTaxes) },
         { text: detail.volume || '-' },
-        { text: formatBillingPrice(detail.total) },
+        { text: exports.formatBillingPrice(detail.total) },
       ]
     );
   });
