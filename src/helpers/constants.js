@@ -295,7 +295,7 @@ module.exports = {
   },
   // PAY
   PAY: 'pay',
-  WORKING_DAYS: [this.MONDAY, this.TUESDAY, this.WEDNESDAY, this.THURSDAY, this.FRIDAY, this.SATURDAY],
+  get WORKING_DAYS() { return [this.MONDAY, this.TUESDAY, this.WEDNESDAY, this.THURSDAY, this.FRIDAY, this.SATURDAY]; },
   // CONTRACTS
   CONTRACT: 'contract',
   CONTRACT_VERSION: 'contract_version',

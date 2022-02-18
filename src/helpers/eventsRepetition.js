@@ -77,10 +77,12 @@ exports.createRepeatedEvents = async (payload, range, sector) => {
 };
 
 exports.getRange = (startDate, stepDuration) => {
-  const lastestDate = CompaniDate().isAfter(startDate) ? CompaniDate() : CompaniDate(startDate);
+  const companiCurrentDate = CompaniDate();
+  const companiStartDate = CompaniDate(startDate);
+  const lastestDate = companiCurrentDate.isAfter(startDate) ? companiCurrentDate : companiStartDate;
 
-  const start = CompaniDate(startDate).add(stepDuration);
-  const end = lastestDate.startOf('day').add(FORCAST_PERIOD_FOR_CREATING_EVENTS);
+  const start = companiStartDate.add(stepDuration).toISO();
+  const end = lastestDate.startOf('day').add(FORCAST_PERIOD_FOR_CREATING_EVENTS).toISO();
 
   return CompaniInterval(start, end).rangeBy(stepDuration);
 };
