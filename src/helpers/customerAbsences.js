@@ -16,8 +16,8 @@ exports.list = async (query, credentials) => CustomerAbsence.find({
 
 exports.isAbsent = async (customer, date) => !!await CustomerAbsence.countDocuments({
   customer,
-  startDate: { $lte: new Date(date) },
-  endDate: { $gte: new Date(date) },
+  startDate: { $lte: date },
+  endDate: { $gte: date },
 });
 
 exports.updateCustomerAbsence = async (customerAbsenceId, payload, credentials) => {
