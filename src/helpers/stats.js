@@ -1,7 +1,6 @@
 const { ObjectId } = require('mongodb');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const moment = require('../extensions/moment');
 const UtilsHelper = require('./utils');
 const { CompaniDate } = require('./dates/companiDates');
 const { CompaniDuration } = require('./dates/companiDurations');
@@ -104,8 +103,8 @@ exports.getPaidInterventionStats = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   if (query.sector) {
     const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
-    const startOfMonth = moment(query.month, 'MMYYYY').startOf('M').toDate();
-    const endOfMonth = moment(query.month, 'MMYYYY').endOf('M').toDate();
+    const startOfMonth = CompaniDate(query.month, 'MM-yyyy').startOf('month').toISO();
+    const endOfMonth = CompaniDate(query.month, 'MM-yyyy').endOf('month').toISO();
     const auxiliariesFromSectorHistories = await SectorHistoryRepository.getUsersFromSectorHistories(
       startOfMonth,
       endOfMonth,

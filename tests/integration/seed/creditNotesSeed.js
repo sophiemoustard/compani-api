@@ -1,5 +1,4 @@
 const { ObjectId } = require('mongodb');
-const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
 const BillingItem = require('../../../src/models/BillingItem');
 const CreditNote = require('../../../src/models/CreditNote');
@@ -14,15 +13,26 @@ const { HOURLY, WEBAPP } = require('../../../src/helpers/constants');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
-const billingItem = {
-  _id: new ObjectId(),
-  defaultUnitAmount: 12,
-  company: authCompany._id,
-  type: 'per_intervention',
-  vat: 10,
-  name: 'Billing Idol',
-};
+const billingItemList = [
+  {
+    _id: new ObjectId(),
+    defaultUnitAmount: 12,
+    company: authCompany._id,
+    type: 'per_intervention',
+    vat: 10,
+    name: 'Billing Idol',
+  },
+  {
+    _id: new ObjectId(),
+    defaultUnitAmount: 25,
+    company: authCompany._id,
+    type: 'manual',
+    vat: 10,
+    name: 'Billing Jean',
+  },
+];
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectId(),
@@ -63,7 +73,7 @@ const creditNoteCustomer = {
     bankAccountOwner: 'Lance Amstrong',
     iban: 'FR3514508000505917721779B12',
     bic: 'BNMDHISOBD',
-    mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
+    mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: CompaniDate().toISO() }],
   },
   subscriptions: [
     {
@@ -101,7 +111,7 @@ const archivedCustomer = {
     bankAccountOwner: 'Gérard Chivé',
     iban: 'FR3514508000505917721779B12',
     bic: 'BNMDHISOBD',
-    mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
+    mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: CompaniDate().toISO() }],
   },
   subscriptions: [
     {
@@ -172,9 +182,9 @@ const creditNoteEvent = {
 const creditNotesList = [
   {
     _id: new ObjectId(),
-    date: moment().toDate(),
-    startDate: moment().startOf('month').toDate(),
-    endDate: moment().set('date', 15).toDate(),
+    date: CompaniDate().toISO(),
+    startDate: CompaniDate().startOf('month').toISO(),
+    endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
     customer: creditNoteCustomer._id,
     exclTaxesCustomer: 100,
     inclTaxesCustomer: 112,
@@ -196,9 +206,9 @@ const creditNotesList = [
   },
   { // 1
     _id: new ObjectId(),
-    date: moment().toDate(),
-    startDate: moment().startOf('month').toDate(),
-    endDate: moment().set('date', 15).toDate(),
+    date: CompaniDate().toISO(),
+    startDate: CompaniDate().startOf('month').toISO(),
+    endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
     customer: creditNoteCustomer._id,
     exclTaxesCustomer: 100,
     inclTaxesCustomer: 112,
@@ -248,9 +258,9 @@ const creditNotesList = [
   },
   { // 3 - with archived customer
     _id: new ObjectId(),
-    date: moment().toDate(),
-    startDate: moment().startOf('month').toDate(),
-    endDate: moment().set('date', 15).toDate(),
+    date: CompaniDate().toISO(),
+    startDate: CompaniDate().startOf('month').toISO(),
+    endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
     customer: archivedCustomer._id,
     exclTaxesCustomer: 100,
     inclTaxesCustomer: 112,
@@ -267,6 +277,27 @@ const creditNotesList = [
       service: { serviceId: creditNoteService._id, nature: 'fixed', name: 'toto' },
       vat: 5.5,
     },
+    origin: 'compani',
+    company: authCompany._id,
+    isEditable: true,
+  },
+  { // 4 - with billing items
+    _id: new ObjectId(),
+    date: CompaniDate().toISO(),
+    startDate: CompaniDate().startOf('month').toISO(),
+    endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
+    customer: creditNoteCustomer._id,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    billingItemList: [{
+      billingItem: billingItemList[1]._id,
+      unitInclTaxes: 35,
+      name: 'Billing Jean',
+      count: 2,
+      vat: 10,
+      inclTaxes: 30,
+      exclTaxes: 25,
+    }],
     origin: 'compani',
     company: authCompany._id,
     isEditable: true,
@@ -312,7 +343,7 @@ const otherCompanyCustomer = {
     bankAccountOwner: 'Jean Bonbeurre',
     iban: 'FR9514708000505917721779B13',
     bic: 'AGMDHISOBD',
-    mandates: [{ rum: 'R19879533456767438', _id: new ObjectId(), signedAt: moment().toDate() }],
+    mandates: [{ rum: 'R19879533456767438', _id: new ObjectId(), signedAt: CompaniDate().toISO() }],
   },
   subscriptions: [{
     _id: new ObjectId(),
@@ -370,9 +401,9 @@ const otherCompanyEvent = {
 
 const otherCompanyCreditNote = {
   _id: new ObjectId(),
-  date: moment().toDate(),
-  startDate: moment().startOf('month').toDate(),
-  endDate: moment().set('date', 15).toDate(),
+  date: CompaniDate().toISO(),
+  startDate: CompaniDate().startOf('month').toISO(),
+  endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
   customer: otherCompanyCustomer._id,
   exclTaxesCustomer: 100,
   inclTaxesCustomer: 112,
@@ -410,7 +441,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    BillingItem.create([billingItem]),
+    BillingItem.create(billingItemList),
     CreditNote.create([...creditNotesList, otherCompanyCreditNote]),
     Customer.create([creditNoteCustomer, otherCompanyCustomer, archivedCustomer]),
     Event.create([creditNoteEvent, otherCompanyEvent]),
@@ -424,7 +455,7 @@ const populateDB = async () => {
 
 module.exports = {
   creditNotesList,
-  billingItem,
+  billingItemList,
   populateDB,
   creditNoteCustomer,
   archivedCustomer,

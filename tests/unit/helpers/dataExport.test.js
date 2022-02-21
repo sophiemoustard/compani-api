@@ -971,18 +971,14 @@ describe('exportServices', () => {
 describe('exportSubscriptions', () => {
   let findCustomer;
   let getLastVersion;
-  let formatFloatForExport;
   beforeEach(() => {
     findCustomer = sinon.stub(Customer, 'find');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
-    formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
-    formatFloatForExport.callsFake(float => `F-${float || ''}`);
   });
 
   afterEach(() => {
     findCustomer.restore();
     getLastVersion.restore();
-    formatFloatForExport.restore();
   });
 
   it('should return csv header', async () => {
@@ -1035,10 +1031,19 @@ describe('exportSubscriptions', () => {
     const result = await ExportHelper.exportSubscriptions(credentials);
 
     sinon.assert.calledTwice(getLastVersion);
-    sinon.assert.calledTwice(formatFloatForExport);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject([expect.any(ObjectId), 'M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
+    expect(result[1]).toMatchObject([
+      expect.any(ObjectId),
+      'M.',
+      'AUTONOMIE',
+      '',
+      'Service',
+      '12,00',
+      '4,00',
+      '9,00',
+      '2,00',
+    ]);
     SinonMongoose.calledOnceWithExactly(
       findCustomer,
       [

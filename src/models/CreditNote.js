@@ -2,7 +2,11 @@ const mongoose = require('mongoose');
 const get = require('lodash/get');
 const { COMPANI, OGUST } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { billEventSurchargesSchemaDefinition, billingItemsInEventDefinition } = require('./schemaDefinitions/billing');
+const {
+  billEventSurchargesSchemaDefinition,
+  billingItemsInEventDefinition,
+  billingItemsInCreditNoteDefinition,
+} = require('./schemaDefinitions/billing');
 const { SERVICE_NATURES } = require('./Service');
 const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
@@ -66,6 +70,12 @@ const CreditNoteSchema = mongoose.Schema(
     driveFile: driveResourceSchemaDefinition,
     company: { type: mongoose.Schema.Types.ObjectId, required: true, immutable: true },
     isEditable: { type: Boolean, default: true },
+    misc: { type: String },
+    billingItemList: {
+      type: [billingItemsInCreditNoteDefinition],
+      required() { return !this.events && !this.subscription; },
+      default: undefined,
+    },
   },
   { timestamps: true }
 );

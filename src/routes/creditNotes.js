@@ -33,7 +33,7 @@ exports.plugin = {
             customer: Joi.objectId().required(),
             thirdPartyPayer: Joi.objectId(),
             ...creditNoteValidations,
-          }),
+          }).xor('events', 'subscription', 'billingItemList'),
         },
         pre: [{ method: authorizeCreditNoteCreation }],
       },

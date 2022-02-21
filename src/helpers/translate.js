@@ -297,6 +297,11 @@ module.exports = {
     courseAccessRuleDeleted: 'Access rule deleted.',
     courseQuestionnairesFound: 'Questionnaires found.',
     courseAttendanceNotGenerated: 'Failed to download attendance sheet, no on-site slot.',
+    /* Course billing items */
+    courseBillingItemExists: 'Course billing item exists.',
+    courseBillingItemsFound: 'Course billing items found.',
+    courseBillingItemsNotFound: 'Course billing items not found.',
+    courseBillingItemCreated: 'Course billing item created.',
     /* Course slots */
     courseSlotCreated: 'Course slot created.',
     courseSlotUpdated: 'Course slot updated.',
@@ -304,8 +309,8 @@ module.exports = {
     courseSlotNotFound: 'Course slot not found.',
     courseSlotConflict: 'Course slot in conflict.',
     /* Course funding organisation */
-    courseFundingOrganisationFound: 'Course funding organisations found.',
-    courseFundingOrganisationNotFound: 'Course funding organisations not found.',
+    courseFundingOrganisationsFound: 'Course funding organisations found.',
+    courseFundingOrganisationsNotFound: 'Course funding organisations not found.',
     courseFundingOrganisationCreated: 'Course funding organisation created.',
     courseFundingOrganisationExists: 'Course funding organisation already exists.',
     courseFundingOrganisationDeleted: 'Course funding organisation deleted.',
@@ -660,6 +665,11 @@ module.exports = {
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     courseQuestionnairesFound: 'Questionnaires trouvés.',
     courseAttendanceNotGenerated: 'Erreur lors du téléchargement, la formation ne contient pas de créneau présentiel.',
+    /* Course billing items */
+    courseBillingItemExists: 'Item de facturation existant.',
+    courseBillingItemsFound: 'Items de facturation trouvés.',
+    courseBillingItemsNotFound: 'Items de facturation non trouvés.',
+    courseBillingItemCreated: 'Item de facturation créé.',
     /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',
@@ -667,8 +677,8 @@ module.exports = {
     courseSlotNotFound: 'Créneau de formation non trouvé.',
     courseSlotConflict: 'Créneau de formation en conflit.',
     /* Course funding organisation */
-    courseFundingOrganisationFound: 'Financeurs trouvés.',
-    courseFundingOrganisationNotFound: 'Financeurs non trouvés.',
+    courseFundingOrganisationsFound: 'Financeurs trouvés.',
+    courseFundingOrganisationsNotFound: 'Financeurs non trouvés.',
     courseFundingOrganisationCreated: 'Financeur créé.',
     courseFundingOrganisationExists: 'Financeur déjà existant.',
     courseFundingOrganisationDeleted: 'Financeur supprimé.',

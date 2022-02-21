@@ -83,6 +83,12 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
     }
   }
 
+  if (get(payload, 'billingItemList.length')) {
+    const billingItemsIds = payload.billingItemList.map(ev => ev.billingItem);
+    const billingItemsCount = await BillingItem.countDocuments({ _id: { $in: billingItemsIds }, company: companyId });
+    if (billingItemsCount !== billingItemsIds.length) throw Boom.notFound();
+  }
+
   return null;
 };
 

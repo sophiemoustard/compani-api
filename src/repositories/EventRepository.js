@@ -18,7 +18,11 @@ const {
 } = require('../helpers/constants');
 
 exports.formatEvent = (event) => {
-  const formattedEvent = cloneDeep(event);
+  const formattedEvent = {
+    ...cloneDeep(omit(event, 'histories')),
+    startDateTimeStamp: new Event(event).isStartDateTimeStamped(),
+    endDateTimeStamp: new Event(event).isEndDateTimeStamped(),
+  };
 
   const { auxiliary, subscription, customer } = event;
   if (auxiliary) {
@@ -49,6 +53,7 @@ exports.getEventsGroupedBy = async (rules, groupByFunc, companyId) => {
     })
     .populate({ path: 'internalHour' })
     .populate({ path: 'extension' })
+    .populate({ path: 'histories', match: { company: companyId } })
     .lean();
 
   return groupBy(events.map(exports.formatEvent), groupByFunc);

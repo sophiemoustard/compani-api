@@ -80,7 +80,7 @@ exports.plugin = {
               title: Joi.string().valid(...CIVILITY_OPTIONS),
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
-              birthDate: Joi.date(),
+              birthDate: Joi.date().allow(''),
             }).min(1),
             email: Joi.string().email(),
             contact: Joi.object().keys({

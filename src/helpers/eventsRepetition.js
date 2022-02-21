@@ -6,7 +6,6 @@ const set = require('lodash/set');
 const cloneDeep = require('lodash/cloneDeep');
 const pick = require('lodash/pick');
 const has = require('lodash/has');
-const momentRange = require('moment-range');
 const {
   NEVER,
   EVERY_DAY,
@@ -27,11 +26,10 @@ const EventsHelper = require('./events');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
 const DatesHelper = require('./dates');
+const { CompaniInterval } = require('./dates/companiIntervals');
 const translate = require('./translate');
 
 const { language } = translate;
-
-momentRange.extendMoment(moment);
 
 exports.formatRepeatedPayload = async (event, sector, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
@@ -85,31 +83,34 @@ const getNumberOfDays = (startDate) => {
 exports.createRepetitionsEveryDay = async (payload, sector) => {
   const numberOfDays = getNumberOfDays(payload.startDate);
 
-  const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(numberOfDays, 'd');
-  const range = Array.from(moment().range(start, end).by('days'));
+  const start = moment(payload.startDate).add(1, 'd').toISOString();
+  const end = moment(payload.startDate).add(numberOfDays, 'd').toISOString();
+  const range = CompaniInterval(start, end).rangeBy({ days: 1 });
+  const momentDates = range.map(date => moment(date));
 
-  await exports.createRepeatedEvents(payload, range, sector, false);
+  await exports.createRepeatedEvents(payload, momentDates, sector, false);
 };
 
 exports.createRepetitionsEveryWeekDay = async (payload, sector) => {
   const numberOfDays = getNumberOfDays(payload.startDate);
 
-  const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(numberOfDays, 'd');
-  const range = Array.from(moment().range(start, end).by('days'));
+  const start = moment(payload.startDate).add(1, 'd').toISOString();
+  const end = moment(payload.startDate).add(numberOfDays, 'd').toISOString();
+  const range = CompaniInterval(start, end).rangeBy({ days: 1 });
+  const momentDates = range.map(date => moment(date));
 
-  await exports.createRepeatedEvents(payload, range, sector, true);
+  await exports.createRepeatedEvents(payload, momentDates, sector, true);
 };
 
 exports.createRepetitionsByWeek = async (payload, sector, step) => {
   const numberOfDays = getNumberOfDays(payload.startDate);
 
-  const start = moment(payload.startDate).add(step, 'w');
-  const end = moment(payload.startDate).add(numberOfDays, 'd');
-  const range = Array.from(moment().range(start, end).by('weeks', { step }));
+  const start = moment(payload.startDate).add(step, 'w').toISOString();
+  const end = moment(payload.startDate).add(numberOfDays, 'd').toISOString();
+  const range = CompaniInterval(start, end).rangeBy({ weeks: step });
+  const momentDates = range.map(date => moment(date));
 
-  await exports.createRepeatedEvents(payload, range, sector, false);
+  await exports.createRepeatedEvents(payload, momentDates, sector, false);
 };
 
 exports.createRepetitions = async (eventFromDb, payload, credentials) => {

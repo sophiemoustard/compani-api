@@ -191,7 +191,10 @@ exports.populateEventSubscription = (event) => {
     .find(sub => sub._id.toHexString() === event.subscription.toHexString());
   if (!subscription) throw Boom.badImplementation();
 
-  return { ...event, subscription };
+  const startDateTimeStamp = new Event(event).isStartDateTimeStamped();
+  const endDateTimeStamp = new Event(event).isEndDateTimeStamped();
+
+  return { ...event, startDateTimeStamp, endDateTimeStamp, subscription };
 };
 
 exports.populateEvents = async (events) => {

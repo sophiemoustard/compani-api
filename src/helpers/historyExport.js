@@ -26,6 +26,8 @@ const {
   ON_SITE,
   REMOTE,
   STEP_TYPES,
+  EXPECTATIONS,
+  END_OF_COURSE,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
@@ -49,6 +51,7 @@ const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
+const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 
 const workingEventExportHeader = [
   'Type',
@@ -166,7 +169,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
-      event.kmDuringEvent ? event.kmDuringEvent.toString() : '',
+      event.kmDuringEvent ? UtilsHelper.formatFloatForExport(event.kmDuringEvent) : '',
       EVENT_TRANSPORT_MODE_LIST[get(event, 'transportMode')] || '',
       get(event, 'sector.name') || get(auxiliarySector, 'sector.name') || '',
       get(auxiliary, '_id') || '',
@@ -651,7 +654,18 @@ exports.exportCourseHistory = async (startDate, endDate) => {
   const courses = await Course
     .find({ _id: { $in: courseIds } })
     .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'subProgram', select: 'name program', populate: [{ path: 'program', select: 'name' }] })
+    .populate({
+      path: 'subProgram',
+      select: 'name steps program',
+      populate: [
+        { path: 'program', select: 'name' },
+        {
+          path: 'steps',
+          select: 'type activities',
+          populate: { path: 'activities', populate: { path: 'activityHistories' } },
+        },
+      ],
+    })
     .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'salesRepresentative', select: 'identity' })
     .populate({ path: 'contact', select: 'identity' })
@@ -660,12 +674,22 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     .populate({ path: 'trainees', select: 'firstMobileConnection' })
     .lean();
 
+  const questionnaireHistories = await QuestionnaireHistory
+    .find({ course: { $in: courseIds } })
+    .populate({ path: 'questionnaire', select: 'type' })
+    .lean();
+
+  const smsList = await CourseSmsHistory.find({ course: { $in: courseIds } }).lean();
+  const attendanceSheetList = await AttendanceSheet.find({ course: { $in: courseIds } }).lean();
+
   const rows = [];
 
   for (const course of courses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
-    const smsCount = await CourseSmsHistory.countDocuments({ course: course._id });
-    const attendanceSheetsCount = await AttendanceSheet.countDocuments({ course: course._id });
+    const smsCount = smsList.filter(sms => UtilsHelper.areObjectIdsEquals(sms.course, course._id)).length;
+    const attendanceSheetsCount = attendanceSheetList
+      .filter(attendanceSheet => UtilsHelper.areObjectIdsEquals(attendanceSheet.course, course._id))
+      .length;
 
     const attendances = course.slots.map(slot => slot.attendances).flat();
     const courseTraineeList = course.trainees.map(trainee => trainee._id);
@@ -685,6 +709,22 @@ exports.exportCourseHistory = async (startDate, endDate) => {
 
     const pastSlotsCount = course.slots.length - upComingSlotsCount;
 
+    const expectactionQuestionnaireAnswersCount = questionnaireHistories
+      .filter(qh => qh.questionnaire.type === EXPECTATIONS)
+      .filter(qh => UtilsHelper.areObjectIdsEquals(qh.course, course._id))
+      .length;
+
+    const endQuestionnaireAnswersCount = questionnaireHistories
+      .filter(qh => qh.questionnaire.type === END_OF_COURSE)
+      .filter(qh => UtilsHelper.areObjectIdsEquals(qh.course, course._id))
+      .length;
+
+    const traineeProgressList = course.trainees
+      .map(trainee => CourseHelper.getTraineeElearningProgress(trainee._id, course.subProgram.steps))
+      .filter(trainee => trainee.progress.eLearning >= 0)
+      .map(trainee => trainee.progress.eLearning);
+    const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
+
     rows.push({
       Identifiant: course._id,
       Type: course.type,
@@ -703,6 +743,11 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
         .filter(trainee => trainee.firstMobileConnection).length,
+      'Complétion eLearning moyenne': traineeProgressList.length
+        ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
+        : '',
+      'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswersCount,
+      'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswersCount,
       'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss') || '',
       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
       'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
@@ -727,7 +772,14 @@ const getAddress = (slot) => {
 exports.exportCourseSlotHistory = async (startDate, endDate) => {
   const courseSlots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } })
     .populate({ path: 'step', select: 'type name' })
-    .populate({ path: 'course', select: 'trainees' })
+    .populate({
+      path: 'course',
+      select: 'type trainees misc subProgram company',
+      populate: [
+        { path: 'company', select: 'name' },
+        { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+      ],
+    })
     .populate({ path: 'attendances' })
     .lean();
 
@@ -742,9 +794,14 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
 
     const absencesCount = slot.course.trainees.length - subscribedTraineesAttendancesCount;
 
+    const courseName = get(slot, 'course.type') === INTRA
+      ? `${slot.course.company.name} - ${slot.course.subProgram.program.name} - ${slot.course.misc}`
+      : `${slot.course.subProgram.program.name} - ${slot.course.misc}`;
+
     rows.push({
       'Id Créneau': slot._id,
       'Id Formation': slot.course._id,
+      Formation: courseName,
       Étape: get(slot, 'step.name') || '',
       Type: STEP_TYPES[get(slot, 'step.type')] || '',
       'Date de création': CompaniDate(slot.createdAt).format('dd/LL/yyyy HH:mm:ss') || '',
@@ -794,8 +851,6 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           distanceMatrix
         );
 
-        const formattedDuration = (duration / 60).toFixed(4).replace('.', ',');
-
         rows.push({
           'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
           'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
@@ -804,14 +859,17 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
           'Heure d\'arrivée du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy HH:mm:ss'),
           'Adresse de départ': origins,
           'Adresse d\'arrivée': destinations,
-          Distance: travelledKm,
+          Distance: UtilsHelper.formatFloatForExport(travelledKm, 3),
           'Mode de transport': EVENT_TRANSPORT_MODE_LIST[
             get(group, 'auxiliary.administrative.transportInvoice.transportType')
           ],
-          'Durée du trajet': CompaniDuration({ minutes: transportDuration }).format(),
-          'Durée inter vacation': CompaniDuration({ minutes: breakDuration }).format(),
+          'Durée du trajet': UtilsHelper
+            .formatFloatForExport(CompaniDuration({ minutes: transportDuration }).asHours(), 4),
+          'Durée inter vacation': UtilsHelper
+            .formatFloatForExport(CompaniDuration({ minutes: breakDuration }).asHours(), 4),
           'Pause prise en compte': pickTransportDuration ? 'Non' : 'Oui',
-          'Heures prise en compte': formattedDuration,
+          'Durée rémunérée': UtilsHelper
+            .formatFloatForExport(CompaniDuration({ minutes: duration }).asHours(), 4),
         });
       }
     }

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const ServiceSchema = require('./Service').schema;
-const { billEventSurchargesSchemaDefinition, billingItemSchemaDefinition } = require('./schemaDefinitions/billing');
+const { billEventSurchargesSchemaDefinition, billingItemsInBillDefinition } = require('./schemaDefinitions/billing');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 const { COMPANI, THIRD_PARTY, OGUST, AUTOMATIC, MANUAL } = require('../helpers/constants');
@@ -50,7 +50,7 @@ const BillSchema = mongoose.Schema({
   shouldBeSent: { type: Boolean, default: false },
   type: { type: String, enum: BILL_TYPES, required: true, immutable: true },
   billingItemList: {
-    type: [billingItemSchemaDefinition],
+    type: [billingItemsInBillDefinition],
     required() { return this.type === MANUAL; },
     default: undefined,
     validate(val) { return this.type !== MANUAL || minLength(val, 1); },

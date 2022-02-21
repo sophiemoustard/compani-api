@@ -6,6 +6,7 @@ const omit = require('lodash/omit');
 const translate = require('./translate');
 const Company = require('../models/Company');
 const Event = require('../models/Event');
+const BillingItem = require('../models/BillingItem');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
@@ -13,9 +14,11 @@ const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
+const BillsHelper = require('./bills');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 const { COMPANI } = require('./constants');
 const CreditNotePdf = require('../data/pdf/billing/creditNote');
+const NumbersHelper = require('./numbers');
 
 const { language } = translate;
 
@@ -74,12 +77,25 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
 exports.formatCreditNoteNumber = (companyPrefix, prefix, seq) =>
   `AV-${companyPrefix}${prefix}${seq.toString().padStart(5, '0')}`;
 
-exports.formatCreditNote = (payload, companyPrefix, prefix, seq) => {
+const formatBillingItemList = async (billingItemList) => {
+  const bddBillingItemList = await BillingItem
+    .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1, name: 1 })
+    .lean();
+
+  return billingItemList.map(bi => BillsHelper.formatBillingItem(bi, bddBillingItemList));
+};
+
+exports.formatCreditNote = async (payload, companyPrefix, prefix, seq) => {
   const creditNote = { ...payload, number: exports.formatCreditNoteNumber(companyPrefix, prefix, seq) };
   if (payload.inclTaxesCustomer) {
     creditNote.inclTaxesCustomer = UtilsHelper.getFixedNumber(payload.inclTaxesCustomer, 2);
   }
+
   if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = UtilsHelper.getFixedNumber(payload.inclTaxesTpp, 2);
+
+  if (get(payload, 'billingItemList.length')) {
+    creditNote.billingItemList = await formatBillingItemList(payload.billingItemList);
+  }
 
   return new CreditNote(creditNote);
 };
@@ -136,7 +152,9 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
 
   let creditNote;
   if (!creditNoteFromDB.linkedCreditNote) {
-    creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payload }, { new: true });
+    const payloadToSet = { ...payload };
+    if (payload.billingItemList) payloadToSet.billingItemList = await formatBillingItemList(payload.billingItemList);
+    creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payloadToSet }, { new: true });
   } else {
     const tppPayload = { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
     const customerPayload = { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
@@ -168,6 +186,11 @@ const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTp
   ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
   : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
+const formatBillingItemForPdf = billingItem => pick(
+  billingItem,
+  ['name', 'unitInclTaxes', 'vat', 'count', 'inclTaxes']
+);
+
 exports.formatPdf = (creditNote, company) => {
   const computedData = {
     totalVAT: 0,
@@ -192,11 +215,20 @@ exports.formatPdf = (creditNote, company) => {
       computedData.formattedEvents.push(formatEventForPdf(event));
       computedData.totalVAT += computeCreditNoteEventVat(creditNote, event);
     }
-  } else {
+  } else if (creditNote.subscription) {
     computedData.subscription = {
       service: creditNote.subscription.service.name,
       unitInclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitInclTaxes),
     };
+  } else if (creditNote.billingItemList) {
+    computedData.billingItems = [];
+    for (const billingItem of creditNote.billingItemList) {
+      computedData.billingItems.push(formatBillingItemForPdf(billingItem));
+      computedData.totalVAT = NumbersHelper.add(
+        computedData.totalVAT,
+        NumbersHelper.subtract(billingItem.inclTaxes, billingItem.exclTaxes)
+      );
+    }
   }
 
   computedData.totalVAT = UtilsHelper.formatPrice(computedData.totalVAT);
