@@ -6,6 +6,35 @@ module.exports = {
   IDENTIFICATION: 'identification',
   CONTRACT_END: 'contract_end',
   REJECTED: 'rejected',
+  // DATE INDEX
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+  SUNDAY: 7,
+  // DURATION
+  YEARS: 'years',
+  QUARTERS: 'quarters',
+  MONTHS: 'months',
+  WEEKS: 'weeks',
+  DAYS: 'days',
+  HOURS: 'hours',
+  MINUTES: 'minutes',
+  SECONDS: 'seconds',
+  get DURATION_UNITS() {
+    return [
+      this.YEARS,
+      this.QUARTERS,
+      this.MONTHS,
+      this.WEEKS,
+      this.DAYS,
+      this.HOURS,
+      this.MINUTES,
+      this.SECONDS,
+    ];
+  },
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',
@@ -522,33 +551,4 @@ module.exports = {
   ACTIVATED: 'Actif',
   STOPPED: 'Arrêté',
   ARCHIVED: 'Archivé',
-  // DATE INDEX
-  MONDAY: 1,
-  TUESDAY: 2,
-  WEDNESDAY: 3,
-  THURSDAY: 4,
-  FRIDAY: 5,
-  SATURDAY: 6,
-  SUNDAY: 7,
-  // DURATION
-  YEARS: 'years',
-  QUARTERS: 'quarters',
-  MONTHS: 'months',
-  WEEKS: 'weeks',
-  DAYS: 'days',
-  HOURS: 'hours',
-  MINUTES: 'minutes',
-  SECONDS: 'seconds',
-  get DURATION_UNITS() {
-    return [
-      this.YEARS,
-      this.QUARTERS,
-      this.MONTHS,
-      this.WEEKS,
-      this.DAYS,
-      this.HOURS,
-      this.MINUTES,
-      this.SECONDS,
-    ];
-  },
 };
