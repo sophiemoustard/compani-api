@@ -20,18 +20,23 @@ describe('list', () => {
     const credentials = { role: { vendor: new ObjectId() } };
     const courseBills = [
       {
-        _id: new ObjectId(),
         course: courseId,
-        company: { _id: new ObjectId(), name: 'Company' },
+        company: { name: 'Company' },
         mainFee: { price: 120 },
-        courseFundingOrganisation: { _id: new ObjectId(), name: 'Funder' },
+        courseFundingOrganisation: { name: 'Funder' },
       },
     ];
     find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
 
     const result = await CourseBillHelper.list(courseId, credentials);
 
-    expect(result).toEqual(courseBills.map(bill => ({ ...bill, netInclTaxes: bill.mainFee.price })));
+    expect(result).toEqual([{
+      course: courseId,
+      company: { name: 'Company' },
+      mainFee: { price: 120 },
+      courseFundingOrganisation: { name: 'Funder' },
+      netInclTaxes: 120,
+    }]);
     SinonMongoose.calledOnceWithExactly(
       find,
       [
