@@ -416,14 +416,15 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
             subscriptions: Joi.array().items(Joi.object().keys({
-              subscriptionId: Joi.objectId(),
-              service: Joi.string(),
-              unitTTCRate: Joi.number(),
-              estimatedWeeklyVolume: Joi.number(),
+              subscriptionId: Joi.objectId().required(),
+              service: Joi.string().required(),
+              unitTTCRate: Joi.number().required(),
+              weeklyCount: Joi.number().required(),
+              startDate: Joi.date(),
+              weeklyHours: Joi.number(),
               evenings: Joi.number(),
               sundays: Joi.number(),
-              startDate: Joi.date(),
-            })).required(),
+            }).or('weeklyCount', 'weeklyHours')).required(),
             helper: Joi.object().keys({
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string(),

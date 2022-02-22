@@ -2046,8 +2046,8 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
     it('should create a customer subscription history', async () => {
       const payload = {
         subscriptions: [
-          { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+          { service: 'TestTest', unitTTCRate: 23, weeklyHours: 3, weeklyCount: 5, subscriptionId: new ObjectId() },
+          { service: 'TestTest2', unitTTCRate: 30, weeklyCount: 10, subscriptionId: new ObjectId() },
         ],
         helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' },
       };
@@ -2086,8 +2086,8 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
     it('should return a 400 error if \'helper\' object is missing from payload', async () => {
       const payload = {
         subscriptions: [
-          { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+          { service: 'TestTest', unitTTCRate: 23, weeklyHours: 3 },
+          { service: 'TestTest2', unitTTCRate: 30, weeklyHours: 10 },
         ],
       };
 
@@ -2104,8 +2104,8 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
     it('should return a 403 error if user is not from the same company', async () => {
       const payload = {
         subscriptions: [
-          { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+          { service: 'TestTest', unitTTCRate: 23, weeklyHours: 3 },
+          { service: 'TestTest2', unitTTCRate: 30, weeklyHours: 10 },
         ],
         helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' },
       };
@@ -2123,8 +2123,8 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
     describe('Other roles', () => {
       const payload = {
         subscriptions: [
-          { service: 'TestTest', unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { service: 'TestTest2', unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+          { service: 'TestTest', unitTTCRate: 23, weeklyHours: 3 },
+          { service: 'TestTest2', unitTTCRate: 30, weeklyHours: 10 },
         ],
         helper: { firstname: 'Lana', lastname: 'Wachowski', title: 'mrs' },
       };

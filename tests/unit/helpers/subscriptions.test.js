@@ -96,6 +96,7 @@ describe('populateSubscriptionsServices', () => {
 describe('subscriptionsAccepted', () => {
   it('should set subscriptionsAccepted to true', async () => {
     const subId = new ObjectId();
+    const subId2 = new ObjectId();
     const customer = {
       subscriptions: [
         {
@@ -105,7 +106,7 @@ describe('subscriptionsAccepted', () => {
               createdAt: '2019-01-18T15:46:30.636Z',
               _id: new ObjectId(),
               unitTTCRate: 13,
-              estimatedWeeklyVolume: 12,
+              weeklyHours: 12,
               sundays: 2,
             },
             {
@@ -113,7 +114,7 @@ describe('subscriptionsAccepted', () => {
               createdAt: '2019-01-18T15:46:37.471Z',
               _id: new ObjectId(),
               unitTTCRate: 24,
-              estimatedWeeklyVolume: 12,
+              weeklyHours: 12,
               sundays: 2,
               evenings: 3,
             },
@@ -131,6 +132,27 @@ describe('subscriptionsAccepted', () => {
             startDate: '2019-01-18T15:37:30.636Z',
           },
         },
+        {
+          versions: [
+            {
+              startDate: '2019-01-18T15:46:30.636Z',
+              createdAt: '2019-01-18T15:46:30.636Z',
+              _id: new ObjectId(),
+              unitTTCRate: 123,
+              weeklyCount: 4,
+            },
+          ],
+          createdAt: '2019-01-18T15:46:30.637Z',
+          _id: subId2,
+          service: {
+            _id: new ObjectId(),
+            nature: 'fixed',
+            defaultUnitAmount: 25,
+            vat: 5.5,
+            name: 'forfaitaire',
+            startDate: '2019-01-18T15:37:30.636Z',
+          },
+        },
       ],
       subscriptionsHistory: [
         {
@@ -139,16 +161,26 @@ describe('subscriptionsAccepted', () => {
             lastname: 'Test',
             title: '',
           },
-          subscriptions: [{
-            _id: new ObjectId(),
-            service: 'Temps de qualité - Autonomie',
-            unitTTCRate: 24,
-            estimatedWeeklyVolume: 12,
-            startDate: '2019-01-27T23:00:00.000Z',
-            evenings: 3,
-            sundays: 2,
-            subscriptionId: subId,
-          }],
+          subscriptions: [
+            {
+              _id: new ObjectId(),
+              service: 'Temps de qualité - Autonomie',
+              unitTTCRate: 24,
+              weeklyHours: 12,
+              startDate: '2019-01-27T23:00:00.000Z',
+              evenings: 3,
+              sundays: 2,
+              subscriptionId: subId,
+            },
+            {
+              _id: new ObjectId(),
+              service: 'forfaitaire',
+              unitTTCRate: 123,
+              weeklyCount: 4,
+              startDate: '2019-01-27T23:00:00.000Z',
+              subscriptionId: subId2,
+            },
+          ],
           approvalDate: '2019-01-21T11:14:23.030Z',
           _id: new ObjectId(),
         },
@@ -156,6 +188,7 @@ describe('subscriptionsAccepted', () => {
     };
 
     const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
+
     expect(result).toBeDefined();
     expect(result.subscriptionsAccepted).toBeTruthy();
   });
