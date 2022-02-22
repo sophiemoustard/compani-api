@@ -18,6 +18,7 @@ const {
   userList,
   archivedService,
   service2,
+  service5,
   customerThirdPartyPayers,
   sectorsList,
 } = require('./seed/customersSeed');
@@ -1133,14 +1134,14 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     authToken = await getToken('client_admin');
   });
 
-  describe('POST /customers/{id}/subscriptions', () => {
-    it('should add subscription to customer', async () => {
+  describe('POST /customers/{id}/subscriptions #tag', () => {
+    it('should add hourly subscription to customer', async () => {
       const customer = customersList[1];
       const payload = {
         service: service2,
         versions: [{
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
         }],
@@ -1160,13 +1161,83 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         .toEqual(payload.versions[0].unitTTCRate);
     });
 
+    it('should add fixed subscription to customer', async () => {
+      const customer = customersList[1];
+      const payload = {
+        service: service5,
+        versions: [{
+          unitTTCRate: 12,
+          weeklyCount: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id}/subscriptions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.customer.subscriptions).toBeDefined();
+      expect(result.result.data.customer.subscriptions[1].service._id).toEqual(payload.service);
+      expect(result.result.data.customer.subscriptions[1].versions[0].unitTTCRate)
+        .toEqual(payload.versions[0].unitTTCRate);
+    });
+
+    it('should return a 422 if try to set weeklyHours to fixed service', async () => {
+      const customer = customersList[1];
+      const payload = {
+        service: service5,
+        versions: [{
+          unitTTCRate: 12,
+          weeklyHours: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id}/subscriptions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
+    it('should return a 422 if try to set weeklyCount to hourly service', async () => {
+      const customer = customersList[1];
+      const payload = {
+        service: service2,
+        versions: [{
+          unitTTCRate: 12,
+          weeklyCount: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id}/subscriptions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
     it('should return 403 if service is archived', async () => {
       const customer = customersList[1];
       const payload = {
         service: archivedService,
         versions: [{
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
         }],
@@ -1188,7 +1259,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         service: customer.subscriptions[0].service,
         versions: [{
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
         }],
@@ -1210,7 +1281,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         service: customer.subscriptions[0].service,
         versions: [{
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
         }],
@@ -1231,7 +1302,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         service: service2,
         versions: [{
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
         }],

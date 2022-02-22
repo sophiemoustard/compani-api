@@ -40,6 +40,7 @@ const service1 = new ObjectId();
 const service2 = new ObjectId();
 const service3 = new ObjectId();
 const service4 = new ObjectId();
+const service5 = new ObjectId();
 const archivedService = new ObjectId();
 const otherCompanyCustomerId = new ObjectId();
 
@@ -112,6 +113,18 @@ const customerServiceList = [
       vat: 12,
     }],
     nature: HOURLY,
+  },
+  {
+    _id: service5,
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 150,
+      exemptFromCharges: false,
+      name: 'Service 5',
+      startDate: '2019-06-18T14:58:15',
+      vat: 12,
+    }],
+    nature: FIXED,
   },
   {
     _id: archivedService,
@@ -1239,6 +1252,7 @@ module.exports = {
   populateDB,
   archivedService,
   service2,
+  service5,
   customerThirdPartyPayers,
   otherCompanyCustomer,
   sectorsList,

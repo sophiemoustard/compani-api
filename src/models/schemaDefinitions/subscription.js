@@ -1,6 +1,7 @@
 module.exports = {
   unitTTCRate: Number,
-  estimatedWeeklyVolume: Number,
+  weeklyHours: Number,
+  weeklyCount: Number,
   evenings: Number,
   sundays: Number,
 };

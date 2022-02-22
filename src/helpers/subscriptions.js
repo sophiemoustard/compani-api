@@ -70,9 +70,10 @@ exports.updateSubscription = async (params, payload) => {
 
 exports.addSubscription = async (customerId, payload) => {
   const customer = await Customer.findById(customerId).lean();
+
   if (customer.subscriptions && customer.subscriptions.length > 0) {
     const isServiceAlreadySubscribed = !!customer.subscriptions
-      .find(subscription => subscription.service.toHexString() === payload.service);
+      .find(subscription => UtilsHelper.areObjectIdsEquals(subscription.service, payload.service));
     if (isServiceAlreadySubscribed) throw Boom.conflict(translate[language].serviceAlreadySubscribed);
   }
 

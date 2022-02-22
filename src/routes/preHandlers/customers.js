@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const DatesHelper = require('../../helpers/dates');
-const { INTERVENTION, NOT_INVOICED_AND_NOT_PAID } = require('../../helpers/constants');
+const { INTERVENTION, NOT_INVOICED_AND_NOT_PAID, HOURLY, FIXED } = require('../../helpers/constants');
 const Customer = require('../../models/Customer');
 const UserCompany = require('../../models/UserCompany');
 const Event = require('../../models/Event');
@@ -106,12 +106,15 @@ exports.authorizeCustomerUpdate = async (req) => {
 exports.authorizeSubscriptionCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
 
-  const service = await Service.countDocuments({
+  const service = await Service.findOne({
     _id: req.payload.service,
     company: companyId,
     $or: [{ isArchived: { $exists: false } }, { isArchived: false }],
-  });
+  }).lean();
   if (!service) throw Boom.forbidden();
+
+  if (service.nature === HOURLY && req.payload.versions.some(v => !v.weeklyHours)) throw Boom.badData();
+  if (service.nature === FIXED && req.payload.versions.some(v => !v.weeklyCount || v.weeklyHours)) throw Boom.badData();
 
   return exports.authorizeCustomerUpdate(req);
 };
