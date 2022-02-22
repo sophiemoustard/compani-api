@@ -197,7 +197,7 @@ const customer = {
       service: serviceId,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2021-01-01T10:00:00.000+01:00',

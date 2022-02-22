@@ -79,7 +79,7 @@ const customer = {
   subscriptions: [{
     _id: new ObjectId(),
     service: servicesList[2]._id,
-    versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+    versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
   }],
   contact: {
     primaryAddress: {

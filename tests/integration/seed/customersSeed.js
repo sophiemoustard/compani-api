@@ -187,29 +187,29 @@ const customersList = [
       { // no link
         _id: subId1,
         service: service1,
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       },
       {
         _id: subId3, // linked to funding (no repetition, no funding)
         service: service2,
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       },
       {
         _id: subId4, // linked to repetition (no event, no funding)
         service: service3,
-        versions: [{ unitTTCRate: 14, estimatedWeeklyVolume: 16, evenings: 3, sundays: 4 }],
+        versions: [{ unitTTCRate: 14, weeklyHours: 16, evenings: 3, sundays: 4 }],
       },
       {
         _id: subId5, // linked to event (no repetition, no funding)
         service: service4,
-        versions: [{ unitTTCRate: 20, estimatedWeeklyVolume: 21, evenings: 4, sundays: 5 }],
+        versions: [{ unitTTCRate: 20, weeklyHours: 21, evenings: 4, sundays: 5 }],
       },
     ],
     subscriptionsHistory: [{
       subscriptions: [
         {
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
           service: 'Service 1',
@@ -217,7 +217,7 @@ const customersList = [
         },
         {
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
           service: 'Service 2',
@@ -225,7 +225,7 @@ const customersList = [
         },
         {
           unitTTCRate: 14,
-          estimatedWeeklyVolume: 16,
+          weeklyHours: 16,
           evenings: 3,
           sundays: 4,
           service: 'Service 3',
@@ -233,7 +233,7 @@ const customersList = [
         },
         {
           unitTTCRate: 20,
-          estimatedWeeklyVolume: 21,
+          weeklyHours: 21,
           evenings: 4,
           sundays: 5,
           service: 'Service 3',
@@ -247,8 +247,8 @@ const customersList = [
     quotes: [{
       _id: new ObjectId(),
       subscriptions: [
-        { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-        { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+        { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
       ],
     }],
     fundings: [
@@ -313,7 +313,7 @@ const customersList = [
       {
         _id: new ObjectId(),
         service: archivedService,
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       },
       {
         _id: new ObjectId(),
@@ -380,7 +380,7 @@ const customersList = [
     subscriptions: [{
       _id: new ObjectId(),
       service: service1,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -402,7 +402,7 @@ const customersList = [
     subscriptions: [{
       _id: new ObjectId(),
       service: service1,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -424,7 +424,7 @@ const customersList = [
     subscriptions: [{
       _id: new ObjectId(),
       service: service1,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -446,7 +446,7 @@ const customersList = [
     subscriptions: [{
       _id: new ObjectId(),
       service: service1,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -486,8 +486,8 @@ const customersList = [
       _id: subId2,
       service: service1,
       versions: [
-        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
-        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
+        { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
       ],
     }],
     subscriptionsHistory: [],
@@ -613,7 +613,7 @@ const customersList = [
     subscriptions: [{
       _id: subId1,
       service: customerServiceList[0]._id,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -787,7 +787,7 @@ const otherCompanyCustomer = {
       service: service1,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
       }],
@@ -797,7 +797,7 @@ const otherCompanyCustomer = {
       service: service2,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
       }],
@@ -806,13 +806,13 @@ const otherCompanyCustomer = {
   subscriptionsHistory: [{
     subscriptions: [{
       unitTTCRate: 12,
-      estimatedWeeklyVolume: 12,
+      weeklyHours: 12,
       evenings: 2,
       sundays: 1,
       service: 'Service 1',
     }, {
       unitTTCRate: 12,
-      estimatedWeeklyVolume: 12,
+      weeklyHours: 12,
       evenings: 2,
       sundays: 1,
       service: 'Service 2',
@@ -837,15 +837,10 @@ const otherCompanyCustomer = {
   },
   quotes: [{
     _id: new ObjectId(),
-    subscriptions: [{
-      service: { name: 'Test', nature: 'hourly' },
-      unitTTCRate: 23,
-      estimatedWeeklyVolume: 3,
-    }, {
-      service: { name: 'Test2', nature: 'hourly' },
-      unitTTCRate: 30,
-      estimatedWeeklyVolume: 10,
-    }],
+    subscriptions: [
+      { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+      { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
+    ],
   }],
   fundings: [
     {

@@ -123,7 +123,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
                 {
                   _id: new ObjectId(),
                   unitTTCRate: 12,
-                  estimatedWeeklyVolume: 12,
+                  weeklyHours: 12,
                   evenings: 2,
                   sundays: 1,
                   startDate: '2019-04-03T08:33:55.370Z',
@@ -168,7 +168,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
                   {
                     _id: new ObjectId(),
                     unitTTCRate: 12,
-                    estimatedWeeklyVolume: 12,
+                    weeklyHours: 12,
                     evenings: 2,
                     sundays: 1,
                     startDate: '2019-04-03T08:33:55.370Z',
@@ -226,7 +226,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
                 {
                   _id: new ObjectId(),
                   unitTTCRate: 12,
-                  estimatedWeeklyVolume: 12,
+                  weeklyHours: 12,
                   evenings: 2,
                   sundays: 1,
                   startDate: '2019-04-03T08:33:55.370Z',
@@ -265,7 +265,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
                 {
                   _id: new ObjectId(),
                   unitTTCRate: 12,
-                  estimatedWeeklyVolume: 12,
+                  weeklyHours: 12,
                   evenings: 2,
                   sundays: 1,
                   startDate: '2019-04-03T08:33:55.370Z',
@@ -394,7 +394,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
                     {
                       _id: new ObjectId(),
                       unitTTCRate: 12,
-                      estimatedWeeklyVolume: 12,
+                      weeklyHours: 12,
                       evenings: 2,
                       sundays: 1,
                       startDate: '2019-04-03T08:33:55.370Z',
@@ -456,7 +456,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
               versions: [{
                 _id: new ObjectId(),
                 unitTTCRate: 12,
-                estimatedWeeklyVolume: 12,
+                weeklyHours: 12,
                 evenings: 2,
                 sundays: 1,
                 startDate: '2019-04-03T08:33:55.370Z',
@@ -652,7 +652,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
               versions: [{
                 _id: new ObjectId(),
                 unitTTCRate: 12,
-                estimatedWeeklyVolume: 12,
+                weeklyHours: 12,
                 evenings: 2,
                 sundays: 1,
                 startDate: '2019-04-03T08:33:55.370Z',

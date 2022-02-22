@@ -1920,8 +1920,8 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     it('should create a customer quote', async () => {
       const payload = {
         subscriptions: [
-          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+          { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
         ],
       };
 
@@ -1955,7 +1955,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     });
 
     it('should return a 400 error if \'service\' is missing from subscriptions in payload', async () => {
-      const payload = { subscriptions: [{ unitTTCRate: 23, estimatedWeeklyVolume: 3 }] };
+      const payload = { subscriptions: [{ unitTTCRate: 23, weeklyHours: 3 }] };
 
       const res = await app.inject({
         method: 'POST',
@@ -1972,7 +1972,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     params.forEach((param) => {
       it(`should return a 400 error if ${param} is missing from subscriptions in payload`, async () => {
         const payload = {
-          subscriptions: [{ service: { ...omit(service, param) }, unitTTCRate: 23, estimatedWeeklyVolume: 3 }],
+          subscriptions: [{ service: { ...omit(service, param) }, unitTTCRate: 23, weeklyHours: 3 }],
         };
 
         const res = await app.inject({
@@ -1989,8 +1989,8 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     it('should not create a customer quote if from other company', async () => {
       const payload = {
         subscriptions: [
-          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+          { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
         ],
       };
       const res = await app.inject({
@@ -2006,8 +2006,8 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     describe('Other roles', () => {
       const payload = {
         subscriptions: [
-          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-          { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+          { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
         ],
       };
 

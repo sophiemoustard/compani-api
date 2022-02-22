@@ -120,7 +120,7 @@ const billCustomerList = [
       service: billServices[0]._id,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
@@ -130,7 +130,7 @@ const billCustomerList = [
       service: billServices[1]._id,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
@@ -156,7 +156,7 @@ const billCustomerList = [
       service: billServices[0]._id,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
@@ -186,7 +186,7 @@ const billCustomerList = [
       service: billServices[1]._id,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
@@ -219,7 +219,7 @@ const billCustomerList = [
       service: billServices[1]._id,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
