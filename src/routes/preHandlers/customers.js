@@ -128,6 +128,11 @@ exports.authorizeSubscriptionUpdate = async (req) => {
 
   const subscription = customer.subscriptions.find(sub => UtilsHelper.areObjectIdsEquals(sub._id, subscriptionId));
   if (subscription.service.isArchived) throw Boom.forbidden();
+
+  const { payload } = req;
+  if (subscription.service.nature === HOURLY && !payload.weeklyHours) throw Boom.badData();
+  if (subscription.service.nature === FIXED && (!payload.weeklyCount || payload.weeklyHours)) throw Boom.badData();
+
   return exports.authorizeCustomerUpdate(req);
 };
 

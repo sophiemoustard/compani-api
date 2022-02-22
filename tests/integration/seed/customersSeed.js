@@ -309,11 +309,18 @@ const customersList = [
       bic: 'BNMDHISOBD',
       mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
     },
-    subscriptions: [{
-      _id: new ObjectId(),
-      service: archivedService,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
-    }],
+    subscriptions: [
+      {
+        _id: new ObjectId(),
+        service: archivedService,
+        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      },
+      {
+        _id: new ObjectId(),
+        service: service5,
+        versions: [{ unitTTCRate: 100, weeklyCount: 4 }],
+      },
+    ],
     fundings: [{
       _id: new ObjectId(),
       nature: FIXED,

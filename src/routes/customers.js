@@ -243,10 +243,11 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required(), subscriptionId: Joi.objectId().required() }),
           payload: Joi.object({
             unitTTCRate: Joi.number().required(),
-            estimatedWeeklyVolume: Joi.number().required(),
+            weeklyHours: Joi.number(),
+            weeklyCount: Joi.number(),
             evenings: Joi.number(),
             sundays: Joi.number(),
-          }),
+          }).or('weeklyHours', 'weeklyCount'),
         },
         pre: [{ method: authorizeSubscriptionUpdate }],
       },

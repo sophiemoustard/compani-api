@@ -1134,7 +1134,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     authToken = await getToken('client_admin');
   });
 
-  describe('POST /customers/{id}/subscriptions #tag', () => {
+  describe('POST /customers/{id}/subscriptions', () => {
     it('should add hourly subscription to customer', async () => {
       const customer = customersList[1];
       const payload = {
@@ -1156,13 +1156,14 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       expect(result.statusCode).toBe(200);
       expect(result.result.data.customer.subscriptions).toBeDefined();
-      expect(result.result.data.customer.subscriptions[1].service._id).toEqual(payload.service);
-      expect(result.result.data.customer.subscriptions[1].versions[0].unitTTCRate)
-        .toEqual(payload.versions[0].unitTTCRate);
+      expect(result.result.data.customer.subscriptions.some(s =>
+        UtilsHelper.areObjectIdsEquals(s.service._id, payload.service))).toBeTruthy();
+      expect(result.result.data.customer.subscriptions.some(s =>
+        s.versions[0].unitTTCRate === payload.versions[0].unitTTCRate)).toBeTruthy();
     });
 
     it('should add fixed subscription to customer', async () => {
-      const customer = customersList[1];
+      const customer = customersList[2];
       const payload = {
         service: service5,
         versions: [{
@@ -1182,13 +1183,14 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       expect(result.statusCode).toBe(200);
       expect(result.result.data.customer.subscriptions).toBeDefined();
-      expect(result.result.data.customer.subscriptions[1].service._id).toEqual(payload.service);
-      expect(result.result.data.customer.subscriptions[1].versions[0].unitTTCRate)
-        .toEqual(payload.versions[0].unitTTCRate);
+      expect(result.result.data.customer.subscriptions.some(s =>
+        UtilsHelper.areObjectIdsEquals(s.service._id, payload.service))).toBeTruthy();
+      expect(result.result.data.customer.subscriptions.some(s =>
+        s.versions[0].unitTTCRate === payload.versions[0].unitTTCRate)).toBeTruthy();
     });
 
-    it('should return a 422 if try to set weeklyHours to fixed service', async () => {
-      const customer = customersList[1];
+    it('should return a 422 if try to create fixed service without weeklyCount', async () => {
+      const customer = customersList[2];
       const payload = {
         service: service5,
         versions: [{
@@ -1209,7 +1211,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(422);
     });
 
-    it('should return a 422 if try to set weeklyCount to hourly service', async () => {
+    it('should return a 422 if try to create hourly service without weeklyHours', async () => {
       const customer = customersList[1];
       const payload = {
         service: service2,
@@ -1332,13 +1334,12 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   });
 
   describe('PUT /customers/{id}/subscriptions/{subscriptionId}', () => {
-    const payload = {
-      estimatedWeeklyVolume: 24,
-      unitTTCRate: 1,
-      evenings: 3,
-    };
-
-    it('should update customer subscription', async () => {
+    it('should update customer subscription for hourly service', async () => {
+      const payload = {
+        weeklyHours: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
       const customer = customersList[0];
       const subscription = customer.subscriptions[0];
 
@@ -1356,7 +1357,73 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         .toEqual(subscription.versions.length + 1);
     });
 
+    it('should update customer subscription for fixed service', async () => {
+      const payload = {
+        weeklyCount: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
+      const customer = customersList[1];
+      const subscription = customer.subscriptions[1];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.customer.subscriptions).toBeDefined();
+      expect(result.result.data.customer.subscriptions[1].versions).toBeDefined();
+      expect(result.result.data.customer.subscriptions[1].versions.length)
+        .toEqual(subscription.versions.length + 1);
+    });
+
+    it('should return a 422 if try to update hourly sub without WeeklyHours', async () => {
+      const payload = {
+        weeklyCount: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[0];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
+    it('should return a 422 if try to update fixed sub without WeeklyCount', async () => {
+      const payload = {
+        weeklyHours: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
+      const customer = customersList[1];
+      const subscription = customer.subscriptions[1];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
     it('should return a 403 if service is archived', async () => {
+      const payload = {
+        weeklyHours: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
       const customer = customersList[1];
       const subscription = customer.subscriptions[0];
 
@@ -1371,6 +1438,11 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
 
     it('should return 404 as customer not found', async () => {
+      const payload = {
+        weeklyHours: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${new ObjectId()}/subscriptions/${customersList[0].subscriptions[0]._id}`,
@@ -1382,6 +1454,11 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
 
     it('should return 404 as subscription not found', async () => {
+      const payload = {
+        weeklyHours: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customersList[0]._id}/subscriptions/${new ObjectId()}`,
@@ -1393,6 +1470,11 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
 
     it('should return 403 if customer not from company', async () => {
+      const payload = {
+        weeklyHours: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
       const subscriptionId = otherCompanyCustomer.subscriptions[0]._id;
       const result = await app.inject({
         method: 'PUT',
@@ -1405,6 +1487,11 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      const payload = {
+        weeklyHours: 24,
+        unitTTCRate: 1,
+        evenings: 3,
+      };
       const customer = customersList[0];
       const subscription = customer.subscriptions[0];
       const roles = [
