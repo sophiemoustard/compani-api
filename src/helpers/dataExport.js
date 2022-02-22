@@ -404,6 +404,8 @@ exports.exportSubscriptions = async (credentials) => {
     .lean();
   const data = [];
 
+  if (!customers.length) return data;
+
   for (const cus of customers) {
     for (const sub of cus.subscriptions) {
       const lastServiceVersion = UtilsHelper.getLastVersion(sub.service.versions, 'startDate');

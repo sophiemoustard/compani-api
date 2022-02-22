@@ -981,46 +981,21 @@ describe('exportSubscriptions', () => {
     getLastVersion.restore();
   });
 
-  it('should return csv header', async () => {
-    const customers = [];
-    const companyId = new ObjectId();
-
-    findCustomer.returns(SinonMongoose.stubChainedQueries(customers));
-
-    const credentials = { company: { _id: companyId } };
-    const result = await ExportHelper.exportSubscriptions(credentials);
-
-    expect(result).toBeDefined();
-    expect(result[0]).toMatchObject([
-      'Id Bénéficiaire',
-      'Titre',
-      'Nom',
-      'Prénom',
-      'Service',
-      'Prix unitaire TTC',
-      'Volume hebdomadaire estimatif',
-      'Dont soirées',
-      'Dont dimanches',
-    ]);
-    SinonMongoose.calledOnceWithExactly(
-      findCustomer,
-      [
-        { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },
-        { query: 'populate', args: [{ path: 'subscriptions.service' }] },
-        { query: 'lean' },
-      ]
-    );
-  });
-
   it('should return subscriptions info', async () => {
     const customers = [
       {
         _id: new ObjectId(),
         identity: { lastname: 'Autonomie', title: 'mr' },
-        subscriptions: [{
-          service: { versions: [{ name: 'Service' }] },
-          versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 4, sundays: 2, evenings: 9 }],
-        }],
+        subscriptions: [
+          {
+            service: { versions: [{ name: 'Service' }] },
+            versions: [{ unitTTCRate: 12, weeklyHours: 4, sundays: 2, evenings: 9 }],
+          },
+          {
+            service: { versions: [{ name: 'Service 2' }] },
+            versions: [{ unitTTCRate: 100, weeklyCount: 2 }],
+          },
+        ],
       },
     ];
     const companyId = new ObjectId();
@@ -1030,7 +1005,7 @@ describe('exportSubscriptions', () => {
     const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportSubscriptions(credentials);
 
-    sinon.assert.calledTwice(getLastVersion);
+    sinon.assert.called(getLastVersion);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
@@ -1041,8 +1016,22 @@ describe('exportSubscriptions', () => {
       'Service',
       '12,00',
       '4,00',
+      '',
       '9,00',
       '2,00',
+    ]);
+    expect(result[2]).toBeDefined();
+    expect(result[2]).toMatchObject([
+      expect.any(ObjectId),
+      'M.',
+      'AUTONOMIE',
+      '',
+      'Service 2',
+      '100,00',
+      '',
+      '2,00',
+      '',
+      '',
     ]);
     SinonMongoose.calledOnceWithExactly(
       findCustomer,
