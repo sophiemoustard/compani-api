@@ -421,7 +421,7 @@ exports.exportSubscriptions = async (credentials) => {
         'Volume horaire hebdomadaire estimatif': has(lastVersion, 'weeklyHours')
           ? UtilsHelper.formatFloatForExport(lastVersion.weeklyHours)
           : '',
-        'Nombre d\'intervention hebdomadaire estimatif': has(lastVersion, 'weeklyCount')
+        'Nombre d\'interventions hebdomadaire estimatif': has(lastVersion, 'weeklyCount')
           ? UtilsHelper.formatFloatForExport(lastVersion.weeklyCount)
           : '',
         'Dont soirées': lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'evenings')) : '',

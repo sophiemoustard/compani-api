@@ -17,8 +17,7 @@ const {
   customersList,
   userList,
   archivedService,
-  service2,
-  service5,
+  serviceIdList,
   customerThirdPartyPayers,
   sectorsList,
 } = require('./seed/customersSeed');
@@ -1138,7 +1137,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should add hourly subscription to customer', async () => {
       const customer = customersList[1];
       const payload = {
-        service: service2,
+        service: serviceIdList[1],
         versions: [{
           unitTTCRate: 12,
           weeklyHours: 12,
@@ -1165,7 +1164,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should add fixed subscription to customer', async () => {
       const customer = customersList[2];
       const payload = {
-        service: service5,
+        service: serviceIdList[4],
         versions: [{
           unitTTCRate: 12,
           weeklyCount: 12,
@@ -1189,10 +1188,10 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         s.versions[0].unitTTCRate === payload.versions[0].unitTTCRate)).toBeTruthy();
     });
 
-    it('should return a 422 if try to create fixed service without weeklyCount', async () => {
+    it('should return a 422 if try to create fixed service without weeklyCount and with weeklyHours', async () => {
       const customer = customersList[2];
       const payload = {
-        service: service5,
+        service: serviceIdList[4],
         versions: [{
           unitTTCRate: 12,
           weeklyHours: 12,
@@ -1214,7 +1213,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should return a 422 if try to create hourly service without weeklyHours', async () => {
       const customer = customersList[1];
       const payload = {
-        service: service2,
+        service: serviceIdList[1],
         versions: [{
           unitTTCRate: 12,
           weeklyCount: 12,
@@ -1301,7 +1300,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
     describe('Other roles', () => {
       const payload = {
-        service: service2,
+        service: serviceIdList[1],
         versions: [{
           unitTTCRate: 12,
           weeklyHours: 12,
@@ -1380,7 +1379,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         .toEqual(subscription.versions.length + 1);
     });
 
-    it('should return a 422 if try to update hourly sub without WeeklyHours', async () => {
+    it('should return a 422 if try to update hourly sub without weeklyHours', async () => {
       const payload = {
         weeklyCount: 24,
         unitTTCRate: 1,
@@ -1399,7 +1398,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(422);
     });
 
-    it('should return a 422 if try to update fixed sub without WeeklyCount', async () => {
+    it('should return a 422 if try to update fixed sub without weeklyCount and with weeklyHours', async () => {
       const payload = {
         weeklyHours: 24,
         unitTTCRate: 1,

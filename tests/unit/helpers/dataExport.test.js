@@ -988,11 +988,11 @@ describe('exportSubscriptions', () => {
         identity: { lastname: 'Autonomie', title: 'mr' },
         subscriptions: [
           {
-            service: { versions: [{ name: 'Service' }] },
+            service: { versions: [{ name: 'Service Horaire' }] },
             versions: [{ unitTTCRate: 12, weeklyHours: 4, sundays: 2, evenings: 9 }],
           },
           {
-            service: { versions: [{ name: 'Service 2' }] },
+            service: { versions: [{ name: 'Service Forfaitaire' }] },
             versions: [{ unitTTCRate: 100, weeklyCount: 2 }],
           },
         ],
@@ -1013,7 +1013,7 @@ describe('exportSubscriptions', () => {
       'M.',
       'AUTONOMIE',
       '',
-      'Service',
+      'Service Horaire',
       '12,00',
       '4,00',
       '',
@@ -1026,7 +1026,7 @@ describe('exportSubscriptions', () => {
       'M.',
       'AUTONOMIE',
       '',
-      'Service 2',
+      'Service Forfaitaire',
       '100,00',
       '',
       '2,00',

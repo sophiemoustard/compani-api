@@ -105,16 +105,18 @@ exports.authorizeCustomerUpdate = async (req) => {
 
 exports.authorizeSubscriptionCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
+  const { payload } = req;
 
   const service = await Service.findOne({
-    _id: req.payload.service,
+    _id: payload.service,
     company: companyId,
     $or: [{ isArchived: { $exists: false } }, { isArchived: false }],
   }).lean();
   if (!service) throw Boom.forbidden();
 
-  if (service.nature === HOURLY && req.payload.versions.some(v => !v.weeklyHours)) throw Boom.badData();
-  if (service.nature === FIXED && req.payload.versions.some(v => !v.weeklyCount || v.weeklyHours)) throw Boom.badData();
+  const isHourlyAndBadPayload = service.nature === HOURLY && payload.versions.some(v => !v.weeklyHours);
+  const isFixedAndBadPayload = service.nature === FIXED && payload.versions.some(v => !v.weeklyCount || v.weeklyHours);
+  if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
 
   return exports.authorizeCustomerUpdate(req);
 };
@@ -130,8 +132,9 @@ exports.authorizeSubscriptionUpdate = async (req) => {
   if (subscription.service.isArchived) throw Boom.forbidden();
 
   const { payload } = req;
-  if (subscription.service.nature === HOURLY && !payload.weeklyHours) throw Boom.badData();
-  if (subscription.service.nature === FIXED && (!payload.weeklyCount || payload.weeklyHours)) throw Boom.badData();
+  const isHourlyAndBadPayload = subscription.service.nature === HOURLY && !payload.weeklyHours;
+  const isFixedAndBadPayload = subscription.service.nature === FIXED && (!payload.weeklyCount || payload.weeklyHours);
+  if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
 
   return exports.authorizeCustomerUpdate(req);
 };
