@@ -107,12 +107,26 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create a course bill', async () => {
+    it('should create a course bill with courseFundingOrganisation', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
+      });
+
+      const count = await CourseBill.countDocuments();
+
+      expect(response.statusCode).toBe(200);
+      expect(count).toBe(courseBillsList.length + 1);
+    });
+
+    it('should create a course bill without courseFundingOrganisation', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: omit(payload, 'courseFundingOrganisation'),
       });
 
       const count = await CourseBill.countDocuments();

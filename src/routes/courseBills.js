@@ -23,6 +23,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['config:vendor'] },
         validate: {
           payload: Joi.object({
             course: Joi.objectId().required(),
@@ -31,7 +32,6 @@ exports.plugin = {
             courseFundingOrganisation: Joi.objectId(),
           }),
         },
-        auth: { scope: ['config:vendor'] },
         pre: [{ method: authorizeCourseBillCreation }],
       },
       handler: create,
