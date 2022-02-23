@@ -7,12 +7,16 @@ const { CompaniDuration } = require('./dates/companiDurations');
 const StatRepository = require('../repositories/StatRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 const CompanyRepository = require('../repositories/CompanyRepository');
+const { CARE_HOLIDAY } = require('./constants');
 
 const isHoliday = day => CompaniDate(day).startOf('day').isHoliday();
 
-const isInCareDays = (careDays, day) => (careDays.includes(CompaniDate(day).weekday() - 1) && !isHoliday(day)) ||
-  (careDays.includes(7) && isHoliday(day));
+const isInCareDays = (careDays, day) => {
+  const careOrdinaryDay = CompaniDate(day).weekday() - 1;
+  // customed indexing for caredays : Monday = 0, Thesday = 1, ..., Sunday = 6 and Holiday = 7 (cf. constants.js)
 
+  return (!isHoliday(day) && careDays.includes(careOrdinaryDay)) || (isHoliday(day) && careDays.includes(CARE_HOLIDAY));
+};
 const isNotStarted = (eventStartDate, fundingStartDate) => CompaniDate(fundingStartDate).isAfter(eventStartDate);
 
 const isEnded = (eventStartDate, fundingEndDate) => fundingEndDate &&
