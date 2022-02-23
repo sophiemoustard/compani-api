@@ -297,6 +297,10 @@ module.exports = {
     courseAccessRuleDeleted: 'Access rule deleted.',
     courseQuestionnairesFound: 'Questionnaires found.',
     courseAttendanceNotGenerated: 'Failed to download attendance sheet, no on-site slot.',
+    /* Course bill */
+    courseBillsFound: 'Course bills found.',
+    courseBillsNotFound: 'Course bills not found.',
+    courseBillCreated: 'Course bill created.',
     /* Course billing items */
     courseBillingItemExists: 'Course billing item exists.',
     courseBillingItemsFound: 'Course billing items found.',
@@ -665,6 +669,10 @@ module.exports = {
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     courseQuestionnairesFound: 'Questionnaires trouvés.',
     courseAttendanceNotGenerated: 'Erreur lors du téléchargement, la formation ne contient pas de créneau présentiel.',
+    /* Course bill */
+    courseBillsFound: 'Factures de la formation trouvées.',
+    courseBillsNotFound: 'Factures de la formation non trouvées.',
+    courseBillCreated: 'Facture de la formation créée.',
     /* Course billing items */
     courseBillingItemExists: 'Item de facturation existant.',
     courseBillingItemsFound: 'Items de facturation trouvés.',
