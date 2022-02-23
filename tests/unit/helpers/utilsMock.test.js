@@ -1,5 +1,5 @@
 const expect = require('expect');
-const MockUtils = require('../../mockUtils');
+const UtilsMock = require('../../utilsMock');
 const CompaniDatesHelper = require('../../../src/helpers/dates/companiDates');
 
 describe('mockCurrentDate', () => {
@@ -9,13 +9,13 @@ describe('mockCurrentDate', () => {
     const expectedCurrentDate = '2021-12-20T07:00:00.000Z';
     const expectedCurrentDateInMillis = CompaniDatesHelper.CompaniDate(expectedCurrentDate)._getDate.toMillis();
 
-    MockUtils.mockCurrentDate(expectedCurrentDate);
+    UtilsMock.mockCurrentDate(expectedCurrentDate);
 
     const mockedCurrent = CompaniDatesHelper.CompaniDate()._getDate.toMillis();
     expect(mockedCurrent).toBeGreaterThanOrEqual(expectedCurrentDateInMillis);
     expect(mockedCurrent).toBeLessThan(expectedCurrentDateInMillis + 1000);
 
-    MockUtils.unmockCurrentDate();
+    UtilsMock.unmockCurrentDate();
 
     const unmockedCurrent = CompaniDatesHelper.CompaniDate()._getDate.toMillis();
     expect(unmockedCurrent).toBeGreaterThanOrEqual(currentInMillis);
