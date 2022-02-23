@@ -280,10 +280,10 @@ const dataExportTypes = [
   {
     exportType: SUBSCRIPTION,
     expectedRows: [
-      '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume horaire hebdomadaire estimatif";"Nombre d\'intervention hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
-      `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"Service 1";"12,00";"30,00";;"1,00";"2,00"`,
+      '\ufeff"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Service";"Prix unitaire TTC";"Volume horaire hebdomadaire estimatif";"Nombre d\'interventions hebdomadaire estimatif";"Dont soirées";"Dont dimanches"',
+      `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"Service 1";"12,00";"30,00";"0,00";"1,00";"2,00"`,
       `${customersList[0]._id.toHexString()};"M.";"FROOME";"Christopher";"Service forfaitaire";"100,00";;"3,00";;`,
-      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";;"2,00";"1,00"`,
+      `${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"Service 1";"12,00";"12,00";"0,00";"2,00";"1,00"`,
     ],
   },
   {
