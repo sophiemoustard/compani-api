@@ -1188,24 +1188,21 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         s.versions[0].unitTTCRate === payload.versions[0].unitTTCRate)).toBeTruthy();
     });
 
-    it('should return a 422 if try to create fixed service without weeklyCount and with weeklyHours', async () => {
-      const customer = customersList[2];
-      const payload = {
-        service: serviceIdList[4],
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-        }],
-      };
+    const fixedServiceForbiddenField = ['weeklyHours', 'sundays', 'evenings'];
+    fixedServiceForbiddenField.forEach((field) => {
+      it(`should return a 422 if try to create fixed service with ${field}`, async () => {
+        const customer = customersList[2];
+        const payload = { service: serviceIdList[4], versions: [{ unitTTCRate: 12, weeklyCount: 12, [field]: 3 }] };
 
-      const result = await app.inject({
-        method: 'POST',
-        url: `/customers/${customer._id}/subscriptions`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
+        const result = await app.inject({
+          method: 'POST',
+          url: `/customers/${customer._id}/subscriptions`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(result.statusCode).toBe(422);
       });
-
-      expect(result.statusCode).toBe(422);
     });
 
     it('should return a 422 if try to create fixed service without weeklyCount', async () => {
@@ -1410,23 +1407,22 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(422);
     });
 
-    it('should return a 422 if try to update fixed sub without weeklyCount and with weeklyHours', async () => {
-      const payload = {
-        weeklyHours: 24,
-        unitTTCRate: 1,
-        evenings: 3,
-      };
-      const customer = customersList[1];
-      const subscription = customer.subscriptions[1];
+    const fixedServiceForbiddenField = ['weeklyHours', 'sundays', 'evenings'];
+    fixedServiceForbiddenField.forEach((field) => {
+      it(`should return a 422 if try to create fixed service with ${field}`, async () => {
+        const payload = { unitTTCRate: 12, weeklyCount: 12, [field]: 3 };
+        const customer = customersList[1];
+        const subscription = customer.subscriptions[1];
 
-      const result = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
+        const result = await app.inject({
+          method: 'PUT',
+          url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(result.statusCode).toBe(422);
       });
-
-      expect(result.statusCode).toBe(422);
     });
 
     it('should return a 422 if try to update fixed sub without weeklyCount', async () => {

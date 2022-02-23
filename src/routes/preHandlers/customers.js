@@ -115,7 +115,8 @@ exports.authorizeSubscriptionCreation = async (req) => {
   if (!service) throw Boom.forbidden();
 
   const isHourlyAndBadPayload = service.nature === HOURLY && payload.versions.some(v => !v.weeklyHours);
-  const isFixedAndBadPayload = service.nature === FIXED && payload.versions.some(v => !v.weeklyCount || v.weeklyHours);
+  const isFixedAndBadPayload = service.nature === FIXED &&
+    payload.versions.some(v => !v.weeklyCount || v.weeklyHours || v.evenings || v.sundays);
   if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
 
   return exports.authorizeCustomerUpdate(req);
@@ -133,7 +134,8 @@ exports.authorizeSubscriptionUpdate = async (req) => {
 
   const { payload } = req;
   const isHourlyAndBadPayload = subscription.service.nature === HOURLY && !payload.weeklyHours;
-  const isFixedAndBadPayload = subscription.service.nature === FIXED && (!payload.weeklyCount || payload.weeklyHours);
+  const isFixedAndBadPayload = subscription.service.nature === FIXED &&
+    (!payload.weeklyCount || payload.weeklyHours || payload.sundays || payload.evenings);
   if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
 
   return exports.authorizeCustomerUpdate(req);
