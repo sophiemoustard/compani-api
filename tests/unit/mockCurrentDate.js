@@ -7,8 +7,7 @@ const mockCurrentDate = (mockedCurrentISO) => {
 };
 
 const unmockCurrentDate = () => {
-  const currentDate = new Date();
-  luxon.Settings.now = () => currentDate.getTime();
+  luxon.Settings.now = () => Date.now();
 };
 
 module.exports = { mockCurrentDate, unmockCurrentDate };
