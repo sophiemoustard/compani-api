@@ -45,7 +45,7 @@ const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
 const EventHistory = require('../../src/models/EventHistory');
 const CustomerAbsence = require('../../src/models/CustomerAbsence');
-const { mockCurrentDate, unmockCurrentDate } = require('../unit/mockCurrentDate');
+const MockUtils = require('../mockUtils');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -624,10 +624,10 @@ describe('POST /events', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('planning_referent');
-      mockCurrentDate('2019-01-24T15:00:00.000Z');
+      MockUtils.mockCurrentDate('2019-01-24T15:00:00.000Z');
     });
     afterEach(() => {
-      unmockCurrentDate();
+      MockUtils.unmockCurrentDate();
     });
 
     it('should create an internal hour', async () => {

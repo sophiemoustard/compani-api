@@ -1,4 +1,4 @@
-const luxon = require('../../src/helpers/dates/luxon');
+const luxon = require('../src/helpers/dates/luxon');
 
 const mockCurrentDate = (mockedCurrentISO) => {
   const luxonExpectedNow = luxon.DateTime.fromISO(mockedCurrentISO);
