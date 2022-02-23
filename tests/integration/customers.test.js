@@ -1195,10 +1195,22 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         versions: [{
           unitTTCRate: 12,
           weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
         }],
       };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id}/subscriptions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
+    it('should return a 422 if try to create fixed service without weeklyCount', async () => {
+      const customer = customersList[2];
+      const payload = { service: serviceIdList[4], versions: [{ unitTTCRate: 12 }] };
 
       const result = await app.inject({
         method: 'POST',
@@ -1404,6 +1416,21 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         unitTTCRate: 1,
         evenings: 3,
       };
+      const customer = customersList[1];
+      const subscription = customer.subscriptions[1];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
+    it('should return a 422 if try to update fixed sub without weeklyCount', async () => {
+      const payload = { unitTTCRate: 1 };
       const customer = customersList[1];
       const subscription = customer.subscriptions[1];
 
