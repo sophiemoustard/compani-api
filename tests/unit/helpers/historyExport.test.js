@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 const { ObjectId } = require('mongodb');
+const has = require('lodash/has');
 const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -1705,12 +1706,12 @@ describe('exportCourseHistory', () => {
       step: new ObjectId(),
     },
   ];
-
+  const company = { _id: new ObjectId(), name: 'Test SAS' };
   const courseList = [
     {
       _id: courseIdList[0],
       type: INTRA,
-      company: { _id: new ObjectId(), name: 'Test SAS' },
+      company,
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
@@ -1719,6 +1720,9 @@ describe('exportCourseHistory', () => {
       trainees: [traineeList[0], traineeList[1], traineeList[2]],
       slotsToPlan: [],
       slots: [courseSlotList[0], courseSlotList[1]],
+      bills: [
+        { course: courseIdList[0], mainFee: { price: 120 }, company, courseFundingOrganisation: { name: 'APA Paris' } },
+      ],
     },
     {
       _id: courseIdList[1],
@@ -1731,6 +1735,7 @@ describe('exportCourseHistory', () => {
       trainees: [traineeList[3], traineeList[4]],
       slotsToPlan: [courseSlotList[4]],
       slots: [courseSlotList[2], courseSlotList[3]],
+      bills: [],
     },
   ];
 
@@ -1746,6 +1751,8 @@ describe('exportCourseHistory', () => {
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0] },
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1] },
   ];
+
+  const credentials = { company: { _id: new ObjectId() } };
 
   let findCourseSlot;
   let findCourse;
@@ -1868,13 +1875,15 @@ describe('exportCourseHistory', () => {
       ['lean']
     ));
 
-    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper
+      .exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([
       [
         'Identifiant',
         'Type',
         'Structure',
+        'Payeur',
         'Programme',
         'Sous-Programme',
         'Infos complémentaires',
@@ -1904,6 +1913,7 @@ describe('exportCourseHistory', () => {
         courseList[0]._id,
         'intra',
         'Test SAS',
+        'APA Paris',
         'Program 1',
         'subProgram 1',
         'group 1',
@@ -1932,6 +1942,7 @@ describe('exportCourseHistory', () => {
       [
         courseList[1]._id,
         'inter_b2b',
+        '',
         '',
         'Program 2',
         'subProgram 2',
@@ -1996,6 +2007,15 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
         { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'bills',
+            select: 'courseFundingOrganisation company',
+            options: { isVendorUser: has(credentials, 'role.vendor') },
+            populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+          }],
+        },
         { query: 'lean' },
       ]
     );

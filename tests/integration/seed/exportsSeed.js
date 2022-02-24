@@ -28,6 +28,8 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
+const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
+const CourseBill = require('../../../src/models/CourseBill');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
@@ -1091,6 +1093,27 @@ const courseList = [
   },
 ];
 
+const courseFundingOrganisation = {
+  _id: new ObjectId(),
+  name: 'APA Paris',
+  address: {
+    street: '1 avenue Denfert Rochereau',
+    zipCode: '75014',
+    city: 'Paris',
+    fullAddress: '1 avenue Denfert Rochereau 75014 Paris',
+    location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+  },
+};
+
+const courseBill =
+  {
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    mainFee: { price: 1200 },
+    company: authCompany._id,
+    courseFundingOrganisation: courseFundingOrganisation._id,
+  };
+
 const activityHistoryList = [
   { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[0]._id },
   { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[1]._id },
@@ -1210,6 +1233,8 @@ const populateDB = async () => {
     SubProgram.create(subProgramList),
     Program.create(programList),
     Course.create(courseList),
+    CourseBill.create(courseBill),
+    CourseFundingOrganisation.create(courseFundingOrganisation),
     CourseSlot.create(courseSlotList),
     CourseSmsHistory.create(smsList),
     Attendance.create(attendanceList),

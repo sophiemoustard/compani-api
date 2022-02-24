@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const has = require('lodash/has');
 const pick = require('lodash/pick');
 const uniqBy = require('lodash/uniqBy');
 const moment = require('../extensions/moment');
@@ -650,7 +651,7 @@ const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   return '';
 };
 
-exports.exportCourseHistory = async (startDate, endDate) => {
+exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
   const courseIds = slots.map(slot => slot.course);
   const courses = await Course
@@ -674,6 +675,12 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     .populate({ path: 'slots', populate: 'attendances' })
     .populate({ path: 'slotsToPlan' })
     .populate({ path: 'trainees', select: 'firstMobileConnection' })
+    .populate({
+      path: 'bills',
+      select: 'courseFundingOrganisation company',
+      options: { isVendorUser: has(credentials, 'role.vendor') },
+      populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+    })
     .lean();
 
   const questionnaireHistories = await QuestionnaireHistory
@@ -726,11 +733,15 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       .filter(trainee => trainee.progress.eLearning >= 0)
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
+    const payer = course.bills
+      .map(bill => get(bill, 'courseFundingOrganisation.name') || get(bill, 'company.name'))
+      .toString();
 
     rows.push({
       Identifiant: course._id,
       Type: course.type,
       Structure: course.type === INTRA ? get(course, 'company.name') : '',
+      Payeur: payer || '',
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,
