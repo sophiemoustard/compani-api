@@ -22,7 +22,7 @@ describe('list', () => {
       {
         course: courseId,
         company: { name: 'Company' },
-        mainFee: { price: 120 },
+        mainFee: { price: 120, count: 2 },
         courseFundingOrganisation: { name: 'Funder' },
       },
     ];
@@ -33,9 +33,9 @@ describe('list', () => {
     expect(result).toEqual([{
       course: courseId,
       company: { name: 'Company' },
-      mainFee: { price: 120 },
+      mainFee: { price: 120, count: 2 },
       courseFundingOrganisation: { name: 'Funder' },
-      netInclTaxes: 120,
+      netInclTaxes: 240,
     }]);
     SinonMongoose.calledOnceWithExactly(
       find,
@@ -65,7 +65,7 @@ describe('create', () => {
     const payload = {
       course: new ObjectId(),
       company: new ObjectId(),
-      mainFee: { price: 120 },
+      mainFee: { price: 120, count: 1 },
       courseFundingOrganisation: new ObjectId(),
     };
     await CourseBillHelper.create(payload);

@@ -9,7 +9,7 @@ exports.list = async (course, credentials) => {
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean();
 
-  return courseBills.map(courseBill => ({ ...courseBill, netInclTaxes: courseBill.mainFee.price }));
+  return courseBills.map(bill => ({ ...bill, netInclTaxes: bill.mainFee.price * bill.mainFee.count }));
 };
 
 exports.create = async payload => CourseBill.create(payload);
