@@ -98,6 +98,19 @@ const serviceList = [
     }],
     nature: HOURLY,
   },
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 100,
+      name: 'Service forfaitaire',
+      surcharge: surcharge._id,
+      exemptFromCharges: false,
+      startDate: '2019-01-18T19:58:15.519Z',
+      vat: 12,
+    }],
+    nature: FIXED,
+  },
 ];
 
 const authBillService = { serviceId: new ObjectId(), name: 'Temps de qualité - autonomie', nature: 'fixed' };
@@ -259,9 +272,13 @@ const customersList = [
       {
         _id: subscriptionId,
         service: serviceList[0]._id,
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 30, evenings: 1, sundays: 2 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 30, evenings: 1, sundays: 2 }],
       },
-      { _id: new ObjectId(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000Z' }] },
+      {
+        _id: new ObjectId(),
+        service: serviceList[2]._id,
+        versions: [{ startDate: '2018-01-05T15:00:00.000Z', weeklyCount: 3, unitTTCRate: 100 }],
+      },
     ],
     fundings: [{
       _id: new ObjectId(),
@@ -337,8 +354,8 @@ const customersList = [
       _id: customerSubscriptionId,
       service: serviceList[0]._id,
       versions: [
-        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00.000Z' },
-        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00.000Z' },
+        { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
       ],
     }],
     fundings: [

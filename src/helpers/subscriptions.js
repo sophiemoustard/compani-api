@@ -36,7 +36,7 @@ exports.subscriptionsAccepted = (customer) => {
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = map(customer.subscriptions, (subscription) => {
         const lastVersion = [...subscription.versions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-        const version = pickBy(pick(lastVersion, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays']));
+        const version = pickBy(pick(lastVersion, ['unitTTCRate', 'weeklyHours', 'weeklyCount', 'evenings', 'sundays']));
 
         return { _id: subscription._id, service: get(subscription, 'service.name'), ...version };
       });
@@ -45,7 +45,7 @@ exports.subscriptionsAccepted = (customer) => {
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
         .map(sub => ({
           _id: sub.subscriptionId,
-          ...pickBy(pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service'])),
+          ...pickBy(pick(sub, ['unitTTCRate', 'weeklyHours', 'weeklyCount', 'evenings', 'sundays', 'service'])),
         }));
 
       return { ...customer, subscriptionsAccepted: isEqual(subscriptions, lastSubscriptions) };
@@ -70,9 +70,10 @@ exports.updateSubscription = async (params, payload) => {
 
 exports.addSubscription = async (customerId, payload) => {
   const customer = await Customer.findById(customerId).lean();
+
   if (customer.subscriptions && customer.subscriptions.length > 0) {
     const isServiceAlreadySubscribed = !!customer.subscriptions
-      .find(subscription => subscription.service.toHexString() === payload.service);
+      .find(subscription => UtilsHelper.areObjectIdsEquals(subscription.service, payload.service));
     if (isServiceAlreadySubscribed) throw Boom.conflict(translate[language].serviceAlreadySubscribed);
   }
 

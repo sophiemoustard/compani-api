@@ -1,6 +1,7 @@
 module.exports = {
-  unitTTCRate: Number,
-  estimatedWeeklyVolume: Number,
-  evenings: Number,
-  sundays: Number,
+  unitTTCRate: { type: Number, required: true },
+  weeklyCount: { type: Number, default: 0 },
+  weeklyHours: { type: Number },
+  evenings: { type: Number },
+  sundays: { type: Number },
 };
