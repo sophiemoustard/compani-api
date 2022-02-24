@@ -759,7 +759,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     });
   }
 
-  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [];
 };
 
 const getAddress = (slot) => {
@@ -815,7 +815,7 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
     });
   }
 
-  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [];
 };
 
 exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
@@ -875,5 +875,5 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
     }
   }
 
-  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [];
 };
