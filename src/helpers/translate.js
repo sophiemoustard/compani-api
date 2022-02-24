@@ -301,6 +301,7 @@ module.exports = {
     courseBillsFound: 'Course bills found.',
     courseBillsNotFound: 'Course bills not found.',
     courseBillCreated: 'Course bill created.',
+    courseBillUpdated: 'Course bill updated.',
     /* Course billing items */
     courseBillingItemExists: 'Course billing item exists.',
     courseBillingItemsFound: 'Course billing items found.',
@@ -673,6 +674,7 @@ module.exports = {
     courseBillsFound: 'Factures de la formation trouvées.',
     courseBillsNotFound: 'Factures de la formation non trouvées.',
     courseBillCreated: 'Facture de la formation créée.',
+    courseBillUpdated: 'Facture de la formation mise à jour.',
     /* Course billing items */
     courseBillingItemExists: 'Item de facturation existant.',
     courseBillingItemsFound: 'Items de facturation trouvés.',

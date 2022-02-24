@@ -13,3 +13,11 @@ exports.list = async (course, credentials) => {
 };
 
 exports.create = async payload => CourseBill.create(payload);
+
+exports.updateCourseBill = async (courseBillId, payload) => {
+  const params = payload.courseFundingOrganisation === ''
+    ? { $unset: payload }
+    : { $set: payload };
+
+  await CourseBill.updateOne({ _id: courseBillId }, params);
+};

@@ -73,3 +73,31 @@ describe('create', () => {
     sinon.assert.calledOnceWithExactly(create, payload);
   });
 });
+
+describe('updateCourseBill', () => {
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(CourseBill, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update a course bill funder', async () => {
+    const courseBillId = new ObjectId();
+    const payload = { courseFundingOrganisation: new ObjectId() };
+    await CourseBillHelper.updateCourseBill(courseBillId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $set: payload });
+  });
+
+  it('should remove a course bill funder', async () => {
+    const courseBillId = new ObjectId();
+    const payload = { courseFundingOrganisation: '' };
+    await CourseBillHelper.updateCourseBill(courseBillId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $unset: payload });
+  });
+});
