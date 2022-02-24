@@ -1427,6 +1427,21 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       });
     });
 
+    it('should return a 422 if hourly subscription for service with billing items without weeklyCount', async () => {
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[4];
+      const payload = { weeklyHours: 24, unitTTCRate: 1, evenings: 3 };
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
     it('should return a 400 if try to update sub without weeklyCount nor weeklyHours', async () => {
       const payload = { unitTTCRate: 1 };
       const customer = customersList[1];

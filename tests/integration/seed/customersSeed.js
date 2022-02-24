@@ -31,7 +31,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
-const subIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+const subIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 const serviceIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 
 const archivedService = new ObjectId();
@@ -209,6 +209,11 @@ const customersList = [
         _id: subIdList[4], // linked to event (no repetition, no funding)
         service: serviceIdList[3],
         versions: [{ unitTTCRate: 20, weeklyHours: 21, evenings: 4, sundays: 5 }],
+      },
+      {
+        _id: subIdList[5], // hourly service with billing items
+        service: serviceIdList[5],
+        versions: [{ unitTTCRate: 20, weeklyHours: 21, weeklyCount: 12, evenings: 4, sundays: 5 }],
       },
     ],
     subscriptionsHistory: [{

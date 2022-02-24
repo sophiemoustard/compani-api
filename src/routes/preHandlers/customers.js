@@ -136,7 +136,10 @@ exports.authorizeSubscriptionUpdate = async (req) => {
   if (subscription.service.isArchived) throw Boom.forbidden();
 
   const { payload } = req;
-  const isHourlyAndBadPayload = subscription.service.nature === HOURLY && !payload.weeklyHours;
+  const serviceLastVersion = UtilsHelper.getLastVersion(subscription.service.versions, 'createdAt');
+
+  const isHourlyAndBadPayload = subscription.service.nature === HOURLY &&
+    (!payload.weeklyHours || (!!get(serviceLastVersion, 'billingItems.length') && !payload.weeklyCount));
   const isFixedAndBadPayload = subscription.service.nature === FIXED &&
     (!payload.weeklyCount || payload.weeklyHours || payload.sundays || payload.evenings);
   if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
