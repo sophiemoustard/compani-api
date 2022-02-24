@@ -32,7 +32,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
 const subIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
-const serviceIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+const serviceIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 
 const archivedService = new ObjectId();
 const otherCompanyCustomerId = new ObjectId();
@@ -131,6 +131,19 @@ const customerServiceList = [
     }],
     nature: HOURLY,
     isArchived: true,
+  },
+  {
+    _id: serviceIdList[5],
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      exemptFromCharges: false,
+      name: 'Service avec articles de facturation',
+      startDate: '2019-01-18T19:58:15',
+      vat: 1,
+      billingItems: [new ObjectId()],
+    }],
+    nature: HOURLY,
   },
 ];
 

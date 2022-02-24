@@ -114,7 +114,10 @@ exports.authorizeSubscriptionCreation = async (req) => {
   }).lean();
   if (!service) throw Boom.forbidden();
 
-  const isHourlyAndBadPayload = service.nature === HOURLY && payload.versions.some(v => !v.weeklyHours);
+  const serviceLastVersion = UtilsHelper.getLastVersion(service.versions, 'createdAt');
+
+  const isHourlyAndBadPayload = service.nature === HOURLY &&
+    payload.versions.some(v => !v.weeklyHours || (!!get(serviceLastVersion, 'billingItems.length') && !v.weeklyCount));
   const isFixedAndBadPayload = service.nature === FIXED &&
     payload.versions.some(v => !v.weeklyCount || v.weeklyHours || v.evenings || v.sundays);
   if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();

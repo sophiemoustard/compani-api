@@ -1233,6 +1233,28 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(422);
     });
 
+    it('should return a 422 if hourly subscription for service with billing items without weeklyCount', async () => {
+      const customer = customersList[1];
+      const payload = {
+        service: serviceIdList[5],
+        versions: [{
+          unitTTCRate: 12,
+          weeklyHours: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id}/subscriptions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
     it('should return 403 if service is archived', async () => {
       const customer = customersList[1];
       const payload = {
