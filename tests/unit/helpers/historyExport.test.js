@@ -1790,7 +1790,7 @@ describe('exportCourseHistory', () => {
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(result).toEqual([]);
+    expect(result).toEqual([['Aucune donnée sur la periode selectionnée']]);
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
@@ -2118,7 +2118,7 @@ describe('exportCourseSlotHistory', () => {
 
     const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(result).toEqual([]);
+    expect(result).toEqual([['Aucune donnée sur la periode selectionnée']]);
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
@@ -2290,7 +2290,7 @@ describe('exportTransportsHistory', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const exportArray = await ExportHelper.exportTransportsHistory('2021-06-24', '2021-06-30', credentials);
 
-    expect(exportArray).toEqual([]);
+    expect(exportArray).toEqual([['Aucune donnée sur la periode selectionnée']]);
     sinon.assert.notCalled(getPaidTransportInfo);
   });
 

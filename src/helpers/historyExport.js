@@ -53,6 +53,8 @@ const UserRepository = require('../repositories/UserRepository');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 
+const NO_DATA = 'Aucune donnée sur la periode selectionnée';
+
 const workingEventExportHeader = [
   'Type',
   'Heure interne',
@@ -759,7 +761,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     });
   }
 
-  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };
 
 const getAddress = (slot) => {
@@ -815,7 +817,7 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
     });
   }
 
-  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };
 
 exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
@@ -875,5 +877,5 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
     }
   }
 
-  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };
