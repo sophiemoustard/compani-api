@@ -1,4 +1,5 @@
 const has = require('lodash/has');
+const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 
 exports.list = async (course, credentials) => {
@@ -9,7 +10,8 @@ exports.list = async (course, credentials) => {
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean();
 
-  return courseBills.map(bill => ({ ...bill, netInclTaxes: bill.mainFee.price * bill.mainFee.count }));
+  return courseBills
+    .map(bill => ({ ...bill, netInclTaxes: NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count) }));
 };
 
 exports.create = async payload => CourseBill.create(payload);
