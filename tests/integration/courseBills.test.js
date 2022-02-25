@@ -214,7 +214,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     it('should add a courseFundingOrganisation to course bill', async () => {
       const countBefore = await CourseBill.countDocuments({
         _id: courseBillsList[0]._id,
-        courseFundingOrganisation: { $exists: true },
+        courseFundingOrganisation: { $exists: false },
       });
 
       const response = await app.inject({
@@ -230,11 +230,16 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
         _id: courseBillsList[0]._id,
         courseFundingOrganisation: courseFundingOrganisationList[0]._id,
       });
-      expect(countBefore).toBeFalsy();
+      expect(countBefore).toBeTruthy();
       expect(countAfter).toBeTruthy();
     });
 
     it('should change courseFundingOrganisation to course bill', async () => {
+      const countBefore = await CourseBill.countDocuments({
+        _id: courseBillsList[1]._id,
+        courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+      });
+
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[1]._id}`,
@@ -244,14 +249,18 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const count = await CourseBill.countDocuments({
+      const countAfter = await CourseBill.countDocuments({
         _id: courseBillsList[1]._id,
         courseFundingOrganisation: courseFundingOrganisationList[1]._id,
       });
-      expect(count).toBeTruthy();
+      expect(countBefore).toBeTruthy();
+      expect(countAfter).toBeTruthy();
     });
 
     it('should remove courseFundingOrganisation on course bill', async () => {
+      const countBefore = await CourseBill
+        .countDocuments({ _id: courseBillsList[1]._id, courseFundingOrganisation: { $exists: true } });
+
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[1]._id}`,
@@ -261,9 +270,10 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const count = await CourseBill
+      const countAfter = await CourseBill
         .countDocuments({ _id: courseBillsList[1]._id, courseFundingOrganisation: { $exists: false } });
-      expect(count).toBeTruthy();
+      expect(countBefore).toBeTruthy();
+      expect(countAfter).toBeTruthy();
     });
 
     it('should return 404 if course bill doesn\'t exist', async () => {
