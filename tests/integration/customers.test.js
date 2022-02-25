@@ -1206,6 +1206,20 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(400);
     });
 
+    it('should return a 400 if weeklyCount is not an integer', async () => {
+      const customer = customersList[2];
+      const payload = { service: serviceIdList[4], versions: [{ unitTTCRate: 12, weeklyCount: 12.4 }] };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id}/subscriptions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(400);
+    });
+
     it('should return a 422 if try to create hourly service without weeklyHours', async () => {
       const customer = customersList[1];
       const payload = {
@@ -1409,6 +1423,21 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
     it('should return a 400 if try to update sub without weeklyCount nor weeklyHours', async () => {
       const payload = { unitTTCRate: 1 };
+      const customer = customersList[1];
+      const subscription = customer.subscriptions[1];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if weeklyCount is not an integer', async () => {
+      const payload = { unitTTCRate: 1, weeklyCount: 12.4 };
       const customer = customersList[1];
       const subscription = customer.subscriptions[1];
 
