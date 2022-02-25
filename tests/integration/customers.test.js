@@ -369,7 +369,7 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.result.data.customers[0].contact).toBeDefined();
         const customer = res.result.data.customers
           .find(cus => UtilsHelper.areObjectIdsEquals(cus._id, customersList[0]._id));
-        expect(customer.subscriptions.length).toEqual(4);
+        expect(customer.subscriptions.length).toEqual(5);
         expect(customer.referentHistories.length).toEqual(2);
       });
 
@@ -1138,12 +1138,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         service: serviceIdList[1],
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1215,12 +1210,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         service: serviceIdList[1],
-        versions: [{
-          unitTTCRate: 12,
-          weeklyCount: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyCount: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1237,12 +1227,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         service: serviceIdList[5],
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1259,12 +1244,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         service: archivedService,
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1281,12 +1261,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         service: customer.subscriptions[0].service,
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1303,12 +1278,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         service: customer.subscriptions[0].service,
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1324,12 +1294,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     describe('Other roles', () => {
       const payload = {
         service: serviceIdList[1],
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const roles = [
