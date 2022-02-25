@@ -1835,6 +1835,15 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
         { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'bills',
+            select: 'courseFundingOrganisation company',
+            options: { isVendorUser: has(credentials, 'role.vendor') },
+            populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+          }],
+        },
         { query: 'lean' },
       ]
     );
