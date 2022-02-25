@@ -16,7 +16,7 @@ exports.create = async payload => CourseBill.create(payload);
 
 exports.updateCourseBill = async (courseBillId, payload) => {
   const params = payload.courseFundingOrganisation === ''
-    ? { $unset: payload }
+    ? { $unset: { courseFundingOrganisation: '' } }
     : { $set: payload };
 
   await CourseBill.updateOne({ _id: courseBillId }, params);

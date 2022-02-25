@@ -50,6 +50,7 @@ CourseSchema.virtual('bills', {
   ref: 'CourseBill',
   localField: '_id',
   foreignField: 'course',
+  options: { sort: { createdAt: -1 } },
 });
 
 CourseSchema.virtual('companies').get(getCompanies);

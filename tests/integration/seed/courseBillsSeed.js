@@ -44,7 +44,7 @@ const courseList = [
 
   },
 ];
-const courseFundingOrganisation = [
+const courseFundingOrganisationList = [
   {
     _id: new ObjectId(),
     name: 'APA Paris',
@@ -76,7 +76,7 @@ const courseBillsList = [
     course: courseList[1]._id,
     company: authCompany._id,
     mainFee: { price: 120 },
-    courseFundingOrganisation: courseFundingOrganisation[0]._id,
+    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
   },
 ];
 
@@ -85,7 +85,7 @@ const populateDB = async () => {
 
   await Promise.all([
     Course.create(courseList),
-    CourseFundingOrganisation.create(courseFundingOrganisation),
+    CourseFundingOrganisation.create(courseFundingOrganisationList),
     CourseBill.create(courseBillsList),
   ]);
 };
@@ -93,6 +93,6 @@ const populateDB = async () => {
 module.exports = {
   populateDB,
   courseBillsList,
-  courseFundingOrganisation,
+  courseFundingOrganisationList,
   courseList,
 };

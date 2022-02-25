@@ -3,7 +3,7 @@ const { ObjectId } = require('mongodb');
 const { omit } = require('lodash');
 const CourseBill = require('../../src/models/CourseBill');
 const app = require('../../server');
-const { populateDB, courseBillsList, courseList, courseFundingOrganisation } = require('./seed/courseBillsSeed');
+const { populateDB, courseBillsList, courseList, courseFundingOrganisationList } = require('./seed/courseBillsSeed');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
 const { getToken } = require('./helpers/authentication');
@@ -54,7 +54,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         company: authCompany._id,
         mainFee: { price: 120 },
         netInclTaxes: 120,
-        courseFundingOrganisation: courseFundingOrganisation[0]._id,
+        courseFundingOrganisation: courseFundingOrganisationList[0]._id,
       });
     });
 
@@ -99,7 +99,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
     course: courseList[2]._id,
     company: otherCompany._id,
     mainFee: { price: 120 },
-    courseFundingOrganisation: courseFundingOrganisation[0]._id,
+    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
   };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -203,7 +203,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = {
-    courseFundingOrganisation: courseFundingOrganisation[0]._id,
+    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
   };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -212,6 +212,11 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     });
 
     it('should add a courseFundingOrganisation to course bill', async () => {
+      const countBefore = await CourseBill.countDocuments({
+        _id: courseBillsList[0]._id,
+        courseFundingOrganisation: { $exists: true },
+      });
+
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[0]._id}`,
@@ -221,9 +226,12 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const count = await CourseBill
-        .countDocuments({ _id: courseBillsList[0]._id, courseFundingOrganisation: courseFundingOrganisation[0]._id });
-      expect(count).toBeTruthy();
+      const countAfter = await CourseBill.countDocuments({
+        _id: courseBillsList[0]._id,
+        courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+      });
+      expect(countBefore).toBeFalsy();
+      expect(countAfter).toBeTruthy();
     });
 
     it('should change courseFundingOrganisation to course bill', async () => {
@@ -231,13 +239,15 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
         method: 'PUT',
         url: `/coursebills/${courseBillsList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { courseFundingOrganisation: courseFundingOrganisation[1]._id },
+        payload: { courseFundingOrganisation: courseFundingOrganisationList[1]._id },
       });
 
       expect(response.statusCode).toBe(200);
 
-      const count = await CourseBill
-        .countDocuments({ _id: courseBillsList[1]._id, courseFundingOrganisation: courseFundingOrganisation[1]._id });
+      const count = await CourseBill.countDocuments({
+        _id: courseBillsList[1]._id,
+        courseFundingOrganisation: courseFundingOrganisationList[1]._id,
+      });
       expect(count).toBeTruthy();
     });
 
