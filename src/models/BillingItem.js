@@ -11,7 +11,7 @@ const {
 const BILLING_ITEM_TYPES = [MANUAL, PER_INTERVENTION];
 
 const BillingItemSchema = mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   type: { type: String, enum: BILLING_ITEM_TYPES, required: true, immutable: true },
   defaultUnitAmount: { type: Number, required: true },
   vat: { type: Number, required: true },
