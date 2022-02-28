@@ -2,8 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create } = require('../controllers/courseBillController');
-const { authorizeCourseBillCreation, authorizeCourseBillGet } = require('./preHandlers/courseBills');
+const { list, create, update } = require('../controllers/courseBillController');
+const {
+  authorizeCourseBillCreation,
+  authorizeCourseBillGet,
+  authorizeCourseBillUpdate,
+} = require('./preHandlers/courseBills');
 
 exports.plugin = {
   name: 'routes-course-bills',
@@ -35,6 +39,19 @@ exports.plugin = {
         pre: [{ method: authorizeCourseBillCreation }],
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        validate: {
+          payload: Joi.object({ courseFundingOrganisation: Joi.objectId().allow('') }),
+        },
+        pre: [{ method: authorizeCourseBillUpdate }],
+      },
+      handler: update,
     });
   },
 };

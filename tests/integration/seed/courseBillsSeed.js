@@ -44,17 +44,30 @@ const courseList = [
 
   },
 ];
-const courseFundingOrganisation = {
-  _id: new ObjectId(),
-  name: 'APA Paris',
-  address: {
-    street: '1 avenue Denfert Rochereau',
-    zipCode: '75014',
-    city: 'Paris',
-    fullAddress: '1 avenue Denfert Rochereau 75014 Paris',
-    location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+const courseFundingOrganisationList = [
+  {
+    _id: new ObjectId(),
+    name: 'APA Paris',
+    address: {
+      street: '1 avenue Denfert Rochereau',
+      zipCode: '75014',
+      city: 'Paris',
+      fullAddress: '1 avenue Denfert Rochereau 75014 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
-};
+  {
+    _id: new ObjectId(),
+    name: 'APA Lyon',
+    address: {
+      street: '1 avenue Denfert Rochereau',
+      zipCode: '69002',
+      city: 'Lyon',
+      fullAddress: '1 avenue Denfert Rochereau 69002 Lyon',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
+  },
+];
 
 const courseBillsList = [
   { _id: new ObjectId(), course: courseList[0]._id, company: authCompany._id, mainFee: { price: 120 } },
@@ -63,7 +76,7 @@ const courseBillsList = [
     course: courseList[1]._id,
     company: authCompany._id,
     mainFee: { price: 120 },
-    courseFundingOrganisation: courseFundingOrganisation._id,
+    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
   },
 ];
 
@@ -72,7 +85,7 @@ const populateDB = async () => {
 
   await Promise.all([
     Course.create(courseList),
-    CourseFundingOrganisation.create(courseFundingOrganisation),
+    CourseFundingOrganisation.create(courseFundingOrganisationList),
     CourseBill.create(courseBillsList),
   ]);
 };
@@ -80,6 +93,6 @@ const populateDB = async () => {
 module.exports = {
   populateDB,
   courseBillsList,
-  courseFundingOrganisation,
+  courseFundingOrganisationList,
   courseList,
 };
