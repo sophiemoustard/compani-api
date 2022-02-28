@@ -16,7 +16,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations #tag', () => {
+describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
   let authToken;
   beforeEach(populateDB);
 

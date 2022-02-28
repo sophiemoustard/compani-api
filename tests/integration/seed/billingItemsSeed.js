@@ -22,9 +22,9 @@ const billingItemList = [
     company: authCompany._id,
     vat: 2,
   },
-  { // 2
+  { // 2 from other company
     _id: new ObjectId(),
-    name: 'An existing billing',
+    name: 'Billing ual',
     type: 'per_intervention',
     defaultUnitAmount: 25,
     company: otherCompany._id,
