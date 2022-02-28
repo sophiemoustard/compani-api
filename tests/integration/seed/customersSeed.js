@@ -31,8 +31,8 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
-const subIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
-const serviceIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+const subIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+const serviceIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 
 const archivedService = new ObjectId();
 const otherCompanyCustomerId = new ObjectId();
@@ -132,6 +132,19 @@ const customerServiceList = [
     nature: HOURLY,
     isArchived: true,
   },
+  {
+    _id: serviceIdList[5],
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      exemptFromCharges: false,
+      name: 'Service avec articles de facturation',
+      startDate: '2019-01-18T19:58:15',
+      vat: 1,
+      billingItems: [new ObjectId()],
+    }],
+    nature: HOURLY,
+  },
 ];
 
 const customerThirdPartyPayers = [
@@ -196,6 +209,11 @@ const customersList = [
         _id: subIdList[4], // linked to event (no repetition, no funding)
         service: serviceIdList[3],
         versions: [{ unitTTCRate: 20, weeklyHours: 21, evenings: 4, sundays: 5 }],
+      },
+      {
+        _id: subIdList[5], // hourly service with billing items
+        service: serviceIdList[5],
+        versions: [{ unitTTCRate: 20, weeklyHours: 21, weeklyCount: 12, evenings: 4, sundays: 5 }],
       },
     ],
     subscriptionsHistory: [{

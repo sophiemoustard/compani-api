@@ -114,7 +114,10 @@ exports.authorizeSubscriptionCreation = async (req) => {
   }).lean();
   if (!service) throw Boom.forbidden();
 
-  const isHourlyAndBadPayload = service.nature === HOURLY && payload.versions.some(v => !v.weeklyHours);
+  const serviceLastVersion = UtilsHelper.getLastVersion(service.versions, 'createdAt');
+
+  const isHourlyAndBadPayload = service.nature === HOURLY &&
+    payload.versions.some(v => !v.weeklyHours || (!!get(serviceLastVersion, 'billingItems.length') && !v.weeklyCount));
   const isFixedAndBadPayload = service.nature === FIXED &&
     payload.versions.some(v => !v.weeklyCount || v.weeklyHours || v.evenings || v.sundays);
   if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
@@ -133,7 +136,10 @@ exports.authorizeSubscriptionUpdate = async (req) => {
   if (subscription.service.isArchived) throw Boom.forbidden();
 
   const { payload } = req;
-  const isHourlyAndBadPayload = subscription.service.nature === HOURLY && !payload.weeklyHours;
+  const serviceLastVersion = UtilsHelper.getLastVersion(subscription.service.versions, 'createdAt');
+
+  const isHourlyAndBadPayload = subscription.service.nature === HOURLY &&
+    (!payload.weeklyHours || (!!get(serviceLastVersion, 'billingItems.length') && !payload.weeklyCount));
   const isFixedAndBadPayload = subscription.service.nature === FIXED &&
     (!payload.weeklyCount || payload.weeklyHours || payload.sundays || payload.evenings);
   if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();

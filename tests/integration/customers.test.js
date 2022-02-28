@@ -369,7 +369,7 @@ describe('CUSTOMERS ROUTES', () => {
         expect(res.result.data.customers[0].contact).toBeDefined();
         const customer = res.result.data.customers
           .find(cus => UtilsHelper.areObjectIdsEquals(cus._id, customersList[0]._id));
-        expect(customer.subscriptions.length).toEqual(4);
+        expect(customer.subscriptions.length).toEqual(5);
         expect(customer.referentHistories.length).toEqual(2);
       });
 
@@ -1138,12 +1138,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         service: serviceIdList[1],
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1211,16 +1206,42 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(400);
     });
 
+    it('should return a 400 if weeklyCount is not an integer', async () => {
+      const customer = customersList[2];
+      const payload = { service: serviceIdList[4], versions: [{ unitTTCRate: 12, weeklyCount: 12.4 }] };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id}/subscriptions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(400);
+    });
+
     it('should return a 422 if try to create hourly service without weeklyHours', async () => {
       const customer = customersList[1];
       const payload = {
         service: serviceIdList[1],
-        versions: [{
-          unitTTCRate: 12,
-          weeklyCount: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyCount: 12, evenings: 2, sundays: 1 }],
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id}/subscriptions`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
+    it('should return a 422 if hourly subscription for service with billing items without weeklyCount', async () => {
+      const customer = customersList[1];
+      const payload = {
+        service: serviceIdList[5],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1237,12 +1258,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         service: archivedService,
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1259,12 +1275,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         service: customer.subscriptions[0].service,
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1281,12 +1292,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         service: customer.subscriptions[0].service,
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1302,12 +1308,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     describe('Other roles', () => {
       const payload = {
         service: serviceIdList[1],
-        versions: [{
-          unitTTCRate: 12,
-          weeklyHours: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
       };
 
       const roles = [
@@ -1405,8 +1406,38 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       });
     });
 
+    it('should return a 422 if hourly subscription for service with billing items without weeklyCount', async () => {
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[4];
+      const payload = { weeklyHours: 24, unitTTCRate: 1, evenings: 3 };
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(422);
+    });
+
     it('should return a 400 if try to update sub without weeklyCount nor weeklyHours', async () => {
       const payload = { unitTTCRate: 1 };
+      const customer = customersList[1];
+      const subscription = customer.subscriptions[1];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}/subscriptions/${subscription._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if weeklyCount is not an integer', async () => {
+      const payload = { unitTTCRate: 1, weeklyCount: 12.4 };
       const customer = customersList[1];
       const subscription = customer.subscriptions[1];
 

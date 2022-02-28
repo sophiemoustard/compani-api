@@ -130,7 +130,7 @@ exports.getCustomersWithSubscriptions = async (credentials) => {
 exports.getCustomer = async (customerId, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   let customer = await Customer.findOne({ _id: customerId })
-    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge versions.billingItems' } })
     .populate({ path: 'fundings.thirdPartyPayer' })
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .populate({ path: 'referent', match: { company: companyId } })
