@@ -8,7 +8,7 @@ const Customer = require('./Customer');
 const TELETRANSMISSION_TYPES = [APA, AM, PCH];
 
 const ThirdPartyPayerSchema = mongoose.Schema({
-  name: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
   email: { type: String },
   unitTTCRate: { type: Number },

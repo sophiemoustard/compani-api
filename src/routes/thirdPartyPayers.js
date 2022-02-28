@@ -3,7 +3,11 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { authorizeThirdPartyPayersUpdate } = require('./preHandlers/thirdPartyPayers');
+const {
+  authorizeThirdPartyPayersCreation,
+  authorizeThirdPartyPayersUpdate,
+  authorizeThirdPartyPayerDeletion,
+} = require('./preHandlers/thirdPartyPayers');
 const {
   create,
   list,
@@ -33,6 +37,7 @@ exports.plugin = {
             teletransmissionId: Joi.string(),
           }),
         },
+        pre: [{ method: authorizeThirdPartyPayersCreation }],
       },
     });
 
@@ -76,7 +81,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeThirdPartyPayersUpdate }],
+        pre: [{ method: authorizeThirdPartyPayerDeletion }],
       },
     });
   },

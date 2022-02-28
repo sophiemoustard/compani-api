@@ -63,7 +63,6 @@ module.exports = {
     companyFound: 'Company found.',
     companyNotFound: 'Company not found.',
     companyExists: 'Company already exists.',
-    companyNameExistsOnOther: 'Company name already exists on other company.',
     companyLinkRequestCreated: 'Company link request created.',
     companyLinkRequestsFound: 'Company link requests found.',
     companyLinkRequestDeleted: 'Company link request deleted.',
@@ -189,6 +188,7 @@ module.exports = {
     /* Third party payers */
     thirdPartyPayerCreated: 'Company third party payer created.',
     thirdPartyPayersFound: 'Company third party payers found.',
+    thirdPartyPayerExits: 'Company third party payer already exists.',
     thirdPartyPayersNotFound: 'Company third party payers not found.',
     thirdPartyPayerUpdated: 'Company third party payer updated.',
     thirdPartyPayerDeleted: 'Company third party payer deleted.',
@@ -435,7 +435,6 @@ module.exports = {
     companyFound: 'Entreprise trouvée.',
     companyNotFound: 'Entreprise non trouvée.',
     companyExists: 'Entreprise déjà existante.',
-    companyNameExistsOnOther: 'Le nom de l\'entreprise existe déjà sur une autre entreprise.',
     companyLinkRequestCreated: 'Demande de rattachement à une structure créée.',
     companyLinkRequestsFound: 'Demandes de rattachement à la structure trouvées.',
     companyLinkRequestDeleted: 'Demande de rattachement à la structure supprimée.',
@@ -563,6 +562,7 @@ module.exports = {
     /* Third party payers */
     thirdPartyPayerCreated: 'Tiers payeur de l\'entreprise créé.',
     thirdPartyPayersFound: 'Tiers payeurs de l\'entreprise trouvés.',
+    thirdPartyPayerExits: 'Tiers payeur déjà existant.',
     thirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
     thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',

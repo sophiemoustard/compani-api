@@ -27,10 +27,10 @@ exports.authorizeCompanyUpdate = async (req) => {
     throw Boom.forbidden();
   }
 
-  const nameAlreadyExistsOnOther = await Company
+  const nameAlreadyExists = await Company
     .countDocuments({ _id: { $ne: req.params._id }, name: req.payload.name }, { limit: 1 })
     .collation({ locale: 'fr', strength: 1 });
-  if (nameAlreadyExistsOnOther) throw Boom.conflict(translate[language].companyNameExistsOnOther);
+  if (nameAlreadyExists) throw Boom.conflict(translate[language].companyExists);
 
   return null;
 };
