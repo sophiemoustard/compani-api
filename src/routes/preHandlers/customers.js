@@ -119,7 +119,7 @@ exports.authorizeSubscriptionCreation = async (req) => {
   const isHourlyAndBadPayload = service.nature === HOURLY &&
     payload.versions.some(v => !v.weeklyHours || (!!get(serviceLastVersion, 'billingItems.length') && !v.weeklyCount));
   const isFixedAndBadPayload = service.nature === FIXED &&
-    payload.versions.some(v => !v.weeklyCount || v.weeklyHours || v.evenings || v.sundays);
+    payload.versions.some(v => !v.weeklyCount || v.weeklyHours || v.evenings || v.saturdays || v.sundays);
   if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
 
   return exports.authorizeCustomerUpdate(req);
