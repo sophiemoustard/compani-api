@@ -6,7 +6,9 @@ const { language } = translate;
 
 exports.authorizeCourseFundingOrganisationCreation = async (req) => {
   const { name } = req.payload;
-  const nameAlreadyExists = await CourseFundingOrganisation.countDocuments({ name }, { limit: 1 });
+  const nameAlreadyExists = await CourseFundingOrganisation
+    .countDocuments({ name }, { limit: 1 })
+    .collation({ locale: 'fr', strength: 1 });
   if (nameAlreadyExists) throw Boom.conflict(translate[language].courseFundingOrganisationExists);
 
   return null;
