@@ -35,7 +35,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.result.data.courseBills[0]).toMatchObject({
         course: courseList[0]._id,
         company: authCompany._id,
-        mainFee: { price: 120 },
+        mainFee: { price: 120, count: 1 },
         netInclTaxes: 120,
       });
     });
@@ -52,8 +52,8 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.result.data.courseBills[0]).toMatchObject({
         course: courseList[1]._id,
         company: authCompany._id,
-        mainFee: { price: 120 },
-        netInclTaxes: 120,
+        mainFee: { price: 120, count: 2 },
+        netInclTaxes: 240,
         courseFundingOrganisation: courseFundingOrganisationList[0]._id,
       });
     });
@@ -98,7 +98,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
   const payload = {
     course: courseList[2]._id,
     company: otherCompany._id,
-    mainFee: { price: 120 },
+    mainFee: { price: 120, count: 1 },
     courseFundingOrganisation: courseFundingOrganisationList[0]._id,
   };
 
@@ -135,13 +135,33 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(count).toBe(courseBillsList.length + 1);
     });
 
-    const missingParams = ['course', 'company', 'mainFee', 'mainFee.price'];
+    const missingParams = ['course', 'company', 'mainFee', 'mainFee.price', 'mainFee.count'];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/coursebills',
           payload: omit(payload, param),
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    const wrongValues = [
+      { key: 'price', value: -200 },
+      { key: 'price', value: '200€' },
+      { key: 'count', value: -200 },
+      { key: 'count', value: 1.23 },
+      { key: 'count', value: '1x' },
+    ];
+    wrongValues.forEach((param) => {
+      it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/coursebills',
+          payload: { ...payload, mainFee: { ...payload.mainFee, [param.key]: param.value } },
           headers: { 'x-access-token': authToken },
         });
 

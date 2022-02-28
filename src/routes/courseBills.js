@@ -31,7 +31,10 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             course: Joi.objectId().required(),
-            mainFee: Joi.object({ price: Joi.number().positive().required() }).required(),
+            mainFee: Joi.object({
+              price: Joi.number().positive().required(),
+              count: Joi.number().positive().integer().required(),
+            }).required(),
             company: Joi.objectId().required(),
             courseFundingOrganisation: Joi.objectId(),
           }),
