@@ -1,9 +1,12 @@
 const expect = require('expect');
 const app = require('../../server');
-const { populateDB, partnerOrganizationsList } = require('./seed/partnerOrganizationsSeed');
+const {
+  populateDB,
+  authPartnerOrganizationsList,
+  otherPartnerOrganization,
+} = require('./seed/partnerOrganizationsSeed');
 const { getToken } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
-const { areObjectIdsEquals } = require('../../src/helpers/utils');
 const PartnerOrganization = require('../../src/models/PartnerOrganization');
 const Partner = require('../../src/models/Partner');
 
@@ -13,39 +16,63 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations', () => {
+describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations #tag', () => {
   let authToken;
   beforeEach(populateDB);
 
   describe('COACH', () => {
+    const payload = {
+      name: 'Etchebest Corporation',
+      phone: '0123456789',
+      email: 'sku@alenvi.io',
+      address: {
+        fullAddress: '24 avenue Daumesnil 75012 Paris',
+        zipCode: '75012',
+        city: 'Paris',
+        street: '24 avenue Daumesnil',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+    };
     beforeEach(async () => {
       authToken = await getToken('coach');
     });
 
     it('should add a partner organization', async () => {
-      const partnerOrganizationsCountBefore = await PartnerOrganization.countDocuments();
-
       const response = await app.inject({
         method: 'POST',
         url: '/partnerorganizations',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
-          name: 'Etchebest Corporation',
-          phone: '0123456789',
-          email: 'sku@alenvi.io',
-          address: {
-            fullAddress: '24 avenue Daumesnil 75012 Paris',
-            zipCode: '75012',
-            city: 'Paris',
-            street: '24 avenue Daumesnil',
-            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
-          },
-        },
+        payload,
       });
 
       expect(response.statusCode).toBe(200);
-      const partnerOrganizationsCount = await PartnerOrganization.countDocuments();
-      expect(partnerOrganizationsCount).toEqual(partnerOrganizationsCountBefore + 1);
+      const partnerOrganizationsCount = await PartnerOrganization.countDocuments({ company: authCompany._id });
+      expect(partnerOrganizationsCount).toEqual(authPartnerOrganizationsList.length + 1);
+    });
+
+    it('should create partner organization even if one organization in other company has same name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/partnerorganizations',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'EHPAD UTOUT' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const partnerOrganizationsCount = await PartnerOrganization.countDocuments({ company: authCompany._id });
+      expect(partnerOrganizationsCount).toBe(authPartnerOrganizationsList.length + 1);
+    });
+
+    it('should return 409 if other tpp in same company has same name (case and diacritics insensitive)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/partnerorganizations',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'GoooGLE' },
+      });
+
+      expect(response.statusCode).toBe(409);
     });
 
     it('should return 400 if missing name', async () => {
@@ -137,9 +164,6 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
     });
 
     it('should list partner organizations from my company', async () => {
-      const partnerOrganizationsFromAuthCompany = partnerOrganizationsList
-        .filter(po => areObjectIdsEquals(po.company, authCompany._id));
-
       const response = await app.inject({
         method: 'GET',
         url: '/partnerorganizations',
@@ -147,7 +171,7 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.partnerOrganizations.length).toBe(partnerOrganizationsFromAuthCompany.length);
+      expect(response.result.data.partnerOrganizations.length).toBe(authPartnerOrganizationsList.length);
     });
   });
 
@@ -185,18 +209,18 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
     it('should return a partner organization', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.partnerOrganization._id).toEqual(partnerOrganizationsList[0]._id);
+      expect(response.result.data.partnerOrganization._id).toEqual(authPartnerOrganizationsList[0]._id);
     });
 
     it('should return 404 if partner organization isn\'t from auth company', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/partnerorganizations/${partnerOrganizationsList[1]._id}`,
+        url: `/partnerorganizations/${otherPartnerOrganization._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -216,7 +240,7 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+          url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -226,7 +250,7 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
   });
 });
 
-describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => {
+describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id} #tag', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -235,24 +259,53 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
       authToken = await getToken('coach');
     });
 
-    it('should update a partner organization', async () => {
+    it('should update partner organization name even if only case or diacritics have changed', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'skusku' },
+        payload: { name: 'Goôogle' },
       });
 
       expect(response.statusCode).toBe(200);
-      const partnerOrganizationUpdated = await PartnerOrganization
-        .countDocuments({ _id: partnerOrganizationsList[0]._id, name: 'skusku' });
-      expect(partnerOrganizationUpdated).toEqual(1);
+
+      const updatedTpp = await PartnerOrganization
+        .countDocuments({ _id: authPartnerOrganizationsList[0]._id, name: 'Goôogle' });
+      expect(updatedTpp).toBe(1);
     });
+
+    it('should update partner organization name even if organisation in other company has same name', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'EHPAD UTOUT' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedTpp = await PartnerOrganization
+        .countDocuments({ _id: authPartnerOrganizationsList[0]._id, name: 'EHPAD UTOUT' });
+      expect(updatedTpp).toBe(1);
+    });
+
+    it('should return 409 if other organization in same company has same name (case and diacritics insensitive)',
+      async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { name: 'EPHAD Awan' },
+        });
+
+        expect(response.statusCode).toBe(409);
+      }
+    );
 
     it('should return 400 if name is not a string', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: null },
       });
@@ -263,7 +316,7 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
     it('should return 400 if phone is not a phoneNumber', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { phone: 'coucou' },
       });
@@ -274,7 +327,7 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
     it('should return 400 if address is not an address', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { address: 'coucou' },
       });
@@ -285,7 +338,7 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
     it('should return 400 if email is not a email', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { email: 'coucou' },
       });
@@ -296,23 +349,12 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
     it('should return a 404 if partnerOrganization isn\'t from auth company', async () => {
       const response = await app.inject({
         method: 'PUT',
-        url: `/partnerorganizations/${partnerOrganizationsList[1]._id}`,
+        url: `/partnerorganizations/${otherPartnerOrganization._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'skusku' },
       });
 
       expect(response.statusCode).toBe(404);
-    });
-
-    it('should return 409 if name is from an already existing partner organization', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'Gooogle' },
-      });
-
-      expect(response.statusCode).toBe(409);
     });
   });
 
@@ -328,7 +370,7 @@ describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => 
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',
-          url: `/partnerorganizations/${partnerOrganizationsList[0]._id}`,
+          url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { name: 'skusku' },
         });
@@ -353,7 +395,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
 
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, job: 'doctor' },
       });
@@ -366,7 +408,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if missing lastname', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur' }, job: 'doctor' },
       });
@@ -377,7 +419,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if missing identity', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { job: 'doctor' },
       });
@@ -388,7 +430,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if job isn\'t listed', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Leo', lastname: 'Ferreira' }, job: 'web_dev' },
       });
@@ -399,7 +441,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if email is invalid', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, email: 'docteur.maboul' },
       });
@@ -410,7 +452,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 400 if phone is invalid', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
+        url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, phone: 'skusku' },
       });
@@ -421,7 +463,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
     it('should return a 404 if partnerOrganization isn\'t from auth company', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/partnerorganizations/${partnerOrganizationsList[1]._id}/partners`,
+        url: `/partnerorganizations/${otherPartnerOrganization._id}/partners`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' } },
       });
@@ -443,7 +485,7 @@ describe('PARTNER ORGANIZATION ROUTES - POST /partnerorganizations/{_id}/partner
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/partnerorganizations/${partnerOrganizationsList[0]._id}/partners`,
+          url: `/partnerorganizations/${authPartnerOrganizationsList[0]._id}/partners`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { identity: { firstname: 'Docteur', lastname: 'Maboul' }, job: 'doctor' },
         });

@@ -3,7 +3,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const PartnerOrganization = require('../../../src/models/PartnerOrganization');
 
-const partnerOrganizationsList = [
+const authPartnerOrganizationsList = [
   {
     _id: new ObjectId(),
     name: 'Gooogle',
@@ -18,16 +18,19 @@ const partnerOrganizationsList = [
     },
     company: authCompany._id,
   },
-  { _id: new ObjectId(), name: 'EHPAD UTOUT', company: otherCompany._id },
+  { _id: new ObjectId(), name: 'EPHAD Awan', company: authCompany._id },
 ];
+
+const otherPartnerOrganization = { _id: new ObjectId(), name: 'EHPAD UTOUT', company: otherCompany._id };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await PartnerOrganization.create(partnerOrganizationsList);
+  await PartnerOrganization.create([...authPartnerOrganizationsList, otherPartnerOrganization]);
 };
 
 module.exports = {
   populateDB,
-  partnerOrganizationsList,
+  authPartnerOrganizationsList,
+  otherPartnerOrganization,
 };

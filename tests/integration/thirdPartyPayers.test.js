@@ -51,8 +51,8 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         response.result.data.thirdPartyPayer,
         ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company', 'isApa', 'teletransmissionId']
       )).toEqual({ ...payload, company: authCompany._id });
-      const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
-      expect(thirdPartyPayers.length).toBe(thirdPartyPayersList.length + 1);
+      const thirdPartyPayersCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id });
+      expect(thirdPartyPayersCount).toBe(thirdPartyPayersList.length + 1);
     });
 
     it('should create new tpp even if one ttp in other company has same name', async () => {
@@ -65,8 +65,8 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
-      expect(thirdPartyPayers.length).toBe(thirdPartyPayersList.length + 1);
+      const thirdPartyPayersCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id });
+      expect(thirdPartyPayersCount).toBe(thirdPartyPayersList.length + 1);
     });
 
     it('should return 409 if other tpp in same company has same name (case and diacritics insensitive)', async () => {
