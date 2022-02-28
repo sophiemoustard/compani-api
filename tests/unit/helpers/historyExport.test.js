@@ -1721,7 +1721,12 @@ describe('exportCourseHistory', () => {
       slotsToPlan: [],
       slots: [courseSlotList[0], courseSlotList[1]],
       bills: [
-        { course: courseIdList[0], mainFee: { price: 120 }, company, courseFundingOrganisation: { name: 'APA Paris' } },
+        {
+          course: courseIdList[0],
+          mainFee: { price: 120, count: 1 },
+          company,
+          courseFundingOrganisation: { name: 'APA Paris' },
+        },
       ],
     },
     {
