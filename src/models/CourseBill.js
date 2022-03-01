@@ -3,7 +3,11 @@ const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareLi
 
 const CourseBillSchema = mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
-  mainFee: { price: { type: Number, required: true }, count: { type: Number, required: true } },
+  mainFee: {
+    price: { type: Number, required: true },
+    count: { type: Number, required: true },
+    description: { type: String },
+  },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   courseFundingOrganisation: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseFundingOrganisation' },
 }, { timestamps: true });

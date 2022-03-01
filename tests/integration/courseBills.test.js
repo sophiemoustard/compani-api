@@ -52,8 +52,8 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.result.data.courseBills[0]).toMatchObject({
         course: courseList[1]._id,
         company: authCompany._id,
-        mainFee: { price: 120, count: 2 },
-        netInclTaxes: 240,
+        mainFee: { price: 120, count: 1 },
+        netInclTaxes: 120,
         courseFundingOrganisation: courseFundingOrganisationList[0]._id,
       });
     });
@@ -222,9 +222,6 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
 describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
-  const payload = {
-    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
-  };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
@@ -241,7 +238,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
         method: 'PUT',
         url: `/coursebills/${courseBillsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
+        payload: { courseFundingOrganisation: courseFundingOrganisationList[0]._id },
       });
 
       expect(response.statusCode).toBe(200);
@@ -296,11 +293,100 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(countAfter).toBeTruthy();
     });
 
+    it('should update main fee on course bill', async () => {
+      const countBefore = await CourseBill.countDocuments({
+        _id: courseBillsList[0]._id,
+        mainFee: { price: 120, count: 1 },
+      });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { mainFee: { price: 130, count: 1 } },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const countAfter = await CourseBill.countDocuments({
+        _id: courseBillsList[0]._id,
+        mainFee: { price: 130, count: 1 },
+      });
+      expect(countBefore).toBeTruthy();
+      expect(countAfter).toBeTruthy();
+    });
+
+    it('should add main fee description to course bill', async () => {
+      const countBefore = await CourseBill.countDocuments({
+        _id: courseBillsList[0]._id,
+        'mainFee.description': { $exists: false },
+      });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { mainFee: { price: 130, count: 1, description: 'Nouvelle description' } },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const countAfter = await CourseBill.countDocuments({
+        _id: courseBillsList[0]._id,
+        mainFee: { price: 130, count: 1, description: 'Nouvelle description' },
+      });
+      expect(countBefore).toBeTruthy();
+      expect(countAfter).toBeTruthy();
+    });
+
+    it('should change main fee description on course bill', async () => {
+      const countBefore = await CourseBill.countDocuments({
+        _id: courseBillsList[1]._id,
+        mainFee: { description: 'Lorem ipsum' },
+      });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { mainFee: { price: 130, count: 1, description: 'Nouvelle description' } },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const countAfter = await CourseBill.countDocuments({
+        _id: courseBillsList[1]._id,
+        mainFee: { price: 130, count: 1, description: 'Nouvelle description' },
+      });
+      expect(countBefore).toBeTruthy();
+      expect(countAfter).toBeTruthy();
+    });
+
+    it('should remove main fee description on course bill', async () => {
+      const countBefore = await CourseBill
+        .countDocuments({ _id: courseBillsList[1]._id, 'mainFee.description': { $exists: true } });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { mainFee: { price: 130, count: 1, description: '' } },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const countAfter = await CourseBill.countDocuments(
+        { _id: courseBillsList[1]._id, mainFee: { price: 130, count: 1 }, 'mainFee.description': { $exists: false } }
+      );
+      expect(countBefore).toBeTruthy();
+      expect(countAfter).toBeTruthy();
+    });
+
     it('should return 404 if course bill doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${new ObjectId()}`,
-        payload,
+        payload: { courseFundingOrganisation: courseFundingOrganisationList[0]._id },
         headers: { 'x-access-token': authToken },
       });
 
@@ -334,7 +420,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
           method: 'PUT',
           url: `/coursebills/${courseBillsList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload,
+          payload: { courseFundingOrganisation: courseFundingOrganisationList[0]._id },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

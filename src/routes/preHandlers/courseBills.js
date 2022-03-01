@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const Company = require('../../models/Company');
 const Course = require('../../models/Course');
 const CourseBill = require('../../models/CourseBill');
@@ -31,6 +32,8 @@ exports.authorizeCourseBillGet = async (req) => {
 
 exports.authorizeCourseBillUpdate = async (req) => {
   const courseBill = await CourseBill.countDocuments({ _id: req.params._id });
+  if (get(req, 'payload.mainFee.price') === 0) throw Boom.badRequest();
+  if (get(req, 'payload.mainFee.count') === 0) throw Boom.badRequest();
   if (!courseBill) throw Boom.notFound();
 
   if (req.payload.courseFundingOrganisation) {
