@@ -151,8 +151,10 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
 
     const wrongValues = [
       { key: 'price', value: -200 },
+      { key: 'price', value: 0 },
       { key: 'price', value: '200€' },
       { key: 'count', value: -200 },
+      { key: 'count', value: 0 },
       { key: 'count', value: 1.23 },
       { key: 'count', value: '1x' },
     ];
@@ -380,6 +382,30 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       );
       expect(countBefore).toBeTruthy();
       expect(countAfter).toBeTruthy();
+    });
+
+    const wrongValues = [
+      { key: 'price', value: -200 },
+      { key: 'price', value: 0 },
+      { key: 'price', value: '200€' },
+      { key: 'count', value: -200 },
+      { key: 'count', value: 0 },
+      { key: 'count', value: 1.23 },
+      { key: 'count', value: '1x' },
+    ];
+    wrongValues.forEach((param) => {
+      it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
+        const mainFee = { price: 120, count: 1, description: 'lorem ipsum' };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/coursebills/${courseBillsList[1]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { mainFee: { ...mainFee, [param.key]: param.value } },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
     });
 
     it('should return 404 if course bill doesn\'t exist', async () => {
