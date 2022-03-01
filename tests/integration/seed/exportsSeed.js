@@ -274,7 +274,7 @@ const customersList = [
       {
         _id: subscriptionId,
         service: serviceList[0]._id,
-        versions: [{ unitTTCRate: 12, weeklyHours: 30, evenings: 1, sundays: 2 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 30, evenings: 1, sundays: 2, saturdays: 2 }],
       },
       {
         _id: new ObjectId(),

@@ -425,6 +425,7 @@ exports.plugin = {
               startDate: Joi.date(),
               weeklyHours: Joi.number().min(0),
               evenings: Joi.number().min(0),
+              saturdays: Joi.number().min(0),
               sundays: Joi.number().min(0),
             }).or('weeklyCount', 'weeklyHours')).required(),
             helper: Joi.object().keys({

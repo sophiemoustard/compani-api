@@ -425,6 +425,7 @@ exports.exportSubscriptions = async (credentials) => {
           ? UtilsHelper.formatFloatForExport(lastVersion.weeklyCount)
           : '',
         'Dont soirées': lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'evenings')) : '',
+        'Dont samedis': lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'saturdays')) : '',
         'Dont dimanches': lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'sundays')) : '',
       });
     }
