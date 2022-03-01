@@ -250,7 +250,7 @@ describe('PARTNER ORGANIZATION ROUTES - GET /partnerorganizations/{_id}', () => 
   });
 });
 
-describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id} #tag', () => {
+describe('PARTNER ORGANIZATION ROUTES - PUT /partnerorganizations/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 

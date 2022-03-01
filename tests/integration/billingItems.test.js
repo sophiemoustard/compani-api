@@ -40,13 +40,11 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
     const missingParams = ['name', 'type', 'defaultUnitAmount', 'vat'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' is missing in payload`, async () => {
-        const wrongPayload = omit(payload, [param]);
-
         const response = await app.inject({
           method: 'POST',
           url: '/billingitems',
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: wrongPayload,
+          payload: omit(payload, [param]),
         });
 
         expect(response.statusCode).toBe(400);
