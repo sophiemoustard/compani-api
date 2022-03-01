@@ -3,5 +3,6 @@ module.exports = {
   weeklyCount: { type: Number, default: 0 },
   weeklyHours: { type: Number },
   evenings: { type: Number },
+  saturdays: { type: Number },
   sundays: { type: Number },
 };

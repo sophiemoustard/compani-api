@@ -34,19 +34,17 @@ exports.populateSubscriptionsServices = (customer) => {
 exports.subscriptionsAccepted = (customer) => {
   if (customer.subscriptions && customer.subscriptions.length > 0 && customer.subscriptions[0].versions) {
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
+      const pickedVersionFields = ['unitTTCRate', 'weeklyHours', 'weeklyCount', 'evenings', 'saturdays', 'sundays'];
       const subscriptions = map(customer.subscriptions, (subscription) => {
         const lastVersion = [...subscription.versions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-        const version = pickBy(pick(lastVersion, ['unitTTCRate', 'weeklyHours', 'weeklyCount', 'evenings', 'sundays']));
+        const version = pickBy(pick(lastVersion, pickedVersionFields));
 
         return { _id: subscription._id, service: get(subscription, 'service.name'), ...version };
       });
 
       const lastSubscriptionHistory = UtilsHelper.getLastVersion(customer.subscriptionsHistory, 'approvalDate');
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
-        .map(sub => ({
-          _id: sub.subscriptionId,
-          ...pickBy(pick(sub, ['unitTTCRate', 'weeklyHours', 'weeklyCount', 'evenings', 'sundays', 'service'])),
-        }));
+        .map(sub => ({ _id: sub.subscriptionId, ...pickBy(pick(sub, [...pickedVersionFields, 'service'])) }));
 
       return { ...customer, subscriptionsAccepted: isEqual(subscriptions, lastSubscriptions) };
     }

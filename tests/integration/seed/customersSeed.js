@@ -193,27 +193,27 @@ const customersList = [
       { // no link
         _id: subIdList[0],
         service: serviceIdList[0],
-        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, saturdays: 2, sundays: 1 }],
       },
       {
         _id: subIdList[2], // linked to funding (no repetition, no funding)
         service: serviceIdList[1],
-        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, saturdays: 2, sundays: 1 }],
       },
       {
         _id: subIdList[3], // linked to repetition (no event, no funding)
         service: serviceIdList[2],
-        versions: [{ unitTTCRate: 14, weeklyHours: 16, evenings: 3, sundays: 4 }],
+        versions: [{ unitTTCRate: 14, weeklyHours: 16, evenings: 3, saturdays: 2, sundays: 4 }],
       },
       {
         _id: subIdList[4], // linked to event (no repetition, no funding)
         service: serviceIdList[3],
-        versions: [{ unitTTCRate: 20, weeklyHours: 21, evenings: 4, sundays: 5 }],
+        versions: [{ unitTTCRate: 20, weeklyHours: 21, evenings: 4, saturdays: 2, sundays: 5 }],
       },
       {
         _id: subIdList[5], // hourly service with billing items
         service: serviceIdList[5],
-        versions: [{ unitTTCRate: 20, weeklyHours: 21, weeklyCount: 12, evenings: 4, sundays: 5 }],
+        versions: [{ unitTTCRate: 20, weeklyHours: 21, weeklyCount: 12, evenings: 4, saturdays: 2, sundays: 5 }],
       },
     ],
     subscriptionsHistory: [{
@@ -624,7 +624,7 @@ const customersList = [
     subscriptions: [{
       _id: subIdList[0],
       service: customerServiceList[0]._id,
-      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, saturdays: 2 }],
     }],
     contact: {
       primaryAddress: {

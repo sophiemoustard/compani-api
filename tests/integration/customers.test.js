@@ -1138,7 +1138,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         service: serviceIdList[1],
-        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, saturdays: 2, sundays: 1 }],
       };
 
       const result = await app.inject({
@@ -1175,7 +1175,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         s.versions[0].unitTTCRate === payload.versions[0].unitTTCRate)).toBeTruthy();
     });
 
-    const fixedServiceForbiddenField = ['weeklyHours', 'sundays', 'evenings'];
+    const fixedServiceForbiddenField = ['weeklyHours', 'saturdays', 'sundays', 'evenings'];
     fixedServiceForbiddenField.forEach((field) => {
       it(`should return a 422 if try to create fixed service with ${field}`, async () => {
         const customer = customersList[2];
@@ -1336,7 +1336,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
   describe('PUT /customers/{id}/subscriptions/{subscriptionId}', () => {
     it('should update customer subscription for hourly service', async () => {
-      const payload = { weeklyHours: 24, unitTTCRate: 1, evenings: 3 };
+      const payload = { weeklyHours: 24, unitTTCRate: 1, evenings: 3, saturdays: 3, sundays: 3 };
       const customer = customersList[0];
       const subscription = customer.subscriptions[0];
 
@@ -1388,7 +1388,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(422);
     });
 
-    const fixedServiceForbiddenField = ['weeklyHours', 'sundays', 'evenings'];
+    const fixedServiceForbiddenField = ['weeklyHours', 'saturdays', 'sundays', 'evenings'];
     fixedServiceForbiddenField.forEach((field) => {
       it(`should return a 422 if try to create fixed service with ${field}`, async () => {
         const payload = { unitTTCRate: 12, weeklyCount: 12, [field]: 3 };
