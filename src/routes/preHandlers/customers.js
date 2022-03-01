@@ -141,7 +141,7 @@ exports.authorizeSubscriptionUpdate = async (req) => {
   const isHourlyAndBadPayload = subscription.service.nature === HOURLY &&
     (!payload.weeklyHours || (!!get(serviceLastVersion, 'billingItems.length') && !payload.weeklyCount));
   const isFixedAndBadPayload = subscription.service.nature === FIXED &&
-    (!payload.weeklyCount || payload.weeklyHours || payload.sundays || payload.evenings);
+    (!payload.weeklyCount || payload.weeklyHours || payload.saturdays || payload.sundays || payload.evenings);
   if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
 
   return exports.authorizeCustomerUpdate(req);
