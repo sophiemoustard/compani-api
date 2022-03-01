@@ -18,6 +18,8 @@ const BillingItemSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true, immutable: true },
 }, { timestamps: true });
 
+BillingItemSchema.index({ name: 1, company: 1 }, { unique: true });
+
 BillingItemSchema.pre('find', validateQuery);
 BillingItemSchema.pre('aggregate', validateAggregation);
 BillingItemSchema.pre('updateOne', validateUpdateOne);

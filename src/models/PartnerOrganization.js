@@ -10,6 +10,8 @@ const PartnerOrganizationSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 
+PartnerOrganizationSchema.index({ name: 1, company: 1 }, { unique: true });
+
 PartnerOrganizationSchema.virtual(
   'partners',
   { ref: 'Partner', localField: '_id', foreignField: 'partnerOrganization' }
