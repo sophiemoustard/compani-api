@@ -1336,7 +1336,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
   describe('PUT /customers/{id}/subscriptions/{subscriptionId}', () => {
     it('should update customer subscription for hourly service', async () => {
-      const payload = { weeklyHours: 24, unitTTCRate: 1, evenings: 3, saturdays: 3, sundays: null };
+      const payload = { weeklyHours: 24, unitTTCRate: 1, evenings: 3, saturdays: 3, sundays: 3 };
       const customer = customersList[0];
       const subscription = customer.subscriptions[0];
 

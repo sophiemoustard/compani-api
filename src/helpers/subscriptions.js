@@ -44,10 +44,7 @@ exports.subscriptionsAccepted = (customer) => {
 
       const lastSubscriptionHistory = UtilsHelper.getLastVersion(customer.subscriptionsHistory, 'approvalDate');
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
-        .map(sub => ({
-          _id: sub.subscriptionId,
-          ...pickBy(pick(sub, [...pickedVersionFields, 'service'])),
-        }));
+        .map(sub => ({ _id: sub.subscriptionId, ...pickBy(pick(sub, [...pickedVersionFields, 'service'])) }));
 
       return { ...customer, subscriptionsAccepted: isEqual(subscriptions, lastSubscriptions) };
     }
