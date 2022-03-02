@@ -75,7 +75,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: courseList[1]._id,
     company: authCompany._id,
-    mainFee: { price: 120, count: 2 },
+    mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     courseFundingOrganisation: courseFundingOrganisationList[0]._id,
   },
 ];

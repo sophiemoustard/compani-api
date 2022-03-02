@@ -740,8 +740,8 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     rows.push({
       Identifiant: course._id,
       Type: course.type,
-      Structure: course.type === INTRA ? get(course, 'company.name') : '',
       Payeur: payer || '',
+      Structure: course.type === INTRA ? get(course, 'company.name') : '',
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
       'Infos complémentaires': course.misc,

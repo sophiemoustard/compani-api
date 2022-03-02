@@ -1896,8 +1896,8 @@ describe('exportCourseHistory', () => {
       [
         'Identifiant',
         'Type',
-        'Structure',
         'Payeur',
+        'Structure',
         'Programme',
         'Sous-Programme',
         'Infos complémentaires',
@@ -1926,8 +1926,8 @@ describe('exportCourseHistory', () => {
       [
         courseList[0]._id,
         'intra',
-        'Test SAS',
         'APA Paris',
+        'Test SAS',
         'Program 1',
         'subProgram 1',
         'group 1',

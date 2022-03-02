@@ -100,4 +100,24 @@ describe('updateCourseBill', () => {
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $unset: payload });
   });
+
+  it('should update a course bill mainFee', async () => {
+    const courseBillId = new ObjectId();
+    const payload = { 'mainFee.price': 200, 'mainFee.count': 1, description: 'skududu skududu' };
+    await CourseBillHelper.updateCourseBill(courseBillId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $set: payload });
+  });
+
+  it('should remove a course bill mainFee description', async () => {
+    const courseBillId = new ObjectId();
+    const payload = { mainFee: { price: 200, count: 1, description: '' } };
+    await CourseBillHelper.updateCourseBill(courseBillId, payload);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: courseBillId },
+      { $set: { 'mainFee.price': 200, 'mainFee.count': 1 }, $unset: { 'mainFee.description': '' } }
+    );
+  });
 });
