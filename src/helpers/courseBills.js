@@ -13,8 +13,19 @@ exports.list = async (course, credentials) => {
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean();
 
-  return courseBills
-    .map(bill => ({ ...bill, netInclTaxes: NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count) }));
+  return courseBills.map((bill) => {
+    const mainFeeTotal = NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count);
+    const billingItemTotal = bill.billingItemList
+      ? bill.billingItemList
+        .map(item => NumbersHelper.multiply(item.price, item.count))
+        .reduce((acc, value) => acc + value, 0)
+      : 0;
+
+    return {
+      ...bill,
+      netInclTaxes: mainFeeTotal + billingItemTotal,
+    };
+  });
 };
 
 exports.create = async payload => CourseBill.create(payload);
@@ -36,4 +47,8 @@ exports.updateCourseBill = async (courseBillId, payload) => {
       ...(Object.keys(payloadToSet).length && { $set: flat(payloadToSet, { safe: true }) }),
       ...(Object.keys(payloadToUnset).length && { $unset: payloadToUnset }),
     });
+};
+
+exports.addBillingItem = async (courseBillId, payload) => {
+  await CourseBill.updateOne({ _id: courseBillId }, { $push: { billingItemList: payload } });
 };

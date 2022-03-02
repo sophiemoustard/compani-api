@@ -15,7 +15,7 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should return all course bills', async () => {
+  it('should return all course bills (without billing items)', async () => {
     const courseId = new ObjectId();
     const credentials = { role: { vendor: new ObjectId() } };
     const courseBills = [
@@ -36,6 +36,50 @@ describe('list', () => {
       mainFee: { price: 120, count: 2 },
       courseFundingOrganisation: { name: 'Funder' },
       netInclTaxes: 240,
+    }]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ course: courseId }] },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'courseFundingOrganisation', select: 'name' }] },
+        { query: 'setOptions', args: [{ isVendorUser: has(credentials, 'role.vendor') }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return all course bills (with billing items)', async () => {
+    const courseId = new ObjectId();
+
+    const credentials = { role: { vendor: new ObjectId() } };
+    const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
+    const courseBills = [
+      {
+        course: courseId,
+        company: { name: 'Company' },
+        mainFee: { price: 120, count: 2 },
+        courseFundingOrganisation: { name: 'Funder' },
+        billingItemList: [
+          { billingItem: billingItemList[0]._id, price: 90, count: 1 },
+          { billingItem: billingItemList[1]._id, price: 400, count: 1 },
+        ],
+      },
+    ];
+    find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
+
+    const result = await CourseBillHelper.list(courseId, credentials);
+
+    expect(result).toEqual([{
+      course: courseId,
+      company: { name: 'Company' },
+      mainFee: { price: 120, count: 2 },
+      courseFundingOrganisation: { name: 'Funder' },
+      billingItemList: [
+        { billingItem: billingItemList[0]._id, price: 90, count: 1 },
+        { billingItem: billingItemList[1]._id, price: 400, count: 1 },
+      ],
+      netInclTaxes: 730,
     }]);
     SinonMongoose.calledOnceWithExactly(
       find,
@@ -119,5 +163,31 @@ describe('updateCourseBill', () => {
       { _id: courseBillId },
       { $set: { 'mainFee.price': 200, 'mainFee.count': 1 }, $unset: { 'mainFee.description': '' } }
     );
+  });
+});
+
+describe('addBillingItem', () => {
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(CourseBill, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should add a course bill item to course bill', async () => {
+    const courseBillId = new ObjectId();
+
+    const payload = {
+      billingItem: new ObjectId(),
+      price: 120,
+      count: 1,
+      description: 'billin item for test',
+    };
+    await CourseBillHelper.addBillingItem(courseBillId, payload);
+
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $push: { billingItemList: payload } });
   });
 });

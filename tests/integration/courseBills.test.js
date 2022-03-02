@@ -3,7 +3,13 @@ const { ObjectId } = require('mongodb');
 const { omit } = require('lodash');
 const CourseBill = require('../../src/models/CourseBill');
 const app = require('../../server');
-const { populateDB, courseBillsList, courseList, courseFundingOrganisationList } = require('./seed/courseBillsSeed');
+const {
+  populateDB,
+  courseBillsList,
+  courseList,
+  courseFundingOrganisationList,
+  billingItemList,
+} = require('./seed/courseBillsSeed');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
 const { getToken } = require('./helpers/authentication');
@@ -36,7 +42,11 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         course: courseList[0]._id,
         company: authCompany._id,
         mainFee: { price: 120, count: 1 },
-        netInclTaxes: 120,
+        billingItemList: [
+          { billingItem: billingItemList[0]._id, price: 90, count: 1 },
+          { billingItem: billingItemList[1]._id, price: 400, count: 1 },
+        ],
+        netInclTaxes: 610,
       });
     });
 
@@ -447,6 +457,115 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
           url: `/coursebills/${courseBillsList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { courseFundingOrganisation: courseFundingOrganisationList[0]._id },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
+  let authToken;
+  beforeEach(populateDB);
+  const payload = {
+    billingItem: billingItemList[2]._id,
+    price: 7,
+    count: 5,
+    description: 'croissant du matin',
+  };
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should add a billing item to course bill', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseBillAfter = await CourseBill.findOne({ _id: courseBillsList[0]._id }).lean();
+      expect(courseBillAfter.billingItemList.length).toBe(courseBillsList[0].billingItemList.length + 1);
+    });
+
+    const wrongValues = [
+      { key: 'price', value: -200 },
+      { key: 'price', value: 0 },
+      { key: 'price', value: '200€' },
+      { key: 'count', value: -200 },
+      { key: 'count', value: 0 },
+      { key: 'count', value: 1.23 },
+      { key: 'count', value: '1x' },
+    ];
+    wrongValues.forEach((param) => {
+      it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { ...payload, [param.key]: param.value },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    it('should return 404 if course bill doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/coursebills/${new ObjectId()}/billing-item`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if billing item doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+        payload: { ...payload, billingItem: new ObjectId() },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 409 if billing item is already added to course bill', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+        payload: { ...payload, billingItem: billingItemList[1]._id },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
