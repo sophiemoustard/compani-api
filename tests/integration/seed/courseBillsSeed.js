@@ -2,6 +2,7 @@ const { ObjectId } = require('mongodb');
 const { INTRA } = require('../../../src/helpers/constants');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
+const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -69,8 +70,22 @@ const courseFundingOrganisationList = [
   },
 ];
 
+const billingItemList = [
+  { _id: new ObjectId(), name: 'frais formateur' },
+  { _id: new ObjectId(), name: 'forfait salle' },
+];
+
 const courseBillsList = [
-  { _id: new ObjectId(), course: courseList[0]._id, company: authCompany._id, mainFee: { price: 120, count: 1 } },
+  {
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    company: authCompany._id,
+    mainFee: { price: 120, count: 1 },
+    billingItemList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 90, count: 1 },
+      { _id: new ObjectId(), billingItem: billingItemList[1]._id, price: 400, count: 1 },
+    ],
+  },
   {
     _id: new ObjectId(),
     course: courseList[1]._id,
@@ -87,6 +102,7 @@ const populateDB = async () => {
     Course.create(courseList),
     CourseFundingOrganisation.create(courseFundingOrganisationList),
     CourseBill.create(courseBillsList),
+    CourseBillingItem.create(billingItemList),
   ]);
 };
 
@@ -95,4 +111,5 @@ module.exports = {
   courseBillsList,
   courseFundingOrganisationList,
   courseList,
+  billingItemList,
 };

@@ -13,8 +13,13 @@ exports.list = async (course, credentials) => {
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean();
 
-  return courseBills
-    .map(bill => ({ ...bill, netInclTaxes: NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count) }));
+  return courseBills.map(bill => ({
+    ...bill,
+    netInclTaxes: NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count)
+      + bill.billingItemList
+        .map(item => NumbersHelper.multiply(item.price, item.count))
+        .reduce((acc, value) => acc + value, 0),
+  }));
 };
 
 exports.create = async payload => CourseBill.create(payload);

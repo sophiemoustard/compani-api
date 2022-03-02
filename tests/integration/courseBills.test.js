@@ -3,7 +3,13 @@ const { ObjectId } = require('mongodb');
 const { omit } = require('lodash');
 const CourseBill = require('../../src/models/CourseBill');
 const app = require('../../server');
-const { populateDB, courseBillsList, courseList, courseFundingOrganisationList } = require('./seed/courseBillsSeed');
+const {
+  populateDB,
+  courseBillsList,
+  courseList,
+  courseFundingOrganisationList,
+  billingItemList,
+} = require('./seed/courseBillsSeed');
 const { authCompany, otherCompany } = require('../seed/authCompaniesSeed');
 
 const { getToken } = require('./helpers/authentication');
@@ -36,7 +42,11 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         course: courseList[0]._id,
         company: authCompany._id,
         mainFee: { price: 120, count: 1 },
-        netInclTaxes: 120,
+        billingItemList: [
+          { billingItem: billingItemList[0]._id, price: 90, count: 1 },
+          { billingItem: billingItemList[1]._id, price: 400, count: 1 },
+        ],
+        netInclTaxes: 610,
       });
     });
 
