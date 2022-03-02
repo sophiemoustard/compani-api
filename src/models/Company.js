@@ -11,8 +11,8 @@ const TRADE_NAME_REGEX = /^[0-9a-zA-Z]{0,11}$/;
 const APE_CODE_REGEX = /^\d{3,4}[A-Z]$/;
 
 const CompanySchema = mongoose.Schema({
-  name: { type: String, required: true },
   // unique mongo index on 'name' (with case and diacritics insensitive collation) has been added manually in mep58
+  name: { type: String, required: true },
   tradeName: { type: String, maxLength: 11, validate: TRADE_NAME_REGEX },
   prefixNumber: { type: Number, required: true, unique: true },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
