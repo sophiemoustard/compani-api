@@ -659,7 +659,7 @@ describe('updateRepetition', () => {
           args: [{
             'repetition.parentId': 'qwertyuiop',
             'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+            startDate: { $gte: '2019-03-23T09:00:00.000Z' },
             company: credentials.company._id,
           }],
         },
@@ -747,7 +747,7 @@ describe('updateRepetition', () => {
           args: [{
             'repetition.parentId': 'qwertyuiop',
             'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+            startDate: { $gte: '2019-03-23T09:00:00.000Z' },
             company: credentials.company._id,
           }],
         },
@@ -853,7 +853,7 @@ describe('updateRepetition', () => {
           args: [{
             'repetition.parentId': 'qwertyuiop',
             'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+            startDate: { $gte: '2019-03-23T09:00:00.000Z' },
             company: companyId,
           }],
         },
@@ -948,7 +948,7 @@ describe('updateRepetition', () => {
           args: [{
             'repetition.parentId': 'qwertyuiop',
             'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: new Date('2019-03-23T09:00:00') },
+            startDate: { $gte: '2019-03-23T09:00:00' },
             company: credentials.company._id,
           }],
         },
@@ -1035,7 +1035,7 @@ describe('updateRepetition', () => {
           args: [{
             'repetition.parentId': 'qwertyuiop',
             'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+            startDate: { $gte: '2019-03-23T09:00:00.000Z' },
             company: credentials.company._id,
           }],
         },
@@ -1072,7 +1072,7 @@ describe('deleteRepetition', () => {
     };
     const query = {
       'repetition.parentId': event.repetition.parentId,
-      startDate: { $gte: new Date(event.startDate) },
+      startDate: { $gte: event.startDate },
       company: credentials.company._id,
     };
 
