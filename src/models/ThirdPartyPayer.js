@@ -9,11 +9,13 @@ const TELETRANSMISSION_TYPES = [APA, AM, PCH];
 
 const ThirdPartyPayerSchema = mongoose.Schema({
   name: { type: String, required: true },
+  company: { type: mongoose.Schema.Types.ObjectId, required: true },
+  /*  unique mongo index on both keys 'name' and 'company' (with case and diacritics insensitive collation)
+      has been added manually in mep58 */
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
   email: { type: String },
   unitTTCRate: { type: Number },
   billingMode: { type: String, enum: [BILLING_DIRECT, BILLING_INDIRECT], required: true },
-  company: { type: mongoose.Schema.Types.ObjectId, required: true },
   isApa: { type: Boolean, required: true },
   teletransmissionId: { type: String },
   companyCode: { type: String },
