@@ -75,7 +75,7 @@ exports.plugin = {
             billingItem: Joi.objectId().required(),
             price: Joi.number().positive().required(),
             count: Joi.number().positive().integer().required(),
-            description: Joi.string(),
+            description: Joi.string().allow(''),
           }),
         },
         pre: [{ method: authorizeCourseBillingItemAddition }],
