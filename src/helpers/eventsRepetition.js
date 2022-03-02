@@ -130,15 +130,13 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
 };
 
 exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
-  const parentStartDate = moment(eventPayload.startDate);
-  const parentEndDate = moment(eventPayload.endDate);
   const promises = [];
   const companyId = get(credentials, 'company._id', null);
 
   const query = {
     'repetition.parentId': eventFromDb.repetition.parentId,
     'repetition.frequency': { $not: { $eq: NEVER } },
-    startDate: { $gte: new Date(eventFromDb.startDate) },
+    startDate: { $gte: eventFromDb.startDate },
     company: companyId,
   };
   const events = await Event.find(query).lean();
@@ -152,10 +150,11 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   }
 
   for (let i = 0, l = events.length; i < l; i++) {
-    const startDate = moment(events[i].startDate).hours(parentStartDate.hours())
-      .minutes(parentStartDate.minutes()).toISOString();
-    const endDate = moment(events[i].endDate).hours(parentEndDate.hours())
-      .minutes(parentEndDate.minutes()).toISOString();
+    const payloadStartHour = CompaniDate(eventPayload.startDate).getUnits(['hour', 'minute']);
+    const payloadEndHour = CompaniDate(eventPayload.endDate).getUnits(['hour', 'minute']);
+    const startDate = CompaniDate(events[i].startDate).set(payloadStartHour).toISO();
+    const endDate = CompaniDate(events[i].endDate).set(payloadEndHour).toISO();
+
     let eventToSet = {
       ...eventPayload,
       startDate,
@@ -200,7 +199,7 @@ exports.deleteRepetition = async (event, credentials) => {
 
   const query = {
     'repetition.parentId': event.repetition.parentId,
-    startDate: { $gte: new Date(event.startDate) },
+    startDate: { $gte: event.startDate },
     company: get(credentials, 'company._id'),
   };
 
