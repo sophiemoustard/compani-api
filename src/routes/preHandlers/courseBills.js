@@ -5,6 +5,9 @@ const CourseBill = require('../../models/CourseBill');
 const CourseBillingItem = require('../../models/CourseBillingItem');
 const CourseFundingOrganisation = require('../../models/CourseFundingOrganisation');
 const UtilsHelper = require('../../helpers/utils');
+const translate = require('../../helpers/translate');
+
+const { language } = translate;
 
 exports.authorizeCourseBillCreation = async (req) => {
   const { course, company, courseFundingOrganisation } = req.payload;
@@ -54,7 +57,7 @@ exports.authorizeCourseBillingItemAddition = async (req) => {
 
   if (courseBill.billingItemList &&
     courseBill.billingItemList.find(item => UtilsHelper.areObjectIdsEquals(item.billingItem, billingItem))) {
-    throw Boom.conflict();
+    throw Boom.conflict(translate[language].courseBillingItemAlreadyAdded);
   }
 
   return null;
