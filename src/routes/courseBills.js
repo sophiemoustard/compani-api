@@ -2,11 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, update } = require('../controllers/courseBillController');
+const { list, create, update, addBillingItem } = require('../controllers/courseBillController');
 const {
   authorizeCourseBillCreation,
   authorizeCourseBillGet,
   authorizeCourseBillUpdate,
+  authorizeCourseBillingItemAddition,
 } = require('./preHandlers/courseBills');
 
 exports.plugin = {
@@ -62,6 +63,24 @@ exports.plugin = {
         pre: [{ method: authorizeCourseBillUpdate }],
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/billing-item',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        validate: {
+          payload: Joi.object({
+            billingItem: Joi.objectId().required(),
+            price: Joi.number().positive().required(),
+            count: Joi.number().positive().integer().required(),
+            description: Joi.string(),
+          }),
+        },
+        pre: [{ method: authorizeCourseBillingItemAddition }],
+      },
+      handler: addBillingItem,
     });
   },
 };

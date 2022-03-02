@@ -73,6 +73,7 @@ const courseFundingOrganisationList = [
 const billingItemList = [
   { _id: new ObjectId(), name: 'frais formateur' },
   { _id: new ObjectId(), name: 'forfait salle' },
+  { _id: new ObjectId(), name: 'petit déjeuner' },
 ];
 
 const courseBillsList = [

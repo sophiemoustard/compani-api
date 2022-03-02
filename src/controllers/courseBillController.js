@@ -45,4 +45,15 @@ const update = async (req) => {
   }
 };
 
-module.exports = { list, create, update };
+const addBillingItem = async (req) => {
+  try {
+    await CourseBillHelper.addBillingItem(req.params._id, req.payload);
+
+    return { message: translate[language].courseBillUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, update, addBillingItem };
