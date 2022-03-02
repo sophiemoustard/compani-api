@@ -678,10 +678,10 @@ module.exports = {
     courseBillCreated: 'Facture de la formation créée.',
     courseBillUpdated: 'Facture de la formation mise à jour.',
     /* Course billing items */
-    courseBillingItemExists: 'Item de facturation existant.',
-    courseBillingItemsFound: 'Items de facturation trouvés.',
-    courseBillingItemsNotFound: 'Items de facturation non trouvés.',
-    courseBillingItemCreated: 'Item de facturation créé.',
+    courseBillingItemExists: 'Article de facturation existant.',
+    courseBillingItemsFound: 'Articles de facturation trouvés.',
+    courseBillingItemsNotFound: 'Articles de facturation non trouvés.',
+    courseBillingItemCreated: 'Article de facturation créé.',
     /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',
