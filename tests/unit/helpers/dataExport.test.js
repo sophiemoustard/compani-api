@@ -989,7 +989,7 @@ describe('exportSubscriptions', () => {
         subscriptions: [
           {
             service: { versions: [{ name: 'Service Horaire' }] },
-            versions: [{ unitTTCRate: 12, weeklyHours: 4, sundays: 2, evenings: 9 }],
+            versions: [{ unitTTCRate: 12, weeklyHours: 4, saturdays: 4, sundays: 2, evenings: 9 }],
           },
           {
             service: { versions: [{ name: 'Service Forfaitaire' }] },
@@ -1018,6 +1018,7 @@ describe('exportSubscriptions', () => {
       '4,00',
       '',
       '9,00',
+      '4,00',
       '2,00',
     ]);
     expect(result[2]).toBeDefined();
@@ -1030,6 +1031,7 @@ describe('exportSubscriptions', () => {
       '100,00',
       '',
       '2,00',
+      '',
       '',
       '',
     ]);

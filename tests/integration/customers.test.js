@@ -2059,8 +2059,17 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
     it('should create a customer subscription history', async () => {
       const payload = {
         subscriptions: [
-          { service: 'TestTest', unitTTCRate: 23, weeklyHours: 3, weeklyCount: 5, subscriptionId: new ObjectId() },
-          { service: 'TestTest2', unitTTCRate: 30, weeklyCount: 10, subscriptionId: new ObjectId() },
+          {
+            service: 'horaire avec des articles de facturation',
+            unitTTCRate: 23,
+            weeklyHours: 3,
+            weeklyCount: 5,
+            subscriptionId: new ObjectId(),
+            evenings: 2,
+            saturdays: 3,
+            sundays: 4,
+          },
+          { service: 'forfaitaire', unitTTCRate: 30, weeklyCount: 10, subscriptionId: new ObjectId() },
         ],
         helper: { firstname: 'Emmanuel', lastname: 'Magellan', title: 'mrs' },
       };
