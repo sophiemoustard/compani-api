@@ -22,8 +22,6 @@ const ThirdPartyPayerSchema = mongoose.Schema({
   teletransmissionType: { type: String, enum: TELETRANSMISSION_TYPES },
 }, { timestamps: true });
 
-ThirdPartyPayerSchema.index({ name: 1, company: 1 }, { unique: true });
-
 const countFundings = async (docs) => {
   if (docs.length > 0) {
     for (const tpp of docs) {

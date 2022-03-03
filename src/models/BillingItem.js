@@ -20,8 +20,6 @@ const BillingItemSchema = mongoose.Schema({
   vat: { type: Number, required: true },
 }, { timestamps: true });
 
-BillingItemSchema.index({ name: 1, company: 1 }, { unique: true });
-
 BillingItemSchema.pre('find', validateQuery);
 BillingItemSchema.pre('aggregate', validateAggregation);
 BillingItemSchema.pre('updateOne', validateUpdateOne);

@@ -12,8 +12,6 @@ const PartnerOrganizationSchema = mongoose.Schema({
   email: { type: String },
 }, { timestamps: true });
 
-PartnerOrganizationSchema.index({ name: 1, company: 1 }, { unique: true });
-
 PartnerOrganizationSchema.virtual(
   'partners',
   { ref: 'Partner', localField: '_id', foreignField: 'partnerOrganization' }
