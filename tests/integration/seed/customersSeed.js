@@ -154,7 +154,7 @@ const customerThirdPartyPayers = [
     company: authCompany._id,
     isApa: true,
     billingMode: 'direct',
-    name: 'Toto',
+    name: 'Tata',
     teletransmissionId: '12345',
   },
 ];

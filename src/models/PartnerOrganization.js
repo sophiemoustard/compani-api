@@ -3,11 +3,13 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
 const PartnerOrganizationSchema = mongoose.Schema({
+  /*  unique mongo index on both keys 'name' and 'company' (with case and diacritics insensitive collation)
+      has been added manually in mep58 */
   name: { type: String, required: true },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   phone: { type: String },
   address: { type: mongoose.Schema(addressSchemaDefinition, { id: false, _id: false }) },
   email: { type: String },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
 
 PartnerOrganizationSchema.virtual(

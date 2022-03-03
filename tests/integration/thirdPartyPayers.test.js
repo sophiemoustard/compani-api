@@ -39,8 +39,6 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
     };
 
     it('should create a new third party payer', async () => {
-      const thirdPartyPayerCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id }).lean();
-
       const response = await app.inject({
         method: 'POST',
         url: '/thirdpartypayers',
@@ -53,8 +51,33 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         response.result.data.thirdPartyPayer,
         ['name', 'address', 'email', 'unitTTCRate', 'billingMode', 'company', 'isApa', 'teletransmissionId']
       )).toEqual({ ...payload, company: authCompany._id });
-      const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
-      expect(thirdPartyPayers.length).toBe(thirdPartyPayerCount + 1);
+      const thirdPartyPayersCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id });
+      expect(thirdPartyPayersCount).toBe(thirdPartyPayersList.length + 1);
+    });
+
+    it('should create new tpp even if one ttp in other company has same name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/thirdpartypayers',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'Tutu' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const thirdPartyPayersCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id });
+      expect(thirdPartyPayersCount).toBe(thirdPartyPayersList.length + 1);
+    });
+
+    it('should return 409 if other tpp in same company has same name (case and diacritics insensitive)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/thirdpartypayers',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'TOTO' },
+      });
+
+      expect(response.statusCode).toBe(409);
     });
 
     const missingParams = ['name', 'billingMode', 'isApa'];
@@ -161,6 +184,45 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.result.data.thirdPartyPayer).toMatchObject(payload);
     });
 
+    it('should update ttp name even if only case or diacritics have changed', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'Tôtö' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedTpp = await ThirdPartyPayer.countDocuments({ _id: thirdPartyPayersList[0]._id, name: 'Tôtö' });
+      expect(updatedTpp).toBe(1);
+    });
+
+    it('should update ttp name even if ttp in other company has same name', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'Tutu' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedTpp = await ThirdPartyPayer.countDocuments({ _id: thirdPartyPayersList[0]._id, name: 'Tutu' });
+      expect(updatedTpp).toBe(1);
+    });
+
+    it('should return 409 if other ttp in same company has same name (case and diacritics insensitive)', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'Tàtä' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
     it('should return 400 if missing name', async () => {
       const payloadWithoutName = omit(payload, 'name');
       const response = await app.inject({
@@ -184,7 +246,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if user is not from the same company', async () => {
+    it('should return a 404 error if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/thirdpartypayers/${thirdPartyPayerFromOtherCompany._id.toHexString()}`,
@@ -192,7 +254,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     describe('Other roles', () => {
@@ -241,14 +303,14 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if user is not from the same company', async () => {
+    it('should return a 404 error if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/thirdpartypayers/${thirdPartyPayerFromOtherCompany._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     describe('Other roles', () => {

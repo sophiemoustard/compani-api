@@ -9,7 +9,7 @@ const { language } = translate;
 
 exports.companyExists = async (req) => {
   try {
-    const company = await Company.findOne({ _id: req.params._id }).lean();
+    const company = await Company.countDocuments({ _id: req.params._id });
     if (!company) throw Boom.notFound(translate[language].CompanyNotFound);
 
     return true;
@@ -26,6 +26,21 @@ exports.authorizeCompanyUpdate = async (req) => {
   if (!isVendorAdmin && (!companyId || !UtilsHelper.areObjectIdsEquals(req.params._id, companyId))) {
     throw Boom.forbidden();
   }
+
+  const nameAlreadyExists = await Company
+    .countDocuments({ _id: { $ne: req.params._id }, name: req.payload.name }, { limit: 1 })
+    .collation({ locale: 'fr', strength: 1 });
+  if (nameAlreadyExists) throw Boom.conflict(translate[language].companyExists);
+
+  return null;
+};
+
+exports.authorizeCompanyCreation = async (req) => {
+  const { name } = req.payload;
+  const nameAlreadyExists = await Company
+    .countDocuments({ name }, { limit: 1 })
+    .collation({ locale: 'fr', strength: 1 });
+  if (nameAlreadyExists) throw Boom.conflict(translate[language].companyExists);
 
   return null;
 };

@@ -15,10 +15,6 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    if (e.code === 11000) {
-      req.log(['error', 'db'], e);
-      return Boom.conflict(translate[language].companyExists);
-    }
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
@@ -42,10 +38,6 @@ const create = async (req) => {
       data: { company: newCompany },
     };
   } catch (e) {
-    if (e.code === 11000) {
-      req.log(['error', 'db'], e);
-      return Boom.conflict(translate[language].companyExists);
-    }
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }

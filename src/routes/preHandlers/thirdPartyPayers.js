@@ -5,12 +5,37 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizeThirdPartyPayersUpdate = async (req) => {
-  if (!get(req, 'auth.credentials.company._id', null)) throw Boom.forbidden();
+exports.authorizeThirdPartyPayersCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const thirdPartyPayer = await ThirdPartyPayer.findOne({ _id: req.params._id }).lean();
-  if (!thirdPartyPayer) throw Boom.notFound(translate[language].thirdPartyPayerNotFound);
-  if (thirdPartyPayer.company.toHexString() === companyId.toHexString()) return null;
+  const nameAlreadyExists = await ThirdPartyPayer
+    .countDocuments({ name: req.payload.name, company: companyId }, { limit: 1 })
+    .collation({ locale: 'fr', strength: 1 });
+  if (nameAlreadyExists) throw Boom.conflict(translate[language].thirdPartyPayerExits);
 
-  throw Boom.forbidden();
+  return null;
+};
+
+exports.authorizeThirdPartyPayersUpdate = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  const ttpExists = await ThirdPartyPayer.countDocuments({ _id: req.params._id, company: companyId });
+  if (!ttpExists) throw Boom.notFound(translate[language].thirdPartyPayerNotFound);
+
+  const nameAlreadyExists = await ThirdPartyPayer
+    .countDocuments({
+      _id: { $ne: req.params._id },
+      name: req.payload.name,
+      company: companyId,
+    }, { limit: 1 })
+    .collation({ locale: 'fr', strength: 1 });
+  if (nameAlreadyExists) throw Boom.conflict(translate[language].thirdPartyPayerExits);
+
+  return null;
+};
+
+exports.authorizeThirdPartyPayerDeletion = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  const ttpExists = await ThirdPartyPayer.countDocuments({ _id: req.params._id, company: companyId });
+  if (!ttpExists) throw Boom.notFound(translate[language].thirdPartyPayerNotFound);
+
+  return null;
 };
