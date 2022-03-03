@@ -5,4 +5,6 @@ module.exports = {
   evenings: { type: Number },
   saturdays: { type: Number },
   sundays: { type: Number },
+  billingItemsTTCRate: { type: Number },
+  serviceBillingItems: { type: Array },
 };
