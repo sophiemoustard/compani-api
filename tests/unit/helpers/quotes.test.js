@@ -104,7 +104,14 @@ describe('createQuote', () => {
   it('should get customer quotes', async () => {
     const customerId = '12345678io0';
     const payload = {
-      subscriptions: [{ service: { name: 'Autonomie' }, unitTTCRate: 24, weeklyHours: 12 }],
+      subscriptions: [{
+        service: { name: 'Autonomie' },
+        unitTTCRate: 24,
+        weeklyHours: 12,
+        weeklyCount: 1,
+        billingItemsTTCRate: 20,
+        serviceBillingItems: ['Masques', 'Autre article de facturation'],
+      }],
     };
     const credentials = { company: { _id: new ObjectId(), prefixNumber: 101 } };
 
@@ -123,7 +130,21 @@ describe('createQuote', () => {
           query: 'findOneAndUpdate',
           args: [
             { _id: customerId },
-            { $push: { quotes: { ...payload, quoteNumber: 'pre-002' } } },
+            {
+              $push: {
+                quotes: {
+                  subscriptions: [{
+                    service: { name: 'Autonomie' },
+                    unitTTCRate: 24,
+                    weeklyHours: 12,
+                    weeklyCount: 1,
+                    billingItemsTTCRate: 20,
+                    serviceBillingItems: ['Masques', 'Autre article de facturation'],
+                  }],
+                  quoteNumber: 'pre-002',
+                },
+              },
+            },
             { new: true, select: { identity: 1, quotes: 1 }, autopopulate: false },
           ],
         },
