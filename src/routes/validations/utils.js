@@ -1,6 +1,8 @@
 const Joi = require('joi');
 const { MONTH_VALIDATION, PHONE_VALIDATION } = require('../../models/utils');
 
+const dateToISOString = Joi.date().custom(value => value.toISOString());
+
 const monthValidation = Joi.string().regex(MONTH_VALIDATION);
 const phoneNumberValidation = Joi.string().regex(PHONE_VALIDATION);
 
@@ -44,4 +46,5 @@ module.exports = {
   stringOrArray,
   expoTokenValidation,
   formDataPayload,
+  dateToISOString,
 };
