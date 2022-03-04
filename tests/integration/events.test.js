@@ -20,6 +20,7 @@ const {
   eventFromOtherCompany,
   creditNote,
   creditNoteFromOtherCompany,
+  repetitionParentId,
 } = require('./seed/eventsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
@@ -1303,6 +1304,46 @@ describe('PUT /events/{_id}', () => {
       expect(moment(resultEvent.startDate).isSame(moment(payload.startDate))).toBeTruthy();
       expect(moment(resultEvent.endDate).isSame(moment(payload.endDate))).toBeTruthy();
       expect(resultEvent.sector.toHexString()).toBe(payload.sector);
+    });
+
+    it('should update events and repetition with startDate, endDate #tag', async () => {
+      const event = eventsList[9];
+      const payload = {
+        startDate: new Date('2019-10-16T10:00:00.000Z'), // testing dateJS on purpose
+        endDate: '2019-10-16T14:00', // ~ 2019-10-16T12:00:00.000Z, testing incomplete ISO on purpose
+        auxiliary: event.auxiliary.toHexString(),
+        shouldUpdateRepetition: true,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${event._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedRepetition = await Repetition.countDocuments({
+        parentId: repetitionParentId,
+        startDate: '2019-10-16T10:00:00.000Z',
+        endDate: '2019-10-16T12:00:00.000Z',
+      });
+      expect(updatedRepetition).toBeTruthy();
+
+      const updatedEvent1 = await Event.countDocuments({
+        _id: eventsList[9]._id,
+        startDate: '2019-10-16T10:00:00.000Z',
+        endDate: '2019-10-16T12:00:00.000Z',
+      });
+      expect(updatedEvent1).toBeTruthy();
+
+      const updatedEvent2 = await Event.countDocuments({
+        _id: eventsList[18]._id,
+        startDate: '2019-10-23T10:00:00.000Z',
+        endDate: '2019-10-23T12:00:00.000Z',
+      });
+      expect(updatedEvent2).toBeTruthy();
     });
 
     it('should update intervention even if sub service is archived if it was already the selected sub', async () => {
