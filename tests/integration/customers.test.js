@@ -1941,6 +1941,8 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
             weeklyCount: 1,
             saturdays: 1,
             sundays: 3,
+            billingItemsTTCRate: 25,
+            serviceBillingItems: ['Masques de protection'],
           },
           { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
         ],
