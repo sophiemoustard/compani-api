@@ -1310,7 +1310,7 @@ describe('PUT /events/{_id}', () => {
       const event = eventsList[9];
       const payload = {
         startDate: new Date('2019-10-16T10:00:00.000Z'), // testing dateJS on purpose
-        endDate: '2019-10-16T14:00', // ~ 2019-10-16T12:00:00.000Z, testing incomplete ISO on purpose
+        endDate: '2019-10-16T14:00+02:00', // ~ 2019-10-16T12:00:00.000Z, testing incomplete ISO on purpose
         auxiliary: event.auxiliary.toHexString(),
         shouldUpdateRepetition: true,
       };
