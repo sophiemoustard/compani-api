@@ -73,6 +73,41 @@ describe('PUT /companies/:id', () => {
       expect(response.result.data.company).toMatchObject(payload);
     });
 
+    it('should update name even if only case or diacritics have changed', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'Tèst' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const updatedTpp = await Company.countDocuments({ _id: company._id, name: 'Tèst' });
+      expect(updatedTpp).toBe(1);
+    });
+
+    it('should return 409 if other company has exact same name', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: authCompany.name },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if other company has same name (case and diacritics insensitive)', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'tEST sas' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
     it('should return 404 if company is not found', async () => {
       const payload = { name: 'Alenvi Alenvi' };
       const response = await app.inject({
@@ -287,16 +322,22 @@ describe('POST /companies', () => {
       expect(companiesCount).toEqual(companiesBefore.length + 1);
     });
 
-    it('should not create a company if name provided already exists', async () => {
-      createFolderForCompany.returns({ id: '1234567890' });
-      createFolder.onCall(0).returns({ id: '0987654321' });
-      createFolder.onCall(1).returns({ id: 'qwerty' });
-      createFolder.onCall(2).returns({ id: 'asdfgh' });
-
+    it('should return 409 if other company has exact same name', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companies',
-        payload: { name: authCompany.name, tradeName: 'qwerty', type: 'association' },
+        payload: { name: 'Test', tradeName: 'qwerty', type: 'association' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if other company has same name (case and diacritics insensitive)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companies',
+        payload: { name: 'TèsT', tradeName: 'qwerty', type: 'association' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

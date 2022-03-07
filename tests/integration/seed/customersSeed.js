@@ -31,15 +31,9 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 
-const subId1 = new ObjectId();
-const subId2 = new ObjectId();
-const subId3 = new ObjectId();
-const subId4 = new ObjectId();
-const subId5 = new ObjectId();
-const service1 = new ObjectId();
-const service2 = new ObjectId();
-const service3 = new ObjectId();
-const service4 = new ObjectId();
+const subIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+const serviceIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
+
 const archivedService = new ObjectId();
 const otherCompanyCustomerId = new ObjectId();
 
@@ -66,7 +60,7 @@ const referentList = [
 
 const customerServiceList = [
   {
-    _id: service1,
+    _id: serviceIdList[0],
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
@@ -78,7 +72,7 @@ const customerServiceList = [
     nature: HOURLY,
   },
   {
-    _id: service2,
+    _id: serviceIdList[1],
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
@@ -90,7 +84,7 @@ const customerServiceList = [
     nature: HOURLY,
   },
   {
-    _id: service3,
+    _id: serviceIdList[2],
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 36,
@@ -102,7 +96,7 @@ const customerServiceList = [
     nature: HOURLY,
   },
   {
-    _id: service4,
+    _id: serviceIdList[3],
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 48,
@@ -112,6 +106,18 @@ const customerServiceList = [
       vat: 12,
     }],
     nature: HOURLY,
+  },
+  {
+    _id: serviceIdList[4],
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 150,
+      exemptFromCharges: false,
+      name: 'Service 5',
+      startDate: '2019-06-18T14:58:15',
+      vat: 12,
+    }],
+    nature: FIXED,
   },
   {
     _id: archivedService,
@@ -126,6 +132,19 @@ const customerServiceList = [
     nature: HOURLY,
     isArchived: true,
   },
+  {
+    _id: serviceIdList[5],
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      exemptFromCharges: false,
+      name: 'Service avec articles de facturation',
+      startDate: '2019-01-18T19:58:15',
+      vat: 1,
+      billingItems: [new ObjectId()],
+    }],
+    nature: HOURLY,
+  },
 ];
 
 const customerThirdPartyPayers = [
@@ -135,7 +154,7 @@ const customerThirdPartyPayers = [
     company: authCompany._id,
     isApa: true,
     billingMode: 'direct',
-    name: 'Toto',
+    name: 'Tata',
     teletransmissionId: '12345',
   },
 ];
@@ -172,59 +191,64 @@ const customersList = [
     },
     subscriptions: [
       { // no link
-        _id: subId1,
-        service: service1,
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+        _id: subIdList[0],
+        service: serviceIdList[0],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, saturdays: 2, sundays: 1 }],
       },
       {
-        _id: subId3, // linked to funding (no repetition, no funding)
-        service: service2,
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+        _id: subIdList[2], // linked to funding (no repetition, no funding)
+        service: serviceIdList[1],
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, saturdays: 2, sundays: 1 }],
       },
       {
-        _id: subId4, // linked to repetition (no event, no funding)
-        service: service3,
-        versions: [{ unitTTCRate: 14, estimatedWeeklyVolume: 16, evenings: 3, sundays: 4 }],
+        _id: subIdList[3], // linked to repetition (no event, no funding)
+        service: serviceIdList[2],
+        versions: [{ unitTTCRate: 14, weeklyHours: 16, evenings: 3, saturdays: 2, sundays: 4 }],
       },
       {
-        _id: subId5, // linked to event (no repetition, no funding)
-        service: service4,
-        versions: [{ unitTTCRate: 20, estimatedWeeklyVolume: 21, evenings: 4, sundays: 5 }],
+        _id: subIdList[4], // linked to event (no repetition, no funding)
+        service: serviceIdList[3],
+        versions: [{ unitTTCRate: 20, weeklyHours: 21, evenings: 4, saturdays: 2, sundays: 5 }],
+      },
+      {
+        _id: subIdList[5], // hourly service with billing items
+        service: serviceIdList[5],
+        versions: [{ unitTTCRate: 20, weeklyHours: 21, weeklyCount: 12, evenings: 4, saturdays: 2, sundays: 5 }],
       },
     ],
     subscriptionsHistory: [{
       subscriptions: [
         {
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
           service: 'Service 1',
-          subscriptionId: subId1,
+          subscriptionId: subIdList[0],
         },
         {
           unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
+          weeklyHours: 12,
           evenings: 2,
           sundays: 1,
           service: 'Service 2',
-          subscriptionId: subId3,
+          subscriptionId: subIdList[2],
         },
         {
           unitTTCRate: 14,
-          estimatedWeeklyVolume: 16,
+          weeklyHours: 16,
           evenings: 3,
           sundays: 4,
           service: 'Service 3',
-          subscriptionId: subId4,
+          subscriptionId: subIdList[3],
         },
         {
           unitTTCRate: 20,
-          estimatedWeeklyVolume: 21,
+          weeklyHours: 21,
           evenings: 4,
           sundays: 5,
           service: 'Service 3',
-          subscriptionId: subId5,
+          subscriptionId: subIdList[4],
         },
       ],
       helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
@@ -234,8 +258,8 @@ const customersList = [
     quotes: [{
       _id: new ObjectId(),
       subscriptions: [
-        { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, estimatedWeeklyVolume: 3 },
-        { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, estimatedWeeklyVolume: 10 },
+        { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+        { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
       ],
     }],
     fundings: [
@@ -243,7 +267,7 @@ const customersList = [
         _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[1]._id,
-        subscription: subId3,
+        subscription: subIdList[2],
         frequency: ONCE,
         versions: [{
           fundingPlanId: '12345',
@@ -260,7 +284,7 @@ const customersList = [
         _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[1]._id,
-        subscription: subId3,
+        subscription: subIdList[2],
         frequency: ONCE,
         versions: [{
           fundingPlanId: '04124',
@@ -296,16 +320,23 @@ const customersList = [
       bic: 'BNMDHISOBD',
       mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
     },
-    subscriptions: [{
-      _id: new ObjectId(),
-      service: archivedService,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
-    }],
+    subscriptions: [
+      {
+        _id: new ObjectId(),
+        service: archivedService,
+        versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+      },
+      {
+        _id: new ObjectId(),
+        service: serviceIdList[4],
+        versions: [{ unitTTCRate: 100, weeklyCount: 4 }],
+      },
+    ],
     fundings: [{
       _id: new ObjectId(),
       nature: FIXED,
       thirdPartyPayer: customerThirdPartyPayers[0]._id,
-      subscription: subId3,
+      subscription: subIdList[2],
       frequency: ONCE,
       versions: [{
         folderNumber: 'D123456',
@@ -359,8 +390,8 @@ const customersList = [
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectId(),
-      service: service1,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      service: serviceIdList[0],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -381,8 +412,8 @@ const customersList = [
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectId(),
-      service: service1,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      service: serviceIdList[0],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -403,8 +434,8 @@ const customersList = [
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectId(),
-      service: service1,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      service: serviceIdList[0],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -425,8 +456,8 @@ const customersList = [
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
       _id: new ObjectId(),
-      service: service1,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      service: serviceIdList[0],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     contact: {
       primaryAddress: {
@@ -463,11 +494,11 @@ const customersList = [
     },
     followUp: { environment: 'ne va pas bien', objectives: 'preparer le dejeuner + balade', misc: 'code porte: 1234' },
     subscriptions: [{
-      _id: subId2,
-      service: service1,
+      _id: subIdList[1],
+      service: serviceIdList[0],
       versions: [
-        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
-        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
+        { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
       ],
     }],
     subscriptionsHistory: [],
@@ -477,7 +508,7 @@ const customersList = [
         _id: new ObjectId(),
         nature: FIXED,
         thirdPartyPayer: customerThirdPartyPayers[0]._id,
-        subscription: subId2,
+        subscription: subIdList[1],
         frequency: ONCE,
         versions: [{
           folderNumber: 'D123456',
@@ -591,9 +622,9 @@ const customersList = [
     identity: { title: 'mr', firstname: 'Baltazar', lastname: 'ChivedWithBills' },
     driveFolder: { driveId: '1234567890' },
     subscriptions: [{
-      _id: subId1,
+      _id: subIdList[0],
       service: customerServiceList[0]._id,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, saturdays: 2 }],
     }],
     contact: {
       primaryAddress: {
@@ -764,20 +795,20 @@ const otherCompanyCustomer = {
   subscriptions: [
     {
       _id: new ObjectId(),
-      service: service1,
+      service: serviceIdList[0],
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
       }],
     },
     {
       _id: new ObjectId(),
-      service: service2,
+      service: serviceIdList[1],
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
       }],
@@ -786,13 +817,13 @@ const otherCompanyCustomer = {
   subscriptionsHistory: [{
     subscriptions: [{
       unitTTCRate: 12,
-      estimatedWeeklyVolume: 12,
+      weeklyHours: 12,
       evenings: 2,
       sundays: 1,
       service: 'Service 1',
     }, {
       unitTTCRate: 12,
-      estimatedWeeklyVolume: 12,
+      weeklyHours: 12,
       evenings: 2,
       sundays: 1,
       service: 'Service 2',
@@ -817,22 +848,17 @@ const otherCompanyCustomer = {
   },
   quotes: [{
     _id: new ObjectId(),
-    subscriptions: [{
-      service: { name: 'Test', nature: 'hourly' },
-      unitTTCRate: 23,
-      estimatedWeeklyVolume: 3,
-    }, {
-      service: { name: 'Test2', nature: 'hourly' },
-      unitTTCRate: 30,
-      estimatedWeeklyVolume: 10,
-    }],
+    subscriptions: [
+      { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+      { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
+    ],
   }],
   fundings: [
     {
       _id: new ObjectId(),
       nature: FIXED,
       thirdPartyPayer: customerThirdPartyPayers[0]._id,
-      subscription: subId3,
+      subscription: subIdList[2],
       frequency: ONCE,
       versions: [{
         folderNumber: 'D123456',
@@ -924,7 +950,7 @@ const eventList = [
     customer: customersList[0]._id,
     type: 'intervention',
     sector: sectorsList[0]._id,
-    subscription: subId5,
+    subscription: subIdList[4],
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -942,7 +968,7 @@ const eventList = [
     customer: customersList[14]._id,
     type: 'intervention',
     sector: new ObjectId(),
-    subscription: subId5,
+    subscription: subIdList[4],
     startDate: '2019-01-16T14:30:19',
     endDate: '2019-01-16T15:30:21',
     address: {
@@ -960,7 +986,7 @@ const eventList = [
     customer: customersList[0]._id,
     type: 'intervention',
     sector: new ObjectId(),
-    subscription: subId5,
+    subscription: subIdList[4],
     startDate: '2019-01-17T14:30:19',
     endDate: '2019-01-17T15:30:21',
     address: {
@@ -980,7 +1006,7 @@ const eventList = [
     endDate: '2020-12-14T11:30:21',
     customer: customersList[0]._id,
     createdAt: '2019-01-15T11:33:14.343Z',
-    subscription: subId5,
+    subscription: subIdList[4],
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -998,7 +1024,7 @@ const eventList = [
     endDate: '2019-01-16T11:30:21',
     customer: customersList[0]._id,
     createdAt: '2019-01-15T11:33:14.343Z',
-    subscription: subId5,
+    subscription: subIdList[4],
     isBilled: true,
     bills: {
       thirdPartyPayer: customerThirdPartyPayers[0]._id,
@@ -1163,7 +1189,7 @@ const eventList = [
     customer: customersList[0]._id,
     type: 'intervention',
     sector: sectorsList[0]._id,
-    subscription: subId5,
+    subscription: subIdList[4],
     startDate: new Date().setDate(new Date().getDate() + 1, 0, 0),
     endDate: new Date().setDate(new Date().getDate() + 1, 1, 0),
     address: {
@@ -1188,7 +1214,7 @@ const repetitionParentId = new ObjectId();
 const repetition = {
   _id: new ObjectId(),
   parentId: repetitionParentId,
-  subscription: subId4,
+  subscription: subIdList[3],
   repetition: { frequency: EVERY_WEEK },
   company: authCompany._id,
 };
@@ -1238,7 +1264,7 @@ module.exports = {
   userList,
   populateDB,
   archivedService,
-  service2,
+  serviceIdList,
   customerThirdPartyPayers,
   otherCompanyCustomer,
   sectorsList,

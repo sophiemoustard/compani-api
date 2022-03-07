@@ -6,7 +6,7 @@ const {
   CIVILITY_LIST,
   HELPER,
   AUXILIARY_ROLES,
-  DAYS_INDEX,
+  CARE_DAYS_INDEX,
   FUNDING_FREQUENCIES,
   CUSTOMER_SITUATIONS,
   FUNDING_NATURES,
@@ -397,45 +397,41 @@ exports.exportServices = async (credentials) => {
   return data;
 };
 
-const subscriptionExportHeader = [
-  'Id Bénéficiaire',
-  'Titre',
-  'Nom',
-  'Prénom',
-  'Service',
-  'Prix unitaire TTC',
-  'Volume hebdomadaire estimatif',
-  'Dont soirées',
-  'Dont dimanches',
-];
-
 exports.exportSubscriptions = async (credentials) => {
   const customers = await Customer
     .find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: get(credentials, 'company._id') })
     .populate({ path: 'subscriptions.service' })
     .lean();
-  const data = [subscriptionExportHeader];
+  const data = [];
+
+  if (!customers.length) return data;
 
   for (const cus of customers) {
     for (const sub of cus.subscriptions) {
       const lastServiceVersion = UtilsHelper.getLastVersion(sub.service.versions, 'startDate');
       const lastVersion = UtilsHelper.getLastVersion(sub.versions, 'createdAt');
 
-      data.push([
-        get(cus, '_id') || '',
-        CIVILITY_LIST[get(cus, 'identity.title')] || '',
-        get(cus, 'identity.lastname', '').toUpperCase() || '',
-        get(cus, 'identity.firstname', '') || '',
-        lastServiceVersion ? lastServiceVersion.name : '',
-        lastVersion ? UtilsHelper.formatFloatForExport(lastVersion.unitTTCRate) : '',
-        lastVersion ? UtilsHelper.formatFloatForExport(lastVersion.estimatedWeeklyVolume) : '',
-        lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'evenings')) : '',
-        lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'sundays')) : '',
-      ]);
+      data.push({
+        'Id Bénéficiaire': get(cus, '_id') || '',
+        Titre: CIVILITY_LIST[get(cus, 'identity.title')] || '',
+        Nom: get(cus, 'identity.lastname', '').toUpperCase() || '',
+        Prénom: get(cus, 'identity.firstname', '') || '',
+        Service: lastServiceVersion ? lastServiceVersion.name : '',
+        'Prix unitaire TTC': lastVersion ? UtilsHelper.formatFloatForExport(lastVersion.unitTTCRate) : '',
+        'Volume horaire hebdomadaire estimatif': has(lastVersion, 'weeklyHours')
+          ? UtilsHelper.formatFloatForExport(lastVersion.weeklyHours)
+          : '',
+        'Nombre d\'interventions hebdomadaire estimatif': has(lastVersion, 'weeklyCount')
+          ? UtilsHelper.formatFloatForExport(lastVersion.weeklyCount)
+          : '',
+        'Dont soirées': lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'evenings')) : '',
+        'Dont samedis': lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'saturdays')) : '',
+        'Dont dimanches': lastVersion ? UtilsHelper.formatFloatForExport(get(lastVersion, 'sundays')) : '',
+      });
     }
   }
 
-  return data;
+  return [Object.keys(data[0]), ...data.map(d => Object.values(d))];
 };
 
 const fundingExportHeader = [
@@ -472,7 +468,7 @@ exports.exportFundings = async (credentials) => {
     const frequency = FUNDING_FREQUENCIES.find(freq => freq.value === funding.frequency);
     let careDays = '';
     if (funding.careDays) {
-      careDays = funding.careDays.map(dayIndex => DAYS_INDEX[dayIndex]).join(' ');
+      careDays = funding.careDays.map(dayIndex => CARE_DAYS_INDEX[dayIndex]).join(' ');
     }
 
     data.push([

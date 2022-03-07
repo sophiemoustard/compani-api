@@ -48,7 +48,7 @@ const customer = {
     _id: subscriptionId,
     service: service._id,
     versions: [
-      { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+      { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
     ],
   }],
 };

@@ -7,11 +7,13 @@ const Bill = require('../../models/Bill');
 const { language } = translate;
 
 exports.authorizeBillingItemCreation = async (req) => {
-  const billingItem = await BillingItem.countDocuments({
-    name: req.payload.name,
-    company: req.auth.credentials.company._id,
-  });
-  if (billingItem) throw Boom.conflict(translate[language].billingItemsConflict);
+  const nameAlreadyExists = await BillingItem
+    .countDocuments({
+      name: req.payload.name,
+      company: req.auth.credentials.company._id,
+    }, { limit: 1 })
+    .collation({ locale: 'fr', strength: 1 });
+  if (nameAlreadyExists) throw Boom.conflict(translate[language].billingItemsConflict);
 
   return null;
 };

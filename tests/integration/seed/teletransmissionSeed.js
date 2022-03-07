@@ -34,7 +34,7 @@ const teletransmissionTppList = [
   },
   { // 2 - different company
     _id: new ObjectId(),
-    name: 'Toto',
+    name: 'Titi',
     company: otherCompany._id,
     isApa: true,
     billingMode: 'direct',
@@ -44,7 +44,7 @@ const teletransmissionTppList = [
   },
   { // 3 - different companyCode
     _id: new ObjectId(),
-    name: 'Tata',
+    name: 'Tutu',
     company: authCompany._id,
     isApa: true,
     billingMode: 'direct',
@@ -54,7 +54,7 @@ const teletransmissionTppList = [
   },
   { // 4 - different teletransmissionId
     _id: new ObjectId(),
-    name: 'Toto',
+    name: 'Toutou',
     company: authCompany._id,
     isApa: true,
     billingMode: 'direct',
@@ -64,7 +64,7 @@ const teletransmissionTppList = [
   },
   { // 5 - missing teletransmissionId
     _id: new ObjectId(),
-    name: 'Tata',
+    name: 'Tonton',
     company: authCompany._id,
     isApa: true,
     billingMode: 'direct',
@@ -73,7 +73,7 @@ const teletransmissionTppList = [
   },
   { // 6 - missing teletransmissionType
     _id: new ObjectId(),
-    name: 'Toto',
+    name: 'Teuteu',
     company: authCompany._id,
     isApa: true,
     billingMode: 'direct',
@@ -82,7 +82,7 @@ const teletransmissionTppList = [
   },
   { // 7 - missing companyCode
     _id: new ObjectId(),
-    name: 'Tata',
+    name: 'Toitoi',
     company: authCompany._id,
     isApa: true,
     billingMode: 'direct',
@@ -137,7 +137,7 @@ const customersList = [
     subscriptions: [{
       _id: subscriptionId,
       service: serviceList[0]._id,
-      versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1 }],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
     fundings: [{
       _id: new ObjectId(),

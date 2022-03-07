@@ -99,7 +99,7 @@ const exportHistory = async (req, h) => {
         exportArray = await HistoryExportHelper.exportContractHistory(startDate, endDate, credentials);
         break;
       case COURSE:
-        exportArray = await HistoryExportHelper.exportCourseHistory(startDate, endDate);
+        exportArray = await HistoryExportHelper.exportCourseHistory(startDate, endDate, credentials);
         break;
       case COURSE_SLOT:
         exportArray = await HistoryExportHelper.exportCourseSlotHistory(startDate, endDate);

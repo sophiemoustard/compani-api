@@ -28,6 +28,8 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
+const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
+const CourseBill = require('../../../src/models/CourseBill');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
@@ -97,6 +99,19 @@ const serviceList = [
       vat: 12,
     }],
     nature: HOURLY,
+  },
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 100,
+      name: 'Service forfaitaire',
+      surcharge: surcharge._id,
+      exemptFromCharges: false,
+      startDate: '2019-01-18T19:58:15.519Z',
+      vat: 12,
+    }],
+    nature: FIXED,
   },
 ];
 
@@ -259,9 +274,13 @@ const customersList = [
       {
         _id: subscriptionId,
         service: serviceList[0]._id,
-        versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 30, evenings: 1, sundays: 2 }],
+        versions: [{ unitTTCRate: 12, weeklyHours: 30, evenings: 1, sundays: 2, saturdays: 2 }],
       },
-      { _id: new ObjectId(), service: serviceList[1]._id, versions: [{ startDate: '2018-01-05T15:00:00.000Z' }] },
+      {
+        _id: new ObjectId(),
+        service: serviceList[2]._id,
+        versions: [{ startDate: '2018-01-05T15:00:00.000Z', weeklyCount: 3, unitTTCRate: 100 }],
+      },
     ],
     fundings: [{
       _id: new ObjectId(),
@@ -337,8 +356,8 @@ const customersList = [
       _id: customerSubscriptionId,
       service: serviceList[0]._id,
       versions: [
-        { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00.000Z' },
-        { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00.000Z' },
+        { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
       ],
     }],
     fundings: [
@@ -1074,6 +1093,27 @@ const courseList = [
   },
 ];
 
+const courseFundingOrganisation = {
+  _id: new ObjectId(),
+  name: 'APA Paris',
+  address: {
+    street: '1 avenue Denfert Rochereau',
+    zipCode: '75014',
+    city: 'Paris',
+    fullAddress: '1 avenue Denfert Rochereau 75014 Paris',
+    location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+  },
+};
+
+const courseBill =
+  {
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    mainFee: { price: 1200, count: 1 },
+    company: authCompany._id,
+    courseFundingOrganisation: courseFundingOrganisation._id,
+  };
+
 const activityHistoryList = [
   { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[0]._id },
   { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[1]._id },
@@ -1193,6 +1233,8 @@ const populateDB = async () => {
     SubProgram.create(subProgramList),
     Program.create(programList),
     Course.create(courseList),
+    CourseBill.create(courseBill),
+    CourseFundingOrganisation.create(courseFundingOrganisation),
     CourseSlot.create(courseSlotList),
     CourseSmsHistory.create(smsList),
     Attendance.create(attendanceList),

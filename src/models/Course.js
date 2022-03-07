@@ -46,6 +46,13 @@ CourseSchema.virtual('slotsToPlan', {
   options: { match: { startDate: { $exists: false } } },
 });
 
+CourseSchema.virtual('bills', {
+  ref: 'CourseBill',
+  localField: '_id',
+  foreignField: 'course',
+  options: { sort: { createdAt: -1 } },
+});
+
 CourseSchema.virtual('companies').get(getCompanies);
 formatQueryMiddlewareList().map(middleware => CourseSchema.pre(middleware, formatQuery));
 

@@ -6,6 +6,35 @@ module.exports = {
   IDENTIFICATION: 'identification',
   CONTRACT_END: 'contract_end',
   REJECTED: 'rejected',
+  // DATE INDEX
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+  SUNDAY: 7,
+  // DURATION
+  YEARS: 'years',
+  QUARTERS: 'quarters',
+  MONTHS: 'months',
+  WEEKS: 'weeks',
+  DAYS: 'days',
+  HOURS: 'hours',
+  MINUTES: 'minutes',
+  SECONDS: 'seconds',
+  get DURATION_UNITS() {
+    return [
+      this.YEARS,
+      this.QUARTERS,
+      this.MONTHS,
+      this.WEEKS,
+      this.DAYS,
+      this.HOURS,
+      this.MINUTES,
+      this.SECONDS,
+    ];
+  },
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',
@@ -112,6 +141,7 @@ module.exports = {
     ];
   },
   // REPETITION FREQUENCY
+  FORCAST_PERIOD_FOR_CREATING_EVENTS: { days: 90 },
   NEVER: 'never',
   EVERY_DAY: 'every_day',
   EVERY_WEEK_DAY: 'every_week_day',
@@ -208,7 +238,8 @@ module.exports = {
   CUSTOMER: 'customer',
   SUBSCRIPTION: 'subscription',
   FUNDING: 'funding',
-  DAYS_INDEX: {
+  CARE_HOLIDAY: 7,
+  CARE_DAYS_INDEX: {
     0: 'Lundi',
     1: 'Mardi',
     2: 'Mercredi',
@@ -293,7 +324,7 @@ module.exports = {
   },
   // PAY
   PAY: 'pay',
-  WORKING_DAYS: [1, 2, 3, 4, 5, 6],
+  get WORKING_DAYS() { return [this.MONDAY, this.TUESDAY, this.WEDNESDAY, this.THURSDAY, this.FRIDAY, this.SATURDAY]; },
   // CONTRACTS
   CONTRACT: 'contract',
   CONTRACT_VERSION: 'contract_version',
@@ -520,25 +551,4 @@ module.exports = {
   ACTIVATED: 'Actif',
   STOPPED: 'Arrêté',
   ARCHIVED: 'Archivé',
-  // DURATION
-  YEARS: 'years',
-  QUARTERS: 'quarters',
-  MONTHS: 'months',
-  WEEKS: 'weeks',
-  DAYS: 'days',
-  HOURS: 'hours',
-  MINUTES: 'minutes',
-  SECONDS: 'seconds',
-  get DURATION_UNITS() {
-    return [
-      this.YEARS,
-      this.QUARTERS,
-      this.MONTHS,
-      this.WEEKS,
-      this.DAYS,
-      this.HOURS,
-      this.MINUTES,
-      this.SECONDS,
-    ];
-  },
 };

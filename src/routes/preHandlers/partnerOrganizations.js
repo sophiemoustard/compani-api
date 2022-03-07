@@ -4,18 +4,6 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.checkPartnerOrganizationConflict = async (req) => {
-  const { credentials } = req.auth;
-
-  const partnerOrganizationAlreadyExist = await PartnerOrganization.countDocuments({
-    name: req.payload.name,
-    company: credentials.company._id,
-  });
-  if (partnerOrganizationAlreadyExist) throw Boom.conflict(translate[language].partnerOrganizationAlreadyExists);
-
-  return null;
-};
-
 exports.checkPartnerOrganizationExists = async (req) => {
   const { credentials } = req.auth;
 
@@ -29,7 +17,12 @@ exports.checkPartnerOrganizationExists = async (req) => {
 };
 
 exports.authorizePartnerOrganizationCreation = async (req) => {
-  await this.checkPartnerOrganizationConflict(req);
+  const { credentials } = req.auth;
+
+  const nameAlreadyExists = await PartnerOrganization
+    .countDocuments({ name: req.payload.name, company: credentials.company._id }, { limit: 1 })
+    .collation({ locale: 'fr', strength: 1 });
+  if (nameAlreadyExists) throw Boom.conflict(translate[language].partnerOrganizationAlreadyExists);
 
   return null;
 };
@@ -43,7 +36,17 @@ exports.authorizePartnerOrganizationGetById = async (req) => {
 exports.authorizePartnerOrganizationUpdate = async (req) => {
   await this.checkPartnerOrganizationExists(req);
 
-  if (req.payload.name) await this.checkPartnerOrganizationConflict(req);
+  if (req.payload.name) {
+    const { credentials } = req.auth;
+    const nameAlreadyExists = await PartnerOrganization
+      .countDocuments({
+        _id: { $ne: req.params._id },
+        name: req.payload.name,
+        company: credentials.company._id,
+      }, { limit: 1 })
+      .collation({ locale: 'fr', strength: 1 });
+    if (nameAlreadyExists) throw Boom.conflict(translate[language].partnerOrganizationAlreadyExists);
+  }
 
   return null;
 };

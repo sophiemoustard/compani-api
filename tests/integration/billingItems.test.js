@@ -15,6 +15,7 @@ describe('NODE ENV', () => {
 
 describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
   let authToken;
+  const payload = { name: 'Billing Jean', type: 'manual', defaultUnitAmount: 25, vat: 2 };
   beforeEach(populateDB);
 
   describe('CLIENT ADMIN', () => {
@@ -27,7 +28,7 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
         method: 'POST',
         url: '/billingitems',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'Billing Jean', type: 'manual', defaultUnitAmount: 25, vat: 2 },
+        payload,
       });
 
       expect(response.statusCode).toBe(200);
@@ -39,17 +40,41 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
     const missingParams = ['name', 'type', 'defaultUnitAmount', 'vat'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' is missing in payload`, async () => {
-        const payload = omit({ name: 'Billing Elliot', type: 'manual', defaultUnitAmount: 25, vat: 2 }, [param]);
-
         const response = await app.inject({
           method: 'POST',
           url: '/billingitems',
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload,
+          payload: omit(payload, [param]),
         });
 
         expect(response.statusCode).toBe(400);
       });
+    });
+
+    it('should create billing item even if one item in other company has same name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/billingitems',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'Billing ual' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const billingCreated = await BillingItem
+        .countDocuments({ name: 'Billing ual', company: authCompany._id });
+      expect(billingCreated).toBe(1);
+    });
+
+    it('should return 409 if other tpp in same company has same name (case and diacritics insensitive)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/billingitems',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, name: 'An èxïsting bîlling' },
+      });
+
+      expect(response.statusCode).toBe(409);
     });
 
     it('should return a 400 if type is invalid', async () => {
@@ -61,17 +86,6 @@ describe('BILLING ITEMS ROUTES - POST /billingitems', () => {
       });
 
       expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 409 if a billing item with same name exist for company', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/billingitems',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { name: 'An existing billing', type: 'manual', defaultUnitAmount: 25, vat: 2 },
-      });
-
-      expect(response.statusCode).toBe(409);
     });
   });
 

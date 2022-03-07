@@ -188,6 +188,7 @@ module.exports = {
     /* Third party payers */
     thirdPartyPayerCreated: 'Company third party payer created.',
     thirdPartyPayersFound: 'Company third party payers found.',
+    thirdPartyPayerExits: 'Company third party payer already exists.',
     thirdPartyPayersNotFound: 'Company third party payers not found.',
     thirdPartyPayerUpdated: 'Company third party payer updated.',
     thirdPartyPayerDeleted: 'Company third party payer deleted.',
@@ -297,6 +298,12 @@ module.exports = {
     courseAccessRuleDeleted: 'Access rule deleted.',
     courseQuestionnairesFound: 'Questionnaires found.',
     courseAttendanceNotGenerated: 'Failed to download attendance sheet, no on-site slot.',
+    /* Course bill */
+    courseBillsFound: 'Course bills found.',
+    courseBillsNotFound: 'Course bills not found.',
+    courseBillCreated: 'Course bill created.',
+    courseBillUpdated: 'Course bill updated.',
+    courseBillingItemAlreadyAdded: 'Course billing item already added to bill.',
     /* Course billing items */
     courseBillingItemExists: 'Course billing item exists.',
     courseBillingItemsFound: 'Course billing items found.',
@@ -556,6 +563,7 @@ module.exports = {
     /* Third party payers */
     thirdPartyPayerCreated: 'Tiers payeur de l\'entreprise créé.',
     thirdPartyPayersFound: 'Tiers payeurs de l\'entreprise trouvés.',
+    thirdPartyPayerExits: 'Tiers payeur déjà existant.',
     thirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
     thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
@@ -665,11 +673,17 @@ module.exports = {
     courseAccessRuleDeleted: 'Règle d\'accès supprimée.',
     courseQuestionnairesFound: 'Questionnaires trouvés.',
     courseAttendanceNotGenerated: 'Erreur lors du téléchargement, la formation ne contient pas de créneau présentiel.',
+    /* Course bill */
+    courseBillsFound: 'Factures de la formation trouvées.',
+    courseBillsNotFound: 'Factures de la formation non trouvées.',
+    courseBillCreated: 'Facture de la formation créée.',
+    courseBillUpdated: 'Facture de la formation mise à jour.',
+    courseBillingItemAlreadyAdded: 'Article déjà ajouté à la facture.',
     /* Course billing items */
-    courseBillingItemExists: 'Item de facturation existant.',
-    courseBillingItemsFound: 'Items de facturation trouvés.',
-    courseBillingItemsNotFound: 'Items de facturation non trouvés.',
-    courseBillingItemCreated: 'Item de facturation créé.',
+    courseBillingItemExists: 'Article de facturation existant.',
+    courseBillingItemsFound: 'Articles de facturation trouvés.',
+    courseBillingItemsNotFound: 'Articles de facturation non trouvés.',
+    courseBillingItemCreated: 'Article de facturation créé.',
     /* Course slots */
     courseSlotCreated: 'Créneau de formation créé.',
     courseSlotUpdated: 'Créneau de formation mis à jour.',

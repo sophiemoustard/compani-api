@@ -3,7 +3,7 @@ const get = require('lodash/get');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 const DatesHelper = require('../../helpers/dates');
-const { INTERVENTION, NOT_INVOICED_AND_NOT_PAID } = require('../../helpers/constants');
+const { INTERVENTION, NOT_INVOICED_AND_NOT_PAID, HOURLY, FIXED } = require('../../helpers/constants');
 const Customer = require('../../models/Customer');
 const UserCompany = require('../../models/UserCompany');
 const Event = require('../../models/Event');
@@ -105,13 +105,22 @@ exports.authorizeCustomerUpdate = async (req) => {
 
 exports.authorizeSubscriptionCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
+  const { payload } = req;
 
-  const service = await Service.countDocuments({
-    _id: req.payload.service,
+  const service = await Service.findOne({
+    _id: payload.service,
     company: companyId,
     $or: [{ isArchived: { $exists: false } }, { isArchived: false }],
-  });
+  }).lean();
   if (!service) throw Boom.forbidden();
+
+  const serviceLastVersion = UtilsHelper.getLastVersion(service.versions, 'createdAt');
+
+  const isHourlyAndBadPayload = service.nature === HOURLY &&
+    payload.versions.some(v => !v.weeklyHours || (!!get(serviceLastVersion, 'billingItems.length') && !v.weeklyCount));
+  const isFixedAndBadPayload = service.nature === FIXED &&
+    payload.versions.some(v => !v.weeklyCount || v.weeklyHours || v.evenings || v.saturdays || v.sundays);
+  if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
 
   return exports.authorizeCustomerUpdate(req);
 };
@@ -125,6 +134,16 @@ exports.authorizeSubscriptionUpdate = async (req) => {
 
   const subscription = customer.subscriptions.find(sub => UtilsHelper.areObjectIdsEquals(sub._id, subscriptionId));
   if (subscription.service.isArchived) throw Boom.forbidden();
+
+  const { payload } = req;
+  const serviceLastVersion = UtilsHelper.getLastVersion(subscription.service.versions, 'createdAt');
+
+  const isHourlyAndBadPayload = subscription.service.nature === HOURLY &&
+    (!payload.weeklyHours || (!!get(serviceLastVersion, 'billingItems.length') && !payload.weeklyCount));
+  const isFixedAndBadPayload = subscription.service.nature === FIXED &&
+    (!payload.weeklyCount || payload.weeklyHours || payload.saturdays || payload.sundays || payload.evenings);
+  if (isHourlyAndBadPayload || isFixedAndBadPayload) throw Boom.badData();
+
   return exports.authorizeCustomerUpdate(req);
 };
 

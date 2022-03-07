@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const has = require('lodash/has');
 const pick = require('lodash/pick');
 const uniqBy = require('lodash/uniqBy');
 const moment = require('../extensions/moment');
@@ -52,6 +53,8 @@ const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
+
+const NO_DATA = 'Aucune donnée sur la periode selectionnée';
 
 const workingEventExportHeader = [
   'Type',
@@ -648,7 +651,7 @@ const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   return '';
 };
 
-exports.exportCourseHistory = async (startDate, endDate) => {
+exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
   const courseIds = slots.map(slot => slot.course);
   const courses = await Course
@@ -672,6 +675,12 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     .populate({ path: 'slots', populate: 'attendances' })
     .populate({ path: 'slotsToPlan' })
     .populate({ path: 'trainees', select: 'firstMobileConnection' })
+    .populate({
+      path: 'bills',
+      select: 'courseFundingOrganisation company',
+      options: { isVendorUser: has(credentials, 'role.vendor') },
+      populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+    })
     .lean();
 
   const questionnaireHistories = await QuestionnaireHistory
@@ -724,10 +733,14 @@ exports.exportCourseHistory = async (startDate, endDate) => {
       .filter(trainee => trainee.progress.eLearning >= 0)
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
+    const payer = course.bills
+      .map(bill => get(bill, 'courseFundingOrganisation.name') || get(bill, 'company.name'))
+      .toString();
 
     rows.push({
       Identifiant: course._id,
       Type: course.type,
+      Payeur: payer || '',
       Structure: course.type === INTRA ? get(course, 'company.name') : '',
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
@@ -759,7 +772,7 @@ exports.exportCourseHistory = async (startDate, endDate) => {
     });
   }
 
-  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };
 
 const getAddress = (slot) => {
@@ -815,7 +828,7 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
     });
   }
 
-  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };
 
 exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
@@ -875,5 +888,5 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
     }
   }
 
-  return [Object.keys(rows[0]), ...rows.map(d => Object.values(d))];
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
 };

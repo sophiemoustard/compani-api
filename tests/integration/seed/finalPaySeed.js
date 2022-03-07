@@ -249,7 +249,7 @@ const customer = {
       service: serviceIds[0],
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000Z',
@@ -260,7 +260,7 @@ const customer = {
       service: serviceIds[1],
       versions: [{
         unitTTCRate: 100,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 0,
         sundays: 3,
         startDate: '2018-01-03T10:00:00.000Z',
@@ -271,7 +271,7 @@ const customer = {
       service: serviceIds[2],
       versions: [{
         unitTTCRate: 4,
-        estimatedWeeklyVolume: 14,
+        weeklyHours: 14,
         evenings: 0,
         sundays: 1,
         startDate: '2018-01-03T10:00:00.000Z',
@@ -282,7 +282,7 @@ const customer = {
       service: serviceIds[3],
       versions: [{
         unitTTCRate: 5,
-        estimatedWeeklyVolume: 4,
+        weeklyHours: 4,
         evenings: 0,
         sundays: 1,
         startDate: '2018-01-03T10:00:00.000Z',

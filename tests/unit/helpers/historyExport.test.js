@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 const { ObjectId } = require('mongodb');
+const has = require('lodash/has');
 const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -1705,12 +1706,12 @@ describe('exportCourseHistory', () => {
       step: new ObjectId(),
     },
   ];
-
+  const company = { _id: new ObjectId(), name: 'Test SAS' };
   const courseList = [
     {
       _id: courseIdList[0],
       type: INTRA,
-      company: { _id: new ObjectId(), name: 'Test SAS' },
+      company,
       subProgram: subProgramList[0],
       misc: 'group 1',
       trainer,
@@ -1719,6 +1720,14 @@ describe('exportCourseHistory', () => {
       trainees: [traineeList[0], traineeList[1], traineeList[2]],
       slotsToPlan: [],
       slots: [courseSlotList[0], courseSlotList[1]],
+      bills: [
+        {
+          course: courseIdList[0],
+          mainFee: { price: 120, count: 1 },
+          company,
+          courseFundingOrganisation: { name: 'APA Paris' },
+        },
+      ],
     },
     {
       _id: courseIdList[1],
@@ -1731,6 +1740,7 @@ describe('exportCourseHistory', () => {
       trainees: [traineeList[3], traineeList[4]],
       slotsToPlan: [courseSlotList[4]],
       slots: [courseSlotList[2], courseSlotList[3]],
+      bills: [],
     },
   ];
 
@@ -1746,6 +1756,8 @@ describe('exportCourseHistory', () => {
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0] },
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1] },
   ];
+
+  const credentials = { company: { _id: new ObjectId() } };
 
   let findCourseSlot;
   let findCourse;
@@ -1775,6 +1787,91 @@ describe('exportCourseHistory', () => {
     findQuestionnaireHistory.restore();
   });
 
+  it('should return an empty array if no course', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
+    findCourse.returns(SinonMongoose.stubChainedQueries([]));
+    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
+    findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
+      [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
+      ['lean']
+    ));
+    findAttendanceSheet.returns(SinonMongoose.stubChainedQueries(
+      [{ course: courseList[0]._id }],
+      ['lean']
+    ));
+
+    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+
+    expect(result).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findCourse,
+      [
+        { query: 'find', args: [{ _id: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        {
+          query: 'populate',
+          args: [
+            {
+              path: 'subProgram',
+              select: 'name steps program',
+              populate: [
+                { path: 'program', select: 'name' },
+                {
+                  path: 'steps',
+                  select: 'type activities',
+                  populate: { path: 'activities', populate: { path: 'activityHistories' } },
+                },
+              ],
+            }],
+        },
+        { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan' }] },
+        { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'bills',
+            select: 'courseFundingOrganisation company',
+            options: { isVendorUser: has(credentials, 'role.vendor') },
+            populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(groupSlotsByDate);
+    sinon.assert.notCalled(getTotalDuration);
+    SinonMongoose.calledOnceWithExactly(
+      findQuestionnaireHistory,
+      [
+        { query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSmsHistory,
+      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findAttendanceSheet,
+      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+    );
+  });
+
   it('should return an array with the header and 2 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
@@ -1792,12 +1889,14 @@ describe('exportCourseHistory', () => {
       ['lean']
     ));
 
-    const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+    const result = await ExportHelper
+      .exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
     expect(result).toEqual([
       [
         'Identifiant',
         'Type',
+        'Payeur',
         'Structure',
         'Programme',
         'Sous-Programme',
@@ -1827,6 +1926,7 @@ describe('exportCourseHistory', () => {
       [
         courseList[0]._id,
         'intra',
+        'APA Paris',
         'Test SAS',
         'Program 1',
         'subProgram 1',
@@ -1856,6 +1956,7 @@ describe('exportCourseHistory', () => {
       [
         courseList[1]._id,
         'inter_b2b',
+        '',
         '',
         'Program 2',
         'subProgram 2',
@@ -1920,6 +2021,15 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
         { query: 'populate', args: [{ path: 'slotsToPlan' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'bills',
+            select: 'courseFundingOrganisation company',
+            options: { isVendorUser: has(credentials, 'role.vendor') },
+            populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+          }],
+        },
         { query: 'lean' },
       ]
     );
@@ -2035,6 +2145,37 @@ describe('exportCourseSlotHistory', () => {
 
   afterEach(() => {
     findCourseSlot.restore();
+  });
+
+  it('should return an empty array if no course slots', async () => {
+    findCourseSlot.returns(SinonMongoose.stubChainedQueries([]));
+
+    const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
+
+    expect(result).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseSlot,
+      [
+        {
+          query: 'find',
+          args: [{ startDate: { $lte: '2022-01-20T22:59:59.000Z' }, endDate: { $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        { query: 'populate', args: [{ path: 'step', select: 'type name' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'type trainees misc subProgram company',
+            populate: [
+              { path: 'company', select: 'name' },
+              { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+            ],
+          }],
+        },
+        { query: 'populate', args: [{ path: 'attendances' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 
   it('should return an array with the header and 2 rows', async () => {
@@ -2176,6 +2317,17 @@ describe('exportTransportsHistory', () => {
     getDistanceMatrices.restore();
   });
 
+  it('should return an empty array if no transport', async () => {
+    getEventsByDayAndAuxiliary.returns([]);
+    getDistanceMatrices.returns([]);
+
+    const credentials = { company: { _id: new ObjectId() } };
+    const exportArray = await ExportHelper.exportTransportsHistory('2021-06-24', '2021-06-30', credentials);
+
+    expect(exportArray).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    sinon.assert.notCalled(getPaidTransportInfo);
+  });
+
   it('should return an array with the header and 2 rows', async () => {
     getEventsByDayAndAuxiliary.returns([
       {
@@ -2301,5 +2453,6 @@ describe('exportTransportsHistory', () => {
         '2,1000',
       ],
     ]);
+    sinon.assert.callCount(getPaidTransportInfo, 3);
   });
 });

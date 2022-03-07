@@ -77,8 +77,8 @@ const billAuthcustomer = {
     _id: subscriptions[0]._id,
     service: services[0]._id,
     versions: [
-      { unitTTCRate: 12, estimatedWeeklyVolume: 12, evenings: 2, sundays: 1, createdAt: '2020-01-01T23:00:00' },
-      { unitTTCRate: 10, estimatedWeeklyVolume: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+      { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, weeklyCount: 0, createdAt: '2020-01-01T23:00:00' },
+      { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, weeklyCount: 0, createdAt: '2019-06-01T23:00:00' },
     ],
   }],
   payment: {
@@ -141,8 +141,10 @@ const customerList = [
       service: services[0]._id,
       versions: [{
         unitTTCRate: 10,
-        estimatedWeeklyVolume: 15,
+        weeklyHours: 15,
+        weeklyCount: 0,
         evenings: 2,
+        saturdays: 1,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
       }],
@@ -151,7 +153,8 @@ const customerList = [
       service: services[1]._id,
       versions: [{
         unitTTCRate: 11,
-        estimatedWeeklyVolume: 14,
+        weeklyHours: 14,
+        weeklyCount: 0,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
@@ -177,8 +180,10 @@ const customerList = [
       service: services[0]._id,
       versions: [{
         unitTTCRate: 20,
-        estimatedWeeklyVolume: 21,
+        weeklyHours: 21,
+        weeklyCount: 0,
         evenings: 2,
+        saturdays: 1,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
       }],
@@ -225,7 +230,8 @@ const customerList = [
       service: services[1]._id,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
+        weeklyCount: 0,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',

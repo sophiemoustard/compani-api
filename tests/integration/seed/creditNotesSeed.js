@@ -81,7 +81,7 @@ const creditNoteCustomer = {
       service: creditNoteService._id,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
@@ -119,7 +119,7 @@ const archivedCustomer = {
       service: creditNoteService._id,
       versions: [{
         unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
+        weeklyHours: 12,
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
@@ -350,7 +350,7 @@ const otherCompanyCustomer = {
     service: otherCompanyService._id,
     versions: [{
       unitTTCRate: 24,
-      estimatedWeeklyVolume: 6,
+      weeklyHours: 6,
       evenings: 0,
       sundays: 1,
       startDate: '2018-01-01T10:00:00.000+01:00',

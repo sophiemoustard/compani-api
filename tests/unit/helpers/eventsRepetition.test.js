@@ -1,9 +1,11 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const momentRange = require('moment-range');
 const omit = require('lodash/omit');
 const { ObjectId } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
+const luxon = require('../../../src/helpers/dates/luxon');
+const CompaniDatesHelper = require('../../../src/helpers/dates/companiDates');
+const CompaniIntervalsHelper = require('../../../src/helpers/dates/companiIntervals');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Repetition = require('../../../src/models/Repetition');
@@ -11,7 +13,6 @@ const Customer = require('../../../src/models/Customer');
 const EventsHelper = require('../../../src/helpers/events');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
-const DatesHelper = require('../../../src/helpers/dates');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const RepetitionHelper = require('../../../src/helpers/repetitions');
 const {
@@ -23,8 +24,6 @@ const {
   UNAVAILABILITY,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
-
-momentRange.extendMoment(moment);
 
 describe('formatRepeatedPayload', () => {
   let hasConflicts;
@@ -40,27 +39,26 @@ describe('formatRepeatedPayload', () => {
 
   it('should format event with auxiliary', async () => {
     const sector = new ObjectId();
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const day = '2019-07-16T22:00:00.000Z';
     const auxiliaryId = new ObjectId();
     const event = {
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
+      startDate: '2019-07-13T22:00:00.000Z',
+      endDate: '2019-07-14T22:00:00.000Z',
       auxiliary: auxiliaryId,
       type: 'intervention',
     };
-    const step = day.diff(event.startDate, 'd');
     const payload = {
       ...omit(event, '_id'),
-      startDate: moment(event.startDate).add(step, 'd'),
-      endDate: moment(event.endDate).add(step, 'd'),
+      startDate: '2019-07-16T22:00:00.000Z',
+      endDate: '2019-07-17T22:00:00.000Z',
     };
     hasConflicts.returns(false);
     isAbsent.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
-    expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
-    expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
+    expect(result.startDate).toEqual(new Date('2019-07-16T22:00:00.000Z'));
+    expect(result.endDate).toEqual(new Date('2019-07-17T22:00:00.000Z'));
     expect(result.auxiliary).toEqual(auxiliaryId);
     sinon.assert.calledWithExactly(hasConflicts, payload);
     sinon.assert.calledOnceWithExactly(isAbsent, event.customer, payload.startDate);
@@ -69,27 +67,26 @@ describe('formatRepeatedPayload', () => {
   it('should format intervention without auxiliary', async () => {
     const sector = new ObjectId();
     const auxiliaryId = new ObjectId();
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const day = '2019-07-16T22:00:00.000Z';
     const event = {
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
+      startDate: '2019-07-13T22:00:00.000Z',
+      endDate: '2019-07-14T22:00:00.000Z',
       auxiliary: auxiliaryId,
       type: 'intervention',
       repetition: { frequency: 'every_week' },
     };
-    const step = day.diff(event.startDate, 'd');
     const payload = {
       ...omit(event, '_id'),
-      startDate: moment(event.startDate).add(step, 'd'),
-      endDate: moment(event.endDate).add(step, 'd'),
+      startDate: '2019-07-16T22:00:00.000Z',
+      endDate: '2019-07-17T22:00:00.000Z',
     };
     hasConflicts.returns(true);
     isAbsent.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
 
     expect(result).toBeDefined();
-    expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
-    expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
+    expect(result.startDate).toEqual(new Date('2019-07-16T22:00:00.000Z'));
+    expect(result.endDate).toEqual(new Date('2019-07-17T22:00:00.000Z'));
     expect(result.auxiliary).toBeUndefined();
     expect(result.sector).toEqual(sector);
     expect(result.repetition.frequency).toEqual('never');
@@ -99,19 +96,18 @@ describe('formatRepeatedPayload', () => {
   it('should format internal hour with auxiliary', async () => {
     const sector = new ObjectId();
     const auxiliaryId = new ObjectId();
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const day = '2019-07-16T22:00:00.000Z';
     const event = {
       _id: new ObjectId(),
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
+      startDate: '2019-07-13T22:00:00.000Z',
+      endDate: '2019-07-14T22:00:00.000Z',
       auxiliary: auxiliaryId,
       type: INTERNAL_HOUR,
     };
-    const step = day.diff(event.startDate, 'd');
     const payload = {
       ...omit(event, '_id'),
-      startDate: moment(event.startDate).add(step, 'd'),
-      endDate: moment(event.endDate).add(step, 'd'),
+      startDate: '2019-07-16T22:00:00.000Z',
+      endDate: '2019-07-17T22:00:00.000Z',
     };
     hasConflicts.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
@@ -125,18 +121,17 @@ describe('formatRepeatedPayload', () => {
 
   it('should not called hasConflicts if event is not affected', async () => {
     const sector = new ObjectId();
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const day = '2019-07-16T22:00:00.000Z';
     const event = {
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
+      startDate: '2019-07-13T22:00:00.000Z',
+      endDate: '2019-07-14T22:00:00.000Z',
       type: 'intervention',
       sector: sector.toHexString(),
     };
-    const step = day.diff(event.startDate, 'd');
     const payload = {
       ...omit(event, '_id'),
-      startDate: moment(event.startDate).add(step, 'd'),
-      endDate: moment(event.endDate).add(step, 'd'),
+      startDate: '2019-07-16T22:00:00.000Z',
+      endDate: '2019-07-17T22:00:00.000Z',
     };
 
     hasConflicts.returns(false);
@@ -151,17 +146,16 @@ describe('formatRepeatedPayload', () => {
 
   it('should return null if event has conflict', async () => {
     const sector = new ObjectId();
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const day = '2019-07-16T22:00:00.000Z';
     const event = {
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
+      startDate: '2019-07-13T22:00:00.000Z',
+      endDate: '2019-07-14T22:00:00.000Z',
       type: 'intervention',
     };
-    const step = day.diff(event.startDate, 'd');
     const payload = {
       ...omit(event, '_id'),
-      startDate: moment(event.startDate).add(step, 'd'),
-      endDate: moment(event.endDate).add(step, 'd'),
+      startDate: '2019-07-16T22:00:00.000Z',
+      endDate: '2019-07-17T22:00:00.000Z',
     };
     isAbsent.returns(false);
 
@@ -174,18 +168,17 @@ describe('formatRepeatedPayload', () => {
 
   it('should return null if event is an internal hour and auxiliary has conflict', async () => {
     const sector = new ObjectId();
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const day = '2019-07-16T22:00:00.000Z';
     const event = {
       _id: new ObjectId(),
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
+      startDate: '2019-07-13T22:00:00.000Z',
+      endDate: '2019-07-14T22:00:00.000Z',
       type: INTERNAL_HOUR,
     };
-    const step = day.diff(event.startDate, 'd');
     const payload = {
       ...omit(event, '_id'),
-      startDate: moment(event.startDate).add(step, 'd'),
-      endDate: moment(event.endDate).add(step, 'd'),
+      startDate: '2019-07-16T22:00:00.000Z',
+      endDate: '2019-07-17T22:00:00.000Z',
     };
     hasConflicts.returns(true);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
@@ -197,18 +190,17 @@ describe('formatRepeatedPayload', () => {
 
   it('should return null if event is an unavailability and auxiliary has conflict', async () => {
     const sector = new ObjectId();
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const day = '2019-07-16T22:00:00.000Z';
     const event = {
       _id: new ObjectId(),
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
+      startDate: '2019-07-13T22:00:00.000Z',
+      endDate: '2019-07-14T22:00:00.000Z',
       type: 'unavailability',
     };
-    const step = day.diff(event.startDate, 'd');
     const payload = {
       ...omit(event, '_id'),
-      startDate: moment(event.startDate).add(step, 'd'),
-      endDate: moment(event.endDate).add(step, 'd'),
+      startDate: '2019-07-16T22:00:00.000Z',
+      endDate: '2019-07-17T22:00:00.000Z',
     };
     hasConflicts.returns(true);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, sector, day);
@@ -220,19 +212,18 @@ describe('formatRepeatedPayload', () => {
 
   it('should return null if customer is absent', async () => {
     const sector = new ObjectId();
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const day = '2019-07-16T22:00:00.000Z';
     const auxiliaryId = new ObjectId();
     const event = {
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
+      startDate: '2019-07-13T22:00:00.000Z',
+      endDate: '2019-07-14T22:00:00.000Z',
       auxiliary: auxiliaryId,
       type: 'intervention',
     };
-    const step = day.diff(event.startDate, 'd');
     const payload = {
       ...omit(event, '_id'),
-      startDate: moment(event.startDate).add(step, 'd'),
-      endDate: moment(event.endDate).add(step, 'd'),
+      startDate: '2019-07-16T22:00:00.000Z',
+      endDate: '2019-07-17T22:00:00.000Z',
     };
 
     hasConflicts.returns(false);
@@ -286,41 +277,6 @@ describe('createRepeatedEvents', () => {
     sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(1), event, sector, '2019-01-12T09:00:00.000Z');
     sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(2), event, sector, '2019-01-13T09:00:00.000Z');
     sinon.assert.calledOnceWithExactly(insertMany, repeatedEvents);
-    SinonMongoose.calledOnceWithExactly(
-      customerFindOne,
-      [
-        { query: 'findOne', args: [{ _id: event.customer, stoppedAt: { $exists: true } }, { stoppedAt: 1 }] },
-        { query: 'lean' },
-      ]
-    );
-  });
-
-  it('should not create repetition on week-end for week day repetition', async () => {
-    const sector = new ObjectId();
-    const event = {
-      type: INTERVENTION,
-      startDate: '2019-01-10T09:00:00.000Z',
-      endDate: '2019-01-10T11:00:00.000Z',
-      customer: new ObjectId(),
-    };
-    const range = [
-      '2019-01-11T09:00:00.000Z',
-      '2019-01-12T09:00:00.000Z',
-      '2019-01-13T09:00:00.000Z',
-      '2019-01-14T09:00:00.000Z',
-    ];
-    const fridayEvent = new Event({ company: new ObjectId(), startDate: range[0] });
-    const mondayEvent = new Event({ company: new ObjectId(), startDate: range[3] });
-
-    formatRepeatedPayload.onCall(0).returns(fridayEvent);
-    formatRepeatedPayload.onCall(1).returns(mondayEvent);
-    customerFindOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
-
-    await EventsRepetitionHelper.createRepeatedEvents(event, range, sector, true);
-
-    sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(0), event, sector, '2019-01-11T09:00:00.000Z');
-    sinon.assert.calledWithExactly(formatRepeatedPayload.getCall(1), event, sector, '2019-01-14T09:00:00.000Z');
-    sinon.assert.calledOnceWithExactly(insertMany, [fridayEvent, mondayEvent]);
     SinonMongoose.calledOnceWithExactly(
       customerFindOne,
       [
@@ -394,222 +350,97 @@ describe('createRepeatedEvents', () => {
   });
 });
 
-describe('createRepetitionsEveryDay', () => {
-  let createRepeatedEvents;
-  let dayDiff;
+describe('getRange', () => {
+  let _formatMiscToCompaniDate;
+  let _formatMiscToCompaniInterval;
+
   beforeEach(() => {
-    createRepeatedEvents = sinon.stub(EventsRepetitionHelper, 'createRepeatedEvents');
-    dayDiff = sinon.stub(DatesHelper, 'dayDiff');
+    _formatMiscToCompaniDate = sinon.stub(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    _formatMiscToCompaniInterval = sinon.spy(CompaniIntervalsHelper, '_formatMiscToCompaniInterval');
   });
   afterEach(() => {
-    createRepeatedEvents.restore();
-    dayDiff.restore();
+    _formatMiscToCompaniDate.restore();
+    _formatMiscToCompaniInterval.restore();
   });
 
-  it('should create repetition every day from today', async () => {
-    const sector = new ObjectId();
-    const event = {
-      startDate: '2019-01-10T09:00:00.000Z',
-      endDate: '2019-01-10T11:00:00.000Z',
-      customer: new ObjectId(),
-    };
-    const range = Array.from(
-      moment().range(moment('2019-01-11T09:00:00.000Z'), moment('2019-04-10T09:00:00.000Z')).by('days')
-    );
+  it('should create repetition every day from currentDay', async () => {
+    const eventStartDate = '2019-01-10T09:00:00.000Z';
+    const currentDate = '2019-01-10T14:00:00.000Z';
+    const step = { days: 1 };
 
-    dayDiff.returns(0);
+    _formatMiscToCompaniDate.onCall(0).returns(luxon.DateTime.fromISO(currentDate));
+    _formatMiscToCompaniDate.onCall(1).returns(luxon.DateTime.fromISO(eventStartDate));
+    _formatMiscToCompaniDate.onCall(2).returns(luxon.DateTime.fromISO(eventStartDate));
 
-    await EventsRepetitionHelper.createRepetitionsEveryDay(event, sector);
+    const result = await EventsRepetitionHelper.getRange(eventStartDate, step);
 
+    expect(result.length).toBe(89);
+    sinon.assert.callCount(_formatMiscToCompaniDate, 3);
     sinon.assert.calledOnceWithExactly(
-      createRepeatedEvents,
-      event,
-      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
-      sector,
-      false
+      _formatMiscToCompaniInterval,
+      '2019-01-11T09:00:00.000Z',
+      '2019-04-09T22:00:00.000Z'
     );
   });
 
   it('should create repetition every day with first event in the past', async () => {
-    const sector = new ObjectId();
-    const event = {
-      startDate: '2019-01-10T09:00:00.000Z',
-      endDate: '2019-01-10T11:00:00.000Z',
-      customer: new ObjectId(),
-    };
-    const range = Array.from(
-      moment().range(moment('2019-01-11T09:00:00.000Z'), moment('2019-04-14T09:00:00.000Z')).by('days')
-    );
+    const eventStartDate = '2019-01-05T09:00:00.000Z';
+    const currentDate = '2019-01-10T14:00:00.000Z';
+    const step = { days: 1 };
 
-    dayDiff.returns(4);
+    _formatMiscToCompaniDate.onCall(0).returns(luxon.DateTime.fromISO(currentDate));
+    _formatMiscToCompaniDate.onCall(1).returns(luxon.DateTime.fromISO(eventStartDate));
+    _formatMiscToCompaniDate.onCall(2).returns(luxon.DateTime.fromISO(eventStartDate));
 
-    await EventsRepetitionHelper.createRepetitionsEveryDay(event, sector);
+    const result = await EventsRepetitionHelper.getRange(eventStartDate, step);
 
+    expect(result.length).toBe(94);
+    sinon.assert.callCount(_formatMiscToCompaniDate, 3);
     sinon.assert.calledOnceWithExactly(
-      createRepeatedEvents,
-      event,
-      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
-      sector,
-      false
+      _formatMiscToCompaniInterval,
+      '2019-01-06T09:00:00.000Z',
+      '2019-04-09T22:00:00.000Z'
     );
-  });
-});
-
-describe('createRepetitionsEveryWeekDay', () => {
-  let createRepeatedEvents;
-  let dayDiff;
-  beforeEach(() => {
-    createRepeatedEvents = sinon.stub(EventsRepetitionHelper, 'createRepeatedEvents');
-    dayDiff = sinon.stub(DatesHelper, 'dayDiff');
-  });
-  afterEach(() => {
-    createRepeatedEvents.restore();
-    dayDiff.restore();
-  });
-
-  it('should create repetition every week day with first event in the future', async () => {
-    const sector = new ObjectId();
-    const event = {
-      startDate: '2019-01-10T09:00:00.000Z',
-      endDate: '2019-01-10T11:00:00.000Z',
-      customer: new ObjectId(),
-    };
-    const range = Array.from(
-      moment().range(moment('2019-01-11T09:00:00.000Z'), moment('2019-04-10T09:00:00.000Z')).by('days')
-    );
-
-    dayDiff.returns(-3);
-
-    await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event, sector);
-
-    sinon.assert.calledOnceWithExactly(
-      createRepeatedEvents,
-      event,
-      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
-      sector,
-      true
-    );
-  });
-
-  it('should create repetition every week day with first event in the past', async () => {
-    const sector = new ObjectId();
-    const event = {
-      startDate: '2019-01-10T09:00:00.000Z',
-      endDate: '2019-01-10T11:00:00.000Z',
-      customer: new ObjectId(),
-    };
-    const range = Array.from(
-      moment().range(moment('2019-01-11T09:00:00.000Z'), moment('2019-04-11T09:00:00.000Z')).by('days')
-    );
-
-    dayDiff.returns(1);
-
-    await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event, sector);
-
-    sinon.assert.calledOnceWithExactly(
-      createRepeatedEvents,
-      event,
-      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
-      sector,
-      true
-    );
-  });
-});
-
-describe('createRepetitionsByWeek', () => {
-  let createRepeatedEvents;
-  let dayDiff;
-  beforeEach(() => {
-    createRepeatedEvents = sinon.stub(EventsRepetitionHelper, 'createRepeatedEvents');
-    dayDiff = sinon.stub(DatesHelper, 'dayDiff');
-  });
-  afterEach(() => {
-    createRepeatedEvents.restore();
-    dayDiff.restore();
   });
 
   it('should create repetition by week with first event in the future', async () => {
-    const sector = new ObjectId();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectId() };
-    const range = Array.from(
-      moment().range(moment('2019-01-17T09:00:00.000Z'), moment('2019-04-10T10:00:00.000Z')).by('weeks', { step: 1 })
-    );
+    const eventStartDate = '2019-01-14T09:00:00.000Z';
+    const currentDate = '2019-01-10T14:00:00.000Z';
+    const step = { days: 1 };
 
-    dayDiff.returns(-7);
+    _formatMiscToCompaniDate.onCall(0).returns(luxon.DateTime.fromISO(currentDate));
+    _formatMiscToCompaniDate.onCall(1).returns(luxon.DateTime.fromISO(eventStartDate));
+    _formatMiscToCompaniDate.onCall(2).returns(luxon.DateTime.fromISO(eventStartDate));
 
-    await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 1);
+    const result = await EventsRepetitionHelper.getRange(eventStartDate, step);
 
+    expect(result.length).toBe(89);
+    sinon.assert.callCount(_formatMiscToCompaniDate, 3);
     sinon.assert.calledOnceWithExactly(
-      createRepeatedEvents,
-      event,
-      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
-      sector,
-      false
-    );
-  });
-
-  it('should create repetition by week with first event in the past', async () => {
-    const sector = new ObjectId();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectId() };
-    const range = Array.from(
-      moment().range(moment('2019-01-17T09:00:00.000Z'), moment('2019-04-20T10:00:00.000Z')).by('weeks', { step: 1 })
-    );
-
-    dayDiff.returns(10);
-
-    await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 1);
-
-    sinon.assert.calledOnceWithExactly(
-      createRepeatedEvents,
-      event,
-      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
-      sector,
-      false
-    );
-  });
-
-  it('should create repetition every two weeks from today', async () => {
-    const sector = new ObjectId();
-    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00Z', customer: new ObjectId() };
-
-    const range = Array.from(
-      moment().range(moment('2019-01-24T09:00:00.000Z'), moment('2019-04-10T10:00:00.000Z')).by('weeks', { step: 2 })
-    );
-
-    dayDiff.returns(0);
-
-    await EventsRepetitionHelper.createRepetitionsByWeek(event, sector, 2);
-
-    sinon.assert.calledOnceWithExactly(
-      createRepeatedEvents,
-      event,
-      sinon.match(calledRange => JSON.stringify(calledRange) === JSON.stringify(range)),
-      sector,
-      false
+      _formatMiscToCompaniInterval,
+      '2019-01-15T09:00:00.000Z',
+      '2019-04-13T22:00:00.000Z'
     );
   });
 });
 
 describe('createRepetitions', () => {
   let updateOne;
-  let createRepetitionsEveryDay;
-  let createRepetitionsEveryWeekDay;
-  let createRepetitionsByWeek;
+  let getRange;
+  let createRepeatedEvents;
   let saveRepetition;
   let findOne;
   beforeEach(() => {
     updateOne = sinon.stub(Event, 'updateOne');
-    createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
-    createRepetitionsEveryWeekDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryWeekDay');
-    createRepetitionsByWeek = sinon.stub(EventsRepetitionHelper, 'createRepetitionsByWeek');
+    getRange = sinon.stub(EventsRepetitionHelper, 'getRange');
+    createRepeatedEvents = sinon.stub(EventsRepetitionHelper, 'createRepeatedEvents');
     saveRepetition = sinon.stub(Repetition.prototype, 'save');
     findOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
     updateOne.restore();
-    createRepetitionsEveryDay.restore();
-    createRepetitionsEveryWeekDay.restore();
-    createRepetitionsByWeek.restore();
+    getRange.restore();
+    createRepeatedEvents.restore();
     saveRepetition.restore();
     findOne.restore();
   });
@@ -635,18 +466,27 @@ describe('createRepetitions', () => {
       ]
     );
     sinon.assert.called(updateOne);
+    sinon.assert.called(getRange);
+    sinon.assert.called(createRepeatedEvents);
     sinon.assert.called(saveRepetition);
   });
 
-  it('should call createRepetitionsEveryDay', async () => {
+  it('should generate range with frequency of every day', async () => {
     const auxiliaryId = new ObjectId();
     const sectorId = new ObjectId();
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
+    const payload = {
+      _id: '1234567890',
+      repetition: { frequency: 'every_day', parentId: '0987654321' },
+      startDate: '2019-01-15T09:00:00.000Z',
+    };
     const event = new Event({ company: new ObjectId(), auxiliary: auxiliaryId });
+    const range = ['2019-01-15T09:00:00.000Z', '2019-01-16T09:00:00.000Z', '2019-01-17T09:00:00.000Z',
+      '2019-01-18T09:00:00.000Z', '2019-01-19T09:00:00.000Z', '2019-01-20T09:00:00.000Z', '2019-01-21T09:00:00.000Z'];
 
     findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
+    getRange.returns(range);
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
@@ -659,51 +499,75 @@ describe('createRepetitions', () => {
       ]
     );
     sinon.assert.notCalled(updateOne);
-    sinon.assert.called(createRepetitionsEveryDay);
-    sinon.assert.calledWithExactly(createRepetitionsEveryDay, payload, sectorId);
+    sinon.assert.calledWithExactly(getRange, '2019-01-15T09:00:00.000Z', { days: 1 });
+    sinon.assert.calledWith(createRepeatedEvents, payload, range, sectorId);
     sinon.assert.called(saveRepetition);
   });
 
-  it('should call createRepetitionsEveryWeekDay', async () => {
+  it('should generate range with frequency of every weekday', async () => {
     const sectorId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
-    const payload = { _id: '1234567890', repetition: { frequency: 'every_week_day', parentId: '0987654321' } };
+    const payload = {
+      _id: '1234567890',
+      repetition: { frequency: 'every_week_day', parentId: '0987654321' },
+      startDate: '2019-01-15T09:00:00.000Z',
+    };
+    const event = new Event({ company: new ObjectId(), sector: sectorId });
+
+    getRange.returns(['2019-01-15T09:00:00.000Z', '2019-01-16T09:00:00.000Z', '2019-01-17T09:00:00.000Z',
+      '2019-01-18T09:00:00.000Z', '2019-01-19T09:00:00.000Z', '2019-01-20T09:00:00.000Z', '2019-01-21T09:00:00.000Z']);
+
+    await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
+
+    sinon.assert.notCalled(findOne);
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.calledWithExactly(getRange, '2019-01-15T09:00:00.000Z', { days: 1 });
+    sinon.assert.called(createRepeatedEvents);
+    sinon.assert.calledWith(
+      createRepeatedEvents,
+      payload,
+      ['2019-01-15T09:00:00.000Z', '2019-01-16T09:00:00.000Z', '2019-01-17T09:00:00.000Z', '2019-01-18T09:00:00.000Z',
+        '2019-01-21T09:00:00.000Z'],
+      sectorId
+    );
+    sinon.assert.called(saveRepetition);
+  });
+
+  it('should generate range with frequency of every week', async () => {
+    const sectorId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const payload = {
+      _id: '1234567890',
+      repetition: { frequency: 'every_week', parentId: '0987654321' },
+      startDate: '2019-01-15T09:00:00.000Z',
+    };
     const event = new Event({ company: new ObjectId(), sector: sectorId });
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
     sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
-    sinon.assert.called(createRepetitionsEveryWeekDay);
-    sinon.assert.calledWithExactly(createRepetitionsEveryWeekDay, payload, sectorId);
+    sinon.assert.calledWithExactly(getRange, '2019-01-15T09:00:00.000Z', { weeks: 1 });
+    sinon.assert.called(createRepeatedEvents);
     sinon.assert.called(saveRepetition);
   });
 
-  it('should call createRepetitionsByWeek to repeat every week', async () => {
+  it('should generate range with frequency of every 2 weeks', async () => {
     const sectorId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
-    const payload = { _id: '1234567890', repetition: { frequency: 'every_week', parentId: '0987654321' } };
+    const payload = {
+      _id: '1234567890',
+      repetition: { frequency: 'every_two_weeks', parentId: '0987654321' },
+      startDate: '2019-01-15T09:00:00.000Z',
+    };
     const event = new Event({ company: new ObjectId(), sector: sectorId });
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
     sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
-    sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, sectorId, 1);
-    sinon.assert.called(saveRepetition);
-  });
-
-  it('should call createRepetitionsByWeek to repeat every two weeks', async () => {
-    const sectorId = new ObjectId();
-    const credentials = { company: { _id: new ObjectId() } };
-    const payload = { _id: '1234567890', repetition: { frequency: 'every_two_weeks', parentId: '0987654321' } };
-    const event = new Event({ company: new ObjectId(), sector: sectorId });
-
-    await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
-
-    sinon.assert.notCalled(findOne);
-    sinon.assert.notCalled(updateOne);
-    sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, sectorId, 2);
+    sinon.assert.calledWithExactly(getRange, '2019-01-15T09:00:00.000Z', { weeks: 2 });
+    sinon.assert.called(createRepeatedEvents);
     sinon.assert.called(saveRepetition);
   });
 });

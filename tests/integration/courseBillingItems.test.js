@@ -78,12 +78,23 @@ describe('COURSE BILLING ITEM ROUTES - POST /coursebillingitems', () => {
       expect(count).toBe(courseBillingItemsList.length + 1);
     });
 
-    it('should return 409 if name is already taken', async () => {
+    it('should return 409 if other billing item has exact same name', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebillingitems',
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { name: 'frais formateur' },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 409 if other billing item has same name (case and diacritics insensitive)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebillingitems',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { name: 'Frais Formateur' },
       });
 
       expect(response.statusCode).toBe(409);
