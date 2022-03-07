@@ -1,7 +1,8 @@
 const expect = require('expect');
 const { dateToISOString } = require('../../../src/routes/validations/utils');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
-describe('dateToISOString #tag', () => {
+describe('dateToISOString', () => {
   it('should accept dateJS and return complete ISO string', async () => {
     const payload = new Date('2022-03-07T07:00:00.000Z');
 
@@ -48,7 +49,7 @@ describe('dateToISOString #tag', () => {
 
     const result = dateToISOString.validate(payload);
     expect(result.error).toBeFalsy();
-    expect(result.value).toBe('2022-03-06T23:00:00.000Z');
+    expect(CompaniDate(result.value).isSame('2022-03-07', 'day')).toBeTruthy();
   });
 
   it('should not accept unexisting date', async () => {
