@@ -1306,7 +1306,7 @@ describe('PUT /events/{_id}', () => {
       expect(resultEvent.sector.toHexString()).toBe(payload.sector);
     });
 
-    it('should update events and repetition with startDate, endDate #tag', async () => {
+    it('should update events and repetition with startDate, endDate', async () => {
       const event = eventsList[9];
       const payload = {
         startDate: new Date('2019-10-16T10:00:00.000Z'), // testing dateJS on purpose

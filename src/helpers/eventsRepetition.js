@@ -132,6 +132,8 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
 exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   const promises = [];
   const companyId = get(credentials, 'company._id', null);
+  const payloadStartHour = CompaniDate(eventPayload.startDate).getUnits(['hour', 'minute']);
+  const payloadEndHour = CompaniDate(eventPayload.endDate).getUnits(['hour', 'minute']);
 
   const query = {
     'repetition.parentId': eventFromDb.repetition.parentId,
@@ -150,8 +152,6 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   }
 
   for (let i = 0, l = events.length; i < l; i++) {
-    const payloadStartHour = CompaniDate(eventPayload.startDate).getUnits(['hour', 'minute']);
-    const payloadEndHour = CompaniDate(eventPayload.endDate).getUnits(['hour', 'minute']);
     const startDate = CompaniDate(events[i].startDate).set(payloadStartHour).toISO();
     const endDate = CompaniDate(events[i].endDate).set(payloadEndHour).toISO();
 
