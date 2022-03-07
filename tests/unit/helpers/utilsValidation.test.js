@@ -36,7 +36,7 @@ describe('dateToISOString', () => {
     expect(result.value).toBe('2022-03-07T07:00:00.000Z');
   });
 
-  it('should accept number', async () => {
+  it('should accept date in miliseconds', async () => {
     const payload = 1646636400000;
 
     const result = dateToISOString.validate(payload);
@@ -44,7 +44,7 @@ describe('dateToISOString', () => {
     expect(result.value).toBe('2022-03-07T07:00:00.000Z');
   });
 
-  it('should accept us commun format "MM/DD/YYYY"', async () => {
+  it('should accept US commun format "MM/DD/YYYY"', async () => {
     const payload = '03/07/2022';
 
     const result = dateToISOString.validate(payload);
