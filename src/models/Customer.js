@@ -103,6 +103,8 @@ const CustomerSchema = mongoose.Schema({
         nature: { type: String, required: true },
         surcharge: { evening: Number, sunday: Number },
       },
+      billingItemsTTCRate: { type: Number },
+      serviceBillingItems: { type: Array },
     }],
     drive: driveResourceSchemaDefinition,
     createdAt: { type: Date, default: Date.now },

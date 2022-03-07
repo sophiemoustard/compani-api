@@ -1886,6 +1886,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       expect(res.result.data.customer.quotes[0]._id).toEqual(customersList[0].quotes[0]._id);
       expect(res.result.data.customer._id).toEqual(customersList[0]._id);
     });
+
     it('should return 404 error if no user found', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -1933,7 +1934,16 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     it('should create a customer quote', async () => {
       const payload = {
         subscriptions: [
-          { service: { name: 'TestTest', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+          {
+            service: { name: 'TestTest', nature: 'hourly' },
+            unitTTCRate: 23,
+            weeklyHours: 3,
+            weeklyCount: 1,
+            saturdays: 1,
+            sundays: 3,
+            billingItemsTTCRate: 25,
+            serviceBillingItems: ['Masques de protection'],
+          },
           { service: { name: 'TestTest2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
         ],
       };
@@ -1954,6 +1964,19 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         expect.objectContaining(payload.subscriptions[0]),
         expect.objectContaining(payload.subscriptions[1]),
       ]));
+    });
+
+    it('should return a 400 if weeklyCount is not an integer', async () => {
+      const payload = { service: { name: 'Ménage', nature: 'fixed' }, unitTTCRate: 30, weeklyCount: 4.6 };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[1]._id}/quotes`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(400);
     });
 
     it('should return a 400 error if \'subscriptions\' array is missing from payload', async () => {
