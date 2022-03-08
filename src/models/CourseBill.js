@@ -19,6 +19,8 @@ const CourseBillSchema = mongoose.Schema({
     }
     )],
   },
+  billedAt: { type: Date, required() { return !!this.number; } },
+  number: { type: String, required() { return !!this.billedAt; } },
 }, { timestamps: true });
 
 CourseBillSchema.pre('find', validateQuery);

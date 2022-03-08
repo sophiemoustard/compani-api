@@ -35,7 +35,7 @@ exports.authorizeCourseBillGet = async (req) => {
 };
 
 exports.authorizeCourseBillUpdate = async (req) => {
-  const courseBill = await CourseBill.countDocuments({ _id: req.params._id });
+  const courseBill = await CourseBill.findOne({ _id: req.params._id }).lean();
   if (!courseBill) throw Boom.notFound();
 
   if (req.payload.courseFundingOrganisation) {
@@ -43,6 +43,8 @@ exports.authorizeCourseBillUpdate = async (req) => {
       .countDocuments({ _id: req.payload.courseFundingOrganisation });
     if (!courseFundingOrganisationExists) throw Boom.notFound();
   }
+
+  if (req.payload.billedAt && courseBill.billedAt) throw Boom.forbidden();
 
   return null;
 };

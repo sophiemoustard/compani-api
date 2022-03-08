@@ -3,6 +3,7 @@ const { INTRA } = require('../../../src/helpers/constants');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -76,6 +77,8 @@ const billingItemList = [
   { _id: new ObjectId(), name: 'petit déjeuner' },
 ];
 
+const courseBillNumber = { _id: new ObjectId(), seq: 1 };
+
 const courseBillsList = [
   {
     _id: new ObjectId(),
@@ -94,6 +97,14 @@ const courseBillsList = [
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     courseFundingOrganisation: courseFundingOrganisationList[0]._id,
   },
+  {
+    _id: new ObjectId(),
+    course: courseList[2]._id,
+    company: otherCompany._id,
+    mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
+    billedAt: '2022-03-07T00:00:00.000Z',
+    number: 'FACT-00001',
+  },
 ];
 
 const populateDB = async () => {
@@ -104,6 +115,7 @@ const populateDB = async () => {
     CourseFundingOrganisation.create(courseFundingOrganisationList),
     CourseBill.create(courseBillsList),
     CourseBillingItem.create(billingItemList),
+    CourseBillsNumber.create(courseBillNumber),
   ]);
 };
 
