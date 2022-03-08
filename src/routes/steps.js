@@ -23,7 +23,11 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
-          payload: Joi.object({ name: Joi.string(), activities: Joi.array().items(Joi.objectId()) }).min(1),
+          payload: Joi.object({
+            name: Joi.string(),
+            activities: Joi.array().items(Joi.objectId()),
+            estimatedHours: Joi.number().min(0),
+          }).min(1),
         },
         auth: { scope: ['programs:edit'] },
         pre: [{ method: authorizeStepUpdate }],

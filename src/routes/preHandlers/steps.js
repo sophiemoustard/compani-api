@@ -7,7 +7,9 @@ const { PUBLISHED } = require('../../helpers/constants');
 exports.authorizeStepUpdate = async (req) => {
   const step = await Step.findOne({ _id: req.params._id }, { activities: 1, status: 1 }).lean();
   if (!step) throw Boom.notFound();
-  if (step.status === PUBLISHED && Object.keys(req.payload).some(key => key !== 'name')) throw Boom.forbidden();
+  if (step.status === PUBLISHED && Object.keys(req.payload).some(key => !['name', 'estimatedHours'].includes(key))) {
+    throw Boom.forbidden();
+  }
 
   const { activities } = req.payload;
   if (activities) {
