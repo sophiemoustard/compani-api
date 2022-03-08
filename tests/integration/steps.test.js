@@ -71,6 +71,38 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, activities: payload.activities }));
     });
 
+    it('should update estimatedHours with positive float', async () => {
+      const payload = { estimatedHours: 1.4 };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const stepUpdated = await Step.countDocuments({ _id: stepId, estimatedHours: 1.4 });
+
+      expect(stepUpdated).toBeTruthy();
+    });
+
+    it('should update estimatedHours with 0', async () => {
+      const payload = { estimatedHours: 0 };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepId}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const stepUpdated = await Step.countDocuments({ _id: stepId, estimatedHours: 0 });
+
+      expect(stepUpdated).toBeTruthy();
+    });
+
     it('should return a 404 if step is invalid', async () => {
       const response = await app.inject({
         method: 'PUT',
