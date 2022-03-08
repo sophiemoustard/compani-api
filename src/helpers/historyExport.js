@@ -677,7 +677,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     .populate({ path: 'trainees', select: 'firstMobileConnection' })
     .populate({
       path: 'bills',
-      select: 'courseFundingOrganisation company',
+      select: 'courseFundingOrganisation company billedAt',
       options: { isVendorUser: has(credentials, 'role.vendor') },
       populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
     })
@@ -736,6 +736,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     const payer = course.bills
       .map(bill => get(bill, 'courseFundingOrganisation.name') || get(bill, 'company.name'))
       .toString();
+    const isBilled = course.bills.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
 
     rows.push({
       Identifiant: course._id,
@@ -769,6 +770,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
       'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
       Avancement: UtilsHelper.formatFloatForExport(pastSlotsCount / (course.slots.length + course.slotsToPlan.length)),
+      Facturée: isBilled,
     });
   }
 

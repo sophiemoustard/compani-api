@@ -7,4 +7,4 @@ const CourseBillsNumberSchema = mongoose.Schema({
 
 formatQueryMiddlewareList().map(middleware => CourseBillsNumberSchema.pre(middleware, formatQuery));
 
-module.exports = mongoose.model('CourseBillsNumberSchema', CourseBillsNumberSchema);
+module.exports = mongoose.model('CourseBillsNumber', CourseBillsNumberSchema);
