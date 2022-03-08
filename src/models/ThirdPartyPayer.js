@@ -18,8 +18,8 @@ const ThirdPartyPayerSchema = mongoose.Schema({
   billingMode: { type: String, enum: [BILLING_DIRECT, BILLING_INDIRECT], required: true },
   isApa: { type: Boolean, required: true },
   teletransmissionId: { type: String },
-  companyCode: { type: String },
-  teletransmissionType: { type: String, enum: TELETRANSMISSION_TYPES },
+  companyCode: { type: String, required: () => !!this.teletransmissionId },
+  teletransmissionType: { type: String, enum: TELETRANSMISSION_TYPES, required: () => !!this.teletransmissionId },
 }, { timestamps: true });
 
 const countFundings = async (docs) => {

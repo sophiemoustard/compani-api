@@ -16,6 +16,7 @@ const {
 } = require('../controllers/thirdPartyPayerController');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
 const { addressValidation } = require('./validations/utils');
+const { TELETRANSMISSION_TYPES } = require('../models/ThirdPartyPayer');
 
 exports.plugin = {
   name: 'routes-thirdpartypayers',
@@ -66,6 +67,9 @@ exports.plugin = {
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT).required(),
             isApa: Joi.boolean().required(),
             teletransmissionId: Joi.string().default(''),
+            teletransmissionType: Joi.string().valid(...TELETRANSMISSION_TYPES)
+              .when('teletransmissionId', { is: Joi.exist().empty(''), then: Joi.required() }),
+            companyCode: Joi.string().when('teletransmissionId', { is: Joi.exist().empty(''), then: Joi.required() }),
           }),
         },
         pre: [{ method: authorizeThirdPartyPayersUpdate }],

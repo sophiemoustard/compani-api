@@ -7,6 +7,7 @@ const ThirdPartyPayer = require('../../src/models/ThirdPartyPayer');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
+const { APA } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -170,6 +171,8 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       billingMode: 'indirect',
       isApa: false,
       teletransmissionId: '012345678912345',
+      teletransmissionType: APA,
+      companyCode: '123456',
     };
 
     it('should update a third party payer', async () => {
@@ -230,6 +233,42 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: payloadWithoutName,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if missing teletransmissionType when payload has teletransmissionId', async () => {
+      const payloadWithoutTeletransmissionType = omit(payload, 'teletransmissionType');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: payloadWithoutTeletransmissionType,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if invalid teletransmissionType', async () => {
+      const invalidPayload = { ...payload, teletransmissionType: 'skusku' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: invalidPayload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if missing companyCode when payload has teletransmissionId', async () => {
+      const payloadWithoutCompanyCode = omit(payload, 'companyCode');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: payloadWithoutCompanyCode,
       });
 
       expect(response.statusCode).toBe(400);
