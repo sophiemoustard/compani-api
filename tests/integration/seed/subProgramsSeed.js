@@ -43,23 +43,46 @@ const activitiesList = [
 ];
 
 const stepsList = [
-  { _id: new ObjectId(), name: 'step 1', type: 'on_site' },
-  { _id: new ObjectId(), name: 'step 2', type: 'e_learning', activities: [activitiesList[0]._id] },
-  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', activities: [activitiesList[0]._id] },
-  { _id: new ObjectId(), name: 'step 4', type: 'e_learning' },
-  { _id: new ObjectId(), name: 'step 5', type: 'e_learning', activities: [activitiesList[1]._id] },
-  { _id: new ObjectId(), name: 'step 6 - linked to courseSlot', type: 'on_site' },
+  { _id: new ObjectId(), name: 'step 0', type: 'on_site', estimatedHours: 1 },
+  { _id: new ObjectId(), name: 'step 1', type: 'e_learning', activities: [activitiesList[0]._id], estimatedHours: 1 },
+  { _id: new ObjectId(), name: 'step 2', type: 'e_learning', activities: [activitiesList[0]._id], estimatedHours: 1 },
+  { _id: new ObjectId(), name: 'step 3', type: 'e_learning', estimatedHours: 1 },
+  { _id: new ObjectId(), name: 'step 4', type: 'e_learning', activities: [activitiesList[1]._id], estimatedHours: 1 },
+  { _id: new ObjectId(), name: 'step 5 - linked to courseSlot', type: 'on_site', estimatedHours: 0.5 },
+  { // 6 - on site without estimatedHours
+    _id: new ObjectId(),
+    name: 'step 6',
+    type: 'on_site',
+  },
+  { // 7 - elearning without estimatedHours
+    _id: new ObjectId(),
+    name: 'step 7',
+    type: 'e_learning',
+    activities: [activitiesList[0]._id],
+  },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepsList[0]._id, stepsList[1]._id] },
-  { _id: new ObjectId(), name: 'subProgram 2', steps: [stepsList[1]._id] },
-  { _id: new ObjectId(), name: 'subProgram 3', status: 'published', steps: [stepsList[0]._id] },
-  { _id: new ObjectId(), name: 'subProgram 4', status: 'draft', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'subProgram 5', status: 'published', steps: [stepsList[2]._id] },
-  { _id: new ObjectId(), name: 'subProgram 6', status: 'draft', steps: [stepsList[3]._id] },
-  { _id: new ObjectId(), name: 'subProgram 7', status: 'draft', steps: [stepsList[4]._id, stepsList[5]._id] },
-  { _id: new ObjectId(), name: 'subProgram 8', status: 'draft', steps: [stepsList[0]._id, stepsList[5]._id] },
+  { _id: new ObjectId(), name: 'subProgram 0', steps: [stepsList[0]._id, stepsList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepsList[1]._id] },
+  { _id: new ObjectId(), name: 'subProgram 2', status: 'published', steps: [stepsList[0]._id] },
+  { _id: new ObjectId(), name: 'subProgram 3', status: 'draft', steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 4', status: 'published', steps: [stepsList[2]._id] },
+  { _id: new ObjectId(), name: 'subProgram 5', status: 'draft', steps: [stepsList[3]._id] },
+  { _id: new ObjectId(), name: 'subProgram 6', status: 'draft', steps: [stepsList[4]._id, stepsList[5]._id] },
+  { _id: new ObjectId(), name: 'subProgram 7', status: 'draft', steps: [stepsList[0]._id, stepsList[5]._id] },
+  { // 8 on site without estimatedHours
+    _id: new ObjectId(),
+    name: 'subProgram 8',
+    status: 'draft',
+    steps: [stepsList[6]._id],
+  },
+  { // 9 eLearning without estimatedHours
+    _id: new ObjectId(),
+    name: 'subProgram 9',
+    status: 'draft',
+    steps: [stepsList[7]._id],
+  },
 ];
 
 const programsList = [
@@ -85,8 +108,8 @@ const coursesList = [{
 const courseSlotsList = [
   {
     _id: new ObjectId(),
-    startDate: '2020-03-10T09:00:00',
-    endDate: '2020-03-10T12:00:00',
+    startDate: '2020-03-10T09:00:00.000Z',
+    endDate: '2020-03-10T12:00:00.000Z',
     course: coursesList[0]._id,
     step: stepsList[5]._id,
   },

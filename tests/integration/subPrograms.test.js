@@ -48,7 +48,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(UtilsHelper.areObjectIdsEquals(subProgramUpdated.steps[1], payload.steps[1])).toBeTruthy();
     });
 
-    it('should publish blended subProgram', async () => {
+    it('should publish blended subProgram #tag', async () => {
       const payload = { status: 'published' };
       const response = await app.inject({
         method: 'PUT',
@@ -121,6 +121,32 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
 
     it('should return a 403 trying to publish with empty activity', async () => {
       const subProgramId = subProgramsList[6]._id;
+      const payload = { status: 'published', accessCompany: authCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 trying to publish on_site step with empty estimatedHours', async () => {
+      const subProgramId = subProgramsList[8]._id;
+      const payload = { status: 'published', accessCompany: authCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 trying to publish elearning step with empty estimatedHours', async () => {
+      const subProgramId = subProgramsList[9]._id;
       const payload = { status: 'published', accessCompany: authCompany._id };
       const response = await app.inject({
         method: 'PUT',
