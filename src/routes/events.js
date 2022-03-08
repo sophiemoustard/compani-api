@@ -50,7 +50,13 @@ const {
   authorizeEventForCreditNoteGet,
   authorizeTimeStamping,
 } = require('./preHandlers/events');
-const { monthValidation, addressValidation, objectIdOrArray } = require('./validations/utils');
+const {
+  monthValidation,
+  addressValidation,
+  objectIdOrArray,
+  dateToISOString,
+
+} = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-event',
@@ -171,8 +177,8 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            startDate: Joi.date(),
-            endDate: Joi.date().greater(Joi.ref('startDate')),
+            startDate: dateToISOString,
+            endDate: dateToISOString,
             auxiliary: Joi.objectId(),
             sector: Joi.string(),
             address: Joi.when(
@@ -215,6 +221,11 @@ exports.plugin = {
             kmDuringEvent: Joi.number().min(0),
           })
             .and('startDate', 'endDate')
+            .assert(
+              '.endDate',
+              Joi.date().greater(Joi.ref('startDate')),
+              'Error in joi asserting validation: endDate must be greater than startDate'
+            )
             .xor('auxiliary', 'sector'),
         },
         pre: [

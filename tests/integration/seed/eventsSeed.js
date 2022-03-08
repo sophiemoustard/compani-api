@@ -406,6 +406,8 @@ const repetitions = [{
   parentId: repetitionParentId,
   repetition: { frequency: EVERY_WEEK },
   company: authCompany._id,
+  startDate: '2019-10-16T14:30:00.000Z',
+  endDate: '2019-10-16T16:30:00.000Z',
 }];
 
 const customerAbsences = [
@@ -426,7 +428,7 @@ const customerAbsences = [
 ];
 
 const eventsList = [
-  {
+  { // 0
     _id: new ObjectId(),
     company: authCompany._id,
     type: INTERNAL_HOUR,
@@ -607,8 +609,8 @@ const eventsList = [
     _id: repetitionParentId,
     company: authCompany._id,
     type: INTERVENTION,
-    startDate: '2019-10-16T14:30:19.543Z',
-    endDate: '2019-10-16T16:30:19.543Z',
+    startDate: '2019-10-16T14:30:00.000Z',
+    endDate: '2019-10-16T16:30:00.000Z',
     auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliaries[0]._id,
     repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
@@ -789,8 +791,8 @@ const eventsList = [
     company: authCompany._id,
     sector: sectors[0]._id,
     type: INTERVENTION,
-    startDate: '2019-10-23T14:30:19.543Z',
-    endDate: '2019-10-23T16:30:19.543Z',
+    startDate: '2019-10-23T14:30:00.000Z',
+    endDate: '2019-10-23T16:30:00.000Z',
     auxiliary: auxiliaries[0]._id,
     customer: customerAuxiliaries[0]._id,
     repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
@@ -1146,4 +1148,5 @@ module.exports = {
   eventHistoriesList,
   creditNote,
   creditNoteFromOtherCompany,
+  repetitionParentId,
 };

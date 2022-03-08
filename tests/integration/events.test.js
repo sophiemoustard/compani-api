@@ -20,6 +20,7 @@ const {
   eventFromOtherCompany,
   creditNote,
   creditNoteFromOtherCompany,
+  repetitionParentId,
 } = require('./seed/eventsSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
@@ -1305,6 +1306,46 @@ describe('PUT /events/{_id}', () => {
       expect(resultEvent.sector.toHexString()).toBe(payload.sector);
     });
 
+    it('should update events and repetition with startDate, endDate', async () => {
+      const event = eventsList[9];
+      const payload = {
+        startDate: new Date('2019-10-16T10:00:00.000Z'), // testing dateJS on purpose
+        endDate: '2019-10-16T14:00+02:00', // ~ 2019-10-16T12:00:00.000Z, testing incomplete ISO on purpose
+        auxiliary: event.auxiliary.toHexString(),
+        shouldUpdateRepetition: true,
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${event._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedRepetition = await Repetition.countDocuments({
+        parentId: repetitionParentId,
+        startDate: '2019-10-16T10:00:00.000Z',
+        endDate: '2019-10-16T12:00:00.000Z',
+      });
+      expect(updatedRepetition).toBeTruthy();
+
+      const updatedEvent1 = await Event.countDocuments({
+        _id: eventsList[9]._id,
+        startDate: '2019-10-16T10:00:00.000Z',
+        endDate: '2019-10-16T12:00:00.000Z',
+      });
+      expect(updatedEvent1).toBeTruthy();
+
+      const updatedEvent2 = await Event.countDocuments({
+        _id: eventsList[18]._id,
+        startDate: '2019-10-23T10:00:00.000Z',
+        endDate: '2019-10-23T12:00:00.000Z',
+      });
+      expect(updatedEvent2).toBeTruthy();
+    });
+
     it('should update intervention even if sub service is archived if it was already the selected sub', async () => {
       const event = eventsList[19];
       const payload = {
@@ -1351,6 +1392,25 @@ describe('PUT /events/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 error as startDate is after endDate', async () => {
+      const event = eventsList[0];
+      const payload = {
+        startDate: '2019-01-23T20:00:00.000Z',
+        endDate: '2019-01-23T12:00:00.000Z',
+        auxiliary: event.auxiliary.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${event._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.result.message.endsWith('endDate must be greater than startDate')).toBeTruthy();
     });
 
     it('should return a 400 error as startDate and endDate are not on the same day', async () => {
