@@ -87,7 +87,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toBeTruthy();
     });
 
-    it('should update estimatedHours with 0', async () => {
+    it('should return 400 if estimatedHours is 0', async () => {
       const payload = { estimatedHours: 0 };
       const response = await app.inject({
         method: 'PUT',
@@ -96,11 +96,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(200);
-
-      const stepUpdated = await Step.countDocuments({ _id: stepId, estimatedHours: 0 });
-
-      expect(stepUpdated).toBeTruthy();
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 404 if step is invalid', async () => {
