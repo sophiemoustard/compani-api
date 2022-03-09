@@ -42,7 +42,11 @@ exports.authorizeStepAddition = async (req) => {
 exports.authorizeSubProgramUpdate = async (req) => {
   const subProgram = await SubProgram.findOne({ _id: req.params._id })
     .populate({ path: 'program', select: '_id' })
-    .populate({ path: 'steps', select: '_id type estimatedHours', populate: { path: 'activities', populate: 'cards' } })
+    .populate({
+      path: 'steps',
+      select: '_id type theoreticalHours',
+      populate: { path: 'activities', populate: 'cards' },
+    })
     .lean({ virtuals: true });
 
   if (!subProgram) throw Boom.notFound();

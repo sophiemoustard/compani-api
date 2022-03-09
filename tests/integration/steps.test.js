@@ -71,8 +71,8 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, activities: payload.activities }));
     });
 
-    it('should update estimatedHours with positive float', async () => {
-      const payload = { estimatedHours: 1.4 };
+    it('should update theoreticalHours with positive float', async () => {
+      const payload = { theoreticalHours: 1.4 };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}`,
@@ -82,13 +82,13 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const stepUpdated = await Step.countDocuments({ _id: stepId, estimatedHours: 1.4 });
+      const stepUpdated = await Step.countDocuments({ _id: stepId, theoreticalHours: 1.4 });
 
       expect(stepUpdated).toBeTruthy();
     });
 
-    it('should return 400 if estimatedHours is 0', async () => {
-      const payload = { estimatedHours: 0 };
+    it('should return 400 if theoreticalHours is 0', async () => {
+      const payload = { theoreticalHours: 0 };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}`,

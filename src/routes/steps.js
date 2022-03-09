@@ -26,7 +26,7 @@ exports.plugin = {
           payload: Joi.object({
             name: Joi.string(),
             activities: Joi.array().items(Joi.objectId()),
-            estimatedHours: Joi.number().positive(),
+            theoreticalHours: Joi.number().positive(),
           }).min(1),
         },
         auth: { scope: ['programs:edit'] },
