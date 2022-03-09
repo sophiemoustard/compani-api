@@ -15,7 +15,7 @@ const {
   removeById,
 } = require('../controllers/thirdPartyPayerController');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
-const { addressValidation } = require('./validations/utils');
+const { addressValidation, isNotEmpty } = require('./validations/utils');
 const { TELETRANSMISSION_TYPES } = require('../models/ThirdPartyPayer');
 
 exports.plugin = {
@@ -69,7 +69,7 @@ exports.plugin = {
             teletransmissionId: Joi.string().default(''),
             teletransmissionType: Joi.string().valid(...TELETRANSMISSION_TYPES)
               .when('teletransmissionId', { is: Joi.exist().empty(''), then: Joi.required() }),
-            companyCode: Joi.string().when('teletransmissionId', { is: Joi.exist().empty(''), then: Joi.required() }),
+            companyCode: Joi.string().when('teletransmissionId', { is: isNotEmpty, then: Joi.required() }),
           }),
         },
         pre: [{ method: authorizeThirdPartyPayersUpdate }],
