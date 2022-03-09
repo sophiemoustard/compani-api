@@ -16,15 +16,15 @@ exports.list = async (course, credentials) => {
 
   return courseBills.map((bill) => {
     const mainFeeTotal = NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count);
-    const billingItemTotal = bill.billingItemList
-      ? bill.billingItemList
+    const billingPurchaseTotal = bill.billingPurchaseList
+      ? bill.billingPurchaseList
         .map(item => NumbersHelper.multiply(item.price, item.count))
         .reduce((acc, value) => acc + value, 0)
       : 0;
 
     return {
       ...bill,
-      netInclTaxes: mainFeeTotal + billingItemTotal,
+      netInclTaxes: mainFeeTotal + billingPurchaseTotal,
     };
   });
 };
@@ -62,6 +62,6 @@ exports.updateCourseBill = async (courseBillId, payload) => {
   await CourseBill.updateOne({ _id: courseBillId }, formattedPayload);
 };
 
-exports.addBillingItem = async (courseBillId, payload) => {
-  await CourseBill.updateOne({ _id: courseBillId }, { $push: { billingItemList: payload } });
+exports.addBillingPurchase = async (courseBillId, payload) => {
+  await CourseBill.updateOne({ _id: courseBillId }, { $push: { billingPurchaseList: payload } });
 };

@@ -49,7 +49,7 @@ exports.authorizeCourseBillUpdate = async (req) => {
   return null;
 };
 
-exports.authorizeCourseBillingItemAddition = async (req) => {
+exports.authorizeCourseBillingPurchaseAddition = async (req) => {
   const { billingItem } = req.payload;
   const billingItemExists = await CourseBillingItem.countDocuments({ _id: billingItem });
   if (!billingItemExists) throw Boom.notFound();
@@ -57,8 +57,8 @@ exports.authorizeCourseBillingItemAddition = async (req) => {
   const courseBill = await CourseBill.findOne({ _id: req.params._id }).lean();
   if (!courseBill) throw Boom.notFound();
 
-  if (courseBill.billingItemList &&
-    courseBill.billingItemList.find(item => UtilsHelper.areObjectIdsEquals(item.billingItem, billingItem))) {
+  if (courseBill.billingPurchaseList &&
+    courseBill.billingPurchaseList.find(item => UtilsHelper.areObjectIdsEquals(item.billingItem, billingItem))) {
     throw Boom.conflict(translate[language].courseBillingItemAlreadyAdded);
   }
 

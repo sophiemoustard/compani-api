@@ -16,7 +16,7 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should return all course bills (without billing items)', async () => {
+  it('should return all course bills (without billing purchases)', async () => {
     const courseId = new ObjectId();
     const credentials = { role: { vendor: new ObjectId() } };
     const courseBills = [
@@ -50,7 +50,7 @@ describe('list', () => {
     );
   });
 
-  it('should return all course bills (with billing items)', async () => {
+  it('should return all course bills (with billing purchases)', async () => {
     const courseId = new ObjectId();
 
     const credentials = { role: { vendor: new ObjectId() } };
@@ -61,7 +61,7 @@ describe('list', () => {
         company: { name: 'Company' },
         mainFee: { price: 120, count: 2 },
         courseFundingOrganisation: { name: 'Funder' },
-        billingItemList: [
+        billingPurchaseList: [
           { billingItem: billingItemList[0]._id, price: 90, count: 1 },
           { billingItem: billingItemList[1]._id, price: 400, count: 1 },
         ],
@@ -76,7 +76,7 @@ describe('list', () => {
       company: { name: 'Company' },
       mainFee: { price: 120, count: 2 },
       courseFundingOrganisation: { name: 'Funder' },
-      billingItemList: [
+      billingPurchaseList: [
         { billingItem: billingItemList[0]._id, price: 90, count: 1 },
         { billingItem: billingItemList[1]._id, price: 400, count: 1 },
       ],
@@ -200,7 +200,7 @@ describe('updateCourseBill', () => {
   });
 });
 
-describe('addBillingItem', () => {
+describe('addBillingPurchase', () => {
   let updateOne;
 
   beforeEach(() => {
@@ -220,8 +220,8 @@ describe('addBillingItem', () => {
       count: 1,
       description: 'billin item for test',
     };
-    await CourseBillHelper.addBillingItem(courseBillId, payload);
+    await CourseBillHelper.addBillingPurchase(courseBillId, payload);
 
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $push: { billingItemList: payload } });
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $push: { billingPurchaseList: payload } });
   });
 });
