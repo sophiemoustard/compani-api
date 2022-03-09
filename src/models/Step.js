@@ -24,6 +24,8 @@ function setAreActivitiesValid() {
   if (this.type === E_LEARNING && !hasActivities) return false;
 
   if (this.activities && this.activities.length && has(this.activities[0], 'areCardsValid')) {
+    // if activity is populated, areCardsValid exists
+
     return this.activities.every(activity => activity.areCardsValid);
   }
 }

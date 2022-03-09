@@ -37,10 +37,11 @@ function setIsStrictlyELearning() {
 function setAreStepsValid() {
   if (this.steps && this.steps.length === 0) return false;
 
-  const firstStepHasFields = this.steps && this.steps.length &&
-    has(this.steps[0], 'areActivitiesValid') &&
-    has(this.steps[0], 'estimatedHours');
-  if (firstStepHasFields) return this.steps.every(step => step.areActivitiesValid && !!step.estimatedHours);
+  if (this.steps && this.steps.length && has(this.steps[0], 'areActivitiesValid')) {
+    // if step is populated, areActivitiesValid exists
+
+    return this.steps.every(step => step.areActivitiesValid && !!step.estimatedHours);
+  }
 }
 
 SubProgramSchema.virtual('areStepsValid').get(setAreStepsValid);
