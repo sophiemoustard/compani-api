@@ -12,8 +12,7 @@ const { CARE_HOLIDAY } = require('./constants');
 const isHoliday = day => CompaniDate(day).startOf('day').isHoliday();
 
 const isInCareDays = (careDays, day) => {
-  const careOrdinaryDay = CompaniDate(day).weekday() - 1;
-  // customed indexing for caredays : Monday = 0, Thesday = 1, ..., Sunday = 6 and Holiday = 7 (cf. constants.js)
+  const careOrdinaryDay = CompaniDate(day).weekday();
 
   return (!isHoliday(day) && careDays.includes(careOrdinaryDay)) || (isHoliday(day) && careDays.includes(CARE_HOLIDAY));
 };
