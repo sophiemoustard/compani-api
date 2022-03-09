@@ -48,7 +48,7 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(UtilsHelper.areObjectIdsEquals(subProgramUpdated.steps[1], payload.steps[1])).toBeTruthy();
     });
 
-    it('should publish blended subProgram #tag', async () => {
+    it('should publish blended subProgram', async () => {
       const payload = { status: 'published' };
       const response = await app.inject({
         method: 'PUT',
