@@ -214,6 +214,7 @@ describe('getPdfContent', () => {
           logo: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png',
           name: 'Alenvi Home SAS',
         },
+        misc: 'Je suis le motif, d\'ailleurs Mo\'Tif ça fait un bon nom de salon de coiffure',
       },
 
     };
@@ -243,6 +244,7 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         { text: 'Prestations réalisées chez M. Alain TERIEUR, 124 Avenue Daumesnil 75012 Paris.' },
+        { text: 'Motif de l\'avoir : Je suis le motif, d\'ailleurs Mo\'Tif ça fait un bon nom de salon de coiffure.' },
         {
           table: {
             body: [

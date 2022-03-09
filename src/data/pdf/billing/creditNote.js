@@ -13,6 +13,7 @@ exports.getSubscriptionTable = (creditNote) => {
 
   return [
     { text: `Prestations réalisées chez ${customerIdentity}, ${fullAddress}.` },
+    ...(creditNote.misc ? [{ text: `Motif de l'avoir : ${creditNote.misc}.` }] : []),
     {
       table: { body: exports.getSubscriptionTableBody(creditNote), widths: ['*', 'auto', 'auto'] },
       margin: [0, 8, 0, 8],
