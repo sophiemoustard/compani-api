@@ -9,6 +9,7 @@ const {
   authorizeCourseBillUpdate,
   authorizeCourseBillingItemAddition,
 } = require('./preHandlers/courseBills');
+const { requiredDateToISOString } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-course-bills',
@@ -60,7 +61,7 @@ exports.plugin = {
                 description: Joi.string().allow(''),
               }),
             }),
-            Joi.object({ billedAt: Joi.date().required() })
+            Joi.object({ billedAt: requiredDateToISOString })
           ),
         },
         pre: [{ method: authorizeCourseBillUpdate }],

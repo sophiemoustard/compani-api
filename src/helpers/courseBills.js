@@ -32,15 +32,16 @@ exports.list = async (course, credentials) => {
 exports.create = async payload => CourseBill.create(payload);
 
 exports.updateCourseBill = async (courseBillId, payload) => {
+  let formattedPayload = {};
+
   if (payload.billedAt) {
     const lastBillNumber = await CourseBillsNumber
       .findOneAndUpdate({}, { $inc: { seq: 1 } }, { new: true, upsert: true, setDefaultsOnInsert: true })
       .lean();
 
-    await CourseBill.updateOne(
-      { _id: courseBillId },
-      { $set: { billedAt: payload.billedAt, number: `FACT-${lastBillNumber.seq.toString().padStart(5, '0')}` } }
-    );
+    formattedPayload = {
+      $set: { billedAt: payload.billedAt, number: `FACT-${lastBillNumber.seq.toString().padStart(5, '0')}` },
+    };
   } else {
     let payloadToSet = payload;
     let payloadToUnset = {};
@@ -52,13 +53,13 @@ exports.updateCourseBill = async (courseBillId, payload) => {
       }
     }
 
-    await CourseBill.updateOne(
-      { _id: courseBillId },
-      {
-        ...(Object.keys(payloadToSet).length && { $set: flat(payloadToSet, { safe: true }) }),
-        ...(Object.keys(payloadToUnset).length && { $unset: payloadToUnset }),
-      });
+    formattedPayload = {
+      ...(Object.keys(payloadToSet).length && { $set: flat(payloadToSet, { safe: true }) }),
+      ...(Object.keys(payloadToUnset).length && { $unset: payloadToUnset }),
+    };
   }
+
+  await CourseBill.updateOne({ _id: courseBillId }, formattedPayload);
 };
 
 exports.addBillingItem = async (courseBillId, payload) => {
