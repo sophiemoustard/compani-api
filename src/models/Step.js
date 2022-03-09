@@ -12,6 +12,7 @@ const StepSchema = mongoose.Schema({
   type: { type: String, required: true, enum: STEP_TYPES },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
   status: { type: String, default: DRAFT, enum: STATUS_TYPES },
+  theoreticalHours: { type: Number },
 }, { timestamps: true, id: false });
 
 StepSchema.virtual('subPrograms', { ref: 'SubProgram', localField: '_id', foreignField: 'steps' });
@@ -23,6 +24,8 @@ function setAreActivitiesValid() {
   if (this.type === E_LEARNING && !hasActivities) return false;
 
   if (this.activities && this.activities.length && has(this.activities[0], 'areCardsValid')) {
+    // if activity is populated, areCardsValid exists
+
     return this.activities.every(activity => activity.areCardsValid);
   }
 }
