@@ -4,6 +4,7 @@ const has = require('lodash/has');
 const omit = require('lodash/omit');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
+const CourseBillsNumber = require('../models/CourseBillsNumber');
 
 exports.list = async (course, credentials) => {
   const courseBills = await CourseBill
@@ -31,22 +32,34 @@ exports.list = async (course, credentials) => {
 exports.create = async payload => CourseBill.create(payload);
 
 exports.updateCourseBill = async (courseBillId, payload) => {
-  let payloadToSet = payload;
-  let payloadToUnset = {};
+  let formattedPayload = {};
 
-  for (const key of ['courseFundingOrganisation', 'mainFee.description']) {
-    if (get(payload, key) === '') {
-      payloadToSet = omit(payloadToSet, key);
-      payloadToUnset = { ...payloadToUnset, [key]: '' };
+  if (payload.billedAt) {
+    const lastBillNumber = await CourseBillsNumber
+      .findOneAndUpdate({}, { $inc: { seq: 1 } }, { new: true, upsert: true, setDefaultsOnInsert: true })
+      .lean();
+
+    formattedPayload = {
+      $set: { billedAt: payload.billedAt, number: `FACT-${lastBillNumber.seq.toString().padStart(5, '0')}` },
+    };
+  } else {
+    let payloadToSet = payload;
+    let payloadToUnset = {};
+
+    for (const key of ['courseFundingOrganisation', 'mainFee.description']) {
+      if (get(payload, key) === '') {
+        payloadToSet = omit(payloadToSet, key);
+        payloadToUnset = { ...payloadToUnset, [key]: '' };
+      }
     }
-  }
 
-  await CourseBill.updateOne(
-    { _id: courseBillId },
-    {
+    formattedPayload = {
       ...(Object.keys(payloadToSet).length && { $set: flat(payloadToSet, { safe: true }) }),
       ...(Object.keys(payloadToUnset).length && { $unset: payloadToUnset }),
-    });
+    };
+  }
+
+  await CourseBill.updateOne({ _id: courseBillId }, formattedPayload);
 };
 
 exports.addBillingItem = async (courseBillId, payload) => {

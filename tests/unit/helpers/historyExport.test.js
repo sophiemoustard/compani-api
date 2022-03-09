@@ -1726,6 +1726,8 @@ describe('exportCourseHistory', () => {
           mainFee: { price: 120, count: 1 },
           company,
           courseFundingOrganisation: { name: 'APA Paris' },
+          billedAt: '2022-03-08T00:00:00.000Z',
+          number: 'FACT-00001',
         },
       ],
     },
@@ -1844,7 +1846,7 @@ describe('exportCourseHistory', () => {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'courseFundingOrganisation company',
+            select: 'courseFundingOrganisation company billedAt',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
           }],
@@ -1922,6 +1924,7 @@ describe('exportCourseHistory', () => {
         'Nombre de stagiaires non prévus',
         'Nombre de présences non prévues',
         'Avancement',
+        'Facturée',
       ],
       [
         courseList[0]._id,
@@ -1952,6 +1955,7 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '1,00',
+        'Oui',
       ],
       [
         courseList[1]._id,
@@ -1982,6 +1986,7 @@ describe('exportCourseHistory', () => {
         1,
         2,
         '0,67',
+        '',
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(
@@ -2025,7 +2030,7 @@ describe('exportCourseHistory', () => {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'courseFundingOrganisation company',
+            select: 'courseFundingOrganisation company billedAt',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
           }],
