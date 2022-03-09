@@ -57,8 +57,8 @@ exports.authorizeCourseBillingPurchaseAddition = async (req) => {
   const courseBill = await CourseBill.findOne({ _id: req.params._id }).lean();
   if (!courseBill) throw Boom.notFound();
 
-  if (courseBill.billingPurchaseList &&
-    courseBill.billingPurchaseList.find(item => UtilsHelper.areObjectIdsEquals(item.billingItem, billingItem))) {
+  if (courseBill.billingPurchaseList
+    .find(purchase => UtilsHelper.areObjectIdsEquals(purchase.billingItem, billingItem))) {
     throw Boom.conflict(translate[language].courseBillingItemAlreadyAdded);
   }
 

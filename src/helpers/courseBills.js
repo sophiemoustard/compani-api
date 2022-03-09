@@ -18,7 +18,7 @@ exports.list = async (course, credentials) => {
     const mainFeeTotal = NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count);
     const billingPurchaseTotal = bill.billingPurchaseList
       ? bill.billingPurchaseList
-        .map(item => NumbersHelper.multiply(item.price, item.count))
+        .map(purchase => NumbersHelper.multiply(purchase.price, purchase.count))
         .reduce((acc, value) => acc + value, 0)
       : 0;
 
