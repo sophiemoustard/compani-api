@@ -119,32 +119,3 @@ describe('requiredDateToISOString', () => {
     expect(result.error.message.startsWith('"value" must be a valid date')).toBeTruthy();
   });
 });
-
-describe('isNotEmpty', () => {
-  it('should return value if payload exist', async () => {
-    const payload = 'skusku';
-
-    const result = UtilsValidation.isNotEmpty.validate(payload);
-
-    expect(result.error).toBeFalsy();
-    expect(result.value).toBe('skusku');
-  });
-
-  it('should return undefined if payload is undefined', async () => {
-    const payload = undefined;
-
-    const result = UtilsValidation.isNotEmpty.validate(payload);
-
-    expect(result.error).toBeTruthy();
-    expect(result.value).toBe(undefined);
-  });
-
-  it('should return undefined if payload is empty string', async () => {
-    const payload = '';
-
-    const result = UtilsValidation.isNotEmpty.validate(payload);
-
-    expect(result.error).toBeTruthy();
-    expect(result.value).toBe(undefined);
-  });
-});

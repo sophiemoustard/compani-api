@@ -39,8 +39,6 @@ const formDataPayload = (maxSize = 5242880) => ({
   maxBytes: maxSize,
 });
 
-const isNotEmpty = Joi.exist().empty('');
-
 module.exports = {
   monthValidation,
   phoneNumberValidation,
@@ -51,5 +49,4 @@ module.exports = {
   formDataPayload,
   dateToISOString,
   requiredDateToISOString,
-  isNotEmpty,
 };
