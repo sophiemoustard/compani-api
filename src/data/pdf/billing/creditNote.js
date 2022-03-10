@@ -13,7 +13,6 @@ exports.getSubscriptionTable = (creditNote) => {
 
   return [
     { text: `Prestations réalisées chez ${customerIdentity}, ${fullAddress}.` },
-    ...(creditNote.misc ? [{ text: `Motif de l'avoir : ${creditNote.misc}.` }] : []),
     {
       table: { body: exports.getSubscriptionTableBody(creditNote), widths: ['*', 'auto', 'auto'] },
       margin: [0, 8, 0, 8],
@@ -56,6 +55,7 @@ exports.getBillingItemsTable = (creditNote) => {
 exports.getPdfContent = async (data) => {
   const { creditNote } = data;
   const content = [await UtilsPdfHelper.getHeader(creditNote.company, creditNote, CREDIT_NOTE)];
+  content.push(...(creditNote.misc ? [{ text: `Motif de l'avoir : ${creditNote.misc}.`, marginBottom: 16 }] : []));
 
   if (creditNote.formattedEvents) {
     content.push(
