@@ -59,3 +59,15 @@ exports.updateCourseBill = async (courseBillId, payload) => {
 
 exports.addBillingPurchase = async (courseBillId, payload) =>
   CourseBill.updateOne({ _id: courseBillId }, { $push: { billingPurchaseList: payload } });
+
+exports.updateBillingPurchase = async (courseBillId, billingPurchaseId, payload) => CourseBill.updateOne(
+  { _id: courseBillId, 'billingPurchaseList._id': billingPurchaseId },
+  {
+    $set: {
+      'billingPurchaseList.$.price': payload.price,
+      'billingPurchaseList.$.count': payload.count,
+      ...(!!payload.description && { 'billingPurchaseList.$.description': payload.description }),
+    },
+    ...(get(payload, 'description') === '' && { $unset: { 'billingPurchaseList.$.description': '' } }),
+  }
+);
