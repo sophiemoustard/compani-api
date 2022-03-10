@@ -68,7 +68,7 @@ exports.plugin = {
             isApa: Joi.boolean().required(),
             teletransmissionId: Joi.string().default(''),
             teletransmissionType: Joi.string().valid(...TELETRANSMISSION_TYPES)
-              .when('teletransmissionId', { is: Joi.exist().empty(''), then: Joi.required() }),
+              .when('teletransmissionId', { is: isNotEmpty, then: Joi.required() }),
             companyCode: Joi.string().when('teletransmissionId', { is: isNotEmpty, then: Joi.required() }),
           }),
         },
