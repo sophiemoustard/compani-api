@@ -1,0 +1,121 @@
+const UtilsHelper = require('../../../helpers/utils');
+const NumbersHelper = require('../../../helpers/numbers');
+const FileHelper = require('../../../helpers/file');
+const { COPPER_GREY_200, COPPER_600 } = require('../../../helpers/constants');
+
+exports.getImages = async () => {
+  const imageList = [
+    { url: 'https://storage.googleapis.com/compani-main/icons/compani_texte_bleu.png', name: 'compani.png' },
+  ];
+
+  return FileHelper.downloadImages(imageList);
+};
+
+exports.getPdfContent = async (bill) => {
+  const [compani] = await exports.getImages();
+
+  const header = [
+    {
+      columns: [
+        { image: compani, width: 200, height: 42, alignment: 'right' },
+      ],
+      marginBottom: 20,
+    },
+    {
+      canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
+      absolutePosition: { x: 40, y: 40 },
+    },
+  ];
+
+  const billDetailsTableBody = [
+    [
+      { text: '#', style: 'header', alignment: 'left' },
+      { text: 'Article et description', style: 'header', alignment: 'left' },
+      { text: 'Quantité', style: 'header', alignment: 'center' },
+      { text: 'Prix unitaire', style: 'header', alignment: 'center' },
+      { text: 'Coût', alignment: 'right', style: 'header' },
+    ],
+  ];
+
+  bill.feeList.forEach((fee, i) => {
+    if (!i) {
+      billDetailsTableBody.push(
+        [
+          { text: i + 1, alignment: 'left', marginRight: 20 },
+          {
+            stack: [
+              { text: bill.course.subProgram.program.name, alignment: 'left' },
+              { text: fee.description || '', style: 'description' },
+            ],
+          },
+          { text: fee.count, alignment: 'center', marginLeft: 20, marginRight: 20 },
+          { text: UtilsHelper.formatPrice(fee.price), alignment: 'center', marginLeft: 20, marginRight: 20 },
+          {
+            text: UtilsHelper.formatPrice(NumbersHelper.multiply(fee.price, fee.count)),
+            alignment: 'right',
+            marginLeft: 20,
+          },
+        ]
+      );
+    } else {
+      billDetailsTableBody.push(
+        [
+          { text: i + 1, alignment: 'left' },
+          {
+            stack: [
+              { text: fee.billingItem.name, alignment: 'left' },
+              { text: fee.description || '', style: 'description' },
+            ],
+          },
+          { text: fee.count, alignment: 'center' },
+          { text: UtilsHelper.formatPrice(fee.price), alignment: 'center' },
+          { text: UtilsHelper.formatPrice(NumbersHelper.multiply(fee.price, fee.count)), alignment: 'right' },
+        ]
+      );
+    }
+  });
+
+  const netInclTaxes = bill.feeList
+    .map(fee => NumbersHelper.multiply(fee.price, fee.count)).reduce((acc, val) => acc + val, 0);
+
+  const tableFooter =
+    {
+      columns: [
+        { text: '' },
+        { text: '' },
+        { text: '' },
+        { text: 'Sous-total', alignment: 'right' },
+        {
+          text: UtilsHelper.formatPrice(netInclTaxes),
+          alignment: 'right',
+          marginLeft: 22,
+          marginRight: 4,
+          width: 'auto',
+        },
+      ],
+    };
+
+  let i = 0;
+  const feeTable = [
+    {
+      table: { body: billDetailsTableBody, widths: ['auto', '*', 'auto', 'auto', 'auto'] },
+      margin: [0, 40, 0, 8],
+      layout: {
+        vLineWidth: () => 0,
+        hLineWidth: () => { const value = i > 4; i += 1; return value; },
+        hLineColor: () => COPPER_GREY_200,
+      },
+    },
+  ];
+  const content = [];
+  content.push(header, feeTable, tableFooter);
+  return {
+    content: content.flat(),
+    defaultStyle: { font: 'SourceSans', fontSize: 12 },
+    styles: {
+      marginRightLarge: { marginRight: 40 },
+      header: { fillColor: COPPER_600, color: 'white' },
+      description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
+    },
+  };
+};

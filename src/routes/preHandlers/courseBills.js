@@ -72,6 +72,12 @@ exports.authorizeCourseBillingPurchaseUpdate = async (req) => {
     'billingPurchaseList._id': billingPurchaseId,
   });
   if (!purchaseRelatedToBill) throw Boom.notFound();
+  return null;
+};
+
+exports.authorizeBillPdfGet = async (req) => {
+  const isBillValidated = await CourseBill.countDocuments({ _id: req.params._id, billedAt: { $exists: true } });
+  if (!isBillValidated) throw Boom.notFound();
 
   return null;
 };

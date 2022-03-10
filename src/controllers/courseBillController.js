@@ -68,4 +68,16 @@ const updateBillingPurchase = async (req) => {
   }
 };
 
-module.exports = { list, create, update, addBillingPurchase, updateBillingPurchase };
+const generateBillPdf = async (req, h) => {
+  try {
+    const { pdf, billNumber } = await CourseBillHelper.generateBillPdf(req.params._id);
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${billNumber}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, update, addBillingPurchase, updateBillingPurchase, generateBillPdf };

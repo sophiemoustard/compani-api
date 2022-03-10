@@ -8,6 +8,7 @@ const {
   update,
   addBillingPurchase,
   updateBillingPurchase,
+  generateBillPdf,
 } = require('../controllers/courseBillController');
 const {
   authorizeCourseBillCreation,
@@ -15,6 +16,7 @@ const {
   authorizeCourseBillUpdate,
   authorizeCourseBillingPurchaseAddition,
   authorizeCourseBillingPurchaseUpdate,
+  authorizeBillPdfGet,
 } = require('./preHandlers/courseBills');
 const { requiredDateToISOString } = require('./validations/utils');
 
@@ -112,6 +114,16 @@ exports.plugin = {
         pre: [{ method: authorizeCourseBillingPurchaseUpdate }],
       },
       handler: updateBillingPurchase,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/pdfs',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        pre: [{ method: authorizeBillPdfGet }],
+      },
+      handler: generateBillPdf,
     });
   },
 };
