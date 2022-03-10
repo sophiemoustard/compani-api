@@ -19,7 +19,9 @@ const CompaniDateFactory = (inputDate) => {
     },
 
     weekday() {
-      return _date.weekday;
+      return _date.weekday - 1;
+      /*  fox luxon:  1 = Monday, 2 = Tuesday, ... 7 = Sunday
+          for us:     0 = Monday, 1 = Tuesday, ... 6 = Sunday. cf constants.js */
     },
 
     // DISPLAY
@@ -74,7 +76,7 @@ const CompaniDateFactory = (inputDate) => {
     },
 
     isBusinessDay() {
-      const day = _date.weekday;
+      const day = this.weekday();
 
       return !!(WORKING_DAYS.includes(day) && !this.isHoliday());
     },
