@@ -45,9 +45,9 @@ const update = async (req) => {
   }
 };
 
-const addBillingItem = async (req) => {
+const addBillingPurchase = async (req) => {
   try {
-    await CourseBillHelper.addBillingItem(req.params._id, req.payload);
+    await CourseBillHelper.addBillingPurchase(req.params._id, req.payload);
 
     return { message: translate[language].courseBillUpdated };
   } catch (e) {
@@ -56,4 +56,4 @@ const addBillingItem = async (req) => {
   }
 };
 
-module.exports = { list, create, update, addBillingItem };
+module.exports = { list, create, update, addBillingPurchase };

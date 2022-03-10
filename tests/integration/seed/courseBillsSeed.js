@@ -85,7 +85,7 @@ const courseBillsList = [
     course: courseList[0]._id,
     company: authCompany._id,
     mainFee: { price: 120, count: 1 },
-    billingItemList: [
+    billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 90, count: 1 },
       { _id: new ObjectId(), billingItem: billingItemList[1]._id, price: 400, count: 1 },
     ],

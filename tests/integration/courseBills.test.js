@@ -42,7 +42,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         course: courseList[0]._id,
         company: authCompany._id,
         mainFee: { price: 120, count: 1 },
-        billingItemList: [
+        billingPurchaseList: [
           { billingItem: billingItemList[0]._id, price: 90, count: 1 },
           { billingItem: billingItemList[1]._id, price: 400, count: 1 },
         ],
@@ -502,7 +502,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
   });
 });
 
-describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
+describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billingpurchases', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = {
@@ -520,7 +520,7 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
     it('should add a billing item to course bill', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+        url: `/coursebills/${courseBillsList[0]._id}/billingpurchases`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -528,7 +528,7 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
       expect(response.statusCode).toBe(200);
 
       const courseBillAfter = await CourseBill.findOne({ _id: courseBillsList[0]._id }).lean();
-      expect(courseBillAfter.billingItemList.length).toBe(courseBillsList[0].billingItemList.length + 1);
+      expect(courseBillAfter.billingPurchaseList.length).toBe(courseBillsList[0].billingPurchaseList.length + 1);
     });
 
     const wrongValues = [
@@ -544,7 +544,7 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
       it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
         const response = await app.inject({
           method: 'POST',
-          url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+          url: `/coursebills/${courseBillsList[0]._id}/billingpurchases`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload: { ...payload, [param.key]: param.value },
         });
@@ -556,7 +556,7 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
     it('should return 404 if course bill doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/coursebills/${new ObjectId()}/billing-item`,
+        url: `/coursebills/${new ObjectId()}/billingpurchases`,
         payload,
         headers: { 'x-access-token': authToken },
       });
@@ -567,7 +567,7 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
     it('should return 404 if billing item doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+        url: `/coursebills/${courseBillsList[0]._id}/billingpurchases`,
         payload: { ...payload, billingItem: new ObjectId() },
         headers: { 'x-access-token': authToken },
       });
@@ -578,7 +578,7 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
     it('should return 409 if billing item is already added to course bill', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+        url: `/coursebills/${courseBillsList[0]._id}/billingpurchases`,
         payload: { ...payload, billingItem: billingItemList[1]._id },
         headers: { 'x-access-token': authToken },
       });
@@ -600,7 +600,7 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billing-item', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'POST',
-          url: `/coursebills/${courseBillsList[0]._id}/billing-item`,
+          url: `/coursebills/${courseBillsList[0]._id}/billingpurchases`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });

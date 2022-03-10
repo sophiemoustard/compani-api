@@ -2,12 +2,12 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, update, addBillingItem } = require('../controllers/courseBillController');
+const { list, create, update, addBillingPurchase } = require('../controllers/courseBillController');
 const {
   authorizeCourseBillCreation,
   authorizeCourseBillGet,
   authorizeCourseBillUpdate,
-  authorizeCourseBillingItemAddition,
+  authorizeCourseBillingPurchaseAddition,
 } = require('./preHandlers/courseBills');
 const { requiredDateToISOString } = require('./validations/utils');
 
@@ -71,7 +71,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/billing-item',
+      path: '/{_id}/billingpurchases',
       options: {
         auth: { scope: ['config:vendor'] },
         validate: {
@@ -82,9 +82,9 @@ exports.plugin = {
             description: Joi.string().allow(''),
           }),
         },
-        pre: [{ method: authorizeCourseBillingItemAddition }],
+        pre: [{ method: authorizeCourseBillingPurchaseAddition }],
       },
-      handler: addBillingItem,
+      handler: addBillingPurchase,
     });
   },
 };
