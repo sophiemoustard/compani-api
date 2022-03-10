@@ -644,7 +644,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}/billingpurchases/{billingP
         'billingPurchaseList.count': 2,
         'billingPurchaseList.description': 'café du midi',
       });
-      expect(courseBillAfter).toBe(1);
+      expect(courseBillAfter).toBeTruthy();
     });
 
     it('should update purchase and remove description', async () => {
@@ -666,7 +666,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}/billingpurchases/{billingP
         'billingPurchaseList.count': 3,
         'billingPurchaseList.description': { $exists: false },
       });
-      expect(courseBillAfter).toBe(1);
+      expect(courseBillAfter).toBeTruthy();
     });
 
     const wrongValues = [

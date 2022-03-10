@@ -218,7 +218,7 @@ describe('addBillingPurchase', () => {
       billingItem: new ObjectId(),
       price: 120,
       count: 1,
-      description: 'billin item for test',
+      description: 'billing item for test',
     };
     await CourseBillHelper.addBillingPurchase(courseBillId, payload);
 
@@ -244,7 +244,7 @@ describe('updateBillingPurchase', () => {
     const payload = {
       price: 120,
       count: 1,
-      description: 'billin item for test',
+      description: 'billing item for test',
     };
     await CourseBillHelper.updateBillingPurchase(courseBillId, billingPurchaseId, payload);
 
@@ -255,7 +255,7 @@ describe('updateBillingPurchase', () => {
         $set: {
           'billingPurchaseList.$.price': 120,
           'billingPurchaseList.$.count': 1,
-          'billingPurchaseList.$.description': 'billin item for test',
+          'billingPurchaseList.$.description': 'billing item for test',
         },
       }
     );
