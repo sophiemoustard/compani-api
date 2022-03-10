@@ -4,6 +4,8 @@ const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
+const PdfHelper = require('../../../src/helpers/pdf');
+const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 
@@ -272,5 +274,76 @@ describe('updateBillingPurchase', () => {
         $unset: { 'billingPurchaseList.$.description': '' },
       }
     );
+  });
+});
+
+describe('generateBillPdf', () => {
+  let findOne;
+  let getPdfContent;
+  let generatePdf;
+
+  beforeEach(() => {
+    findOne = sinon.stub(CourseBill, 'findOne');
+    getPdfContent = sinon.stub(CourseBillPdf, 'getPdfContent');
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    findOne.restore();
+    getPdfContent.restore();
+    generatePdf.restore();
+  });
+
+  it('should download course bill', async () => {
+    const billId = new ObjectId();
+
+    const bill = {
+      _id: new ObjectId(),
+      course: {
+        _id: new ObjectId(),
+        subProgram: { _id: new ObjectId(), program: { _id: new ObjectId(), name: 'Test' } },
+      },
+      mainFee: { price: 1000, count: 1 },
+      billingPurchaseList: [
+        { billingItem: { _id: new ObjectId(), name: 'article 1' }, price: 10, count: 10 },
+        { billingItem: { _id: new ObjectId(), name: 'article 2' }, price: 20, count: 10 },
+      ],
+      number: 'FACT-00001',
+      billedAt: '2022-03-08T00:00:00.000Z',
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(bill));
+    getPdfContent.returns({ content: [{ text: 'data' }] });
+    generatePdf.returns({ pdf: 'pdf' });
+
+    const result = await CourseBillHelper.generateBillPdf(billId);
+    expect(result).toEqual({ billNumber: bill.number, pdf: { pdf: 'pdf' } });
+    sinon.assert.calledOnceWithExactly(
+      getPdfContent,
+      {
+        course: bill.course,
+        feeList: [{ price: 1000, count: 1 }, bill.billingPurchaseList[0], bill.billingPurchaseList[1]],
+      }
+    );
+    sinon.assert.calledWithExactly(generatePdf, { content: [{ text: 'data' }] });
+    SinonMongoose.calledOnceWithExactly(findOne,
+      [
+        { query: 'findOne', args: [{ _id: billId }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'subProgram',
+            populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' },
+          }],
+        },
+        { query: 'lean' },
+      ]);
   });
 });
