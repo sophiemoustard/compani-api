@@ -54,7 +54,7 @@ const courseList = [
     _id: new ObjectId(),
     type: INTRA,
     company: authCompany._id,
-    subProgram: new ObjectId(),
+    subProgram: subProgramList[0]._id,
     misc: 'group 4',
     trainer: new ObjectId(),
     salesRepresentative: new ObjectId(),
