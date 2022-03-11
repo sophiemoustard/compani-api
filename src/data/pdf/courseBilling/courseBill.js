@@ -94,14 +94,13 @@ exports.getPdfContent = async (bill) => {
       ],
     };
 
-  let i = 0;
   const feeTable = [
     {
       table: { body: billDetailsTableBody, widths: ['auto', '*', 'auto', 'auto', 'auto'] },
       margin: [0, 40, 0, 8],
       layout: {
         vLineWidth: () => 0,
-        hLineWidth: () => { const value = i > 4; i += 1; return value; },
+        hLineWidth: i => (i > 1 ? 1 : 0),
         hLineColor: () => COPPER_GREY_200,
       },
     },
