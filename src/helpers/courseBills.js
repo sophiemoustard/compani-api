@@ -15,7 +15,7 @@ exports.getNetInclTaxes = (bill) => {
     ? bill.billingPurchaseList.map(p => NumbersHelper.multiply(p.price, p.count)).reduce((acc, val) => acc + val, 0)
     : 0;
 
-  return mainFeeTotal + billingPurchaseTotal;
+  return NumbersHelper.add(mainFeeTotal, billingPurchaseTotal);
 };
 
 exports.list = async (course, credentials) => {
