@@ -218,10 +218,59 @@ describe('addBillingPurchase', () => {
       billingItem: new ObjectId(),
       price: 120,
       count: 1,
-      description: 'billin item for test',
+      description: 'billing item for test',
     };
     await CourseBillHelper.addBillingPurchase(courseBillId, payload);
 
     sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $push: { billingPurchaseList: payload } });
+  });
+});
+
+describe('updateBillingPurchase', () => {
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(CourseBill, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update purchase with description', async () => {
+    const courseBillId = new ObjectId();
+    const billingPurchaseId = new ObjectId();
+
+    const payload = { price: 120, count: 1, description: 'billing item for test' };
+    await CourseBillHelper.updateBillingPurchase(courseBillId, billingPurchaseId, payload);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: courseBillId, 'billingPurchaseList._id': billingPurchaseId },
+      {
+        $set: {
+          'billingPurchaseList.$.price': 120,
+          'billingPurchaseList.$.count': 1,
+          'billingPurchaseList.$.description': 'billing item for test',
+        },
+      }
+    );
+  });
+
+  it('should update purchase and remove description', async () => {
+    const courseBillId = new ObjectId();
+    const billingPurchaseId = new ObjectId();
+
+    const payload = { price: 30, count: 2, description: '' };
+    await CourseBillHelper.updateBillingPurchase(courseBillId, billingPurchaseId, payload);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: courseBillId, 'billingPurchaseList._id': billingPurchaseId },
+      {
+        $set: { 'billingPurchaseList.$.price': 30, 'billingPurchaseList.$.count': 2 },
+        $unset: { 'billingPurchaseList.$.description': '' },
+      }
+    );
   });
 });

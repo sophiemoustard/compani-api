@@ -505,12 +505,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
 describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billingpurchases', () => {
   let authToken;
   beforeEach(populateDB);
-  const payload = {
-    billingItem: billingItemList[2]._id,
-    price: 7,
-    count: 5,
-    description: 'croissant du matin',
-  };
+  const payload = { billingItem: billingItemList[2]._id, price: 7, count: 5, description: 'croissant du matin' };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
@@ -601,6 +596,130 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billingpurchases', () => 
         const response = await app.inject({
           method: 'POST',
           url: `/coursebills/${courseBillsList[0]._id}/billingpurchases`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSE BILL ROUTES - PUT /coursebills/{_id}/billingpurchases/{billingPurchaseId}', () => {
+  let authToken;
+  beforeEach(populateDB);
+  const courseBillId = courseBillsList[0]._id;
+  const billingPurchaseId = courseBillsList[0].billingPurchaseList[0]._id;
+  const payload = { price: 22, count: 2, description: 'café du midi' };
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should update purchase with new description', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillId}/billingpurchases/${billingPurchaseId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseBillAfter = await CourseBill.countDocuments({
+        _id: courseBillId,
+        'billingPurchaseList._id': billingPurchaseId,
+        'billingPurchaseList.price': 22,
+        'billingPurchaseList.count': 2,
+        'billingPurchaseList.description': 'café du midi',
+      });
+      expect(courseBillAfter).toBeTruthy();
+    });
+
+    it('should update purchase and remove description', async () => {
+      const courseBillWithDescriptionId = courseBillsList[3]._id;
+      const billingPurchaseWithDescriptionId = courseBillsList[3].billingPurchaseList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillWithDescriptionId}/billingpurchases/${billingPurchaseWithDescriptionId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { price: 100, count: 3, description: '' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseBillAfter = await CourseBill.countDocuments({
+        _id: courseBillWithDescriptionId,
+        'billingPurchaseList._id': billingPurchaseWithDescriptionId,
+        'billingPurchaseList.price': 100,
+        'billingPurchaseList.count': 3,
+        'billingPurchaseList.description': { $exists: false },
+      });
+      expect(courseBillAfter).toBeTruthy();
+    });
+
+    const wrongValues = [
+      { key: 'price', value: -200 },
+      { key: 'price', value: 0 },
+      { key: 'price', value: '200€' },
+      { key: 'count', value: -200 },
+      { key: 'count', value: 0 },
+      { key: 'count', value: 1.23 },
+      { key: 'count', value: '1x' },
+    ];
+    wrongValues.forEach((param) => {
+      it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/coursebills/${courseBillId}/billingpurchases/${billingPurchaseId}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: { ...payload, [param.key]: param.value },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    it('should return 404 if course bill doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${new ObjectId()}/billingpurchases/${billingPurchaseId}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if billing purchase is not related to course bill', async () => {
+      const purchaseRelatedToOtherBillId = courseBillsList[3].billingPurchaseList[0]._id;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillId}/billingpurchases/${purchaseRelatedToOtherBillId}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/coursebills/${courseBillId}/billingpurchases/${billingPurchaseId}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
           payload,
         });

@@ -56,4 +56,16 @@ const addBillingPurchase = async (req) => {
   }
 };
 
-module.exports = { list, create, update, addBillingPurchase };
+const updateBillingPurchase = async (req) => {
+  try {
+    const { _id: billId, billingPurchaseId } = req.params;
+    await CourseBillHelper.updateBillingPurchase(billId, billingPurchaseId, req.payload);
+
+    return { message: translate[language].courseBillUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, create, update, addBillingPurchase, updateBillingPurchase };

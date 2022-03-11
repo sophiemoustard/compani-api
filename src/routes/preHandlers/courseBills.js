@@ -63,3 +63,15 @@ exports.authorizeCourseBillingPurchaseAddition = async (req) => {
 
   return null;
 };
+
+exports.authorizeCourseBillingPurchaseUpdate = async (req) => {
+  const { _id: courseBillId, billingPurchaseId } = req.params;
+
+  const purchaseRelatedToBill = await CourseBill.countDocuments({
+    _id: courseBillId,
+    'billingPurchaseList._id': billingPurchaseId,
+  });
+  if (!purchaseRelatedToBill) throw Boom.notFound();
+
+  return null;
+};

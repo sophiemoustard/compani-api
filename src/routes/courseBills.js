@@ -2,12 +2,19 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, update, addBillingPurchase } = require('../controllers/courseBillController');
+const {
+  list,
+  create,
+  update,
+  addBillingPurchase,
+  updateBillingPurchase,
+} = require('../controllers/courseBillController');
 const {
   authorizeCourseBillCreation,
   authorizeCourseBillGet,
   authorizeCourseBillUpdate,
   authorizeCourseBillingPurchaseAddition,
+  authorizeCourseBillingPurchaseUpdate,
 } = require('./preHandlers/courseBills');
 const { requiredDateToISOString } = require('./validations/utils');
 
@@ -52,6 +59,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:vendor'] },
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.alternatives().try(
             Joi.object({
               courseFundingOrganisation: Joi.objectId().allow(''),
@@ -75,6 +83,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:vendor'] },
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             billingItem: Joi.objectId().required(),
             price: Joi.number().positive().required(),
@@ -85,6 +94,24 @@ exports.plugin = {
         pre: [{ method: authorizeCourseBillingPurchaseAddition }],
       },
       handler: addBillingPurchase,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/billingpurchases/{billingPurchaseId}',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), billingPurchaseId: Joi.objectId().required() }),
+          payload: Joi.object({
+            price: Joi.number().positive().required(),
+            count: Joi.number().positive().integer().required(),
+            description: Joi.string().allow(''),
+          }),
+        },
+        pre: [{ method: authorizeCourseBillingPurchaseUpdate }],
+      },
+      handler: updateBillingPurchase,
     });
   },
 };

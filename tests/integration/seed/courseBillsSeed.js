@@ -9,7 +9,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const courseList = [
-  {
+  { // 0 - linked to bill 0
     _id: new ObjectId(),
     type: INTRA,
     company: authCompany._id,
@@ -21,7 +21,7 @@ const courseList = [
     trainees: [new ObjectId()],
 
   },
-  {
+  { // 1 - linked to bill 1
     _id: new ObjectId(),
     type: INTRA,
     company: authCompany._id,
@@ -33,7 +33,7 @@ const courseList = [
     trainees: [new ObjectId()],
 
   },
-  {
+  { // 2 - without bill
     _id: new ObjectId(),
     type: INTRA,
     company: otherCompany._id,
@@ -43,7 +43,28 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
-
+  },
+  { // 3 - linked to bill 2
+    _id: new ObjectId(),
+    type: INTRA,
+    company: authCompany._id,
+    subProgram: new ObjectId(),
+    misc: 'group 4',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [new ObjectId()],
+  },
+  { // 4 - linked to bill 3
+    _id: new ObjectId(),
+    type: INTRA,
+    company: authCompany._id,
+    subProgram: new ObjectId(),
+    misc: 'group 5',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [new ObjectId()],
   },
 ];
 const courseFundingOrganisationList = [
@@ -80,7 +101,7 @@ const billingItemList = [
 const courseBillNumber = { _id: new ObjectId(), seq: 1 };
 
 const courseBillsList = [
-  {
+  { // 0
     _id: new ObjectId(),
     course: courseList[0]._id,
     company: authCompany._id,
@@ -90,20 +111,29 @@ const courseBillsList = [
       { _id: new ObjectId(), billingItem: billingItemList[1]._id, price: 400, count: 1 },
     ],
   },
-  {
+  { // 1 - with funder and mainFee description
     _id: new ObjectId(),
     course: courseList[1]._id,
     company: authCompany._id,
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     courseFundingOrganisation: courseFundingOrganisationList[0]._id,
   },
-  {
+  { // 2 - already billed
     _id: new ObjectId(),
-    course: courseList[2]._id,
-    company: otherCompany._id,
+    course: courseList[3]._id,
+    company: authCompany._id,
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     billedAt: '2022-03-07T00:00:00.000Z',
     number: 'FACT-00001',
+  },
+  { // 3 - purchase with description
+    _id: new ObjectId(),
+    course: courseList[4]._id,
+    company: authCompany._id,
+    mainFee: { price: 10, count: 1 },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 12, count: 7, description: 'soupe du soir' },
+    ],
   },
 ];
 
