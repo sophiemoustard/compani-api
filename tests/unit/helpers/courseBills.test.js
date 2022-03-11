@@ -241,11 +241,7 @@ describe('updateBillingPurchase', () => {
     const courseBillId = new ObjectId();
     const billingPurchaseId = new ObjectId();
 
-    const payload = {
-      price: 120,
-      count: 1,
-      description: 'billing item for test',
-    };
+    const payload = { price: 120, count: 1, description: 'billing item for test' };
     await CourseBillHelper.updateBillingPurchase(courseBillId, billingPurchaseId, payload);
 
     sinon.assert.calledOnceWithExactly(
@@ -265,21 +261,14 @@ describe('updateBillingPurchase', () => {
     const courseBillId = new ObjectId();
     const billingPurchaseId = new ObjectId();
 
-    const payload = {
-      price: 30,
-      count: 2,
-      description: '',
-    };
+    const payload = { price: 30, count: 2, description: '' };
     await CourseBillHelper.updateBillingPurchase(courseBillId, billingPurchaseId, payload);
 
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: courseBillId, 'billingPurchaseList._id': billingPurchaseId },
       {
-        $set: {
-          'billingPurchaseList.$.price': 30,
-          'billingPurchaseList.$.count': 2,
-        },
+        $set: { 'billingPurchaseList.$.price': 30, 'billingPurchaseList.$.count': 2 },
         $unset: { 'billingPurchaseList.$.description': '' },
       }
     );

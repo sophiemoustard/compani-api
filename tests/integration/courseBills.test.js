@@ -505,12 +505,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
 describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billingpurchases', () => {
   let authToken;
   beforeEach(populateDB);
-  const payload = {
-    billingItem: billingItemList[2]._id,
-    price: 7,
-    count: 5,
-    description: 'croissant du matin',
-  };
+  const payload = { billingItem: billingItemList[2]._id, price: 7, count: 5, description: 'croissant du matin' };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
@@ -616,11 +611,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}/billingpurchases/{billingP
   beforeEach(populateDB);
   const courseBillId = courseBillsList[0]._id;
   const billingPurchaseId = courseBillsList[0].billingPurchaseList[0]._id;
-  const payload = {
-    price: 22,
-    count: 2,
-    description: 'café du midi',
-  };
+  const payload = { price: 22, count: 2, description: 'café du midi' };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
