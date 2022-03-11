@@ -67,9 +67,6 @@ exports.authorizeCourseBillingPurchaseAddition = async (req) => {
 exports.authorizeCourseBillingPurchaseUpdate = async (req) => {
   const { _id: courseBillId, billingPurchaseId } = req.params;
 
-  const courseBillExists = await CourseBill.countDocuments({ _id: courseBillId });
-  if (!courseBillExists) throw Boom.notFound();
-
   const purchaseRelatedToBill = await CourseBill.countDocuments({
     _id: courseBillId,
     'billingPurchaseList._id': billingPurchaseId,
