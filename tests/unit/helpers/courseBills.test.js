@@ -9,6 +9,30 @@ const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 
+describe('getNetInclTaxes', () => {
+  it('should return total price (without billing purchases)', async () => {
+    const bill = { course: new ObjectId(), company: { name: 'Company' }, mainFee: { price: 120, count: 2 } };
+
+    const result = await CourseBillHelper.getNetInclTaxes(bill);
+    expect(result).toEqual(240);
+  });
+
+  it('should return total price (with billing purchases)', async () => {
+    const bill = {
+      course: new ObjectId(),
+      company: { name: 'Company' },
+      mainFee: { price: 120, count: 2 },
+      billingPurchaseList: [
+        { billingItem: new ObjectId(), price: 90, count: 1 },
+        { billingItem: new ObjectId(), price: 400, count: 1 },
+      ],
+    };
+
+    const result = await CourseBillHelper.getNetInclTaxes(bill);
+    expect(result).toEqual(730);
+  });
+});
+
 describe('list', () => {
   let find;
   beforeEach(() => {
@@ -322,7 +346,8 @@ describe('generateBillPdf', () => {
       getPdfContent,
       {
         course: bill.course,
-        feeList: [{ price: 1000, count: 1 }, bill.billingPurchaseList[0], bill.billingPurchaseList[1]],
+        mainFee: bill.mainFee,
+        billingPurchaseList: bill.billingPurchaseList,
       }
     );
     sinon.assert.calledWithExactly(generatePdf, { content: [{ text: 'data' }] });

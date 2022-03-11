@@ -23,11 +23,9 @@ describe('getPdfContent', () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
     const bill = {
-      course: {
-        subProgram: { program: { name: 'Test' } },
-      },
-      feeList: [
-        { price: 1000, count: 1, description: 'description' },
+      course: { subProgram: { program: { name: 'Test' } } },
+      mainFee: { price: 1000, count: 1, description: 'description' },
+      billingPurchaseList: [
         { billingItem: { name: 'article 1' }, price: 10, count: 10 },
         { billingItem: { name: 'article 2' }, price: 20, count: 10, description: 'article cool' },
       ],
@@ -153,12 +151,8 @@ describe('getPdfContent', () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
     const bill = {
-      course: {
-        subProgram: { program: { name: 'Test' } },
-      },
-      feeList: [
-        { price: 1000, count: 1, description: 'description' },
-      ],
+      course: { subProgram: { program: { name: 'Test' } } },
+      mainFee: { price: 1000, count: 1, description: 'description' },
     };
 
     let i = 0;

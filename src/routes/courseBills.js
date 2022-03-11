@@ -120,6 +120,9 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/pdfs',
       options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
         auth: { scope: ['config:vendor'] },
         pre: [{ method: authorizeBillPdfGet }],
       },

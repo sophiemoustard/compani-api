@@ -1,6 +1,7 @@
 const UtilsHelper = require('../../../helpers/utils');
 const NumbersHelper = require('../../../helpers/numbers');
 const FileHelper = require('../../../helpers/file');
+const CourseBillHelper = require('../../../helpers/courseBills');
 const { COPPER_GREY_200, COPPER_600 } = require('../../../helpers/constants');
 
 exports.getImages = async () => {
@@ -37,47 +38,45 @@ exports.getPdfContent = async (bill) => {
     ],
   ];
 
-  bill.feeList.forEach((fee, i) => {
-    if (!i) {
+  billDetailsTableBody.push(
+    [
+      { text: 1, alignment: 'left', marginRight: 20 },
+      {
+        stack: [
+          { text: bill.course.subProgram.program.name, alignment: 'left' },
+          { text: bill.mainFee.description || '', style: 'description' },
+        ],
+      },
+      { text: bill.mainFee.count, alignment: 'center', marginLeft: 20, marginRight: 20 },
+      { text: UtilsHelper.formatPrice(bill.mainFee.price), alignment: 'center', marginLeft: 20, marginRight: 20 },
+      {
+        text: UtilsHelper.formatPrice(NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count)),
+        alignment: 'right',
+        marginLeft: 20,
+      },
+    ]
+  );
+
+  if (bill.billingPurchaseList) {
+    bill.billingPurchaseList.forEach((purchase, i) => {
       billDetailsTableBody.push(
         [
-          { text: i + 1, alignment: 'left', marginRight: 20 },
+          { text: i + 2, alignment: 'left' },
           {
             stack: [
-              { text: bill.course.subProgram.program.name, alignment: 'left' },
-              { text: fee.description || '', style: 'description' },
+              { text: purchase.billingItem.name, alignment: 'left' },
+              { text: purchase.description || '', style: 'description' },
             ],
           },
-          { text: fee.count, alignment: 'center', marginLeft: 20, marginRight: 20 },
-          { text: UtilsHelper.formatPrice(fee.price), alignment: 'center', marginLeft: 20, marginRight: 20 },
-          {
-            text: UtilsHelper.formatPrice(NumbersHelper.multiply(fee.price, fee.count)),
-            alignment: 'right',
-            marginLeft: 20,
-          },
+          { text: purchase.count, alignment: 'center' },
+          { text: UtilsHelper.formatPrice(purchase.price), alignment: 'center' },
+          { text: UtilsHelper.formatPrice(NumbersHelper.multiply(purchase.price, purchase.count)), alignment: 'right' },
         ]
       );
-    } else {
-      billDetailsTableBody.push(
-        [
-          { text: i + 1, alignment: 'left' },
-          {
-            stack: [
-              { text: fee.billingItem.name, alignment: 'left' },
-              { text: fee.description || '', style: 'description' },
-            ],
-          },
-          { text: fee.count, alignment: 'center' },
-          { text: UtilsHelper.formatPrice(fee.price), alignment: 'center' },
-          { text: UtilsHelper.formatPrice(NumbersHelper.multiply(fee.price, fee.count)), alignment: 'right' },
-        ]
-      );
-    }
-  });
+    });
+  }
 
-  const netInclTaxes = bill.feeList
-    .map(fee => NumbersHelper.multiply(fee.price, fee.count)).reduce((acc, val) => acc + val, 0);
-
+  const netInclTaxes = CourseBillHelper.getNetInclTaxes(bill);
   const tableFooter =
     {
       columns: [
