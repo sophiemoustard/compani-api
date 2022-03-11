@@ -40,9 +40,9 @@ const CourseConvocation = require('../data/pdf/courseConvocation');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
-const getTotalTheoreticalHours = course => course.subProgram.steps.reduce(
-  (acc, value) => NumbersHelper.add(acc, value.theoreticalHours || 0),
-  0
+exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
+  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.add(acc, value.theoreticalHours || 0), 0)
+  : 0
 );
 
 exports.list = async (query) => {
@@ -55,7 +55,7 @@ exports.list = async (query) => {
 
       return courses.map(course => ({
         ...course,
-        totalTheoreticalHours: getTotalTheoreticalHours(course),
+        totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
       }));
@@ -82,7 +82,7 @@ exports.list = async (query) => {
 
     return courses.map(course => ({
       ...course,
-      totalTheoreticalHours: getTotalTheoreticalHours(course),
+      totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
     }));
   }
 
