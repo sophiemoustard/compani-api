@@ -57,15 +57,41 @@ describe('createCourse', () => {
   });
 });
 
+describe('getTotalTheoreticalHours', () => {
+  it('should return theoreticalHours sum', async () => {
+    const course = {
+      subProgram: {
+        steps: [
+          { _id: new ObjectId(), theoreticalHours: 0.14 },
+          { _id: new ObjectId() },
+          { _id: new ObjectId(), theoreticalHours: 0 },
+          { _id: new ObjectId(), theoreticalHours: 1 },
+        ],
+      },
+    };
+    const result = await CourseHelper.getTotalTheoreticalHours(course);
+    expect(result).toBe(1.14);
+  });
+
+  it('should return 0 if no steps', async () => {
+    const course = { subProgram: { steps: [] } };
+    const result = await CourseHelper.getTotalTheoreticalHours(course);
+    expect(result).toBe(0);
+  });
+});
+
 describe('list', () => {
   let findCourseAndPopulate;
+  let getTotalTheoreticalHoursSpy;
   const authCompany = new ObjectId();
 
   beforeEach(() => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
+    getTotalTheoreticalHoursSpy = sinon.spy(CourseHelper, 'getTotalTheoreticalHours');
   });
   afterEach(() => {
     findCourseAndPopulate.restore();
+    getTotalTheoreticalHoursSpy.restore();
   });
 
   it('should return courses', async () => {
@@ -76,6 +102,34 @@ describe('list', () => {
     const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678', format: 'blended' });
+    sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
+  });
+
+  it('should return eLearning courses', async () => {
+    const coursesList = [
+      {
+        misc: 'name',
+        subProgram: {
+          steps: [
+            { _id: new ObjectId(), theoreticalHours: 0.8 },
+            { _id: new ObjectId(), theoreticalHours: 0.3 },
+            { _id: new ObjectId() },
+          ],
+        },
+      },
+      { misc: 'program', subProgram: { steps: [] } },
+    ];
+    const formattedCourseList = [
+      { misc: 'name', totalTheoreticalHours: 1.1 },
+      { misc: 'program', totalTheoreticalHours: 0 },
+    ];
+
+    findCourseAndPopulate.returns(coursesList);
+
+    const result = await CourseHelper.list({ format: 'strictly_e_learning' });
+    expect(result).toMatchObject(formattedCourseList);
+    sinon.assert.calledWithExactly(findCourseAndPopulate, { format: 'strictly_e_learning' });
+    sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
   });
 
   it('should return company courses', async () => {
@@ -120,6 +174,7 @@ describe('list', () => {
       { trainer: '1234567890abcdef12345678', type: 'inter_b2b', format: 'blended' },
       true
     );
+    sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
   });
 
   it('should return company eLearning courses', async () => {
@@ -134,18 +189,26 @@ describe('list', () => {
           { _id: new ObjectId(), company: { _id: new ObjectId() } },
           { _id: new ObjectId() },
         ],
+        subProgram: {
+          steps: [
+            { _id: new ObjectId(), theoreticalHours: 0.4 },
+            { _id: new ObjectId(), theoreticalHours: 1.4 },
+            { _id: new ObjectId() },
+          ],
+        },
       },
-      { accessRules: [companyId], format: 'strictly_e_learning', trainees: [] },
+      { accessRules: [companyId], format: 'strictly_e_learning', trainees: [], subProgram: { steps: [] } },
     ];
     const filteredCourseList = [
       {
         accessRules: [],
         format: 'strictly_e_learning',
+        totalTheoreticalHours: 1.8,
         trainees: [
           { _id: traineeId, company: { _id: companyId } },
         ],
       },
-      { accessRules: [companyId], format: 'strictly_e_learning', trainees: [] },
+      { accessRules: [companyId], format: 'strictly_e_learning', totalTheoreticalHours: 0, trainees: [] },
     ];
 
     findCourseAndPopulate.returns(coursesList);
@@ -157,6 +220,7 @@ describe('list', () => {
       findCourseAndPopulate,
       { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } }
     );
+    sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
   });
 });
 

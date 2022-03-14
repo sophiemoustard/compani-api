@@ -20,6 +20,7 @@ const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
+const NumbersHelper = require('./numbers');
 const drive = require('../models/Google/Drive');
 const {
   INTRA,
@@ -39,6 +40,11 @@ const CourseConvocation = require('../data/pdf/courseConvocation');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
+exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
+  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.add(acc, value.theoreticalHours || 0), 0)
+  : 0
+);
+
 exports.list = async (query) => {
   if (query.company) {
     if (query.format === STRICTLY_E_LEARNING) {
@@ -49,6 +55,7 @@ exports.list = async (query) => {
 
       return courses.map(course => ({
         ...course,
+        totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
       }));
@@ -70,7 +77,16 @@ exports.list = async (query) => {
     ];
   }
 
-  return CourseRepository.findCourseAndPopulate(query);
+  const courses = await CourseRepository.findCourseAndPopulate(query);
+
+  if (query.format === STRICTLY_E_LEARNING) {
+    return courses.map(course => ({
+      ...course,
+      totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
+    }));
+  }
+
+  return courses;
 };
 
 const getStepProgress = (step) => {
