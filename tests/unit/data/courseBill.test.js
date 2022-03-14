@@ -46,7 +46,7 @@ describe('getPdfContent', () => {
                 { text: 'Article & description', style: 'header', alignment: 'left' },
                 { text: 'Quantité', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
                 { text: 'Prix unitaire', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
-                { text: 'Coût', alignment: 'right', style: 'header', marginLeft: 20 },
+                { text: 'Coût', alignment: 'right', style: 'header' },
               ],
               [
                 { text: 1, alignment: 'left' },
@@ -139,7 +139,7 @@ describe('getPdfContent', () => {
                 { text: 'Article & description', style: 'header', alignment: 'left' },
                 { text: 'Quantité', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
                 { text: 'Prix unitaire', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
-                { text: 'Coût', alignment: 'right', style: 'header', marginLeft: 20 },
+                { text: 'Coût', alignment: 'right', style: 'header' },
               ],
               [
                 { text: 1, alignment: 'left' },
