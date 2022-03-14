@@ -16,12 +16,7 @@ exports.getPdfContent = async (bill) => {
   const [compani] = await exports.getImages();
 
   const header = [
-    {
-      columns: [
-        { image: compani, width: 200, height: 42, alignment: 'right' },
-      ],
-      marginBottom: 20,
-    },
+    { columns: [{ image: compani, width: 200, height: 42, alignment: 'right' }], marginBottom: 20 },
     {
       canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
       absolutePosition: { x: 40, y: 40 },
@@ -30,29 +25,28 @@ exports.getPdfContent = async (bill) => {
 
   const billDetailsTableBody = [
     [
-      { text: '#', style: 'header', alignment: 'left' },
-      { text: 'Article et description', style: 'header', alignment: 'left' },
-      { text: 'Quantité', style: 'header', alignment: 'center' },
-      { text: 'Prix unitaire', style: 'header', alignment: 'center' },
-      { text: 'Coût', alignment: 'right', style: 'header' },
+      { text: '#', style: 'header', alignment: 'left', marginRight: 20 },
+      { text: 'Article & description', style: 'header', alignment: 'left' },
+      { text: 'Quantité', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+      { text: 'Prix unitaire', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+      { text: 'Coût', alignment: 'right', style: 'header', marginLeft: 20 },
     ],
   ];
 
   billDetailsTableBody.push(
     [
-      { text: 1, alignment: 'left', marginRight: 20 },
+      { text: 1, alignment: 'left' },
       {
         stack: [
           { text: bill.course.subProgram.program.name, alignment: 'left' },
           { text: bill.mainFee.description || '', style: 'description' },
         ],
       },
-      { text: bill.mainFee.count, alignment: 'center', marginLeft: 20, marginRight: 20 },
-      { text: UtilsHelper.formatPrice(bill.mainFee.price), alignment: 'center', marginLeft: 20, marginRight: 20 },
+      { text: bill.mainFee.count, alignment: 'center' },
+      { text: UtilsHelper.formatPrice(bill.mainFee.price), alignment: 'center' },
       {
         text: UtilsHelper.formatPrice(NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count)),
         alignment: 'right',
-        marginLeft: 20,
       },
     ]
   );
@@ -98,11 +92,7 @@ exports.getPdfContent = async (bill) => {
     {
       table: { body: billDetailsTableBody, widths: ['auto', '*', 'auto', 'auto', 'auto'] },
       margin: [0, 40, 0, 8],
-      layout: {
-        vLineWidth: () => 0,
-        hLineWidth: i => (i > 1 ? 1 : 0),
-        hLineColor: () => COPPER_GREY_200,
-      },
+      layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
     },
   ];
   const content = [];

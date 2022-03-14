@@ -33,12 +33,7 @@ describe('getPdfContent', () => {
 
     const pdf = {
       content: [
-        {
-          columns: [
-            { image: paths[0], width: 200, height: 42, alignment: 'right' },
-          ],
-          marginBottom: 20,
-        },
+        { columns: [{ image: paths[0], width: 200, height: 42, alignment: 'right' }], marginBottom: 20 },
         {
           canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
@@ -47,36 +42,22 @@ describe('getPdfContent', () => {
           table: {
             body: [
               [
-                { text: '#', style: 'header', alignment: 'left' },
-                { text: 'Article et description', style: 'header', alignment: 'left' },
-                { text: 'Quantité', style: 'header', alignment: 'center' },
-                { text: 'Prix unitaire', style: 'header', alignment: 'center' },
-                { text: 'Coût', alignment: 'right', style: 'header' },
+                { text: '#', style: 'header', alignment: 'left', marginRight: 20 },
+                { text: 'Article & description', style: 'header', alignment: 'left' },
+                { text: 'Quantité', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+                { text: 'Prix unitaire', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+                { text: 'Coût', alignment: 'right', style: 'header', marginLeft: 20 },
               ],
               [
-                { text: 1, alignment: 'left', marginRight: 20 },
-                {
-                  stack: [
-                    { text: 'Test', alignment: 'left' },
-                    { text: 'description', style: 'description' },
-                  ],
-                },
-                { text: 1, alignment: 'center', marginLeft: 20, marginRight: 20 },
-                { text: '1000,00 €', alignment: 'center', marginLeft: 20, marginRight: 20 },
-                {
-                  text: '1000,00 €',
-                  alignment: 'right',
-                  marginLeft: 20,
-                },
+                { text: 1, alignment: 'left' },
+                { stack: [{ text: 'Test', alignment: 'left' }, { text: 'description', style: 'description' }] },
+                { text: 1, alignment: 'center' },
+                { text: '1000,00 €', alignment: 'center' },
+                { text: '1000,00 €', alignment: 'right' },
               ],
               [
                 { text: 2, alignment: 'left' },
-                {
-                  stack: [
-                    { text: 'article 1', alignment: 'left' },
-                    { text: '', style: 'description' },
-                  ],
-                },
+                { stack: [{ text: 'article 1', alignment: 'left' }, { text: '', style: 'description' }] },
                 { text: 10, alignment: 'center' },
                 { text: '10,00 €', alignment: 'center' },
                 { text: '100,00 €', alignment: 'right' },
@@ -97,11 +78,7 @@ describe('getPdfContent', () => {
             widths: ['auto', '*', 'auto', 'auto', 'auto'],
           },
           margin: [0, 40, 0, 8],
-          layout: {
-            vLineWidth: () => 0,
-            hLineWidth: i => (i > 1 ? 1 : 0),
-            hLineColor: () => COPPER_GREY_200,
-          },
+          layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
         },
         {
           columns: [
@@ -109,13 +86,7 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             { text: 'Sous-total', alignment: 'right' },
-            {
-              text: '1300,00 €',
-              alignment: 'right',
-              marginLeft: 22,
-              marginRight: 4,
-              width: 'auto',
-            },
+            { text: '1300,00 €', alignment: 'right', marginLeft: 22, marginRight: 4, width: 'auto' },
           ],
         },
       ],
@@ -155,12 +126,7 @@ describe('getPdfContent', () => {
 
     const pdf = {
       content: [
-        {
-          columns: [
-            { image: paths[0], width: 200, height: 42, alignment: 'right' },
-          ],
-          marginBottom: 20,
-        },
+        { columns: [{ image: paths[0], width: 200, height: 42, alignment: 'right' }], marginBottom: 20 },
         {
           canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
@@ -169,37 +135,24 @@ describe('getPdfContent', () => {
           table: {
             body: [
               [
-                { text: '#', style: 'header', alignment: 'left' },
-                { text: 'Article et description', style: 'header', alignment: 'left' },
-                { text: 'Quantité', style: 'header', alignment: 'center' },
-                { text: 'Prix unitaire', style: 'header', alignment: 'center' },
-                { text: 'Coût', alignment: 'right', style: 'header' },
+                { text: '#', style: 'header', alignment: 'left', marginRight: 20 },
+                { text: 'Article & description', style: 'header', alignment: 'left' },
+                { text: 'Quantité', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+                { text: 'Prix unitaire', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+                { text: 'Coût', alignment: 'right', style: 'header', marginLeft: 20 },
               ],
               [
-                { text: 1, alignment: 'left', marginRight: 20 },
-                {
-                  stack: [
-                    { text: 'Test', alignment: 'left' },
-                    { text: 'description', style: 'description' },
-                  ],
-                },
-                { text: 1, alignment: 'center', marginLeft: 20, marginRight: 20 },
-                { text: '1000,00 €', alignment: 'center', marginLeft: 20, marginRight: 20 },
-                {
-                  text: '1000,00 €',
-                  alignment: 'right',
-                  marginLeft: 20,
-                },
+                { text: 1, alignment: 'left' },
+                { stack: [{ text: 'Test', alignment: 'left' }, { text: 'description', style: 'description' }] },
+                { text: 1, alignment: 'center' },
+                { text: '1000,00 €', alignment: 'center' },
+                { text: '1000,00 €', alignment: 'right' },
               ],
             ],
             widths: ['auto', '*', 'auto', 'auto', 'auto'],
           },
           margin: [0, 40, 0, 8],
-          layout: {
-            vLineWidth: () => 0,
-            hLineWidth: i => (i > 1 ? 1 : 0),
-            hLineColor: () => COPPER_GREY_200,
-          },
+          layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
         },
         {
           columns: [
@@ -207,13 +160,7 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             { text: 'Sous-total', alignment: 'right' },
-            {
-              text: '1000,00 €',
-              alignment: 'right',
-              marginLeft: 22,
-              marginRight: 4,
-              width: 'auto',
-            },
+            { text: '1000,00 €', alignment: 'right', marginLeft: 22, marginRight: 4, width: 'auto' },
           ],
         },
       ],

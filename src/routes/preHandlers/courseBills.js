@@ -77,7 +77,7 @@ exports.authorizeCourseBillingPurchaseUpdate = async (req) => {
 
 exports.authorizeBillPdfGet = async (req) => {
   const isBillValidated = await CourseBill
-    .countDocuments({ _id: req.params._id, billedAt: { $exists: true, $type: 9 } });
+    .countDocuments({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } });
   if (!isBillValidated) throw Boom.notFound();
 
   return null;
