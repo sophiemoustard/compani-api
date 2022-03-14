@@ -77,16 +77,16 @@ exports.list = async (query) => {
     ];
   }
 
-  if (query.format === STRICTLY_E_LEARNING) {
-    const courses = await CourseRepository.findCourseAndPopulate(query);
+  const courses = await CourseRepository.findCourseAndPopulate(query);
 
+  if (query.format === STRICTLY_E_LEARNING) {
     return courses.map(course => ({
       ...course,
       totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
     }));
   }
 
-  return CourseRepository.findCourseAndPopulate(query);
+  return courses;
 };
 
 const getStepProgress = (step) => {
