@@ -39,7 +39,7 @@ exports.getPdfContent = async (bill) => {
       {
         stack: [
           { text: bill.course.subProgram.program.name, alignment: 'left' },
-          { text: bill.mainFee.description || '', style: 'description' },
+          { text: bill.mainFee.description || '', style: 'description', marginBottom: 8 },
         ],
       },
       { text: bill.mainFee.count, alignment: 'center' },
@@ -59,7 +59,7 @@ exports.getPdfContent = async (bill) => {
           {
             stack: [
               { text: purchase.billingItem.name, alignment: 'left' },
-              { text: purchase.description || '', style: 'description' },
+              { text: purchase.description || '', style: 'description', marginBottom: 8 },
             ],
           },
           { text: purchase.count, alignment: 'center' },

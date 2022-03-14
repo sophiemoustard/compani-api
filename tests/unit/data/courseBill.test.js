@@ -50,14 +50,24 @@ describe('getPdfContent', () => {
               ],
               [
                 { text: 1, alignment: 'left' },
-                { stack: [{ text: 'Test', alignment: 'left' }, { text: 'description', style: 'description' }] },
+                {
+                  stack: [
+                    { text: 'Test', alignment: 'left' },
+                    { text: 'description', style: 'description', marginBottom: 8 },
+                  ],
+                },
                 { text: 1, alignment: 'center' },
                 { text: '1000,00 €', alignment: 'center' },
                 { text: '1000,00 €', alignment: 'right' },
               ],
               [
                 { text: 2, alignment: 'left' },
-                { stack: [{ text: 'article 1', alignment: 'left' }, { text: '', style: 'description' }] },
+                {
+                  stack: [
+                    { text: 'article 1', alignment: 'left' },
+                    { text: '', style: 'description', marginBottom: 8 },
+                  ],
+                },
                 { text: 10, alignment: 'center' },
                 { text: '10,00 €', alignment: 'center' },
                 { text: '100,00 €', alignment: 'right' },
@@ -67,7 +77,7 @@ describe('getPdfContent', () => {
                 {
                   stack: [
                     { text: 'article 2', alignment: 'left' },
-                    { text: 'article cool', style: 'description' },
+                    { text: 'article cool', style: 'description', marginBottom: 8 },
                   ],
                 },
                 { text: 10, alignment: 'center' },
@@ -143,7 +153,12 @@ describe('getPdfContent', () => {
               ],
               [
                 { text: 1, alignment: 'left' },
-                { stack: [{ text: 'Test', alignment: 'left' }, { text: 'description', style: 'description' }] },
+                {
+                  stack: [
+                    { text: 'Test', alignment: 'left' },
+                    { text: 'description', style: 'description', marginBottom: 8 },
+                  ],
+                },
                 { text: 1, alignment: 'center' },
                 { text: '1000,00 €', alignment: 'center' },
                 { text: '1000,00 €', alignment: 'right' },
