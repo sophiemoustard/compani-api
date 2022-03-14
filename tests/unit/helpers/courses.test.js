@@ -208,7 +208,7 @@ describe('list', () => {
           { _id: traineeId, company: { _id: companyId } },
         ],
       },
-      { accessRules: [companyId], format: 'strictly_e_learning', trainees: [] },
+      { accessRules: [companyId], format: 'strictly_e_learning', totalTheoreticalHours: 0, trainees: [] },
     ];
 
     findCourseAndPopulate.returns(coursesList);
