@@ -5,8 +5,14 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
+const SubProgram = require('../../../src/models/SubProgram');
+const Program = require('../../../src/models/Program');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+
+const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [new ObjectId()] }];
+
+const programList = [{ _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] }];
 
 const courseList = [
   { // 0 - linked to bill 0
@@ -37,7 +43,7 @@ const courseList = [
     _id: new ObjectId(),
     type: INTRA,
     company: otherCompany._id,
-    subProgram: new ObjectId(),
+    subProgram: subProgramList[0]._id,
     misc: 'group 3',
     trainer: new ObjectId(),
     salesRepresentative: new ObjectId(),
@@ -48,7 +54,7 @@ const courseList = [
     _id: new ObjectId(),
     type: INTRA,
     company: authCompany._id,
-    subProgram: new ObjectId(),
+    subProgram: subProgramList[0]._id,
     misc: 'group 4',
     trainer: new ObjectId(),
     salesRepresentative: new ObjectId(),
@@ -146,6 +152,8 @@ const populateDB = async () => {
     CourseBill.create(courseBillsList),
     CourseBillingItem.create(billingItemList),
     CourseBillsNumber.create(courseBillNumber),
+    SubProgram.create(subProgramList),
+    Program.create(programList),
   ]);
 };
 

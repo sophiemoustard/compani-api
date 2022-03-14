@@ -2,9 +2,21 @@ const get = require('lodash/get');
 const flat = require('flat');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
+const PdfHelper = require('./pdf');
+const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
+
+exports.getNetInclTaxes = (bill) => {
+  const mainFeeTotal = NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count);
+  const billingPurchaseTotal = bill.billingPurchaseList
+    ? bill.billingPurchaseList.map(p => NumbersHelper.multiply(p.price, p.count)).reduce((acc, val) => acc + val, 0)
+    : 0;
+
+  return NumbersHelper.add(mainFeeTotal, billingPurchaseTotal);
+};
 
 exports.list = async (course, credentials) => {
   const courseBills = await CourseBill
@@ -14,14 +26,7 @@ exports.list = async (course, credentials) => {
     .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
     .lean();
 
-  return courseBills.map((bill) => {
-    const mainFeeTotal = NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count);
-    const billingPurchaseTotal = bill.billingPurchaseList
-      ? bill.billingPurchaseList.map(p => NumbersHelper.multiply(p.price, p.count)).reduce((acc, val) => acc + val, 0)
-      : 0;
-
-    return { ...bill, netInclTaxes: mainFeeTotal + billingPurchaseTotal };
-  });
+  return courseBills.map(bill => ({ ...bill, netInclTaxes: exports.getNetInclTaxes(bill) }));
 };
 
 exports.create = async payload => CourseBill.create(payload);
@@ -71,3 +76,20 @@ exports.updateBillingPurchase = async (courseBillId, billingPurchaseId, payload)
     ...(get(payload, 'description') === '' && { $unset: { 'billingPurchaseList.$.description': '' } }),
   }
 );
+
+exports.generateBillPdf = async (billId) => {
+  const bill = await CourseBill.findOne({ _id: billId })
+    .populate({
+      path: 'course',
+      select: 'subProgram',
+      populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
+    })
+    .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
+    .lean();
+
+  const data = pick(bill, ['course', 'mainFee', 'billingPurchaseList']);
+  const template = await CourseBillPdf.getPdfContent(data);
+  const pdf = await PdfHelper.generatePdf(template);
+
+  return { pdf, billNumber: bill.number };
+};

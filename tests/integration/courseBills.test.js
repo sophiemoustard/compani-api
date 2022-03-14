@@ -102,6 +102,69 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
   });
 });
 
+describe('COURSE BILL ROUTES - GET /coursebills/{_id}/pdfs', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should download course bill for intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[2]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if bill doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${new ObjectId()}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if bill is not validated', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[0]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/coursebills/course=${courseList[2]._id}/pdfs`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('COURSE BILL ROUTES - POST /coursebills', () => {
   let authToken;
   beforeEach(populateDB);
