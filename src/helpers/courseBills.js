@@ -77,6 +77,11 @@ exports.updateBillingPurchase = async (courseBillId, billingPurchaseId, payload)
   }
 );
 
+exports.deleteBillingPurchase = async (courseBillId, billingPurchaseId) => CourseBill.updateOne(
+  { _id: courseBillId },
+  { $pull: { billingPurchaseList: { _id: billingPurchaseId } } }
+);
+
 exports.generateBillPdf = async (billId) => {
   const bill = await CourseBill.findOne({ _id: billId })
     .populate({

@@ -301,6 +301,31 @@ describe('updateBillingPurchase', () => {
   });
 });
 
+describe('deleteBillingPurchase', () => {
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(CourseBill, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should delete purchase in course bill', async () => {
+    const courseBillId = new ObjectId();
+    const billingPurchaseId = new ObjectId();
+
+    await CourseBillHelper.deleteBillingPurchase(courseBillId, billingPurchaseId);
+
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: courseBillId },
+      { $pull: { billingPurchaseList: { _id: billingPurchaseId } } }
+    );
+  });
+});
+
 describe('generateBillPdf', () => {
   let findOne;
   let getPdfContent;

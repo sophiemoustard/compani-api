@@ -75,6 +75,21 @@ exports.authorizeCourseBillingPurchaseUpdate = async (req) => {
   return null;
 };
 
+exports.authorizeCourseBillingPurchaseDelete = async (req) => {
+  const { _id: courseBillId, billingPurchaseId } = req.params;
+
+  const courseBill = await CourseBill.findOne({ _id: courseBillId }).lean();
+  if (!courseBill) throw Boom.notFound();
+
+  if (courseBill.billedAt) throw Boom.forbidden();
+
+  const purchaseRelatedToBill = courseBill.billingPurchaseList
+    .some(p => UtilsHelper.areObjectIdsEquals(p._id, billingPurchaseId));
+  if (!purchaseRelatedToBill) throw Boom.notFound();
+
+  return null;
+};
+
 exports.authorizeBillPdfGet = async (req) => {
   const isBillValidated = await CourseBill
     .countDocuments({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } });
