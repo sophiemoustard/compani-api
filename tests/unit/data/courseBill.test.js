@@ -42,40 +42,50 @@ describe('getPdfContent', () => {
           table: {
             body: [
               [
-                { text: '#', style: 'header', alignment: 'left', marginRight: 20 },
+                { text: '#', style: 'header', alignment: 'left' },
                 { text: 'Article & description', style: 'header', alignment: 'left' },
-                { text: 'Quantité', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
-                { text: 'Prix unitaire', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+                { text: 'Quantité', style: 'header', alignment: 'center' },
+                { text: 'Prix unitaire', style: 'header', alignment: 'center' },
                 { text: 'Coût', alignment: 'right', style: 'header' },
               ],
               [
-                { text: 1, alignment: 'left' },
-                { stack: [{ text: 'Test', alignment: 'left' }, { text: 'description', style: 'description' }] },
-                { text: 1, alignment: 'center' },
-                { text: '1000,00 €', alignment: 'center' },
-                { text: '1000,00 €', alignment: 'right' },
-              ],
-              [
-                { text: 2, alignment: 'left' },
-                { stack: [{ text: 'article 1', alignment: 'left' }, { text: '', style: 'description' }] },
-                { text: 10, alignment: 'center' },
-                { text: '10,00 €', alignment: 'center' },
-                { text: '100,00 €', alignment: 'right' },
-              ],
-              [
-                { text: 3, alignment: 'left' },
+                { text: 1, alignment: 'left', marginTop: 8 },
                 {
                   stack: [
-                    { text: 'article 2', alignment: 'left' },
-                    { text: 'article cool', style: 'description' },
+                    { text: 'Test', alignment: 'left', marginTop: 8 },
+                    { text: 'description', style: 'description', marginBottom: 8 },
                   ],
                 },
-                { text: 10, alignment: 'center' },
-                { text: '20,00 €', alignment: 'center' },
-                { text: '200,00 €', alignment: 'right' },
+                { text: 1, alignment: 'center', marginTop: 8 },
+                { text: '1000,00 €', alignment: 'center', marginTop: 8 },
+                { text: '1000,00 €', alignment: 'right', marginTop: 8 },
+              ],
+              [
+                { text: 2, alignment: 'left', marginTop: 8 },
+                {
+                  stack: [
+                    { text: 'article 1', alignment: 'left', marginTop: 8 },
+                    { text: '', style: 'description', marginBottom: 8 },
+                  ],
+                },
+                { text: 10, alignment: 'center', marginTop: 8 },
+                { text: '10,00 €', alignment: 'center', marginTop: 8 },
+                { text: '100,00 €', alignment: 'right', marginTop: 8 },
+              ],
+              [
+                { text: 3, alignment: 'left', marginTop: 8 },
+                {
+                  stack: [
+                    { text: 'article 2', alignment: 'left', marginTop: 8 },
+                    { text: 'article cool', style: 'description', marginBottom: 8 },
+                  ],
+                },
+                { text: 10, alignment: 'center', marginTop: 8 },
+                { text: '20,00 €', alignment: 'center', marginTop: 8 },
+                { text: '200,00 €', alignment: 'right', marginTop: 8 },
               ],
             ],
-            widths: ['auto', '*', 'auto', 'auto', 'auto'],
+            widths: ['5%', '50%', '15%', '15%', '15%'],
           },
           margin: [0, 40, 0, 8],
           layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
@@ -135,21 +145,26 @@ describe('getPdfContent', () => {
           table: {
             body: [
               [
-                { text: '#', style: 'header', alignment: 'left', marginRight: 20 },
+                { text: '#', style: 'header', alignment: 'left' },
                 { text: 'Article & description', style: 'header', alignment: 'left' },
-                { text: 'Quantité', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
-                { text: 'Prix unitaire', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+                { text: 'Quantité', style: 'header', alignment: 'center' },
+                { text: 'Prix unitaire', style: 'header', alignment: 'center' },
                 { text: 'Coût', alignment: 'right', style: 'header' },
               ],
               [
-                { text: 1, alignment: 'left' },
-                { stack: [{ text: 'Test', alignment: 'left' }, { text: 'description', style: 'description' }] },
-                { text: 1, alignment: 'center' },
-                { text: '1000,00 €', alignment: 'center' },
-                { text: '1000,00 €', alignment: 'right' },
+                { text: 1, alignment: 'left', marginTop: 8 },
+                {
+                  stack: [
+                    { text: 'Test', alignment: 'left', marginTop: 8 },
+                    { text: 'description', style: 'description', marginBottom: 8 },
+                  ],
+                },
+                { text: 1, alignment: 'center', marginTop: 8 },
+                { text: '1000,00 €', alignment: 'center', marginTop: 8 },
+                { text: '1000,00 €', alignment: 'right', marginTop: 8 },
               ],
             ],
-            widths: ['auto', '*', 'auto', 'auto', 'auto'],
+            widths: ['5%', '50%', '15%', '15%', '15%'],
           },
           margin: [0, 40, 0, 8],
           layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
