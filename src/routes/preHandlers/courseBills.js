@@ -44,7 +44,22 @@ exports.authorizeCourseBillUpdate = async (req) => {
     if (!courseFundingOrganisationExists) throw Boom.notFound();
   }
 
-  if (req.payload.billedAt && courseBill.billedAt) throw Boom.forbidden();
+  if (courseBill.billedAt) {
+    if (req.payload.billedAt) throw Boom.forbidden();
+
+    const payloadEntries = UtilsHelper.getEntriesOfNestedObject(req.payload);
+    const courseBillEntries = UtilsHelper.getEntriesOfNestedObject(courseBill);
+    const allowedUpdateKey = 'mainFee.description';
+
+    for (const [payloadKey, payloadValue] of payloadEntries) {
+      for (const [courseBillKey, courseBillValue] of courseBillEntries) {
+        const requestingUpdate = payloadKey === courseBillKey && payloadValue !== courseBillValue;
+        const updateIsAllowed = payloadKey === allowedUpdateKey;
+
+        if (requestingUpdate && !updateIsAllowed) throw Boom.forbidden();
+      }
+    }
+  }
 
   return null;
 };

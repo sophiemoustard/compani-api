@@ -472,6 +472,25 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(isBilled).toBeTruthy();
     });
 
+    it('should update description on invoiced course bill', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { mainFee: { price: 120, count: 1, description: 'desk rip Sean' } },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const isUpdated = await CourseBill
+        .countDocuments({
+          _id: courseBillsList[2]._id,
+          billedAt: '2022-03-07T00:00:00.000Z',
+          mainFee: { price: 120, count: 1, description: 'desk rip Sean' },
+        });
+      expect(isUpdated).toBeTruthy();
+    });
+
     const wrongValues = [
       { key: 'price', value: -200 },
       { key: 'price', value: 0 },
@@ -529,12 +548,23 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if course bill is already invoiced', async () => {
+    it('should return 403 if requesting invoice on already invoiced bill', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { billedAt: '2022-03-08T00:00:00.000Z' },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if updating mainFee.count', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { mainFee: { price: 120, count: 2, description: 'Lorem ipsum' } },
       });
 
       expect(response.statusCode).toBe(403);
