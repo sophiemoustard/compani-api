@@ -25,28 +25,29 @@ exports.getPdfContent = async (bill) => {
 
   const billDetailsTableBody = [
     [
-      { text: '#', style: 'header', alignment: 'left', marginRight: 20 },
+      { text: '#', style: 'header', alignment: 'left' },
       { text: 'Article & description', style: 'header', alignment: 'left' },
-      { text: 'Quantité', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
-      { text: 'Prix unitaire', style: 'header', alignment: 'center', marginLeft: 20, marginRight: 20 },
+      { text: 'Quantité', style: 'header', alignment: 'center' },
+      { text: 'Prix unitaire', style: 'header', alignment: 'center' },
       { text: 'Coût', alignment: 'right', style: 'header' },
     ],
   ];
 
   billDetailsTableBody.push(
     [
-      { text: 1, alignment: 'left' },
+      { text: 1, alignment: 'left', marginTop: 8 },
       {
         stack: [
-          { text: bill.course.subProgram.program.name, alignment: 'left' },
+          { text: bill.course.subProgram.program.name, alignment: 'left', marginTop: 8 },
           { text: bill.mainFee.description || '', style: 'description', marginBottom: 8 },
         ],
       },
-      { text: bill.mainFee.count, alignment: 'center' },
-      { text: UtilsHelper.formatPrice(bill.mainFee.price), alignment: 'center' },
+      { text: bill.mainFee.count, alignment: 'center', marginTop: 8 },
+      { text: UtilsHelper.formatPrice(bill.mainFee.price), alignment: 'center', marginTop: 8 },
       {
         text: UtilsHelper.formatPrice(NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count)),
         alignment: 'right',
+        marginTop: 8,
       },
     ]
   );
@@ -55,16 +56,20 @@ exports.getPdfContent = async (bill) => {
     bill.billingPurchaseList.forEach((purchase, i) => {
       billDetailsTableBody.push(
         [
-          { text: i + 2, alignment: 'left' },
+          { text: i + 2, alignment: 'left', marginTop: 8 },
           {
             stack: [
-              { text: purchase.billingItem.name, alignment: 'left' },
+              { text: purchase.billingItem.name, alignment: 'left', marginTop: 8 },
               { text: purchase.description || '', style: 'description', marginBottom: 8 },
             ],
           },
-          { text: purchase.count, alignment: 'center' },
-          { text: UtilsHelper.formatPrice(purchase.price), alignment: 'center' },
-          { text: UtilsHelper.formatPrice(NumbersHelper.multiply(purchase.price, purchase.count)), alignment: 'right' },
+          { text: purchase.count, alignment: 'center', marginTop: 8 },
+          { text: UtilsHelper.formatPrice(purchase.price), alignment: 'center', marginTop: 8 },
+          {
+            text: UtilsHelper.formatPrice(NumbersHelper.multiply(purchase.price, purchase.count)),
+            alignment: 'right',
+            marginTop: 8,
+          },
         ]
       );
     });
@@ -90,7 +95,7 @@ exports.getPdfContent = async (bill) => {
 
   const feeTable = [
     {
-      table: { body: billDetailsTableBody, widths: ['auto', '*', 'auto', 'auto', 'auto'] },
+      table: { body: billDetailsTableBody, widths: ['5%', '50%', '15%', '15%', '15%'] },
       margin: [0, 40, 0, 8],
       layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
     },
