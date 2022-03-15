@@ -54,9 +54,8 @@ exports.authorizeCourseBillUpdate = async (req) => {
     for (const [payloadKey, payloadValue] of payloadEntries) {
       for (const [courseBillKey, courseBillValue] of courseBillEntries) {
         const requestingUpdate = payloadKey === courseBillKey && payloadValue !== courseBillValue;
-        const updateIsAllowed = payloadKey === allowedUpdateKey;
 
-        if (requestingUpdate && !updateIsAllowed) throw Boom.forbidden();
+        if (requestingUpdate && payloadKey !== allowedUpdateKey) throw Boom.forbidden();
       }
     }
   }
