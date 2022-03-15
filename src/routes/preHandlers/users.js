@@ -47,7 +47,7 @@ const trainerUpdatesForbiddenKeys = (req, user) => {
 
   if (get(req, 'payload.local.email') && req.payload.local.email !== user.local.email) return true;
 
-  const payloadKeys = UtilsHelper.getKeysOfNestedObject(req.payload);
+  const payloadKeys = UtilsHelper.getKeysOf2DepthObject(req.payload);
   const allowedKeys = ['company', 'identity.firstname', 'identity.lastname', 'contact.phone', 'local.email'];
 
   return payloadKeys.some(elem => !allowedKeys.includes(elem));

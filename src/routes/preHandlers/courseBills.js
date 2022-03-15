@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const { get } = require('lodash');
 const Company = require('../../models/Company');
 const Course = require('../../models/Course');
 const CourseBill = require('../../models/CourseBill');
@@ -47,16 +48,11 @@ exports.authorizeCourseBillUpdate = async (req) => {
   if (courseBill.billedAt) {
     if (req.payload.billedAt) throw Boom.forbidden();
 
-    const payloadEntries = UtilsHelper.getEntriesOfNestedObject(req.payload);
-    const courseBillEntries = UtilsHelper.getEntriesOfNestedObject(courseBill);
+    const payloadKeys = UtilsHelper.getKeysOfNestedObject(req.payload);
     const allowedUpdateKey = 'mainFee.description';
 
-    for (const [payloadKey, payloadValue] of payloadEntries) {
-      for (const [courseBillKey, courseBillValue] of courseBillEntries) {
-        const requestingUpdate = payloadKey === courseBillKey && payloadValue !== courseBillValue;
-
-        if (requestingUpdate && payloadKey !== allowedUpdateKey) throw Boom.forbidden();
-      }
+    for (const key of payloadKeys) {
+      if (get(req.payload, key) !== get(courseBill, key) && key !== allowedUpdateKey) throw Boom.forbidden();
     }
   }
 

@@ -235,18 +235,10 @@ exports.getDurationForExport = (startDate, endDate) =>
 exports.computeDuration = durations => durations
   .reduce((acc, duration) => acc.add(duration), CompaniDuration());
 
-exports.getKeysOfNestedObject = object => Object.entries(object).reduce((acc, [key, value]) => {
+exports.getKeysOf2DepthObject = object => Object.entries(object).reduce((acc, [key, value]) => {
   if (typeof value === 'object' && Object.keys(value).length) {
     return [...acc, ...Object.keys(value).map(k => `${key}.${k}`)];
   }
 
   return [...acc, key];
-}, []); // this works with max object depth of 2
-
-exports.getEntriesOfNestedObject = object => Object.entries(object).reduce((acc, [key, value]) => {
-  if (typeof value === 'object' && Object.keys(value).length) {
-    return [...acc, ...Object.entries(value).map(([k, v]) => [`${key}.${k}`, v])];
-  }
-
-  return [...acc, [key, value]];
-}, []); // this works with max object depth of 2
+}, []);

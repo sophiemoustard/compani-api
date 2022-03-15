@@ -497,7 +497,7 @@ describe('computeDuration', () => {
   });
 });
 
-describe('getKeysOfNestedObject', () => {
+describe('getKeysOf2DepthObject', () => {
   it('should return keys of 1 depth object', () => {
     const nestedObject = {
       starter: 3,
@@ -505,7 +505,7 @@ describe('getKeysOfNestedObject', () => {
       dessert: 6,
     };
 
-    const result = UtilsHelper.getKeysOfNestedObject(nestedObject);
+    const result = UtilsHelper.getKeysOf2DepthObject(nestedObject);
 
     expect(result).toEqual(['starter', 'dish', 'dessert']);
   });
@@ -522,44 +522,8 @@ describe('getKeysOfNestedObject', () => {
       },
     };
 
-    const result = UtilsHelper.getKeysOfNestedObject(nestedObject);
+    const result = UtilsHelper.getKeysOf2DepthObject(nestedObject);
 
     expect(result).toEqual(['starter', 'dish.fishStew', 'dessert.cake', 'dessert.pie']);
-  });
-});
-
-describe('getEntriessOfNestedObject', () => {
-  it('should return entries of 1 depth object', () => {
-    const nestedObject = {
-      starter: 3,
-      dish: 2,
-      dessert: 6,
-    };
-
-    const result = UtilsHelper.getEntriesOfNestedObject(nestedObject);
-
-    expect(result).toEqual([['starter', 3], ['dish', 2], ['dessert', 6]]);
-  });
-
-  it('should return entries of 2 depth object', () => {
-    const nestedObject = {
-      starter: 3,
-      dish: {
-        fishStew: 9,
-      },
-      dessert: {
-        cake: 1,
-        pie: 5,
-      },
-    };
-
-    const result = UtilsHelper.getEntriesOfNestedObject(nestedObject);
-
-    expect(result).toEqual([
-      ['starter', 3],
-      ['dish.fishStew', 9],
-      ['dessert.cake', 1],
-      ['dessert.pie', 5],
-    ]);
   });
 });
