@@ -8,6 +8,7 @@ const {
   update,
   addBillingPurchase,
   updateBillingPurchase,
+  deleteBillingPurchase,
   generateBillPdf,
 } = require('../controllers/courseBillController');
 const {
@@ -16,6 +17,7 @@ const {
   authorizeCourseBillUpdate,
   authorizeCourseBillingPurchaseAddition,
   authorizeCourseBillingPurchaseUpdate,
+  authorizeCourseBillingPurchaseDelete,
   authorizeBillPdfGet,
 } = require('./preHandlers/courseBills');
 const { requiredDateToISOString } = require('./validations/utils');
@@ -114,6 +116,19 @@ exports.plugin = {
         pre: [{ method: authorizeCourseBillingPurchaseUpdate }],
       },
       handler: updateBillingPurchase,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/billingpurchases/{billingPurchaseId}',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), billingPurchaseId: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeCourseBillingPurchaseDelete }],
+      },
+      handler: deleteBillingPurchase,
     });
 
     server.route({

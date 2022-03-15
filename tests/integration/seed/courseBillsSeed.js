@@ -131,6 +131,9 @@ const courseBillsList = [
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     billedAt: '2022-03-07T00:00:00.000Z',
     number: 'FACT-00001',
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
   },
   { // 3 - purchase with description
     _id: new ObjectId(),

@@ -68,6 +68,18 @@ const updateBillingPurchase = async (req) => {
   }
 };
 
+const deleteBillingPurchase = async (req) => {
+  try {
+    const { _id: billId, billingPurchaseId } = req.params;
+    await CourseBillHelper.deleteBillingPurchase(billId, billingPurchaseId);
+
+    return { message: translate[language].courseBillUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const generateBillPdf = async (req, h) => {
   try {
     const { pdf, billNumber } = await CourseBillHelper.generateBillPdf(req.params._id);
@@ -80,4 +92,12 @@ const generateBillPdf = async (req, h) => {
   }
 };
 
-module.exports = { list, create, update, addBillingPurchase, updateBillingPurchase, generateBillPdf };
+module.exports = {
+  list,
+  create,
+  update,
+  addBillingPurchase,
+  updateBillingPurchase,
+  deleteBillingPurchase,
+  generateBillPdf,
+};

@@ -792,3 +792,85 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}/billingpurchases/{billingP
     });
   });
 });
+
+describe('COURSE BILL ROUTES - DELETE /coursebills/{_id}/billingpurchases/{billingPurchaseId}', () => {
+  let authToken;
+  beforeEach(populateDB);
+  const courseBillId = courseBillsList[0]._id;
+  const billingPurchaseId = courseBillsList[0].billingPurchaseList[0]._id;
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should delete purchase in course bill', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursebills/${courseBillId}/billingpurchases/${billingPurchaseId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const billingPurchaseDeleted = await CourseBill.countDocuments({
+        _id: courseBillId,
+        'billingPurchaseList._id': { $nin: billingPurchaseId },
+      });
+      expect(billingPurchaseDeleted).toBeTruthy();
+    });
+
+    it('should return 403 if course bill already validated', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursebills/${courseBillsList[2]._id}/billingpurchases/${courseBillsList[2].billingPurchaseList[0]._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 404 if course bill doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursebills/${new ObjectId()}/billingpurchases/${billingPurchaseId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if billing purchase is not related to course bill', async () => {
+      const purchaseRelatedToOtherBillId = courseBillsList[3].billingPurchaseList[0]._id;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursebills/${courseBillId}/billingpurchases/${purchaseRelatedToOtherBillId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/coursebills/${courseBillId}/billingpurchases/${billingPurchaseId}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
