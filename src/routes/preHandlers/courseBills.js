@@ -52,7 +52,10 @@ exports.authorizeCourseBillUpdate = async (req) => {
     const allowedUpdateKey = 'mainFee.description';
 
     for (const key of payloadKeys) {
-      if (get(req.payload, key) !== get(courseBill, key) && key !== allowedUpdateKey) throw Boom.forbidden();
+      const payloadField = get(req.payload, key) || '';
+      const courseBillField = get(courseBill, key) || '';
+
+      if (payloadField !== courseBillField && key !== allowedUpdateKey) throw Boom.forbidden();
     }
   }
 
