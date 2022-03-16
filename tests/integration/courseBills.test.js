@@ -559,12 +559,37 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if updating courseFundingOrganisation', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+          mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if updating mainFee.price', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { courseFundingOrganisation: '', mainFee: { price: 88, count: 1, description: 'Lorem ipsum' } },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 if updating mainFee.count', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { mainFee: { price: 120, count: 2, description: 'Lorem ipsum' } },
+        payload: { courseFundingOrganisation: '', mainFee: { price: 120, count: 2, description: 'Lorem ipsum' } },
       });
 
       expect(response.statusCode).toBe(403);
