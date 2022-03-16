@@ -48,7 +48,7 @@ exports.authorizeCourseBillUpdate = async (req) => {
   if (courseBill.billedAt) {
     if (req.payload.billedAt) throw Boom.forbidden();
 
-    const payloadKeys = UtilsHelper.getKeysOfNestedObject(req.payload);
+    const payloadKeys = UtilsHelper.getKeysOf2DepthObject(req.payload);
     const allowedUpdateKey = 'mainFee.description';
 
     for (const key of payloadKeys) {
