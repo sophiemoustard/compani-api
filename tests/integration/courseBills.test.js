@@ -1,6 +1,6 @@
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
-const { omit } = require('lodash');
+const { omit, set } = require('lodash');
 const CourseBill = require('../../src/models/CourseBill');
 const app = require('../../server');
 const {
@@ -576,43 +576,27 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if removing courseFundingOrganisation', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/coursebills/${courseBillsList[4]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { courseFundingOrganisation: '', mainFee: { price: 200, count: 2, description: 'Salut' } },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if updating mainFee.price', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/coursebills/${courseBillsList[4]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
+    const forbiddenUpdates = [
+      { key: 'mainFee.price', value: 333 },
+      { key: 'mainFee.count', value: 12 },
+      { key: 'courseFundingOrganisation', value: '' },
+    ];
+    forbiddenUpdates.forEach((param) => {
+      it(`should return 403 if updating ${param.key}`, async () => {
+        const payload = {
           courseFundingOrganisation: courseBillsList[4].courseFundingOrganisation,
-          mainFee: { price: 333, count: 2, description: 'Salut' },
-        },
+          mainFee: { price: 200, count: 2, description: 'Salut' },
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/coursebills/${courseBillsList[4]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: set(payload, param.key, param.value),
+        });
+
+        expect(response.statusCode).toBe(403);
       });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if updating mainFee.count', async () => {
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/coursebills/${courseBillsList[4]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: {
-          courseFundingOrganisation: courseBillsList[4].courseFundingOrganisation,
-          mainFee: { price: 200, count: 10, description: 'Salut' },
-        },
-      });
-
-      expect(response.statusCode).toBe(403);
     });
   });
 
