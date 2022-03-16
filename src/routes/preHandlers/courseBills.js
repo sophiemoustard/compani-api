@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const { ObjectId } = require('mongodb');
 const { get } = require('lodash');
 const Company = require('../../models/Company');
 const Course = require('../../models/Course');
@@ -55,7 +56,12 @@ exports.authorizeCourseBillUpdate = async (req) => {
       const payloadField = get(req.payload, key) || '';
       const courseBillField = get(courseBill, key) || '';
 
-      if (payloadField !== courseBillField && key !== allowedUpdateKey) throw Boom.forbidden();
+      if (courseBillField instanceof ObjectId) {
+        const bothAreEmptyOrEqual = (!payloadField && !courseBillField) ||
+          UtilsHelper.areObjectIdsEquals(courseBillField, payloadField);
+
+        if (!bothAreEmptyOrEqual) throw Boom.forbidden();
+      } else if (key !== allowedUpdateKey && payloadField !== courseBillField) throw Boom.forbidden();
     }
   }
 
