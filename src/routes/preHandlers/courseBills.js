@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const { get, has, omit } = require('lodash');
 const Company = require('../../models/Company');
 const Course = require('../../models/Course');
 const CourseBill = require('../../models/CourseBill');
@@ -44,7 +45,23 @@ exports.authorizeCourseBillUpdate = async (req) => {
     if (!courseFundingOrganisationExists) throw Boom.notFound();
   }
 
-  if (req.payload.billedAt && courseBill.billedAt) throw Boom.forbidden();
+  if (courseBill.billedAt) {
+    if (req.payload.billedAt) throw Boom.forbidden();
+
+    if (has(req.payload, 'courseFundingOrganisation')) {
+      const payloadCourseFundingOrga = req.payload.courseFundingOrganisation;
+      const courseBillCourseFundingOrga = courseBill.courseFundingOrganisation;
+      const isCourseFundingOrganisationEqual = (!payloadCourseFundingOrga && !courseBillCourseFundingOrga) ||
+        UtilsHelper.areObjectIdsEquals(payloadCourseFundingOrga, courseBillCourseFundingOrga);
+
+      if (!isCourseFundingOrganisationEqual) throw Boom.forbidden();
+    }
+
+    const payloadKeys = UtilsHelper
+      .getKeysOf2DepthObject(omit(req.payload, ['courseFundingOrganisation', 'mainFee.description']));
+    const areFieldsChanged = payloadKeys.some(key => get(req.payload, key) !== get(courseBill, key));
+    if (areFieldsChanged) throw Boom.forbidden();
+  }
 
   return null;
 };

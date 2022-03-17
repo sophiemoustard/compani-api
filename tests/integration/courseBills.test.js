@@ -1,6 +1,6 @@
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
-const { omit } = require('lodash');
+const { omit, set } = require('lodash');
 const CourseBill = require('../../src/models/CourseBill');
 const app = require('../../server');
 const {
@@ -472,6 +472,29 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(isBilled).toBeTruthy();
     });
 
+    it('should update description on invoiced course bill', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          courseFundingOrganisation: courseBillsList[4].courseFundingOrganisation,
+          mainFee: { price: 200, count: 2, description: 'desk rip Sean' },
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const isUpdated = await CourseBill
+        .countDocuments({
+          _id: courseBillsList[4]._id,
+          billedAt: '2022-04-07T00:00:00.000Z',
+          mainFee: { price: 200, count: 2, description: 'desk rip Sean' },
+        });
+      expect(isUpdated).toBeTruthy();
+    });
+
+    const wrongValuesMainFee = { price: 120, count: 1, description: 'lorem ipsum' };
     const wrongValues = [
       { key: 'price', value: -200 },
       { key: 'price', value: 0 },
@@ -483,13 +506,11 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     ];
     wrongValues.forEach((param) => {
       it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
-        const mainFee = { price: 120, count: 1, description: 'lorem ipsum' };
-
         const response = await app.inject({
           method: 'PUT',
           url: `/coursebills/${courseBillsList[1]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { mainFee: { ...mainFee, [param.key]: param.value } },
+          payload: { mainFee: { ...wrongValuesMainFee, [param.key]: param.value } },
         });
 
         expect(response.statusCode).toBe(400);
@@ -529,7 +550,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('should return 403 if course bill is already invoiced', async () => {
+    it('should return 403 if requesting invoice on already invoiced bill', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[2]._id}`,
@@ -538,6 +559,42 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if adding courseFundingOrganisation', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+          mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    const forbiddenUpdatesPayload = {
+      courseFundingOrganisation: courseBillsList[4].courseFundingOrganisation,
+      mainFee: { price: 200, count: 2, description: 'Salut' },
+    };
+    const forbiddenUpdates = [
+      { key: 'mainFee.price', value: 333 },
+      { key: 'mainFee.count', value: 12 },
+      { key: 'courseFundingOrganisation', value: '' },
+    ];
+    forbiddenUpdates.forEach((param) => {
+      it(`should return 403 if updating ${param.key}`, async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/coursebills/${courseBillsList[4]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: set(forbiddenUpdatesPayload, param.key, param.value),
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
   });
 

@@ -496,3 +496,34 @@ describe('computeDuration', () => {
     expect(result.toObject()).toEqual({ minutes: 25 });
   });
 });
+
+describe('getKeysOf2DepthObject', () => {
+  it('should return keys of 1 depth object', () => {
+    const nestedObject = {
+      starter: 3,
+      dish: 2,
+      dessert: 6,
+    };
+
+    const result = UtilsHelper.getKeysOf2DepthObject(nestedObject);
+
+    expect(result).toEqual(['starter', 'dish', 'dessert']);
+  });
+
+  it('should return keys of 2 depth object', () => {
+    const nestedObject = {
+      starter: 3,
+      dish: {
+        fishStew: 9,
+      },
+      dessert: {
+        cake: 1,
+        pie: 5,
+      },
+    };
+
+    const result = UtilsHelper.getKeysOf2DepthObject(nestedObject);
+
+    expect(result).toEqual(['starter', 'dish.fishStew', 'dessert.cake', 'dessert.pie']);
+  });
+});
