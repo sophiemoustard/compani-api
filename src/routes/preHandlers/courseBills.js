@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const { ObjectId } = require('mongodb');
-const { get } = require('lodash');
+const { get, has, omit } = require('lodash');
 const Company = require('../../models/Company');
 const Course = require('../../models/Course');
 const CourseBill = require('../../models/CourseBill');
@@ -49,20 +49,19 @@ exports.authorizeCourseBillUpdate = async (req) => {
   if (courseBill.billedAt) {
     if (req.payload.billedAt) throw Boom.forbidden();
 
-    const payloadKeys = UtilsHelper.getKeysOf2DepthObject(req.payload);
-    const allowedUpdateKey = 'mainFee.description';
+    if (has(req.payload, 'courseFundingOrganisation')) {
+      const payloadCourseFundingOrga = req.payload.courseFundingOrganisation;
+      const courseBillCourseFundingOrga = courseBill.courseFundingOrganisation;
+      const isCourseFundingOrganisationEqual = (!payloadCourseFundingOrga && !courseBillCourseFundingOrga) ||
+        UtilsHelper.areObjectIdsEquals(payloadCourseFundingOrga, courseBillCourseFundingOrga);
 
-    for (const key of payloadKeys) {
-      const payloadField = get(req.payload, key) || '';
-      const courseBillField = get(courseBill, key) || '';
-
-      if (courseBillField instanceof ObjectId) {
-        const bothAreEmptyOrEqual = (!payloadField && !courseBillField) ||
-          UtilsHelper.areObjectIdsEquals(courseBillField, payloadField);
-
-        if (!bothAreEmptyOrEqual) throw Boom.forbidden();
-      } else if (key !== allowedUpdateKey && payloadField !== courseBillField) throw Boom.forbidden();
+      if (!isCourseFundingOrganisationEqual) throw Boom.forbidden();
     }
+
+    const payloadKeys = UtilsHelper
+      .getKeysOf2DepthObject(omit(req.payload, ['courseFundingOrganisation', 'mainFee.description']));
+    const areFieldsChanged = payloadKeys.some(key => get(req.payload, key) !== get(courseBill, key));
+    if (areFieldsChanged) throw Boom.forbidden();
   }
 
   return null;
