@@ -1333,7 +1333,7 @@ describe('getTraineeCourse', () => {
               { path: 'program', select: 'name image description learningGoals' },
               {
                 path: 'steps',
-                select: 'name type activities',
+                select: 'name type activities theoreticalHours',
                 populate: {
                   path: 'activities',
                   select: 'name type cards activityHistories',
