@@ -494,6 +494,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(isUpdated).toBeTruthy();
     });
 
+    const wrongValuesMainFee = { price: 120, count: 1, description: 'lorem ipsum' };
     const wrongValues = [
       { key: 'price', value: -200 },
       { key: 'price', value: 0 },
@@ -505,13 +506,11 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     ];
     wrongValues.forEach((param) => {
       it(`should return 400 as ${param.key} has wrong value : ${param.value}`, async () => {
-        const mainFee = { price: 120, count: 1, description: 'lorem ipsum' };
-
         const response = await app.inject({
           method: 'PUT',
           url: `/coursebills/${courseBillsList[1]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { mainFee: { ...mainFee, [param.key]: param.value } },
+          payload: { mainFee: { ...wrongValuesMainFee, [param.key]: param.value } },
         });
 
         expect(response.statusCode).toBe(400);
@@ -576,6 +575,10 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    const forbiddenUpdatesPayload = {
+      courseFundingOrganisation: courseBillsList[4].courseFundingOrganisation,
+      mainFee: { price: 200, count: 2, description: 'Salut' },
+    };
     const forbiddenUpdates = [
       { key: 'mainFee.price', value: 333 },
       { key: 'mainFee.count', value: 12 },
@@ -583,16 +586,11 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     ];
     forbiddenUpdates.forEach((param) => {
       it(`should return 403 if updating ${param.key}`, async () => {
-        const payload = {
-          courseFundingOrganisation: courseBillsList[4].courseFundingOrganisation,
-          mainFee: { price: 200, count: 2, description: 'Salut' },
-        };
-
         const response = await app.inject({
           method: 'PUT',
           url: `/coursebills/${courseBillsList[4]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: set(payload, param.key, param.value),
+          payload: set(forbiddenUpdatesPayload, param.key, param.value),
         });
 
         expect(response.statusCode).toBe(403);
