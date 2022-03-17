@@ -86,11 +86,20 @@ exports.authorizeCourseBillingPurchaseAddition = async (req) => {
 exports.authorizeCourseBillingPurchaseUpdate = async (req) => {
   const { _id: courseBillId, billingPurchaseId } = req.params;
 
-  const purchaseRelatedToBill = await CourseBill.countDocuments({
-    _id: courseBillId,
-    'billingPurchaseList._id': billingPurchaseId,
-  });
-  if (!purchaseRelatedToBill) throw Boom.notFound();
+  const courseBillRelatedToPurchase = await CourseBill
+    .findOne({ _id: courseBillId, 'billingPurchaseList._id': billingPurchaseId })
+    .lean();
+  if (!courseBillRelatedToPurchase) throw Boom.notFound();
+
+  if (courseBillRelatedToPurchase.billedAt) {
+    const payloadKeys = Object.keys(omit(req.payload, 'description'));
+    const purchase = courseBillRelatedToPurchase.billingPurchaseList
+      .find(p => UtilsHelper.areObjectIdsEquals(p._id, billingPurchaseId));
+
+    const areFieldsChanged = payloadKeys.some(key => get(req.payload, key) !== get(purchase, key));
+    if (areFieldsChanged) throw Boom.forbidden();
+  }
+
   return null;
 };
 

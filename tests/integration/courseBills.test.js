@@ -731,6 +731,8 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}/billingpurchases/{billingP
   beforeEach(populateDB);
   const courseBillId = courseBillsList[0]._id;
   const billingPurchaseId = courseBillsList[0].billingPurchaseList[0]._id;
+  const courseBillInvoicedId = courseBillsList[2]._id;
+  const billingPurchaseInvoicedId = courseBillsList[2].billingPurchaseList[0]._id;
   const payload = { price: 22, count: 2, description: 'café du midi' };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -780,6 +782,26 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}/billingpurchases/{billingP
       expect(courseBillAfter).toBeTruthy();
     });
 
+    it('should update description even if bill is invoiced', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillInvoicedId}/billingpurchases/${billingPurchaseInvoicedId}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { price: 9, count: 1, description: 'Salade de gésier du matin' },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseBillAfter = await CourseBill.countDocuments({
+        _id: courseBillInvoicedId,
+        'billingPurchaseList._id': billingPurchaseInvoicedId,
+        'billingPurchaseList.price': 9,
+        'billingPurchaseList.count': 1,
+        'billingPurchaseList.description': 'Salade de gésier du matin',
+      });
+      expect(courseBillAfter).toBeTruthy();
+    });
+
     const wrongValues = [
       { key: 'price', value: -200 },
       { key: 'price', value: 0 },
@@ -823,6 +845,24 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}/billingpurchases/{billingP
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    const forbiddenUpdatesPayload = { price: 9, count: 1, description: 'BN du goûter' };
+    const forbiddenUpdates = [
+      { key: 'price', value: 19 },
+      { key: 'count', value: 77 },
+    ];
+    forbiddenUpdates.forEach((param) => {
+      it(`should return 403 if updating ${param.key} when bill is invoiced`, async () => {
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/coursebills/${courseBillInvoicedId}/billingpurchases/${billingPurchaseInvoicedId}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: set(forbiddenUpdatesPayload, param.key, param.value),
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
   });
 
