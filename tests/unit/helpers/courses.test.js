@@ -631,7 +631,7 @@ describe('getCourse', () => {
       _id: new ObjectId(),
       type: 'inter_b2b',
       trainees: [{ _id: new ObjectId(), company: new ObjectId() }, { _id: new ObjectId(), company: new ObjectId() }],
-      subProgram: { steps: [] },
+      subProgram: { steps: [{ theoreticalHours: 1 }, { theoreticalHours: 0.5 }] },
     };
     findOne.returns(SinonMongoose.stubChainedQueries(course));
 
@@ -641,7 +641,7 @@ describe('getCourse', () => {
     );
     expect(result).toMatchObject({
       ...course,
-      totalTheoreticalHours: 0,
+      totalTheoreticalHours: 1.5,
     });
 
     SinonMongoose.calledOnceWithExactly(
