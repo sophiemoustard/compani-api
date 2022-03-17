@@ -55,7 +55,7 @@ exports.getBillingItemsTable = (creditNote) => {
 exports.getPdfContent = async (data) => {
   const { creditNote } = data;
   const content = [await UtilsPdfHelper.getHeader(creditNote.company, creditNote, CREDIT_NOTE)];
-  content.push(...(creditNote.misc ? [{ text: `Motif de l'avoir : ${creditNote.misc}.`, marginBottom: 16 }] : []));
+  content.push(...(creditNote.misc ? [{ text: `Motif de l'avoir : ${creditNote.misc}`, marginBottom: 16 }] : []));
 
   if (creditNote.formattedEvents) {
     content.push(

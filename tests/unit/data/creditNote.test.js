@@ -104,7 +104,7 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
-          text: 'Motif de l\'avoir : Je suis le motif, d\'ailleurs Mo\'Tif ça fait un bon nom de salon de coiffure.',
+          text: 'Motif de l\'avoir : Je suis le motif, d\'ailleurs Mo\'Tif ça fait un bon nom de salon de coiffure',
           marginBottom: 16,
         },
         {
@@ -249,7 +249,7 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
-          text: 'Motif de l\'avoir : Je suis le motif, d\'ailleurs Mo\'Tif ça fait un bon nom de salon de coiffure.',
+          text: 'Motif de l\'avoir : Je suis le motif, d\'ailleurs Mo\'Tif ça fait un bon nom de salon de coiffure',
           marginBottom: 16,
         },
         { text: 'Prestations réalisées chez M. Alain TERIEUR, 124 Avenue Daumesnil 75012 Paris.' },
