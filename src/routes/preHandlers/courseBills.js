@@ -78,6 +78,8 @@ exports.authorizeCourseBillingPurchaseAddition = async (req) => {
     throw Boom.conflict(translate[language].courseBillingItemAlreadyAdded);
   }
 
+  if (courseBill.billedAt) throw Boom.forbidden();
+
   return null;
 };
 
