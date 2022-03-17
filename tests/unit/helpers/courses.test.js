@@ -1251,6 +1251,7 @@ describe('getTraineeCourse', () => {
           name: 'Développement personnel full stack',
           type: 'e_learning',
           areActivitiesValid: false,
+          theoreticalHours: 0.5,
         },
         {
           _id: stepId,
@@ -1258,6 +1259,7 @@ describe('getTraineeCourse', () => {
           name: 'Développer des équipes agiles et autonomes',
           type: 'on_site',
           areActivitiesValid: true,
+          theoreticalHours: 3.5,
         },
         ],
       },
@@ -1333,7 +1335,7 @@ describe('getTraineeCourse', () => {
               { path: 'program', select: 'name image description learningGoals' },
               {
                 path: 'steps',
-                select: 'name type activities',
+                select: 'name type activities theoreticalHours',
                 populate: {
                   path: 'activities',
                   select: 'name type cards activityHistories',
