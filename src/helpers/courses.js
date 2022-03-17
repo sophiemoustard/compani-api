@@ -185,7 +185,7 @@ exports.getCourse = async (course, loggedUser) => {
         { path: 'program', select: 'name learningGoals' },
         {
           path: 'steps',
-          select: 'name type',
+          select: 'name type theoreticalHours',
           populate: {
             path: 'activities',
             select: 'name type',
@@ -209,10 +209,16 @@ exports.getCourse = async (course, loggedUser) => {
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
-  if (get(loggedUser, 'role.vendor')) return fetchedCourse;
+  if (get(loggedUser, 'role.vendor')) {
+    return {
+      ...fetchedCourse,
+      totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse),
+    };
+  }
 
   return {
     ...fetchedCourse,
+    totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse),
     trainees: fetchedCourse.trainees
       .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(loggedUser, 'company._id'))),
   };
