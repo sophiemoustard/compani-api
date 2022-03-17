@@ -631,6 +631,7 @@ describe('getCourse', () => {
       _id: new ObjectId(),
       type: 'inter_b2b',
       trainees: [{ _id: new ObjectId(), company: new ObjectId() }, { _id: new ObjectId(), company: new ObjectId() }],
+      subProgram: { steps: [] },
     };
     findOne.returns(SinonMongoose.stubChainedQueries(course));
 
@@ -638,7 +639,10 @@ describe('getCourse', () => {
       { _id: course._id },
       { role: { vendor: { name: 'vendor_admin' } }, company: { _id: new ObjectId() } }
     );
-    expect(result).toMatchObject(course);
+    expect(result).toMatchObject({
+      ...course,
+      totalTheoreticalHours: 0,
+    });
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
@@ -654,7 +658,7 @@ describe('getCourse', () => {
               { path: 'program', select: 'name learningGoals' },
               {
                 path: 'steps',
-                select: 'name type',
+                select: 'name type theoreticalHours',
                 populate: {
                   path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
                 },
@@ -692,12 +696,18 @@ describe('getCourse', () => {
       _id: new ObjectId(),
       type: 'inter_b2b',
       trainees: [{ _id: new ObjectId(), company: authCompanyId }, { _id: new ObjectId(), company: otherCompanyId }],
+      subProgram: { steps: [] },
     };
     const courseWithAllTrainees = {
       type: 'inter_b2b',
       trainees: [{ company: authCompanyId }, { company: otherCompanyId }],
+      subProgram: { steps: [] },
     };
-    const courseWithFilteredTrainees = { type: 'inter_b2b', trainees: [{ company: authCompanyId }] };
+    const courseWithFilteredTrainees = {
+      type: 'inter_b2b',
+      trainees: [{ company: authCompanyId }],
+      totalTheoreticalHours: 0,
+    };
     findOne.returns(SinonMongoose.stubChainedQueries(courseWithAllTrainees));
 
     const result = await CourseHelper.getCourse({ _id: course._id }, loggedUser);
@@ -717,7 +727,7 @@ describe('getCourse', () => {
               { path: 'program', select: 'name learningGoals' },
               {
                 path: 'steps',
-                select: 'name type',
+                select: 'name type theoreticalHours',
                 populate: {
                   path: 'activities', select: 'name type', populate: { path: 'activityHistories', select: 'user' },
                 },
