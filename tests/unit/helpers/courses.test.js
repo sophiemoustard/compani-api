@@ -639,10 +639,7 @@ describe('getCourse', () => {
       { _id: course._id },
       { role: { vendor: { name: 'vendor_admin' } }, company: { _id: new ObjectId() } }
     );
-    expect(result).toMatchObject({
-      ...course,
-      totalTheoreticalHours: 1.5,
-    });
+    expect(result).toMatchObject({ ...course, totalTheoreticalHours: 1.5 });
 
     SinonMongoose.calledOnceWithExactly(
       findOne,
