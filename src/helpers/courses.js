@@ -152,7 +152,7 @@ exports.listUserCourses = async (trainee) => {
         { path: 'program', select: 'name image description' },
         {
           path: 'steps',
-          select: 'name type activities',
+          select: 'name type activities theoreticalHours',
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',

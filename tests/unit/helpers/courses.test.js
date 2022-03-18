@@ -448,6 +448,7 @@ describe('listUserCourses', () => {
             activities: [{ activityHistories: [{}, {}] }],
             name: 'Développement personnel full stack',
             type: 'e_learning',
+            theoreticalHours: 1.5,
             areActivitiesValid: false,
           },
           {
@@ -479,6 +480,7 @@ describe('listUserCourses', () => {
             activities: [{ activityHistories: [{}, {}] }],
             name: 'Brochure : le mal de dos',
             type: 'e_learning',
+            theoreticalHours: 1.5,
             areActivitiesValid: false,
           }, {
             _id: stepId,
@@ -586,7 +588,7 @@ describe('listUserCourses', () => {
               { path: 'program', select: 'name image description' },
               {
                 path: 'steps',
-                select: 'name type activities',
+                select: 'name type activities theoreticalHours',
                 populate: {
                   path: 'activities',
                   select: 'name type cards activityHistories',
