@@ -700,6 +700,17 @@ describe('COURSE BILL ROUTES - POST /coursebills/{_id}/billingpurchases', () => 
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return 403 if bill is invoiced', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/coursebills/${courseBillsList[2]._id}/billingpurchases`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
