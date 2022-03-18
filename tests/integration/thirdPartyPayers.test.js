@@ -7,6 +7,7 @@ const ThirdPartyPayer = require('../../src/models/ThirdPartyPayer');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
+const { APA, PCH } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -170,6 +171,8 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       billingMode: 'indirect',
       isApa: false,
       teletransmissionId: '012345678912345',
+      teletransmissionType: APA,
+      companyCode: '123456',
     };
 
     it('should update a third party payer', async () => {
@@ -182,6 +185,23 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.thirdPartyPayer).toMatchObject(payload);
+    });
+
+    it('should update companyCode and teletransmissionType event without teletransmissionId', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          name: 'Aide départementale au skusku',
+          teletransmissionType: PCH,
+          companyCode: '234567',
+          billingMode: 'indirect',
+          isApa: false,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it('should update ttp name even if only case or diacritics have changed', async () => {
@@ -230,6 +250,33 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: payloadWithoutName,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    const omittedField = ['companyCode', 'teletransmissionType'];
+    omittedField.forEach((field) => {
+      it(`should return 400  if missing ${field} when payload has teletransmissionId`, async () => {
+        const payloadWithoutField = omit(payload, field);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+          payload: payloadWithoutField,
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    it('should return 400 if invalid teletransmissionType', async () => {
+      const invalidPayload = { ...payload, teletransmissionType: 'skusku' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: invalidPayload,
       });
 
       expect(response.statusCode).toBe(400);

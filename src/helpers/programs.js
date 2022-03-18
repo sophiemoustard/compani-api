@@ -31,7 +31,7 @@ exports.listELearning = async (credentials, query) => {
         { path: 'courses', select: '_id trainees', match: { format: STRICTLY_E_LEARNING } },
         {
           path: 'steps',
-          select: 'activities',
+          select: 'activities theoreticalHours',
           populate: {
             path: 'activities',
             select: 'activityHistories',

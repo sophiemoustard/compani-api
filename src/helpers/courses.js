@@ -20,6 +20,7 @@ const ZipHelper = require('./zip');
 const SmsHelper = require('./sms');
 const DocxHelper = require('./docx');
 const StepsHelper = require('./steps');
+const NumbersHelper = require('./numbers');
 const drive = require('../models/Google/Drive');
 const {
   INTRA,
@@ -39,6 +40,11 @@ const CourseConvocation = require('../data/pdf/courseConvocation');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
+exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
+  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.add(acc, value.theoreticalHours || 0), 0)
+  : 0
+);
+
 exports.list = async (query) => {
   if (query.company) {
     if (query.format === STRICTLY_E_LEARNING) {
@@ -49,6 +55,7 @@ exports.list = async (query) => {
 
       return courses.map(course => ({
         ...course,
+        totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
       }));
@@ -70,7 +77,16 @@ exports.list = async (query) => {
     ];
   }
 
-  return CourseRepository.findCourseAndPopulate(query);
+  const courses = await CourseRepository.findCourseAndPopulate(query);
+
+  if (query.format === STRICTLY_E_LEARNING) {
+    return courses.map(course => ({
+      ...course,
+      totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
+    }));
+  }
+
+  return courses;
 };
 
 const getStepProgress = (step) => {
@@ -136,7 +152,7 @@ exports.listUserCourses = async (trainee) => {
         { path: 'program', select: 'name image description' },
         {
           path: 'steps',
-          select: 'name type activities',
+          select: 'name type activities theoreticalHours',
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',
@@ -169,7 +185,7 @@ exports.getCourse = async (course, loggedUser) => {
         { path: 'program', select: 'name learningGoals' },
         {
           path: 'steps',
-          select: 'name type',
+          select: 'name type theoreticalHours',
           populate: {
             path: 'activities',
             select: 'name type',
@@ -193,10 +209,13 @@ exports.getCourse = async (course, loggedUser) => {
 
   // A coach/client_admin is not supposed to read infos on trainees from other companies
   // espacially for INTER_B2B courses.
-  if (get(loggedUser, 'role.vendor')) return fetchedCourse;
+  if (get(loggedUser, 'role.vendor')) {
+    return { ...fetchedCourse, totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse) };
+  }
 
   return {
     ...fetchedCourse,
+    totalTheoreticalHours: exports.getTotalTheoreticalHours(fetchedCourse),
     trainees: fetchedCourse.trainees
       .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(loggedUser, 'company._id'))),
   };
@@ -330,7 +349,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
         { path: 'program', select: 'name image description learningGoals' },
         {
           path: 'steps',
-          select: 'name type activities',
+          select: 'name type activities theoreticalHours',
           populate: {
             path: 'activities',
             select: 'name type cards activityHistories',

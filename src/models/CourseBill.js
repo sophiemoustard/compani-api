@@ -10,7 +10,7 @@ const CourseBillSchema = mongoose.Schema({
   },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   courseFundingOrganisation: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseFundingOrganisation' },
-  billingItemList: {
+  billingPurchaseList: {
     type: [mongoose.Schema({
       billingItem: { type: mongoose.Schema.Types.ObjectId, ref: 'CourseBillingItem', required: true },
       price: { type: Number, required: true },
@@ -19,6 +19,8 @@ const CourseBillSchema = mongoose.Schema({
     }
     )],
   },
+  billedAt: { type: Date, required() { return !!this.number; } },
+  number: { type: String, required() { return !!this.billedAt; } },
 }, { timestamps: true });
 
 CourseBillSchema.pre('find', validateQuery);

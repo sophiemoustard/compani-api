@@ -22,6 +22,7 @@ const CourseHistory = require('../../../src/models/CourseHistory');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
+const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
@@ -127,6 +128,7 @@ const deleteNonAuthenticationSeeds = async () => {
     Course.deleteMany(),
     CourseBill.deleteMany(),
     CourseBillingItem.deleteMany(),
+    CourseBillsNumber.deleteMany(),
     CourseFundingOrganisation.deleteMany(),
     CourseSlot.deleteMany(),
     CourseSmsHistory.deleteMany(),

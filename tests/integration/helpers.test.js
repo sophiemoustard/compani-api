@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectId } = require('mongodb');
 const { populateDB, customer, customerFromOtherCompany, helpersList } = require('./seed/helpersSeed');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
@@ -72,9 +73,9 @@ describe('PUT /helpers/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 
-  describe('COACH', () => {
+  describe('AUXILIARY', () => {
     beforeEach(async () => {
-      authToken = await getToken('coach');
+      authToken = await getToken('auxiliary');
     });
 
     it('should update referent of helpers', async () => {
@@ -114,12 +115,23 @@ describe('PUT /helpers/{_id}', () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return 404 if helper does not exists', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/helpers/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { referent: true },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
-      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'auxiliary_without_company', expectedCode: 403 },
       { name: 'vendor_admin', expectedCode: 403 },
       { name: 'client_admin', expectedCode: 403, erp: false },
     ];

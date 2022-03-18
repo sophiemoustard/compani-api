@@ -45,9 +45,9 @@ const update = async (req) => {
   }
 };
 
-const addBillingItem = async (req) => {
+const addBillingPurchase = async (req) => {
   try {
-    await CourseBillHelper.addBillingItem(req.params._id, req.payload);
+    await CourseBillHelper.addBillingPurchase(req.params._id, req.payload);
 
     return { message: translate[language].courseBillUpdated };
   } catch (e) {
@@ -56,4 +56,48 @@ const addBillingItem = async (req) => {
   }
 };
 
-module.exports = { list, create, update, addBillingItem };
+const updateBillingPurchase = async (req) => {
+  try {
+    const { _id: billId, billingPurchaseId } = req.params;
+    await CourseBillHelper.updateBillingPurchase(billId, billingPurchaseId, req.payload);
+
+    return { message: translate[language].courseBillUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const deleteBillingPurchase = async (req) => {
+  try {
+    const { _id: billId, billingPurchaseId } = req.params;
+    await CourseBillHelper.deleteBillingPurchase(billId, billingPurchaseId);
+
+    return { message: translate[language].courseBillUpdated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const generateBillPdf = async (req, h) => {
+  try {
+    const { pdf, billNumber } = await CourseBillHelper.generateBillPdf(req.params._id);
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${billNumber}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = {
+  list,
+  create,
+  update,
+  addBillingPurchase,
+  updateBillingPurchase,
+  deleteBillingPurchase,
+  generateBillPdf,
+};

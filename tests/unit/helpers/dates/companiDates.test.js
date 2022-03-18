@@ -2,6 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const luxon = require('../../../../src/helpers/dates/luxon');
 const CompaniDatesHelper = require('../../../../src/helpers/dates/companiDates');
+const { WEDNESDAY } = require('../../../../src/helpers/constants');
 
 describe('CompaniDate', () => {
   let _formatMiscToCompaniDate;
@@ -98,7 +99,8 @@ describe('GETTER', () => {
       const companiDate = CompaniDatesHelper.CompaniDate('2022-02-02T07:12:08.000Z'); // wednesday
       const result = companiDate.weekday();
 
-      expect(result).toEqual(3);
+      expect(result).toEqual(2);
+      expect(result).toEqual(WEDNESDAY);
     });
   });
 });

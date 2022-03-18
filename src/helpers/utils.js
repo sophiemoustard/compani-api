@@ -234,3 +234,11 @@ exports.getDurationForExport = (startDate, endDate) =>
 
 exports.computeDuration = durations => durations
   .reduce((acc, duration) => acc.add(duration), CompaniDuration());
+
+exports.getKeysOf2DepthObject = object => Object.entries(object).reduce((acc, [key, value]) => {
+  if (typeof value === 'object' && Object.keys(value).length) {
+    return [...acc, ...Object.keys(value).map(k => `${key}.${k}`)];
+  }
+
+  return [...acc, key];
+}, []);

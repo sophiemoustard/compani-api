@@ -205,6 +205,7 @@ exports.formatPdf = (creditNote, company) => {
         ? creditNote.thirdPartyPayer.name
         : UtilsHelper.formatIdentity(creditNote.customer.identity, 'TFL'),
     },
+    misc: creditNote.misc,
   };
 
   if (creditNote.events && creditNote.events.length > 0) {

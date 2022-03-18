@@ -132,6 +132,32 @@ describe('SUBPROGRAMS ROUTES - PUT /subprograms/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return a 403 trying to publish on_site step with empty theoreticalHours', async () => {
+      const subProgramId = subProgramsList[8]._id;
+      const payload = { status: 'published', accessCompany: authCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 trying to publish elearning step with empty theoreticalHours', async () => {
+      const subProgramId = subProgramsList[9]._id;
+      const payload = { status: 'published', accessCompany: authCompany._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/subprograms/${subProgramId.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return a 400 if user tries to publish strictly e-learning subProgram with wrong accessCompany',
       async () => {
         const payload = { status: 'published', accessCompany: new ObjectId() };

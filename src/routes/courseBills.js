@@ -2,13 +2,25 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list, create, update, addBillingItem } = require('../controllers/courseBillController');
+const {
+  list,
+  create,
+  update,
+  addBillingPurchase,
+  updateBillingPurchase,
+  deleteBillingPurchase,
+  generateBillPdf,
+} = require('../controllers/courseBillController');
 const {
   authorizeCourseBillCreation,
   authorizeCourseBillGet,
   authorizeCourseBillUpdate,
-  authorizeCourseBillingItemAddition,
+  authorizeCourseBillingPurchaseAddition,
+  authorizeCourseBillingPurchaseUpdate,
+  authorizeCourseBillingPurchaseDelete,
+  authorizeBillPdfGet,
 } = require('./preHandlers/courseBills');
+const { requiredDateToISOString } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-course-bills',
@@ -51,14 +63,18 @@ exports.plugin = {
       options: {
         auth: { scope: ['config:vendor'] },
         validate: {
-          payload: Joi.object({
-            courseFundingOrganisation: Joi.objectId().allow(''),
-            mainFee: Joi.object({
-              price: Joi.number().positive(),
-              count: Joi.number().positive().integer(),
-              description: Joi.string().allow(''),
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.alternatives().try(
+            Joi.object({
+              courseFundingOrganisation: Joi.objectId().allow(''),
+              mainFee: Joi.object({
+                price: Joi.number().positive(),
+                count: Joi.number().positive().integer(),
+                description: Joi.string().allow(''),
+              }),
             }),
-          }),
+            Joi.object({ billedAt: requiredDateToISOString })
+          ),
         },
         pre: [{ method: authorizeCourseBillUpdate }],
       },
@@ -67,10 +83,11 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/billing-item',
+      path: '/{_id}/billingpurchases',
       options: {
         auth: { scope: ['config:vendor'] },
         validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
             billingItem: Joi.objectId().required(),
             price: Joi.number().positive().required(),
@@ -78,9 +95,53 @@ exports.plugin = {
             description: Joi.string().allow(''),
           }),
         },
-        pre: [{ method: authorizeCourseBillingItemAddition }],
+        pre: [{ method: authorizeCourseBillingPurchaseAddition }],
       },
-      handler: addBillingItem,
+      handler: addBillingPurchase,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/billingpurchases/{billingPurchaseId}',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), billingPurchaseId: Joi.objectId().required() }),
+          payload: Joi.object({
+            price: Joi.number().positive().required(),
+            count: Joi.number().positive().integer().required(),
+            description: Joi.string().allow(''),
+          }),
+        },
+        pre: [{ method: authorizeCourseBillingPurchaseUpdate }],
+      },
+      handler: updateBillingPurchase,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/billingpurchases/{billingPurchaseId}',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required(), billingPurchaseId: Joi.objectId().required() }),
+        },
+        pre: [{ method: authorizeCourseBillingPurchaseDelete }],
+      },
+      handler: deleteBillingPurchase,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/pdfs',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['config:vendor'] },
+        pre: [{ method: authorizeBillPdfGet }],
+      },
+      handler: generateBillPdf,
     });
   },
 };

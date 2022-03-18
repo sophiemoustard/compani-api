@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const { get, has, omit } = require('lodash');
 const Company = require('../../models/Company');
 const Course = require('../../models/Course');
 const CourseBill = require('../../models/CourseBill');
@@ -35,7 +36,7 @@ exports.authorizeCourseBillGet = async (req) => {
 };
 
 exports.authorizeCourseBillUpdate = async (req) => {
-  const courseBill = await CourseBill.countDocuments({ _id: req.params._id });
+  const courseBill = await CourseBill.findOne({ _id: req.params._id }).lean();
   if (!courseBill) throw Boom.notFound();
 
   if (req.payload.courseFundingOrganisation) {
@@ -44,10 +45,28 @@ exports.authorizeCourseBillUpdate = async (req) => {
     if (!courseFundingOrganisationExists) throw Boom.notFound();
   }
 
+  if (courseBill.billedAt) {
+    if (req.payload.billedAt) throw Boom.forbidden();
+
+    if (has(req.payload, 'courseFundingOrganisation')) {
+      const payloadCourseFundingOrga = req.payload.courseFundingOrganisation;
+      const courseBillCourseFundingOrga = courseBill.courseFundingOrganisation;
+      const isCourseFundingOrganisationEqual = (!payloadCourseFundingOrga && !courseBillCourseFundingOrga) ||
+        UtilsHelper.areObjectIdsEquals(payloadCourseFundingOrga, courseBillCourseFundingOrga);
+
+      if (!isCourseFundingOrganisationEqual) throw Boom.forbidden();
+    }
+
+    const payloadKeys = UtilsHelper
+      .getKeysOf2DepthObject(omit(req.payload, ['courseFundingOrganisation', 'mainFee.description']));
+    const areFieldsChanged = payloadKeys.some(key => get(req.payload, key) !== get(courseBill, key));
+    if (areFieldsChanged) throw Boom.forbidden();
+  }
+
   return null;
 };
 
-exports.authorizeCourseBillingItemAddition = async (req) => {
+exports.authorizeCourseBillingPurchaseAddition = async (req) => {
   const { billingItem } = req.payload;
   const billingItemExists = await CourseBillingItem.countDocuments({ _id: billingItem });
   if (!billingItemExists) throw Boom.notFound();
@@ -55,10 +74,43 @@ exports.authorizeCourseBillingItemAddition = async (req) => {
   const courseBill = await CourseBill.findOne({ _id: req.params._id }).lean();
   if (!courseBill) throw Boom.notFound();
 
-  if (courseBill.billingItemList &&
-    courseBill.billingItemList.find(item => UtilsHelper.areObjectIdsEquals(item.billingItem, billingItem))) {
+  if (courseBill.billingPurchaseList.find(p => UtilsHelper.areObjectIdsEquals(p.billingItem, billingItem))) {
     throw Boom.conflict(translate[language].courseBillingItemAlreadyAdded);
   }
+
+  return null;
+};
+
+exports.authorizeCourseBillingPurchaseUpdate = async (req) => {
+  const { _id: courseBillId, billingPurchaseId } = req.params;
+
+  const purchaseRelatedToBill = await CourseBill.countDocuments({
+    _id: courseBillId,
+    'billingPurchaseList._id': billingPurchaseId,
+  });
+  if (!purchaseRelatedToBill) throw Boom.notFound();
+  return null;
+};
+
+exports.authorizeCourseBillingPurchaseDelete = async (req) => {
+  const { _id: courseBillId, billingPurchaseId } = req.params;
+
+  const courseBill = await CourseBill.findOne({ _id: courseBillId }).lean();
+  if (!courseBill) throw Boom.notFound();
+
+  if (courseBill.billedAt) throw Boom.forbidden();
+
+  const purchaseRelatedToBill = courseBill.billingPurchaseList
+    .some(p => UtilsHelper.areObjectIdsEquals(p._id, billingPurchaseId));
+  if (!purchaseRelatedToBill) throw Boom.notFound();
+
+  return null;
+};
+
+exports.authorizeBillPdfGet = async (req) => {
+  const isBillValidated = await CourseBill
+    .countDocuments({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } });
+  if (!isBillValidated) throw Boom.notFound();
 
   return null;
 };

@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 const { list, update } = require('../controllers/helperController');
-const { authorizeHelpersGet } = require('./preHandlers/helpers');
+const { authorizeHelpersGet, authorizeHelperUpdate } = require('./preHandlers/helpers');
 
 exports.plugin = {
   name: 'routes-helpers',
@@ -29,6 +29,7 @@ exports.plugin = {
           payload: Joi.object({ referent: Joi.boolean().valid(true) }),
         },
         auth: { scope: ['helpers:edit'] },
+        pre: [{ method: authorizeHelperUpdate }],
       },
       handler: update,
     });
