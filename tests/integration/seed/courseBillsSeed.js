@@ -143,7 +143,7 @@ const courseBillsList = [
     billedAt: '2022-03-07T00:00:00.000Z',
     number: 'FACT-00001',
     billingPurchaseList: [
-      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1, description: 'BN du goûter' },
     ],
   },
   { // 3 - purchase with description
