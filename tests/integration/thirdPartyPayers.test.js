@@ -204,6 +204,29 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should remove companyCode and teletransmissionType by default if no teletransmissionId', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: {
+          name: 'Aide départementale au skusku',
+          billingMode: 'indirect',
+          isApa: false,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updatedTpp = await ThirdPartyPayer.countDocuments({
+        _id: thirdPartyPayersList[0]._id,
+        teletransmissionId: '',
+        teletransmissionType: '',
+        companyCode: '',
+      });
+      expect(updatedTpp).toBe(1);
+    });
+
     it('should update ttp name even if only case or diacritics have changed', async () => {
       const response = await app.inject({
         method: 'PUT',
