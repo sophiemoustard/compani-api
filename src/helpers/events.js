@@ -35,6 +35,7 @@ const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const EventRepository = require('../repositories/EventRepository');
 const UserCompany = require('../models/UserCompany');
+const { CompaniDate } = require('./dates/companiDates');
 
 momentRange.extendMoment(moment);
 
@@ -229,6 +230,8 @@ exports.shouldDetachFromRepetition = (event, payload) => {
   const keys = ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress'];
   const mainEventInfo = {
     ...pick(event, keys),
+    ...(event.startDate && { startDate: CompaniDate(event.startDate).toISO() }),
+    ...(event.endDate && { endDate: CompaniDate(event.endDate).toISO() }),
     ...(event.auxiliary && { auxiliary: event.auxiliary.toHexString() }),
     ...(event.sector && { sector: event.sector.toHexString() }),
     ...(event.subscription && { subscription: event.subscription.toHexString() }),
