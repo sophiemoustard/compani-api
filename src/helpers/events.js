@@ -227,18 +227,23 @@ exports.formatEditionPayload = (event, payload, detachFromRepetition) => {
 };
 
 exports.shouldDetachFromRepetition = (event, payload) => {
-  const keys = ['isCancelled', 'startDate', 'endDate', 'internalHour.name', 'address.fullAddress'];
+  const keys = ['isCancelled', 'internalHour.name', 'address.fullAddress'];
   const mainEventInfo = {
     ...pick(event, keys),
     ...(event.startDate && { startDate: CompaniDate(event.startDate).toISO() }),
     ...(event.endDate && { endDate: CompaniDate(event.endDate).toISO() }),
-    ...(event.auxiliary && { auxiliary: event.auxiliary.toHexString() }),
-    ...(event.sector && { sector: event.sector.toHexString() }),
-    ...(event.subscription && { subscription: event.subscription.toHexString() }),
+    ...(event.auxiliary && { auxiliary: new ObjectId(event.auxiliary).toHexString() }),
+    ...(event.sector && { sector: new ObjectId(event.sector).toHexString() }),
+    ...(event.subscription && { subscription: new ObjectId(event.subscription).toHexString() }),
   };
 
   const mainPayloadInfo = {
-    ...pick(payload, [...keys, 'sector', 'auxiliary', 'subscription']),
+    ...pick(payload, keys),
+    ...(payload.startDate && { startDate: CompaniDate(payload.startDate).toISO() }),
+    ...(payload.endDate && { endDate: CompaniDate(payload.endDate).toISO() }),
+    ...(payload.auxiliary && { auxiliary: new ObjectId(payload.auxiliary).toHexString() }),
+    ...(payload.sector && { sector: new ObjectId(payload.sector).toHexString() }),
+    ...(payload.subscription && { subscription: new ObjectId(payload.subscription).toHexString() }),
     ...(!payload.isCancelled && { isCancelled: false }),
   };
 
