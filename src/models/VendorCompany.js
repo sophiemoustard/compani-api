@@ -12,7 +12,7 @@ const VendorCompanySchema = mongoose.Schema({
   name: { type: String, required: true, unique: true },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
   siret: { type: String, validate: SIRET_VALIDATION, required: true, unique: true },
-}, { timestamps: true });
+}, { timestamps: true, collection: 'vendorcompany' });
 
 VendorCompanySchema.pre('findOne', validateQuery);
 VendorCompanySchema.pre('updateOne', validateUpdateOne);
