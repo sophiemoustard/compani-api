@@ -5,7 +5,16 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const thirdPartyPayersList = [
-  { _id: new ObjectId(), name: 'Toto', company: authCompany._id, isApa: false, billingMode: BILLING_DIRECT },
+  {
+    _id: new ObjectId(),
+    name: 'Toto',
+    company: authCompany._id,
+    isApa: false,
+    billingMode: BILLING_DIRECT,
+    teletransmissionId: '1234567890',
+    teletransmissionType: 'AM',
+    companyCode: '448',
+  },
   { _id: new ObjectId(), name: 'Tata', company: authCompany._id, isApa: false, billingMode: BILLING_DIRECT },
 ];
 

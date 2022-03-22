@@ -205,6 +205,14 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
     });
 
     it('should remove companyCode and teletransmissionType by default if no teletransmissionId', async () => {
+      const tppToUpdate = await ThirdPartyPayer.countDocuments({
+        _id: thirdPartyPayersList[0]._id,
+        teletransmissionId: { $exists: true, $ne: '' },
+        teletransmissionType: { $exists: true, $ne: '' },
+        companyCode: { $exists: true, $ne: '' },
+      });
+      expect(tppToUpdate).toBe(1);
+
       const response = await app.inject({
         method: 'PUT',
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
