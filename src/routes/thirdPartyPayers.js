@@ -68,8 +68,16 @@ exports.plugin = {
             isApa: Joi.boolean().required(),
             teletransmissionId: Joi.string().default(''),
             teletransmissionType: Joi.string().valid(...TELETRANSMISSION_TYPES)
-              .when('teletransmissionId', { is: Joi.string().exist(), then: Joi.required() }),
-            companyCode: Joi.string().when('teletransmissionId', { is: Joi.string().exist(), then: Joi.required() }),
+              .when('teletransmissionId', {
+                is: Joi.string().exist(),
+                then: Joi.required(),
+                otherwise: Joi.string().default(''),
+              }),
+            companyCode: Joi.string().when('teletransmissionId', {
+              is: Joi.string().exist(),
+              then: Joi.required(),
+              otherwise: Joi.string().default(''),
+            }),
           }),
         },
         pre: [{ method: authorizeThirdPartyPayersUpdate }],

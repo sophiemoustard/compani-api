@@ -32,6 +32,7 @@ const {
   PLANNING_VIEW_END_HOUR,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 describe('list', () => {
   let getEventsGroupedByCustomersStub;
@@ -1704,16 +1705,19 @@ describe('shouldDetachFromRepetition', () => {
       sector: new ObjectId(),
       auxiliary: new ObjectId(),
       subscription: new ObjectId(),
-      startDate: '2019-01-21T09:30:00',
-      endDate: '2019-01-21T11:30:00',
+      startDate: CompaniDate('2019-01-21T09:30:00.000Z').toDate(),
+      endDate: CompaniDate('2019-01-21T11:30:00.000Z').toDate(),
       isCancelled: false,
     };
     const updatedEventPayload = {
-      ...event,
       sector: event.sector.toHexString(),
       auxiliary: event.auxiliary.toHexString(),
       subscription: event.subscription.toHexString(),
       misc: 'Test',
+      type: INTERVENTION,
+      startDate: '2019-01-21T09:30:00.000Z',
+      endDate: '2019-01-21T11:30:00.000Z',
+      isCancelled: false,
     };
 
     expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeFalsy();
@@ -1725,11 +1729,19 @@ describe('shouldDetachFromRepetition', () => {
       sector: new ObjectId(),
       auxiliary: new ObjectId(),
       subscription: new ObjectId(),
-      startDate: '2019-01-21T09:30:00',
-      endDate: '2019-01-21T11:30:00',
+      startDate: CompaniDate('2019-01-21T09:30:00.00Z').toDate(),
+      endDate: CompaniDate('2019-01-21T11:30:00').toDate(),
       isCancelled: false,
     };
-    const updatedEventPayload = { ...event, [key]: new ObjectId().toHexString() };
+    const updatedEventPayload = {
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      subscription: event.subscription.toHexString(),
+      startDate: '2019-01-21T09:30:00.000Z',
+      endDate: '2019-01-21T11:30:00.000Z',
+      isCancelled: false,
+      [key]: new ObjectId().toHexString(),
+    };
 
     expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
   }));
@@ -1740,11 +1752,19 @@ describe('shouldDetachFromRepetition', () => {
       sector: new ObjectId(),
       auxiliary: new ObjectId(),
       subscription: new ObjectId(),
-      startDate: '2019-01-21T09:30:00',
-      endDate: '2019-01-21T11:30:00',
+      startDate: CompaniDate('2019-01-21T09:30:00.00Z').toDate(),
+      endDate: CompaniDate('2019-01-21T11:30:00').toDate(),
       isCancelled: false,
     };
-    const updatedEventPayload = { ...event, [key]: new Date() };
+    const updatedEventPayload = {
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      subscription: event.subscription.toHexString(),
+      startDate: '2019-01-21T09:30:00.000Z',
+      endDate: '2019-01-21T11:30:00.000Z',
+      isCancelled: false,
+      [key]: new Date(),
+    };
 
     expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
   }));
@@ -1754,11 +1774,18 @@ describe('shouldDetachFromRepetition', () => {
       sector: new ObjectId(),
       auxiliary: new ObjectId(),
       subscription: new ObjectId(),
-      startDate: '2019-01-21T09:30:00',
-      endDate: '2019-01-21T11:30:00',
+      startDate: CompaniDate('2019-01-21T09:30:00.00Z').toDate(),
+      endDate: CompaniDate('2019-01-21T11:30:00').toDate(),
       isCancelled: false,
     };
-    const updatedEventPayload = { ...event, isCancelled: true };
+    const updatedEventPayload = {
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      subscription: event.subscription.toHexString(),
+      startDate: '2019-01-21T09:30:00.000Z',
+      endDate: '2019-01-21T11:30:00.000Z',
+      isCancelled: true,
+    };
 
     expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
   });
@@ -1768,12 +1795,20 @@ describe('shouldDetachFromRepetition', () => {
       sector: new ObjectId(),
       auxiliary: new ObjectId(),
       subscription: new ObjectId(),
-      startDate: '2019-01-21T09:30:00',
-      endDate: '2019-01-21T11:30:00',
+      startDate: CompaniDate('2019-01-21T09:30:00.00Z').toDate(),
+      endDate: CompaniDate('2019-01-21T11:30:00').toDate(),
       isCancelled: false,
       internalHour: { name: 'Gouter' },
     };
-    const updatedEventPayload = { ...event, internalHour: { name: 'Diner' } };
+    const updatedEventPayload = {
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      subscription: event.subscription.toHexString(),
+      startDate: '2019-01-21T09:30:00.000Z',
+      endDate: '2019-01-21T11:30:00.000Z',
+      isCancelled: false,
+      internalHour: { name: 'Diner' },
+    };
 
     expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
   });
@@ -1783,12 +1818,20 @@ describe('shouldDetachFromRepetition', () => {
       sector: new ObjectId(),
       auxiliary: new ObjectId(),
       subscription: new ObjectId(),
-      startDate: '2019-01-21T09:30:00',
-      endDate: '2019-01-21T11:30:00',
+      startDate: CompaniDate('2019-01-21T09:30:00.00Z').toDate(),
+      endDate: CompaniDate('2019-01-21T11:30:00').toDate(),
       isCancelled: false,
       address: { fullAddress: 'le paradis' },
     };
-    const updatedEventPayload = { ...event, address: { fullAddress: 'l\'enfer' } };
+    const updatedEventPayload = {
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      subscription: event.subscription.toHexString(),
+      startDate: '2019-01-21T09:30:00.000Z',
+      endDate: '2019-01-21T11:30:00.000Z',
+      isCancelled: false,
+      address: { fullAddress: 'l\'enfer' },
+    };
 
     expect(EventHelper.shouldDetachFromRepetition(event, updatedEventPayload)).toBeTruthy();
   });
