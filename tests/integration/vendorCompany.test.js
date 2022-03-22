@@ -1,7 +1,7 @@
 const expect = require('expect');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
-const { populateDB } = require('./seed/vendorCompany');
+const { populateDB } = require('./seed/vendorCompanySeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
