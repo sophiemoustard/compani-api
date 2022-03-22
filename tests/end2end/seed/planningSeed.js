@@ -35,6 +35,7 @@ const service = {
 const customer = {
   _id: new ObjectId(),
   identity: { title: 'mr', firstname: 'Romain', lastname: 'Bardet' },
+  company: authCompany._id,
   contact: {
     primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
