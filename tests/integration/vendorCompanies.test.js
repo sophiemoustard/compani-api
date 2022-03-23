@@ -26,7 +26,7 @@ describe('VENDOR COMPANY ROUTES - GET /vendorcompany', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data).toMatchObject({
+      expect(response.result.data.vendorCompany).toMatchObject({
         name: 'Test Company',
         siret: '12345678901234',
         address: {

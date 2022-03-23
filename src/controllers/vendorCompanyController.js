@@ -10,7 +10,7 @@ const get = async (req) => {
 
     return {
       message: translate[language].vendorCompanyFound,
-      data: vendorCompany,
+      data: { vendorCompany },
     };
   } catch (e) {
     req.log('error', e);
