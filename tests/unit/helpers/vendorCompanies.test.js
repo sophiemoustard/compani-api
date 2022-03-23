@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const VendorCompany = require('../../../src/models/VendorCompany');
-const VendorCompanyHelper = require('../../../src/helpers/vendorCompany');
+const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('get', () => {
@@ -18,17 +18,10 @@ describe('get', () => {
   it('should return vendor company infos', async () => {
     const credentials = { role: { vendor: new ObjectId() } };
 
-    findOne.returns(SinonMongoose.stubChainedQueries(VendorCompany, ['setOptions', 'lean']));
+    findOne.returns(SinonMongoose.stubChainedQueries(VendorCompany, ['lean']));
 
-    await VendorCompanyHelper.get(credentials);
+    await VendorCompaniesHelper.get(credentials);
 
-    SinonMongoose.calledOnceWithExactly(
-      findOne,
-      [
-        { query: 'findOne', args: [] },
-        { query: 'setOptions', args: [{ isVendorUser: true }] },
-        { query: 'lean' },
-      ]
-    );
+    SinonMongoose.calledOnceWithExactly(findOne, [{ query: 'findOne', args: [] }, { query: 'lean' }]);
   });
 });

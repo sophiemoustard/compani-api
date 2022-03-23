@@ -374,8 +374,8 @@ module.exports = {
     billingItemHasBillLinked: 'Billing item is linked to a bill.',
     /* Télétransmission */
     deliveryCreated: 'Delivery file created',
-    /* VendorCompany */
-    vendorCompanyFound: 'Vendor Company Found.',
+    /* VendorCompanies */
+    vendorCompanyFound: 'Vendor company found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -751,7 +751,7 @@ module.exports = {
     billingItemHasBillLinked: 'Impossible: l\'article de facturation est relié à une facture.',
     /* Télétransmission */
     deliveryCreated: 'Fichier de delivery créé',
-    /* VendorCompany */
+    /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
   },
 };

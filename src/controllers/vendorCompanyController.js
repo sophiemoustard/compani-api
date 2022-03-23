@@ -1,12 +1,12 @@
 const Boom = require('@hapi/boom');
 const translate = require('../helpers/translate');
-const VendorCompanyHelper = require('../helpers/vendorCompany');
+const VendorCompaniesHelper = require('../helpers/vendorCompanies');
 
 const { language } = translate;
 
 const get = async (req) => {
   try {
-    const vendorCompany = await VendorCompanyHelper.get(req.auth.credentials);
+    const vendorCompany = await VendorCompaniesHelper.get();
 
     return {
       message: translate[language].vendorCompanyFound,

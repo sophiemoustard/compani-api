@@ -3,7 +3,7 @@
 const { get } = require('../controllers/vendorCompanyController');
 
 exports.plugin = {
-  name: 'routes-vendor-company',
+  name: 'routes-vendor-companies',
   register: async (server) => {
     server.route({
       method: 'GET',

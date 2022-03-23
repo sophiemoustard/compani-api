@@ -1,7 +1,7 @@
 const expect = require('expect');
 const app = require('../../server');
 const { getToken } = require('./helpers/authentication');
-const { populateDB } = require('./seed/vendorCompanySeed');
+const { populateDB } = require('./seed/vendorCompaniesSeed');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -21,7 +21,7 @@ describe('VENDOR COMPANY ROUTES - GET /vendorcompany', () => {
     it('should get vendor company infos', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/vendorcompany',
+        url: '/vendorcompanies',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -53,7 +53,7 @@ describe('VENDOR COMPANY ROUTES - GET /vendorcompany', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/vendorcompany',
+          url: '/vendorcompanies',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
