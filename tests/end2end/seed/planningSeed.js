@@ -10,6 +10,7 @@ const UserCompany = require('../../../src/models/UserCompany');
 const Contract = require('../../../src/models/Contract');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Sector = require('../../../src/models/Sector');
+const Helper = require('../../../src/models/Helper');
 const { populateAuthentication } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { rolesList } = require('../../seed/authRolesSeed');
@@ -18,6 +19,7 @@ const { NEVER, INTERVENTION, HOURLY, AUXILIARY, WEBAPP } = require('../../../src
 
 const subscriptionId = new ObjectId();
 const loggedAuxiliary = userList[2];
+const loggedHelper = userList[5];
 
 const service = {
   _id: new ObjectId(),
@@ -53,6 +55,8 @@ const customer = {
     ],
   }],
 };
+
+const helper = { customer: customer._id, user: loggedHelper._id, company: authCompany._id, referent: true };
 
 const secondAuxiliary = {
   _id: new ObjectId(),
@@ -192,6 +196,7 @@ const eventList = [
 
 const populatePlanning = async () => {
   await Customer.deleteMany();
+  await Helper.deleteMany();
   await Service.deleteMany();
   await Event.deleteMany();
   await ReferentHistory.deleteMany();
@@ -207,6 +212,7 @@ const populatePlanning = async () => {
   await Event.insertMany(eventList);
   await ReferentHistory.insertMany(referentHistories);
   await Customer.create(customer);
+  await Helper.create(helper);
   await Service.create(service);
   await User.create(secondAuxiliary);
   await UserCompany.create(secondAuxiliaryCompany);
