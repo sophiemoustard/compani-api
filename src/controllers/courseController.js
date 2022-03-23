@@ -1,4 +1,6 @@
 const Boom = require('@hapi/boom');
+const { get } = require('lodash');
+const { MOBILE } = require('../helpers/constants');
 const CoursesHelper = require('../helpers/courses');
 const translate = require('../helpers/translate');
 
@@ -200,10 +202,16 @@ const downloadAttendanceSheets = async (req, h) => {
 
 const downloadCompletionCertificates = async (req, h) => {
   try {
-    const { zipPath, zipName } = await CoursesHelper.generateCompletionCertificates(req.params._id);
+    const data = await CoursesHelper
+      .generateCompletionCertificates(req.params._id, req.auth.credentials, req.query.origin);
+    if (get(req, 'query.origin') === MOBILE) {
+      return h.response(data.pdf)
+        .header('content-disposition', `inline; filename=${data.name}.pdf`)
+        .type('application/pdf');
+    }
 
-    return h.file(zipPath, { confine: false })
-      .header('content-disposition', `attachment; filename=${zipName}`)
+    return h.file(data.zipPath, { confine: false })
+      .header('content-disposition', `attachment; filename=${data.zipName}`)
       .type('application/zip');
   } catch (e) {
     req.log('error', e);

@@ -16,6 +16,7 @@ const {
   STRICTLY_E_LEARNING,
   BLENDED,
   ON_SITE,
+  MOBILE,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
@@ -52,6 +53,9 @@ exports.checkSalesRepresentativeExists = async (req) => {
 exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
   const { course } = req.pre;
+
+  const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), get(credentials, '_id'));
+  if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
 
   const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
   const courseCompanyId = course.company ? course.company.toHexString() : null;

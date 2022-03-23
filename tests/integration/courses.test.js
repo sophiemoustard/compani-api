@@ -2045,6 +2045,57 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
     });
   });
 
+  describe('NO_ROLE_NO_COMPANY', () => {
+    beforeEach(populateDB);
+
+    let downloadFileByIdStub;
+    let createDocxStub;
+    beforeEach(async () => {
+      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
+      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
+      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+    });
+
+    afterEach(() => {
+      downloadFileByIdStub.restore();
+      createDocxStub.restore();
+      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+    });
+
+    it('should return 200 if user is course trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id}/completion-certificates?origin=mobile`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 if user is not course trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?origin=mobile`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if user is not accessing certificate from mobile app', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id}/completion-certificates`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     beforeEach(populateDB);
 
