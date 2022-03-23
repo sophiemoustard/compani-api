@@ -13,7 +13,7 @@ const Sector = require('../../../src/models/Sector');
 const { populateAuthentication } = require('./authenticationSeed');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { rolesList } = require('../../seed/authRolesSeed');
-const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
+const { userList } = require('../../seed/authUsersSeed');
 const { NEVER, INTERVENTION, HOURLY, AUXILIARY, WEBAPP } = require('../../../src/helpers/constants');
 
 const subscriptionId = new ObjectId();
@@ -60,11 +60,12 @@ const secondAuxiliary = {
   local: { email: 'customer-referent@alenvi.io' },
   refreshToken: uuidv4(),
   role: { client: rolesList.find(role => role.name === AUXILIARY)._id },
-  company: authCompany._id,
   contact: { phone: '0987654321' },
   contracts: [new ObjectId()],
   origin: WEBAPP,
 };
+
+const secondAuxiliaryCompany = { company: authCompany._id, user: secondAuxiliary._id };
 
 const contracts = [
   {
@@ -208,7 +209,7 @@ const populatePlanning = async () => {
   await Customer.create(customer);
   await Service.create(service);
   await User.create(secondAuxiliary);
-  await UserCompany.create(userCompaniesList);
+  await UserCompany.create(secondAuxiliaryCompany);
   await Contract.insertMany(contracts);
   await SectorHistory.insertMany(sectorHistories);
   await Sector.insertMany(sectors);
