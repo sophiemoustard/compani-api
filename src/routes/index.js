@@ -58,5 +58,6 @@ exports.routes = [
   { plugin: require('./teletransmission'), routes: { prefix: '/teletransmission' } },
   { plugin: require('./thirdPartyPayers'), routes: { prefix: '/thirdpartypayers' } },
   { plugin: require('./users'), routes: { prefix: '/users' } },
+  { plugin: require('./vendorCompanies'), routes: { prefix: '/vendorcompanies' } },
   { plugin: require('./version'), routes: { prefix: '/version' } },
 ];
