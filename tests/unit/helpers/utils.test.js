@@ -314,6 +314,32 @@ describe('doesArrayIncludeId', () => {
   });
 });
 
+describe('isStringedObjectId', () => {
+  it('should return true if value objectId to HexString', () => {
+    const value = new ObjectId().toHexString();
+
+    const result = UtilsHelper.isStringedObjectId(value);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return true if value is a 14 digits number in Hexadecimal put to string', () => {
+    const value = '12A22F32AB1094ABCDE12345';
+
+    const result = UtilsHelper.isStringedObjectId(value);
+
+    expect(result).toBe(true);
+  });
+
+  it('should return false if value is randon string', () => {
+    const value = 'toto';
+
+    const result = UtilsHelper.isStringedObjectId(value);
+
+    expect(result).toBe(false);
+  });
+});
+
 describe('getExclTaxes', () => {
   it('should return excluded taxes price', () => {
     expect(Number.parseFloat(UtilsHelper.getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
