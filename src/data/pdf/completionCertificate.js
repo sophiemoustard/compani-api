@@ -71,32 +71,39 @@ exports.getPdfContent = async (data) => {
         { text: ' : Accompagnement dans le développement de compétences', italics: true },
       ],
     },
-    { text: 'Assiduité du stagiaire :', style: 'subTitle' },
     {
-      text: [
-        { text: trainee.identity, italics: true },
-        ' a été présent(e) à ',
-        { text: `${trainee.attendanceDuration} de formation sur les ${duration} prévues.`, bold: true },
-      ],
-    },
-    { text: 'Objectifs pédagogiques :', style: 'subTitle' },
-    {
-      text: [
-        'À l\'issue de cette formation, ',
-        { text: trainee.identity, italics: true },
-        ' est capable de : ',
-      ],
-    },
-    { text: learningGoals, color: COPPER_500 },
-
-    { text: 'Résultats de l’évaluation des acquis :', style: 'subTitle' },
-    {
-      text: [
-        'Les compétences et connaissances partagées lors de la formation ont été acquises par ',
-        { text: trainee.identity, italics: true },
-        { text: ' et validées par un quiz d’acquisition de connaissances.' },
-      ],
-      marginBottom: 32,
+      table: {
+        body: [
+          [{ text: 'Assiduité du stagiaire :', style: 'subTitle' }],
+          [{
+            text: [
+              { text: trainee.identity, italics: true },
+              ' a été présent(e) à ',
+              { text: `${trainee.attendanceDuration} de formation sur les ${duration} prévues.`, bold: true },
+            ],
+          }],
+          [{ text: 'Objectifs pédagogiques :', style: 'subTitle' }],
+          [{
+            text: [
+              'À l\'issue de cette formation, ',
+              { text: trainee.identity, italics: true },
+              ' est capable de : ',
+            ],
+          }],
+          [{ text: learningGoals, color: COPPER_500 }],
+          [{ text: 'Résultats de l’évaluation des acquis :', style: 'subTitle' }],
+          [{
+            text: [
+              'Les compétences et connaissances partagées lors de la formation ont été acquises par ',
+              { text: trainee.identity, italics: true },
+              { text: ' et validées par un quiz d’acquisition de connaissances.' },
+            ],
+            marginBottom: 32,
+          }],
+        ],
+        widths: ['75%'],
+      },
+      layout: { vLineWidth: () => 0, hLineWidth: () => 0 },
     },
     { text: `Fait à Paris, le ${date}`, marginBottom: 32 },
     { text: 'Thibault de Saint Blancard,' },
@@ -106,10 +113,10 @@ exports.getPdfContent = async (data) => {
       stack: [
         { text: 'Compani', style: 'footer' },
         { text: '24 avenue daumesnil, 75012 Paris', style: 'footer' },
-        { text: 'PAGE 1 / 1', style: 'footer', alignment: 'right' },
       ],
-      absolutePosition: { x: 40, y: 772 },
+      absolutePosition: { x: 40, y: 782 },
     },
+    { text: 'PAGE 1 / 1', style: 'footer', alignment: 'right', absolutePosition: { x: 40, y: 792 } },
   ];
 
   return {

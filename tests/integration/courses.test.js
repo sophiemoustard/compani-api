@@ -1180,7 +1180,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
 describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
-  const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
   const archivedCourseId = coursesList[14]._id;
   const courseIdWithoutReceiver = coursesList[7]._id;
   const courseIdWithoutContact = coursesList[9]._id;
@@ -1804,7 +1804,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
 describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
-  const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
   const archivedCourse = coursesList[14]._id;
   const traineeId = coach._id;
 
@@ -1903,7 +1903,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdWithoutOnSiteSlotFromAuth = coursesList[12]._id;
-  const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -1998,10 +1998,10 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
+describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
-  const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
@@ -2047,21 +2047,12 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
 
   describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(populateDB);
-
-    let downloadFileByIdStub;
-    let createDocxStub;
     beforeEach(async () => {
-      downloadFileByIdStub = sinon.stub(drive, 'downloadFileById');
-      createDocxStub = sinon.stub(DocxHelper, 'createDocx');
-      createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
-
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
 
     afterEach(() => {
-      downloadFileByIdStub.restore();
-      createDocxStub.restore();
       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
     });
 
@@ -2130,6 +2121,17 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+
+    it('should return 200 as user is coach and course is inter_b2b with trainee from his company', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[8]._id}/completion-certificates`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it('should return 403 as user is trainer if not one of his courses', async () => {

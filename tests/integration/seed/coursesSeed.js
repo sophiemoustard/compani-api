@@ -161,7 +161,7 @@ const coursesList = [
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectId(),
-    trainees: [traineeFromOtherCompany._id, coach._id],
+    trainees: [traineeFromOtherCompany._id],
     type: 'intra',
     salesRepresentative: vendorAdmin._id,
   },

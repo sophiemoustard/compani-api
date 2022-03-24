@@ -565,7 +565,7 @@ const getTraineeInformations = (trainee, courseAttendances) => {
 exports.generateCompletionCertificates = async (courseId, credentials, origin = null) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
-    .populate('trainees')
+    .populate({ path: 'trainees', populate: { path: 'company' } })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
@@ -597,7 +597,13 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
     tmpFilePath: certificateTemplatePath,
   });
 
-  const fileListPromises = course.trainees.map(async (trainee) => {
+  const isVendor = !!get(credentials, 'role.vendor');
+  const trainees = isVendor
+    ? course.trainees
+    : course.trainees
+      .filter(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id')));
+
+  const fileListPromises = trainees.map(async (trainee) => {
     const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
     const filePath = await DocxHelper.createDocx(
       certificateTemplatePath,
