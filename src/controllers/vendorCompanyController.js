@@ -18,4 +18,17 @@ const get = async (req) => {
   }
 };
 
-module.exports = { get };
+const update = async (req) => {
+  try {
+    await VendorCompaniesHelper.update(req.payload);
+
+    return {
+      message: translate[language].vendorCompanyUpdated,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { get, update };
