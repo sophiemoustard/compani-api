@@ -15,6 +15,7 @@ const Pay = require('../../../src/models/Pay');
 const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const Questionnaire = require('../../../src/models/Questionnaire');
 const CourseHelper = require('../../../src/helpers/courses');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -2478,103 +2479,83 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
       ],
     },
   ];
-  const questionnaireHistories = [
-    { // 0 type end of course
-      _id: new ObjectId(),
-      course: {
+  const questionnaire = {
+    type: 'end_of_course',
+    cards,
+    histories: [
+      { // 0 all questions answered
         _id: new ObjectId(),
-        subProgram: { name: 'Je suis Présentiel', program: { name: 'Programme files' } },
-        trainer: { identity: { firstname: 'Didier', lastname: 'Deschamps' } },
-      },
-      user: {
-        _id: new ObjectId(),
-        identity: { firstname: '', lastname: 'Zizou' },
-        local: { email: 'zizou@2027.com' },
-        contact: { phone: '0600000000' },
-        company: { name: 'créole' },
-      },
-      questionnaire: {
-        _id: new ObjectId(),
-        type: 'end_of_course',
-        cards,
-      },
-      questionnaireAnswersList: [
-        { card: { _id: cards[1]._id }, answerList: ['Ouai oklm'] },
-        { card: { _id: cards[2]._id }, answerList: ['5'] },
-        {
-          card: { _id: cards[3]._id, qcAnswers: cards[3].qcAnswers },
-          answerList: [cards[3].qcAnswers[0]._id.toHexString(), cards[3].qcAnswers[1]._id.toHexString()],
+        course: {
+          _id: new ObjectId(),
+          subProgram: { name: 'Je suis Présentiel', program: { name: 'Programme files' } },
+          trainer: { identity: { firstname: 'Didier', lastname: 'Deschamps' } },
         },
-      ],
-      createdAt: '2021-06-27T12:40:29.561Z',
-      updatedAt: '2022-03-03T12:40:29.561Z',
-    },
-    { // 1 type expactation
-      _id: new ObjectId(),
-      course: {
-        _id: new ObjectId(),
-        subProgram: { name: 'sous-prog', program: { name: 'prog' } },
-        trainer: { identity: { firstname: 'Pierre', lastname: 'Paul' } },
-      },
-      user: {
-        _id: new ObjectId(),
-        identity: { firstname: 'Toto', lastname: 'Francoise' },
-        local: {},
-        contact: {},
-        company: {},
-      },
-      questionnaire: {
-        _id: new ObjectId(),
-        type: 'expectations',
-        cards,
-      },
-      questionnaireAnswersList: [],
-      createdAt: '2021-06-28T12:40:29.561Z',
-      updatedAt: '2022-03-03T12:40:29.561Z',
-    },
-    { // 2 type end of course, not all questions answered
-      _id: new ObjectId(),
-      course: {
-        _id: new ObjectId(),
-        subProgram: { name: 'JUST', program: { name: 'DO IT !' } },
-        trainer: { identity: { firstname: 'Shia', lastname: 'labeouf' } },
-      },
-      user: {
-        _id: new ObjectId(),
-        identity: { firstname: 'Bob', lastname: 'Marley' },
-        local: { email: 'bob@marley.com' },
-        contact: {},
-        company: { name: 'Reggae Music' },
-      },
-      questionnaire: {
-        _id: new ObjectId(),
-        type: 'end_of_course',
-        cards,
-      },
-      questionnaireAnswersList: [
-        {
-          card: { _id: cards[3]._id, qcAnswers: cards[3].qcAnswers },
-          answerList: [cards[3].qcAnswers[2]._id.toHexString()],
+        user: {
+          _id: new ObjectId(),
+          identity: { firstname: '', lastname: 'Zizou' },
+          local: { email: 'zizou@2027.com' },
+          contact: { phone: '0600000000' },
+          company: { name: 'créole' },
         },
-        { card: { _id: cards[2]._id }, answerList: ['1'] },
-      ],
-      createdAt: '2021-06-30T12:40:29.561Z',
-      updatedAt: '2022-03-03T12:40:29.561Z',
-    },
-  ];
-
-  let findQuestionnaireHistory;
+        questionnaire: {
+          _id: new ObjectId(),
+          type: 'end_of_course',
+          cards,
+        },
+        questionnaireAnswersList: [
+          { card: { _id: cards[1]._id }, answerList: ['Ouai oklm'] },
+          { card: { _id: cards[2]._id }, answerList: ['5'] },
+          {
+            card: { _id: cards[3]._id, qcAnswers: cards[3].qcAnswers },
+            answerList: [cards[3].qcAnswers[0]._id.toHexString(), cards[3].qcAnswers[1]._id.toHexString()],
+          },
+        ],
+        createdAt: '2021-06-27T12:40:29.561Z',
+        updatedAt: '2022-03-03T12:40:29.561Z',
+      },
+      { // 1 not all questions answered
+        _id: new ObjectId(),
+        course: {
+          _id: new ObjectId(),
+          subProgram: { name: 'JUST', program: { name: 'DO IT !' } },
+          trainer: { identity: { firstname: 'Shia', lastname: 'labeouf' } },
+        },
+        user: {
+          _id: new ObjectId(),
+          identity: { firstname: 'Bob', lastname: 'Marley' },
+          local: { email: 'bob@marley.com' },
+          contact: {},
+          company: { name: 'Reggae Music' },
+        },
+        questionnaire: {
+          _id: new ObjectId(),
+          type: 'end_of_course',
+          cards,
+        },
+        questionnaireAnswersList: [
+          {
+            card: { _id: cards[3]._id, qcAnswers: cards[3].qcAnswers },
+            answerList: [cards[3].qcAnswers[2]._id.toHexString()],
+          },
+          { card: { _id: cards[2]._id }, answerList: ['1'] },
+        ],
+        createdAt: '2021-06-30T12:40:29.561Z',
+        updatedAt: '2022-03-03T12:40:29.561Z',
+      },
+    ],
+  };
+  let findOneQuestionnaire;
 
   beforeEach(() => {
-    findQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'find');
+    findOneQuestionnaire = sinon.stub(Questionnaire, 'findOne');
   });
 
   afterEach(() => {
-    findQuestionnaireHistory.restore();
+    findOneQuestionnaire.restore();
   });
 
   it('should return an empty array if no questionnaire history', async () => {
-    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries([]));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries({ cards, histories: [] }));
     const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
       '2021-06-25T12:00:00.000Z',
       '2021-06-30:12:00.000Z'
@@ -2584,7 +2565,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistories));
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
 
     const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
       '2021-06-25T12:00:00.000Z',
@@ -2607,7 +2588,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'Les ami.es ?',
       ],
       [
-        questionnaireHistories[0].course._id,
+        questionnaire.histories[0].course._id,
         'Programme files',
         'Je suis Présentiel',
         'Didier DESCHAMPS',
@@ -2621,7 +2602,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'Oui,Peut être',
       ],
       [
-        questionnaireHistories[2].course._id,
+        questionnaire.histories[1].course._id,
         'DO IT !',
         'JUST',
         'Shia LABEOUF',
@@ -2635,9 +2616,39 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
         'Non',
       ],
     ]);
-    sinon.assert.calledOnceWithExactly(
-      findQuestionnaireHistory,
-      { createdAt: { $gte: '2021-06-25T12:00:00.000Z', $lte: '2021-06-30:12:00.000Z' } }
+    SinonMongoose.calledOnceWithExactly(
+      findOneQuestionnaire,
+      [
+        {
+          query: 'findOne',
+          args: [{ type: 'end_of_course' }],
+        },
+        { query: 'populate', args: [{ path: 'cards', select: 'question template' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { createdAt: { $gte: '2021-06-25T12:00:00.000Z', $lte: '2021-06-30:12:00.000Z' } },
+            populate: [
+              {
+                path: 'course',
+                select: 'subProgram',
+                populate: [
+                  { path: 'subProgram', select: 'name program', populate: { path: 'program', select: 'name' } },
+                  { path: 'trainer', select: 'identity' },
+                ],
+              },
+              {
+                path: 'user',
+                select: 'identity local.email contact.phone company',
+                populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+              },
+              { path: 'questionnaireAnswersList.card', select: 'qcAnswers' },
+            ],
+          }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
     );
   });
 });

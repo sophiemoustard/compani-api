@@ -56,6 +56,7 @@ const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
+const Questionnaire = require('../models/Questionnaire');
 
 const NO_DATA = 'Aucune donnée sur la periode selectionnée';
 
@@ -905,29 +906,33 @@ const _findAnswerText = (answers, answerId) => {
 exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
   const rows = [];
 
-  const questionnaireHistories = await QuestionnaireHistory
-    .find({ createdAt: { $gte: startDate, $lte: endDate } })
-    .populate({ path: 'questionnaire', select: 'type cards', populate: { path: 'cards', select: 'question template' } })
+  const endOfCourseQuestionnaire = await Questionnaire
+    .findOne({ type: END_OF_COURSE })
+    .populate({ path: 'cards', select: 'question template' })
     .populate({
-      path: 'course',
-      select: 'subProgram',
+      path: 'histories',
+      match: { createdAt: { $gte: startDate, $lte: endDate } },
       populate: [
-        { path: 'subProgram', select: 'name program', populate: { path: 'program', select: 'name' } },
-        { path: 'trainer', select: 'identity' },
+        {
+          path: 'course',
+          select: 'subProgram',
+          populate: [
+            { path: 'subProgram', select: 'name program', populate: { path: 'program', select: 'name' } },
+            { path: 'trainer', select: 'identity' },
+          ],
+        },
+        {
+          path: 'user',
+          select: 'identity local.email contact.phone company',
+          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+        },
+        { path: 'questionnaireAnswersList.card', select: 'qcAnswers' },
       ],
     })
-    .populate({
-      path: 'user',
-      select: 'identity local.email contact.phone company',
-      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-    })
-    .populate({ path: 'questionnaireAnswersList.card', select: 'qcAnswers' })
-    .lean();
+    .lean({ virtuals: true });
 
-  const endOfCourseQHistories = questionnaireHistories.filter(qh => qh.questionnaire.type === END_OF_COURSE);
-
-  for (const qHistory of endOfCourseQHistories) {
-    const questionsAnswers = qHistory.questionnaire.cards
+  for (const qHistory of endOfCourseQuestionnaire.histories) {
+    const questionsAnswers = endOfCourseQuestionnaire.cards
       .filter(card => [OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template))
       .reduce((acc, card) => {
         const qAnswer = qHistory.questionnaireAnswersList
@@ -943,13 +948,13 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
 
     const row = {
       'Id formation': qHistory.course._id,
-      Programme: qHistory.course.subProgram.program.name,
-      'Sous-programme': qHistory.course.subProgram.name,
-      'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(qHistory.course.trainer.identity, 'FL'),
-      Structure: qHistory.user.company.name,
+      Programme: get(qHistory, 'course.subProgram.program.name') || '',
+      'Sous-programme': get(qHistory, 'course.subProgram.name'),
+      'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
+      Structure: get(qHistory, 'user.company.name'),
       'Date de réponse': CompaniDate(qHistory.createdAt).format('dd/LL/yyyy HH:mm:ss'),
-      'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(qHistory.user.identity, 'FL'),
-      'Mail répondant(e)': qHistory.user.local.email,
+      'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(get(qHistory, 'user.identity') || '', 'FL'),
+      'Mail répondant(e)': get(qHistory, 'user.local.email'),
       'Numéro de tél répondant(e)': get(qHistory, 'user.contact.phone') || '',
       ...questionsAnswers,
     };
