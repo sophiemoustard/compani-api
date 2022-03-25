@@ -2399,8 +2399,8 @@ describe('exportTransportsHistory', () => {
     expect(exportArray).toEqual([
       [
         'Id de l\'auxiliaire',
-        'Prénom  de l\'auxiliaire',
-        'Nom  de l\'auxiliaire',
+        'Prénom de l\'auxiliaire',
+        'Nom de l\'auxiliaire',
         'Heure de départ du trajet',
         'Heure d\'arrivée du trajet',
         'Adresse de départ',
