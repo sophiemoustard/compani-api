@@ -28,13 +28,13 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
   const userClientRole = get(credentials, 'role.client.name');
   const userCompanyId = credentials.company ? credentials.company._id.toHexString() : null;
   const userId = get(credentials, '_id');
-  const areCompaniesEqual = UtilsHelper.areObjectIdsEquals(userCompanyId, courseCompanyId) ||
-  traineeCompanyIds.find(traineeCompanyId => UtilsHelper.areObjectIdsEquals(userCompanyId, traineeCompanyId));
+  const areCompaniesMatching = UtilsHelper.areObjectIdsEquals(userCompanyId, courseCompanyId) ||
+    traineeCompanyIds.find(traineeCompanyId => UtilsHelper.areObjectIdsEquals(userCompanyId, traineeCompanyId));
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
-  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && userCompanyId && areCompaniesEqual;
+  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && userCompanyId && areCompaniesMatching;
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };

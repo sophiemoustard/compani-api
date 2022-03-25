@@ -2048,12 +2048,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
   describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
       authToken = await getTokenByCredentials(noRoleNoCompany.local);
-    });
-
-    afterEach(() => {
-      process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
     });
 
     it('should return 200 if user is course trainee', async () => {
