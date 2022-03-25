@@ -257,6 +257,7 @@ module.exports = {
   WORKING_EVENT: 'working_event', // intervention or internal hours
   COURSE: 'course',
   COURSE_SLOT: 'course_slot',
+  END_OF_COURSE_QUESTIONNAIRE: 'end_of_course_questionnaire',
   get HISTORY_EXPORT_TYPES() {
     return [
       this.WORKING_EVENT,
@@ -268,6 +269,7 @@ module.exports = {
       this.COURSE,
       this.COURSE_SLOT,
       this.TRANSPORT,
+      this.END_OF_COURSE_QUESTIONNAIRE,
     ];
   },
   get CLIENT_EXPORT_TYPES() {
@@ -290,7 +292,7 @@ module.exports = {
       this.TRANSPORT,
     ];
   },
-  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT]; },
+  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT, this.END_OF_COURSE_QUESTIONNAIRE]; },
   // BILLING
   BILL: 'bill',
   CREDIT_NOTE: 'credit_note',

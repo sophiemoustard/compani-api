@@ -35,7 +35,8 @@ const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Questionnaire = require('../../../src/models/Questionnaire');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const Card = require('../../../src/models/Card');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const {
   PAYMENT,
@@ -991,11 +992,7 @@ const helpersList = [
   { customer: customersList[0]._id, user: user._id, company: authCompany._id, referent: true },
 ];
 
-const userCompanies = [
-  { _id: new ObjectId(), user: auxiliaryList[0]._id, company: authCompany._id },
-  { _id: new ObjectId(), user: auxiliaryList[1]._id, company: authCompany._id },
-  { _id: new ObjectId(), user: user._id, company: authCompany._id },
-];
+const programIdList = [new ObjectId(), new ObjectId()];
 
 const activityList = [
   { _id: new ObjectId(), name: 'activity 1', type: LESSON, status: PUBLISHED },
@@ -1011,13 +1008,23 @@ const stepList = [
 ];
 
 const subProgramList = [
-  { _id: new ObjectId(), name: 'subProgram 1', steps: [stepList[0]._id, stepList[1]._id] },
-  { _id: new ObjectId(), name: 'subProgram 2', steps: [stepList[0]._id, stepList[2]._id, stepList[3]._id] },
+  {
+    _id: new ObjectId(),
+    name: 'subProgram 1',
+    program: programIdList[0],
+    steps: [stepList[0]._id, stepList[1]._id],
+  },
+  {
+    _id: new ObjectId(),
+    name: 'subProgram 2',
+    program: programIdList[1],
+    steps: [stepList[0]._id, stepList[2]._id, stepList[3]._id],
+  },
 ];
 
 const programList = [
-  { _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] },
-  { _id: new ObjectId(), name: 'Program 2', subPrograms: [subProgramList[1]._id] },
+  { _id: programIdList[0], name: 'Program 1', subPrograms: [subProgramList[0]._id] },
+  { _id: programIdList[1], name: 'Program 2', subPrograms: [subProgramList[1]._id] },
 ];
 
 const trainer = {
@@ -1066,6 +1073,14 @@ const traineeList = [
     local: { email: 'trainee5@compani.fr' },
     origin: WEBAPP,
   },
+];
+
+const userCompanies = [
+  { _id: new ObjectId(), user: auxiliaryList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliaryList[1]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: user._id, company: authCompany._id },
+  { _id: new ObjectId(), user: traineeList[0]._id, company: authCompany._id },
+  { _id: new ObjectId(), user: traineeList[1]._id, company: otherCompany._id },
 ];
 
 const courseList = [
@@ -1196,9 +1211,31 @@ const smsList = [
   { _id: new ObjectId(), type: 'convocation', message: 'SMS 3', sender: traineeList[3]._id, course: courseList[1]._id },
 ];
 
+const cardList = [
+  { _id: new ObjectId(), template: 'transition' },
+  { _id: new ObjectId(), template: 'open_question', question: 'Où est Charlie ?' },
+  { _id: new ObjectId(), template: 'survey', question: 'Comment gagner 100 euros par heure sans travailler ?' },
+  {
+    _id: new ObjectId(),
+    template: 'question_answer',
+    question: 'Combien coûte une chocolatine ?',
+    qcAnswers: [
+      { _id: new ObjectId(), text: '15 centimes' },
+      { _id: new ObjectId(), text: '15 euros' },
+      { _id: new ObjectId(), text: '50 euros' },
+    ],
+  },
+];
+
 const questionnaireList = [
   { _id: new ObjectId(), type: EXPECTATIONS, name: 'attentes', status: PUBLISHED },
-  { _id: new ObjectId(), type: END_OF_COURSE, name: 'satisfaction', status: PUBLISHED },
+  {
+    _id: new ObjectId(),
+    type: END_OF_COURSE,
+    name: 'satisfaction',
+    status: PUBLISHED,
+    cards: cardList.map(c => c._id),
+  },
 ];
 const questionnaireHistoriesList = [
   { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[0]._id, questionnaire: questionnaireList[0]._id },
@@ -1207,46 +1244,77 @@ const questionnaireHistoriesList = [
   { _id: new ObjectId(), course: courseList[0]._id, user: traineeList[2]._id, questionnaire: questionnaireList[0]._id },
   { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[0]._id },
   { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1]._id },
+  { // 6 end of course questionnaire all questions answered
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    user: traineeList[0]._id,
+    questionnaire: questionnaireList[1]._id,
+    questionnaireAnswersList: [
+      { card: cardList[1]._id, answerList: ['dans ton couloir'] },
+      { card: cardList[2]._id, answerList: ['3'] },
+      { card: cardList[3]._id, answerList: [cardList[3].qcAnswers[1]._id.toHexString()] },
+    ],
+    createdAt: '2021-01-20T10:31:37.000Z',
+  },
+  { // 7 expectation questionnaire
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    user: traineeList[0]._id,
+    questionnaire: questionnaireList[0]._id,
+    createdAt: '2021-02-18T10:00:00.000Z',
+  },
+  { // 8 end of course questionnaire only one answer
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    user: traineeList[1]._id,
+    questionnaire: questionnaireList[1]._id,
+    questionnaireAnswersList: [{
+      card: cardList[3]._id,
+      answerList: [cardList[3].qcAnswers[0]._id.toHexString(), cardList[3].qcAnswers[1]._id.toHexString()],
+    }],
+    createdAt: '2021-01-27T20:31:04.000Z',
+  },
 ];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
+    Activity.create(activityList),
+    ActivityHistory.create(activityHistoryList),
+    Attendance.create(attendanceList),
+    AttendanceSheet.create(attendanceSheetList),
     Bill.create(billsList),
+    Card.create(cardList),
     Contract.create(contractList),
+    Course.create(courseList),
+    CourseBill.create(courseBill),
+    CourseFundingOrganisation.create(courseFundingOrganisation),
+    CourseSlot.create(courseSlotList),
+    CourseSmsHistory.create(smsList),
     CreditNote.create(creditNotesList),
     Customer.create(customersList),
+    DistanceMatrix.create(distanceMatrixList),
     Establishment.create(establishment),
     Event.create(eventList),
     EventHistory.create(eventHistoriesList),
     FinalPay.create(finalPayList),
     Helper.create(helpersList),
     InternalHour.create(internalHour),
-    Payment.create(paymentsList),
     Pay.create(payList),
+    Payment.create(paymentsList),
+    Program.create(programList),
+    Questionnaire.create(questionnaireList),
+    QuestionnaireHistory.create(questionnaireHistoriesList),
     ReferentHistory.create(referentList),
     Sector.create(sector),
     SectorHistory.create(sectorHistories),
     Service.create(serviceList),
+    Step.create(stepList),
+    SubProgram.create(subProgramList),
     ThirdPartyPayer.create(thirdPartyPayer),
     User.create([...auxiliaryList, ...traineeList, user, trainer, salesRepresentative]),
     UserCompany.create(userCompanies),
-    SubProgram.create(subProgramList),
-    Program.create(programList),
-    Course.create(courseList),
-    CourseBill.create(courseBill),
-    CourseFundingOrganisation.create(courseFundingOrganisation),
-    CourseSlot.create(courseSlotList),
-    CourseSmsHistory.create(smsList),
-    Attendance.create(attendanceList),
-    AttendanceSheet.create(attendanceSheetList),
-    Step.create(stepList),
-    DistanceMatrix.create(distanceMatrixList),
-    Questionnaire.create(questionnaireList),
-    QuestionnaireHistory.create(questionnaireHistoriesList),
-    Activity.create(activityList),
-    ActivityHistory.create(activityHistoryList),
   ]);
 };
 

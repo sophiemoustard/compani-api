@@ -29,6 +29,9 @@ const {
   STEP_TYPES,
   EXPECTATIONS,
   END_OF_COURSE,
+  OPEN_QUESTION,
+  SURVEY,
+  QUESTION_ANSWER,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
@@ -868,8 +871,8 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
 
         rows.push({
           'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
-          'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
-          'Nom  de l\'auxiliaire': get(group, 'auxiliary.identity.lastname', ''),
+          'Prénom de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
+          'Nom de l\'auxiliaire': get(group, 'auxiliary.identity.lastname', ''),
           'Heure de départ du trajet': CompaniDate(sortedEvents[i - 1].endDate).format('dd/LL/yyyy HH:mm:ss'),
           'Heure d\'arrivée du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy HH:mm:ss'),
           'Adresse de départ': origins,
@@ -888,6 +891,70 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
         });
       }
     }
+  }
+
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
+};
+
+const _findAnswerText = (answers, answerId) => {
+  const answer = answers.find(qa => UtilsHelper.areObjectIdsEquals(qa._id, answerId));
+
+  return answer ? answer.text : '';
+};
+
+exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
+  const rows = [];
+
+  const questionnaireHistories = await QuestionnaireHistory
+    .find({ createdAt: { $gte: startDate, $lte: endDate } })
+    .populate({ path: 'questionnaire', select: 'type cards', populate: { path: 'cards', select: 'question template' } })
+    .populate({
+      path: 'course',
+      select: 'subProgram',
+      populate: [
+        { path: 'subProgram', select: 'name program', populate: { path: 'program', select: 'name' } },
+        { path: 'trainer', select: 'identity' },
+      ],
+    })
+    .populate({
+      path: 'user',
+      select: 'identity local.email contact.phone company',
+      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+    })
+    .populate({ path: 'questionnaireAnswersList.card', select: 'qcAnswers' })
+    .lean();
+
+  const endOfCourseQHistories = questionnaireHistories.filter(qh => qh.questionnaire.type === END_OF_COURSE);
+
+  for (const qHistory of endOfCourseQHistories) {
+    const questionsAnswers = qHistory.questionnaire.cards
+      .filter(card => [OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template))
+      .reduce((acc, card) => {
+        const qAnswer = qHistory.questionnaireAnswersList
+          .find(qa => UtilsHelper.areObjectIdsEquals(qa.card._id, card._id));
+        const value = qAnswer
+          ? qAnswer.answerList
+            .map(a => (UtilsHelper.isStringedObjectId(a) ? _findAnswerText(qAnswer.card.qcAnswers, a) : a))
+            .join()
+          : '';
+
+        return { ...acc, [card.question]: value };
+      }, {});
+
+    const row = {
+      'Id formation': qHistory.course._id,
+      Programme: qHistory.course.subProgram.program.name,
+      'Sous-programme': qHistory.course.subProgram.name,
+      'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(qHistory.course.trainer.identity, 'FL'),
+      Structure: qHistory.user.company.name,
+      'Date de réponse': CompaniDate(qHistory.createdAt).format('dd/LL/yyyy HH:mm:ss'),
+      'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(qHistory.user.identity, 'FL'),
+      'Mail répondant(e)': qHistory.user.local.email,
+      'Numéro de tél répondant(e)': get(qHistory, 'user.contact.phone') || '',
+      ...questionsAnswers,
+    };
+
+    rows.push(row);
   }
 
   return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];

@@ -20,6 +20,7 @@ const {
   COURSE,
   COURSE_SLOT,
   TRANSPORT,
+  END_OF_COURSE_QUESTIONNAIRE,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -124,6 +125,15 @@ const vendorHistoryExportTypes = [
       `${courseSlotList[1]._id};${courseList[0]._id};"Test SAS - Program 1 - group 1";"étape 2";"distanciel";"12/12/2020 11:00:01";"01/05/2021 16:00:00";"01/05/2021 18:00:00";"2,00";"https://meet.google.com";2;1;0`,
       `${courseSlotList[2]._id};${courseList[1]._id};"Program 2 - group 2";"étape 1";"présentiel";"12/12/2020 11:00:02";"01/02/2021 09:00:00";"01/02/2021 11:00:00";"2,00";"24 Avenue Daumesnil 75012 Paris";1;1;1`,
       `${courseSlotList[3]._id};${courseList[1]._id};"Program 2 - group 2";"étape 3";"eLearning";"12/12/2020 11:00:03";"02/02/2021 09:00:00";"02/02/2021 11:00:00";"2,00";;1;1;1`,
+    ],
+    query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
+  },
+  {
+    exportType: END_OF_COURSE_QUESTIONNAIRE,
+    expectedRows: [
+      '\ufeff"Id formation";"Programme";"Sous-programme";"Prénom Nom intervenant(e)";"Structure";"Date de réponse";"Prénom Nom répondant(e)";"Mail répondant(e)";"Numéro de tél répondant(e)";"Où est Charlie ?";"Comment gagner 100 euros par heure sans travailler ?";"Combien coûte une chocolatine ?"',
+      `${courseList[0]._id};"Program 1";"subProgram 1";"Gilles FORMATEUR";"Test SAS";"20/01/2021 11:31:37";"Jacques TRAINEE";"trainee1@compani.fr";;"dans ton couloir";"3";"15 euros"`,
+      `${courseList[1]._id};"Program 2";"subProgram 2";"Gilles FORMATEUR";"Un autre SAS";"27/01/2021 21:31:04";"Paul TRAINEE";"trainee2@compani.fr";;;;"15 centimes,15 euros"`,
     ],
     query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },
