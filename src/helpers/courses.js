@@ -601,7 +601,7 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
   });
   const isVendor = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
   const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
-  UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
   const canAccessAllTrainees = isVendor || isCourseTrainer;
   const trainees = canAccessAllTrainees
     ? course.trainees

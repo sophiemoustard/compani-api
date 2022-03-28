@@ -1,8 +1,8 @@
 module.exports = {
+  COPPER_50: '#F0FAF7',
   COPPER_500: '#1D7C8F',
   COPPER_600: '#005774',
   COPPER_GREY_200: '#E2ECF0',
-  PEACH_000: '#FEF8F2',
   PEACH_100: '#FFEDDA',
   ORANGE_500: '#F5970B',
   SENDER_MAIL: 'nepasrepondre@compani.fr',

@@ -1,5 +1,5 @@
 const FileHelper = require('../../helpers/file');
-const { COPPER_500, ORANGE_500, PEACH_000 } = require('../../helpers/constants');
+const { COPPER_500, ORANGE_500, COPPER_50 } = require('../../helpers/constants');
 
 const getImages = async () => {
   const imageList = [
@@ -52,7 +52,7 @@ exports.getPdfContent = async (data) => {
       marginBottom: 16,
     },
     {
-      canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 24, r: 0, color: PEACH_000 }],
+      canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 24, r: 0, color: COPPER_50 }],
       absolutePosition: { x: 40, y: 264 },
       marginBottom: 8,
     },
@@ -126,6 +126,7 @@ exports.getPdfContent = async (data) => {
         stack: [
           { text: 'Compani', style },
           { text: '24 avenue daumesnil, 75012 Paris', style },
+          { text: 'Numéro SIRET : 90512399800015 | Numéro de déclaration d’activité : 11756363475', style },
           { text: `PAGE ${currentPage.toString()} / ${pageCount}`, style, alignment: 'right' },
         ],
         marginLeft: 40,

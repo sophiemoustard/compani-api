@@ -2,7 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
-const { PEACH_000, COPPER_500, ORANGE_500 } = require('../../../src/helpers/constants');
+const { COPPER_50, COPPER_500, ORANGE_500 } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -68,7 +68,7 @@ describe('getPdfContent', () => {
         marginBottom: 16,
       },
       {
-        canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 24, r: 0, color: PEACH_000 }],
+        canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 24, r: 0, color: COPPER_50 }],
         absolutePosition: { x: 40, y: 264 },
         marginBottom: 8,
       },
@@ -142,6 +142,7 @@ describe('getPdfContent', () => {
           stack: [
             { text: 'Compani', style },
             { text: '24 avenue daumesnil, 75012 Paris', style },
+            { text: 'Numéro SIRET : 90512399800015 | Numéro de déclaration d’activité : 11756363475', style },
             { text: `PAGE ${currentPage.toString()} / ${pageCount}`, style, alignment: 'right' },
           ],
           marginLeft: 40,
