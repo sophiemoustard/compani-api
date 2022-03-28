@@ -557,4 +557,7 @@ module.exports = {
     ];
   },
   get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT, this.END_OF_COURSE]; },
+  // COURSE BILLING
+  LIST: 'list',
+  BALANCE: 'balance',
 };

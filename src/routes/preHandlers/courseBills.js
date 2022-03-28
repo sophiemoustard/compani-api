@@ -28,10 +28,17 @@ exports.authorizeCourseBillCreation = async (req) => {
 };
 
 exports.authorizeCourseBillGet = async (req) => {
-  const { course } = req.query;
-  const courseExists = await Course.countDocuments({ _id: course });
-  if (!courseExists) throw Boom.notFound();
+  const { course, company } = req.query;
 
+  if (course) {
+    const courseExists = await Course.countDocuments({ _id: course });
+    if (!courseExists) throw Boom.notFound();
+  }
+
+  if (company) {
+    const companyExists = await Company.countDocuments({ _id: company });
+    if (!companyExists) throw Boom.notFound();
+  }
   return null;
 };
 

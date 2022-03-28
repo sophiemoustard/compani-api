@@ -11,6 +11,7 @@ const {
   deleteBillingPurchase,
   generateBillPdf,
 } = require('../controllers/courseBillController');
+const { LIST, BALANCE } = require('../helpers/constants');
 const {
   authorizeCourseBillCreation,
   authorizeCourseBillGet,
@@ -30,7 +31,13 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['config:vendor'] },
-        validate: { query: Joi.object({ course: Joi.objectId().required() }) },
+        validate: {
+          query: Joi.object({
+            action: Joi.string().required().valid(LIST, BALANCE),
+            course: Joi.objectId().when('action', { is: LIST, then: Joi.required() }),
+            company: Joi.objectId().when('action', { is: BALANCE, then: Joi.required() }),
+          }),
+        },
         pre: [{ method: authorizeCourseBillGet }],
       },
       handler: list,
