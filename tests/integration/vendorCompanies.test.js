@@ -122,7 +122,7 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
       { key: 'siret', value: '13244' },
     ];
     wrongValues.forEach((payload) => {
-      it('should update vendor company infos', async () => {
+      it(`should not update vendor company ${payload.key} with wrong value`, async () => {
         const response = await app.inject({
           method: 'PUT',
           url: '/vendorcompanies',
