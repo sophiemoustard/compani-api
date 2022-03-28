@@ -2127,6 +2127,7 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       });
 
       expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnce(createDocxStub);
     });
 
     it('should return 403 as user is trainer if not one of his courses', async () => {

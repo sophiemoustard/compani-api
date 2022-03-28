@@ -204,6 +204,7 @@ const downloadCompletionCertificates = async (req, h) => {
   try {
     const data = await CoursesHelper
       .generateCompletionCertificates(req.params._id, req.auth.credentials, req.query.origin);
+
     if (get(req, 'query.origin') === MOBILE) {
       return h.response(data.pdf)
         .header('content-disposition', `inline; filename=${data.name}.pdf`)

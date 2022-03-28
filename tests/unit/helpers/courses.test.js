@@ -2070,7 +2070,7 @@ describe('generateCompletionCertificate', () => {
   });
 
   it('should download completion certificates from webapp (vendor)', async () => {
-    const credentials = { _id: new ObjectId(), role: { vendor: 'admin' } };
+    const credentials = { _id: new ObjectId(), role: { vendor: { name: 'vendor_admin' } } };
     const courseId = new ObjectId();
     const readable1 = new PassThrough();
     const readable2 = new PassThrough();
@@ -2086,6 +2086,7 @@ describe('generateCompletionCertificate', () => {
       ],
       misc: 'Bonjour je suis une formation',
       slots: [{ _id: new ObjectId() }, { _id: new ObjectId() }],
+      trainer: new ObjectId(),
     };
     const attendances = [
       {

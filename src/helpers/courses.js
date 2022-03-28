@@ -32,6 +32,9 @@ const {
   ON_SITE,
   E_LEARNING,
   MOBILE,
+  VENDOR_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+  TRAINER,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -596,9 +599,11 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
     fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
     tmpFilePath: certificateTemplatePath,
   });
-
-  const isVendor = !!get(credentials, 'role.vendor');
-  const trainees = isVendor
+  const isVendor = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
+  const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
+  UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+  const canAccessAllTrainees = isVendor || isCourseTrainer;
+  const trainees = canAccessAllTrainees
     ? course.trainees
     : course.trainees
       .filter(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id')));

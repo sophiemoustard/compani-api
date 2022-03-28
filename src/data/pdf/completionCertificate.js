@@ -109,14 +109,6 @@ exports.getPdfContent = async (data) => {
     { text: 'Thibault de Saint Blancard,' },
     { text: 'Directeur Compani', marginBottom: 32 },
     { image: signature, width: 144 },
-    {
-      stack: [
-        { text: 'Compani', style: 'footer' },
-        { text: '24 avenue daumesnil, 75012 Paris', style: 'footer' },
-      ],
-      absolutePosition: { x: 40, y: 782 },
-    },
-    { text: 'PAGE 1 / 1', style: 'footer', alignment: 'right', absolutePosition: { x: 40, y: 792 } },
   ];
 
   return {
@@ -127,7 +119,18 @@ exports.getPdfContent = async (data) => {
       congratulations: { fontSize: 11, bold: true, color: ORANGE_500, marginBottom: 24 },
       subTitle: { fontSize: 16, color: COPPER_500, marginTop: 16 },
       programName: { fontSize: 12, alignment: 'center', color: COPPER_500, marginBottom: 16 },
-      footer: { fontSize: 9, bold: true },
+    },
+    footer(currentPage, pageCount) {
+      const style = { fontSize: 9, bold: true };
+      return {
+        stack: [
+          { text: 'Compani', style },
+          { text: '24 avenue daumesnil, 75012 Paris', style },
+          { text: `PAGE ${currentPage.toString()} / ${pageCount}`, style, alignment: 'right' },
+        ],
+        marginLeft: 40,
+        marginRight: 40,
+      };
     },
   };
 };
