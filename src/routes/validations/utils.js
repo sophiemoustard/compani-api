@@ -1,6 +1,5 @@
 const Joi = require('joi');
-const { SIRET_VALIDATION } = require('../../models/Establishment');
-const { MONTH_VALIDATION, PHONE_VALIDATION } = require('../../models/utils');
+const { MONTH_VALIDATION, PHONE_VALIDATION, SIRET_VALIDATION } = require('../../models/utils');
 
 const dateToISOString = Joi.date().custom(value => value.toISOString());
 const requiredDateToISOString = Joi.date().required().custom(value => value.toISOString());

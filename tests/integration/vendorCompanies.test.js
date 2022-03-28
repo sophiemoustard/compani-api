@@ -10,7 +10,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('VENDOR COMPANY ROUTES - GET /vendorcompany', () => {
+describe('VENDOR COMPANY ROUTES - GET /vendorcompanies', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -64,7 +64,7 @@ describe('VENDOR COMPANY ROUTES - GET /vendorcompany', () => {
   });
 });
 
-describe('VENDOR COMPANY ROUTES - PUT /vendorcompany', () => {
+describe('VENDOR COMPANY ROUTES - PUT /vendorcompanies', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -88,7 +88,7 @@ describe('VENDOR COMPANY ROUTES - PUT /vendorcompany', () => {
       { key: 'siret', value: '12345678901235' },
     ];
     payloads.forEach((payload) => {
-      it('should update vendor company infos', async () => {
+      it(`should update vendor company ${payload.key}`, async () => {
         const response = await app.inject({
           method: 'PUT',
           url: '/vendorcompanies',
