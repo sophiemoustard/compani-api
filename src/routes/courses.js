@@ -46,6 +46,7 @@ const {
   authorizeSmsSending,
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
+const { ORIGIN_OPTIONS } = require('../models/User');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -294,9 +295,10 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/completion-certificates',
       options: {
-        auth: { scope: ['courses:edit'] },
+        auth: { mode: 'required' },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ origin: Joi.string().valid(...ORIGIN_OPTIONS) }),
         },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetDocumentsAndSms }],
       },

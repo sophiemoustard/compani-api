@@ -4,6 +4,7 @@ const path = require('path');
 const moment = require('moment');
 const { fn: momentProto } = require('moment');
 const { ObjectId } = require('mongodb');
+const os = require('os');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
@@ -37,6 +38,7 @@ const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
+const UtilsMock = require('../utilsMock');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -1180,7 +1182,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
 describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
-  const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
   const archivedCourseId = coursesList[14]._id;
   const courseIdWithoutReceiver = coursesList[7]._id;
   const courseIdWithoutContact = coursesList[9]._id;
@@ -1804,7 +1806,7 @@ describe('COURSES ROUTES - POST /courses/{_id}/register-e-learning', () => {
 describe('COURSES ROUTES - DELETE /courses/{_id}/trainee/{traineeId}', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
-  const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
   const archivedCourse = coursesList[14]._id;
   const traineeId = coach._id;
 
@@ -1903,7 +1905,7 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
   const courseIdWithoutOnSiteSlotFromAuth = coursesList[12]._id;
-  const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -1998,10 +2000,10 @@ describe('COURSES ROUTES - GET /:_id/attendance-sheets', () => {
   });
 });
 
-describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
+describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
   let authToken;
   const courseIdFromAuthCompany = coursesList[2]._id;
-  const courseIdFromOtherCompany = coursesList[3]._id;
+  const courseIdFromOtherCompany = coursesList[1]._id;
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
@@ -2045,6 +2047,43 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
     });
   });
 
+  describe('NO_ROLE_NO_COMPANY', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+    });
+
+    it('should return 200 if user is course trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id}/completion-certificates?origin=mobile`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 if user is not course trainee', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${courseIdFromAuthCompany}/completion-certificates?origin=mobile`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if user is not accessing certificate from mobile app', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[5]._id}/completion-certificates`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
   describe('Other roles', () => {
     beforeEach(populateDB);
 
@@ -2055,12 +2094,14 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
       createDocxStub = sinon.stub(DocxHelper, 'createDocx');
       createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+      UtilsMock.mockCurrentDate('2019-01-24T15:00:00.000Z');
     });
 
     afterEach(() => {
       downloadFileByIdStub.restore();
       createDocxStub.restore();
       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+      UtilsMock.unmockCurrentDate();
     });
 
     const roles = [
@@ -2079,6 +2120,30 @@ describe('COURSES ROUTES - GET /:_id/completion-certificates', () => {
 
         expect(response.statusCode).toBe(role.expectedCode);
       });
+    });
+
+    it('should return 200 as user is coach and course is inter_b2b with trainee from his company', async () => {
+      authToken = await getToken('coach');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses/${coursesList[8]._id}/completion-certificates`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnceWithExactly(
+        createDocxStub,
+        `${os.tmpdir()}/certificate_template.docx`,
+        {
+          duration: '2h',
+          learningGoals: 'on est là',
+          programName: 'PROGRAM',
+          startDate: '20/03/2020',
+          endDate: '20/03/2020',
+          trainee: { identity: 'Coach CALIF', attendanceDuration: '0h' },
+          date: '24/01/2019',
+        }
+      );
     });
 
     it('should return 403 as user is trainer if not one of his courses', async () => {

@@ -31,12 +31,17 @@ const {
   REJECTED,
   ON_SITE,
   E_LEARNING,
+  MOBILE,
+  VENDOR_ADMIN,
+  TRAINING_ORGANISATION_MANAGER,
+  TRAINER,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
 const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanceSheet');
 const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../data/pdf/courseConvocation');
+const CompletionCertificate = require('../data/pdf/completionCertificate');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -538,7 +543,7 @@ exports.generateAttendanceSheets = async (courseId) => {
   return { fileName: 'emargement.pdf', pdf };
 };
 
-exports.formatCourseForDocx = (course) => {
+exports.formatCourseForDocuments = (course) => {
   const sortedCourseSlots = course.slots.sort((a, b) => DatesHelper.ascendingSort('startDate')(a, b));
 
   return {
@@ -550,10 +555,20 @@ exports.formatCourseForDocx = (course) => {
   };
 };
 
-exports.generateCompletionCertificates = async (courseId) => {
+const getTraineeInformations = (trainee, courseAttendances) => {
+  const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
+  const traineeSlots = courseAttendances
+    .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
+    .map(a => a.courseSlot);
+  const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots);
+
+  return { traineeIdentity, attendanceDuration };
+};
+
+exports.generateCompletionCertificates = async (courseId, credentials, origin = null) => {
   const course = await Course.findOne({ _id: courseId })
     .populate('slots')
-    .populate('trainees')
+    .populate({ path: 'trainees', populate: { path: 'company' } })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
@@ -562,19 +577,39 @@ exports.generateCompletionCertificates = async (courseId) => {
     .populate({ path: 'courseSlot', select: 'startDate endDate' })
     .lean();
 
-  const courseData = exports.formatCourseForDocx(course);
+  const courseData = exports.formatCourseForDocuments(course);
+
+  if (origin === MOBILE) {
+    const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
+    const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+    const template = await CompletionCertificate.getPdfContent({
+      ...courseData,
+      trainee: { identity: traineeIdentity, attendanceDuration },
+      date: CompaniDate().format('dd/LL/yyyy'),
+    });
+
+    return {
+      pdf: await PdfHelper.generatePdf(template),
+      name: `Attestation - ${traineeIdentity}.pdf`,
+    };
+  }
+
   const certificateTemplatePath = path.join(os.tmpdir(), 'certificate_template.docx');
   await drive.downloadFileById({
     fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
     tmpFilePath: certificateTemplatePath,
   });
+  const isVendor = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
+  const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
+    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+  const canAccessAllTrainees = isVendor || isCourseTrainer;
+  const trainees = canAccessAllTrainees
+    ? course.trainees
+    : course.trainees
+      .filter(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id')));
 
-  const fileListPromises = course.trainees.map(async (trainee) => {
-    const traineeIdentity = UtilsHelper.formatIdentity(trainee.identity, 'FL');
-    const traineeSlots = courseAttendances
-      .filter(a => UtilsHelper.areObjectIdsEquals(trainee._id, a.trainee))
-      .map(a => a.courseSlot);
-    const attendanceDuration = UtilsHelper.getTotalDuration(traineeSlots);
+  const fileListPromises = trainees.map(async (trainee) => {
+    const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
     const filePath = await DocxHelper.createDocx(
       certificateTemplatePath,
       {

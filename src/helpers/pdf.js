@@ -40,6 +40,11 @@ const fonts = {
     bold: 'src/data/pdf/fonts/SourceSansPro-Bold.ttf',
     italics: 'src/data/pdf/fonts/SourceSansPro-Italic.ttf',
   },
+  Calibri: {
+    normal: 'src/data/pdf/fonts/Calibri-Regular.ttf',
+    bold: 'src/data/pdf/fonts/Calibri-Bold.TTF',
+    italics: 'src/data/pdf/fonts/Calibri-Italic.ttf',
+  },
   icon: {
     normal: 'src/data/pdf/fonts/icon.ttf',
   },
