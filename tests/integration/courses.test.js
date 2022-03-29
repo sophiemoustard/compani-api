@@ -4,6 +4,7 @@ const path = require('path');
 const moment = require('moment');
 const { fn: momentProto } = require('moment');
 const { ObjectId } = require('mongodb');
+const os = require('os');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const get = require('lodash/get');
@@ -37,6 +38,7 @@ const SmsHelper = require('../../src/helpers/sms');
 const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
+const UtilsMock = require('../utilsMock');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -2092,12 +2094,14 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       createDocxStub = sinon.stub(DocxHelper, 'createDocx');
       createDocxStub.returns(path.join(__dirname, 'assets/certificate_template.docx'));
       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '1234';
+      UtilsMock.mockCurrentDate('2019-01-24T15:00:00.000Z');
     });
 
     afterEach(() => {
       downloadFileByIdStub.restore();
       createDocxStub.restore();
       process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID = '';
+      UtilsMock.unmockCurrentDate();
     });
 
     const roles = [
@@ -2127,7 +2131,19 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      sinon.assert.calledOnce(createDocxStub);
+      sinon.assert.calledOnceWithExactly(
+        createDocxStub,
+        `${os.tmpdir()}/certificate_template.docx`,
+        {
+          duration: '2h',
+          learningGoals: 'on est là',
+          programName: 'PROGRAM',
+          startDate: '20/03/2020',
+          endDate: '20/03/2020',
+          trainee: { identity: 'Coach CALIF', attendanceDuration: '0h' },
+          date: '24/01/2019',
+        }
+      );
     });
 
     it('should return 403 as user is trainer if not one of his courses', async () => {
