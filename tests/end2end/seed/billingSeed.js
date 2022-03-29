@@ -106,7 +106,7 @@ const billAuthcustomer = {
   fundings: [
     {
       _id: new ObjectId(),
-      nature: FIXED,
+      nature: HOURLY,
       thirdPartyPayer: thirdPartyPayer._id,
       subscription: subscriptions[0]._id,
       frequency: ONCE,
@@ -116,7 +116,9 @@ const billAuthcustomer = {
         createdAt: new Date('2019-10-01'),
         endDate: new Date('2020-02-01'),
         effectiveDate: new Date('2019-10-01'),
-        amountTTC: 1200,
+        unitTTCRate: 27,
+        careHours: 12,
+        customerParticipationRate: 15,
         careDays: [0, 1, 2, 3, 4, 5, 6],
       },
       {
@@ -124,7 +126,9 @@ const billAuthcustomer = {
         startDate: new Date('2020-02-02'),
         createdAt: new Date('2020-02-02'),
         effectiveDate: new Date('2020-02-02'),
-        amountTTC: 160,
+        unitTTCRate: 24,
+        careHours: 10,
+        customerParticipationRate: 10,
         careDays: [0, 1, 2, 3, 4, 5],
       }],
     },
