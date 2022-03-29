@@ -29,6 +29,9 @@ const {
   STEP_TYPES,
   EXPECTATIONS,
   END_OF_COURSE,
+  OPEN_QUESTION,
+  SURVEY,
+  QUESTION_ANSWER,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
@@ -53,6 +56,7 @@ const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
+const Questionnaire = require('../models/Questionnaire');
 
 const NO_DATA = 'Aucune donnée sur la periode selectionnée';
 
@@ -868,8 +872,8 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
 
         rows.push({
           'Id de l\'auxiliaire': get(group, 'auxiliary._id', '').toHexString(),
-          'Prénom  de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
-          'Nom  de l\'auxiliaire': get(group, 'auxiliary.identity.lastname', ''),
+          'Prénom de l\'auxiliaire': get(group, 'auxiliary.identity.firstname', ''),
+          'Nom de l\'auxiliaire': get(group, 'auxiliary.identity.lastname', ''),
           'Heure de départ du trajet': CompaniDate(sortedEvents[i - 1].endDate).format('dd/LL/yyyy HH:mm:ss'),
           'Heure d\'arrivée du trajet': CompaniDate(sortedEvents[i].startDate).format('dd/LL/yyyy HH:mm:ss'),
           'Adresse de départ': origins,
@@ -888,6 +892,78 @@ exports.exportTransportsHistory = async (startDate, endDate, credentials) => {
         });
       }
     }
+  }
+
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
+};
+
+const _findAnswerText = (answers, answerId) => {
+  const answer = answers.find(qa => UtilsHelper.areObjectIdsEquals(qa._id, answerId));
+
+  return answer ? answer.text : '';
+};
+
+const _getAnswerForExport = (questionnaireCard, questionnaireHistoryAnswersList) => {
+  const qAnswer = questionnaireHistoryAnswersList
+    .find(qa => UtilsHelper.areObjectIdsEquals(qa.card._id, questionnaireCard._id));
+
+  return qAnswer
+    ? qAnswer.answerList
+      .map(a => (UtilsHelper.isStringedObjectId(a) ? _findAnswerText(qAnswer.card.qcAnswers, a) : a))
+      .join()
+    : '';
+};
+
+exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
+  const rows = [];
+
+  const endOfCourseQuestionnaire = await Questionnaire
+    .findOne({ type: END_OF_COURSE })
+    .populate({ path: 'cards', select: 'question template' })
+    .populate({
+      path: 'histories',
+      match: { createdAt: { $gte: startDate, $lte: endDate } },
+      populate: [
+        {
+          path: 'course',
+          select: 'subProgram',
+          populate: [
+            { path: 'subProgram', select: 'name program', populate: { path: 'program', select: 'name' } },
+            { path: 'trainer', select: 'identity' },
+          ],
+        },
+        {
+          path: 'user',
+          select: 'identity local.email contact.phone company',
+          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+        },
+        { path: 'questionnaireAnswersList.card', select: 'qcAnswers' },
+      ],
+    })
+    .lean({ virtuals: true });
+
+  for (const qHistory of endOfCourseQuestionnaire.histories) {
+    const questionsAnswers = endOfCourseQuestionnaire.cards
+      .filter(card => [OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template))
+      .reduce((acc, card) => ({
+        ...acc,
+        [card.question]: _getAnswerForExport(card, qHistory.questionnaireAnswersList),
+      }), {});
+
+    const row = {
+      'Id formation': qHistory.course._id,
+      Programme: get(qHistory, 'course.subProgram.program.name') || '',
+      'Sous-programme': get(qHistory, 'course.subProgram.name'),
+      'Prénom Nom intervenant(e)': UtilsHelper.formatIdentity(get(qHistory, 'course.trainer.identity') || '', 'FL'),
+      Structure: get(qHistory, 'user.company.name'),
+      'Date de réponse': CompaniDate(qHistory.createdAt).format('dd/LL/yyyy HH:mm:ss'),
+      'Prénom Nom répondant(e)': UtilsHelper.formatIdentity(get(qHistory, 'user.identity') || '', 'FL'),
+      'Mail répondant(e)': get(qHistory, 'user.local.email'),
+      'Numéro de tél répondant(e)': get(qHistory, 'user.contact.phone') || '',
+      ...questionsAnswers,
+    };
+
+    rows.push(row);
   }
 
   return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];

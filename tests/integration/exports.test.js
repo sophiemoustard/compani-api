@@ -20,6 +20,7 @@ const {
   COURSE,
   COURSE_SLOT,
   TRANSPORT,
+  END_OF_COURSE,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -98,7 +99,7 @@ const clientHistoryExportTypes = [
   {
     exportType: TRANSPORT,
     expectedRows: [
-      '\ufeff"Id de l\'auxiliaire";"Prénom  de l\'auxiliaire";"Nom  de l\'auxiliaire";"Heure de départ du trajet";"Heure d\'arrivée du trajet";"Adresse de départ";"Adresse d\'arrivée";"Distance";"Mode de transport";"Durée du trajet";"Durée inter vacation";"Pause prise en compte";"Durée rémunérée"',
+      '\ufeff"Id de l\'auxiliaire";"Prénom de l\'auxiliaire";"Nom de l\'auxiliaire";"Heure de départ du trajet";"Heure d\'arrivée du trajet";"Adresse de départ";"Adresse d\'arrivée";"Distance";"Mode de transport";"Durée du trajet";"Durée inter vacation";"Pause prise en compte";"Durée rémunérée"',
       `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11/01/2019 09:30:00";"11/01/2019 10:30:00";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";"0,230";"Transports en commun / À pied";"0,0639";"1,0000";"Non";"0,0639"`,
       `"${auxiliaryList[1]._id}";"Lili";"Lolo";"11/01/2019 11:30:00";"11/01/2019 12:35:00";"42 Rue de la Procession 75015 Paris";"35 Rue du Test 75015 Paris";"0,230";"Véhicule personnel";"1,0833";"1,0833";"Oui";"1,0833"`,
     ],
@@ -111,8 +112,8 @@ const vendorHistoryExportTypes = [
     exportType: COURSE,
     expectedRows: [
       '\ufeff"Identifiant";"Type";"Payeur";"Structure";"Programme";"Sous-Programme";"Infos complémentaires";"Formateur";"Référent Compani";"Contact pour la formation";"Nombre d\'inscrits";"Nombre de dates";"Nombre de créneaux";"Nombre de créneaux à planifier";"Durée Totale";"Nombre de SMS envoyés";"Nombre de personnes connectées à l\'app";"Complétion eLearning moyenne";"Nombre de réponses au questionnaire de recueil des attentes";"Nombre de réponses au questionnaire de satisfaction";"Début de formation";"Fin de formation";"Nombre de feuilles d\'émargement chargées";"Nombre de présences";"Nombre d\'absences";"Nombre de stagiaires non prévus";"Nombre de présences non prévues";"Avancement";"Facturée"',
-      `${courseList[0]._id};"intra";"APA Paris";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;;"4,00";2;2;;2;2;"01/05/2021 10:00:00";"01/05/2021 18:00:00";1;3;3;0;0;"1,00";"Oui"`,
-      `${courseList[1]._id};"inter_b2b";;;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;1;"4,00";1;0;"0,67";1;1;"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;"0,67";`,
+      `${courseList[0]._id};"intra";"APA Paris";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;;"4,00";2;2;;3;3;"01/05/2021 10:00:00";"01/05/2021 18:00:00";1;3;3;0;0;"1,00";"Oui"`,
+      `${courseList[1]._id};"inter_b2b";;;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;1;"4,00";1;0;"0,67";1;2;"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;"0,67";`,
     ],
     query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },
@@ -124,6 +125,15 @@ const vendorHistoryExportTypes = [
       `${courseSlotList[1]._id};${courseList[0]._id};"Test SAS - Program 1 - group 1";"étape 2";"distanciel";"12/12/2020 11:00:01";"01/05/2021 16:00:00";"01/05/2021 18:00:00";"2,00";"https://meet.google.com";2;1;0`,
       `${courseSlotList[2]._id};${courseList[1]._id};"Program 2 - group 2";"étape 1";"présentiel";"12/12/2020 11:00:02";"01/02/2021 09:00:00";"01/02/2021 11:00:00";"2,00";"24 Avenue Daumesnil 75012 Paris";1;1;1`,
       `${courseSlotList[3]._id};${courseList[1]._id};"Program 2 - group 2";"étape 3";"eLearning";"12/12/2020 11:00:03";"02/02/2021 09:00:00";"02/02/2021 11:00:00";"2,00";;1;1;1`,
+    ],
+    query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
+  },
+  {
+    exportType: END_OF_COURSE,
+    expectedRows: [
+      '\ufeff"Id formation";"Programme";"Sous-programme";"Prénom Nom intervenant(e)";"Structure";"Date de réponse";"Prénom Nom répondant(e)";"Mail répondant(e)";"Numéro de tél répondant(e)";"Où est Charlie ?";"Comment gagner 100 euros par heure sans travailler ?";"Combien coûte une chocolatine ?"',
+      `${courseList[0]._id};"Program 1";"subProgram 1";"Gilles FORMATEUR";"Test SAS";"20/01/2021 11:31:37";"Jacques TRAINEE";"trainee1@compani.fr";;"dans ton couloir";"3";"15 euros"`,
+      `${courseList[1]._id};"Program 2";"subProgram 2";"Gilles FORMATEUR";"Un autre SAS";"27/01/2021 21:31:04";"Paul TRAINEE";"trainee2@compani.fr";;;;"15 centimes,15 euros"`,
     ],
     query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },

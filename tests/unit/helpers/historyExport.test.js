@@ -15,6 +15,7 @@ const Pay = require('../../../src/models/Pay');
 const Payment = require('../../../src/models/Payment');
 const FinalPay = require('../../../src/models/FinalPay');
 const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const Questionnaire = require('../../../src/models/Questionnaire');
 const CourseHelper = require('../../../src/helpers/courses');
 const ExportHelper = require('../../../src/helpers/historyExport');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -2399,8 +2400,8 @@ describe('exportTransportsHistory', () => {
     expect(exportArray).toEqual([
       [
         'Id de l\'auxiliaire',
-        'Prénom  de l\'auxiliaire',
-        'Nom  de l\'auxiliaire',
+        'Prénom de l\'auxiliaire',
+        'Nom de l\'auxiliaire',
         'Heure de départ du trajet',
         'Heure d\'arrivée du trajet',
         'Adresse de départ',
@@ -2459,5 +2460,195 @@ describe('exportTransportsHistory', () => {
       ],
     ]);
     sinon.assert.callCount(getPaidTransportInfo, 3);
+  });
+});
+
+describe('exportEndOfCourseQuestionnaireHistory', () => {
+  const cards = [
+    { _id: new ObjectId(), template: 'transition' },
+    { _id: new ObjectId(), question: 'Ca va ?', template: 'open_question' },
+    { _id: new ObjectId(), question: 'La famille ?', template: 'survey' },
+    {
+      _id: new ObjectId(),
+      question: 'Les ami.es ?',
+      template: 'question_answer',
+      qcAnswers: [
+        { _id: new ObjectId(), text: 'Oui' },
+        { _id: new ObjectId(), text: 'Peut être' },
+        { _id: new ObjectId(), text: 'Non' },
+      ],
+    },
+  ];
+  const questionnaire = {
+    type: 'end_of_course',
+    cards,
+    histories: [
+      { // 0 all questions answered
+        _id: new ObjectId(),
+        course: {
+          _id: new ObjectId(),
+          subProgram: { name: 'Je suis Présentiel', program: { name: 'Programme files' } },
+          trainer: { identity: { firstname: 'Didier', lastname: 'Deschamps' } },
+        },
+        user: {
+          _id: new ObjectId(),
+          identity: { firstname: '', lastname: 'Zizou' },
+          local: { email: 'zizou@2027.com' },
+          contact: { phone: '0600000000' },
+          company: { name: 'créole' },
+        },
+        questionnaire: {
+          _id: new ObjectId(),
+          type: 'end_of_course',
+          cards,
+        },
+        questionnaireAnswersList: [
+          { card: { _id: cards[1]._id }, answerList: ['Ouai oklm'] },
+          { card: { _id: cards[2]._id }, answerList: ['5'] },
+          {
+            card: { _id: cards[3]._id, qcAnswers: cards[3].qcAnswers },
+            answerList: [cards[3].qcAnswers[0]._id.toHexString(), cards[3].qcAnswers[1]._id.toHexString()],
+          },
+        ],
+        createdAt: '2021-06-27T12:40:29.561Z',
+        updatedAt: '2022-03-03T12:40:29.561Z',
+      },
+      { // 1 not all questions answered
+        _id: new ObjectId(),
+        course: {
+          _id: new ObjectId(),
+          subProgram: { name: 'JUST', program: { name: 'DO IT !' } },
+          trainer: { identity: { firstname: 'Shia', lastname: 'labeouf' } },
+        },
+        user: {
+          _id: new ObjectId(),
+          identity: { firstname: 'Bob', lastname: 'Marley' },
+          local: { email: 'bob@marley.com' },
+          contact: {},
+          company: { name: 'Reggae Music' },
+        },
+        questionnaire: {
+          _id: new ObjectId(),
+          type: 'end_of_course',
+          cards,
+        },
+        questionnaireAnswersList: [
+          {
+            card: { _id: cards[3]._id, qcAnswers: cards[3].qcAnswers },
+            answerList: [cards[3].qcAnswers[2]._id.toHexString()],
+          },
+          { card: { _id: cards[2]._id }, answerList: ['1'] },
+        ],
+        createdAt: '2021-06-30T12:40:29.561Z',
+        updatedAt: '2022-03-03T12:40:29.561Z',
+      },
+    ],
+  };
+  let findOneQuestionnaire;
+
+  beforeEach(() => {
+    findOneQuestionnaire = sinon.stub(Questionnaire, 'findOne');
+  });
+
+  afterEach(() => {
+    findOneQuestionnaire.restore();
+  });
+
+  it('should return an empty array if no questionnaire history', async () => {
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries({ cards, histories: [] }));
+    const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
+      '2021-06-25T12:00:00.000Z',
+      '2021-06-30:12:00.000Z'
+    );
+
+    expect(exportArray).toEqual([['Aucune donnée sur la periode selectionnée']]);
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    findOneQuestionnaire.returns(SinonMongoose.stubChainedQueries(questionnaire));
+
+    const exportArray = await ExportHelper.exportEndOfCourseQuestionnaireHistory(
+      '2021-06-25T12:00:00.000Z',
+      '2021-06-30:12:00.000Z'
+    );
+
+    expect(exportArray).toEqual([
+      [
+        'Id formation',
+        'Programme',
+        'Sous-programme',
+        'Prénom Nom intervenant(e)',
+        'Structure',
+        'Date de réponse',
+        'Prénom Nom répondant(e)',
+        'Mail répondant(e)',
+        'Numéro de tél répondant(e)',
+        'Ca va ?',
+        'La famille ?',
+        'Les ami.es ?',
+      ],
+      [
+        questionnaire.histories[0].course._id,
+        'Programme files',
+        'Je suis Présentiel',
+        'Didier DESCHAMPS',
+        'créole',
+        '27/06/2021 14:40:29',
+        'ZIZOU',
+        'zizou@2027.com',
+        '0600000000',
+        'Ouai oklm',
+        '5',
+        'Oui,Peut être',
+      ],
+      [
+        questionnaire.histories[1].course._id,
+        'DO IT !',
+        'JUST',
+        'Shia LABEOUF',
+        'Reggae Music',
+        '30/06/2021 14:40:29',
+        'Bob MARLEY',
+        'bob@marley.com',
+        '',
+        '', // no answer here
+        '1',
+        'Non',
+      ],
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findOneQuestionnaire,
+      [
+        {
+          query: 'findOne',
+          args: [{ type: 'end_of_course' }],
+        },
+        { query: 'populate', args: [{ path: 'cards', select: 'question template' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { createdAt: { $gte: '2021-06-25T12:00:00.000Z', $lte: '2021-06-30:12:00.000Z' } },
+            populate: [
+              {
+                path: 'course',
+                select: 'subProgram',
+                populate: [
+                  { path: 'subProgram', select: 'name program', populate: { path: 'program', select: 'name' } },
+                  { path: 'trainer', select: 'identity' },
+                ],
+              },
+              {
+                path: 'user',
+                select: 'identity local.email contact.phone company',
+                populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+              },
+              { path: 'questionnaireAnswersList.card', select: 'qcAnswers' },
+            ],
+          }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
   });
 });
