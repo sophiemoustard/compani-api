@@ -903,6 +903,20 @@ const _findAnswerText = (answers, answerId) => {
   return answer ? answer.text : '';
 };
 
+const _getAnswerForExport = (questionnaireCards, questionnaireHistory) => questionnaireCards
+  .filter(card => [OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template))
+  .reduce((acc, card) => {
+    const qAnswer = questionnaireHistory.questionnaireAnswersList
+      .find(qa => UtilsHelper.areObjectIdsEquals(qa.card._id, card._id));
+    const value = qAnswer
+      ? qAnswer.answerList
+        .map(a => (UtilsHelper.isStringedObjectId(a) ? _findAnswerText(qAnswer.card.qcAnswers, a) : a))
+        .join()
+      : '';
+
+    return { ...acc, [card.question]: value };
+  }, {});
+
 exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
   const rows = [];
 
@@ -912,6 +926,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
     .populate({
       path: 'histories',
       match: { createdAt: { $gte: startDate, $lte: endDate } },
+      options: { sort: { createdAt: -1 } },
       populate: [
         {
           path: 'course',
@@ -932,19 +947,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
     .lean({ virtuals: true });
 
   for (const qHistory of endOfCourseQuestionnaire.histories) {
-    const questionsAnswers = endOfCourseQuestionnaire.cards
-      .filter(card => [OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template))
-      .reduce((acc, card) => {
-        const qAnswer = qHistory.questionnaireAnswersList
-          .find(qa => UtilsHelper.areObjectIdsEquals(qa.card._id, card._id));
-        const value = qAnswer
-          ? qAnswer.answerList
-            .map(a => (UtilsHelper.isStringedObjectId(a) ? _findAnswerText(qAnswer.card.qcAnswers, a) : a))
-            .join()
-          : '';
-
-        return { ...acc, [card.question]: value };
-      }, {});
+    const questionsAnswers = _getAnswerForExport(endOfCourseQuestionnaire.cards, qHistory);
 
     const row = {
       'Id formation': qHistory.course._id,
