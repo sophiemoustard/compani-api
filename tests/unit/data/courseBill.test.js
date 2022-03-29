@@ -23,6 +23,30 @@ describe('getPdfContent', () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
     const bill = {
+      number: 'FACT-000045',
+      date: '18/08/1998',
+      vendorCompany: {
+        name: 'Auchan',
+        address: {
+          fullAddress: '32 Rue du Loup 33000 Bordeaux',
+          street: '32 Rue du Loup',
+          city: 'Bordeaux',
+          zipCode: '33000',
+          location: { type: 'Point', coordinates: [-0.573054, 44.837914] },
+        },
+        siret: '27272727274124',
+      },
+      clientCompany: { name: 'Test structure' },
+      funder: {
+        name: 'payeur',
+        address: {
+          fullAddress: '24 Avenue Daumesnil 75012 Paris',
+          street: '24 Avenue Daumesnil',
+          city: 'Paris',
+          zipCode: '75012',
+          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+        },
+      },
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description' },
       billingPurchaseList: [
@@ -33,10 +57,48 @@ describe('getPdfContent', () => {
 
     const pdf = {
       content: [
-        { columns: [{ image: paths[0], width: 200, height: 42, alignment: 'right' }], marginBottom: 20 },
+        {
+          columns: [
+            { image: paths[0], width: 200, height: 42, alignment: 'right' },
+            {
+              stack: [
+                { text: 'Facture', fontSize: 32 },
+                { text: 'FACT-000045', bold: true },
+                { text: 'Date de facture : 18/08/1998' },
+              ],
+              alignment: 'right',
+            },
+          ],
+          marginBottom: 4,
+        },
         {
           canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
+        },
+        {
+          stack: [
+            { text: 'Auchan', bold: true },
+            { text: '32 Rue du Loup' },
+            { text: '33000 Bordeaux' },
+            { text: 'Siret : 272 727 272 74124' },
+          ],
+          marginBottom: 36,
+        },
+        {
+          columns: [
+            {
+              stack: [
+                { text: 'Facturée à' },
+                { text: 'payeur', bold: true },
+                { text: '24 Avenue Daumesnil' },
+                { text: '75012 Paris' },
+              ],
+            },
+            {
+              stack: [{ text: 'Formation pour le compte de' }, { text: 'Test structure', bold: true }],
+              alignment: 'right',
+            },
+          ],
         },
         {
           table: {
@@ -87,7 +149,7 @@ describe('getPdfContent', () => {
             ],
             widths: ['5%', '50%', '15%', '15%', '15%'],
           },
-          margin: [0, 40, 0, 8],
+          margin: [0, 8, 0, 8],
           layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
         },
         {
@@ -98,6 +160,13 @@ describe('getPdfContent', () => {
             { text: 'Sous-total', alignment: 'right' },
             { text: '1300,00 €', alignment: 'right', marginLeft: 22, marginRight: 4, width: 'auto' },
           ],
+        },
+        {
+          text: 'Merci de lire attentivement nos Conditions Générales de Prestations et le(s) programme(s) de '
+            + 'formation en pièce-jointe.\nEn tant qu’organisme de formation, Compani est exonéré de la Taxe sur la '
+            + 'Valeur Ajoutée (TVA).',
+          fontSize: 8,
+          marginTop: 48,
         },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
@@ -130,16 +199,78 @@ describe('getPdfContent', () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
     const bill = {
+      number: 'FACT-000045',
+      date: '18/08/1998',
+      vendorCompany: {
+        name: 'Auchan',
+        address: {
+          fullAddress: '32 Rue du Loup 33000 Bordeaux',
+          street: '32 Rue du Loup',
+          city: 'Bordeaux',
+          zipCode: '33000',
+          location: { type: 'Point', coordinates: [-0.573054, 44.837914] },
+        },
+        siret: '27272727274124',
+      },
+      clientCompany: { name: 'Test structure' },
+      funder: {
+        name: 'payeur',
+        address: {
+          fullAddress: '24 Avenue Daumesnil 75012 Paris',
+          street: '24 Avenue Daumesnil',
+          city: 'Paris',
+          zipCode: '75012',
+          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+        },
+      },
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description' },
     };
 
     const pdf = {
       content: [
-        { columns: [{ image: paths[0], width: 200, height: 42, alignment: 'right' }], marginBottom: 20 },
+        {
+          columns: [
+            { image: paths[0], width: 200, height: 42, alignment: 'right' },
+            {
+              stack: [
+                { text: 'Facture', fontSize: 32 },
+                { text: 'FACT-000045', bold: true },
+                { text: 'Date de facture : 18/08/1998' },
+              ],
+              alignment: 'right',
+            },
+          ],
+          marginBottom: 4,
+        },
         {
           canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
           absolutePosition: { x: 40, y: 40 },
+        },
+        {
+          stack: [
+            { text: 'Auchan', bold: true },
+            { text: '32 Rue du Loup' },
+            { text: '33000 Bordeaux' },
+            { text: 'Siret : 272 727 272 74124' },
+          ],
+          marginBottom: 36,
+        },
+        {
+          columns: [
+            {
+              stack: [
+                { text: 'Facturée à' },
+                { text: 'payeur', bold: true },
+                { text: '24 Avenue Daumesnil' },
+                { text: '75012 Paris' },
+              ],
+            },
+            {
+              stack: [{ text: 'Formation pour le compte de' }, { text: 'Test structure', bold: true }],
+              alignment: 'right',
+            },
+          ],
         },
         {
           table: {
@@ -166,7 +297,7 @@ describe('getPdfContent', () => {
             ],
             widths: ['5%', '50%', '15%', '15%', '15%'],
           },
-          margin: [0, 40, 0, 8],
+          margin: [0, 8, 0, 8],
           layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
         },
         {
@@ -177,6 +308,13 @@ describe('getPdfContent', () => {
             { text: 'Sous-total', alignment: 'right' },
             { text: '1000,00 €', alignment: 'right', marginLeft: 22, marginRight: 4, width: 'auto' },
           ],
+        },
+        {
+          text: 'Merci de lire attentivement nos Conditions Générales de Prestations et le(s) programme(s) de '
+            + 'formation en pièce-jointe.\nEn tant qu’organisme de formation, Compani est exonéré de la Taxe sur la '
+            + 'Valeur Ajoutée (TVA).',
+          fontSize: 8,
+          marginTop: 48,
         },
       ],
       defaultStyle: { font: 'SourceSans', fontSize: 12 },
