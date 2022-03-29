@@ -923,7 +923,6 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
     .populate({
       path: 'histories',
       match: { createdAt: { $gte: startDate, $lte: endDate } },
-      options: { sort: { createdAt: -1 } },
       populate: [
         {
           path: 'course',

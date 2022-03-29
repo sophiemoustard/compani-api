@@ -2629,7 +2629,6 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           args: [{
             path: 'histories',
             match: { createdAt: { $gte: '2021-06-25T12:00:00.000Z', $lte: '2021-06-30:12:00.000Z' } },
-            options: { sort: { createdAt: -1 } },
             populate: [
               {
                 path: 'course',
