@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { MONTH_VALIDATION, PHONE_VALIDATION } = require('../../models/utils');
+const { MONTH_VALIDATION, PHONE_VALIDATION, SIRET_VALIDATION } = require('../../models/utils');
 
 const dateToISOString = Joi.date().custom(value => value.toISOString());
 const requiredDateToISOString = Joi.date().required().custom(value => value.toISOString());
@@ -39,6 +39,8 @@ const formDataPayload = (maxSize = 5242880) => ({
   maxBytes: maxSize,
 });
 
+const siretValidation = Joi.string().regex(SIRET_VALIDATION);
+
 module.exports = {
   monthValidation,
   phoneNumberValidation,
@@ -49,4 +51,5 @@ module.exports = {
   formDataPayload,
   dateToISOString,
   requiredDateToISOString,
+  siretValidation,
 };

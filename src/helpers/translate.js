@@ -376,6 +376,7 @@ module.exports = {
     deliveryCreated: 'Delivery file created',
     /* VendorCompanies */
     vendorCompanyFound: 'Vendor company found.',
+    vendorCompanyUpdated: 'Vendor company updated.',
   },
   'fr-FR': {
     /* Global errors */
@@ -753,5 +754,6 @@ module.exports = {
     deliveryCreated: 'Fichier de delivery créé',
     /* VendorCompanies */
     vendorCompanyFound: 'Structure vendeuse trouvée.',
+    vendorCompanyUpdated: 'Structure vendeuse mise à jour.',
   },
 };
