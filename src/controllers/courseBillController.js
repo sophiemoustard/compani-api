@@ -6,7 +6,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const courseBills = await CourseBillHelper.list(req.query.course, req.auth.credentials);
+    const courseBills = await CourseBillHelper.list(req.query, req.auth.credentials);
 
     return {
       message: courseBills.length

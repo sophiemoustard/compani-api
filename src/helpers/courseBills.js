@@ -8,6 +8,8 @@ const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
 const PdfHelper = require('./pdf');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
+const { LIST } = require('./constants');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.getNetInclTaxes = (bill) => {
   const mainFeeTotal = NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count);
@@ -18,15 +20,46 @@ exports.getNetInclTaxes = (bill) => {
   return NumbersHelper.add(mainFeeTotal, billingPurchaseTotal);
 };
 
-exports.list = async (course, credentials) => {
+const getTimeProgress = (course) => {
+  const pastSlotsCount = course.slots.filter(slot => CompaniDate().isAfter(slot.startDate)).length;
+
+  return pastSlotsCount / (course.slots.length + course.slotsToPlan.length);
+};
+
+const balance = async (company) => {
   const courseBills = await CourseBill
-    .find({ course })
-    .populate({ path: 'company', select: 'name' })
-    .populate({ path: 'courseFundingOrganisation', select: 'name' })
-    .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
+    .find({ company, billedAt: { $exists: true, $type: 'date' } })
+    .populate({
+      path: 'course',
+      select: 'misc slots slotsToPlan subProgram',
+      populate: [
+        { path: 'slots' },
+        { path: 'slotsToPlan' },
+        { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+      ],
+    })
     .lean();
 
-  return courseBills.map(bill => ({ ...bill, netInclTaxes: exports.getNetInclTaxes(bill) }));
+  return courseBills.map(bill => ({
+    progress: getTimeProgress(bill.course),
+    netInclTaxes: exports.getNetInclTaxes(bill),
+    ...omit(bill, ['course.slots', 'course.slotsToPlan']),
+  }));
+};
+
+exports.list = async (query, credentials) => {
+  if (query.action === LIST) {
+    const courseBills = await CourseBill
+      .find({ course: query.course })
+      .populate({ path: 'company', select: 'name' })
+      .populate({ path: 'courseFundingOrganisation', select: 'name' })
+      .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
+      .lean();
+
+    return courseBills.map(bill => ({ ...bill, netInclTaxes: exports.getNetInclTaxes(bill) }));
+  }
+
+  return balance(query.company);
 };
 
 exports.create = async payload => CourseBill.create(payload);
