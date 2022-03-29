@@ -323,7 +323,7 @@ describe('isStringedObjectId', () => {
     expect(result).toBe(true);
   });
 
-  it('should return true if value is a 14 digits number in Hexadecimal put to string', () => {
+  it('should return true if value is a 14-digit hexadecimal number put into a string', () => {
     const value = '12A22F32AB1094ABCDE12345';
 
     const result = UtilsHelper.isStringedObjectId(value);
@@ -331,7 +331,7 @@ describe('isStringedObjectId', () => {
     expect(result).toBe(true);
   });
 
-  it('should return false if value is randon string', () => {
+  it('should return false if value is random string', () => {
     const value = 'toto';
 
     const result = UtilsHelper.isStringedObjectId(value);

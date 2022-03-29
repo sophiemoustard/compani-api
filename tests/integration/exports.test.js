@@ -20,7 +20,7 @@ const {
   COURSE,
   COURSE_SLOT,
   TRANSPORT,
-  END_OF_COURSE_QUESTIONNAIRE,
+  END_OF_COURSE,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -129,7 +129,7 @@ const vendorHistoryExportTypes = [
     query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },
   {
-    exportType: END_OF_COURSE_QUESTIONNAIRE,
+    exportType: END_OF_COURSE,
     expectedRows: [
       '\ufeff"Id formation";"Programme";"Sous-programme";"Prénom Nom intervenant(e)";"Structure";"Date de réponse";"Prénom Nom répondant(e)";"Mail répondant(e)";"Numéro de tél répondant(e)";"Où est Charlie ?";"Comment gagner 100 euros par heure sans travailler ?";"Combien coûte une chocolatine ?"',
       `${courseList[0]._id};"Program 1";"subProgram 1";"Gilles FORMATEUR";"Test SAS";"20/01/2021 11:31:37";"Jacques TRAINEE";"trainee1@compani.fr";;"dans ton couloir";"3";"15 euros"`,
