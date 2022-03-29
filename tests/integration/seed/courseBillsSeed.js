@@ -1,11 +1,13 @@
 const { ObjectId } = require('mongodb');
 const { INTRA } = require('../../../src/helpers/constants');
+const Company = require('../../../src/models/Company');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const SubProgram = require('../../../src/models/SubProgram');
+const VendorCompany = require('../../../src/models/VendorCompany');
 const Program = require('../../../src/models/Program');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
@@ -13,6 +15,28 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [new ObjectId()] }];
 
 const programList = [{ _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] }];
+
+const vendorCompany = {
+  name: 'Vendor Company',
+  siret: '12345678901234',
+  address: {
+    fullAddress: '32 Rue du Loup 33000 Bordeaux',
+    street: '32 Rue du Loup',
+    city: 'Bordeaux',
+    zipCode: '33000',
+    location: { type: 'Point', coordinates: [-0.573054, 44.837914] },
+  },
+};
+
+const companyWithoutAddress = {
+  _id: ObjectId(),
+  name: 'Structure sans adresse',
+  prefixNumber: 45,
+  folderId: '0987654321',
+  directDebitsFolderId: '1234567890',
+  customersFolderId: 'asfdhljk',
+  auxiliariesFolderId: 'erqutop',
+};
 
 const courseList = [
   { // 0 - linked to bill 0
@@ -82,6 +106,17 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [new ObjectId()],
+  },
+  { // 6 - linked to bill 5
+    _id: new ObjectId(),
+    type: INTRA,
+    company: companyWithoutAddress._id,
+    subProgram: new ObjectId(),
+    misc: 'group 7',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [],
   },
 ];
 const courseFundingOrganisationList = [
@@ -167,19 +202,30 @@ const courseBillsList = [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
   },
+  { // 5 - client company without address
+    _id: new ObjectId(),
+    course: courseList[6]._id,
+    company: companyWithoutAddress._id,
+    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
+  },
 ];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
+    Company.create(companyWithoutAddress),
     Course.create(courseList),
-    CourseFundingOrganisation.create(courseFundingOrganisationList),
     CourseBill.create(courseBillsList),
     CourseBillingItem.create(billingItemList),
     CourseBillsNumber.create(courseBillNumber),
-    SubProgram.create(subProgramList),
+    CourseFundingOrganisation.create(courseFundingOrganisationList),
     Program.create(programList),
+    SubProgram.create(subProgramList),
+    VendorCompany.create(vendorCompany),
   ]);
 };
 
