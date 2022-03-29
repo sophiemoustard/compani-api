@@ -2,11 +2,11 @@ const get = require('lodash/get');
 const flat = require('flat');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
-const pick = require('lodash/pick');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
 const PdfHelper = require('./pdf');
+const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
 const { LIST } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
@@ -116,6 +116,7 @@ exports.deleteBillingPurchase = async (courseBillId, billingPurchaseId) => Cours
 );
 
 exports.generateBillPdf = async (billId) => {
+  const vendorCompany = await VendorCompaniesHelper.get();
   const bill = await CourseBill.findOne({ _id: billId })
     .populate({
       path: 'course',
@@ -123,9 +124,20 @@ exports.generateBillPdf = async (billId) => {
       populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
     })
     .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
+    .populate({ path: 'company', select: 'name address' })
+    .populate('courseFundingOrganisation')
     .lean();
 
-  const data = pick(bill, ['course', 'mainFee', 'billingPurchaseList']);
+  const data = {
+    number: bill.number,
+    date: CompaniDate().format('dd/LL/yyyy'),
+    vendorCompany,
+    clientCompany: bill.company,
+    funder: bill.courseFundingOrganisation || bill.company,
+    course: bill.course,
+    mainFee: bill.mainFee,
+    billingPurchaseList: bill.billingPurchaseList,
+  };
   const template = await CourseBillPdf.getPdfContent(data);
   const pdf = await PdfHelper.generatePdf(template);
 
