@@ -20,13 +20,13 @@ exports.getNetInclTaxes = (bill) => {
   return NumbersHelper.add(mainFeeTotal, billingPurchaseTotal);
 };
 
-const getProgress = (course) => {
+const getTimeProgress = (course) => {
   const pastSlotsCount = course.slots.filter(slot => CompaniDate().isAfter(slot.startDate)).length;
 
   return pastSlotsCount / (course.slots.length + course.slotsToPlan.length);
 };
 
-const companyList = async (company) => {
+const balance = async (company) => {
   const courseBills = await CourseBill
     .find({ company, billedAt: { $exists: true, $type: 'date' } })
     .populate({
@@ -40,12 +40,11 @@ const companyList = async (company) => {
     })
     .lean();
 
-  return courseBills.map((bill) => {
-    const progress = getProgress(bill.course);
-    const netInclTaxes = exports.getNetInclTaxes(bill);
-
-    return { ...omit(bill, ['course.slots', 'course.slotsToPlan']), progress, netInclTaxes };
-  });
+  return courseBills.map(bill => ({
+    progress: getTimeProgress(bill.course),
+    netInclTaxes: exports.getNetInclTaxes(bill),
+    ...omit(bill, ['course.slots', 'course.slotsToPlan']),
+  }));
 };
 
 exports.list = async (query, credentials) => {
@@ -60,7 +59,7 @@ exports.list = async (query, credentials) => {
     return courseBills.map(bill => ({ ...bill, netInclTaxes: exports.getNetInclTaxes(bill) }));
   }
 
-  return companyList(query.company);
+  return balance(query.company);
 };
 
 exports.create = async payload => CourseBill.create(payload);
