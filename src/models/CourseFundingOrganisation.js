@@ -9,6 +9,13 @@ const CourseFundingOrganisationSchema = mongoose.Schema({
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }), required: true },
 }, { timestamps: true });
 
+CourseFundingOrganisationSchema.virtual('courseBillCount', {
+  ref: 'CourseBill',
+  localField: '_id',
+  foreignField: 'courseFundingOrganisation',
+  count: true,
+});
+
 formatQueryMiddlewareList().map(middleware => CourseFundingOrganisationSchema.pre(middleware, formatQuery));
 
 module.exports = mongoose.model('CourseFundingOrganisation', CourseFundingOrganisationSchema);

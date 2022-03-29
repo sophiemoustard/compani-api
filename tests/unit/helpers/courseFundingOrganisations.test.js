@@ -1,5 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const has = require('lodash/has');
 const { ObjectId } = require('mongodb');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CourseFundingOrganisationHelper = require('../../../src/helpers/courseFundingOrganisations');
@@ -15,16 +16,31 @@ describe('list', () => {
   });
 
   it('should return all course funding organisations', async () => {
+    const credentials = { role: { vendor: 'training_organisation_manager' } };
     const courseFundingOrganisations = [
-      { name: 'APA du Val de Marne', address: { fullAddress: '22 rue de Paris, 94000 Créteil' } },
-      { name: 'APA des Hauts de Seine', address: { fullAddress: '22 rue de Paris, 92000 Nanterre' } },
+      { name: 'APA du Val de Marne', address: { fullAddress: '22 rue de Paris, 94000 Créteil' }, courseBillCount: 2 },
+      {
+        name: 'APA des Hauts de Seine',
+        address: { fullAddress: '22 rue de Paris, 92000 Nanterre' },
+        courseBillCount: 0,
+      },
     ];
-    find.returns(SinonMongoose.stubChainedQueries(courseFundingOrganisations, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(courseFundingOrganisations));
 
-    const result = await CourseFundingOrganisationHelper.list();
+    const result = await CourseFundingOrganisationHelper.list(credentials);
 
     expect(result).toBe(courseFundingOrganisations);
-    SinonMongoose.calledOnceWithExactly(find, [{ query: 'find' }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find' },
+        {
+          query: 'populate',
+          args: [{ path: 'courseBillCount', options: { isVendorUser: has(credentials, 'role.vendor') } }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
   });
 });
 
