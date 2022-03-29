@@ -34,8 +34,8 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             action: Joi.string().required().valid(LIST, BALANCE),
-            course: Joi.objectId().when('action', { is: LIST, then: Joi.required() }),
-            company: Joi.objectId().when('action', { is: BALANCE, then: Joi.required() }),
+            course: Joi.objectId().when('action', { is: LIST, then: Joi.required(), otherwise: Joi.forbidden() }),
+            company: Joi.objectId().when('action', { is: BALANCE, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         pre: [{ method: authorizeCourseBillGet }],
