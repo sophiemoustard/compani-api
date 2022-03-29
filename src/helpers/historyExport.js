@@ -903,19 +903,16 @@ const _findAnswerText = (answers, answerId) => {
   return answer ? answer.text : '';
 };
 
-const _getAnswerForExport = (questionnaireCards, questionnaireHistory) => questionnaireCards
-  .filter(card => [OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template))
-  .reduce((acc, card) => {
-    const qAnswer = questionnaireHistory.questionnaireAnswersList
-      .find(qa => UtilsHelper.areObjectIdsEquals(qa.card._id, card._id));
-    const value = qAnswer
-      ? qAnswer.answerList
-        .map(a => (UtilsHelper.isStringedObjectId(a) ? _findAnswerText(qAnswer.card.qcAnswers, a) : a))
-        .join()
-      : '';
+const _getAnswerForExport = (questionnaireCard, questionnaireHistoryAnswersList) => {
+  const qAnswer = questionnaireHistoryAnswersList
+    .find(qa => UtilsHelper.areObjectIdsEquals(qa.card._id, questionnaireCard._id));
 
-    return { ...acc, [card.question]: value };
-  }, {});
+  return qAnswer
+    ? qAnswer.answerList
+      .map(a => (UtilsHelper.isStringedObjectId(a) ? _findAnswerText(qAnswer.card.qcAnswers, a) : a))
+      .join()
+    : '';
+};
 
 exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
   const rows = [];
@@ -947,7 +944,12 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
     .lean({ virtuals: true });
 
   for (const qHistory of endOfCourseQuestionnaire.histories) {
-    const questionsAnswers = _getAnswerForExport(endOfCourseQuestionnaire.cards, qHistory);
+    const questionsAnswers = endOfCourseQuestionnaire.cards
+      .filter(card => [OPEN_QUESTION, SURVEY, QUESTION_ANSWER].includes(card.template))
+      .reduce((acc, card) => ({
+        ...acc,
+        [card.question]: _getAnswerForExport(card, qHistory.questionnaireAnswersList),
+      }), {});
 
     const row = {
       'Id formation': qHistory.course._id,
