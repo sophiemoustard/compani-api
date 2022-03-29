@@ -20,20 +20,15 @@ exports.getNetInclTaxes = (bill) => {
   return NumbersHelper.add(mainFeeTotal, billingPurchaseTotal);
 };
 
-exports.list = async (query, credentials) => {
-  if (query.action === LIST) {
-    const courseBills = await CourseBill
-      .find({ course: query.course })
-      .populate({ path: 'company', select: 'name' })
-      .populate({ path: 'courseFundingOrganisation', select: 'name' })
-      .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
-      .lean();
+const getProgress = (course) => {
+  const pastSlotsCount = course.slots.filter(slot => CompaniDate().isAfter(slot.startDate)).length;
 
-    return courseBills.map(bill => ({ ...bill, netInclTaxes: exports.getNetInclTaxes(bill) }));
-  }
+  return pastSlotsCount / (course.slots.length + course.slotsToPlan.length);
+};
 
+const companyList = async (company) => {
   const courseBills = await CourseBill
-    .find({ company: query.company, billedAt: { $exists: true, $type: 'date' } })
+    .find({ company, billedAt: { $exists: true, $type: 'date' } })
     .populate({
       path: 'course',
       select: 'misc slots slotsToPlan subProgram',
@@ -46,14 +41,26 @@ exports.list = async (query, credentials) => {
     .lean();
 
   return courseBills.map((bill) => {
-    const upComingSlotsCount = bill.course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
-    const pastSlotsCount = bill.course.slots.length - upComingSlotsCount;
-
-    const progress = pastSlotsCount / (bill.course.slots.length + bill.course.slotsToPlan.length);
+    const progress = getProgress(bill.course);
     const netInclTaxes = exports.getNetInclTaxes(bill);
 
     return { ...omit(bill, ['course.slots', 'course.slotsToPlan']), progress, netInclTaxes };
   });
+};
+
+exports.list = async (query, credentials) => {
+  if (query.action === LIST) {
+    const courseBills = await CourseBill
+      .find({ course: query.course })
+      .populate({ path: 'company', select: 'name' })
+      .populate({ path: 'courseFundingOrganisation', select: 'name' })
+      .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
+      .lean();
+
+    return courseBills.map(bill => ({ ...bill, netInclTaxes: exports.getNetInclTaxes(bill) }));
+  }
+
+  return companyList(query.company);
 };
 
 exports.create = async payload => CourseBill.create(payload);
