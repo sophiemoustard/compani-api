@@ -31,6 +31,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string(),
             tradeName: tradeNameValidation.allow('', null),
+            type: Joi.string().valid(...COMPANY_TYPES),
             address: addressValidation,
             subscriptions: Joi.object().keys({ erp: Joi.boolean() }).min(1),
             ics: Joi.string(),
@@ -109,7 +110,6 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             tradeName: tradeNameValidation,
-            type: Joi.string().valid(...COMPANY_TYPES).required(),
             rhConfig: Joi.object().keys({
               grossHourlyRate: Joi.number(),
               phoneFeeAmount: Joi.number(),

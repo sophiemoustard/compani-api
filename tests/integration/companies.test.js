@@ -31,6 +31,7 @@ describe('PUT /companies/:id', () => {
       const payload = {
         name: 'Alenvi Alenvi',
         apeCode: '8110Z',
+        type: 'company',
         customersConfig: {
           billingPeriod: 'month',
           billFooter: 'Bonjour, je suis un footer pour les factures',
@@ -154,6 +155,7 @@ describe('PUT /companies/:id', () => {
 
     const falsyAssertions = [
       { payload: { apeCode: '12A' }, case: 'ape code length is lower than 4' },
+      { payload: { type: 'falsy type' }, case: 'wrong type' },
       { payload: { apeCode: '12345Z' }, case: 'ape code length is greater than 5' },
       { payload: { apeCode: '12345' }, case: 'ape code is missing a letter' },
       { payload: { apeCode: '1234a' }, case: 'ape code letter is in lowercase' },
@@ -296,7 +298,7 @@ describe('POST /companies', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    const payload = { name: 'Test SARL', tradeName: 'Test', type: 'company' };
+    const payload = { name: 'Test SARL', tradeName: 'Test' };
 
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -326,7 +328,7 @@ describe('POST /companies', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companies',
-        payload: { name: 'Test', tradeName: 'qwerty', type: 'association' },
+        payload: { name: 'Test', tradeName: 'qwerty' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -337,7 +339,7 @@ describe('POST /companies', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companies',
-        payload: { name: 'TèsT', tradeName: 'qwerty', type: 'association' },
+        payload: { name: 'TèsT', tradeName: 'qwerty' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -354,24 +356,12 @@ describe('POST /companies', () => {
 
       expect(response.statusCode).toBe(400);
     });
-
-    it('should return a 400 error if wrong type', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/companies',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { type: 'falsy type' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
   });
 
   describe('Other roles', () => {
     const payload = {
       name: 'Test SARL',
       tradeName: 'Test',
-      type: 'company',
       rcs: '1234567890',
       rna: '1234567890098765444',
       ics: '12345678900000',
