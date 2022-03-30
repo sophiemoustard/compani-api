@@ -344,6 +344,17 @@ describe('POST /companies', () => {
 
       expect(response.statusCode).toBe(409);
     });
+
+    it('should return a 400 error if missing name', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/companies',
+        payload: {},
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   describe('Other roles', () => {
