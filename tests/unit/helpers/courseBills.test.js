@@ -4,6 +4,7 @@ const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
+const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const PdfHelper = require('../../../src/helpers/pdf');
 const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
@@ -401,21 +402,36 @@ describe('generateBillPdf', () => {
   let findOne;
   let getPdfContent;
   let generatePdf;
+  let getVendorCompany;
 
   beforeEach(() => {
     findOne = sinon.stub(CourseBill, 'findOne');
     getPdfContent = sinon.stub(CourseBillPdf, 'getPdfContent');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    getVendorCompany = sinon.stub(VendorCompaniesHelper, 'get');
   });
 
   afterEach(() => {
     findOne.restore();
     getPdfContent.restore();
     generatePdf.restore();
+    getVendorCompany.restore();
   });
 
   it('should download course bill', async () => {
     const billId = new ObjectId();
+
+    const vendorCompany = {
+      name: 'Auchan',
+      address: {
+        fullAddress: '32 Rue du Loup 33000 Bordeaux',
+        street: '32 Rue du Loup',
+        city: 'Bordeaux',
+        zipCode: '33000',
+        location: { type: 'Point', coordinates: [-0.573054, 44.837914] },
+      },
+      siret: '27272727274124',
+    };
 
     const bill = {
       _id: new ObjectId(),
@@ -430,8 +446,20 @@ describe('generateBillPdf', () => {
       ],
       number: 'FACT-00001',
       billedAt: '2022-03-08T00:00:00.000Z',
+      company: {
+        name: 'test',
+        address: {
+          fullAddress: '24 Avenue Daumesnil 75012 Paris',
+          street: '24 Avenue Daumesnil',
+          city: 'Paris',
+          zipCode: '75012',
+          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+        },
+      },
+      courseFundingOrganisation: '',
     };
 
+    getVendorCompany.returns(vendorCompany);
     findOne.returns(SinonMongoose.stubChainedQueries(bill));
     getPdfContent.returns({ content: [{ text: 'data' }] });
     generatePdf.returns({ pdf: 'pdf' });
@@ -441,6 +469,11 @@ describe('generateBillPdf', () => {
     sinon.assert.calledOnceWithExactly(
       getPdfContent,
       {
+        number: 'FACT-00001',
+        date: '08/03/2022',
+        vendorCompany,
+        company: bill.company,
+        funder: bill.company,
         course: bill.course,
         mainFee: bill.mainFee,
         billingPurchaseList: bill.billingPurchaseList,
@@ -464,6 +497,8 @@ describe('generateBillPdf', () => {
             path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' },
           }],
         },
+        { query: 'populate', args: [{ path: 'company', select: 'name address' }] },
+        { query: 'populate', args: ['courseFundingOrganisation'] },
         { query: 'lean' },
       ]);
   });

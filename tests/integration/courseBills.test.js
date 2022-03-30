@@ -602,6 +602,18 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if requesting invoice and client company has no address', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[5]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { billedAt: '2022-03-08T00:00:00.000Z' },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.result.message.startsWith('Erreur lors de la facturation, l\'adresse')).toBeTruthy();
+    });
+
     it('should return 403 if adding courseFundingOrganisation', async () => {
       const response = await app.inject({
         method: 'PUT',
