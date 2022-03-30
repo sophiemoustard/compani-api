@@ -2,7 +2,6 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GetStream = require('get-stream');
-const { MONTH } = require('../../src/helpers/constants');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
@@ -298,7 +297,7 @@ describe('POST /companies', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    const payload = { name: 'Test SARL', tradeName: 'Test' };
+    const payload = { name: 'Test SARL' };
 
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -328,7 +327,7 @@ describe('POST /companies', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companies',
-        payload: { name: 'Test', tradeName: 'qwerty' },
+        payload: { name: 'Test' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -339,38 +338,16 @@ describe('POST /companies', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companies',
-        payload: { name: 'TèsT', tradeName: 'qwerty' },
+        payload: { name: 'TèsT' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(409);
     });
-
-    it('should return a 400 error if missing name', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/companies',
-        payload: { tradeName: 'Test', type: 'company' },
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
   });
 
   describe('Other roles', () => {
-    const payload = {
-      name: 'Test SARL',
-      tradeName: 'Test',
-      rcs: '1234567890',
-      rna: '1234567890098765444',
-      ics: '12345678900000',
-      iban: '0987654321234567890987654',
-      bic: 'BR12345678',
-      billingAssistance: 'test@alenvi.io',
-      rhConfig: { grossHourlyRate: 10, phoneFeeAmount: 2, amountPerKm: 10 },
-      customersConfig: { billingPeriod: MONTH },
-    };
+    const payload = { name: 'Test SARL' };
 
     beforeEach(populateDB);
 
