@@ -31,6 +31,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string(),
             tradeName: tradeNameValidation.allow('', null),
+            type: Joi.string().valid(...COMPANY_TYPES),
             address: addressValidation,
             subscriptions: Joi.object().keys({ erp: Joi.boolean() }).min(1),
             ics: Joi.string(),
@@ -106,17 +107,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['companies:create'] },
         validate: {
-          payload: Joi.object().keys({
-            name: Joi.string().required(),
-            tradeName: tradeNameValidation,
-            type: Joi.string().valid(...COMPANY_TYPES).required(),
-            rhConfig: Joi.object().keys({
-              grossHourlyRate: Joi.number(),
-              phoneFeeAmount: Joi.number(),
-              amountPerKm: Joi.number(),
-              transportSubs: Joi.array().items({ department: Joi.string(), price: Joi.number() }).min(1),
-            }).min(1),
-          }),
+          payload: Joi.object().keys({ name: Joi.string().required() }),
         },
         pre: [{ method: authorizeCompanyCreation }],
       },

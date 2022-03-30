@@ -2,7 +2,6 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const GetStream = require('get-stream');
-const { MONTH } = require('../../src/helpers/constants');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const Company = require('../../src/models/Company');
 const Drive = require('../../src/models/Google/Drive');
@@ -31,6 +30,7 @@ describe('PUT /companies/:id', () => {
       const payload = {
         name: 'Alenvi Alenvi',
         apeCode: '8110Z',
+        type: 'company',
         customersConfig: {
           billingPeriod: 'month',
           billFooter: 'Bonjour, je suis un footer pour les factures',
@@ -154,6 +154,7 @@ describe('PUT /companies/:id', () => {
 
     const falsyAssertions = [
       { payload: { apeCode: '12A' }, case: 'ape code length is lower than 4' },
+      { payload: { type: 'falsy type' }, case: 'wrong type' },
       { payload: { apeCode: '12345Z' }, case: 'ape code length is greater than 5' },
       { payload: { apeCode: '12345' }, case: 'ape code is missing a letter' },
       { payload: { apeCode: '1234a' }, case: 'ape code letter is in lowercase' },
@@ -296,7 +297,7 @@ describe('POST /companies', () => {
   });
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
-    const payload = { name: 'Test SARL', tradeName: 'Test', type: 'company' };
+    const payload = { name: 'Test SARL' };
 
     beforeEach(populateDB);
     beforeEach(async () => {
@@ -326,7 +327,7 @@ describe('POST /companies', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companies',
-        payload: { name: 'Test', tradeName: 'qwerty', type: 'association' },
+        payload: { name: 'Test' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -337,7 +338,7 @@ describe('POST /companies', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companies',
-        payload: { name: 'TèsT', tradeName: 'qwerty', type: 'association' },
+        payload: { name: 'TèsT' },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -348,19 +349,8 @@ describe('POST /companies', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/companies',
-        payload: { tradeName: 'Test', type: 'company' },
+        payload: {},
         headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 error if wrong type', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/companies',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { type: 'falsy type' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -368,19 +358,7 @@ describe('POST /companies', () => {
   });
 
   describe('Other roles', () => {
-    const payload = {
-      name: 'Test SARL',
-      tradeName: 'Test',
-      type: 'company',
-      rcs: '1234567890',
-      rna: '1234567890098765444',
-      ics: '12345678900000',
-      iban: '0987654321234567890987654',
-      bic: 'BR12345678',
-      billingAssistance: 'test@alenvi.io',
-      rhConfig: { grossHourlyRate: 10, phoneFeeAmount: 2, amountPerKm: 10 },
-      customersConfig: { billingPeriod: MONTH },
-    };
+    const payload = { name: 'Test SARL' };
 
     beforeEach(populateDB);
 
