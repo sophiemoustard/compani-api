@@ -130,7 +130,7 @@ exports.getCourseProgress = (steps) => {
   };
 };
 
-exports.formatCourseWithProgress = (course) => {
+exports.formatCourseWithProgress = (course, canAccessCompletionCertificate) => {
   const steps = course.subProgram.steps
     .map((step) => {
       const slots = course.slots.filter(slot => UtilsHelper.areObjectIdsEquals(slot.step._id, step._id));
@@ -140,6 +140,7 @@ exports.formatCourseWithProgress = (course) => {
 
   return {
     ...course,
+    ...(canAccessCompletionCertificate >= 0 && { canAccessCompletionCertificate: !!canAccessCompletionCertificate }),
     subProgram: { ...course.subProgram, steps },
     progress: exports.getCourseProgress(steps),
   };
@@ -376,7 +377,10 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
-  return exports.formatCourseWithProgress(course);
+  const lastSlot = course.slots.sort((a, b) => DatesHelper.descendingSort('startDate')(a, b))[0];
+  const canAccessCompletionCertificate = lastSlot ? await Attendance.countDocuments({ courseSlot: lastSlot._id }) : 0;
+
+  return exports.formatCourseWithProgress(course, canAccessCompletionCertificate);
 };
 
 exports.updateCourse = async (courseId, payload) => {

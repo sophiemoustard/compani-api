@@ -353,7 +353,77 @@ describe('formatCourseWithProgress', () => {
     getCourseProgress.restore();
     getProgress.restore();
   });
-  it('should format course', async () => {
+  it('should format course (with canAccessCompletionCertificate)', async () => {
+    const stepId = new ObjectId();
+    const course = {
+      misc: 'name',
+      _id: new ObjectId(),
+      subProgram: {
+        steps: [{
+          _id: new ObjectId(),
+          activities: [{ activityHistories: [{}, {}] }],
+          name: 'Développement personnel full stack',
+          type: 'e_learning',
+          areActivitiesValid: false,
+        },
+        {
+          _id: stepId,
+          activities: [],
+          name: 'Développer des équipes agiles et autonomes',
+          type: 'on_site',
+          areActivitiesValid: true,
+        },
+        ],
+      },
+      slots: [
+        { startDate: '2020-11-03T09:00:00.000Z', endDate: '2020-11-03T12:00:00.000Z', step: stepId, attendances: [] },
+        { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T16:01:00.000Z', step: stepId, attendances: [] },
+      ],
+    };
+    getProgress.onCall(0).returns({ eLearning: 1 });
+    getProgress.onCall(1).returns({
+      live: 1,
+      presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } },
+    });
+    getCourseProgress.returns({
+      eLearning: 1,
+      live: 1,
+      presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } },
+    });
+
+    const result = await CourseHelper.formatCourseWithProgress(course, 0);
+    expect(result).toMatchObject({
+      ...course,
+      canAccessCompletionCertificate: false,
+      subProgram: {
+        ...course.subProgram,
+        steps: [
+          { ...course.subProgram.steps[0], progress: { eLearning: 1 } },
+          {
+            ...course.subProgram.steps[1],
+            progress: { live: 1, presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } } },
+          },
+        ],
+      },
+      progress: {
+        eLearning: 1,
+        live: 1,
+        presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } },
+      },
+    });
+    sinon.assert.calledWithExactly(getProgress.getCall(0), course.subProgram.steps[0], []);
+    sinon.assert.calledWithExactly(getProgress.getCall(1), course.subProgram.steps[1], course.slots);
+    sinon.assert.calledWithExactly(getCourseProgress.getCall(0), [
+      { ...course.subProgram.steps[0], slots: [], progress: { eLearning: 1 } },
+      {
+        ...course.subProgram.steps[1],
+        slots: course.slots,
+        progress: { live: 1, presence: { attendanceDuration: { minutes: 0 }, maxDuration: { minutes: 601 } } },
+      },
+    ]);
+  });
+
+  it('should format course (without canAccessCompletionCertificate)', async () => {
     const stepId = new ObjectId();
     const course = {
       misc: 'name',
@@ -1241,17 +1311,21 @@ describe('getTraineeElearningProgress', () => {
 describe('getTraineeCourse', () => {
   let formatCourseWithProgress;
   let courseFindOne;
+  let attendanceCountDocuments;
   beforeEach(() => {
     formatCourseWithProgress = sinon.stub(CourseHelper, 'formatCourseWithProgress');
     courseFindOne = sinon.stub(Course, 'findOne');
+    attendanceCountDocuments = sinon.stub(Attendance, 'countDocuments');
   });
   afterEach(() => {
     formatCourseWithProgress.restore();
     courseFindOne.restore();
+    attendanceCountDocuments.restore();
   });
 
   it('should return courses', async () => {
     const stepId = new ObjectId();
+    const lastSlotId = new ObjectId();
     const course = {
       _id: new ObjectId(),
       subProgram: {
@@ -1275,20 +1349,29 @@ describe('getTraineeCourse', () => {
       },
       slots: [
         {
+          _id: new ObjectId(),
           startDate: '2020-11-03T09:00:00.000Z',
           endDate: '2020-11-03T12:00:00.000Z',
           step: stepId,
           attendances: [{ _id: new ObjectId() }],
         },
-        { startDate: '2020-11-04T09:00:00.000Z', endDate: '2020-11-04T16:01:00.000Z', step: stepId, attendances: [] },
+        {
+          _id: lastSlotId,
+          startDate: '2020-11-04T09:00:00.000Z',
+          endDate: '2020-11-04T16:01:00.000Z',
+          step: stepId,
+          attendances: [],
+        },
       ],
     };
     const credentials = { _id: new ObjectId() };
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course, ['populate', 'select', 'lean']));
+    attendanceCountDocuments.returns(0);
 
     formatCourseWithProgress.returns({
       ...course,
+      canAccessCompletionCertificate: false,
       subProgram: {
         ...course.subProgram,
         steps: [
@@ -1312,6 +1395,7 @@ describe('getTraineeCourse', () => {
     const result = await CourseHelper.getTraineeCourse(course._id, credentials);
     expect(result).toMatchObject({
       ...course,
+      canAccessCompletionCertificate: false,
       subProgram: {
         ...course.subProgram,
         steps: [
@@ -1390,7 +1474,8 @@ describe('getTraineeCourse', () => {
       ]
     );
 
-    sinon.assert.calledWithExactly(formatCourseWithProgress, course);
+    sinon.assert.calledWithExactly(formatCourseWithProgress, course, 0);
+    sinon.assert.calledOnceWithExactly(attendanceCountDocuments, { courseSlot: lastSlotId });
   });
 });
 
