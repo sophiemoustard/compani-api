@@ -40,10 +40,12 @@ exports.getPdfContent = async (bill) => {
     },
     {
       stack: [
-        { text: bill.vendorCompany.name, bold: true },
-        { text: bill.vendorCompany.address.street || '' },
-        { text: `${bill.vendorCompany.address.zipCode} ${bill.vendorCompany.address.city}` },
-        { text: `Siret : ${formatSiret(bill.vendorCompany.siret)}` },
+        { text: get(bill, 'vendorCompany.name'), bold: true },
+        { text: get(bill, 'vendorCompany.address.street') || '' },
+        {
+          text: `${get(bill, 'vendorCompany.address.zipCode') || ''} ${get(bill, 'vendorCompany.address.city') || ''}`,
+        },
+        { text: `Siret : ${formatSiret(get(bill, 'vendorCompany.siret') || '')}` },
       ],
       marginBottom: 36,
     },
@@ -52,13 +54,13 @@ exports.getPdfContent = async (bill) => {
         {
           stack: [
             { text: 'Facturée à' },
-            { text: bill.funder.name, bold: true },
-            { text: get(bill, 'funder.address.street') },
+            { text: get(bill, 'funder.name') || '', bold: true },
+            { text: get(bill, 'funder.address.street') || '' },
             { text: `${get(bill, 'funder.address.zipCode') || ''} ${get(bill, 'funder.address.city') || ''}` },
           ],
         },
         {
-          stack: [{ text: 'Formation pour le compte de' }, { text: bill.clientCompany.name, bold: true }],
+          stack: [{ text: 'Formation pour le compte de' }, { text: get(bill, 'clientCompany.name'), bold: true }],
           alignment: 'right',
         },
       ],
