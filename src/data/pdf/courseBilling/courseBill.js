@@ -60,7 +60,7 @@ exports.getPdfContent = async (bill) => {
           ],
         },
         {
-          stack: [{ text: 'Formation pour le compte de' }, { text: get(bill, 'clientCompany.name'), bold: true }],
+          stack: [{ text: 'Formation pour le compte de' }, { text: get(bill, 'company.name'), bold: true }],
           alignment: 'right',
         },
       ],

@@ -10,7 +10,6 @@ const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const { LIST, BALANCE } = require('../../../src/helpers/constants');
-const UtilsMock = require('../../utilsMock');
 
 describe('getNetInclTaxes', () => {
   it('should return total price (without billing purchases)', async () => {
@@ -410,7 +409,6 @@ describe('generateBillPdf', () => {
     getPdfContent = sinon.stub(CourseBillPdf, 'getPdfContent');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
     getVendorCompany = sinon.stub(VendorCompaniesHelper, 'get');
-    UtilsMock.mockCurrentDate('2022-01-24T15:00:00.000Z');
   });
 
   afterEach(() => {
@@ -418,7 +416,6 @@ describe('generateBillPdf', () => {
     getPdfContent.restore();
     generatePdf.restore();
     getVendorCompany.restore();
-    UtilsMock.unmockCurrentDate();
   });
 
   it('should download course bill', async () => {
@@ -473,9 +470,9 @@ describe('generateBillPdf', () => {
       getPdfContent,
       {
         number: 'FACT-00001',
-        date: '24/01/2022',
+        date: '08/03/2022',
         vendorCompany,
-        clientCompany: bill.company,
+        company: bill.company,
         funder: bill.company,
         course: bill.course,
         mainFee: bill.mainFee,

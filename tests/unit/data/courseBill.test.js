@@ -36,7 +36,7 @@ describe('getPdfContent', () => {
         },
         siret: '27272727274124',
       },
-      clientCompany: { name: 'Test structure' },
+      company: { name: 'Test structure' },
       funder: {
         name: 'payeur',
         address: {
@@ -212,7 +212,7 @@ describe('getPdfContent', () => {
         },
         siret: '27272727274124',
       },
-      clientCompany: { name: 'Test structure' },
+      company: { name: 'Test structure' },
       funder: {
         name: 'payeur',
         address: {

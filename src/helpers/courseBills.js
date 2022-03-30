@@ -130,9 +130,9 @@ exports.generateBillPdf = async (billId) => {
 
   const data = {
     number: bill.number,
-    date: CompaniDate().format('dd/LL/yyyy'),
+    date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
     vendorCompany,
-    clientCompany: bill.company,
+    company: bill.company,
     funder: bill.courseFundingOrganisation || bill.company,
     course: bill.course,
     mainFee: bill.mainFee,
