@@ -19,37 +19,58 @@ const {
   PAYMENT,
   REFUND,
   FIXED,
-  ONCE,
   HOURLY,
   MONTHLY,
   WEBAPP,
 } = require('../../../src/helpers/constants');
+const Surcharge = require('../../../src/models/Surcharge');
 
 const subscriptions = [{ _id: new ObjectId() }, { _id: new ObjectId() }];
 
-const services = [{
+const surcharge = {
   _id: new ObjectId(),
   company: authCompany._id,
-  versions: [{
-    defaultUnitAmount: 12,
-    name: 'Service 1',
-    startDate: '2019-01-16T17:58:15',
-    vat: 12,
-    exemptFromCharges: false,
-  }],
-  nature: HOURLY,
-}, {
-  _id: new ObjectId(),
-  company: otherCompany._id,
-  versions: [{
-    defaultUnitAmount: 12,
-    name: 'Service 2',
-    startDate: '2019-01-16T17:58:15.519',
-    vat: 12,
-    exemptFromCharges: false,
-  }],
-  nature: HOURLY,
-}];
+  name: 'Chasse aux monstres hivernaux',
+  saturday: 25,
+  sunday: 20,
+  publicHoliday: 12,
+  twentyFifthOfDecember: 50,
+  firstOfMay: 30,
+  firstOfJanuary: 32,
+  evening: 10,
+  eveningStartTime: '20:00',
+  eveningEndTime: '23:00',
+  custom: 200,
+  customStartTime: '13:59',
+  customEndTime: '14:01',
+};
+
+const services = [
+  {
+    _id: new ObjectId(),
+    company: authCompany._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      name: 'Service 1',
+      startDate: '2019-01-16T17:58:15',
+      vat: 12,
+      exemptFromCharges: false,
+      surcharge: surcharge._id,
+    }],
+    nature: HOURLY,
+  },
+  {
+    _id: new ObjectId(),
+    company: otherCompany._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      name: 'Service 2',
+      startDate: '2019-01-16T17:58:15.519',
+      vat: 12,
+      exemptFromCharges: false,
+    }],
+    nature: HOURLY,
+  }];
 
 const thirdPartyPayer = {
   _id: new ObjectId(),
@@ -78,16 +99,16 @@ const billAuthcustomer = {
     service: services[0]._id,
     versions: [
       {
-        unitTTCRate: 12,
+        unitTTCRate: 27,
         weeklyHours: 12,
         evenings: 2,
         sundays: 1,
-        saturdays: 1,
+        saturdays: 3,
         weeklyCount: 0,
         createdAt: '2020-01-01T23:00:00',
       },
       {
-        unitTTCRate: 10,
+        unitTTCRate: 26,
         weeklyHours: 8,
         evenings: 0,
         saturdays: 0,
@@ -106,17 +127,19 @@ const billAuthcustomer = {
   fundings: [
     {
       _id: new ObjectId(),
-      nature: FIXED,
+      nature: HOURLY,
       thirdPartyPayer: thirdPartyPayer._id,
       subscription: subscriptions[0]._id,
-      frequency: ONCE,
+      frequency: MONTHLY,
       versions: [{
         folderNumber: 'D123456',
         startDate: new Date('2019-10-01'),
         createdAt: new Date('2019-10-01'),
         endDate: new Date('2020-02-01'),
         effectiveDate: new Date('2019-10-01'),
-        amountTTC: 1200,
+        unitTTCRate: 20,
+        careHours: 12,
+        customerParticipationRate: 15,
         careDays: [0, 1, 2, 3, 4, 5, 6],
       },
       {
@@ -124,7 +147,9 @@ const billAuthcustomer = {
         startDate: new Date('2020-02-02'),
         createdAt: new Date('2020-02-02'),
         effectiveDate: new Date('2020-02-02'),
-        amountTTC: 160,
+        unitTTCRate: 22,
+        careHours: 10,
+        customerParticipationRate: 10,
         careDays: [0, 1, 2, 3, 4, 5],
       }],
     },
@@ -571,6 +596,7 @@ const populateBilling = async () => {
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
   await Service.deleteMany();
+  await Surcharge.deleteMany();
   await Event.deleteMany();
   await User.deleteMany();
   await FundingHistory.deleteMany();
@@ -584,6 +610,7 @@ const populateBilling = async () => {
   await Bill.insertMany(authBillList);
   await new ThirdPartyPayer(thirdPartyPayer).save();
   await Service.insertMany(services);
+  await Surcharge.insertMany([surcharge]);
   await Customer.insertMany(customerList.concat(billAuthcustomer));
   await User.create(billUserList);
   await Contract.create(contracts);
