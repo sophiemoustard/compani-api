@@ -173,6 +173,16 @@ describe('COURSE FUNDING ORGANISATION ROUTES - DELETE /coursefundingorganisation
 
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return 403 if course funding organisation has bills', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/coursefundingorganisations/${courseFundingOrganisationsList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
