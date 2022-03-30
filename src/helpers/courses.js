@@ -377,9 +377,7 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   const lastSlot = course.slots.sort((a, b) => DatesHelper.descendingSort('startDate')(a, b))[0];
-  const canAccessCompletionCertificate = lastSlot
-    ? !!await Attendance.countDocuments({ courseSlot: lastSlot._id })
-    : false;
+  const canAccessCompletionCertificate = !!(lastSlot && await Attendance.countDocuments({ courseSlot: lastSlot._id }));
 
   return exports.formatCourseWithProgress({ ...course, canAccessCompletionCertificate });
 };
