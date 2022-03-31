@@ -149,7 +149,7 @@ exports.getPdfContent = async (bill) => {
   content.push(header, feeTable, tableFooter, footer);
   return {
     content: content.flat(),
-    defaultStyle: { font: 'Avenir', fontSize: 12 },
+    defaultStyle: { font: 'Avenir', fontSize: 12, lineHeight: 1.3 },
     styles: {
       marginRightLarge: { marginRight: 40 },
       header: { fillColor: COPPER_600, color: 'white' },

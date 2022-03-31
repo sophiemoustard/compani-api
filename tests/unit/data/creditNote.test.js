@@ -162,7 +162,7 @@ describe('getPdfContent', () => {
           layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
         },
       ],
-      defaultStyle: { font: 'Avenir', fontSize: 12 },
+      defaultStyle: { font: 'Avenir', fontSize: 12, lineHeight: 1.3 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
     const imageList = [
@@ -270,7 +270,7 @@ describe('getPdfContent', () => {
         },
         { text: '*ce total intègre les financements, majorations et éventuelles remises.' },
       ],
-      defaultStyle: { font: 'Avenir', fontSize: 12 },
+      defaultStyle: { font: 'Avenir', fontSize: 12, lineHeight: 1.3 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
     const imageList = [
@@ -395,7 +395,7 @@ describe('getPdfContent', () => {
           ],
         },
       ],
-      defaultStyle: { font: 'Avenir', fontSize: 12 },
+      defaultStyle: { font: 'Avenir', fontSize: 12, lineHeight: 1.3 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
     const imageList = [
