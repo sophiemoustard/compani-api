@@ -215,7 +215,7 @@ describe('getPdfContent', () => {
         },
         { text: 'Sku skusku', fontSize: 9, marginTop: 12, alignment: 'justify' },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'Avenir', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
     const imageList = [
@@ -369,7 +369,7 @@ describe('getPdfContent', () => {
           ],
         },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'Avenir', fontSize: 12 },
       styles: { marginRightLarge: { marginRight: 40 } },
     };
     const imageList = [

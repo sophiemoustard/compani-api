@@ -157,8 +157,8 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             { text: '' },
-            { text: 'Sous-total', alignment: 'right' },
-            { text: '1300,00 €', alignment: 'right', marginLeft: 22, marginRight: 4, width: 'auto' },
+            { text: 'Sous-total', alignment: 'right', marginRight: 22 },
+            { text: '1300,00 €', alignment: 'right', width: 'auto' },
           ],
         },
         {
@@ -169,7 +169,7 @@ describe('getPdfContent', () => {
           marginTop: 48,
         },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'Avenir', fontSize: 12 },
       styles: {
         marginRightLarge: { marginRight: 40 },
         header: { fillColor: COPPER_600, color: 'white' },
@@ -305,8 +305,8 @@ describe('getPdfContent', () => {
             { text: '' },
             { text: '' },
             { text: '' },
-            { text: 'Sous-total', alignment: 'right' },
-            { text: '1000,00 €', alignment: 'right', marginLeft: 22, marginRight: 4, width: 'auto' },
+            { text: 'Sous-total', alignment: 'right', marginRight: 22 },
+            { text: '1000,00 €', alignment: 'right', width: 'auto' },
           ],
         },
         {
@@ -317,7 +317,7 @@ describe('getPdfContent', () => {
           marginTop: 48,
         },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 12 },
+      defaultStyle: { font: 'Avenir', fontSize: 12 },
       styles: {
         marginRightLarge: { marginRight: 40 },
         header: { fillColor: COPPER_600, color: 'white' },

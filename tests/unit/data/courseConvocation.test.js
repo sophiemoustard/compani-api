@@ -141,7 +141,7 @@ describe('getPdfContent', () => {
     };
     const pdf = {
       content: [header, table, programInfo, trainerAndContactInfo].flat(),
-      defaultStyle: { font: 'SourceSans', fontSize: 10 },
+      defaultStyle: { font: 'Avenir', fontSize: 10 },
       styles: {
         title: { fontSize: 20, bold: true, color: '#1D7C8F', marginLeft: 24 },
         surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
@@ -288,7 +288,7 @@ describe('getPdfContent', () => {
     };
     const pdf = {
       content: [header, table, programInfo, trainerAndContactInfo].flat(),
-      defaultStyle: { font: 'SourceSans', fontSize: 10 },
+      defaultStyle: { font: 'Avenir', fontSize: 10 },
       styles: {
         title: { fontSize: 20, bold: true, color: '#1D7C8F', marginLeft: 24 },
         surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },

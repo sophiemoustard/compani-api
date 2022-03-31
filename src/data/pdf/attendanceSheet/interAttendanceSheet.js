@@ -17,7 +17,7 @@ exports.getPdfContent = async (data) => {
     const title = `Émargements - ${trainee.traineeName}`;
     const columns = [
       [
-        { text: `Nom de la formation : ${trainee.course.name}`, bold: true },
+        { text: `Nom de la formation : ${trainee.course.name}`, bold: true, marginBottom: 10 },
         { text: `Dates : du ${trainee.course.firstDate} au ${trainee.course.lastDate}` },
         { text: `Durée : ${trainee.course.duration}` },
         { text: `Structure : ${trainee.company}` },
@@ -46,7 +46,7 @@ exports.getPdfContent = async (data) => {
 
   return {
     content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 10 },
+    defaultStyle: { font: 'Avenir', fontSize: 10 },
     styles: {
       header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
       title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },
