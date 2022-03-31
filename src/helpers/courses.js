@@ -376,6 +376,14 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
+  if (!course.subProgram.isStrictlyELearning) {
+    const lastSlot = course.slots.sort((a, b) => DatesHelper.descendingSort('startDate')(a, b))[0];
+    const areLastSlotAttendancesValidated = !!(lastSlot &&
+      await Attendance.countDocuments({ courseSlot: lastSlot._id }));
+
+    return exports.formatCourseWithProgress({ ...course, areLastSlotAttendancesValidated });
+  }
+
   return exports.formatCourseWithProgress(course);
 };
 
