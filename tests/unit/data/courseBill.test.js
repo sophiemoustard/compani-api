@@ -88,7 +88,7 @@ describe('getPdfContent', () => {
           columns: [
             {
               stack: [
-                { text: 'Facturée à' },
+                { text: 'Facturer à' },
                 { text: 'payeur', bold: true },
                 { text: '24 Avenue Daumesnil' },
                 { text: '75012 Paris' },
@@ -260,7 +260,7 @@ describe('getPdfContent', () => {
           columns: [
             {
               stack: [
-                { text: 'Facturée à' },
+                { text: 'Facturer à' },
                 { text: 'payeur', bold: true },
                 { text: '24 Avenue Daumesnil' },
                 { text: '75012 Paris' },

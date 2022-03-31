@@ -53,7 +53,7 @@ exports.getPdfContent = async (bill) => {
       columns: [
         {
           stack: [
-            { text: 'Facturée à' },
+            { text: 'Facturer à' },
             { text: get(bill, 'funder.name') || '', bold: true },
             { text: get(bill, 'funder.address.street') || '' },
             { text: `${get(bill, 'funder.address.zipCode') || ''} ${get(bill, 'funder.address.city') || ''}` },
