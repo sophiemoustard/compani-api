@@ -133,14 +133,8 @@ exports.getPdfContent = async (bill) => {
         { text: '' },
         { text: '' },
         { text: '' },
-        { text: 'Sous-total', alignment: 'right' },
-        {
-          text: UtilsHelper.formatPrice(netInclTaxes),
-          alignment: 'right',
-          marginLeft: 22,
-          marginRight: 4,
-          width: 'auto',
-        },
+        { text: 'Sous-total', alignment: 'right', marginRight: 22 },
+        { text: UtilsHelper.formatPrice(netInclTaxes), alignment: 'right', width: 'auto' },
       ],
     };
 
@@ -155,9 +149,8 @@ exports.getPdfContent = async (bill) => {
   content.push(header, feeTable, tableFooter, footer);
   return {
     content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 12 },
+    defaultStyle: { font: 'Avenir', fontSize: 12 },
     styles: {
-      marginRightLarge: { marginRight: 40 },
       header: { fillColor: COPPER_600, color: 'white' },
       description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
     },

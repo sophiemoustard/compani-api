@@ -114,16 +114,16 @@ describe('getPdfContent', () => {
           style: 'marginBottomMedium',
         },
         {
-          text: 'Je soussigné(e) Clément SACRÉ TOM, Directeur général de Compakenni SAS,'
+          text: 'Je soussigné(e) Clément SACRÉ TOM, Directeur général de Compakenni SAS,'
           + ' certifie que Mme Maoui Lin (65 Rue du test 92230 Issy-les-Moulineaux)'
-          + ' a bénéficié d\'une aide à domicile.\n\n',
+          + ' a bénéficié d\'une aide à domicile.\n\n',
         },
         { text: 'Nature des interventions : Temps de qualité - autonomie.\n\n' },
         {
-          text: 'Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit'
-          + ' d\'impôt : 8 888,88 €',
+          text: 'Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit'
+          + ' d\'impôt : 8 888,88 €',
         },
-        { text: 'Dont montant total réglé avec des CESU préfinancés * : 25', style: 'marginBottomMedium' },
+        { text: 'Dont montant total réglé avec des CESU préfinancés * : 25', style: 'marginBottomMedium' },
         {
           table: {
             headerRows: 1,
@@ -135,26 +135,26 @@ describe('getPdfContent', () => {
           style: 'marginBottomMedium',
         },
         {
-          text: 'Les sommes que vous auriez perçues sur votre compte pour financer l\'aide à domicile sont à'
-          + ' déduire de la valeur indiquée précédemment. Votre déclaration n\'engage que votre responsabilité de'
+          text: 'Les sommes que vous auriez perçues sur votre compte pour financer l\'aide à domicile sont à'
+          + ' déduire de la valeur indiquée précédemment. Votre déclaration n\'engage que votre responsabilité de'
           + ' contribuable.\n\n',
         },
         {
-          text: '* Pour les personnes utilisant le Chèque emploi service universel, seul le montant que vous'
-          + ' avez personnellement financé est déductible (article 199 sexdecies du Code général des impôts et'
-           + ' article L7233-7 du code du travail). Une attestation vous sera délivrée par les établissements qui'
-          + ' préfinancent le Cesu.\n\n',
+          text: '* Pour les personnes utilisant le Chèque emploi service universel, seul le montant que vous'
+          + ' avez personnellement financé est déductible (article 199 sexdecies du Code général des impôts et'
+           + ' article L7233-7 du code du travail). Une attestation vous sera délivrée par les établissements qui'
+          + ' préfinancent le Cesu.\n\n',
         },
         {
-          text: 'Le client doit conserver à fin de contrôle, les factures remises par le prestataire de services,'
-          + ' qui précisent les dates et durées des interventions.\n\n',
+          text: 'Le client doit conserver à fin de contrôle, les factures remises par le prestataire de services,'
+          + ' qui précisent les dates et durées des interventions.\n\n',
         },
         { text: 'Fait pour valoir ce que de droit,' },
         { text: '29/01/2021', alignment: 'right' },
         { text: 'Clément SACRÉ TOM', alignment: 'right' },
         { text: 'Directeur général', alignment: 'right' },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
+      defaultStyle: { font: 'Avenir', fontSize: 10.5, alignment: 'justify' },
       styles: { marginBottomMedium: { marginBottom: 24 } },
     };
 
