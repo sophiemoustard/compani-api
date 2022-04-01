@@ -136,7 +136,7 @@ describe('getPdfContent', () => {
           unbreakable: true,
         },
       ],
-      defaultStyle: { font: 'Avenir', fontSize: 10, lineHeight: 1.3 },
+      defaultStyle: { font: 'Avenir', fontSize: 10 },
       styles: {
         header: { bold: true, fillColor: '#1D7C8F', color: 'white', alignment: 'center' },
         title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: '#1D7C8F' },

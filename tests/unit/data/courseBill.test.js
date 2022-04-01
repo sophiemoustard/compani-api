@@ -169,7 +169,7 @@ describe('getPdfContent', () => {
           marginTop: 48,
         },
       ],
-      defaultStyle: { font: 'Avenir', fontSize: 12, lineHeight: 1.3 },
+      defaultStyle: { font: 'Avenir', fontSize: 12 },
       styles: {
         marginRightLarge: { marginRight: 40 },
         header: { fillColor: COPPER_600, color: 'white' },
@@ -317,7 +317,7 @@ describe('getPdfContent', () => {
           marginTop: 48,
         },
       ],
-      defaultStyle: { font: 'Avenir', fontSize: 12, lineHeight: 1.3 },
+      defaultStyle: { font: 'Avenir', fontSize: 12 },
       styles: {
         marginRightLarge: { marginRight: 40 },
         header: { fillColor: COPPER_600, color: 'white' },
