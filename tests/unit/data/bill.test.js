@@ -216,7 +216,7 @@ describe('getPdfContent', () => {
         { text: 'Sku skusku', fontSize: 9, marginTop: 12, alignment: 'justify' },
       ],
       defaultStyle: { font: 'Avenir', fontSize: 11 },
-      styles: { marginRightLarge: { marginRight: 40 } },
+      styles: { marginRightLarge: { marginRight: 24 } },
     };
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
@@ -370,7 +370,7 @@ describe('getPdfContent', () => {
         },
       ],
       defaultStyle: { font: 'Avenir', fontSize: 11 },
-      styles: { marginRightLarge: { marginRight: 40 } },
+      styles: { marginRightLarge: { marginRight: 24 } },
     };
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/alenvi_logo_183x50.png', name: 'logo.png' },
