@@ -86,7 +86,7 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 100, r: 0, color: '#FFEDDA' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: '#FFEDDA' }],
           absolutePosition: { x: 40, y: 150 },
         },
         {
@@ -100,7 +100,7 @@ describe('getPdfContent', () => {
             ],
             { image: paths[2], width: 64 },
           ],
-          margin: [16, 0, 24, 16],
+          margin: [16, 0, 24, 24],
         },
         { table, marginBottom: 8 },
         {
@@ -122,7 +122,7 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 100, r: 0, color: '#FFEDDA' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: '#FFEDDA' }],
           absolutePosition: { x: 40, y: 150 },
         },
         {
@@ -136,7 +136,7 @@ describe('getPdfContent', () => {
             ],
             { image: paths[2], width: 64 },
           ],
-          margin: [16, 0, 24, 16],
+          margin: [16, 0, 24, 24],
         },
         { table, marginBottom: 8 },
         {

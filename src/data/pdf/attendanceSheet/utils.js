@@ -24,12 +24,12 @@ exports.getHeader = (compani, conscience, title, columns) => [
     marginBottom: 20,
   },
   {
-    canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 100, r: 0, color: PEACH_100 }],
+    canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: PEACH_100 }],
     absolutePosition: { x: 40, y: 150 },
   },
   {
     columns,
-    margin: [16, 0, 24, 16],
+    margin: [16, 0, 24, 24],
   },
 ];
 
