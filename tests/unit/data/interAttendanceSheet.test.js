@@ -86,13 +86,13 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 100, r: 0, color: '#FFEDDA' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: '#FFEDDA' }],
           absolutePosition: { x: 40, y: 150 },
         },
         {
           columns: [
             [
-              { text: 'Nom de la formation : Formation Test', bold: true },
+              { text: 'Nom de la formation : Formation Test', bold: true, marginBottom: 10 },
               { text: 'Dates : du 16/09/2021 au 28/01/2022' },
               { text: 'Durée : 56h' },
               { text: 'Structure : Alenvi Home SAS' },
@@ -100,7 +100,7 @@ describe('getPdfContent', () => {
             ],
             { image: paths[2], width: 64 },
           ],
-          margin: [16, 0, 24, 16],
+          margin: [16, 0, 24, 24],
         },
         { table, marginBottom: 8 },
         {
@@ -122,13 +122,13 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 100, r: 0, color: '#FFEDDA' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: '#FFEDDA' }],
           absolutePosition: { x: 40, y: 150 },
         },
         {
           columns: [
             [
-              { text: 'Nom de la formation : Formation Test', bold: true },
+              { text: 'Nom de la formation : Formation Test', bold: true, marginBottom: 10 },
               { text: 'Dates : du 16/09/2021 au 28/01/2022' },
               { text: 'Durée : 56h' },
               { text: 'Structure : APEF Rouen' },
@@ -136,7 +136,7 @@ describe('getPdfContent', () => {
             ],
             { image: paths[2], width: 64 },
           ],
-          margin: [16, 0, 24, 16],
+          margin: [16, 0, 24, 24],
         },
         { table, marginBottom: 8 },
         {
@@ -148,7 +148,7 @@ describe('getPdfContent', () => {
           unbreakable: true,
         },
       ],
-      defaultStyle: { font: 'SourceSans', fontSize: 10 },
+      defaultStyle: { font: 'Avenir', fontSize: 10 },
       styles: {
         header: { bold: true, fillColor: '#1D7C8F', color: 'white', alignment: 'center' },
         title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: '#1D7C8F' },

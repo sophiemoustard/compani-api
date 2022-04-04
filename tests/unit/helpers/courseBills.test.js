@@ -4,10 +4,12 @@ const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
+const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const PdfHelper = require('../../../src/helpers/pdf');
 const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
+const { LIST, BALANCE } = require('../../../src/helpers/constants');
 
 describe('getNetInclTaxes', () => {
   it('should return total price (without billing purchases)', async () => {
@@ -55,7 +57,7 @@ describe('list', () => {
     ];
     find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
 
-    const result = await CourseBillHelper.list(courseId, credentials);
+    const result = await CourseBillHelper.list({ course: courseId, action: LIST }, credentials);
 
     expect(result).toEqual([{
       course: courseId,
@@ -95,7 +97,7 @@ describe('list', () => {
     ];
     find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
 
-    const result = await CourseBillHelper.list(courseId, credentials);
+    const result = await CourseBillHelper.list({ course: courseId, action: LIST }, credentials);
 
     expect(result).toEqual([{
       course: courseId,
@@ -115,6 +117,76 @@ describe('list', () => {
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseFundingOrganisation', select: 'name' }] },
         { query: 'setOptions', args: [{ isVendorUser: has(credentials, 'role.vendor') }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return all company bills', async () => {
+    const companyId = new ObjectId();
+    const courseId = new ObjectId();
+    const course = {
+      _id: courseId,
+      misc: 'group 1',
+      subProgram: { program: { name: 'program 1' } },
+      slots: [
+        { startDate: '2021-11-11T08:00:00.000Z', endDate: '2021-11-11T14:00:00.000Z' },
+      ],
+      slotsToPlan: [],
+    };
+
+    const credentials = { role: { vendor: new ObjectId() } };
+    const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
+    const courseBills = [
+      {
+        course,
+        company: companyId,
+        mainFee: { price: 120, count: 2 },
+        courseFundingOrganisation: { name: 'Funder' },
+        billingPurchaseList: [
+          { billingItem: billingItemList[0]._id, price: 90, count: 1 },
+          { billingItem: billingItemList[1]._id, price: 400, count: 1 },
+        ],
+        billedAt: '2022-03-11T08:00:00.000Z',
+      },
+    ];
+    find.returns(SinonMongoose.stubChainedQueries(courseBills));
+
+    const result = await CourseBillHelper.list({ company: companyId, action: BALANCE }, credentials);
+
+    expect(result).toEqual([{
+      course: {
+        _id: courseId,
+        misc: 'group 1',
+        subProgram: { program: { name: 'program 1' } },
+      },
+      company: companyId,
+      mainFee: { price: 120, count: 2 },
+      courseFundingOrganisation: { name: 'Funder' },
+      billingPurchaseList: [
+        { billingItem: billingItemList[0]._id, price: 90, count: 1 },
+        { billingItem: billingItemList[1]._id, price: 400, count: 1 },
+      ],
+      netInclTaxes: 730,
+      billedAt: '2022-03-11T08:00:00.000Z',
+      progress: 1,
+    }]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: companyId, billedAt: { $exists: true, $type: 'date' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'misc slots slotsToPlan subProgram',
+            populate: [
+              { path: 'slots' },
+              { path: 'slotsToPlan' },
+              { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+            ],
+          }],
+        },
         { query: 'lean' },
       ]
     );
@@ -330,21 +402,36 @@ describe('generateBillPdf', () => {
   let findOne;
   let getPdfContent;
   let generatePdf;
+  let getVendorCompany;
 
   beforeEach(() => {
     findOne = sinon.stub(CourseBill, 'findOne');
     getPdfContent = sinon.stub(CourseBillPdf, 'getPdfContent');
     generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+    getVendorCompany = sinon.stub(VendorCompaniesHelper, 'get');
   });
 
   afterEach(() => {
     findOne.restore();
     getPdfContent.restore();
     generatePdf.restore();
+    getVendorCompany.restore();
   });
 
   it('should download course bill', async () => {
     const billId = new ObjectId();
+
+    const vendorCompany = {
+      name: 'Auchan',
+      address: {
+        fullAddress: '32 Rue du Loup 33000 Bordeaux',
+        street: '32 Rue du Loup',
+        city: 'Bordeaux',
+        zipCode: '33000',
+        location: { type: 'Point', coordinates: [-0.573054, 44.837914] },
+      },
+      siret: '27272727274124',
+    };
 
     const bill = {
       _id: new ObjectId(),
@@ -359,8 +446,20 @@ describe('generateBillPdf', () => {
       ],
       number: 'FACT-00001',
       billedAt: '2022-03-08T00:00:00.000Z',
+      company: {
+        name: 'test',
+        address: {
+          fullAddress: '24 Avenue Daumesnil 75012 Paris',
+          street: '24 Avenue Daumesnil',
+          city: 'Paris',
+          zipCode: '75012',
+          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+        },
+      },
+      courseFundingOrganisation: '',
     };
 
+    getVendorCompany.returns(vendorCompany);
     findOne.returns(SinonMongoose.stubChainedQueries(bill));
     getPdfContent.returns({ content: [{ text: 'data' }] });
     generatePdf.returns({ pdf: 'pdf' });
@@ -370,6 +469,11 @@ describe('generateBillPdf', () => {
     sinon.assert.calledOnceWithExactly(
       getPdfContent,
       {
+        number: 'FACT-00001',
+        date: '08/03/2022',
+        vendorCompany,
+        company: bill.company,
+        funder: bill.company,
         course: bill.course,
         mainFee: bill.mainFee,
         billingPurchaseList: bill.billingPurchaseList,
@@ -393,6 +497,8 @@ describe('generateBillPdf', () => {
             path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' },
           }],
         },
+        { query: 'populate', args: [{ path: 'company', select: 'name address' }] },
+        { query: 'populate', args: ['courseFundingOrganisation'] },
         { query: 'lean' },
       ]);
   });

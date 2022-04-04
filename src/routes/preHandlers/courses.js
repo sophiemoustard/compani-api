@@ -16,24 +16,25 @@ const {
   STRICTLY_E_LEARNING,
   BLENDED,
   ON_SITE,
+  MOBILE,
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
 
 const { language } = translate;
 
-exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, traineeCompanyId = null) => {
+exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, traineeCompanyIds = []) => {
   const userVendorRole = get(credentials, 'role.vendor.name');
   const userClientRole = get(credentials, 'role.client.name');
   const userCompanyId = credentials.company ? credentials.company._id.toHexString() : null;
   const userId = get(credentials, '_id');
-  const areCompaniesEqual = UtilsHelper.areObjectIdsEquals(userCompanyId, courseCompanyId) ||
-    UtilsHelper.areObjectIdsEquals(userCompanyId, traineeCompanyId);
+  const areCompaniesMatching = UtilsHelper.areObjectIdsEquals(userCompanyId, courseCompanyId) ||
+    traineeCompanyIds.find(traineeCompanyId => UtilsHelper.areObjectIdsEquals(userCompanyId, traineeCompanyId));
 
   const isAdminVendor = userVendorRole === VENDOR_ADMIN;
   const isTOM = userVendorRole === TRAINING_ORGANISATION_MANAGER;
   const isTrainerAndAuthorized = userVendorRole === TRAINER && UtilsHelper.areObjectIdsEquals(userId, courseTrainerId);
-  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && userCompanyId && areCompaniesEqual;
+  const isClientAndAuthorized = [CLIENT_ADMIN, COACH].includes(userClientRole) && userCompanyId && areCompaniesMatching;
 
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
@@ -53,9 +54,12 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
   const { credentials } = req.auth;
   const { course } = req.pre;
 
+  const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), get(credentials, '_id'));
+  if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
+
   const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
   const courseCompanyId = course.company ? course.company.toHexString() : null;
-  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
+  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, course.trainees.map(t => t.company));
 
   return null;
 };
@@ -231,7 +235,7 @@ exports.getCourse = async (req) => {
   const course = await Course.findById(req.params._id)
     .populate({ path: 'slots', select: 'startDate endDate' })
     .populate({ path: 'slotsToPlan' })
-    .populate({ path: 'trainees', select: 'contact.phone' })
+    .populate({ path: 'trainees', select: 'contact.phone', populate: { path: 'company' } })
     .populate({ path: 'contact', select: 'identity.lastname contact.phone' })
     .lean();
   if (!course) throw Boom.notFound();

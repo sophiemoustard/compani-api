@@ -30,7 +30,7 @@ const CompanySchema = mongoose.Schema({
     firstname: { type: String },
     position: { type: String },
   },
-  type: { type: String, enum: COMPANY_TYPES, default: COMPANY },
+  type: { type: String, enum: COMPANY_TYPES },
   folderId: { type: String, required: true },
   directDebitsFolderId: { type: String, required: true },
   customersFolderId: { type: String, required: true },

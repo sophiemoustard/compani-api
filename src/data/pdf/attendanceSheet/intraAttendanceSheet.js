@@ -10,7 +10,7 @@ exports.getPdfContent = async (data) => {
     const title = `Feuille d'émargement - ${date.date}`;
     const columns = [
       [
-        { text: `Nom de la formation : ${date.course.name}`, bold: true },
+        { text: `Nom de la formation : ${date.course.name}`, bold: true, marginBottom: 10 },
         { text: `Durée : ${date.course.duration}` },
         { text: `Lieu : ${date.address}` },
         { text: `Structure : ${date.course.company}` },
@@ -45,7 +45,7 @@ exports.getPdfContent = async (data) => {
 
   return {
     content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 10 },
+    defaultStyle: { font: 'Avenir', fontSize: 10 },
     styles: {
       header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
       title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },

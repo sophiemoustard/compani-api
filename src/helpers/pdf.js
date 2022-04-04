@@ -35,10 +35,15 @@ exports.formatTable = (items, options) => {
 };
 
 const fonts = {
-  SourceSans: {
-    normal: 'src/data/pdf/fonts/SourceSansPro-Regular.ttf',
-    bold: 'src/data/pdf/fonts/SourceSansPro-Bold.ttf',
-    italics: 'src/data/pdf/fonts/SourceSansPro-Italic.ttf',
+  Avenir: {
+    normal: 'src/data/pdf/fonts/Avenir-Regular.otf',
+    bold: 'src/data/pdf/fonts/Avenir-Bold.otf',
+    italics: 'src/data/pdf/fonts/Avenir-Italic.otf',
+  },
+  Calibri: {
+    normal: 'src/data/pdf/fonts/Calibri-Regular.ttf',
+    bold: 'src/data/pdf/fonts/Calibri-Bold.TTF',
+    italics: 'src/data/pdf/fonts/Calibri-Italic.ttf',
   },
   icon: {
     normal: 'src/data/pdf/fonts/icon.ttf',

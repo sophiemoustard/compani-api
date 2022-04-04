@@ -1,8 +1,10 @@
 module.exports = {
+  COPPER_50: '#F0FAF7',
   COPPER_500: '#1D7C8F',
   COPPER_600: '#005774',
   COPPER_GREY_200: '#E2ECF0',
   PEACH_100: '#FFEDDA',
+  ORANGE_500: '#F5970B',
   SENDER_MAIL: 'nepasrepondre@compani.fr',
   IDENTIFICATION: 'identification',
   CONTRACT_END: 'contract_end',
@@ -232,65 +234,6 @@ module.exports = {
   FORMATION: 'formation',
   // SUBSCRIPTIONS
   ERP: 'erp',
-  // EXPORTS
-  SERVICE: 'service',
-  SECTOR: 'sector',
-  RUP: 'rup',
-  REFERENT: 'referent',
-  CUSTOMER: 'customer',
-  SUBSCRIPTION: 'subscription',
-  FUNDING: 'funding',
-  get CARE_DAYS_INDEX() {
-    return {
-      [this.MONDAY]: 'Lundi',
-      [this.TUESDAY]: 'Mardi',
-      [this.WEDNESDAY]: 'Mercredi',
-      [this.THURSDAY]: 'Jeudi',
-      [this.FRIDAY]: 'Vendredi',
-      [this.SATURDAY]: 'Samedi',
-      [this.SUNDAY]: 'Dimanche',
-      [this.CARE_HOLIDAY]: 'Jours fériés',
-    };
-  },
-  // EXPORTS HISTORY
-  TRANSPORT: 'transport',
-  WORKING_EVENT: 'working_event', // intervention or internal hours
-  COURSE: 'course',
-  COURSE_SLOT: 'course_slot',
-  get HISTORY_EXPORT_TYPES() {
-    return [
-      this.WORKING_EVENT,
-      this.BILL,
-      this.PAYMENT,
-      this.ABSENCE,
-      this.PAY,
-      this.CONTRACT,
-      this.COURSE,
-      this.COURSE_SLOT,
-      this.TRANSPORT,
-    ];
-  },
-  get CLIENT_EXPORT_TYPES() {
-    return [
-      this.WORKING_EVENT,
-      this.BILL,
-      this.PAYMENT,
-      this.ABSENCE,
-      this.PAY,
-      this.CONTRACT,
-      this.SERVICE,
-      this.AUXILIARY,
-      this.HELPER,
-      this.CUSTOMER,
-      this.FUNDING,
-      this.SUBSCRIPTION,
-      this.SECTOR,
-      this.RUP,
-      this.REFERENT,
-      this.TRANSPORT,
-    ];
-  },
-  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT]; },
   // BILLING
   BILL: 'bill',
   CREDIT_NOTE: 'credit_note',
@@ -554,4 +497,67 @@ module.exports = {
   ACTIVATED: 'Actif',
   STOPPED: 'Arrêté',
   ARCHIVED: 'Archivé',
+  // EXPORTS
+  SERVICE: 'service',
+  SECTOR: 'sector',
+  RUP: 'rup',
+  REFERENT: 'referent',
+  CUSTOMER: 'customer',
+  SUBSCRIPTION: 'subscription',
+  FUNDING: 'funding',
+  get CARE_DAYS_INDEX() {
+    return {
+      [this.MONDAY]: 'Lundi',
+      [this.TUESDAY]: 'Mardi',
+      [this.WEDNESDAY]: 'Mercredi',
+      [this.THURSDAY]: 'Jeudi',
+      [this.FRIDAY]: 'Vendredi',
+      [this.SATURDAY]: 'Samedi',
+      [this.SUNDAY]: 'Dimanche',
+      [this.CARE_HOLIDAY]: 'Jours fériés',
+    };
+  },
+  // EXPORTS HISTORY
+  TRANSPORT: 'transport',
+  WORKING_EVENT: 'working_event', // intervention or internal hours
+  COURSE: 'course',
+  COURSE_SLOT: 'course_slot',
+  get HISTORY_EXPORT_TYPES() {
+    return [
+      this.WORKING_EVENT,
+      this.BILL,
+      this.PAYMENT,
+      this.ABSENCE,
+      this.PAY,
+      this.CONTRACT,
+      this.COURSE,
+      this.COURSE_SLOT,
+      this.TRANSPORT,
+      this.END_OF_COURSE,
+    ];
+  },
+  get CLIENT_EXPORT_TYPES() {
+    return [
+      this.WORKING_EVENT,
+      this.BILL,
+      this.PAYMENT,
+      this.ABSENCE,
+      this.PAY,
+      this.CONTRACT,
+      this.SERVICE,
+      this.AUXILIARY,
+      this.HELPER,
+      this.CUSTOMER,
+      this.FUNDING,
+      this.SUBSCRIPTION,
+      this.SECTOR,
+      this.RUP,
+      this.REFERENT,
+      this.TRANSPORT,
+    ];
+  },
+  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT, this.END_OF_COURSE]; },
+  // COURSE BILLING
+  LIST: 'list',
+  BALANCE: 'balance',
 };

@@ -82,19 +82,19 @@ const getBody = taxCertificate => [
     style: 'marginBottomMedium',
   },
   {
-    text: `Je soussigné(e) ${taxCertificate.company.legalRepresentative.name},`
+    text: `Je soussigné(e) ${taxCertificate.company.legalRepresentative.name},`
       + ` ${taxCertificate.company.legalRepresentative.position} de ${taxCertificate.company.name},`
       + ` certifie que ${taxCertificate.customer.name} (${taxCertificate.customer.address.fullAddress})`
-      + ' a bénéficié d\'une aide à domicile.\n\n',
+      + ' a bénéficié d\'une aide à domicile.\n\n',
   },
   { text: `Nature des interventions : ${taxCertificate.subscriptions}.\n\n` },
   {
-    text: 'Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit d\'impôt :'
+    text: 'Montant total des interventions effectivement acquitté ouvrant droit à réduction ou crédit d\'impôt :'
       + ` ${taxCertificate.totalPaid}`,
   },
   {
     text: taxCertificate.cesu
-      ? `Dont montant total réglé avec des CESU préfinancés * : ${taxCertificate.cesu}`
+      ? `Dont montant total réglé avec des CESU préfinancés * : ${taxCertificate.cesu}`
       : '',
     style: 'marginBottomMedium',
   },
@@ -109,19 +109,19 @@ const getBody = taxCertificate => [
     style: 'marginBottomMedium',
   },
   {
-    text: 'Les sommes que vous auriez perçues sur votre compte pour financer l\'aide à domicile sont à déduire de'
-      + ' la valeur indiquée précédemment. Votre déclaration n\'engage que votre responsabilité de'
+    text: 'Les sommes que vous auriez perçues sur votre compte pour financer l\'aide à domicile sont à déduire de'
+      + ' la valeur indiquée précédemment. Votre déclaration n\'engage que votre responsabilité de'
       + ' contribuable.\n\n',
   },
   {
-    text: '* Pour les personnes utilisant le Chèque emploi service universel, seul le montant que vous'
-      + ' avez personnellement financé est déductible (article 199 sexdecies du Code général des impôts et'
-       + ' article L7233-7 du code du travail). Une attestation vous sera délivrée par les établissements qui'
-      + ' préfinancent le Cesu.\n\n',
+    text: '* Pour les personnes utilisant le Chèque emploi service universel, seul le montant que vous'
+      + ' avez personnellement financé est déductible (article 199 sexdecies du Code général des impôts et'
+       + ' article L7233-7 du code du travail). Une attestation vous sera délivrée par les établissements qui'
+      + ' préfinancent le Cesu.\n\n',
   },
   {
-    text: 'Le client doit conserver à fin de contrôle, les factures remises par le prestataire de services,'
-      + ' qui précisent les dates et durées des interventions.\n\n',
+    text: 'Le client doit conserver à fin de contrôle, les factures remises par le prestataire de services,'
+      + ' qui précisent les dates et durées des interventions.\n\n',
   },
 ];
 
@@ -143,7 +143,7 @@ exports.getPdfContent = async (data) => {
 
   return {
     content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 11, alignment: 'justify' },
+    defaultStyle: { font: 'Avenir', fontSize: 10.5, alignment: 'justify' },
     styles: { marginBottomMedium: { marginBottom: 24 } },
   };
 };

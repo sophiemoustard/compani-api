@@ -28,15 +28,25 @@ exports.authorizeCourseBillCreation = async (req) => {
 };
 
 exports.authorizeCourseBillGet = async (req) => {
-  const { course } = req.query;
-  const courseExists = await Course.countDocuments({ _id: course });
-  if (!courseExists) throw Boom.notFound();
+  const { course, company } = req.query;
 
+  if (course) {
+    const courseExists = await Course.countDocuments({ _id: course });
+    if (!courseExists) throw Boom.notFound();
+  }
+
+  if (company) {
+    const companyExists = await Company.countDocuments({ _id: company });
+    if (!companyExists) throw Boom.notFound();
+  }
   return null;
 };
 
 exports.authorizeCourseBillUpdate = async (req) => {
-  const courseBill = await CourseBill.findOne({ _id: req.params._id }).lean();
+  const courseBill = await CourseBill
+    .findOne({ _id: req.params._id })
+    .populate({ path: 'company', select: 'address' })
+    .lean();
   if (!courseBill) throw Boom.notFound();
 
   if (req.payload.courseFundingOrganisation) {
@@ -45,9 +55,14 @@ exports.authorizeCourseBillUpdate = async (req) => {
     if (!courseFundingOrganisationExists) throw Boom.notFound();
   }
 
-  if (courseBill.billedAt) {
-    if (req.payload.billedAt) throw Boom.forbidden();
+  if (req.payload.billedAt) {
+    if (courseBill.billedAt) throw Boom.forbidden();
+    if (!get(courseBill, 'courseFundingOrganisation') && !get(courseBill, 'company.address')) {
+      throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
+    }
+  }
 
+  if (courseBill.billedAt) {
     if (has(req.payload, 'courseFundingOrganisation')) {
       const payloadCourseFundingOrga = req.payload.courseFundingOrganisation;
       const courseBillCourseFundingOrga = courseBill.courseFundingOrganisation;

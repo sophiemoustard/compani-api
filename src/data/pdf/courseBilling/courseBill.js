@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const UtilsHelper = require('../../../helpers/utils');
 const NumbersHelper = require('../../../helpers/numbers');
 const FileHelper = require('../../../helpers/file');
@@ -12,16 +13,66 @@ exports.getImages = async () => {
   return FileHelper.downloadImages(imageList);
 };
 
+const formatSiret = siret => siret &&
+  `${siret.slice(0, 3)} ${siret.slice(3, 6)} ${siret.slice(6, 9)} ${siret.slice(9, 14)}`;
+
 exports.getPdfContent = async (bill) => {
   const [compani] = await exports.getImages();
 
   const header = [
-    { columns: [{ image: compani, width: 200, height: 42, alignment: 'right' }], marginBottom: 20 },
+    {
+      columns: [
+        { image: compani, width: 200, height: 42, alignment: 'right' },
+        {
+          stack: [
+            { text: 'Facture', fontSize: 32 },
+            { text: bill.number, bold: true },
+            { text: `Date de facture : ${bill.date}` },
+          ],
+          alignment: 'right',
+        },
+      ],
+      marginBottom: 4,
+    },
     {
       canvas: [{ type: 'rect', x: 0, y: 0, w: 200, h: 42, r: 0, fillOpacity: 0.5, color: 'white' }],
       absolutePosition: { x: 40, y: 40 },
     },
+    {
+      stack: [
+        { text: get(bill, 'vendorCompany.name'), bold: true },
+        { text: get(bill, 'vendorCompany.address.street') || '' },
+        {
+          text: `${get(bill, 'vendorCompany.address.zipCode') || ''} ${get(bill, 'vendorCompany.address.city') || ''}`,
+        },
+        { text: `Siret : ${formatSiret(get(bill, 'vendorCompany.siret') || '')}` },
+      ],
+      marginBottom: 36,
+    },
+    {
+      columns: [
+        {
+          stack: [
+            { text: 'Facturer à' },
+            { text: get(bill, 'funder.name') || '', bold: true },
+            { text: get(bill, 'funder.address.street') || '' },
+            { text: `${get(bill, 'funder.address.zipCode') || ''} ${get(bill, 'funder.address.city') || ''}` },
+          ],
+        },
+        {
+          stack: [{ text: 'Formation pour le compte de' }, { text: get(bill, 'company.name'), bold: true }],
+          alignment: 'right',
+        },
+      ],
+    },
   ];
+
+  const footer = [{
+    text: 'Merci de lire attentivement nos Conditions Générales de Prestations et le(s) programme(s) de formation en '
+      + 'pièce-jointe.\nEn tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
+    fontSize: 8,
+    marginTop: 48,
+  }];
 
   const billDetailsTableBody = [
     [
@@ -82,31 +133,24 @@ exports.getPdfContent = async (bill) => {
         { text: '' },
         { text: '' },
         { text: '' },
-        { text: 'Sous-total', alignment: 'right' },
-        {
-          text: UtilsHelper.formatPrice(netInclTaxes),
-          alignment: 'right',
-          marginLeft: 22,
-          marginRight: 4,
-          width: 'auto',
-        },
+        { text: 'Sous-total', alignment: 'right', marginRight: 22 },
+        { text: UtilsHelper.formatPrice(netInclTaxes), alignment: 'right', width: 'auto' },
       ],
     };
 
   const feeTable = [
     {
       table: { body: billDetailsTableBody, widths: ['5%', '50%', '15%', '15%', '15%'] },
-      margin: [0, 40, 0, 8],
+      margin: [0, 8, 0, 8],
       layout: { vLineWidth: () => 0, hLineWidth: i => (i > 1 ? 1 : 0), hLineColor: () => COPPER_GREY_200 },
     },
   ];
   const content = [];
-  content.push(header, feeTable, tableFooter);
+  content.push(header, feeTable, tableFooter, footer);
   return {
     content: content.flat(),
-    defaultStyle: { font: 'SourceSans', fontSize: 12 },
+    defaultStyle: { font: 'Avenir', fontSize: 12 },
     styles: {
-      marginRightLarge: { marginRight: 40 },
       header: { fillColor: COPPER_600, color: 'white' },
       description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
     },
