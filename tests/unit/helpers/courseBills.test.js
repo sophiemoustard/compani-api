@@ -175,6 +175,7 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ company: companyId, billedAt: { $exists: true, $type: 'date' } }] },
+        { query: 'populate', args: ['company'] },
         {
           query: 'populate',
           args: [{
@@ -186,6 +187,10 @@ describe('list', () => {
               { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
             ],
           }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'coursePayments', options: { isVendorUser: has(credentials, 'role.vendor') } }],
         },
         { query: 'lean' },
       ]

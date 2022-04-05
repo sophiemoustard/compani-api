@@ -23,6 +23,12 @@ const CourseBillSchema = mongoose.Schema({
   number: { type: String, required() { return !!this.billedAt; } },
 }, { timestamps: true });
 
+CourseBillSchema.virtual('coursePayments', {
+  ref: 'CoursePayment',
+  localField: '_id',
+  foreignField: 'courseBill',
+});
+
 CourseBillSchema.pre('find', validateQuery);
 CourseBillSchema.pre('aggregate', validateAggregation);
 formatQueryMiddlewareList().map(middleware => CourseBillSchema.pre(middleware, formatQuery));
