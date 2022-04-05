@@ -19,6 +19,7 @@ exports.routes = [
   { plugin: require('./courseBillingItems'), routes: { prefix: '/coursebillingitems' } },
   { plugin: require('./courseFundingOrganisations'), routes: { prefix: '/coursefundingorganisations' } },
   { plugin: require('./courseHistories'), routes: { prefix: '/coursehistories' } },
+  { plugin: require('./coursePayments'), routes: { prefix: '/coursepayments' } },
   { plugin: require('./courses'), routes: { prefix: '/courses' } },
   { plugin: require('./courseSlots'), routes: { prefix: '/courseslots' } },
   { plugin: require('./creditNotes'), routes: { prefix: '/creditNotes' } },
