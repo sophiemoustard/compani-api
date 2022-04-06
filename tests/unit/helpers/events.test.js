@@ -228,8 +228,8 @@ describe('updateEvent', () => {
     const auxiliaryId = new ObjectId();
     const event = { _id: new ObjectId(), type: INTERVENTION, auxiliary: { _id: auxiliaryId } };
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T10:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T10:38:18.000Z',
       auxiliary: auxiliaryId.toHexString(),
     };
 
@@ -260,8 +260,8 @@ describe('updateEvent', () => {
       const auxiliary = new ObjectId();
       const event = { _id: new ObjectId(), type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
       const payload = {
-        startDate: '2019-01-21T09:38:18',
-        endDate: '2019-01-21T10:38:18',
+        startDate: '2019-01-21T09:38:18.000Z',
+        endDate: '2019-01-21T10:38:18.000Z',
         auxiliary: auxiliary.toHexString(),
         shouldUpdateRepetition: true,
       };
@@ -292,8 +292,8 @@ describe('updateEvent', () => {
     const auxiliary = new ObjectId();
     const event = { _id: new ObjectId(), type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T10:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T10:38:18.000Z',
       auxiliary: auxiliary.toHexString(),
       shouldUpdateRepetition: true,
     };
@@ -329,8 +329,8 @@ describe('updateEvent', () => {
     const parentId = new ObjectId();
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week', parentId } };
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T10:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T10:38:18.000Z',
       auxiliary: auxiliary.toHexString(),
       shouldUpdateRepetition: true,
     };
@@ -377,8 +377,8 @@ describe('updateEvent', () => {
     const eventId = new ObjectId();
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T10:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T10:38:18.000Z',
       auxiliary: auxiliary.toHexString(),
       shouldUpdateRepetition: false,
     };
@@ -415,8 +415,8 @@ describe('updateEvent', () => {
     const auxiliaryId = new ObjectId();
     const event = { _id: eventId, type: INTERVENTION, auxiliary: { _id: auxiliaryId } };
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T12:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T12:38:18.000Z',
       auxiliary: auxiliaryId.toHexString(),
       misc: 'test',
     };
@@ -468,12 +468,12 @@ describe('updateEvent', () => {
       _id: eventId,
       type: ABSENCE,
       auxiliary: { _id: auxiliaryId },
-      startDate: '2019-01-21T00:00:00',
-      endDate: '2019-01-24T23:59:59',
+      startDate: '2019-01-21T00:00:00.000Z',
+      endDate: '2019-01-24T23:59:59.000Z',
     };
     const payload = {
-      startDate: '2019-01-21T00:00:00',
-      endDate: '2019-01-24T23:59:59',
+      startDate: '2019-01-21T00:00:00.000Z',
+      endDate: '2019-01-24T23:59:59.000Z',
       auxiliary: auxiliaryId.toHexString(),
     };
 
@@ -517,7 +517,7 @@ describe('updateEvent', () => {
     );
     sinon.assert.calledOnceWithExactly(
       unassignConflictInterventions,
-      { startDate: '2019-01-21T00:00:00', endDate: '2019-01-24T23:59:59' },
+      { startDate: '2019-01-21T00:00:00.000Z', endDate: '2019-01-24T23:59:59.000Z' },
       { _id: auxiliaryId },
       credentials
     );
@@ -648,7 +648,7 @@ describe('populateEventSubscription', () => {
             sundays: 2,
           },
           {
-            createdAt: '2019-01-21T09:38:18',
+            createdAt: '2019-01-21T09:38:18.000Z',
             _id: new ObjectId(),
             service: new ObjectId(),
             unitTTCRate: 25,
@@ -690,7 +690,7 @@ describe('populateEventSubscription', () => {
       customer: {
         subscriptions: [
           {
-            createdAt: '2019-01-21T09:38:18',
+            createdAt: '2019-01-21T09:38:18.000Z',
             _id: new ObjectId(),
             service: new ObjectId(),
             unitTTCRate: 25,
@@ -735,7 +735,7 @@ describe('populateEvents', () => {
               sundays: 2,
             },
             {
-              createdAt: '2019-01-21T09:38:18',
+              createdAt: '2019-01-21T09:38:18.000Z',
               _id: new ObjectId(),
               service: new ObjectId(),
               unitTTCRate: 25,
@@ -1340,8 +1340,8 @@ describe('createEvent', () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       type: ABSENCE,
-      startDate: '2019-03-20T10:00:00',
-      endDate: '2019-03-20T12:00:00',
+      startDate: '2019-03-20T10:00:00.000Z',
+      endDate: '2019-03-20T12:00:00.000Z',
       auxiliary: auxiliaryId,
       company: new ObjectId(),
     };
@@ -1365,7 +1365,7 @@ describe('createEvent', () => {
     );
     sinon.assert.calledOnceWithExactly(
       unassignConflictInterventions,
-      { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' },
+      { startDate: '2019-03-20T10:00:00.000Z', endDate: '2019-03-20T12:00:00.000Z' },
       auxiliary,
       credentials
     );
@@ -1398,7 +1398,7 @@ describe('deleteConflictInternalHoursAndUnavailabilities', () => {
   });
 
   it('should delete conflict events except interventions', async () => {
-    const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
+    const dates = { startDate: '2019-03-20T10:00:00.000Z', endDate: '2019-03-20T12:00:00.000Z' };
     const auxiliary = { _id: new ObjectId() };
     const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const event = { _id: new ObjectId(), startDate: dates.startDate, endDate: dates.endDate };
@@ -1444,7 +1444,7 @@ describe('unassignConflictInterventions', () => {
   });
 
   it('should delete conflict events except interventions', async () => {
-    const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
+    const dates = { startDate: '2019-03-20T10:00:00.000Z', endDate: '2019-03-20T12:00:00.000Z' };
     const auxiliaryId = new ObjectId();
     const credentials = { _id: new ObjectId(), company: { _id: new ObjectId() } };
     const companyId = credentials.company._id;

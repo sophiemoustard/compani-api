@@ -257,10 +257,8 @@ exports.shouldDetachFromRepetition = (event, payload) => {
  * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the
  * cancellation i.e. delete the cancel object and set isCancelled to false.
  */
-const isOnSameDay = event => moment(event.startDate).isSame(event.endDate, 'day');
-
 exports.updateEvent = async (event, eventPayload, credentials) => {
-  if (event.type !== ABSENCE && !isOnSameDay(eventPayload)) {
+  if (event.type !== ABSENCE && !CompaniDate(eventPayload.startDate).isSame(eventPayload.endDate, 'day')) {
     throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
   }
 

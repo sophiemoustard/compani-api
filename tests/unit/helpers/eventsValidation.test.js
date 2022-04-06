@@ -543,7 +543,7 @@ describe('isCreationAllowed', () => {
   });
 });
 
-describe('isUpdateAllowed #tag', () => {
+describe('isUpdateAllowed', () => {
   let isEditionAllowed;
   let hasConflicts;
   const credentials = { company: { _id: new ObjectId() } };
