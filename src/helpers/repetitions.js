@@ -2,6 +2,7 @@ const omit = require('lodash/omit');
 const Repetition = require('../models/Repetition');
 const EventsHelper = require('./events');
 const { CompaniDate } = require('./dates/companiDates');
+const { FIELDS_NOT_APPLICABLE_TO_REPETITION } = require('./constants');
 
 exports.updateRepetitions = async (eventPayload, parentId) => {
   const repetition = await Repetition.findOne({ parentId }).lean();
@@ -15,4 +16,13 @@ exports.updateRepetitions = async (eventPayload, parentId) => {
   const repetitionPayload = { ...omit(eventPayload, ['_id']), startDate, endDate };
   const payload = EventsHelper.formatEditionPayload(repetition, repetitionPayload, false);
   await Repetition.findOneAndUpdate({ parentId }, payload);
+};
+
+exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => {
+  const repetition = { ...payload.repetition, parentId: event._id };
+  return {
+    ...omit(payload, FIELDS_NOT_APPLICABLE_TO_REPETITION),
+    company: companyId,
+    repetition,
+  };
 };
