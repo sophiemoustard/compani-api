@@ -29,7 +29,6 @@ const getTimeProgress = (course) => {
 const balance = async (company, credentials) => {
   const courseBills = await CourseBill
     .find({ company, billedAt: { $exists: true, $type: 'date' } })
-    .populate('company')
     .populate({
       path: 'course',
       select: 'misc slots slotsToPlan subProgram',

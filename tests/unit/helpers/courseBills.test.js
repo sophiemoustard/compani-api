@@ -175,7 +175,6 @@ describe('list', () => {
       find,
       [
         { query: 'find', args: [{ company: companyId, billedAt: { $exists: true, $type: 'date' } }] },
-        { query: 'populate', args: ['company'] },
         {
           query: 'populate',
           args: [{

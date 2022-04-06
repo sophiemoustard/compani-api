@@ -7,6 +7,7 @@ const { create } = require('../controllers/coursePaymentController');
 const { authorizeCoursePaymentCreation } = require('./preHandlers/coursePayments');
 const { PAYMENT_NATURES } = require('../models/Payment');
 const { COURSE_PAYMENT_TYPES } = require('../models/CoursePayment');
+const { requiredDateToISOString } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-course-payments',
@@ -18,7 +19,7 @@ exports.plugin = {
         auth: { scope: ['config:vendor'] },
         validate: {
           payload: Joi.object({
-            date: Joi.date().required(),
+            date: requiredDateToISOString.required(),
             courseBill: Joi.objectId().required(),
             company: Joi.objectId().required(),
             netInclTaxes: Joi.number().min(0).required(),

@@ -22,7 +22,7 @@ describe('createCoursePayment', () => {
 
   it('should create a payment', async () => {
     const payload = {
-      date: '2019-11-28',
+      date: '2022-03-08T00:00:00.000Z',
       company: new ObjectId(),
       customerBill: new ObjectId(),
       netInclTaxes: 190,
