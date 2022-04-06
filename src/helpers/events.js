@@ -389,7 +389,7 @@ exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType,
 };
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
-  const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
+  const maxEndDate = CompaniDate(contractEndDate).set({ hour: PLANNING_VIEW_END_HOUR }).startOf('hour').toISO();
   const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate, get(credentials, 'company._id', null));
   const absencesIds = absences.map(abs => abs._id);
   const promises = [];

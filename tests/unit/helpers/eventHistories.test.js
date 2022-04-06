@@ -241,7 +241,7 @@ describe('createEventHistoryOnDelete', () => {
   });
 });
 
-describe('createEventHistoryOnUpdate #tag', () => {
+describe('createEventHistoryOnUpdate', () => {
   const customerId = new ObjectId();
   let formatHistoryForAuxiliaryUpdate;
   let formatHistoryForDatesUpdate;

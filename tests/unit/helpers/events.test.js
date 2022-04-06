@@ -29,7 +29,6 @@ const {
   EVERY_WEEK,
   AUXILIARY,
   CUSTOMER,
-  PLANNING_VIEW_END_HOUR,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
@@ -1135,11 +1134,11 @@ describe('updateAbsencesOnContractEnd', () => {
   });
 
   it('should update future absences events linked to contract', async () => {
-    const contract = { endDate: '2019-10-02T08:00:00.000Z', user: userId };
-    const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
+    const contract = { endDate: '2019-10-02T08:31:33.667Z', user: userId };
+    const maxEndDate = '2019-10-02T20:00:00.000Z'; // local hour: 22:00
     getAbsences.returns(absences);
 
-    payload = { ...payload, endDate: moment(contract.endDate).hour(PLANNING_VIEW_END_HOUR).startOf('h') };
+    payload = { ...payload, endDate: maxEndDate };
     await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
     sinon.assert.calledOnceWithExactly(getAbsences, userId, maxEndDate, companyId);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, payload, absences[0], credentials);
