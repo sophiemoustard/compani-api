@@ -215,8 +215,7 @@ describe('QUERY', () => {
 
   describe('isSame', () => {
     let _formatMiscToCompaniDate;
-    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
-    const otherDate = '2021-11-24T10:00:00.000Z';
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:04:00.000Z');
 
     beforeEach(() => {
       _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
@@ -226,14 +225,24 @@ describe('QUERY', () => {
       _formatMiscToCompaniDate.restore();
     });
 
-    it('should return true if same day', () => {
+    it('should return true if otherDate is happening the same day', () => {
+      const otherDate = '2021-11-24T00:00:00.000Z';
       const result = companiDate.isSame(otherDate, 'day');
 
       expect(result).toBe(true);
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
-    it('should return false if different minute', () => {
+    it('should return true, default unit is milis and otherDate is happening during the same milis', () => {
+      const otherDate = '2021-11-24T07:04:00.000Z';
+      const result = companiDate.isSame(otherDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return false, even if otherDate has same minute value: 4, it is happening 180 minutes after', () => {
+      const otherDate = '2021-11-24T10:04:00.000Z';
       const result = companiDate.isSame(otherDate, 'minute');
 
       expect(result).toBe(false);
@@ -251,6 +260,7 @@ describe('QUERY', () => {
     });
 
     it('should return error if unit is plural', () => {
+      const otherDate = '2021-11-24T10:04:00.000Z';
       try {
         companiDate.isSame(otherDate, 'days');
       } catch (e) {
