@@ -430,12 +430,14 @@ describe('createRepetitions', () => {
   let createRepeatedEvents;
   let saveRepetition;
   let findOne;
+  let formatPayloadForRepetitionCreation;
   beforeEach(() => {
     updateOne = sinon.stub(Event, 'updateOne');
     getRange = sinon.stub(EventsRepetitionHelper, 'getRange');
     createRepeatedEvents = sinon.stub(EventsRepetitionHelper, 'createRepeatedEvents');
     saveRepetition = sinon.stub(Repetition.prototype, 'save');
     findOne = sinon.stub(User, 'findOne');
+    formatPayloadForRepetitionCreation = sinon.stub(RepetitionHelper, 'formatPayloadForRepetitionCreation');
   });
   afterEach(() => {
     updateOne.restore();
@@ -443,6 +445,7 @@ describe('createRepetitions', () => {
     createRepeatedEvents.restore();
     saveRepetition.restore();
     findOne.restore();
+    formatPayloadForRepetitionCreation.restore();
   });
 
   it('should call updateOne', async () => {
@@ -454,6 +457,11 @@ describe('createRepetitions', () => {
     const event = new Event({ repetition: { frequency: EVERY_WEEK }, company: new ObjectId(), auxiliary: auxiliaryId });
 
     findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
+    formatPayloadForRepetitionCreation.returns({
+      ...payload,
+      company: companyId,
+      repetition: { ...payload.repetition, parentId: event._id },
+    });
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
@@ -465,6 +473,7 @@ describe('createRepetitions', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
+    sinon.assert.calledOnceWithExactly(formatPayloadForRepetitionCreation, event, payload, companyId);
     sinon.assert.called(updateOne);
     sinon.assert.called(getRange);
     sinon.assert.called(createRepeatedEvents);
@@ -486,6 +495,11 @@ describe('createRepetitions', () => {
       '2019-01-18T09:00:00.000Z', '2019-01-19T09:00:00.000Z', '2019-01-20T09:00:00.000Z', '2019-01-21T09:00:00.000Z'];
 
     findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
+    formatPayloadForRepetitionCreation.returns({
+      ...payload,
+      company: companyId,
+      repetition: { ...payload.repetition, parentId: event._id },
+    });
     getRange.returns(range);
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
@@ -498,15 +512,26 @@ describe('createRepetitions', () => {
         { query: 'lean', args: [{ autopopulate: true, virtuals: true }] },
       ]
     );
+    sinon.assert.calledOnceWithExactly(formatPayloadForRepetitionCreation, event, payload, companyId);
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(getRange, '2019-01-15T09:00:00.000Z', { days: 1 });
-    sinon.assert.calledWith(createRepeatedEvents, payload, range, sectorId);
+    sinon.assert.calledWith(
+      createRepeatedEvents,
+      {
+        ...payload,
+        company: companyId,
+        repetition: { ...payload.repetition, parentId: event._id },
+      },
+      range,
+      sectorId
+    );
     sinon.assert.called(saveRepetition);
   });
 
   it('should generate range with frequency of every weekday', async () => {
     const sectorId = new ObjectId();
-    const credentials = { company: { _id: new ObjectId() } };
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId } };
     const payload = {
       _id: '1234567890',
       repetition: { frequency: 'every_week_day', parentId: '0987654321' },
@@ -514,18 +539,28 @@ describe('createRepetitions', () => {
     };
     const event = new Event({ company: new ObjectId(), sector: sectorId });
 
+    formatPayloadForRepetitionCreation.returns({
+      ...payload,
+      company: companyId,
+      repetition: { ...payload.repetition, parentId: event._id },
+    });
     getRange.returns(['2019-01-15T09:00:00.000Z', '2019-01-16T09:00:00.000Z', '2019-01-17T09:00:00.000Z',
       '2019-01-18T09:00:00.000Z', '2019-01-19T09:00:00.000Z', '2019-01-20T09:00:00.000Z', '2019-01-21T09:00:00.000Z']);
 
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
+    sinon.assert.calledOnceWithExactly(formatPayloadForRepetitionCreation, event, payload, companyId);
     sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(getRange, '2019-01-15T09:00:00.000Z', { days: 1 });
     sinon.assert.called(createRepeatedEvents);
     sinon.assert.calledWith(
       createRepeatedEvents,
-      payload,
+      {
+        ...payload,
+        company: companyId,
+        repetition: { ...payload.repetition, parentId: event._id },
+      },
       ['2019-01-15T09:00:00.000Z', '2019-01-16T09:00:00.000Z', '2019-01-17T09:00:00.000Z', '2019-01-18T09:00:00.000Z',
         '2019-01-21T09:00:00.000Z'],
       sectorId
@@ -535,7 +570,8 @@ describe('createRepetitions', () => {
 
   it('should generate range with frequency of every week', async () => {
     const sectorId = new ObjectId();
-    const credentials = { company: { _id: new ObjectId() } };
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId } };
     const payload = {
       _id: '1234567890',
       repetition: { frequency: 'every_week', parentId: '0987654321' },
@@ -543,8 +579,15 @@ describe('createRepetitions', () => {
     };
     const event = new Event({ company: new ObjectId(), sector: sectorId });
 
+    formatPayloadForRepetitionCreation.returns({
+      ...payload,
+      company: companyId,
+      repetition: { ...payload.repetition, parentId: event._id },
+    });
+
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
+    sinon.assert.calledOnceWithExactly(formatPayloadForRepetitionCreation, event, payload, companyId);
     sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(getRange, '2019-01-15T09:00:00.000Z', { weeks: 1 });
@@ -554,7 +597,8 @@ describe('createRepetitions', () => {
 
   it('should generate range with frequency of every 2 weeks', async () => {
     const sectorId = new ObjectId();
-    const credentials = { company: { _id: new ObjectId() } };
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId } };
     const payload = {
       _id: '1234567890',
       repetition: { frequency: 'every_two_weeks', parentId: '0987654321' },
@@ -562,8 +606,15 @@ describe('createRepetitions', () => {
     };
     const event = new Event({ company: new ObjectId(), sector: sectorId });
 
+    formatPayloadForRepetitionCreation.returns({
+      ...payload,
+      company: companyId,
+      repetition: { ...payload.repetition, parentId: event._id },
+    });
+
     await EventsRepetitionHelper.createRepetitions(event, payload, credentials);
 
+    sinon.assert.calledOnceWithExactly(formatPayloadForRepetitionCreation, event, payload, companyId);
     sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
     sinon.assert.calledWithExactly(getRange, '2019-01-15T09:00:00.000Z', { weeks: 2 });

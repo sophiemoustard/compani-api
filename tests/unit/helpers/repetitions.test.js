@@ -64,3 +64,28 @@ describe('updateRepetitions', () => {
     sinon.assert.notCalled(formatEditionPayloadStub);
   });
 });
+
+describe('formatPayloadForRepetitionCreation', () => {
+  it('should format payload for repetition creation', async () => {
+    const eventId = new ObjectId();
+    const event = {
+      _id: eventId,
+      startDate: '2020-12-01T10:30:00.000Z',
+      endDate: '2020-12-01T12:30:00.000Z',
+    };
+    const payload = {
+      misc: 'Super note pour verifier que ce champ n\'est pas appliqué a la repetition au moment de la creation.',
+      startDate: '2020-12-01T11:30:00.000Z',
+      repetition: { startDate: '2020-01-01T09:10:00.000Z', endDate: '2020-01-01T11:10:00.000Z' },
+    };
+    const companyId = new ObjectId();
+
+    const result = await RepetitionHelper.formatPayloadForRepetitionCreation(event, payload, companyId);
+
+    expect(result).toEqual({
+      startDate: '2020-12-01T11:30:00.000Z',
+      company: companyId,
+      repetition: { startDate: '2020-01-01T09:10:00.000Z', endDate: '2020-01-01T11:10:00.000Z', parentId: eventId },
+    });
+  });
+});
