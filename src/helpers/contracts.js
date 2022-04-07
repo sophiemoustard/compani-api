@@ -20,7 +20,7 @@ const ReferentHistoryHelper = require('./referentHistories');
 const UtilsHelper = require('./utils');
 const DatesHelper = require('./dates');
 const GDriveStorageHelper = require('./gDriveStorage');
-const { AUXILIARY } = require('./constants');
+const { AUXILIARY, TIME_STAMPING_ACTIONS } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
@@ -136,7 +136,7 @@ const canEndContract = async (contract, lastVersion, contractToEnd) => {
 
   const hasTimeStampedEvents = await EventHistory.countDocuments({
     'event.auxiliary': contract.user,
-    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+    action: { $in: TIME_STAMPING_ACTIONS },
     $or: [
       { 'update.startHour.to': { $gte: contractToEnd.endDate } },
       { 'update.endHour.to': { $gte: contractToEnd.endDate } },

@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const { TIME_STAMPING_ACTIONS } = require('../../helpers/constants');
 const UtilsHelper = require('../../helpers/utils');
 const Event = require('../../models/Event');
 const EventHistory = require('../../models/EventHistory');
@@ -31,7 +32,7 @@ exports.authorizeEventHistoryCancellation = async (req) => {
   const eventHistory = await EventHistory
     .findOne({
       _id: req.params._id,
-      action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+      action: { $in: TIME_STAMPING_ACTIONS },
       isCancelled: false,
       company: companyId,
     })
