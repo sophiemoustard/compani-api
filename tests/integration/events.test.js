@@ -1385,6 +1385,22 @@ describe('PUT /events/{_id}', () => {
       expect(response.result.data.event.address).toBeUndefined();
     });
 
+    it('should return a 400 if no startDate and endDate', async () => {
+      const event = eventsList[0];
+      const payload = {
+        auxiliary: event.auxiliary.toHexString(),
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${event._id.toHexString()}`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 400 if event is not an internal hours and adress is {}', async () => {
       const event = eventsList[2];
       const payload = {
