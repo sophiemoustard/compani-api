@@ -10,7 +10,7 @@ const Event = require('../../../src/models/Event');
 const EventHistory = require('../../../src/models/EventHistory');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { NOT_INVOICED_AND_NOT_PAID } = require('../../../src/helpers/constants');
+const { NOT_INVOICED_AND_NOT_PAID, TIME_STAMPING_ACTIONS } = require('../../../src/helpers/constants');
 
 describe('formatEvents', () => {
   let findUsers;
@@ -103,7 +103,7 @@ describe('formatEvents', () => {
         {
           query: 'find',
           args: [{
-            action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+            action: { $in: TIME_STAMPING_ACTIONS },
             'event.eventId': { $in: [event1, event2, event3] },
             company: companyId,
             isCancelled: false,

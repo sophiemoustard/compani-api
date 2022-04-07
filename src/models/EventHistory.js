@@ -23,7 +23,6 @@ const EVENTS_HISTORY_ACTIONS = [
   QR_CODE_TIME_STAMPING,
   TIME_STAMP_CANCELLATION,
 ];
-const TIME_STAMPING_ACTIONS = [MANUAL_TIME_STAMPING, QR_CODE_TIME_STAMPING];
 
 const EventHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -77,4 +76,3 @@ formatQueryMiddlewareList().map(middleware => EventHistorySchema.pre(middleware,
 
 module.exports = mongoose.model('EventHistory', EventHistorySchema);
 module.exports.EVENTS_HISTORY_ACTIONS = EVENTS_HISTORY_ACTIONS;
-module.exports.TIME_STAMPING_ACTIONS = TIME_STAMPING_ACTIONS;
