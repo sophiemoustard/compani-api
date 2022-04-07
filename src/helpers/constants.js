@@ -463,6 +463,9 @@ module.exports = {
       [this.QR_CODE_TIME_STAMPING]: 'QR Code',
     };
   },
+  get TIME_STAMPING_ACTIONS() {
+    return [this.MANUAL_TIME_STAMPING, this.QR_CODE_TIME_STAMPING];
+  },
   QRCODE_MISSING: 'qrcode_missing',
   QRCODE_ERROR: 'qrcode_error',
   CAMERA_ERROR: 'camera_error',

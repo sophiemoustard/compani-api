@@ -9,6 +9,7 @@ const {
   UNAVAILABILITY,
   NEVER,
   DAILY,
+  TIME_STAMPING_ACTIONS,
 } = require('./constants');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
@@ -130,7 +131,7 @@ exports.checkDeletionIsAllowed = async (events) => {
   const timestampedEventsCount = await EventHistory.countDocuments({
     'event.eventId': { $in: events.map(event => event._id) },
     'event.type': INTERVENTION,
-    action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+    action: { $in: TIME_STAMPING_ACTIONS },
     isCancelled: false,
   });
   if (timestampedEventsCount) throw Boom.conflict(translate[language].isTimeStamped);

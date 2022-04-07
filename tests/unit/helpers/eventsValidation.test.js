@@ -8,7 +8,14 @@ const EventHistory = require('../../../src/models/EventHistory');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
 const CustomerAbsencesHelper = require('../../../src/helpers/customerAbsences');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const { INTERVENTION, ABSENCE, INTERNAL_HOUR, UNAVAILABILITY, HOURLY } = require('../../../src/helpers/constants');
+const {
+  INTERVENTION,
+  ABSENCE,
+  INTERNAL_HOUR,
+  UNAVAILABILITY,
+  HOURLY,
+  TIME_STAMPING_ACTIONS,
+} = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 
 describe('isCustomerSubscriptionValid', () => {
@@ -887,7 +894,7 @@ describe('checkDeletionIsAllowed', () => {
       eventHistoryCountDocuments, {
         'event.eventId': { $in: events.map(event => event._id) },
         'event.type': INTERVENTION,
-        action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+        action: { $in: TIME_STAMPING_ACTIONS },
         isCancelled: false,
       }
     );
@@ -904,7 +911,7 @@ describe('checkDeletionIsAllowed', () => {
       eventHistoryCountDocuments, {
         'event.eventId': { $in: events.map(event => event._id) },
         'event.type': INTERVENTION,
-        action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+        action: { $in: TIME_STAMPING_ACTIONS },
         isCancelled: false,
       }
     );
@@ -945,7 +952,7 @@ describe('checkDeletionIsAllowed', () => {
         eventHistoryCountDocuments, {
           'event.eventId': { $in: events.map(event => event._id) },
           'event.type': INTERVENTION,
-          action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+          action: { $in: TIME_STAMPING_ACTIONS },
           isCancelled: false,
         }
       );
