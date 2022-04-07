@@ -54,6 +54,7 @@ exports.list = async (query, credentials) => {
       .find({ course: query.course })
       .populate({ path: 'company', select: 'name' })
       .populate({ path: 'courseFundingOrganisation', select: 'name' })
+      .populate({ path: 'courseCreditNotes', options: { isVendorUser: has(credentials, 'role.vendor') } })
       .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
       .lean();
 
