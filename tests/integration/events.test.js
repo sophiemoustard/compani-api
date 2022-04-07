@@ -1367,7 +1367,12 @@ describe('PUT /events/{_id}', () => {
 
     it('should update internalhour if address is {}', async () => {
       const event = eventsList[0];
-      const payload = { auxiliary: event.auxiliary.toHexString(), address: {} };
+      const payload = {
+        auxiliary: event.auxiliary.toHexString(),
+        address: {},
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
+      };
 
       const response = await app.inject({
         method: 'PUT',
@@ -1382,7 +1387,11 @@ describe('PUT /events/{_id}', () => {
 
     it('should return a 400 if event is not an internal hours and adress is {}', async () => {
       const event = eventsList[2];
-      const payload = { address: {} };
+      const payload = {
+        address: {},
+        startDate: '2019-01-16T09:30:19.543Z',
+        endDate: '2019-01-16T11:30:21.653Z',
+      };
 
       const response = await app.inject({
         method: 'PUT',
@@ -1475,6 +1484,8 @@ describe('PUT /events/{_id}', () => {
       const payload = {
         sector: sectors[0]._id.toHexString(),
         subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
       };
 
       const response = await app.inject({
@@ -1492,6 +1503,8 @@ describe('PUT /events/{_id}', () => {
       const payload = {
         sector: sectors[0]._id.toHexString(),
         auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
       };
 
       const response = await app.inject({
@@ -1506,7 +1519,11 @@ describe('PUT /events/{_id}', () => {
 
     it('should return a 400 if both auxiliary sector and auxiliary are missing', async () => {
       const event = eventsList[0];
-      const payload = { subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString() };
+      const payload = {
+        subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
+      };
 
       const response = await app.inject({
         method: 'PUT',
@@ -1523,6 +1540,8 @@ describe('PUT /events/{_id}', () => {
       const payload = {
         sector: sectors[0]._id.toHexString(),
         internalHour: internalHourFromOtherCompany._id,
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
       };
 
       const response = await app.inject({
@@ -1539,6 +1558,8 @@ describe('PUT /events/{_id}', () => {
       const event = eventsList[0];
       const payload = {
         sector: sectors[2]._id.toHexString(),
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
       };
 
       const response = await app.inject({
@@ -1605,7 +1626,11 @@ describe('PUT /events/{_id}', () => {
     });
 
     it('should return a 422 event is startDate timeStamped and user tries to update auxiliary', async () => {
-      const payload = { auxiliary: auxiliaries[1]._id };
+      const payload = {
+        auxiliary: auxiliaries[1]._id,
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
+      };
 
       const response = await app.inject({
         method: 'PUT',
@@ -1623,6 +1648,8 @@ describe('PUT /events/{_id}', () => {
         isCancelled: true,
         cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
         misc: 'blablabla',
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
       };
 
       const response = await app.inject({
@@ -1653,7 +1680,11 @@ describe('PUT /events/{_id}', () => {
     });
 
     it('should return a 422 event is endDate timeStamped and user tries to update auxiliary', async () => {
-      const payload = { auxiliary: auxiliaries[1]._id };
+      const payload = {
+        auxiliary: auxiliaries[1]._id,
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
+      };
 
       const response = await app.inject({
         method: 'PUT',
@@ -1671,6 +1702,8 @@ describe('PUT /events/{_id}', () => {
         isCancelled: true,
         cancel: { condition: INVOICED_AND_PAID, reason: AUXILIARY_INITIATIVE },
         misc: 'blablabla',
+        startDate: '2019-01-17T10:30:18.653Z',
+        endDate: '2019-01-17T12:00:18.653Z',
       };
 
       const response = await app.inject({
