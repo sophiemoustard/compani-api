@@ -40,7 +40,7 @@ describe('createCoursePayment', () => {
       [
         {
           query: 'findOneAndUpdate',
-          args: [{}, { $inc: { seq: 1 } }, { new: true, upsert: true, setDefaultsOnInsert: true }],
+          args: [{ nature: PAYMENT }, { $inc: { seq: 1 } }, { new: true, upsert: true, setDefaultsOnInsert: true }],
         },
         { query: 'lean' },
       ]);

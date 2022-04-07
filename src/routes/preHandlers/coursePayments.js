@@ -9,7 +9,7 @@ exports.authorizeCoursePaymentCreation = async (req) => {
     const companyExists = await Company.countDocuments({ _id: company });
     if (!companyExists) throw Boom.notFound();
 
-    const courseBill = await CourseBill.findOne({ _id: courseBillId }).lean();
+    const courseBill = await CourseBill.findOne({ _id: courseBillId }, { billedAt: 1 }).lean();
     if (!courseBill) throw Boom.notFound();
     if (!courseBill.billedAt) throw Boom.forbidden();
 

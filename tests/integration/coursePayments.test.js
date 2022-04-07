@@ -6,8 +6,9 @@ const { courseBillsList, populateDB } = require('./seed/coursePaymentsSeed');
 
 const { getToken } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
-const { PAYMENT, DIRECT_DEBIT } = require('../../src/helpers/constants');
+const { PAYMENT, DIRECT_DEBIT, REFUND } = require('../../src/helpers/constants');
 const CoursePayment = require('../../src/models/CoursePayment');
+const CoursePaymentNumber = require('../../src/models/CoursePaymentNumber');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -32,18 +33,34 @@ describe('PAYMENTS ROUTES - POST /coursepayments', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create a payment', async () => {
-      const response = await app.inject({
+    it('should create a payment and a refund', async () => {
+      const paymentResponse = await app.inject({
         method: 'POST',
         url: '/coursepayments',
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(paymentResponse.statusCode).toBe(200);
 
-      const newCoursePayment = await CoursePayment.countDocuments({ ...payload, number: 'REG-00001' });
-      expect(newCoursePayment).toBeTruthy();
+      const newPayment = await CoursePayment.countDocuments({ ...payload, number: 'REG-00001' });
+      const paymentNumber = await CoursePaymentNumber.findOne({ nature: PAYMENT }).lean();
+      expect(newPayment).toBeTruthy();
+      expect(paymentNumber.seq).toBe(1);
+
+      const refundResponse = await app.inject({
+        method: 'POST',
+        url: '/coursepayments',
+        payload: { ...payload, nature: REFUND },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(refundResponse.statusCode).toBe(200);
+
+      const newRefund = await CoursePayment.countDocuments({ ...payload, nature: REFUND, number: 'REMB-00001' });
+      const refundNumber = await CoursePaymentNumber.findOne({ nature: REFUND }).lean();
+      expect(newRefund).toBeTruthy();
+      expect(refundNumber.seq).toBe(1);
     });
 
     const missingParams = ['date', 'courseBill', 'company', 'netInclTaxes', 'nature', 'type'];

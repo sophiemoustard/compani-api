@@ -4,7 +4,11 @@ const { PAYMENT } = require('./constants');
 
 exports.createCoursePayment = async (payload) => {
   const lastPaymentNumber = await CoursePaymentNumber
-    .findOneAndUpdate({}, { $inc: { seq: 1 } }, { new: true, upsert: true, setDefaultsOnInsert: true })
+    .findOneAndUpdate(
+      { nature: payload.nature },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    )
     .lean();
 
   const formattedPayload = {

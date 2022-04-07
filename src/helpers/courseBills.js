@@ -38,7 +38,7 @@ const balance = async (company, credentials) => {
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
-    .populate({ path: 'coursePayments', options: { isVendorUser: has(credentials, 'role.vendor') } })
+    .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .lean();
 
   return courseBills.map(bill => ({
