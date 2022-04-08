@@ -14,7 +14,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes #tag', () => {
+describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = {
@@ -39,10 +39,10 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes #tag', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const newCreditNote = await CourseCreditNote.countDocuments({ ...payload, number: 'AV-00001' });
+      const newCreditNote = await CourseCreditNote.countDocuments({ ...payload, number: 'AV-00002' });
       const newCreditNoteNumber = await CourseCourseCreditNoteNumber.findOne({}).lean();
       expect(newCreditNote).toBeTruthy();
-      expect(newCreditNoteNumber.seq).toBe(1);
+      expect(newCreditNoteNumber.seq).toBe(2);
     });
 
     it('should create a credit note without misc', async () => {
@@ -96,6 +96,17 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes #tag', () => {
         method: 'POST',
         url: '/coursecreditnotes',
         payload: { ...payload, courseBill: courseBillsList[1]._id },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if course bill is already cancelled by credit note', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursecreditnotes',
+        payload: { ...payload, courseBill: courseBillsList[2]._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
