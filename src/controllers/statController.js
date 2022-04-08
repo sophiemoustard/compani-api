@@ -1,5 +1,5 @@
 const Boom = require('@hapi/boom');
-
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const User = require('../models/User');
 const StatsHelper = require('../helpers/stats');
@@ -8,6 +8,9 @@ const messages = translate[translate.language];
 
 exports.getCustomerFollowUp = async (req) => {
   try {
+    req.log('statController - getCustomerFollowUp - query', req.query);
+    req.log('statController - getCustomerFollowUp - company', get(req, 'auth.credentials.company._id'));
+
     let followUp = await StatsHelper.getCustomerFollowUp(req.query.customer, req.auth.credentials);
     followUp = followUp.filter(user => User.isActive(user));
 
@@ -23,6 +26,9 @@ exports.getCustomerFollowUp = async (req) => {
 
 exports.getCustomerFundingsMonitoring = async (req) => {
   try {
+    req.log('statController - getCustomerFundingsMonitoring - query', req.query);
+    req.log('statController - getCustomerFundingsMonitoring - company', get(req, 'auth.credentials.company._id'));
+
     const { customer } = req.query;
     const { credentials } = req.auth;
     const customerFundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customer, credentials);
@@ -39,6 +45,8 @@ exports.getCustomerFundingsMonitoring = async (req) => {
 
 exports.getAllCustomersFundingsMonitoring = async (req) => {
   try {
+    req.log('statController - getAllCustomersFundingsMonitoring - company', get(req, 'auth.credentials.company._id'));
+
     const allCustomersFundingsMonitoring = await StatsHelper.getAllCustomersFundingsMonitoring(req.auth.credentials);
 
     return {
@@ -53,6 +61,9 @@ exports.getAllCustomersFundingsMonitoring = async (req) => {
 
 exports.getPaidInterventionStats = async (req) => {
   try {
+    req.log('statController - getPaidInterventionStats - query', req.query);
+    req.log('statController - getPaidInterventionStats - company', get(req, 'auth.credentials.company._id'));
+
     const paidInterventionStats = await StatsHelper.getPaidInterventionStats(req.query, req.auth.credentials);
 
     return {
@@ -67,6 +78,9 @@ exports.getPaidInterventionStats = async (req) => {
 
 exports.getCustomersAndDurationBySector = async (req) => {
   try {
+    req.log('statController - getCustomersAndDurationBySector - query', req.query);
+    req.log('statController - getCustomersAndDurationBySector - company', get(req, 'auth.credentials.company._id'));
+
     const customersAndDuration = await StatsHelper.getCustomersAndDurationBySector(req.query, req.auth.credentials);
 
     return {
@@ -81,6 +95,9 @@ exports.getCustomersAndDurationBySector = async (req) => {
 
 exports.getIntenalAndBilledHoursBySector = async (req) => {
   try {
+    req.log('statController - getIntenalAndBilledHoursBySector - query', req.query);
+    req.log('statController - getIntenalAndBilledHoursBySector - company', get(req, 'auth.credentials.company._id'));
+
     const internalAndBilledHours = await StatsHelper.getIntenalAndBilledHoursBySector(req.query, req.auth.credentials);
 
     return {

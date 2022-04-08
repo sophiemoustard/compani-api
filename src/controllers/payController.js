@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const DraftPayHelper = require('../helpers/draftPay');
 const Absences123PayHelper = require('../helpers/123paie/absences');
@@ -11,6 +12,9 @@ const { IDENTIFICATION, CONTRACT_VERSION, ABSENCE, CONTRACT_END, PAY } = require
 const { language } = translate;
 
 const draftPayList = async (req) => {
+  req.log('payController - draftPayList - query', req.query);
+  req.log('payController - draftPayList - company', get(req, 'auth.credentials.company._id'));
+
   try {
     const draftPay = await DraftPayHelper.getDraftPay(req.query, req.auth.credentials);
 
@@ -37,6 +41,9 @@ const createList = async (req) => {
 
 const getHoursBalanceDetails = async (req) => {
   try {
+    req.log('payController - getHoursBalanceDetails - query', req.query);
+    req.log('payController - getHoursBalanceDetails - company', get(req, 'auth.credentials.company._id'));
+
     const { query, auth } = req;
     const detail = await PayHelper.hoursBalanceDetail(query, auth.credentials);
     return {
@@ -51,6 +58,9 @@ const getHoursBalanceDetails = async (req) => {
 
 const getHoursToWork = async (req) => {
   try {
+    req.log('payController - getHoursToWork - query', req.query);
+    req.log('payController - getHoursToWork - company', get(req, 'auth.credentials.company._id'));
+
     const hoursToWork = await PayHelper.getHoursToWorkBySector(req.query, req.auth.credentials);
 
     return {
