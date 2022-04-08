@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const EventsHelper = require('../helpers/events');
 const EventTimeStampingHelper = require('../helpers/eventTimeStamping');
@@ -8,6 +9,9 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
+    req.log('eventController - list - query', req.query);
+    req.log('eventController - list - company', get(req, 'auth.credentials.company._id'));
+
     const events = await EventsHelper.list(req.query, req.auth.credentials);
 
     return {

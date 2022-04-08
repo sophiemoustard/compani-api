@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const AttendanceHelper = require('../helpers/attendances');
 const translate = require('../helpers/translate');
 
@@ -21,6 +22,9 @@ const list = async (req) => {
 
 const listUnsubscribed = async (req) => {
   try {
+    req.log('attendanceController - listUnsubscribed - query', req.query);
+    req.log('attendanceController - listUnsubscribed - company', get(req, 'auth.credentials.company._id'));
+
     const { course, company, trainee } = req.query;
     const unsubscribedAttendances = course
       ? await AttendanceHelper.listUnsubscribed(course, company)
