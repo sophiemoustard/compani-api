@@ -18,11 +18,8 @@ exports.updateRepetitions = async (eventPayload, parentId) => {
   await Repetition.findOneAndUpdate({ parentId }, payload);
 };
 
-exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => {
-  const repetition = { ...payload.repetition, parentId: event._id };
-  return {
-    ...omit(payload, FIELDS_NOT_APPLICABLE_TO_REPETITION),
-    company: companyId,
-    repetition,
-  };
-};
+exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => ({
+  ...omit(payload, FIELDS_NOT_APPLICABLE_TO_REPETITION),
+  company: companyId,
+  repetition: { ...payload.repetition, parentId: event._id },
+});
