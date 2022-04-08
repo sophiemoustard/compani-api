@@ -73,6 +73,7 @@ describe('list', () => {
         { query: 'find', args: [{ course: courseId }] },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseFundingOrganisation', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'courseCreditNotes', options: { isVendorUser: true } }] },
         { query: 'setOptions', args: [{ isVendorUser: has(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
@@ -117,6 +118,7 @@ describe('list', () => {
         { query: 'find', args: [{ course: courseId }] },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseFundingOrganisation', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'courseCreditNotes', options: { isVendorUser: true } }] },
         { query: 'setOptions', args: [{ isVendorUser: has(credentials, 'role.vendor') }] },
         { query: 'lean' },
       ]
