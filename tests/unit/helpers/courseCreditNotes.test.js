@@ -1,7 +1,7 @@
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
 const SinonMongoose = require('../sinonMongoose');
-const CourseCreditNoteHelper = require('../../../src/helpers/courseCreditNote');
+const CourseCreditNoteHelper = require('../../../src/helpers/courseCreditNotes');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
 

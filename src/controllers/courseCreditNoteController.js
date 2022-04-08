@@ -1,5 +1,5 @@
 const Boom = require('@hapi/boom');
-const CourseCreditNotesHelper = require('../helpers/courseCreditNote');
+const CourseCreditNotesHelper = require('../helpers/courseCreditNotes');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
