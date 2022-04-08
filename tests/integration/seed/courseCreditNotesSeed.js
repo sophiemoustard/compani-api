@@ -41,7 +41,7 @@ const courseCreditNote = [
   },
 ];
 
-const courseCreditNoteNumber = { seq: 1 };
+const courseCreditNoteNumber = { _id: new ObjectId(), seq: 1 };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
