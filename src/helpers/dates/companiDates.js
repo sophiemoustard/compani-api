@@ -50,7 +50,7 @@ const CompaniDateFactory = (inputDate) => {
       return _date > otherDate;
     },
 
-    isSame(miscTypeOtherDate, unit) {
+    isSame(miscTypeOtherDate, unit = 'millisecond') {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
       return _date.hasSame(otherDate, unit);

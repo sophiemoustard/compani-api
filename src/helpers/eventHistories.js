@@ -1,4 +1,3 @@
-const moment = require('moment');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const pickBy = require('lodash/pickBy');
@@ -16,6 +15,7 @@ const {
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
+const { CompaniDate } = require('./dates/companiDates');
 
 exports.list = async (query, credentials) => {
   if (query.eventId) {
@@ -89,17 +89,17 @@ exports.createEventHistoryOnCreate = async (payload, credentials) =>
 exports.createEventHistoryOnDelete = async (payload, credentials) =>
   exports.createEventHistory(payload, credentials, EVENT_DELETION);
 
-const areDaysChanged = (event, payload) => !moment(event.startDate).isSame(payload.startDate, 'day') ||
-  !moment(event.endDate).isSame(payload.endDate, 'day');
+const areDaysChanged = (event, payload) => !CompaniDate(event.startDate).isSame(payload.startDate, 'day') ||
+  !CompaniDate(event.endDate).isSame(payload.endDate, 'day');
 
 const isAuxiliaryUpdated = (event, payload) => (!event.auxiliary && payload.auxiliary) ||
   (event.auxiliary && !UtilsHelper.areObjectIdsEquals(event.auxiliary, payload.auxiliary));
 
 const areHoursChanged = (event, payload) => {
-  const eventStartHour = moment(event.startDate).format('HH:mm');
-  const eventEndHour = moment(event.endDate).format('HH:mm');
-  const payloadStartHour = moment(payload.startDate).format('HH:mm');
-  const payloadEndHour = moment(payload.endDate).format('HH:mm');
+  const eventStartHour = CompaniDate(event.startDate).format('HH:mm');
+  const eventEndHour = CompaniDate(event.endDate).format('HH:mm');
+  const payloadStartHour = CompaniDate(payload.startDate).format('HH:mm');
+  const payloadEndHour = CompaniDate(payload.endDate).format('HH:mm');
 
   return eventStartHour !== payloadStartHour || eventEndHour !== payloadEndHour;
 };
@@ -181,8 +181,8 @@ exports.formatHistoryForAuxiliaryUpdate = async (mainInfo, payload, event, compa
   return { ...mainInfo, sectors, auxiliaries, update };
 };
 
-const isOneDayEvent = (event, payload) => moment(event.endDate).isSame(event.startDate, 'day') &&
-  moment(payload.endDate).isSame(payload.startDate, 'day');
+const isOneDayEvent = (event, payload) => CompaniDate(event.endDate).isSame(event.startDate, 'day') &&
+  CompaniDate(payload.endDate).isSame(payload.startDate, 'day');
 
 exports.formatHistoryForDatesUpdate = async (mainInfo, payload, event, companyId) => {
   const datesUpdateHistory = {

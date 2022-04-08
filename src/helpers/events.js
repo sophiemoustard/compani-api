@@ -257,10 +257,8 @@ exports.shouldDetachFromRepetition = (event, payload) => {
  * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the
  * cancellation i.e. delete the cancel object and set isCancelled to false.
  */
-const isOnSameDay = event => moment(event.startDate).isSame(event.endDate, 'day');
-
 exports.updateEvent = async (event, eventPayload, credentials) => {
-  if (event.type !== ABSENCE && !isOnSameDay(eventPayload)) {
+  if (event.type !== ABSENCE && !CompaniDate(eventPayload.startDate).isSame(eventPayload.endDate, 'day')) {
     throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
   }
 
@@ -389,7 +387,7 @@ exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType,
 };
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
-  const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
+  const maxEndDate = CompaniDate(contractEndDate).set({ hour: PLANNING_VIEW_END_HOUR }).startOf('hour').toISO();
   const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate, get(credentials, 'company._id', null));
   const absencesIds = absences.map(abs => abs._id);
   const promises = [];
