@@ -2,6 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
+const get = require('lodash/get');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
@@ -186,6 +187,10 @@ describe('list', () => {
               { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
             ],
           }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
         },
         { query: 'lean' },
       ]

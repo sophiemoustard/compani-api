@@ -26,7 +26,7 @@ const getTimeProgress = (course) => {
   return pastSlotsCount / (course.slots.length + course.slotsToPlan.length);
 };
 
-const balance = async (company) => {
+const balance = async (company, credentials) => {
   const courseBills = await CourseBill
     .find({ company, billedAt: { $exists: true, $type: 'date' } })
     .populate({
@@ -38,6 +38,7 @@ const balance = async (company) => {
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
+    .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .lean();
 
   return courseBills.map(bill => ({
@@ -59,7 +60,7 @@ exports.list = async (query, credentials) => {
     return courseBills.map(bill => ({ ...bill, netInclTaxes: exports.getNetInclTaxes(bill) }));
   }
 
-  return balance(query.company);
+  return balance(query.company, credentials);
 };
 
 exports.create = async payload => CourseBill.create(payload);
