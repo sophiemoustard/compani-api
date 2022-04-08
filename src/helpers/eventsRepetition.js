@@ -89,7 +89,9 @@ exports.getRange = (startDate, stepDuration) => {
 
 exports.createRepetitions = async (eventFromDb, payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  if (payload.repetition.frequency === NEVER) return eventFromDb;
+  const formattedPayload = RepetitionsHelper.formatPayloadForRepetitionCreation(eventFromDb, payload, companyId);
+
+  if (formattedPayload.repetition.frequency === NEVER) return eventFromDb;
 
   if (get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
     await Event.updateOne({ _id: eventFromDb._id }, { 'repetition.parentId': eventFromDb._id });
@@ -103,28 +105,28 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
   }
 
   let range;
-  switch (payload.repetition.frequency) {
+  switch (formattedPayload.repetition.frequency) {
     case EVERY_DAY:
-      range = exports.getRange(payload.startDate, { days: 1 });
+      range = exports.getRange(formattedPayload.startDate, { days: 1 });
       break;
     case EVERY_WEEK_DAY: {
-      const rangeByDay = exports.getRange(payload.startDate, { days: 1 });
+      const rangeByDay = exports.getRange(formattedPayload.startDate, { days: 1 });
       range = rangeByDay
         .filter(date => [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY].includes(CompaniDate(date).weekday()));
       break;
     } case EVERY_WEEK:
-      range = exports.getRange(payload.startDate, { weeks: 1 });
+      range = exports.getRange(formattedPayload.startDate, { weeks: 1 });
       break;
     case EVERY_TWO_WEEKS:
-      range = exports.getRange(payload.startDate, { weeks: 2 });
+      range = exports.getRange(formattedPayload.startDate, { weeks: 2 });
       break;
     default:
       break;
   }
 
-  await exports.createRepeatedEvents(payload, range, sectorId);
+  await exports.createRepeatedEvents(formattedPayload, range, sectorId);
 
-  await (new Repetition({ ...payload, ...payload.repetition })).save();
+  await (new Repetition({ ...formattedPayload, ...formattedPayload.repetition })).save();
 
   return eventFromDb;
 };

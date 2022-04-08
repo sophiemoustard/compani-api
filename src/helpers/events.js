@@ -29,6 +29,7 @@ const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
 const DatesHelper = require('./dates');
+const RepetitionsHelper = require('./repetitions');
 const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
@@ -83,14 +84,13 @@ exports.createEvent = async (payload, credentials) => {
 
   if (!isRepeatedEvent) await EventHistoriesHelper.createEventHistoryOnCreate(event, credentials);
   else {
-    const repetition = { ...payload.repetition, parentId: populatedEvent._id };
-    await EventsRepetitionHelper.createRepetitions(
-      populatedEvent,
-      { ...payload, company: companyId, repetition },
-      credentials
-    );
+    await EventsRepetitionHelper.createRepetitions(populatedEvent, payload, credentials);
 
-    await EventHistoriesHelper.createEventHistoryOnCreate({ ...payload, _id: event._id, repetition }, credentials);
+    const eventHistoryPayload = {
+      ...RepetitionsHelper.formatPayloadForRepetitionCreation(populatedEvent, payload, companyId),
+      _id: event._id,
+    };
+    await EventHistoriesHelper.createEventHistoryOnCreate(eventHistoryPayload, credentials);
   }
 
   if (payload.type === ABSENCE) {
