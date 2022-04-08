@@ -32,6 +32,7 @@ const {
   OPEN_QUESTION,
   SURVEY,
   QUESTION_ANSWER,
+  TIME_STAMPING_ACTIONS,
 } = require('./constants');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
@@ -54,7 +55,6 @@ const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
-const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const Questionnaire = require('../models/Questionnaire');
 

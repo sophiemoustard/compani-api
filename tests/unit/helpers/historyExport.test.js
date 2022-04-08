@@ -35,10 +35,10 @@ const {
   PUBLISHED,
   EXPECTATIONS,
   END_OF_COURSE,
+  TIME_STAMPING_ACTIONS,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const DatesHelper = require('../../../src/helpers/dates');
-const { TIME_STAMPING_ACTIONS } = require('../../../src/models/EventHistory');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 
 describe('getWorkingEventsForExport', () => {

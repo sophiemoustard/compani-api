@@ -11,7 +11,7 @@ const ESignHelper = require('../../../src/helpers/eSign');
 const ReferentHistoryHelper = require('../../../src/helpers/referentHistories');
 const UserHelper = require('../../../src/helpers/users');
 const GDriveStorageHelper = require('../../../src/helpers/gDriveStorage');
-const { RESIGNATION, AUXILIARY } = require('../../../src/helpers/constants');
+const { RESIGNATION, AUXILIARY, TIME_STAMPING_ACTIONS } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
 const User = require('../../../src/models/User');
@@ -556,7 +556,7 @@ describe('endContract', () => {
           args: [
             {
               'event.auxiliary': contract.user,
-              action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+              action: { $in: TIME_STAMPING_ACTIONS },
               $or: [
                 { 'update.startHour.to': { $gte: payload.endDate } },
                 { 'update.endHour.to': { $gte: payload.endDate } },
@@ -639,7 +639,7 @@ describe('endContract', () => {
             args: [
               {
                 'event.auxiliary': contract.user,
-                action: { $in: EventHistory.TIME_STAMPING_ACTIONS },
+                action: { $in: TIME_STAMPING_ACTIONS },
                 $or: [
                   { 'update.startHour.to': { $gte: contractToEnd.endDate } },
                   { 'update.endHour.to': { $gte: contractToEnd.endDate } },

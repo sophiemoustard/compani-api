@@ -10,9 +10,8 @@ const XMLHelper = require('./xml');
 const DraftBillsHelper = require('./draftBills');
 const FundingsHelper = require('./fundings');
 const DatesHelper = require('./dates');
-const { TIME_STAMPING_ACTIONS } = require('../models/EventHistory');
 const moment = require('../extensions/moment');
-const { NOT_INVOICED_AND_NOT_PAID } = require('./constants');
+const { NOT_INVOICED_AND_NOT_PAID, TIME_STAMPING_ACTIONS } = require('./constants');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 
 const CADRE_PRESTATAIRE = 'PRE';
