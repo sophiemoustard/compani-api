@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const BillHelper = require('../helpers/bills');
@@ -7,6 +8,9 @@ const { language } = translate;
 
 const draftBillsList = async (req) => {
   try {
+    req.log('billsController - draftBillsList - query', req.query);
+    req.log('billsController - draftBillsList - company', get(req, 'auth.credentials.company._id'));
+
     const draftBills = await getDraftBillsList(req.query, req.auth.credentials);
 
     return { message: translate[language].draftBills, data: { draftBills } };
@@ -18,6 +22,9 @@ const draftBillsList = async (req) => {
 
 const createBillList = async (req) => {
   try {
+    req.log('billsController - createBillList - company', get(req, 'auth.credentials.company._id'));
+    req.log('billsController - createBillList - payload', req.payload.bills.length);
+
     await BillHelper.formatAndCreateList(req.payload.bills, req.auth.credentials);
 
     return { message: translate[language].billsCreated };

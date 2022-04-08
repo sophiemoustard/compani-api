@@ -8,6 +8,9 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
+    req.log('courseController - list - query', req.query);
+    req.log('courseController - list - company', get(req, 'auth.credentials.company._id'));
+
     const courses = await CoursesHelper.list(req.query);
 
     return {
@@ -22,6 +25,9 @@ const list = async (req) => {
 
 const listUserCourses = async (req) => {
   try {
+    req.log('courseController - listUserCourses - company', get(req, 'auth.credentials.company._id'));
+    req.log('courseController - listUserCourses - pre', req.pre);
+
     const courses = await CoursesHelper.listUserCourses(req.pre.trainee);
 
     return {
@@ -64,6 +70,9 @@ const getById = async (req) => {
 
 const getFollowUp = async (req) => {
   try {
+    req.log('courseController - getFollowUp - query', req.query);
+    req.log('courseController - getFollowUp - course', get(req, 'pre.course._id'));
+
     const followUp = await CoursesHelper.getCourseFollowUp(req.pre.course, req.query.company);
 
     return {
