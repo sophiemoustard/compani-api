@@ -1,6 +1,5 @@
 const get = require('lodash/get');
 const flat = require('flat');
-const has = require('lodash/has');
 const omit = require('lodash/omit');
 const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
@@ -54,8 +53,8 @@ exports.list = async (query, credentials) => {
       .find({ course: query.course })
       .populate({ path: 'company', select: 'name' })
       .populate({ path: 'courseFundingOrganisation', select: 'name' })
-      .populate({ path: 'courseCreditNotes', options: { isVendorUser: has(credentials, 'role.vendor') } })
-      .setOptions({ isVendorUser: has(credentials, 'role.vendor') })
+      .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
+      .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
       .lean();
 
     return courseBills.map(bill => ({ ...bill, netInclTaxes: exports.getNetInclTaxes(bill) }));

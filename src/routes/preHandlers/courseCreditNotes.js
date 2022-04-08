@@ -12,10 +12,10 @@ exports.authorizeCourseCreditNoteCreation = async (req) => {
 
   const courseBill = await CourseBill
     .findOne({ _id: courseBillId })
-    .populate({ path: 'courseCreditNotes', options: { isVendorUser: get(credentials, 'role.vendor') } })
+    .populate({ path: 'courseCreditNote', options: { isVendorUser: get(credentials, 'role.vendor') } })
     .lean();
   if (!courseBill) throw Boom.notFound();
-  if (!courseBill.billedAt || courseBill.courseCreditNotes.length) throw Boom.forbidden();
+  if (!courseBill.billedAt || courseBill.courseCreditNote) throw Boom.forbidden();
 
   return null;
 };
