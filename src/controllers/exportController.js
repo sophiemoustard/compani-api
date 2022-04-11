@@ -1,6 +1,6 @@
 const Boom = require('@hapi/boom');
 const moment = require('moment');
-
+const get = require('lodash/get');
 const {
   SERVICE,
   AUXILIARY,
@@ -28,6 +28,9 @@ const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
   try {
+    req.log('exportController - exportData - params', req.params);
+    req.log('exportController - exportData - company', get(req, 'auth.credentials.company._id'));
+
     const { type } = req.params;
     const { credentials } = req.auth;
 
@@ -73,6 +76,10 @@ const exportData = async (req, h) => {
 
 const exportHistory = async (req, h) => {
   try {
+    req.log('exportController - exportHistory - query', req.query);
+    req.log('exportController - exportHistory - params', req.params);
+    req.log('exportController - exportHistory - company', get(req, 'auth.credentials.company._id'));
+
     const { type } = req.params;
     const { credentials } = req.auth;
 

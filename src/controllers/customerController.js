@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const SubscriptionHelper = require('../helpers/subscriptions');
 const CustomerHelper = require('../helpers/customers');
@@ -24,6 +25,9 @@ const list = async (req) => {
 
 const listWithFirstIntervention = async (req) => {
   try {
+    req.log('customerController - listWithFirstIntervention - query', req.query);
+    req.log('customerController - listWithFirstIntervention - company', get(req, 'auth.credentials.company._id'));
+
     const customers = await CustomerHelper.getCustomersFirstIntervention(req.query, req.auth.credentials);
 
     return {
@@ -38,6 +42,8 @@ const listWithFirstIntervention = async (req) => {
 
 const listWithSubscriptions = async (req) => {
   try {
+    req.log('customerController - listWithSubscriptions', get(req, 'auth.credentials.company._id'));
+
     const customers = await CustomerHelper.getCustomersWithSubscriptions(req.auth.credentials);
 
     return {

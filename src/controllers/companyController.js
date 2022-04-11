@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const CompanyHelper = require('../helpers/companies');
 
@@ -73,6 +74,7 @@ const show = async (req) => {
 
 const getFirstIntervention = async (req) => {
   try {
+    req.log('companyController - getFirstIntervention - company', get(req, 'auth.credentials.company._id'));
     const firstIntervention = await CompanyHelper.getFirstIntervention(req.auth.credentials);
 
     return {
