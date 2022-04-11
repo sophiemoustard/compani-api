@@ -126,6 +126,17 @@ describe('PAYMENTS ROUTES - POST /coursepayments', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 if payment is before bill validation', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursepayments',
+        payload: { ...payload, date: '2022-03-01T00:00:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -176,21 +187,8 @@ describe('PAYMENTS ROUTES - PUT /coursepayments/{_id}', () => {
 
       expect(paymentResponse.statusCode).toBe(200);
 
-      const newPayment = await CoursePayment.countDocuments({ ...payload, number: 'REG-00001' });
-      expect(newPayment).toBeTruthy();
-    });
-
-    const missingParams = ['date', 'netInclTaxes', 'type'];
-    missingParams.forEach((param) => {
-      it(`should return a 400 error if '${param}' param is missing`, async () => {
-        const res = await app.inject({
-          method: 'PUT',
-          url: `/coursepayments/${coursePaymentsList[0]._id}`,
-          payload: omit(payload, [param]),
-          headers: { Cookie: `alenvi_token=${authToken}` },
-        });
-        expect(res.statusCode).toBe(400);
-      });
+      const editedPayment = await CoursePayment.countDocuments({ ...payload, _id: coursePaymentsList[0]._id });
+      expect(editedPayment).toBeTruthy();
     });
 
     const wrongValues = [
@@ -219,6 +217,17 @@ describe('PAYMENTS ROUTES - PUT /coursepayments/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if payment is before bill validation', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursepayments/${coursePaymentsList[0]._id}`,
+        payload: { ...payload, date: '2022-03-01T00:00:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

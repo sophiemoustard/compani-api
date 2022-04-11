@@ -40,9 +40,9 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            netInclTaxes: Joi.number().min(0).required(),
-            type: Joi.string().valid(...COURSE_PAYMENT_TYPES).required(),
-            date: requiredDateToISOString.required(),
+            netInclTaxes: Joi.number().min(0),
+            type: Joi.string().valid(...COURSE_PAYMENT_TYPES),
+            date: requiredDateToISOString,
           }),
         },
         pre: [{ method: authorizeCoursePaymentUpdate }],
