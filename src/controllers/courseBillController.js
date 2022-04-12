@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const CourseBillHelper = require('../helpers/courseBills');
 const translate = require('../helpers/translate');
 
@@ -82,6 +83,9 @@ const deleteBillingPurchase = async (req) => {
 
 const generateBillPdf = async (req, h) => {
   try {
+    req.log('courseBillController - generateBillPdf - params', req.params);
+    req.log('courseBillController - generateBillPdf - company', get(req, 'auth.credentials.company._id'));
+
     const { pdf, billNumber } = await CourseBillHelper.generateBillPdf(req.params._id);
     return h.response(pdf)
       .header('content-disposition', `inline; filename=${billNumber}.pdf`)

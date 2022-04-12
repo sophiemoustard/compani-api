@@ -61,6 +61,9 @@ const createBill = async (req) => {
 
 const generateBillPdf = async (req, h) => {
   try {
+    req.log('billsController - generateBillPdf - params', req.params);
+    req.log('billsController - generateBillPdf - company', get(req, 'auth.credentials.company._id'));
+
     const { pdf, billNumber } = await BillHelper.generateBillPdf(req.params, req.auth.credentials);
 
     return h.response(pdf)

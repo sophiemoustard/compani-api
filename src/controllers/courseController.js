@@ -198,6 +198,9 @@ const removeTrainee = async (req) => {
 
 const downloadAttendanceSheets = async (req, h) => {
   try {
+    req.log('courseController - downloadAttendanceSheets - params', req.params);
+    req.log('courseController - downloadAttendanceSheets - company', get(req, 'auth.credentials.company._id'));
+
     const { pdf, fileName } = await CoursesHelper.generateAttendanceSheets(req.params._id);
 
     return h.response(pdf)
@@ -211,6 +214,10 @@ const downloadAttendanceSheets = async (req, h) => {
 
 const downloadCompletionCertificates = async (req, h) => {
   try {
+    req.log('courseController - downloadCompletionCertificates - query', req.query);
+    req.log('courseController - downloadCompletionCertificates - params', req.params);
+    req.log('courseController - downloadCompletionCertificates - company', get(req, 'auth.credentials.company._id'));
+
     const data = await CoursesHelper
       .generateCompletionCertificates(req.params._id, req.auth.credentials, req.query.origin);
 
@@ -253,6 +260,9 @@ const deleteAccessRule = async (req) => {
 
 const generateConvocationPdf = async (req, h) => {
   try {
+    req.log('courseController - generateConvocationPdf - pre.course._id', get(req, 'pre.course._id'));
+    req.log('courseController - generateConvocationPdf - company', get(req, 'auth.credentials.company._id'));
+
     const { pdf, courseName } = await CoursesHelper.generateConvocationPdf(req.pre.course._id);
 
     return h.response(pdf)

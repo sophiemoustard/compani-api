@@ -364,6 +364,9 @@ const deleteFunding = async (req) => {
 
 const getQRCode = async (req, h) => {
   try {
+    req.log('customerController - getQRCode - params', req.params);
+    req.log('customerController - getQRCode - company', get(req, 'auth.credentials.company._id'));
+
     const { pdf, fileName } = await CustomerHelper.generateQRCode(req.params._id);
 
     return h.response(pdf)
