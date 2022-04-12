@@ -46,3 +46,27 @@ describe('createCoursePayment', () => {
       ]);
   });
 });
+
+describe('updateCoursePayment', () => {
+  let updateOne;
+
+  beforeEach(() => {
+    updateOne = sinon.stub(CoursePayment, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should update a payment', async () => {
+    const coursePaymentId = new ObjectId();
+    const payload = {
+      date: '2022-03-08T00:00:00.000Z',
+      netInclTaxes: 190,
+      type: DIRECT_DEBIT,
+    };
+
+    await CoursePaymentsHelper.updateCoursePayment(coursePaymentId, payload);
+    sinon.assert.calledOnceWithExactly(updateOne, { _id: coursePaymentId }, { $set: payload });
+  });
+});

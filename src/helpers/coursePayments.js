@@ -18,3 +18,7 @@ exports.createCoursePayment = async (payload) => {
 
   await CoursePayment.create(formattedPayload);
 };
+
+exports.updateCoursePayment = async (coursePaymentId, payload) => {
+  await CoursePayment.updateOne({ _id: coursePaymentId }, { $set: payload });
+};
