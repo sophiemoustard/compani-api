@@ -191,6 +191,8 @@ describe('updateEvent', () => {
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
   let populateEventSubscription;
+  let updateEventBelongingToRepetition;
+  let userFindOne;
 
   beforeEach(() => {
     isRepetitionValid = sinon.stub(EventsRepetitionHelper, 'isRepetitionValid');
@@ -208,6 +210,8 @@ describe('updateEvent', () => {
     );
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
+    updateEventBelongingToRepetition = sinon.stub(EventsRepetitionHelper, 'updateEventBelongingToRepetition');
+    userFindOne = sinon.stub(User, 'findOne');
   });
   afterEach(() => {
     isRepetitionValid.restore();
@@ -222,6 +226,8 @@ describe('updateEvent', () => {
     deleteConflictInternalHoursAndUnavailabilities.restore();
     unassignConflictInterventions.restore();
     populateEventSubscription.restore();
+    updateEventBelongingToRepetition.restore();
+    userFindOne.restore();
   });
 
   it('should throw 400 if event is not absence and not on one day', async () => {
@@ -243,6 +249,7 @@ describe('updateEvent', () => {
       sinon.assert.notCalled(isRepetitionValid);
       sinon.assert.notCalled(isUpdateAllowed);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
+      sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(updateRepetition);
       sinon.assert.notCalled(isRepetition);
       sinon.assert.notCalled(shouldDetachFromRepetition);
@@ -252,6 +259,7 @@ describe('updateEvent', () => {
       sinon.assert.notCalled(deleteConflictInternalHoursAndUnavailabilities);
       sinon.assert.notCalled(unassignConflictInterventions);
       sinon.assert.notCalled(populateEventSubscription);
+      sinon.assert.notCalled(updateEventBelongingToRepetition);
     }
   });
 
@@ -276,6 +284,7 @@ describe('updateEvent', () => {
       sinon.assert.calledOnceWithExactly(isRepetitionValid, { frequency: 'every_week' });
       sinon.assert.notCalled(isUpdateAllowed);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
+      sinon.assert.notCalled(findOne);
       sinon.assert.notCalled(updateRepetition);
       sinon.assert.notCalled(isRepetition);
       sinon.assert.notCalled(shouldDetachFromRepetition);
@@ -285,6 +294,7 @@ describe('updateEvent', () => {
       sinon.assert.notCalled(deleteConflictInternalHoursAndUnavailabilities);
       sinon.assert.notCalled(unassignConflictInterventions);
       sinon.assert.notCalled(populateEventSubscription);
+      sinon.assert.notCalled(updateEventBelongingToRepetition);
     }
   });
 
@@ -310,6 +320,7 @@ describe('updateEvent', () => {
       sinon.assert.calledOnceWithExactly(isRepetitionValid, { frequency: 'every_week' });
       sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
+      sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(updateRepetition);
       sinon.assert.notCalled(isRepetition);
       sinon.assert.notCalled(shouldDetachFromRepetition);
@@ -319,6 +330,7 @@ describe('updateEvent', () => {
       sinon.assert.notCalled(deleteConflictInternalHoursAndUnavailabilities);
       sinon.assert.notCalled(unassignConflictInterventions);
       sinon.assert.notCalled(populateEventSubscription);
+      sinon.assert.notCalled(updateEventBelongingToRepetition);
     }
   });
 
@@ -328,6 +340,8 @@ describe('updateEvent', () => {
     const eventId = new ObjectId();
     const auxiliary = new ObjectId();
     const parentId = new ObjectId();
+    const sectorId = new ObjectId();
+    const user = { _id: auxiliary, sector: sectorId };
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week', parentId } };
     const payload = {
       startDate: '2019-01-21T09:38:18.000Z',
@@ -339,13 +353,14 @@ describe('updateEvent', () => {
     isRepetitionValid.returns(true);
     isUpdateAllowed.returns(true);
     findOne.returns(SinonMongoose.stubChainedQueries(event));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user));
 
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledOnceWithExactly(isRepetitionValid, { frequency: 'every_week', parentId });
     sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
     sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, payload, event, credentials);
-    sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials);
+    sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials, sectorId);
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [
@@ -362,6 +377,28 @@ describe('updateEvent', () => {
         { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
         { query: 'lean' },
       ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      userFindOne,
+      [
+        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'sector',
+            select: '_id sector',
+            match: { company: companyId },
+          }],
+        },
+        { query: 'lean' },
+      ]);
+    sinon.assert.calledOnceWithExactly(
+      updateEventBelongingToRepetition,
+      { ...payload, _id: event._id, type: event.type },
+      payload,
+      event,
+      companyId,
+      sectorId
     );
     sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
     sinon.assert.notCalled(isRepetition);
@@ -397,6 +434,7 @@ describe('updateEvent', () => {
       sinon.assert.notCalled(isRepetitionValid);
       sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId }, credentials);
       sinon.assert.notCalled(createEventHistoryOnUpdate);
+      sinon.assert.notCalled(userFindOne);
       sinon.assert.notCalled(updateRepetition);
       sinon.assert.calledOnceWithExactly(isRepetition, event);
       sinon.assert.calledOnceWithExactly(shouldDetachFromRepetition, event, payload);
@@ -432,6 +470,7 @@ describe('updateEvent', () => {
 
     sinon.assert.notCalled(isRepetitionValid);
     sinon.assert.notCalled(updateRepetition);
+    sinon.assert.notCalled(userFindOne);
     sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId }, credentials);
     sinon.assert.calledOnceWithExactly(isRepetition, event);
     sinon.assert.calledOnceWithExactly(shouldDetachFromRepetition, event, payload);
@@ -487,6 +526,7 @@ describe('updateEvent', () => {
 
     sinon.assert.notCalled(isRepetitionValid);
     sinon.assert.notCalled(updateRepetition);
+    sinon.assert.notCalled(userFindOne);
     sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, { _id: eventId }, credentials);
     sinon.assert.calledOnceWithExactly(isRepetition, event);
     sinon.assert.notCalled(shouldDetachFromRepetition);

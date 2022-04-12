@@ -623,34 +623,190 @@ describe('createRepetitions', () => {
   });
 });
 
-describe('updateRepetition', () => {
+describe('updateEventBelongingToRepetition', () => {
   let hasConflicts;
-  let isAbsent;
-  let find;
-  let updateOne;
   let deleteOne;
-  let updateRepetitions;
-  let findOneUser;
   let formatEditionPayload;
+  let updateOne;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
-    isAbsent = sinon.stub(CustomerAbsencesHelper, 'isAbsent');
-    find = sinon.stub(Event, 'find');
-    updateOne = sinon.stub(Event, 'updateOne');
     deleteOne = sinon.stub(Event, 'deleteOne');
-    updateRepetitions = sinon.stub(RepetitionHelper, 'updateRepetitions');
-    findOneUser = sinon.stub(User, 'findOne');
     formatEditionPayload = sinon.stub(EventsHelper, 'formatEditionPayload');
+    updateOne = sinon.stub(Event, 'updateOne');
   });
   afterEach(() => {
     hasConflicts.restore();
-    isAbsent.restore();
-    find.restore();
-    updateOne.restore();
     deleteOne.restore();
-    updateRepetitions.restore();
-    findOneUser.restore();
     formatEditionPayload.restore();
+    updateOne.restore();
+  });
+
+  it('should delete internal hours in conflicts', async () => {
+    const auxiliaryId = new ObjectId();
+    const sectorId = new ObjectId();
+    const companyId = new ObjectId();
+    const event = {
+      _id: '123456',
+      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+      startDate: '2019-03-23T09:00:00',
+      type: INTERNAL_HOUR,
+      auxiliary: auxiliaryId,
+    };
+    const repetitionPayload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z' };
+    const eventPayload = { misc: 'super note' };
+
+    hasConflicts.returns(true);
+
+    await EventsRepetitionHelper.updateEventBelongingToRepetition(
+      repetitionPayload,
+      eventPayload,
+      event,
+      companyId,
+      sectorId
+    );
+
+    sinon.assert.calledOnceWithExactly(
+      hasConflicts,
+      { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', company: companyId }
+    );
+    sinon.assert.calledWithExactly(deleteOne, { _id: '123456' });
+    sinon.assert.notCalled(formatEditionPayload);
+  });
+
+  it('should unassign intervention in conflict', async () => {
+    const auxiliaryId = new ObjectId();
+    const sectorId = new ObjectId();
+    const companyId = new ObjectId();
+    const event = {
+      _id: '123456',
+      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+      startDate: '2019-03-24T10:00:00.000Z',
+      type: INTERVENTION,
+      auxiliary: auxiliaryId,
+    };
+
+    const repetitionPayload = { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' };
+    const eventPayload = { misc: 'super note', auxiliary: '1234567890' };
+
+    hasConflicts.returns(true);
+    formatEditionPayload.returns({
+      $set: {
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        sector: sectorId,
+        'repetition.frequency': 'never',
+      },
+      $unset: { auxiliary: '' },
+    });
+
+    await EventsRepetitionHelper.updateEventBelongingToRepetition(
+      repetitionPayload,
+      eventPayload,
+      event,
+      companyId,
+      sectorId
+    );
+
+    sinon.assert.calledWithExactly(
+      hasConflicts,
+      { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', company: companyId }
+    );
+    sinon.assert.calledOnceWithExactly(
+      formatEditionPayload,
+      {
+        _id: '123456',
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-24T10:00:00.000Z',
+        type: INTERVENTION,
+        auxiliary: auxiliaryId,
+      },
+      { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', sector: sectorId },
+      true
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: '123456' },
+      {
+        $set: {
+          startDate: '2019-03-24T10:00:00.000Z',
+          endDate: '2019-03-24T11:00:00.000Z',
+          sector: sectorId,
+          'repetition.frequency': 'never',
+        },
+        $unset: { auxiliary: '' },
+      }
+    );
+  });
+
+  it('should unassign intervention if auxiliary is not in payload', async () => {
+    const auxiliaryId = new ObjectId();
+    const sectorId = new ObjectId();
+    const companyId = new ObjectId();
+    const event = {
+      _id: '123456',
+      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+      startDate: '2019-03-24T10:00:00.000Z',
+      type: INTERVENTION,
+      auxiliary: auxiliaryId,
+    };
+
+    const repetitionPayload = { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' };
+    const eventPayload = { misc: 'super note', auxiliary: '' };
+
+    hasConflicts.returns(true);
+    formatEditionPayload.returns({
+      $set: { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', sector: sectorId },
+      $unset: { auxiliary: '' },
+    });
+
+    await EventsRepetitionHelper.updateEventBelongingToRepetition(
+      repetitionPayload,
+      eventPayload,
+      event,
+      companyId,
+      sectorId
+    );
+
+    sinon.assert.calledWithExactly(
+      hasConflicts,
+      { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', company: companyId }
+    );
+    sinon.assert.calledOnceWithExactly(
+      formatEditionPayload,
+      {
+        _id: '123456',
+        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
+        startDate: '2019-03-24T10:00:00.000Z',
+        type: INTERVENTION,
+        auxiliary: auxiliaryId,
+      },
+      { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', sector: sectorId },
+      false
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: '123456' },
+      {
+        $set: { startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', sector: sectorId },
+        $unset: { auxiliary: '' },
+      }
+    );
+  });
+});
+
+describe('updateRepetition', () => {
+  let find;
+  let updateEventBelongingToRepetition;
+  let updateRepetitions;
+  beforeEach(() => {
+    find = sinon.stub(Event, 'find');
+    updateEventBelongingToRepetition = sinon.stub(EventsRepetitionHelper, 'updateEventBelongingToRepetition');
+    updateRepetitions = sinon.stub(RepetitionHelper, 'updateRepetitions');
+  });
+  afterEach(() => {
+    find.restore();
+    updateEventBelongingToRepetition.restore();
+    updateRepetitions.restore();
   });
 
   it('should update repetition', async () => {
@@ -658,18 +814,20 @@ describe('updateRepetition', () => {
     const credentials = { company: { _id: companyId } };
     const auxiliaryId = new ObjectId();
     const customerId = new ObjectId();
+    const sectorId = new ObjectId();
     const event = {
       repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
       startDate: '2019-03-23T09:00:00.000Z',
       type: INTERVENTION,
       customer: customerId,
-      sector: new ObjectId(),
+      sector: sectorId,
       auxiliary: auxiliaryId,
     };
     const payload = {
       startDate: '2019-03-23T10:00:00.000Z',
       endDate: '2019-03-23T11:00:00.000Z',
       auxiliary: '1234567890',
+      misc: 'note',
     };
     const events = [
       {
@@ -691,17 +849,15 @@ describe('updateRepetition', () => {
         repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
         startDate: '2019-03-25T09:00:00.000Z',
         endDate: '2019-03-25T11:00:00.000Z',
+        type: INTERVENTION,
         _id: '654321',
       },
     ];
 
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-    hasConflicts.returns(false);
-    isAbsent.returns(false);
 
-    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials, sectorId);
 
-    sinon.assert.notCalled(findOneUser);
     SinonMongoose.calledOnceWithExactly(
       find,
       [
@@ -710,20 +866,15 @@ describe('updateRepetition', () => {
           args: [{
             'repetition.parentId': 'qwertyuiop',
             'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: '2019-03-23T09:00:00.000Z' },
+            startDate: { $gt: '2019-03-23T09:00:00.000Z' },
             company: credentials.company._id,
           }],
         },
         { query: 'lean' },
       ]
     );
-    sinon.assert.calledThrice(hasConflicts);
-    sinon.assert.notCalled(deleteOne);
-    sinon.assert.calledThrice(updateOne);
-    sinon.assert.calledThrice(formatEditionPayload);
     sinon.assert.calledWithExactly(
-      formatEditionPayload.getCall(0),
-      events[0],
+      updateEventBelongingToRepetition.getCall(0),
       {
         startDate: '2019-03-23T10:00:00.000Z',
         endDate: '2019-03-23T11:00:00.000Z',
@@ -731,376 +882,45 @@ describe('updateRepetition', () => {
         _id: 'asdfghjk',
         type: ABSENCE,
       },
-      false
-    );
-    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
-    sinon.assert.calledOnceWithExactly(isAbsent, events[1].customer, '2019-03-24T10:00:00.000Z');
-  });
-
-  it('should unassign intervention in conflict', async () => {
-    const auxiliaryId = new ObjectId();
-    const sectorId = new ObjectId();
-    const companyId = new ObjectId();
-    const credentials = { company: { _id: companyId } };
-    const event = {
-      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-      startDate: '2019-03-23T09:00:00.000Z',
-      type: INTERVENTION,
-      auxiliary: auxiliaryId,
-    };
-    const payload = {
-      startDate: '2019-03-23T10:00:00.000Z',
-      endDate: '2019-03-23T11:00:00.000Z',
-      auxiliary: '1234567890',
-    };
-    const events = [
-      {
-        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-        startDate: '2019-03-24T09:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        _id: '123456',
-        type: ABSENCE,
-      },
-    ];
-
-    formatEditionPayload.returns({
-      $set: {
-        _id: '123456',
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        sector: sectorId,
-        'repetition.frequency': 'never',
-      },
-      $unset: { auxiliary: '' },
-    });
-    findOneUser.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
-    hasConflicts.returns(true);
-    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-
-    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
-
-    SinonMongoose.calledOnceWithExactly(
-      findOneUser,
-      [
-        { query: 'findOne', args: [{ _id: auxiliaryId }] },
-        {
-          query: 'populate',
-          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
-        },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [
-        {
-          query: 'find',
-          args: [{
-            'repetition.parentId': 'qwertyuiop',
-            'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: '2019-03-23T09:00:00.000Z' },
-            company: credentials.company._id,
-          }],
-        },
-        { query: 'lean' },
-      ]
+      payload,
+      events[0],
+      companyId,
+      sectorId
     );
     sinon.assert.calledWithExactly(
-      hasConflicts,
+      updateEventBelongingToRepetition.getCall(1),
       {
-        _id: '123456',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
         auxiliary: '1234567890',
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        company: companyId,
-        type: ABSENCE,
-      }
-    );
-    sinon.assert.calledWithExactly(
-      updateOne,
-      { _id: '123456' },
-      {
-        $set: {
-          _id: '123456',
-          startDate: '2019-03-24T10:00:00.000Z',
-          endDate: '2019-03-24T11:00:00.000Z',
-          sector: sectorId,
-          'repetition.frequency': 'never',
-        },
-        $unset: { auxiliary: '' },
-      }
-    );
-    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
-    sinon.assert.calledOnceWithExactly(
-      formatEditionPayload,
-      events[0],
-      {
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        sector: sectorId,
         _id: '123456',
-        type: ABSENCE,
-      },
-      true
-    );
-    sinon.assert.notCalled(deleteOne);
-    sinon.assert.notCalled(isAbsent);
-  });
-
-  it('should unassign intervention if all the interventions are unassigned', async () => {
-    const auxiliaryId = new ObjectId();
-    const sectorId = new ObjectId();
-    const companyId = new ObjectId();
-    const credentials = { company: { _id: companyId } };
-    const event = {
-      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-      startDate: '2019-03-23T09:00:00.000Z',
-      type: INTERVENTION,
-      auxiliary: auxiliaryId,
-    };
-    const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z' };
-    const events = [
-      {
-        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-        startDate: '2019-03-24T09:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        _id: '123456',
-        type: ABSENCE,
-      },
-    ];
-
-    formatEditionPayload.returns({
-      $set: {
-        _id: '123456',
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        sector: sectorId,
-        'repetition.frequency': 'never',
-      },
-      $unset: { auxiliary: '' },
-    });
-    hasConflicts.returns(true);
-    findOneUser.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
-    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-
-    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
-
-    SinonMongoose.calledOnceWithExactly(
-      findOneUser,
-      [
-        { query: 'findOne', args: [{ _id: auxiliaryId }] },
-        {
-          query: 'populate',
-          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
-        },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [
-        {
-          query: 'find',
-          args: [{
-            'repetition.parentId': 'qwertyuiop',
-            'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: '2019-03-23T09:00:00.000Z' },
-            company: companyId,
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
-    sinon.assert.calledWithExactly(
-      hasConflicts,
-      {
-        _id: '123456',
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        company: companyId,
-        type: ABSENCE,
-      }
-    );
-    sinon.assert.calledWithExactly(
-      updateOne,
-      { _id: '123456' },
-      {
-        $set: {
-          _id: '123456',
-          startDate: '2019-03-24T10:00:00.000Z',
-          endDate: '2019-03-24T11:00:00.000Z',
-          sector: sectorId,
-          'repetition.frequency': 'never',
-        },
-        $unset: { auxiliary: '' },
-      }
-    );
-    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
-    sinon.assert.calledOnceWithExactly(
-      formatEditionPayload,
-      events[0],
-      {
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        sector: sectorId,
-        _id: '123456',
-        type: ABSENCE,
-      },
-      false
-    );
-    sinon.assert.notCalled(deleteOne);
-    sinon.assert.notCalled(isAbsent);
-  });
-
-  it('should delete internal hours in conflicts', async () => {
-    const auxiliaryId = new ObjectId();
-    const sectorId = new ObjectId();
-    const companyId = new ObjectId();
-    const credentials = { company: { _id: companyId } };
-    const event = {
-      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-      startDate: '2019-03-23T09:00:00',
-      type: INTERNAL_HOUR,
-      auxiliary: auxiliaryId,
-    };
-    const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z' };
-    const events = [
-      {
-        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-        startDate: '2019-03-24T09:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        _id: '123456',
-        type: ABSENCE,
-      },
-    ];
-
-    hasConflicts.returns(true);
-    findOneUser.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
-    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-
-    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
-
-    SinonMongoose.calledOnceWithExactly(
-      findOneUser,
-      [
-        { query: 'findOne', args: [{ _id: auxiliaryId }] },
-        {
-          query: 'populate',
-          args: [{ path: 'sector', select: '_id sector', match: { company: credentials.company._id } }],
-        },
-        { query: 'lean' },
-      ]
-    );
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [
-        {
-          query: 'find',
-          args: [{
-            'repetition.parentId': 'qwertyuiop',
-            'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: '2019-03-23T09:00:00' },
-            company: credentials.company._id,
-          }],
-        },
-        { query: 'lean' },
-      ]
-    );
-    sinon.assert.calledWithExactly(
-      hasConflicts,
-      {
-        _id: '123456',
-        startDate: '2019-03-24T10:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        company: companyId,
-        type: ABSENCE,
-      }
-    );
-    sinon.assert.notCalled(updateOne);
-    sinon.assert.calledWithExactly(deleteOne, { _id: '123456' });
-    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
-    sinon.assert.notCalled(formatEditionPayload);
-    sinon.assert.notCalled(isAbsent);
-  });
-
-  it('should not update an event of a repetition if customer is absent during this period', async () => {
-    const companyId = new ObjectId();
-    const credentials = { company: { _id: companyId } };
-    const auxiliaryId = new ObjectId();
-    const customerId = new ObjectId();
-    const customerAbsent = new ObjectId();
-    const event = {
-      repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-      startDate: '2019-03-23T09:00:00.000Z',
-      type: INTERVENTION,
-      customer: customerId,
-      sector: new ObjectId(),
-      auxiliary: auxiliaryId,
-    };
-    const payload = {
-      startDate: '2019-03-24T10:00:00.000Z',
-      endDate: '2019-03-24T11:00:00.000Z',
-      auxiliary: '1234567890',
-    };
-    const events = [
-      {
-        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-        startDate: '2019-03-23T09:00:00.000Z',
-        endDate: '2019-03-23T11:00:00.000Z',
         type: INTERVENTION,
         customer: customerId,
-        _id: 'asdfghjk',
       },
+      payload,
+      events[1],
+      companyId,
+      sectorId
+    );
+    sinon.assert.calledWithExactly(
+      updateEventBelongingToRepetition.getCall(2),
       {
-        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-        startDate: '2019-03-24T09:00:00.000Z',
-        endDate: '2019-03-24T11:00:00.000Z',
-        type: INTERVENTION,
-        customer: customerId,
-        _id: '123456',
-      },
-      {
-        repetition: { parentId: 'qwertyuiop', frequency: 'every_day' },
-        startDate: '2019-03-25T09:00:00.000Z',
+        startDate: '2019-03-25T10:00:00.000Z',
         endDate: '2019-03-25T11:00:00.000Z',
-        type: INTERVENTION,
-        customer: customerAbsent,
+        auxiliary: '1234567890',
         _id: '654321',
+        type: INTERVENTION,
       },
-    ];
-
-    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-    hasConflicts.returns(false);
-    isAbsent.onCall(0).returns(false);
-    isAbsent.onCall(1).returns(false);
-    isAbsent.onCall(2).returns(true);
-
-    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
-
-    sinon.assert.notCalled(findOneUser);
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [
-        {
-          query: 'find',
-          args: [{
-            'repetition.parentId': 'qwertyuiop',
-            'repetition.frequency': { $not: { $eq: 'never' } },
-            startDate: { $gte: '2019-03-23T09:00:00.000Z' },
-            company: credentials.company._id,
-          }],
-        },
-        { query: 'lean' },
-      ]
+      payload,
+      events[2],
+      companyId,
+      sectorId
     );
-    sinon.assert.calledTwice(hasConflicts);
-    sinon.assert.notCalled(deleteOne);
-    sinon.assert.calledTwice(updateOne);
-    sinon.assert.calledTwice(formatEditionPayload);
-    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
-    sinon.assert.calledWithExactly(isAbsent.getCall(0), events[0].customer, '2019-03-23T10:00:00.000Z');
-    sinon.assert.calledWithExactly(isAbsent.getCall(1), events[1].customer, '2019-03-24T10:00:00.000Z');
-    sinon.assert.calledWithExactly(isAbsent.getCall(2), events[2].customer, '2019-03-25T10:00:00.000Z');
+    sinon.assert.calledWithExactly(
+      updateRepetitions,
+      payload,
+      'qwertyuiop'
+    );
   });
 });
 
