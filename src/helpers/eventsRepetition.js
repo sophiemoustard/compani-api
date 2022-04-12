@@ -131,6 +131,20 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
   return eventFromDb;
 };
 
+exports.updateEventBelongingToRepetition = async (repetitionPayload, eventPayload, event, companyId, sectorId) => {
+  const hasConflicts = await EventsValidationHelper.hasConflicts({ ...repetitionPayload, company: companyId });
+  if (event.type !== INTERVENTION && hasConflicts) return Event.deleteOne({ _id: event._id });
+
+  let newRepetitionPayload = { ...repetitionPayload };
+  const detachFromRepetition = !!eventPayload.auxiliary && hasConflicts;
+  if (detachFromRepetition || !eventPayload.auxiliary) {
+    newRepetitionPayload = set(omit(repetitionPayload, 'auxiliary'), 'sector', sectorId);
+  }
+
+  const editionPayload = EventsHelper.formatEditionPayload(event, newRepetitionPayload, detachFromRepetition);
+  return Event.updateOne({ _id: event._id }, editionPayload);
+};
+
 exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   const promises = [];
   const companyId = get(credentials, 'company._id', null);
@@ -157,7 +171,7 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
     const startDate = CompaniDate(events[i].startDate).set(payloadStartHour).toISO();
     const endDate = CompaniDate(events[i].endDate).set(payloadEndHour).toISO();
 
-    let eventToSet = {
+    const eventToSet = {
       ...eventPayload,
       startDate,
       endDate,
@@ -166,22 +180,14 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
       ...(events[i].customer && { customer: events[i].customer }),
     };
 
-    if (eventToSet.type === INTERVENTION) {
-      const customerIsAbsent = await CustomerAbsencesHelper.isAbsent(eventToSet.customer, eventToSet.startDate);
-      if (customerIsAbsent) continue;
-    }
-
-    const hasConflicts = await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId });
-    if (eventFromDb.type !== INTERVENTION && hasConflicts) promises.push(Event.deleteOne({ _id: events[i]._id }));
-    else {
-      const detachFromRepetition = !!eventPayload.auxiliary && hasConflicts;
-      if (detachFromRepetition || !eventPayload.auxiliary) {
-        eventToSet = set(omit(eventToSet, 'auxiliary'), 'sector', sectorId);
-      }
-
-      const payload = EventsHelper.formatEditionPayload(events[i], eventToSet, detachFromRepetition);
-      promises.push(Event.updateOne({ _id: events[i]._id }, payload));
-    }
+    const updateEventPromise = await exports.updateEventBelongingToRepetition(
+      eventToSet,
+      eventPayload,
+      events[i],
+      companyId,
+      sectorId
+    );
+    if (updateEventPromise) promises.push(updateEventPromise);
   }
 
   await Promise.all([
