@@ -258,6 +258,7 @@ exports.shouldDetachFromRepetition = (event, payload) => {
  * cancellation i.e. delete the cancel object and set isCancelled to false.
  */
 exports.updateEvent = async (event, eventPayload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   if (event.type !== ABSENCE && !CompaniDate(eventPayload.startDate).isSame(eventPayload.endDate, 'day')) {
     throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
   }
@@ -271,7 +272,23 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     if (!isUpdateAllowed) throw Boom.badData();
 
     await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
-    await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
+
+    let sectorId = event.sector;
+    if (!event.sector) {
+      const user = await User.findOne({ _id: event.auxiliary })
+        .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+        .lean();
+      sectorId = user.sector;
+    }
+    await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials, sectorId);
+
+    const eventToSet = {
+      ...eventPayload,
+      _id: event._id,
+      type: event.type,
+      ...(event.customer && { customer: event.customer }),
+    };
+    await EventsRepetitionHelper.updateEventBelongingToRepetition(eventToSet, eventPayload, event, companyId, sectorId);
   } else {
     const detachFromRepetition = exports.isRepetition(event) && exports.shouldDetachFromRepetition(event, eventPayload);
     const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);

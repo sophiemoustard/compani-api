@@ -22,6 +22,7 @@ const {
   THURSDAY,
   FRIDAY,
   FORCAST_PERIOD_FOR_CREATING_EVENTS,
+  FIELDS_NOT_APPLICABLE_TO_REPETITION,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -145,7 +146,7 @@ exports.updateEventBelongingToRepetition = async (repetitionPayload, eventPayloa
   return Event.updateOne({ _id: event._id }, editionPayload);
 };
 
-exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
+exports.updateRepetition = async (eventFromDb, eventPayload, credentials, sectorId) => {
   const promises = [];
   const companyId = get(credentials, 'company._id', null);
   const payloadStartHour = CompaniDate(eventPayload.startDate).getUnits(['hour', 'minute']);
@@ -154,25 +155,17 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
   const query = {
     'repetition.parentId': eventFromDb.repetition.parentId,
     'repetition.frequency': { $not: { $eq: NEVER } },
-    startDate: { $gte: eventFromDb.startDate },
+    startDate: { $gt: eventFromDb.startDate },
     company: companyId,
   };
   const events = await Event.find(query).lean();
-
-  let sectorId = eventFromDb.sector;
-  if (!eventFromDb.sector) {
-    const user = await User.findOne({ _id: eventFromDb.auxiliary })
-      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .lean();
-    sectorId = user.sector;
-  }
 
   for (let i = 0, l = events.length; i < l; i++) {
     const startDate = CompaniDate(events[i].startDate).set(payloadStartHour).toISO();
     const endDate = CompaniDate(events[i].endDate).set(payloadEndHour).toISO();
 
     const eventToSet = {
-      ...eventPayload,
+      ...omit(eventPayload, FIELDS_NOT_APPLICABLE_TO_REPETITION),
       startDate,
       endDate,
       _id: events[i]._id,
@@ -180,7 +173,7 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials) => {
       ...(events[i].customer && { customer: events[i].customer }),
     };
 
-    const updateEventPromise = await exports.updateEventBelongingToRepetition(
+    const updateEventPromise = exports.updateEventBelongingToRepetition(
       eventToSet,
       eventPayload,
       events[i],
