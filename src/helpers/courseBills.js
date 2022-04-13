@@ -7,7 +7,7 @@ const CourseBillsNumber = require('../models/CourseBillsNumber');
 const PdfHelper = require('./pdf');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
-const { LIST } = require('./constants');
+const { LIST, PAYMENT, REFUND } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.getNetInclTaxes = (bill) => {
@@ -37,14 +37,35 @@ const balance = async (company, credentials) => {
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
+    .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .lean();
 
-  return courseBills.map(bill => ({
-    progress: getTimeProgress(bill.course),
-    netInclTaxes: exports.getNetInclTaxes(bill),
-    ...omit(bill, ['course.slots', 'course.slotsToPlan']),
-  }));
+  return courseBills.map((bill) => {
+    const netInclTaxes = exports.getNetInclTaxes(bill);
+
+    const payments = bill.coursePayments
+      .filter(payment => payment.nature === PAYMENT)
+      .map(payment => payment.netInclTaxes)
+      .reduce((acc, val) => acc + val, 0);
+
+    const refunds = bill.coursePayments
+      .filter(payment => payment.nature === REFUND)
+      .map(payment => payment.netInclTaxes)
+      .reduce((acc, val) => acc + val, 0);
+
+    const creditNote = bill.courseCreditNote ? netInclTaxes : 0;
+
+    const paid = payments - refunds + creditNote;
+
+    return {
+      progress: getTimeProgress(bill.course),
+      netInclTaxes,
+      ...omit(bill, ['course.slots', 'course.slotsToPlan']),
+      paid,
+      total: paid - netInclTaxes,
+    };
+  });
 };
 
 exports.list = async (query, credentials) => {

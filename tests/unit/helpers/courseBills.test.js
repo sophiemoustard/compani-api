@@ -10,7 +10,7 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
-const { LIST, BALANCE } = require('../../../src/helpers/constants');
+const { LIST, BALANCE, PAYMENT, REFUND } = require('../../../src/helpers/constants');
 
 describe('getNetInclTaxes', () => {
   it('should return total price (without billing purchases)', async () => {
@@ -125,7 +125,7 @@ describe('list', () => {
     );
   });
 
-  it('should return all company bills', async () => {
+  it('should return all company bills (with credit note)', async () => {
     const companyId = new ObjectId();
     const courseId = new ObjectId();
     const course = {
@@ -150,9 +150,16 @@ describe('list', () => {
           { billingItem: billingItemList[0]._id, price: 90, count: 1 },
           { billingItem: billingItemList[1]._id, price: 400, count: 1 },
         ],
+        coursePayments: [
+          { nature: PAYMENT, netInclTaxes: 300 },
+          { nature: PAYMENT, netInclTaxes: 100 },
+          { nature: REFUND, netInclTaxes: 50 },
+        ],
+        courseCreditNote: { number: 'AV-00001' },
         billedAt: '2022-03-11T08:00:00.000Z',
       },
     ];
+
     find.returns(SinonMongoose.stubChainedQueries(courseBills));
 
     const result = await CourseBillHelper.list({ company: companyId, action: BALANCE }, credentials);
@@ -170,9 +177,17 @@ describe('list', () => {
         { billingItem: billingItemList[0]._id, price: 90, count: 1 },
         { billingItem: billingItemList[1]._id, price: 400, count: 1 },
       ],
+      coursePayments: [
+        { nature: PAYMENT, netInclTaxes: 300 },
+        { nature: PAYMENT, netInclTaxes: 100 },
+        { nature: REFUND, netInclTaxes: 50 },
+      ],
+      courseCreditNote: { number: 'AV-00001' },
       netInclTaxes: 730,
       billedAt: '2022-03-11T08:00:00.000Z',
       progress: 1,
+      paid: 1080,
+      total: 350,
     }]);
     SinonMongoose.calledOnceWithExactly(
       find,
@@ -189,6 +204,103 @@ describe('list', () => {
               { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
             ],
           }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+        },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return all company bills (without credit note)', async () => {
+    const companyId = new ObjectId();
+    const courseId = new ObjectId();
+    const course = {
+      _id: courseId,
+      misc: 'group 1',
+      subProgram: { program: { name: 'program 1' } },
+      slots: [
+        { startDate: '2021-11-11T08:00:00.000Z', endDate: '2021-11-11T14:00:00.000Z' },
+      ],
+      slotsToPlan: [],
+    };
+
+    const credentials = { role: { vendor: new ObjectId() } };
+    const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
+    const courseBills = [
+      {
+        course,
+        company: companyId,
+        mainFee: { price: 120, count: 2 },
+        courseFundingOrganisation: { name: 'Funder' },
+        billingPurchaseList: [
+          { billingItem: billingItemList[0]._id, price: 90, count: 1 },
+          { billingItem: billingItemList[1]._id, price: 400, count: 1 },
+        ],
+        coursePayments: [
+          { nature: PAYMENT, netInclTaxes: 300 },
+          { nature: PAYMENT, netInclTaxes: 100 },
+          { nature: REFUND, netInclTaxes: 50 },
+        ],
+        courseCreditNote: null,
+        billedAt: '2022-03-11T08:00:00.000Z',
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(courseBills));
+
+    const result = await CourseBillHelper.list({ company: companyId, action: BALANCE }, credentials);
+
+    expect(result).toEqual([{
+      course: {
+        _id: courseId,
+        misc: 'group 1',
+        subProgram: { program: { name: 'program 1' } },
+      },
+      company: companyId,
+      mainFee: { price: 120, count: 2 },
+      courseFundingOrganisation: { name: 'Funder' },
+      billingPurchaseList: [
+        { billingItem: billingItemList[0]._id, price: 90, count: 1 },
+        { billingItem: billingItemList[1]._id, price: 400, count: 1 },
+      ],
+      coursePayments: [
+        { nature: PAYMENT, netInclTaxes: 300 },
+        { nature: PAYMENT, netInclTaxes: 100 },
+        { nature: REFUND, netInclTaxes: 50 },
+      ],
+      courseCreditNote: null,
+      netInclTaxes: 730,
+      billedAt: '2022-03-11T08:00:00.000Z',
+      progress: 1,
+      paid: 350,
+      total: -380,
+    }]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        { query: 'find', args: [{ company: companyId, billedAt: { $exists: true, $type: 'date' } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'misc slots slotsToPlan subProgram',
+            populate: [
+              { path: 'slots' },
+              { path: 'slotsToPlan' },
+              { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+            ],
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
         },
         {
           query: 'populate',
