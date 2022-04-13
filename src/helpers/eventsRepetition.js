@@ -180,7 +180,7 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials, sector
       companyId,
       sectorId
     );
-    if (updateEventPromise) promises.push(updateEventPromise);
+    promises.push(updateEventPromise);
   }
 
   await Promise.all([

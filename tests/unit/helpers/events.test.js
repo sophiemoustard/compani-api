@@ -334,7 +334,7 @@ describe('updateEvent', () => {
     }
   });
 
-  it('shouldUpdateRepetition = true - should update repetition', async () => {
+  it('shouldUpdateRepetition = true - should update repetition if event has auxiliary', async () => {
     const companyId = new ObjectId();
     const credentials = { _id: new ObjectId(), company: { _id: companyId } };
     const eventId = new ObjectId();
@@ -392,6 +392,73 @@ describe('updateEvent', () => {
         },
         { query: 'lean' },
       ]);
+    sinon.assert.calledOnceWithExactly(
+      updateEventBelongingToRepetition,
+      { ...payload, _id: event._id, type: event.type },
+      payload,
+      event,
+      companyId,
+      sectorId
+    );
+    sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
+    sinon.assert.notCalled(isRepetition);
+    sinon.assert.notCalled(shouldDetachFromRepetition);
+    sinon.assert.notCalled(formatEditionPayload);
+    sinon.assert.notCalled(updateOne);
+    sinon.assert.notCalled(deleteConflictInternalHoursAndUnavailabilities);
+    sinon.assert.notCalled(unassignConflictInterventions);
+  });
+
+  it('shouldUpdateRepetition = true - should update repetition if event has a sector', async () => {
+    const companyId = new ObjectId();
+    const credentials = { _id: new ObjectId(), company: { _id: companyId } };
+    const eventId = new ObjectId();
+    const auxiliary = new ObjectId();
+    const parentId = new ObjectId();
+    const sectorId = new ObjectId();
+    const user = { _id: auxiliary, sector: sectorId };
+    const event = {
+      _id: eventId,
+      type: INTERVENTION,
+      sector: sectorId,
+      repetition: { frequency: 'every_week', parentId },
+    };
+    const payload = {
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T10:38:18.000Z',
+      auxiliary: auxiliary.toHexString(),
+      shouldUpdateRepetition: true,
+    };
+
+    isRepetitionValid.returns(true);
+    isUpdateAllowed.returns(true);
+    findOne.returns(SinonMongoose.stubChainedQueries(event));
+    userFindOne.returns(SinonMongoose.stubChainedQueries(user));
+
+    await EventHelper.updateEvent(event, payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(isRepetitionValid, { frequency: 'every_week', parentId });
+    sinon.assert.calledOnceWithExactly(isUpdateAllowed, event, payload, credentials);
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnUpdate, payload, event, credentials);
+    sinon.assert.calledOnceWithExactly(updateRepetition, event, payload, credentials, sectorId);
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        { query: 'findOne', args: [{ _id: event._id }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'auxiliary',
+            select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+            populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity subscriptions contact' }] },
+        { query: 'populate', args: [{ path: 'internalHour', match: { company: companyId } }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.notCalled(userFindOne);
     sinon.assert.calledOnceWithExactly(
       updateEventBelongingToRepetition,
       { ...payload, _id: event._id, type: event.type },
