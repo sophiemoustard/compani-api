@@ -234,7 +234,8 @@ exports.formatNonBilledEvents = async (events, startDate, endDate, credentials) 
   const eventsWithBillingInfo = bills
     .filter(b => !!b.thirdPartyPayerBills)
     .flatMap(b => b.thirdPartyPayerBills
-      .flatMap(tppb => tppb.bills.flatMap(bi => bi.eventsList.flatMap(ev => ({ ...ev, customer: b.customer._id })))));
+      .flatMap(tppb => tppb.bills
+        .flatMap(bi => bi.eventsList.flatMap(ev => ({ ...ev, customer: b.customer._id, _id: ev.event })))));
 
   return exports.formatEvents(eventsWithBillingInfo, companyId);
 };

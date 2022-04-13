@@ -149,12 +149,12 @@ describe('formatNonBilledEvents', () => {
     getDraftBillsList.returns([
       {
         customer: { _id: 'cus1' },
-        thirdPartyPayerBills: [{ bills: [{ eventsList: [{ _id: 'ev1' }, { _id: 'ev2' }] }] }],
+        thirdPartyPayerBills: [{ bills: [{ eventsList: [{ event: 'ev1' }, { event: 'ev2' }] }] }],
       },
-      { customer: { _id: 'cus2' }, customerBills: [{ bills: [{ eventsList: [{ _id: 'ev9' }] }] }] },
+      { customer: { _id: 'cus2' }, customerBills: [{ bills: [{ eventsList: [{ event: 'ev9' }] }] }] },
       {
         customer: { _id: 'cus3' },
-        thirdPartyPayerBills: [{ bills: [{ eventsList: [{ _id: 'ev4' }] }] }],
+        thirdPartyPayerBills: [{ bills: [{ eventsList: [{ event: 'ev4' }] }] }],
       },
     ]);
     formatEvents.returns([
@@ -178,7 +178,11 @@ describe('formatNonBilledEvents', () => {
     );
     sinon.assert.calledOnceWithExactly(
       formatEvents,
-      [{ _id: 'ev1', customer: 'cus1' }, { _id: 'ev2', customer: 'cus1' }, { _id: 'ev4', customer: 'cus3' }],
+      [
+        { _id: 'ev1', event: 'ev1', customer: 'cus1' },
+        { _id: 'ev2', event: 'ev2', customer: 'cus1' },
+        { _id: 'ev4', event: 'ev4', customer: 'cus3' },
+      ],
       companyId
     );
   });
