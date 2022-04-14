@@ -5,9 +5,10 @@ const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
 const PdfHelper = require('./pdf');
+const BalanceHelper = require('./balances');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
-const { LIST, PAYMENT, REFUND } = require('./constants');
+const { LIST } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.getNetInclTaxes = (bill) => {
@@ -23,6 +24,22 @@ const getTimeProgress = (course) => {
   const pastSlotsCount = course.slots.filter(slot => CompaniDate().isAfter(slot.startDate)).length;
 
   return pastSlotsCount / (course.slots.length + course.slotsToPlan.length);
+};
+
+const formatCourseBill = (courseBill) => {
+  const netInclTaxes = exports.getNetInclTaxes(courseBill);
+
+  const totalPayments = BalanceHelper.computePayments(courseBill.coursePayments);
+  const creditNote = courseBill.courseCreditNote ? netInclTaxes : 0;
+  const paid = totalPayments + creditNote;
+
+  return {
+    progress: getTimeProgress(courseBill.course),
+    netInclTaxes,
+    ...omit(courseBill, ['course.slots', 'course.slotsToPlan']),
+    paid,
+    total: paid - netInclTaxes,
+  };
 };
 
 const balance = async (company, credentials) => {
@@ -41,31 +58,7 @@ const balance = async (company, credentials) => {
     .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .lean();
 
-  return courseBills.map((bill) => {
-    const netInclTaxes = exports.getNetInclTaxes(bill);
-
-    const payments = bill.coursePayments
-      .filter(payment => payment.nature === PAYMENT)
-      .map(payment => payment.netInclTaxes)
-      .reduce((acc, val) => acc + val, 0);
-
-    const refunds = bill.coursePayments
-      .filter(payment => payment.nature === REFUND)
-      .map(payment => payment.netInclTaxes)
-      .reduce((acc, val) => acc + val, 0);
-
-    const creditNote = bill.courseCreditNote ? netInclTaxes : 0;
-
-    const paid = payments - refunds + creditNote;
-
-    return {
-      progress: getTimeProgress(bill.course),
-      netInclTaxes,
-      ...omit(bill, ['course.slots', 'course.slotsToPlan']),
-      paid,
-      total: paid - netInclTaxes,
-    };
-  });
+  return courseBills.map(bill => formatCourseBill(bill));
 };
 
 exports.list = async (query, credentials) => {

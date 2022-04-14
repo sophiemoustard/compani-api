@@ -132,9 +132,7 @@ describe('list', () => {
       _id: courseId,
       misc: 'group 1',
       subProgram: { program: { name: 'program 1' } },
-      slots: [
-        { startDate: '2021-11-11T08:00:00.000Z', endDate: '2021-11-11T14:00:00.000Z' },
-      ],
+      slots: [{ startDate: '2021-11-11T08:00:00.000Z', endDate: '2021-11-11T14:00:00.000Z' }],
       slotsToPlan: [],
     };
 
@@ -225,9 +223,7 @@ describe('list', () => {
       _id: courseId,
       misc: 'group 1',
       subProgram: { program: { name: 'program 1' } },
-      slots: [
-        { startDate: '2021-11-11T08:00:00.000Z', endDate: '2021-11-11T14:00:00.000Z' },
-      ],
+      slots: [{ startDate: '2021-11-11T08:00:00.000Z', endDate: '2021-11-11T14:00:00.000Z' }],
       slotsToPlan: [],
     };
 
