@@ -141,7 +141,7 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
   };
 };
 
-exports.getFixedFundingSplit = (event, funding, service, price) => {
+exports.getFixedFundingSplit = (event, funding, price) => {
   let thirdPartyPayerPrice = 0;
   if (funding.history && funding.history[0].amountTTC < funding.amountTTC) {
     const history = funding.history[0];
@@ -182,7 +182,7 @@ exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   if (funding && !event.isCancelled) {
     let fundingBilling;
     if (funding.nature === HOURLY) fundingBilling = exports.getHourlyFundingSplit(event, funding, price);
-    else fundingBilling = exports.getFixedFundingSplit(event, funding, service, price);
+    else fundingBilling = exports.getFixedFundingSplit(event, funding, price);
 
     return { ...billing, ...fundingBilling };
   }
