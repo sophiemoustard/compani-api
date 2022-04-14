@@ -580,27 +580,23 @@ describe('getEventBilling', () => {
 });
 
 describe('formatDraftBillsForCustomer', () => {
-  let getInclTaxes;
+  let getExclTaxes;
 
   beforeEach(() => {
-    getInclTaxes = sinon.stub(UtilsHelper, 'getInclTaxes');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
   });
 
   afterEach(() => {
-    getInclTaxes.restore();
+    getExclTaxes.restore();
   });
 
   it('should format bill for customer', () => {
     const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
-    const event = {
-      _id: 'abc',
-      startDate: (new Date('2019/05/08')).setHours(8),
-      endDate: (new Date('2019/05/08')).setHours(10),
-    };
+    const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const service = { vat: 20 };
-    const eventPrice = { customerPrice: 17.5 };
+    const eventPrice = { customerPrice: 21 };
 
-    getInclTaxes.returns(21);
+    getExclTaxes.returns(17.5);
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
@@ -613,20 +609,16 @@ describe('formatDraftBillsForCustomer', () => {
       exclTaxes: 37.5,
       inclTaxes: 46,
     });
-    sinon.assert.calledOnceWithExactly(getInclTaxes, 17.5, 20);
+    sinon.assert.calledOnceWithExactly(getExclTaxes, 21, 20);
   });
 
   it('should format bill for customer with surcharge', () => {
     const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
-    const event = {
-      _id: 'abc',
-      startDate: (new Date('2019/05/08')).setHours(8),
-      endDate: (new Date('2019/05/08')).setHours(10),
-    };
+    const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const service = { vat: 20 };
-    const eventPrice = { customerPrice: 17.5, surcharges: [{ name: 'test' }] };
+    const eventPrice = { customerPrice: 21, surcharges: [{ name: 'test' }] };
 
-    getInclTaxes.returns(21);
+    getExclTaxes.returns(17.5);
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
@@ -639,20 +631,16 @@ describe('formatDraftBillsForCustomer', () => {
       exclTaxes: 37.5,
       inclTaxes: 46,
     });
-    sinon.assert.calledOnceWithExactly(getInclTaxes, 17.5, 20);
+    sinon.assert.calledOnceWithExactly(getExclTaxes, 21, 20);
   });
 
   it('should format bill for customer with tpp info', () => {
     const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
-    const event = {
-      _id: 'abc',
-      startDate: (new Date('2019/05/08')).setHours(8),
-      endDate: (new Date('2019/05/08')).setHours(10),
-    };
+    const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const service = { vat: 20 };
-    const eventPrice = { customerPrice: 17.5, thirdPartyPayerPrice: 12.5, thirdPartyPayer: 'tpp' };
-    getInclTaxes.onCall(0).returns(21);
-    getInclTaxes.onCall(1).returns(15);
+    const eventPrice = { customerPrice: 21, thirdPartyPayerPrice: 15, thirdPartyPayer: 'tpp' };
+    getExclTaxes.onCall(0).returns(17.5);
+    getExclTaxes.onCall(1).returns(12.5);
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
@@ -672,8 +660,8 @@ describe('formatDraftBillsForCustomer', () => {
       exclTaxes: 37.5,
       inclTaxes: 46,
     });
-    sinon.assert.calledWithExactly(getInclTaxes.getCall(0), 17.5, 20);
-    sinon.assert.calledWithExactly(getInclTaxes.getCall(1), 12.5, 20);
+    sinon.assert.calledWithExactly(getExclTaxes.getCall(0), 21, 20);
+    sinon.assert.calledWithExactly(getExclTaxes.getCall(1), 15, 20);
   });
 });
 
