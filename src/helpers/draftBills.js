@@ -12,7 +12,6 @@ const SurchargesHelper = require('./surcharges');
 const DatesHelper = require('./dates');
 const NumbersHelper = require('./numbers');
 const FundingsHelper = require('./fundings');
-const { divide } = require('lodash');
 
 const populateSurchargeAndBillingItem = (serviceVersions, surcharges, billingItems) => serviceVersions
   .map(v => ({
