@@ -897,46 +897,41 @@ describe('computeBillingInfoForEvents', () => {
 });
 
 describe('formatDraftBillsForTPP', () => {
-  let getInclTaxes;
+  let getExclTaxes;
   beforeEach(() => {
-    getInclTaxes = sinon.stub(UtilsHelper, 'getInclTaxes');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
   });
   afterEach(() => {
-    getInclTaxes.restore();
+    getExclTaxes.restore();
   });
 
   it('should format bill for tpp', () => {
     const tppId = new ObjectId();
     const tpp = { _id: tppId };
-    const tppPrices = {
-      [tppId]: { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] },
-    };
-    const event = {
-      _id: 'abc',
-      startDate: (new Date('2019/05/08')).setHours(8),
-      endDate: (new Date('2019/05/08')).setHours(10),
-    };
+    const tppPrices = { [tppId]: { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] } };
+    const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const eventPrice = {
-      customerPrice: 17.5,
+      customerPrice: 21,
       thirdPartyPayerPrice: 12.5,
       thirdPartyPayer: tppId,
       history: {},
       chargedTime: 120,
     };
     const service = { vat: 20 };
-    getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
+    getExclTaxes.onCall(0).returns(10);
+    getExclTaxes.onCall(1).returns(17.5);
 
     const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
 
-    expect(result[tppId].exclTaxes).toEqual(32.5);
-    expect(result[tppId].inclTaxes).toEqual(40);
+    expect(result[tppId].exclTaxes).toEqual(30);
+    expect(result[tppId].inclTaxes).toEqual(37.5);
     expect(result[tppId].hours).toEqual(5);
     expect(result[tppId].eventsList).toMatchObject([
       { event: '123456' },
       {
         event: 'abc',
-        inclTaxesTpp: 15,
-        exclTaxesTpp: 12.5,
+        inclTaxesTpp: 12.5,
+        exclTaxesTpp: 10,
         thirdPartyPayer: tppId,
         inclTaxesCustomer: 21,
         exclTaxesCustomer: 17.5,
