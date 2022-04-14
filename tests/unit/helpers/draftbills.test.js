@@ -320,12 +320,9 @@ describe('getMatchingHistory', () => {
   });
 });
 
-describe('getHourlyFundingSplit #tag', () => {
+describe('getHourlyFundingSplit', () => {
   const price = 50;
-  const event = {
-    startDate: '2019-02-12T08:00:00.000Z',
-    endDate: '2019-02-12T10:00:00.000Z',
-  };
+  const event = { startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
   let getMatchingHistory;
   let getThirdPartyPayerPrice;
   beforeEach(() => {
@@ -382,20 +379,9 @@ describe('getHourlyFundingSplit #tag', () => {
   });
 });
 
-describe('getFixedFundingSplit', () => {
+describe('getFixedFundingSplit #tag', () => {
   const price = 50;
-  const event = {
-    startDate: (new Date('2019/03/12')).setHours(8),
-    endDate: (new Date('2019/03/12')).setHours(10),
-  };
-  const service = { vat: 20 };
-  let getExclTaxes;
-  beforeEach(() => {
-    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
-  });
-  afterEach(() => {
-    getExclTaxes.restore();
-  });
+  const event = { startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
 
   it('Case 1. Event fully invoiced to TPP', () => {
     const funding = {
@@ -403,14 +389,12 @@ describe('getFixedFundingSplit', () => {
       amountTTC: 100,
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(50);
 
-    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, price);
 
     expect(result.customerPrice).toEqual(0);
     expect(result.thirdPartyPayerPrice).toEqual(50);
-    expect(result.history.amountTTC).toEqual(60);
-    sinon.assert.notCalled(getExclTaxes);
+    expect(result.history.amountTTC).toEqual(50);
   });
 
   it('Case 2. Event partially invoiced to TPP', () => {
@@ -419,14 +403,12 @@ describe('getFixedFundingSplit', () => {
       amountTTC: 100,
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(17.5);
 
-    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, price);
 
-    expect(result.customerPrice).toEqual(32.5);
-    expect(result.thirdPartyPayerPrice).toEqual(17.5);
+    expect(result.customerPrice).toEqual(29);
+    expect(result.thirdPartyPayerPrice).toEqual(21);
     expect(result.history.amountTTC).toEqual(21);
-    sinon.assert.calledWithExactly(getExclTaxes, 21, 20);
   });
 });
 
