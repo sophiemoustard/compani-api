@@ -1,4 +1,5 @@
 const get = require('lodash/get');
+const keyBy = require('lodash/keyBy');
 const os = require('os');
 const path = require('path');
 const Customer = require('../models/Customer');
@@ -193,12 +194,17 @@ exports.formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime
   };
 };
 
-exports.formatEvents = async (events, companyId) => {
+exports.getAuxiliaries = async (events) => {
   const auxiliaries = await User
     .find({ _id: { $in: events.map(ev => ev.auxiliary) } }, { identity: 1, serialNumber: 1 })
     .populate({ path: 'establishment' })
     .populate({ path: 'company', populate: { path: 'company' } })
     .lean();
+
+  return keyBy(auxiliaries, '_id');
+};
+
+exports.getCustomers = async (events, companyId) => {
   const customers = await Customer
     .find(
       { _id: { $in: events.map(ev => ev.customer) }, company: companyId },
@@ -207,6 +213,11 @@ exports.formatEvents = async (events, companyId) => {
     .populate({ path: 'fundings.thirdPartyPayer', select: 'teletransmissionId name type' })
     .populate({ path: 'subscriptions.service' })
     .lean();
+
+  return keyBy(customers, '_id');
+};
+
+exports.getEventHistories = async (events, companyId) => {
   const eventHistories = await EventHistory
     .find({
       action: { $in: TIME_STAMPING_ACTIONS },
@@ -216,34 +227,39 @@ exports.formatEvents = async (events, companyId) => {
     })
     .lean();
 
+  const formattedHistories = {};
+  for (const history of eventHistories) {
+    if (!formattedHistories[history.event.eventId]) formattedHistories[history.event.eventId] = [history];
+    else formattedHistories[history.event.eventId].push(history);
+  }
+
+  return formattedHistories;
+};
+
+exports.formatEvents = async (events, companyId) => {
+  const auxiliaries = await exports.getAuxiliaries(events);
+  const customers = await exports.getCustomers(events, companyId);
+  const eventHistories = await exports.getEventHistories(events, companyId);
+
   return events.map(ev => ({
     ...ev,
-    auxiliary: auxiliaries.find(a => UtilsHelper.areObjectIdsEquals(ev.auxiliary, a._id)),
-    customer: customers.find(c => UtilsHelper.areObjectIdsEquals(ev.customer, c._id)),
-    histories: eventHistories.filter(h => UtilsHelper.areObjectIdsEquals(ev._id, h.event.eventId)),
+    auxiliary: auxiliaries[ev.auxiliary],
+    customer: customers[ev.customer],
+    histories: eventHistories[ev._id] || [],
   }));
 };
 
 exports.formatNonBilledEvents = async (events, startDate, endDate, credentials) => {
   if (!events.length) return [];
 
-  const companyId = get(credentials, 'company._id');
   const billsQuery = { startDate, endDate, eventIds: events.map(ev => ev._id) };
   const bills = await DraftBillsHelper.getDraftBillsList(billsQuery, credentials);
 
-  const eventsWithBillingInfo = bills
+  return bills
     .filter(b => !!b.thirdPartyPayerBills)
     .flatMap(b => b.thirdPartyPayerBills
       .flatMap(tppb => tppb.bills
         .flatMap(bi => bi.eventsList.flatMap(ev => ({ ...ev, customer: b.customer._id, _id: ev.event })))));
-
-  return exports.formatEvents(eventsWithBillingInfo, companyId);
-};
-
-exports.formatBilledEvents = async (events, credentials) => {
-  if (!events.length) return [];
-
-  return exports.formatEvents(events, get(credentials, 'company._id'));
 };
 
 exports.getEvents = async (query, credentials) => {
@@ -272,11 +288,11 @@ exports.getEvents = async (query, credentials) => {
 
   const billedEvents = events.filter(ev => !!ev.isBilled &&
     UtilsHelper.doesArrayIncludeId(tpps, ev.bills.thirdPartyPayer));
+  const nonBilledEvents = events.filter(ev => !ev.isBilled);
 
-  return [
-    ...await exports.formatNonBilledEvents(events.filter(ev => !ev.isBilled), startDate, endDate, credentials),
-    ...await exports.formatBilledEvents(billedEvents, credentials),
-  ];
+  const notBilledEvents = await exports.formatNonBilledEvents(nonBilledEvents, startDate, endDate, credentials);
+
+  return exports.formatEvents([...notBilledEvents, ...billedEvents], get(credentials, 'company._id'));
 };
 
 /**
