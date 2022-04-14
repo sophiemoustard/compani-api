@@ -320,56 +320,48 @@ describe('getMatchingHistory', () => {
   });
 });
 
-describe('getHourlyFundingSplit', () => {
+describe('getHourlyFundingSplit #tag', () => {
   const price = 50;
   const event = {
-    startDate: (new Date('2019/03/12')).setHours(8),
-    endDate: (new Date('2019/03/12')).setHours(10),
+    startDate: '2019-02-12T08:00:00.000Z',
+    endDate: '2019-02-12T10:00:00.000Z',
   };
-  const service = { vat: 20 };
-  let getExclTaxes;
   let getMatchingHistory;
   let getThirdPartyPayerPrice;
   beforeEach(() => {
-    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
     getMatchingHistory = sinon.stub(DraftBillsHelper, 'getMatchingHistory');
     getThirdPartyPayerPrice = sinon.stub(DraftBillsHelper, 'getThirdPartyPayerPrice');
   });
   afterEach(() => {
-    getExclTaxes.restore();
     getMatchingHistory.restore();
     getThirdPartyPayerPrice.restore();
   });
 
   it('case 1. Event fully invoiced to TPP', () => {
     const funding = {
+      _id: new ObjectId(),
       unitTTCRate: 21,
       careHours: 4,
       frequency: 'once',
+      nature: 'hourly',
       customerParticipationRate: 20,
       history: { careHours: 1 },
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
-    getExclTaxes.returns(17.5);
     getMatchingHistory.returns({ careHours: 1 });
     getThirdPartyPayerPrice.returns(28);
 
-    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, service, price);
-
+    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, price);
     expect(result.customerPrice).toEqual(22);
     expect(result.thirdPartyPayerPrice).toEqual(28);
     expect(result.history.careHours).toEqual(2);
-    sinon.assert.calledWithExactly(
-      getThirdPartyPayerPrice,
-      120,
-      17.5,
-      20
-    );
+    sinon.assert.calledWithExactly(getThirdPartyPayerPrice, 120, 21, 20);
   });
 
   it('case 2. Event partially invoiced to TPP', () => {
     const funding = {
+      _id: new ObjectId(),
       unitTTCRate: 21,
       careHours: 4,
       frequency: 'once',
@@ -378,16 +370,15 @@ describe('getHourlyFundingSplit', () => {
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
-    getExclTaxes.returns(17.5);
     getMatchingHistory.returns({ careHours: 3 });
     getThirdPartyPayerPrice.returns(14);
 
-    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, price);
 
     expect(result.customerPrice).toEqual(36);
     expect(result.thirdPartyPayerPrice).toEqual(14);
     expect(result.history.careHours).toEqual(1);
-    sinon.assert.calledWithExactly(getThirdPartyPayerPrice, 60, 17.5, 20);
+    sinon.assert.calledWithExactly(getThirdPartyPayerPrice, 60, 21, 20);
   });
 });
 
