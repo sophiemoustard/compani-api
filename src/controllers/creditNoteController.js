@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const CreditNoteHelper = require('../helpers/creditNotes');
 
@@ -65,6 +66,9 @@ const remove = async (req) => {
 
 const generateCreditNotePdf = async (req, h) => {
   try {
+    req.log('creditNoteController - generateCreditNotePdf - params', req.params);
+    req.log('creditNoteController - generateCreditNotePdf - company', get(req, 'auth.credentials.company._id'));
+
     const { pdf, creditNoteNumber } = await CreditNoteHelper.generateCreditNotePdf(req.params, req.auth.credentials);
 
     return h.response(pdf)
