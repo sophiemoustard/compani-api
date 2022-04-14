@@ -193,6 +193,7 @@ exports.formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime
       getCIDDHSupplyChainTradeTransaction(event, funding, `I${transactionId}${eventIndex}`),
   };
 };
+
 exports.getAuxiliaries = async (events) => {
   const auxiliaries = await User
     .find({ _id: { $in: events.map(ev => ev.auxiliary) } }, { identity: 1, serialNumber: 1 })
