@@ -381,7 +381,7 @@ describe('updateEvent', () => {
     SinonMongoose.calledOnceWithExactly(
       userFindOne,
       [
-        { query: 'findOne', args: [{ _id: event.auxiliary }] },
+        { query: 'findOne', args: [{ _id: event.auxiliary }, { _id: 1 }] },
         {
           query: 'populate',
           args: [{
@@ -392,14 +392,7 @@ describe('updateEvent', () => {
         },
         { query: 'lean' },
       ]);
-    sinon.assert.calledOnceWithExactly(
-      updateEventBelongingToRepetition,
-      { ...payload, _id: event._id, type: event.type },
-      payload,
-      event,
-      companyId,
-      sectorId
-    );
+    sinon.assert.calledOnceWithExactly(updateEventBelongingToRepetition, payload, event, companyId, sectorId);
     sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
     sinon.assert.notCalled(isRepetition);
     sinon.assert.notCalled(shouldDetachFromRepetition);
@@ -459,14 +452,7 @@ describe('updateEvent', () => {
       ]
     );
     sinon.assert.notCalled(userFindOne);
-    sinon.assert.calledOnceWithExactly(
-      updateEventBelongingToRepetition,
-      { ...payload, _id: event._id, type: event.type },
-      payload,
-      event,
-      companyId,
-      sectorId
-    );
+    sinon.assert.calledOnceWithExactly(updateEventBelongingToRepetition, payload, event, companyId, sectorId);
     sinon.assert.calledOnceWithExactly(populateEventSubscription, event);
     sinon.assert.notCalled(isRepetition);
     sinon.assert.notCalled(shouldDetachFromRepetition);

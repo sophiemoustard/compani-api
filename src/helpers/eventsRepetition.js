@@ -2,7 +2,6 @@ const Boom = require('@hapi/boom');
 const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
-const set = require('lodash/set');
 const cloneDeep = require('lodash/cloneDeep');
 const pick = require('lodash/pick');
 const has = require('lodash/has');
@@ -132,17 +131,21 @@ exports.createRepetitions = async (eventFromDb, payload, credentials) => {
   return eventFromDb;
 };
 
-exports.updateEventBelongingToRepetition = async (repetitionPayload, eventPayload, event, companyId, sectorId) => {
-  const hasConflicts = await EventsValidationHelper.hasConflicts({ ...repetitionPayload, company: companyId });
+exports.updateEventBelongingToRepetition = async (eventPayload, event, companyId, sectorId) => {
+  const hasConflicts = await EventsValidationHelper.hasConflicts({
+    ...eventPayload,
+    company: companyId,
+    ...pick(event, ['_id', 'type']),
+  });
   if (event.type !== INTERVENTION && hasConflicts) return Event.deleteOne({ _id: event._id });
 
-  let newRepetitionPayload = { ...repetitionPayload };
   const detachFromRepetition = !!eventPayload.auxiliary && hasConflicts;
-  if (detachFromRepetition || !eventPayload.auxiliary) {
-    newRepetitionPayload = set(omit(repetitionPayload, 'auxiliary'), 'sector', sectorId);
-  }
+  const newEventPayload = detachFromRepetition || !eventPayload.auxiliary
+    ? { ...omit(eventPayload, 'auxiliary'), sector: sectorId }
+    : { ...eventPayload };
 
-  const editionPayload = EventsHelper.formatEditionPayload(event, newRepetitionPayload, detachFromRepetition);
+  const editionPayload = EventsHelper.formatEditionPayload(event, newEventPayload, detachFromRepetition);
+
   return Event.updateOne({ _id: event._id }, editionPayload);
 };
 
@@ -161,32 +164,17 @@ exports.updateRepetition = async (eventFromDb, eventPayload, credentials, sector
   const events = await Event.find(query).lean();
 
   for (let i = 0, l = events.length; i < l; i++) {
-    const startDate = CompaniDate(events[i].startDate).set(payloadStartHour).toISO();
-    const endDate = CompaniDate(events[i].endDate).set(payloadEndHour).toISO();
-
-    const eventToSet = {
+    const formattedEventPayload = {
       ...omit(eventPayload, FIELDS_NOT_APPLICABLE_TO_REPETITION),
-      startDate,
-      endDate,
-      _id: events[i]._id,
-      type: events[i].type,
-      ...(events[i].customer && { customer: events[i].customer }),
+      startDate: CompaniDate(events[i].startDate).set(payloadStartHour).toISO(),
+      endDate: CompaniDate(events[i].endDate).set(payloadEndHour).toISO(),
     };
 
-    const updateEventPromise = exports.updateEventBelongingToRepetition(
-      eventToSet,
-      eventPayload,
-      events[i],
-      companyId,
-      sectorId
-    );
-    promises.push(updateEventPromise);
+    promises.push(exports.updateEventBelongingToRepetition(formattedEventPayload, events[i], companyId, sectorId));
   }
 
-  await Promise.all([
-    ...promises,
-    RepetitionsHelper.updateRepetitions(eventPayload, eventFromDb.repetition.parentId),
-  ]);
+  promises.push(RepetitionsHelper.updateRepetitions(eventPayload, eventFromDb.repetition.parentId));
+  await Promise.all(promises);
 
   return eventFromDb;
 };
