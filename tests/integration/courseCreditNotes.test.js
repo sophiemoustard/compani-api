@@ -112,6 +112,17 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 if credit note date is before course bill validation', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursecreditnotes',
+        payload: { ...payload, date: '2022-04-06T00:00:00.000Z' },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
