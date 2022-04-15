@@ -251,14 +251,12 @@ exports.shouldDetachFromRepetition = (event, payload) => {
 };
 
 const getEventSector = async (event, companyId) => {
-  let sectorId = event.sector;
-  if (!event.sector) {
-    const user = await User.findOne({ _id: event.auxiliary }, { _id: 1 })
-      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .lean();
-    sectorId = user.sector;
-  }
-  return sectorId;
+  if (event.sector) return event.sector;
+
+  const user = await User.findOne({ _id: event.auxiliary }, { _id: 1 })
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .lean();
+  return user.sector;
 };
 
 /**

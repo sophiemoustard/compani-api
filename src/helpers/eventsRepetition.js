@@ -139,11 +139,11 @@ exports.updateEventBelongingToRepetition = async (eventPayload, event, companyId
   });
   if (event.type !== INTERVENTION && hasConflicts) return Event.deleteOne({ _id: event._id });
 
-  const detachFromRepetition = !!eventPayload.auxiliary && hasConflicts;
-  const newEventPayload = detachFromRepetition || !eventPayload.auxiliary
+  const newEventPayload = !eventPayload.auxiliary || hasConflicts
     ? { ...omit(eventPayload, 'auxiliary'), sector: sectorId }
     : { ...eventPayload };
 
+  const detachFromRepetition = !!eventPayload.auxiliary && hasConflicts;
   const editionPayload = EventsHelper.formatEditionPayload(event, newEventPayload, detachFromRepetition);
 
   return Event.updateOne({ _id: event._id }, editionPayload);
