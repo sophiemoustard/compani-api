@@ -5,6 +5,7 @@ const NumbersHelper = require('./numbers');
 const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
 const PdfHelper = require('./pdf');
+const BalanceHelper = require('./balances');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
 const { LIST } = require('./constants');
@@ -25,6 +26,22 @@ const getTimeProgress = (course) => {
   return pastSlotsCount / (course.slots.length + course.slotsToPlan.length);
 };
 
+const formatCourseBill = (courseBill) => {
+  const netInclTaxes = exports.getNetInclTaxes(courseBill);
+
+  const totalPayments = BalanceHelper.computePayments(courseBill.coursePayments);
+  const creditNote = courseBill.courseCreditNote ? netInclTaxes : 0;
+  const paid = totalPayments + creditNote;
+
+  return {
+    progress: getTimeProgress(courseBill.course),
+    netInclTaxes,
+    ...omit(courseBill, ['course.slots', 'course.slotsToPlan']),
+    paid,
+    total: paid - netInclTaxes,
+  };
+};
+
 const balance = async (company, credentials) => {
   const courseBills = await CourseBill
     .find({ company, billedAt: { $exists: true, $type: 'date' } })
@@ -37,14 +54,11 @@ const balance = async (company, credentials) => {
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
+    .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .lean();
 
-  return courseBills.map(bill => ({
-    progress: getTimeProgress(bill.course),
-    netInclTaxes: exports.getNetInclTaxes(bill),
-    ...omit(bill, ['course.slots', 'course.slotsToPlan']),
-  }));
+  return courseBills.map(bill => formatCourseBill(bill));
 };
 
 exports.list = async (query, credentials) => {
