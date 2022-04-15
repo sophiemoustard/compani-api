@@ -73,20 +73,20 @@ exports.getSurchargedPrice = (event, eventSurcharges, price) => {
     const percentage = NumbersHelper.divide(surcharge.percentage, 100);
     if (surcharge.startHour) {
       const surchargedDuration = moment(surcharge.endHour).diff(surcharge.startHour, 'm');
-      const surchargedProportion = NumbersHelper.divide(surchargedDuration, eventDuration);
-      coeff = NumbersHelper.add(coeff, NumbersHelper.multiply(surchargedProportion, percentage));
+      const surchargedRatio = NumbersHelper.divide(surchargedDuration, eventDuration);
+      coeff = NumbersHelper.add(coeff, NumbersHelper.multiply(surchargedRatio, percentage));
     } else {
       coeff = NumbersHelper.add(coeff, percentage);
     }
   }
 
-  return coeff * price;
+  return NumbersHelper.multiply(coeff, price);
 };
 
 exports.getThirdPartyPayerPrice = (time, fundingInclTaxes, customerParticipationRate) => {
   const tppParticipationRate = NumbersHelper.subtract(1, NumbersHelper.divide(customerParticipationRate, 100));
 
-  return NumbersHelper.multiply(NumbersHelper.divide(time, 60) * fundingInclTaxes, tppParticipationRate);
+  return NumbersHelper.multiply(NumbersHelper.divide(time, 60), fundingInclTaxes, tppParticipationRate);
 };
 
 exports.getMatchingHistory = (event, funding) => {
@@ -169,9 +169,7 @@ exports.getFixedFundingSplit = (event, funding, price) => {
 exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   const billing = {};
   const eventDuration = NumbersHelper.divide(moment(event.endDate).diff(moment(event.startDate), 'm'), 60);
-  let price = service.nature === HOURLY
-    ? NumbersHelper.multiply(eventDuration, unitTTCRate)
-    : unitTTCRate;
+  let price = service.nature === HOURLY ? NumbersHelper.multiply(eventDuration, unitTTCRate) : unitTTCRate;
 
   if (service.surcharge && service.nature === HOURLY) {
     const surcharges = SurchargesHelper.getEventSurcharges(event, service.surcharge);
@@ -366,8 +364,8 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
           auxiliary: event.auxiliary,
         }
       )),
-      exclTaxes: unitExclTaxes * eventsList.length,
-      inclTaxes: bddBillingItem.defaultUnitAmount * eventsList.length,
+      exclTaxes: NumbersHelper.multiply(unitExclTaxes, eventsList.length),
+      inclTaxes: NumbersHelper.multiply(bddBillingItem.defaultUnitAmount, eventsList.length),
       startDate,
       endDate,
     });
