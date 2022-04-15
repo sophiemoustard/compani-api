@@ -147,8 +147,10 @@ exports.getFixedFundingSplit = (event, funding, price) => {
     const history = funding.history[0];
     if (NumbersHelper.add(history.amountTTC, price) < funding.amountTTC) {
       thirdPartyPayerPrice = price;
+      history.amountTTC = NumbersHelper.add(history.amountTTC, thirdPartyPayerPrice);
     } else {
       thirdPartyPayerPrice = NumbersHelper.subtract(funding.amountTTC, history.amountTTC);
+      history.amountTTC = funding.amountTTC;
     }
   }
 
@@ -206,7 +208,7 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
   if (eventPrice.thirdPartyPayerPrice && eventPrice.thirdPartyPayerPrice !== 0) {
     prices.inclTaxesTpp = eventPrice.thirdPartyPayerPrice;
     prices.exclTaxesTpp = UtilsHelper.getExclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
-    prices.thirdPartyPayer = eventPrice.thirdPartyPayer; // A quoi sert cette ligne ?
+    prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
   }
 
   const eventDuration = moment(endDate).diff(moment(startDate), 'm');
