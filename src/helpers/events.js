@@ -250,6 +250,15 @@ exports.shouldDetachFromRepetition = (event, payload) => {
   return !isEqual(mainEventInfo, mainPayloadInfo);
 };
 
+const getEventSector = async (event, companyId) => {
+  if (event.sector) return event.sector;
+
+  const user = await User.findOne({ _id: event.auxiliary }, { _id: 1 })
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .lean();
+  return user.sector;
+};
+
 /**
  * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the
  * repetition i.e. delete the repetition object. EXCEPT if we are only updating the misc field
@@ -258,6 +267,7 @@ exports.shouldDetachFromRepetition = (event, payload) => {
  * cancellation i.e. delete the cancel object and set isCancelled to false.
  */
 exports.updateEvent = async (event, eventPayload, credentials) => {
+  const companyId = get(credentials, 'company._id');
   if (event.type !== ABSENCE && !CompaniDate(eventPayload.startDate).isSame(eventPayload.endDate, 'day')) {
     throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
   }
@@ -271,7 +281,11 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     if (!isUpdateAllowed) throw Boom.badData();
 
     await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
-    await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
+
+    const sectorId = await getEventSector(event, companyId);
+    await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials, sectorId);
+
+    await EventsRepetitionHelper.updateEventBelongingToRepetition(eventPayload, event, companyId, sectorId);
   } else {
     const detachFromRepetition = exports.isRepetition(event) && exports.shouldDetachFromRepetition(event, eventPayload);
     const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
