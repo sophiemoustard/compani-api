@@ -1157,7 +1157,7 @@ describe('formatBillingItems', () => {
         unitInclTaxes: 1,
         vat: 10,
         eventsList: [{ event: eventId1 }, { event: eventId2 }, { event: eventId3 }],
-        exclTaxes: 2.727272727272727,
+        exclTaxes: 2.7272727272727275,
         inclTaxes: 3,
         startDate: '2019-12-31T07:00:00',
         endDate: '2019-12-25T07:00:00',
