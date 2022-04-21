@@ -210,6 +210,7 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
   }
 
   const eventDuration = moment(endDate).diff(moment(startDate), 'm');
+
   return {
     eventsList: [...customerPrices.eventsList, { ...prices }],
     hours: NumbersHelper.add(customerPrices.hours, NumbersHelper.divide(eventDuration, 60)),
