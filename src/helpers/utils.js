@@ -197,15 +197,15 @@ exports.computeHoursWithDiff = (pay, key) => {
 exports.getExclTaxes = (inclTaxes, vat) => {
   if (!vat) return inclTaxes;
 
-  const decimalVat = NumbersHelper.add(1, NumbersHelper.divide(vat, 100));
+  const decimalVat = NumbersHelper.add(1, NumbersHelper.oldDivide(vat, 100));
 
-  return NumbersHelper.divide(inclTaxes, decimalVat);
+  return NumbersHelper.oldDivide(inclTaxes, decimalVat);
 };
 
 exports.getInclTaxes = (exclTaxes, vat) => {
   if (!vat) return exclTaxes;
 
-  const decimalVat = NumbersHelper.add(1, NumbersHelper.divide(vat, 100));
+  const decimalVat = NumbersHelper.add(1, NumbersHelper.oldDivide(vat, 100));
 
   return NumbersHelper.oldMultiply(exclTaxes, decimalVat);
 };
