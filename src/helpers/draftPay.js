@@ -24,6 +24,7 @@ const {
   WEEKS_PER_MONTH,
   HOURLY,
   HALF_DAILY,
+  FIXED,
 } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
@@ -279,6 +280,7 @@ exports.getPayFromEvents = async (events, auxiliary, subscriptions, dm, surcharg
   for (const eventsPerDay of events) {
     const sortedEvents = [...eventsPerDay].sort(DatesHelper.ascendingSort('startDate'));
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
+      const subscription = subscriptions[sortedEvents[i].subscription];
       const paidEvent = {
         ...sortedEvents[i],
         startDate: moment(sortedEvents[i].startDate).isSameOrAfter(query.startDate)
@@ -288,17 +290,14 @@ exports.getPayFromEvents = async (events, auxiliary, subscriptions, dm, surcharg
           ? sortedEvents[i].endDate
           : query.endDate,
         auxiliary,
+        ...(sortedEvents[i].type === INTERVENTION && { hasFixedService: subscription.service.nature === FIXED }),
       };
 
       let service = null;
       if (paidEvent.type === INTERVENTION) {
         if (paidEvent.hasFixedService) continue; // Fixed services are included manually in bonus
 
-        service = UtilsHelper.getMatchingVersion(
-          paidEvent.startDate,
-          subscriptions[paidEvent.subscription].service,
-          'startDate'
-        );
+        service = UtilsHelper.getMatchingVersion(paidEvent.startDate, subscription.service, 'startDate');
         service.surcharge = service.surcharge
           ? surcharges.find(sur => UtilsHelper.areObjectIdsEquals(sur._id, service.surcharge)) || null
           : null;
@@ -518,16 +517,14 @@ exports.getPreviousMonthPay = async (auxiliaries, subscriptions, query, surcharg
 
   const prevPayDiff = [];
   for (const aux of auxiliaries) {
-    const events = eventsByAuxiliary.find(group => UtilsHelper.areObjectIdsEquals(group.auxiliary._id, aux._id)) ||
+    const events = eventsByAuxiliary.find(group => UtilsHelper.areObjectIdsEquals(group.auxiliary, aux._id)) ||
       { absences: [], events: [] };
     prevPayDiff.push(
       exports.computePrevPayDiff(aux, events, subscriptions, aux.prevPay, { startDate, endDate }, dm, surcharges)
     );
   }
 
-  const promises = await Promise.all(prevPayDiff);
-
-  return promises;
+  return Promise.all(prevPayDiff);
 };
 
 exports.getSubscriptionsForPay = async (companyId) => {
@@ -552,7 +549,7 @@ exports.computeDraftPay = async (auxiliaries, query, credentials) => {
   ]);
 
   const auxIds = auxiliaries.map(aux => aux._id);
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, [auxIds[0]], companyId);
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxIds, companyId);
   const subscriptions = await exports.getSubscriptionsForPay(companyId);
 
   // Counter is reset on January

@@ -200,7 +200,7 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
     {
       $group: {
         _id: {
-          aux: '$auxiliary',
+          auxiliary: '$auxiliary',
           year: { $year: '$startDate' },
           month: { $month: '$startDate' },
           week: { $week: '$startDate' },
@@ -208,29 +208,25 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
         },
         eventsPerDay: { $push: { $cond: [{ $in: ['$type', [INTERNAL_HOUR, INTERVENTION]] }, '$$ROOT', null] } },
         absences: { $push: { $cond: [{ $eq: ['$type', 'absence'] }, '$$ROOT', null] } },
-        auxiliary: { $first: '$auxiliary' },
       },
     },
     {
       $project: {
-        auxiliary: 1,
-        year: '$_id.year',
-        month: '$_id.month',
+        auxiliary: '$_id.auxiliary',
         absences: { $filter: { input: '$absences', as: 'event', cond: { $ne: ['$$event', null] } } },
         eventsPerDay: { $filter: { input: '$eventsPerDay', as: 'event', cond: { $ne: ['$$event', null] } } },
       },
     },
     {
       $group: {
-        _id: { auxiliary: '$auxiliary', year: '$year', month: '$month' },
-        auxiliary: { $first: '$auxiliary' },
+        _id: { auxiliary: '$auxiliary' },
         events: { $push: '$eventsPerDay' },
         absences: { $push: '$absences' },
       },
     },
     {
       $project: {
-        auxiliary: 1,
+        auxiliary: '$_id.auxiliary',
         events: 1,
         absences: { $reduce: { input: '$absences', initialValue: [], in: { $setUnion: ['$$value', '$$this'] } } },
       },

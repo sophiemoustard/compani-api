@@ -973,7 +973,7 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return 0 for all keys if no events', async () => {
-    const result = await DraftPayHelper.getPayFromEvents([], {}, [], [], [], {});
+    const result = await DraftPayHelper.getPayFromEvents([], {}, [], [], [], [], {});
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -994,22 +994,22 @@ describe('getPayFromEvents', () => {
   });
 
   it('should return 0 for all keys if one event linked to fixed service', async () => {
+    const subId = new ObjectId();
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
         endDate: '2019-07-01T11:00:00',
         type: 'intervention',
         hasFixedService: true,
-        subscription: {
-          service: {
-            nature: 'fixed',
-            versions: [{ startDate: '2019-02-22T00:00:00' }],
-          },
-        },
+        subscription: subId,
       }],
     ];
+    const subscriptions = {
+      [subId]: { _id: subId, service: { nature: 'fixed', versions: [{ startDate: '2019-02-22T00:00:00' }] } },
+    };
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
-    const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], [], [], query);
+
+    const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, subscriptions, [], [], [], query);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -2123,17 +2123,17 @@ describe('getPreviousMonthPay', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, prevPay: { _id: '1234567890' } }];
     const subId = new ObjectId();
-    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
+    const subscriptions = { [subId]: { _id: subId, service: { _id: ObjectId() } } };
 
     const payData = [
       {
         events: [{ startDate: '2019-05-03T10:00:00' }],
         absences: [{ startDate: '2019-05-06T10:00:00' }],
-        auxiliary: { _id: auxiliaryId },
+        auxiliary: auxiliaryId,
       }, {
         events: [{ startDate: '2019-05-04T10:00:00' }],
         absences: [{ startDate: '2019-05-07T10:00:00' }],
-        auxiliary: { _id: new ObjectId() },
+        auxiliary: new ObjectId(),
       },
     ];
     const dm = [{ _id: new ObjectId() }];
