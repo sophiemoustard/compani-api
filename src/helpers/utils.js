@@ -207,7 +207,7 @@ exports.getInclTaxes = (exclTaxes, vat) => {
 
   const decimalVat = NumbersHelper.add(1, NumbersHelper.divide(vat, 100));
 
-  return NumbersHelper.multiply(exclTaxes, decimalVat);
+  return NumbersHelper.oldMultiply(exclTaxes, decimalVat);
 };
 
 exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.add(sum, (b[key] || 0)), 0);

@@ -1,9 +1,9 @@
 const expect = require('expect');
 const NumbersHelper = require('../../../src/helpers/numbers');
 
-describe('multiply', () => {
+describe('oldMultiply', () => {
   it('should multiply numbers', async () => {
-    const result = NumbersHelper.multiply(0.1, 2, 0.2);
+    const result = NumbersHelper.oldMultiply(0.1, 2, 0.2);
 
     expect(result).toEqual(0.04);
   });
