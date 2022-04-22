@@ -115,6 +115,9 @@ const deleteList = async (req) => {
 
 const getWorkingStats = async (req) => {
   try {
+    req.log('eventController - getWorkingStats - query', req.query);
+    req.log('eventController - getWorkingStats - company', get(req, 'auth.credentials.company._id'));
+
     const { query, auth } = req;
     const stats = await EventsHelper.workingStats(query, auth.credentials);
 
@@ -130,6 +133,9 @@ const getWorkingStats = async (req) => {
 
 const getPaidTransportStatsBySector = async (req) => {
   try {
+    req.log('eventController - getPaidTransportStatsBySector - query', req.query);
+    req.log('eventController - getPaidTransportStatsBySector - company', get(req, 'auth.credentials.company._id'));
+
     const paidTransportStatsBySector = await EventsHelper.getPaidTransportStatsBySector(
       req.query,
       req.auth.credentials
@@ -147,6 +153,9 @@ const getPaidTransportStatsBySector = async (req) => {
 
 const getUnassignedHoursBySector = async (req) => {
   try {
+    req.log('eventController - getUnassignedHoursBySector - query', req.query);
+    req.log('eventController - getUnassignedHoursBySector - company', get(req, 'auth.credentials.company._id'));
+
     const unassignedHoursBySector = await EventsHelper.getUnassignedHoursBySector(req.query, req.auth.credentials);
 
     return {

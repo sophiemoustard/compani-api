@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const TaxCertificateHelper = require('../helpers/taxCertificates');
 const translate = require('../helpers/translate');
 
@@ -23,6 +24,9 @@ const list = async (req) => {
 
 const generateTaxCertificatePdf = async (req, h) => {
   try {
+    req.log('taxCertificateController - generateTaxCertificatePdf - params', req.params);
+    req.log('taxCertificateController - generateTaxCertificatePdf - company', get(req, 'auth.credentials.company._id'));
+
     const pdf = await TaxCertificateHelper.generateTaxCertificatePdf(req.params._id, req.auth.credentials);
 
     return h.response(pdf)

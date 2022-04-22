@@ -29,6 +29,7 @@ const DistanceMatrixHelper = require('./distanceMatrix');
 const DraftPayHelper = require('./draftPay');
 const ContractHelper = require('./contracts');
 const DatesHelper = require('./dates');
+const RepetitionsHelper = require('./repetitions');
 const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
 const User = require('../models/User');
@@ -83,14 +84,13 @@ exports.createEvent = async (payload, credentials) => {
 
   if (!isRepeatedEvent) await EventHistoriesHelper.createEventHistoryOnCreate(event, credentials);
   else {
-    const repetition = { ...payload.repetition, parentId: populatedEvent._id };
-    await EventsRepetitionHelper.createRepetitions(
-      populatedEvent,
-      { ...payload, company: companyId, repetition },
-      credentials
-    );
+    await EventsRepetitionHelper.createRepetitions(populatedEvent, payload, credentials);
 
-    await EventHistoriesHelper.createEventHistoryOnCreate({ ...payload, _id: event._id, repetition }, credentials);
+    const eventHistoryPayload = {
+      ...RepetitionsHelper.formatPayloadForRepetitionCreation(populatedEvent, payload, companyId),
+      _id: event._id,
+    };
+    await EventHistoriesHelper.createEventHistoryOnCreate(eventHistoryPayload, credentials);
   }
 
   if (payload.type === ABSENCE) {
@@ -250,6 +250,15 @@ exports.shouldDetachFromRepetition = (event, payload) => {
   return !isEqual(mainEventInfo, mainPayloadInfo);
 };
 
+const getEventSector = async (event, companyId) => {
+  if (event.sector) return event.sector;
+
+  const user = await User.findOne({ _id: event.auxiliary }, { _id: 1 })
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+    .lean();
+  return user.sector;
+};
+
 /**
  * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the
  * repetition i.e. delete the repetition object. EXCEPT if we are only updating the misc field
@@ -257,10 +266,9 @@ exports.shouldDetachFromRepetition = (event, payload) => {
  * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the
  * cancellation i.e. delete the cancel object and set isCancelled to false.
  */
-const isOnSameDay = event => moment(event.startDate).isSame(event.endDate, 'day');
-
 exports.updateEvent = async (event, eventPayload, credentials) => {
-  if (event.type !== ABSENCE && !isOnSameDay(eventPayload)) {
+  const companyId = get(credentials, 'company._id');
+  if (event.type !== ABSENCE && !CompaniDate(eventPayload.startDate).isSame(eventPayload.endDate, 'day')) {
     throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
   }
 
@@ -273,7 +281,11 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     if (!isUpdateAllowed) throw Boom.badData();
 
     await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
-    await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
+
+    const sectorId = await getEventSector(event, companyId);
+    await EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials, sectorId);
+
+    await EventsRepetitionHelper.updateEventBelongingToRepetition(eventPayload, event, companyId, sectorId);
   } else {
     const detachFromRepetition = exports.isRepetition(event) && exports.shouldDetachFromRepetition(event, eventPayload);
     const payload = exports.formatEditionPayload(event, eventPayload, detachFromRepetition);
@@ -389,7 +401,7 @@ exports.deleteCustomerEvents = async (customer, startDate, endDate, absenceType,
 };
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
-  const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
+  const maxEndDate = CompaniDate(contractEndDate).set({ hour: PLANNING_VIEW_END_HOUR }).startOf('hour').toISO();
   const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate, get(credentials, 'company._id', null));
   const absencesIds = absences.map(abs => abs._id);
   const promises = [];

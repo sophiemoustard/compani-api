@@ -126,8 +126,8 @@ describe('isUserContractValidOnEventDates', () => {
   });
 
   it('should return false if contract and no active contract on day and event not absence', async () => {
-    const event = { auxiliary: new ObjectId(), startDate: '2020-04-30T09:00:00', type: INTERVENTION };
-    const contract = { user: event.auxiliary, startDate: '2020-12-05T00:00:00' };
+    const event = { auxiliary: new ObjectId(), startDate: '2020-04-30T09:00:00.000Z', type: INTERVENTION };
+    const contract = { user: event.auxiliary, startDate: '2020-12-05T00:00:00.000Z' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
     findOne.returns(SinonMongoose.stubChainedQueries(user));
@@ -146,8 +146,8 @@ describe('isUserContractValidOnEventDates', () => {
   });
 
   it('should return true if contract and active contract on day and event not absence', async () => {
-    const event = { auxiliary: new ObjectId(), startDate: '2020-04-30T09:00:00', type: INTERNAL_HOUR };
-    const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00' };
+    const event = { auxiliary: new ObjectId(), startDate: '2020-04-30T09:00:00.000Z', type: INTERNAL_HOUR };
+    const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00.000Z' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
     findOne.returns(SinonMongoose.stubChainedQueries(user));
@@ -168,11 +168,11 @@ describe('isUserContractValidOnEventDates', () => {
   it('should return false if contract and no active contract on day and event is absence', async () => {
     const event = {
       auxiliary: new ObjectId(),
-      startDate: '2020-04-30T09:00:00',
-      endDate: '2020-05-12T23:25:59',
+      startDate: '2020-04-30T09:00:00.000Z',
+      endDate: '2020-05-12T23:25:59.000Z',
       type: ABSENCE,
     };
-    const contract = { user: event.auxiliary, startDate: '2020-05-04T00:00:00' };
+    const contract = { user: event.auxiliary, startDate: '2020-05-04T00:00:00.000Z' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
     findOne.returns(SinonMongoose.stubChainedQueries(user));
@@ -193,11 +193,11 @@ describe('isUserContractValidOnEventDates', () => {
   it('should return true if contract and active contract on day and event is absence', async () => {
     const event = {
       auxiliary: new ObjectId(),
-      startDate: '2020-04-30T09:00:00',
-      endDate: '2020-05-12T23:25:59',
+      startDate: '2020-04-30T09:00:00.000Z',
+      endDate: '2020-05-12T23:25:59.000Z',
       type: ABSENCE,
     };
-    const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00' };
+    const contract = { user: event.auxiliary, startDate: '2020-01-04T00:00:00.000Z' };
     const user = { _id: event.auxiliary, contracts: [contract] };
 
     findOne.returns(SinonMongoose.stubChainedQueries(user));
@@ -328,8 +328,8 @@ describe('isEditionAllowed', () => {
     const event = {
       auxiliary: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-14T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-14T11:00:00.000Z',
     };
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
@@ -346,8 +346,8 @@ describe('isEditionAllowed', () => {
       auxiliary: new ObjectId(),
       type: ABSENCE,
       absenceNature: HOURLY,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-14T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-14T11:00:00.000Z',
     };
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
@@ -363,8 +363,8 @@ describe('isEditionAllowed', () => {
     const event = {
       sector: new ObjectId(),
       type: ABSENCE,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     const result = await EventsValidationHelper.isEditionAllowed(event, credentials);
@@ -380,8 +380,8 @@ describe('isEditionAllowed', () => {
     const event = {
       auxiliary: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     isUserContractValidOnEventDates.returns(false);
@@ -399,8 +399,8 @@ describe('isEditionAllowed', () => {
     const event = {
       customer: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     isAbsent.returns(true);
@@ -423,8 +423,8 @@ describe('isEditionAllowed', () => {
     const event = {
       auxiliary: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     isUserContractValidOnEventDates.returns(true);
@@ -443,8 +443,8 @@ describe('isEditionAllowed', () => {
     const event = {
       auxiliary: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     isUserContractValidOnEventDates.returns(true);
@@ -462,8 +462,8 @@ describe('isEditionAllowed', () => {
     const event = {
       auxiliary: new ObjectId(),
       type: INTERNAL_HOUR,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     isUserContractValidOnEventDates.returns(true);
@@ -494,8 +494,8 @@ describe('isCreationAllowed', () => {
     const event = {
       auxiliary: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     hasConflicts.returns(true);
@@ -516,8 +516,8 @@ describe('isCreationAllowed', () => {
     const event = {
       auxiliary: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     hasConflicts.returns(false);
@@ -536,8 +536,8 @@ describe('isCreationAllowed', () => {
     const event = {
       sector: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
 
     isEditionAllowed.returns(true);
@@ -565,8 +565,14 @@ describe('isUpdateAllowed', () => {
 
   it('should return true if everything is ok', async () => {
     const auxiliaryId = new ObjectId();
-    const payload = { startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
-    const eventFromDB = { auxiliary: auxiliaryId, type: INTERVENTION, repetition: { frequency: 'every_week' } };
+    const payload = { startDate: '2019-04-13T09:00:00.000Z', endDate: '2019-04-13T11:00:00.000Z' };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      repetition: { frequency: 'every_week' },
+      startDate: '2019-01-01T09:00:00.000Z',
+      endDate: '2019-01-01T11:00:00.000Z',
+    };
     hasConflicts.returns(false);
     isEditionAllowed.returns(true);
 
@@ -577,8 +583,8 @@ describe('isUpdateAllowed', () => {
       hasConflicts,
       {
         type: INTERVENTION,
-        startDate: '2019-04-13T09:00:00',
-        endDate: '2019-04-13T11:00:00',
+        startDate: '2019-04-13T09:00:00.000Z',
+        endDate: '2019-04-13T11:00:00.000Z',
         repetition: { frequency: 'every_week' },
       }
     );
@@ -586,8 +592,8 @@ describe('isUpdateAllowed', () => {
       isEditionAllowed,
       {
         type: INTERVENTION,
-        startDate: '2019-04-13T09:00:00',
-        endDate: '2019-04-13T11:00:00',
+        startDate: '2019-04-13T09:00:00.000Z',
+        endDate: '2019-04-13T11:00:00.000Z',
         repetition: { frequency: 'every_week' },
       },
       credentials
@@ -598,14 +604,14 @@ describe('isUpdateAllowed', () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
-      startDate: '2019-04-13T09:05:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:05:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
     const eventFromDB = {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       startDateTimeStamp: 1,
     };
 
@@ -617,12 +623,16 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is startDate timeStamped and auxiliary updated', async () => {
-    const payload = { auxiliary: new ObjectId(), startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
+    const payload = {
+      auxiliary: new ObjectId(),
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
+    };
     const eventFromDB = {
       auxiliary: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       startDateTimeStamp: 1,
     };
 
@@ -637,15 +647,15 @@ describe('isUpdateAllowed', () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       isCancelled: true,
     };
     const eventFromDB = {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       startDateTimeStamp: 1,
     };
 
@@ -660,14 +670,14 @@ describe('isUpdateAllowed', () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:05:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:05:00.000Z',
     };
     const eventFromDB = {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       endDateTimeStamp: 1,
     };
 
@@ -679,12 +689,16 @@ describe('isUpdateAllowed', () => {
   });
 
   it('should return false if event is endDate timeStamped and auxiliary updated', async () => {
-    const payload = { auxiliary: new ObjectId(), startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
+    const payload = {
+      auxiliary: new ObjectId(),
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
+    };
     const eventFromDB = {
       auxiliary: new ObjectId(),
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       endDateTimeStamp: 1,
     };
 
@@ -699,15 +713,15 @@ describe('isUpdateAllowed', () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       isCancelled: true,
     };
     const eventFromDB = {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       endDateTimeStamp: 1,
     };
 
@@ -722,11 +736,17 @@ describe('isUpdateAllowed', () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       endDateTimeStamp: 1,
     };
-    const eventFromDB = { auxiliary: auxiliaryId, type: INTERVENTION, isBilled: true };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      isBilled: true,
+      startDate: '2019-01-01T09:00:00.000Z',
+      endDate: '2019-01-01T11:00:00.000Z',
+    };
 
     const result = await EventsValidationHelper.isUpdateAllowed(eventFromDB, payload, credentials);
 
@@ -738,12 +758,12 @@ describe('isUpdateAllowed', () => {
   it('should return false as event is absence and auxiliary is updated', async () => {
     const payload = {
       auxiliary: new ObjectId(),
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
     const eventFromDB = {
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       endDateTimeStamp: 1,
       auxiliary: new ObjectId(),
       type: ABSENCE,
@@ -759,12 +779,12 @@ describe('isUpdateAllowed', () => {
   it('should return false as event is unavailability and auxiliary is updated', async () => {
     const payload = {
       auxiliary: new ObjectId(),
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
     const eventFromDB = {
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       endDateTimeStamp: 1,
       auxiliary: new ObjectId(),
       type: UNAVAILABILITY,
@@ -781,10 +801,15 @@ describe('isUpdateAllowed', () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
     };
-    const eventFromDB = { auxiliary: auxiliaryId, type: INTERVENTION };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      startDate: '2019-01-01T09:00:00.000Z',
+      endDate: '2019-01-01T11:00:00.000Z',
+    };
     hasConflicts.returns(true);
 
     try {
@@ -796,8 +821,8 @@ describe('isUpdateAllowed', () => {
         hasConflicts,
         {
           auxiliary: auxiliaryId,
-          startDate: '2019-04-13T09:00:00',
-          endDate: '2019-04-13T11:00:00',
+          startDate: '2019-04-13T09:00:00.000Z',
+          endDate: '2019-04-13T11:00:00.000Z',
           type: INTERVENTION,
         }
       );
@@ -809,8 +834,8 @@ describe('isUpdateAllowed', () => {
     const auxiliaryId = new ObjectId();
     const payload = {
       auxiliary: auxiliaryId,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
+      startDate: '2019-04-13T09:00:00.000Z',
+      endDate: '2019-04-13T11:00:00.000Z',
       isCancelled: false,
       'repetition.frequency': 'never',
     };
@@ -819,6 +844,8 @@ describe('isUpdateAllowed', () => {
       type: INTERVENTION,
       isCancelled: true,
       repetition: { frequency: 'every_week' },
+      startDate: '2019-01-01T09:00:00.000Z',
+      endDate: '2019-01-01T11:00:00.000Z',
     };
     hasConflicts.returns(true);
 
@@ -831,8 +858,8 @@ describe('isUpdateAllowed', () => {
         hasConflicts,
         {
           auxiliary: auxiliaryId,
-          startDate: '2019-04-13T09:00:00',
-          endDate: '2019-04-13T11:00:00',
+          startDate: '2019-04-13T09:00:00.000Z',
+          endDate: '2019-04-13T11:00:00.000Z',
           type: INTERVENTION,
           isCancelled: false,
           repetition: { frequency: 'never' },
@@ -844,8 +871,14 @@ describe('isUpdateAllowed', () => {
 
   it('should return false if edition is not allowed', async () => {
     const auxiliaryId = new ObjectId();
-    const payload = { startDate: '2019-04-13T09:00:00', endDate: '2019-04-13T11:00:00' };
-    const eventFromDB = { auxiliary: auxiliaryId, type: INTERVENTION, repetition: { frequency: 'every_week' } };
+    const payload = { startDate: '2019-04-13T09:00:00.000Z', endDate: '2019-04-13T11:00:00.000Z' };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      repetition: { frequency: 'every_week' },
+      startDate: '2019-01-01T09:00:00.000Z',
+      endDate: '2019-01-01T11:00:00.000Z',
+    };
     hasConflicts.returns(false);
     isEditionAllowed.returns(false);
 
@@ -856,8 +889,8 @@ describe('isUpdateAllowed', () => {
       hasConflicts,
       {
         type: INTERVENTION,
-        startDate: '2019-04-13T09:00:00',
-        endDate: '2019-04-13T11:00:00',
+        startDate: '2019-04-13T09:00:00.000Z',
+        endDate: '2019-04-13T11:00:00.000Z',
         repetition: { frequency: 'every_week' },
       }
     );
@@ -865,8 +898,8 @@ describe('isUpdateAllowed', () => {
       isEditionAllowed,
       {
         type: INTERVENTION,
-        startDate: '2019-04-13T09:00:00',
-        endDate: '2019-04-13T11:00:00',
+        startDate: '2019-04-13T09:00:00.000Z',
+        endDate: '2019-04-13T11:00:00.000Z',
         repetition: { frequency: 'every_week' },
       },
       credentials

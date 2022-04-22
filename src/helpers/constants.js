@@ -162,6 +162,9 @@ module.exports = {
   },
   TWO_WEEKS: 'two_weeks',
   MONTH: 'month',
+  get FIELDS_NOT_APPLICABLE_TO_REPETITION() {
+    return ['misc', 'kmDuringEvent', 'transportMode', 'cancel', 'isCancelled'];
+  },
   // PAYMENT
   PAYMENT: 'payment',
   REFUND: 'refund',

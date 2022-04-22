@@ -1,8 +1,6 @@
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
-const momentRange = require('moment-range');
 const {
   INTERVENTION,
   ABSENCE,
@@ -19,11 +17,9 @@ const CustomerAbsencesHelper = require('./customerAbsences');
 const EventRepository = require('../repositories/EventRepository');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
-const DatesHelper = require('./dates');
+const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
-
-momentRange.extendMoment(moment);
 
 exports.isCustomerSubscriptionValid = async (event) => {
   const customer = await Customer.countDocuments({
@@ -57,7 +53,7 @@ exports.hasConflicts = async (event) => {
   });
 };
 
-const isOneDayEvent = event => moment(event.startDate).isSame(event.endDate, 'day');
+const isOneDayEvent = event => CompaniDate(event.startDate).isSame(event.endDate, 'day');
 
 const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary &&
   payload.auxiliary !== eventFromDB.auxiliary.toHexString();
@@ -92,8 +88,8 @@ exports.isCreationAllowed = async (event, credentials) => {
 };
 
 exports.isUpdateAllowed = async (eventFromDB, payload, credentials) => {
-  const updateStartDate = payload.startDate && !!DatesHelper.diff(eventFromDB.startDate, payload.startDate);
-  const updateEndDate = payload.endDate && !!DatesHelper.diff(eventFromDB.endDate, payload.endDate);
+  const updateStartDate = payload.startDate && !CompaniDate(eventFromDB.startDate).isSame(payload.startDate);
+  const updateEndDate = payload.endDate && !CompaniDate(eventFromDB.endDate).isSame(payload.endDate);
   const updateAuxiliary = payload.auxiliary &&
     !UtilsHelper.areObjectIdsEquals(eventFromDB.auxiliary, payload.auxiliary);
   const cancelEvent = payload.isCancelled;

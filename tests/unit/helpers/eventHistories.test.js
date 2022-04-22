@@ -24,12 +24,12 @@ describe('list', () => {
   });
 
   it('should get event histories', async () => {
-    const query = { createdAt: '2019-11-10' };
+    const query = { createdAt: '2019-11-10T09:00:00.000Z' };
     const credentials = { company: { _id: new ObjectId() } };
     const listQuery = {
       $and: [
         { company: credentials.company._id },
-        { $or: [{ createdAt: { $lte: '2019-11-10' } }] },
+        { $or: [{ createdAt: { $lte: '2019-11-10T09:00:00.000Z' } }] },
       ],
     };
     getListQueryStub.returns(listQuery);
@@ -106,10 +106,10 @@ describe('getListQuery', () => {
   it('should format query with createdAt', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const query = { createdAt: '2019-10-11' };
+    const query = { createdAt: '2019-10-11T09:00:00.000Z' };
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({ company: companyId, createdAt: { $lt: '2019-10-11' } });
+    expect(result).toEqual({ company: companyId, createdAt: { $lt: '2019-10-11T09:00:00.000Z' } });
   });
 
   it('should format query with action', () => {
@@ -124,14 +124,14 @@ describe('getListQuery', () => {
   it('should format query with sectors and auxiliaries and createdAt', () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
-    const query = { sectors: ['toto', 'tata'], auxiliaries: ['toto', 'tata'], createdAt: '2019-10-11' };
+    const query = { sectors: ['toto', 'tata'], auxiliaries: ['toto', 'tata'], createdAt: '2019-10-11T09:00:00.000Z' };
     formatArrayOrStringQueryParam.onCall(0).returns([{ sectors: 'toto' }, { sectors: 'tata' }]);
     formatArrayOrStringQueryParam.onCall(1).returns([{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }]);
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
     expect(result).toEqual({
       company: companyId,
-      createdAt: { $lt: '2019-10-11' },
+      createdAt: { $lt: '2019-10-11T09:00:00.000Z' },
       $or: [{ sectors: 'toto' }, { sectors: 'tata' }, { auxiliaries: 'toto' }, { auxiliaries: 'tata' }],
     });
   });
@@ -265,15 +265,15 @@ describe('createEventHistoryOnUpdate', () => {
 
   it('should call formatHistoryForAuxiliaryUpdate', async () => {
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       misc: 'Toto',
     };
     const event = {
       _id: new ObjectId(),
       auxiliary: new ObjectId(),
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       customer: customerId,
       type: 'intervention',
     };
@@ -290,8 +290,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: 'intervention',
-          startDate: '2019-01-21T09:38:18',
-          endDate: '2019-01-22T09:38:18',
+          startDate: '2019-01-21T09:38:18.000Z',
+          endDate: '2019-01-22T09:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
         },
@@ -308,14 +308,14 @@ describe('createEventHistoryOnUpdate', () => {
 
   it('should call formatHistoryForDatesUpdate', async () => {
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       misc: 'Toto',
     };
     const event = {
       _id: new ObjectId(),
-      startDate: '2019-01-22T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-22T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       customer: customerId,
       type: 'intervention',
     };
@@ -332,8 +332,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: 'intervention',
-          startDate: '2019-01-21T09:38:18',
-          endDate: '2019-01-21T11:38:18',
+          startDate: '2019-01-21T09:38:18.000Z',
+          endDate: '2019-01-21T11:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
         },
@@ -350,16 +350,16 @@ describe('createEventHistoryOnUpdate', () => {
 
   it('should call formatHistoryForCancelUpdate', async () => {
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       misc: 'Toto',
       isCancelled: true,
       cancel: { reason: 'toto', condition: 'payé' },
     };
     const event = {
       _id: new ObjectId(),
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       customer: customerId,
       type: 'intervention',
     };
@@ -376,8 +376,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: 'intervention',
-          startDate: '2019-01-21T09:38:18',
-          endDate: '2019-01-21T11:38:18',
+          startDate: '2019-01-21T09:38:18.000Z',
+          endDate: '2019-01-21T11:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
         },
@@ -393,14 +393,14 @@ describe('createEventHistoryOnUpdate', () => {
 
   it('should call formatHistoryForHoursUpdate', async () => {
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       misc: 'Toto',
     };
     const event = {
       _id: new ObjectId(),
-      startDate: '2019-01-21T10:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-21T10:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       customer: customerId,
       type: 'intervention',
     };
@@ -417,8 +417,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: 'intervention',
-          startDate: '2019-01-21T09:38:18',
-          endDate: '2019-01-21T11:38:18',
+          startDate: '2019-01-21T09:38:18.000Z',
+          endDate: '2019-01-21T11:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
         },
@@ -435,16 +435,16 @@ describe('createEventHistoryOnUpdate', () => {
 
   it('should call formatHistoryForDatesUpdate and formatHistoryForCancelUpdate', async () => {
     const payload = {
-      startDate: '2019-01-20T09:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-20T09:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       misc: 'Toto',
       isCancelled: true,
       cancel: { reason: 'toto', condition: 'payé' },
     };
     const event = {
       _id: new ObjectId(),
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       customer: customerId,
       type: 'intervention',
     };
@@ -461,8 +461,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: 'intervention',
-          startDate: '2019-01-20T09:38:18',
-          endDate: '2019-01-21T11:38:18',
+          startDate: '2019-01-20T09:38:18.000Z',
+          endDate: '2019-01-21T11:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
         },
@@ -481,8 +481,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: 'intervention',
-          startDate: '2019-01-20T09:38:18',
-          endDate: '2019-01-21T11:38:18',
+          startDate: '2019-01-20T09:38:18.000Z',
+          endDate: '2019-01-21T11:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
         },
@@ -496,16 +496,16 @@ describe('createEventHistoryOnUpdate', () => {
 
   it('should add repetition when repetition is updated', async () => {
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       misc: 'Toto',
       shouldUpdateRepetition: true,
     };
     const event = {
       _id: new ObjectId(),
       auxiliary: new ObjectId(),
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       customer: customerId,
       type: 'intervention',
       repetition: { frequency: 'every_two_weeks' },
@@ -523,8 +523,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: 'intervention',
-          startDate: '2019-01-21T09:38:18',
-          endDate: '2019-01-22T09:38:18',
+          startDate: '2019-01-21T09:38:18.000Z',
+          endDate: '2019-01-22T09:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
           repetition: { frequency: 'every_two_weeks' },
@@ -542,15 +542,15 @@ describe('createEventHistoryOnUpdate', () => {
 
   it('should add internal hour type for internal hour event', async () => {
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       misc: 'Toto',
     };
     const event = {
       _id: new ObjectId(),
       auxiliary: new ObjectId(),
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       customer: customerId,
       type: INTERNAL_HOUR,
       internalHour: { name: 'meeting' },
@@ -568,8 +568,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: INTERNAL_HOUR,
-          startDate: '2019-01-21T09:38:18',
-          endDate: '2019-01-22T09:38:18',
+          startDate: '2019-01-21T09:38:18.000Z',
+          endDate: '2019-01-22T09:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
           internalHour: { name: 'meeting' },
@@ -587,15 +587,15 @@ describe('createEventHistoryOnUpdate', () => {
 
   it('should add absence type for absence event', async () => {
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       misc: 'Toto',
     };
     const event = {
       _id: new ObjectId(),
       auxiliary: new ObjectId(),
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-22T09:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-22T09:38:18.000Z',
       customer: customerId,
       type: 'absence',
       absence: 'leave',
@@ -613,8 +613,8 @@ describe('createEventHistoryOnUpdate', () => {
         event: {
           eventId: event._id,
           type: 'absence',
-          startDate: '2019-01-21T09:38:18',
-          endDate: '2019-01-22T09:38:18',
+          startDate: '2019-01-21T09:38:18.000Z',
+          endDate: '2019-01-22T09:38:18.000Z',
           customer: customerId,
           misc: 'Toto',
           absence: 'leave',
@@ -832,11 +832,11 @@ describe('formatHistoryForDatesUpdate', () => {
       event: { type: 'intervention' },
     };
     const payload = {
-      startDate: '2019-01-20T09:38:18',
-      endDate: '2019-01-20T11:38:18',
+      startDate: '2019-01-20T09:38:18.000Z',
+      endDate: '2019-01-20T11:38:18.000Z',
       auxiliary: auxiliaryId.toHexString(),
     };
-    const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
+    const event = { startDate: '2019-01-21T09:38:18.000Z', endDate: '2019-01-21T10:38:18.000Z' };
     findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForDatesUpdate(mainInfo, payload, event, companyId);
@@ -849,7 +849,7 @@ describe('formatHistoryForDatesUpdate', () => {
       auxiliaries: [auxiliaryId.toHexString()],
       event: { type: 'intervention', auxiliary: auxiliaryId.toHexString() },
       update: {
-        startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
+        startDate: { from: '2019-01-21T09:38:18.000Z', to: '2019-01-20T09:38:18.000Z' },
       },
     });
     SinonMongoose.calledOnceWithExactly(
@@ -864,8 +864,8 @@ describe('formatHistoryForDatesUpdate', () => {
 
   it('should format event history without auxiliary', async () => {
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
-    const payload = { startDate: '2019-01-20T09:38:18', endDate: '2019-01-20T11:38:18', sector: sectorId };
-    const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
+    const payload = { startDate: '2019-01-20T09:38:18.000Z', endDate: '2019-01-20T11:38:18.000Z', sector: sectorId };
+    const event = { startDate: '2019-01-21T09:38:18.000Z', endDate: '2019-01-21T10:38:18.000Z' };
 
     const result = await EventHistoryHelper.formatHistoryForDatesUpdate(mainInfo, payload, event);
 
@@ -876,7 +876,7 @@ describe('formatHistoryForDatesUpdate', () => {
       sectors: [sectorId],
       event: { type: 'intervention' },
       update: {
-        startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
+        startDate: { from: '2019-01-21T09:38:18.000Z', to: '2019-01-20T09:38:18.000Z' },
       },
     });
     sinon.assert.notCalled(findOne);
@@ -884,8 +884,8 @@ describe('formatHistoryForDatesUpdate', () => {
 
   it('should format event history with endDate and startDate', async () => {
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
-    const payload = { startDate: '2019-01-20T09:38:18', endDate: '2019-01-21T11:38:18', sector: sectorId };
-    const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-22T10:38:18' };
+    const payload = { startDate: '2019-01-20T09:38:18.000Z', endDate: '2019-01-21T11:38:18.000Z', sector: sectorId };
+    const event = { startDate: '2019-01-21T09:38:18.000Z', endDate: '2019-01-22T10:38:18.000Z' };
 
     const result = await EventHistoryHelper.formatHistoryForDatesUpdate(mainInfo, payload, event);
 
@@ -896,8 +896,8 @@ describe('formatHistoryForDatesUpdate', () => {
       sectors: [sectorId],
       event: { type: 'intervention' },
       update: {
-        startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
-        endDate: { from: '2019-01-22T10:38:18', to: '2019-01-21T11:38:18' },
+        startDate: { from: '2019-01-21T09:38:18.000Z', to: '2019-01-20T09:38:18.000Z' },
+        endDate: { from: '2019-01-22T10:38:18.000Z', to: '2019-01-21T11:38:18.000Z' },
       },
     });
     sinon.assert.notCalled(findOne);
@@ -919,11 +919,11 @@ describe('formatHistoryForHoursUpdate', () => {
     const companyId = new ObjectId();
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       auxiliary: auxiliaryId.toHexString(),
     };
-    const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
+    const event = { startDate: '2019-01-21T09:38:18.000Z', endDate: '2019-01-21T10:38:18.000Z' };
     findOne.returns(SinonMongoose.stubChainedQueries({ _id: auxiliaryId, sector: sectorId }));
 
     const result = await EventHistoryHelper.formatHistoryForHoursUpdate(mainInfo, payload, event, companyId);
@@ -939,8 +939,8 @@ describe('formatHistoryForHoursUpdate', () => {
         auxiliary: auxiliaryId.toHexString(),
       },
       update: {
-        startHour: { from: '2019-01-21T09:38:18', to: '2019-01-21T09:38:18' },
-        endHour: { from: '2019-01-21T10:38:18', to: '2019-01-21T11:38:18' },
+        startHour: { from: '2019-01-21T09:38:18.000Z', to: '2019-01-21T09:38:18.000Z' },
+        endHour: { from: '2019-01-21T10:38:18.000Z', to: '2019-01-21T11:38:18.000Z' },
       },
     });
     SinonMongoose.calledOnceWithExactly(
@@ -957,11 +957,11 @@ describe('formatHistoryForHoursUpdate', () => {
     const sectorId = new ObjectId();
     const mainInfo = { createdBy: 'james bond', action: 'event_update', event: { type: 'intervention' } };
     const payload = {
-      startDate: '2019-01-21T09:38:18',
-      endDate: '2019-01-21T11:38:18',
+      startDate: '2019-01-21T09:38:18.000Z',
+      endDate: '2019-01-21T11:38:18.000Z',
       sector: sectorId.toHexString(),
     };
-    const event = { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' };
+    const event = { startDate: '2019-01-21T09:38:18.000Z', endDate: '2019-01-21T10:38:18.000Z' };
 
     const result = await EventHistoryHelper.formatHistoryForHoursUpdate(mainInfo, payload, event);
 
@@ -972,8 +972,8 @@ describe('formatHistoryForHoursUpdate', () => {
       sectors: [sectorId.toHexString()],
       event: { type: 'intervention' },
       update: {
-        startHour: { from: '2019-01-21T09:38:18', to: '2019-01-21T09:38:18' },
-        endHour: { from: '2019-01-21T10:38:18', to: '2019-01-21T11:38:18' },
+        startHour: { from: '2019-01-21T09:38:18.000Z', to: '2019-01-21T09:38:18.000Z' },
+        endHour: { from: '2019-01-21T10:38:18.000Z', to: '2019-01-21T11:38:18.000Z' },
       },
     });
     sinon.assert.notCalled(findOne);
@@ -990,14 +990,14 @@ describe('createTimeStampHistory', () => {
   it('should create and event history of type timestamp for startDate', async () => {
     const event = {
       _id: new ObjectId(),
-      startDate: '2021-05-01T10:00:00',
-      endDate: '2021-05-01T12:00:00',
+      startDate: '2021-05-01T10:00:00.000Z',
+      endDate: '2021-05-01T12:00:00.000Z',
       customer: new ObjectId(),
       misc: 'test',
       company: new ObjectId(),
       repetition: { frequency: 'every_day', parentID: new ObjectId() },
     };
-    const payload = { startDate: '2021-05-01T10:02:00', reason: 'qrcode', action: 'manual_time_stamping' };
+    const payload = { startDate: '2021-05-01T10:02:00.000Z', reason: 'qrcode', action: 'manual_time_stamping' };
     const credentials = { _id: new ObjectId() };
 
     await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
@@ -1005,12 +1005,12 @@ describe('createTimeStampHistory', () => {
     sinon.assert.calledOnceWithExactly(
       create,
       {
-        event: { ...omit(event, ['_id']), eventId: event._id, startDate: '2021-05-01T10:02:00' },
+        event: { ...omit(event, ['_id']), eventId: event._id, startDate: '2021-05-01T10:02:00.000Z' },
         company: event.company,
         action: 'manual_time_stamping',
         manualTimeStampingReason: 'qrcode',
         auxiliaries: [event.auxiliary],
-        update: { startHour: { from: '2021-05-01T10:00:00', to: '2021-05-01T10:02:00' } },
+        update: { startHour: { from: '2021-05-01T10:00:00.000Z', to: '2021-05-01T10:02:00.000Z' } },
         createdBy: credentials._id,
       }
     );
@@ -1019,14 +1019,14 @@ describe('createTimeStampHistory', () => {
   it('should create and event history of type timestamp for endDate', async () => {
     const event = {
       _id: new ObjectId(),
-      startDate: '2021-05-01T10:00:00',
-      endDate: '2021-05-01T12:00:00',
+      startDate: '2021-05-01T10:00:00.000Z',
+      endDate: '2021-05-01T12:00:00.000Z',
       customer: new ObjectId(),
       misc: 'test',
       company: new ObjectId(),
       repetition: { frequency: 'every_day', parentID: new ObjectId() },
     };
-    const payload = { endDate: '2021-05-01T12:05:00', reason: 'qrcode', action: 'manual_time_stamping' };
+    const payload = { endDate: '2021-05-01T12:05:00.000Z', reason: 'qrcode', action: 'manual_time_stamping' };
     const credentials = { _id: new ObjectId() };
 
     await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
@@ -1034,12 +1034,12 @@ describe('createTimeStampHistory', () => {
     sinon.assert.calledOnceWithExactly(
       create,
       {
-        event: { ...omit(event, ['_id']), eventId: event._id, endDate: '2021-05-01T12:05:00' },
+        event: { ...omit(event, ['_id']), eventId: event._id, endDate: '2021-05-01T12:05:00.000Z' },
         company: event.company,
         action: 'manual_time_stamping',
         manualTimeStampingReason: 'qrcode',
         auxiliaries: [event.auxiliary],
-        update: { endHour: { from: '2021-05-01T12:00:00', to: '2021-05-01T12:05:00' } },
+        update: { endHour: { from: '2021-05-01T12:00:00.000Z', to: '2021-05-01T12:05:00.000Z' } },
         createdBy: credentials._id,
       }
     );
@@ -1048,14 +1048,14 @@ describe('createTimeStampHistory', () => {
   it('shouldn’t add manualTimeStampingReason to query if reason isn’t in payload', async () => {
     const event = {
       _id: new ObjectId(),
-      startDate: '2021-05-01T10:00:00',
-      endDate: '2021-05-01T12:00:00',
+      startDate: '2021-05-01T10:00:00.000Z',
+      endDate: '2021-05-01T12:00:00.000Z',
       customer: new ObjectId(),
       misc: 'test',
       company: new ObjectId(),
       repetition: { frequency: 'every_day', parentID: new ObjectId() },
     };
-    const payload = { endDate: '2021-05-01T12:05:00', action: 'qr_code_time_stamping' };
+    const payload = { endDate: '2021-05-01T12:05:00.000Z', action: 'qr_code_time_stamping' };
     const credentials = { _id: new ObjectId() };
 
     await EventHistoryHelper.createTimeStampHistory(event, payload, credentials);
@@ -1063,11 +1063,11 @@ describe('createTimeStampHistory', () => {
     sinon.assert.calledOnceWithExactly(
       create,
       {
-        event: { ...omit(event, ['_id']), eventId: event._id, endDate: '2021-05-01T12:05:00' },
+        event: { ...omit(event, ['_id']), eventId: event._id, endDate: '2021-05-01T12:05:00.000Z' },
         company: event.company,
         action: 'qr_code_time_stamping',
         auxiliaries: [event.auxiliary],
-        update: { endHour: { from: '2021-05-01T12:00:00', to: '2021-05-01T12:05:00' } },
+        update: { endHour: { from: '2021-05-01T12:00:00.000Z', to: '2021-05-01T12:05:00.000Z' } },
         createdBy: credentials._id,
       }
     );

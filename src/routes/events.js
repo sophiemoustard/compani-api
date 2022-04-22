@@ -54,8 +54,7 @@ const {
   monthValidation,
   addressValidation,
   objectIdOrArray,
-  dateToISOString,
-
+  requiredDateToISOString,
 } = require('./validations/utils');
 
 exports.plugin = {
@@ -177,8 +176,8 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object().keys({
-            startDate: dateToISOString,
-            endDate: dateToISOString,
+            startDate: requiredDateToISOString,
+            endDate: requiredDateToISOString,
             auxiliary: Joi.objectId(),
             sector: Joi.string(),
             address: Joi.when(
@@ -220,7 +219,6 @@ exports.plugin = {
             transportMode: Joi.string().valid(...EVENT_TRANSPORT_MODE),
             kmDuringEvent: Joi.number().min(0),
           })
-            .and('startDate', 'endDate')
             .assert(
               '.endDate',
               Joi.date().greater(Joi.ref('startDate')),

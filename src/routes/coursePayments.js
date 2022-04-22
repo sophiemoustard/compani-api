@@ -1,0 +1,53 @@
+'use strict';
+
+const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
+
+const { create, update } = require('../controllers/coursePaymentController');
+const { authorizeCoursePaymentCreation, authorizeCoursePaymentUpdate } = require('./preHandlers/coursePayments');
+const { PAYMENT_NATURES } = require('../models/Payment');
+const { COURSE_PAYMENT_TYPES } = require('../models/CoursePayment');
+const { requiredDateToISOString } = require('./validations/utils');
+
+exports.plugin = {
+  name: 'routes-course-payments',
+  register: async (server) => {
+    server.route({
+      method: 'POST',
+      path: '/',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        validate: {
+          payload: Joi.object({
+            date: requiredDateToISOString.required(),
+            courseBill: Joi.objectId().required(),
+            company: Joi.objectId().required(),
+            netInclTaxes: Joi.number().min(0).required(),
+            nature: Joi.string().valid(...PAYMENT_NATURES).required(),
+            type: Joi.string().valid(...COURSE_PAYMENT_TYPES).required(),
+          }),
+        },
+        pre: [{ method: authorizeCoursePaymentCreation }],
+      },
+      handler: create,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['config:vendor'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          payload: Joi.object({
+            netInclTaxes: Joi.number().min(0),
+            type: Joi.string().valid(...COURSE_PAYMENT_TYPES),
+            date: requiredDateToISOString,
+          }),
+        },
+        pre: [{ method: authorizeCoursePaymentUpdate }],
+      },
+      handler: update,
+    });
+  },
+};
