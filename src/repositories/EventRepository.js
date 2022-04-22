@@ -207,19 +207,18 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
           day: { $dayOfWeek: '$startDate' },
         },
         eventsPerDay: { $push: { $cond: [{ $in: ['$type', [INTERNAL_HOUR, INTERVENTION]] }, '$$ROOT', null] } },
-        absences: { $push: { $cond: [{ $eq: ['$type', 'absence'] }, '$$ROOT', null] } },
+        absences: { $push: { $cond: [{ $eq: ['$type', ABSENCE] }, '$$ROOT', null] } },
       },
     },
     {
       $project: {
-        auxiliary: '$_id.auxiliary',
         absences: { $filter: { input: '$absences', as: 'event', cond: { $ne: ['$$event', null] } } },
         eventsPerDay: { $filter: { input: '$eventsPerDay', as: 'event', cond: { $ne: ['$$event', null] } } },
       },
     },
     {
       $group: {
-        _id: { auxiliary: '$auxiliary' },
+        _id: { auxiliary: '$_id.auxiliary' },
         events: { $push: '$eventsPerDay' },
         absences: { $push: '$absences' },
       },
