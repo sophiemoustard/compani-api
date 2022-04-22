@@ -543,9 +543,15 @@ exports.computeDraftPay = async (auxiliaries, query, credentials) => {
   const companyId = get(credentials, 'company._id');
   const { startDate, endDate } = query;
   const [company, surcharges, dm] = await Promise.all([
-    Company.findOne({ _id: companyId }).lean(),
-    Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find({ company: companyId }).lean(),
+    Company.findOne(
+      { _id: companyId },
+      { 'rhConfig.phoneFeeAmount': 1, 'rhConfig.transportSubs': 1, 'rhConfig.amountPerKm': 1 }
+    )
+      .lean(),
+    Surcharge.find({ company: companyId }, { createdAt: 0, updatedAt: 0, company: 0, __v: 0 }).lean(),
+    DistanceMatrix
+      .find({ company: companyId }, { origins: 1, destinations: 1, mode: 1, distance: 1, duration: 1 })
+      .lean(),
   ]);
 
   const auxIds = auxiliaries.map(aux => aux._id);

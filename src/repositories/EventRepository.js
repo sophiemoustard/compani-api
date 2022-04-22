@@ -183,20 +183,39 @@ exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({
 }).lean();
 
 exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
-  const rules = [
-    { startDate: { $lt: end } },
-    { endDate: { $gt: start } },
-    {
-      $or: [
-        { type: INTERVENTION, $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }] },
-        { type: { $in: [INTERNAL_HOUR, ABSENCE] } },
-      ],
-    },
-    { auxiliary: { $in: auxiliaries } },
-  ];
+  const rules = {
+    startDate: { $lt: end },
+    endDate: { $gt: start },
+    $or: [
+      { type: INTERVENTION, $or: [{ isCancelled: false }, { 'cancel.condition': INVOICED_AND_PAID }] },
+      { type: { $in: [INTERNAL_HOUR, ABSENCE] } },
+    ],
+    auxiliary: { $in: auxiliaries },
+  };
 
   return Event.aggregate([
-    { $match: { $and: rules } },
+    { $match: rules },
+    {
+      $project: {
+        type: 1,
+        startDate: 1,
+        endDate: 1,
+        auxiliary: 1,
+        sector: 1,
+        customer: 1,
+        subscription: 1,
+        internalHour: 1,
+        absence: 1,
+        absenceNature: 1,
+        address: 1,
+        isCancelled: 1,
+        cancel: 1,
+        condition: 1,
+        company: 1,
+        transportMode: 1,
+        kmDuringEvent: 1,
+      },
+    },
     {
       $group: {
         _id: {
