@@ -70,10 +70,10 @@ exports.getSurchargedPrice = (event, eventSurcharges, price) => {
   if (!eventDuration) return 0;
 
   for (const surcharge of eventSurcharges) {
-    const percentage = NumbersHelper.divide(surcharge.percentage, 100);
+    const percentage = NumbersHelper.oldDivide(surcharge.percentage, 100);
     if (surcharge.startHour) {
       const surchargedDuration = moment(surcharge.endHour).diff(surcharge.startHour, 'm');
-      const surchargedRatio = NumbersHelper.divide(surchargedDuration, eventDuration);
+      const surchargedRatio = NumbersHelper.oldDivide(surchargedDuration, eventDuration);
       coeff = NumbersHelper.add(coeff, NumbersHelper.oldMultiply(surchargedRatio, percentage));
     } else {
       coeff = NumbersHelper.add(coeff, percentage);
@@ -84,9 +84,9 @@ exports.getSurchargedPrice = (event, eventSurcharges, price) => {
 };
 
 exports.getThirdPartyPayerPrice = (time, fundingInclTaxes, customerParticipationRate) => {
-  const tppParticipationRate = NumbersHelper.subtract(1, NumbersHelper.divide(customerParticipationRate, 100));
+  const tppParticipationRate = NumbersHelper.subtract(1, NumbersHelper.oldDivide(customerParticipationRate, 100));
 
-  return NumbersHelper.oldMultiply(NumbersHelper.divide(time, 60), fundingInclTaxes, tppParticipationRate);
+  return NumbersHelper.oldMultiply(NumbersHelper.oldDivide(time, 60), fundingInclTaxes, tppParticipationRate);
 };
 
 exports.getMatchingHistory = (event, funding) => {
@@ -112,7 +112,7 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
 
   let chargedTime = 0;
   if (history && history.careHours < funding.careHours) {
-    const totalCareHours = NumbersHelper.add(history.careHours, NumbersHelper.divide(time, 60));
+    const totalCareHours = NumbersHelper.add(history.careHours, NumbersHelper.oldDivide(time, 60));
     chargedTime = totalCareHours > funding.careHours
       ? NumbersHelper.oldMultiply(NumbersHelper.subtract(funding.careHours, history.careHours), 60)
       : time;
@@ -123,14 +123,14 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
     );
     history.careHours = totalCareHours > funding.careHours
       ? funding.careHours
-      : NumbersHelper.add(history.careHours, NumbersHelper.divide(chargedTime, 60));
+      : NumbersHelper.add(history.careHours, NumbersHelper.oldDivide(chargedTime, 60));
   }
 
   return {
     customerPrice: NumbersHelper.subtract(price, thirdPartyPayerPrice),
     thirdPartyPayerPrice,
     history: {
-      careHours: NumbersHelper.divide(chargedTime, 60),
+      careHours: NumbersHelper.oldDivide(chargedTime, 60),
       fundingId: funding._id,
       nature: funding.nature,
       ...(funding.frequency === MONTHLY && { month: moment(event.startDate).format('MM/YYYY') }),
@@ -168,7 +168,7 @@ exports.getFixedFundingSplit = (event, funding, price) => {
 
 exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   const billing = {};
-  const eventDuration = NumbersHelper.divide(moment(event.endDate).diff(moment(event.startDate), 'm'), 60);
+  const eventDuration = NumbersHelper.oldDivide(moment(event.endDate).diff(moment(event.startDate), 'm'), 60);
   let price = service.nature === HOURLY ? NumbersHelper.oldMultiply(eventDuration, unitTTCRate) : unitTTCRate;
 
   if (service.surcharge && service.nature === HOURLY) {
@@ -213,7 +213,7 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
 
   return {
     eventsList: [...customerPrices.eventsList, { ...prices }],
-    hours: NumbersHelper.add(customerPrices.hours, NumbersHelper.divide(eventDuration, 60)),
+    hours: NumbersHelper.add(customerPrices.hours, NumbersHelper.oldDivide(eventDuration, 60)),
     exclTaxes: NumbersHelper.add(customerPrices.exclTaxes, exclTaxesCustomer),
     inclTaxes: NumbersHelper.add(customerPrices.inclTaxes, eventPrice.customerPrice),
   };
@@ -243,7 +243,7 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
     [tpp._id]: {
       exclTaxes: NumbersHelper.add(currentTppPrices.exclTaxes, exclTaxesTpp),
       inclTaxes: NumbersHelper.add(currentTppPrices.inclTaxes, eventPrice.thirdPartyPayerPrice),
-      hours: NumbersHelper.add(currentTppPrices.hours, NumbersHelper.divide(eventPrice.chargedTime, 60)),
+      hours: NumbersHelper.add(currentTppPrices.hours, NumbersHelper.oldDivide(eventPrice.chargedTime, 60)),
       eventsList: [...currentTppPrices.eventsList, { ...prices }],
     },
   };
