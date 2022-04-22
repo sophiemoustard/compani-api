@@ -251,8 +251,8 @@ exports.list = async (query, credentials) => Bill
 
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
-  const vatMultiplier = NumbersHelper.divide(bddBillingItem.vat, 100);
-  const unitExclTaxes = NumbersHelper.divide(bi.unitInclTaxes, vatMultiplier + 1);
+  const vatMultiplier = NumbersHelper.oldDivide(bddBillingItem.vat, 100);
+  const unitExclTaxes = NumbersHelper.oldDivide(bi.unitInclTaxes, vatMultiplier + 1);
   const exclTaxes = NumbersHelper.oldMultiply(unitExclTaxes, bi.count);
 
   return {
@@ -319,7 +319,7 @@ exports.getUnitInclTaxes = (bill, subscription) => {
   if (!matchingVersion) return 0;
 
   if (matchingVersion.nature === HOURLY) {
-    const customerParticipationRate = NumbersHelper.divide(matchingVersion.customerParticipationRate, 100);
+    const customerParticipationRate = NumbersHelper.oldDivide(matchingVersion.customerParticipationRate, 100);
     const tppParticipationRate = NumbersHelper.subtract(1, customerParticipationRate);
 
     return NumbersHelper.oldMultiply(matchingVersion.unitTTCRate, tppParticipationRate);
@@ -341,7 +341,7 @@ exports.computeSurcharge = (subscription) => {
       const surchargePrice = NumbersHelper.oldMultiply(
         duration,
         subscription.unitInclTaxes,
-        NumbersHelper.divide(surcharge.percentage, 100)
+        NumbersHelper.oldDivide(surcharge.percentage, 100)
       );
 
       totalSurcharge = NumbersHelper.add(totalSurcharge, surchargePrice);
