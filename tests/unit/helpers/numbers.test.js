@@ -9,9 +9,9 @@ describe('oldMultiply', () => {
   });
 });
 
-describe('divide', () => {
-  it('should divid numbers', async () => {
-    const result = NumbersHelper.divide(0.3, 0.2);
+describe('oldDivide', () => {
+  it('should divide numbers', async () => {
+    const result = NumbersHelper.oldDivide(0.3, 0.2);
 
     expect(result).toEqual(1.5);
   });
