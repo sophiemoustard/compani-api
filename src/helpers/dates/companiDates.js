@@ -93,9 +93,8 @@ const CompaniDateFactory = (inputDate) => {
     diff(miscTypeOtherDate, unit) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
       const floatedDiff = _date.diff(otherDate, unit).as(unit);
-      const roundedDiff = floatedDiff > 0 ? Math.floor(floatedDiff) : Math.ceil(floatedDiff);
 
-      return { [unit]: roundedDiff };
+      return { [unit]: floatedDiff > 0 ? Math.floor(floatedDiff) : Math.ceil(floatedDiff) };
     },
 
     add(amount) {

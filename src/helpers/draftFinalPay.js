@@ -22,11 +22,21 @@ exports.getContractMonthInfo = (contract, query) => {
   return { contractHours: info.contractHours * WEEKS_PER_MONTH, workedDaysRatio: info.workedDaysRatio };
 };
 
-exports.computeAuxiliaryDraftFinalPay = async (auxiliary, events, prevPay, company, query, dm, surcharges) => {
+exports.computeAuxiliaryDraftFinalPay = async (
+  auxiliary,
+  events,
+  subscriptions,
+  prevPay,
+  company,
+  query,
+  dm,
+  surcharges
+) => {
   const { contracts } = auxiliary;
   const contract = contracts.find(cont => cont.endDate);
 
-  const monthBalance = await DraftPayHelper.computeBalance(auxiliary, contract, events, company, query, dm, surcharges);
+  const monthBalance =
+    await DraftPayHelper.computeBalance(auxiliary, contract, events, subscriptions, company, query, dm, surcharges);
   const hoursCounter = prevPay
     ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance
     : monthBalance.hoursBalance;
@@ -57,10 +67,11 @@ exports.computeDraftFinalPay = async (auxiliaries, query, credentials) => {
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxIds, companyId);
+  const subscriptions = await DraftPayHelper.getSubscriptionsForPay(companyId);
   // Counter is reset on January
   const prevPayList = moment(query.startDate).month() === 0
     ? []
-    : await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
+    : await DraftPayHelper.getPreviousMonthPay(auxiliaries, subscriptions, query, surcharges, dm, companyId);
 
   const draftFinalPay = [];
   for (const aux of auxiliaries) {
@@ -68,7 +79,7 @@ exports.computeDraftFinalPay = async (auxiliaries, query, credentials) => {
       { absences: [], events: [] };
     const prevPay = prevPayList.find(prev => UtilsHelper.areObjectIdsEquals(prev.auxiliary, aux._id));
     const draft =
-      await exports.computeAuxiliaryDraftFinalPay(aux, events, prevPay, company, query, dm, surcharges);
+      await exports.computeAuxiliaryDraftFinalPay(aux, events, subscriptions, prevPay, company, query, dm, surcharges);
     if (draft) draftFinalPay.push(draft);
   }
 

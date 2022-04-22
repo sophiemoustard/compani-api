@@ -195,41 +195,8 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
     { auxiliary: { $in: auxiliaries } },
   ];
 
-  const match = [
+  return Event.aggregate([
     { $match: { $and: rules } },
-    { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
-    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-    {
-      $addFields: {
-        subscription: {
-          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$$ROOT.subscription'] } },
-        },
-      },
-    },
-    { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'subscription.service',
-        foreignField: '_id',
-        as: 'subscription.service',
-      },
-    },
-    { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
-    {
-      $addFields: {
-        hasFixedService: {
-          $cond: {
-            if: { $and: [{ $eq: ['$type', 'intervention'] }, { $eq: ['$subscription.service.nature', 'fixed'] }] },
-            then: true,
-            else: false,
-          },
-        },
-      },
-    },
-  ];
-
-  const group = [
     {
       $group: {
         _id: {
@@ -247,13 +214,15 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
     {
       $project: {
         auxiliary: 1,
+        year: '$_id.year',
+        month: '$_id.month',
         absences: { $filter: { input: '$absences', as: 'event', cond: { $ne: ['$$event', null] } } },
         eventsPerDay: { $filter: { input: '$eventsPerDay', as: 'event', cond: { $ne: ['$$event', null] } } },
       },
     },
     {
       $group: {
-        _id: { auxiliary: '$auxiliary' },
+        _id: { auxiliary: '$auxiliary', year: '$year', month: '$month' },
         auxiliary: { $first: '$auxiliary' },
         events: { $push: '$eventsPerDay' },
         absences: { $push: '$absences' },
@@ -266,9 +235,8 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
         absences: { $reduce: { input: '$absences', initialValue: [], in: { $setUnion: ['$$value', '$$this'] } } },
       },
     },
-  ];
-
-  return Event.aggregate([...match, ...group]).option({ company: companyId });
+  ])
+    .option({ company: companyId });
 };
 
 exports.getEventsToBill = async (query, companyId) => {
