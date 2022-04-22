@@ -46,7 +46,7 @@ const CompletionCertificate = require('../data/pdf/completionCertificate');
 exports.createCourse = payload => (new Course(payload)).save();
 
 exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
-  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.add(acc, value.theoreticalHours || 0), 0)
+  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.oldAdd(acc, value.theoreticalHours || 0), 0)
   : 0
 );
 

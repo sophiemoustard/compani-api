@@ -195,7 +195,7 @@ exports.computeHoursWithDiff = (pay, key) => {
 exports.getExclTaxes = (inclTaxes, vat) => {
   if (!vat) return inclTaxes;
 
-  const decimalVat = NumbersHelper.add(1, NumbersHelper.oldDivide(vat, 100));
+  const decimalVat = NumbersHelper.oldAdd(1, NumbersHelper.oldDivide(vat, 100));
 
   return NumbersHelper.oldDivide(inclTaxes, decimalVat);
 };
@@ -203,12 +203,12 @@ exports.getExclTaxes = (inclTaxes, vat) => {
 exports.getInclTaxes = (exclTaxes, vat) => {
   if (!vat) return exclTaxes;
 
-  const decimalVat = NumbersHelper.add(1, NumbersHelper.oldDivide(vat, 100));
+  const decimalVat = NumbersHelper.oldAdd(1, NumbersHelper.oldDivide(vat, 100));
 
   return NumbersHelper.oldMultiply(exclTaxes, decimalVat);
 };
 
-exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.add(sum, (b[key] || 0)), 0);
+exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.oldAdd(sum, (b[key] || 0)), 0);
 
 exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
   if (!discount) return exclTaxes;
