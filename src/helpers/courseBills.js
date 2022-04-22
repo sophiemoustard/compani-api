@@ -18,7 +18,7 @@ exports.getNetInclTaxes = (bill) => {
     ? bill.billingPurchaseList.map(p => NumbersHelper.oldMultiply(p.price, p.count)).reduce((acc, val) => acc + val, 0)
     : 0;
 
-  return NumbersHelper.add(mainFeeTotal, billingPurchaseTotal);
+  return NumbersHelper.oldAdd(mainFeeTotal, billingPurchaseTotal);
 };
 
 const getTimeProgress = (course) => {

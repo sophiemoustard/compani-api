@@ -225,7 +225,7 @@ exports.formatPdf = (creditNote, company) => {
     computedData.billingItems = [];
     for (const billingItem of creditNote.billingItemList) {
       computedData.billingItems.push(formatBillingItemForPdf(billingItem));
-      computedData.totalVAT = NumbersHelper.add(
+      computedData.totalVAT = NumbersHelper.oldAdd(
         computedData.totalVAT,
         NumbersHelper.subtract(billingItem.inclTaxes, billingItem.exclTaxes)
       );
