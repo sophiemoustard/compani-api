@@ -6,8 +6,10 @@ const omit = require('lodash/omit');
 const setWith = require('lodash/setWith');
 const clone = require('lodash/clone');
 const pick = require('lodash/pick');
+const { keyBy } = require('lodash');
 const moment = require('../extensions/moment');
 const Company = require('../models/Company');
+const Customer = require('../models/Customer');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const ContractRepository = require('../repositories/ContractRepository');
@@ -22,6 +24,7 @@ const {
   WEEKS_PER_MONTH,
   HOURLY,
   HALF_DAILY,
+  FIXED,
 } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
@@ -153,8 +156,6 @@ exports.getTransportMode = (event) => {
 };
 
 exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
-  let transportMode;
-
   if (!prevEvent || prevEvent.hasFixedService || event.hasFixedService) {
     return {
       duration: 0,
@@ -168,12 +169,12 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
     };
   }
 
-  const origins = get(prevEvent, 'address.fullAddress', null);
-  const destinations = get(event, 'address.fullAddress', null);
+  const origins = get(prevEvent, 'address.fullAddress');
+  const destinations = get(event, 'address.fullAddress');
 
-  if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
-    transportMode = exports.getTransportMode(event);
-  }
+  const transportMode = has(event, 'auxiliary.administrative.transportInvoice.transportType')
+    ? exports.getTransportMode(event)
+    : null;
 
   if (!origins || !destinations || !transportMode) return { duration: 0, paidKm: 0, travelledKm: 0 };
 
@@ -186,20 +187,16 @@ exports.getPaidTransportInfo = async (event, prevEvent, dm) => {
   );
   const breakDuration = CompaniDate(event.startDate).diff(prevEvent.endDate, 'minutes').minutes;
   const pickTransportDuration = breakDuration > (transport.duration + 15);
-  const paidTransportDuration = pickTransportDuration ? transport.duration : Math.max(breakDuration, 0);
-  const paidKm = transportMode.shouldPayKm ? transport.distance : 0;
-  const travelledKm = transport.distance;
-  const transportDuration = transport.duration;
 
   return {
-    duration: paidTransportDuration,
-    paidKm,
-    travelledKm,
     origins,
     destinations,
-    transportDuration,
     breakDuration,
     pickTransportDuration,
+    duration: pickTransportDuration ? transport.duration : Math.max(breakDuration, 0),
+    transportDuration: transport.duration,
+    paidKm: transportMode.shouldPayKm ? transport.distance : 0,
+    travelledKm: transport.distance,
   };
 };
 
@@ -278,11 +275,12 @@ const incrementHours = (total, hours, surchargedKey) => {
   };
 };
 
-exports.getPayFromEvents = async (events, auxiliary, dm, surcharges, query) => {
+exports.getPayFromEvents = async (events, auxiliary, subscriptions, dm, surcharges, query) => {
   let paidHours = exports.initializePaidHours();
   for (const eventsPerDay of events) {
     const sortedEvents = [...eventsPerDay].sort(DatesHelper.ascendingSort('startDate'));
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
+      const subscription = subscriptions[sortedEvents[i].subscription];
       const paidEvent = {
         ...sortedEvents[i],
         startDate: moment(sortedEvents[i].startDate).isSameOrAfter(query.startDate)
@@ -292,15 +290,16 @@ exports.getPayFromEvents = async (events, auxiliary, dm, surcharges, query) => {
           ? sortedEvents[i].endDate
           : query.endDate,
         auxiliary,
+        ...(sortedEvents[i].type === INTERVENTION && { hasFixedService: subscription.service.nature === FIXED }),
       };
 
       let service = null;
       if (paidEvent.type === INTERVENTION) {
         if (paidEvent.hasFixedService) continue; // Fixed services are included manually in bonus
 
-        service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
+        service = UtilsHelper.getMatchingVersion(paidEvent.startDate, subscription.service, 'startDate');
         service.surcharge = service.surcharge
-          ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null
+          ? surcharges.find(sur => UtilsHelper.areObjectIdsEquals(sur._id, service.surcharge)) || null
           : null;
       }
 
@@ -386,11 +385,11 @@ const getPhoneFees = (auxiliary, contractInfo, company) => {
   return phoneFeeAmount * contractInfo.workedDaysRatio;
 };
 
-exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges) => {
+exports.computeBalance = async (auxiliary, contract, eventsToPay, subscriptions, company, query, dm, surcharges) => {
   const contractInfo = exports.getContractMonthInfo(contract, query);
 
   const contractEvents = filterEvents(eventsToPay, contract);
-  const hours = await exports.getPayFromEvents(contractEvents, auxiliary, distanceMatrix, surcharges, query);
+  const hours = await exports.getPayFromEvents(contractEvents, auxiliary, subscriptions, dm, surcharges, query);
 
   const contractAbsences = filterAbsences(eventsToPay, contract);
   const absencesHours = exports.getPayFromAbsences(contractAbsences, contract, query);
@@ -420,8 +419,19 @@ exports.genericData = (query, { _id, identity, sector }) => ({
   month: moment(query.startDate).format('MM-YYYY'),
 });
 
-exports.computeAuxiliaryDraftPay = async (aux, contract, eventsToPay, prevPay, company, query, dm, surcharges) => {
-  const monthBalance = await exports.computeBalance(aux, contract, eventsToPay, company, query, dm, surcharges);
+exports.computeAuxiliaryDraftPay = async (
+  aux,
+  contract,
+  eventsToPay,
+  subscriptions,
+  prevPay,
+  company,
+  query,
+  dm,
+  surcharges
+) => {
+  const monthBalance =
+    await exports.computeBalance(aux, contract, eventsToPay, subscriptions, company, query, dm, surcharges);
   const hoursCounter = prevPay
     ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance
     : monthBalance.hoursBalance;
@@ -484,9 +494,9 @@ exports.computeDiff = (prevPay, hours, absenceDiff, workedHoursDiff) => ({
   hoursBalance: absenceDiff + workedHoursDiff,
 });
 
-exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, distanceMatrix, surcharges) => {
+exports.computePrevPayDiff = async (auxiliary, eventsToPay, subscriptions, prevPay, query, dm, surcharges) => {
   const contract = auxiliary.contracts.find(cont => !cont.endDate || moment(cont.endDate).isAfter(query.endDate));
-  const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
+  const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, subscriptions, dm, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
   const totalAbsencesHours = prevPay && prevPay.absencesHours ? absencesHours - prevPay.absencesHours : absencesHours;
   const absenceDiff = Math.round(totalAbsencesHours * 100) / 100;
@@ -499,26 +509,38 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
   };
 };
 
-exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, dm, companyId) => {
+exports.getPreviousMonthPay = async (auxiliaries, subscriptions, query, surcharges, dm, companyId) => {
   const startDate = moment(query.startDate).subtract(1, 'M').startOf('M').toDate();
   const endDate = moment(query.endDate).subtract(1, 'M').endOf('M').toDate();
   const auxIds = auxiliaries.map(aux => aux._id);
   const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxIds, companyId);
 
   const prevPayDiff = [];
-  for (const auxiliary of auxiliaries) {
-    const events = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString()) ||
+  for (const aux of auxiliaries) {
+    const events = eventsByAuxiliary.find(group => UtilsHelper.areObjectIdsEquals(group.auxiliary, aux._id)) ||
       { absences: [], events: [] };
     prevPayDiff.push(
-      exports.computePrevPayDiff(auxiliary, events, auxiliary.prevPay, { startDate, endDate }, dm, surcharges)
+      exports.computePrevPayDiff(aux, events, subscriptions, aux.prevPay, { startDate, endDate }, dm, surcharges)
     );
   }
 
   return Promise.all(prevPayDiff);
 };
 
+exports.getSubscriptionsForPay = async (companyId) => {
+  const customers = await Customer
+    .find(
+      { subscriptions: { $exists: true }, company: companyId },
+      { 'subscriptions.service': 1, 'subscriptions._id': 1 }
+    )
+    .populate({ path: 'subscriptions.service' })
+    .lean();
+
+  return keyBy(customers.flatMap(cus => cus.subscriptions), '_id');
+};
+
 exports.computeDraftPay = async (auxiliaries, query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id');
   const { startDate, endDate } = query;
   const [company, surcharges, dm] = await Promise.all([
     Company.findOne({ _id: companyId }).lean(),
@@ -528,21 +550,24 @@ exports.computeDraftPay = async (auxiliaries, query, credentials) => {
 
   const auxIds = auxiliaries.map(aux => aux._id);
   const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxIds, companyId);
+  const subscriptions = await exports.getSubscriptionsForPay(companyId);
 
   // Counter is reset on January
   const prevPayList = moment(query.startDate).month() === 0
     ? []
-    : await exports.getPreviousMonthPay(auxiliaries, query, surcharges, dm, companyId);
+    : await exports.getPreviousMonthPay(auxiliaries, subscriptions, query, surcharges, dm, companyId);
 
   const draftPay = [];
   for (const aux of auxiliaries) {
-    const events = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === aux._id.toHexString()) ||
+    const events = eventsByAuxiliary.find(group => UtilsHelper.areObjectIdsEquals(group.auxiliary._id, aux._id)) ||
       { absences: [], events: [] };
-    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux._id.toHexString()) || null;
+    const prevPay = prevPayList.find(prev => UtilsHelper.areObjectIdsEquals(prev.auxiliary, aux._id)) || null;
     const contract = exports.getContract(aux.contracts, query.endDate);
     if (!contract) continue;
 
-    draftPay.push(exports.computeAuxiliaryDraftPay(aux, contract, events, prevPay, company, query, dm, surcharges));
+    draftPay.push(
+      exports.computeAuxiliaryDraftPay(aux, contract, events, subscriptions, prevPay, company, query, dm, surcharges)
+    );
   }
 
   return Promise.all(draftPay);
@@ -556,7 +581,7 @@ exports.getDraftPay = async (query, credentials) => {
     startDate: { $lte: endDate },
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: endDate } }],
   };
-  const companyId = get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id');
   const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, endDate, 'pays', companyId);
   if (auxiliaries.length === 0) return [];
 

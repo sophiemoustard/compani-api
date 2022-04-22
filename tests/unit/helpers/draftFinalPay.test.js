@@ -84,6 +84,8 @@ describe('computeAuxiliaryDraftFinalPay', () => {
       administrative: { mutualFund: { has: true } },
     };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
+    const subId = new ObjectId();
+    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
     const company = { rhConfig: { phoneFeeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = { hoursCounter: 10, diff: { workedHours: 3, hoursBalance: 2 } };
@@ -107,8 +109,16 @@ describe('computeAuxiliaryDraftFinalPay', () => {
       month: '05-2019',
     });
 
-    const result =
-      await DraftFinalPayHelper.computeAuxiliaryDraftFinalPay(aux, events, prevPay, company, query, [], []);
+    const result = await DraftFinalPayHelper.computeAuxiliaryDraftFinalPay(
+      aux,
+      events,
+      subscriptions,
+      prevPay,
+      company,
+      query,
+      [],
+      []
+    );
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -130,6 +140,17 @@ describe('computeAuxiliaryDraftFinalPay', () => {
       previousMonthHoursCounter: 10,
     });
     sinon.assert.notCalled(computeDiff);
+    sinon.assert.calledOnceWithExactly(
+      computeBalance,
+      aux,
+      aux.contracts[0],
+      events,
+      subscriptions,
+      company,
+      query,
+      [],
+      []
+    );
   });
 
   it('should return draft pay for one auxiliary if no prevPay', async () => {
@@ -146,6 +167,8 @@ describe('computeAuxiliaryDraftFinalPay', () => {
       administrative: { mutualFund: { has: true } },
     };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
+    const subId = new ObjectId();
+    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
     const company = { rhConfig: { phoneFeeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const computedPay = {
@@ -169,7 +192,9 @@ describe('computeAuxiliaryDraftFinalPay', () => {
       month: '05-2019',
     });
 
-    const result = await DraftFinalPayHelper.computeAuxiliaryDraftFinalPay(aux, events, null, company, query, [], []);
+    const result =
+      await DraftFinalPayHelper.computeAuxiliaryDraftFinalPay(aux, events, subscriptions, null, company, query, [], []);
+
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
@@ -190,6 +215,17 @@ describe('computeAuxiliaryDraftFinalPay', () => {
       previousMonthHoursCounter: 0,
     });
     sinon.assert.calledOnceWithExactly(computeDiff, null, null, 0, 0);
+    sinon.assert.calledOnceWithExactly(
+      computeBalance,
+      aux,
+      aux.contracts[0],
+      events,
+      subscriptions,
+      company,
+      query,
+      [],
+      []
+    );
   });
 });
 
@@ -199,11 +235,13 @@ describe('computeDraftFinalPay', () => {
   let distanceMatrixFind;
   let findPay;
   let getEventsToPay;
+  let getSubscriptionsForPay;
   let getPreviousMonthPay;
   let computeAuxiliaryDraftFinalPay;
 
   beforeEach(() => {
     getEventsToPay = sinon.stub(EventRepository, 'getEventsToPay');
+    getSubscriptionsForPay = sinon.stub(DraftPayHelper, 'getSubscriptionsForPay');
     companyFindOne = sinon.stub(Company, 'findOne');
     surchargeFind = sinon.stub(Surcharge, 'find');
     distanceMatrixFind = sinon.stub(DistanceMatrix, 'find');
@@ -214,6 +252,7 @@ describe('computeDraftFinalPay', () => {
 
   afterEach(() => {
     getEventsToPay.restore();
+    getSubscriptionsForPay.restore();
     companyFindOne.restore();
     surchargeFind.restore();
     distanceMatrixFind.restore();
@@ -240,6 +279,8 @@ describe('computeDraftFinalPay', () => {
         auxiliary: { _id: new ObjectId() },
       },
     ];
+    const subId = new ObjectId();
+    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
     const prevPay = [
       { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
       { auxiliary: new ObjectId(), hoursCounter: 25, diff: -3 },
@@ -247,6 +288,7 @@ describe('computeDraftFinalPay', () => {
     const existingPay = [{ auxiliary: new ObjectId() }];
 
     getEventsToPay.returns(payData);
+    getSubscriptionsForPay.returns(subscriptions);
     surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'surcharge' }], ['lean']));
     companyFindOne.returns(SinonMongoose.stubChainedQueries({}, ['lean']));
     distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));
@@ -273,6 +315,7 @@ describe('computeDraftFinalPay', () => {
     sinon.assert.calledWithExactly(
       getPreviousMonthPay,
       auxiliaries,
+      subscriptions,
       query,
       [{ _id: 'surcharge' }],
       [{ _id: 'dm' }],
@@ -286,6 +329,7 @@ describe('computeDraftFinalPay', () => {
         absences: [{ _id: auxiliaryId, events: [{ startDate: '2019-05-06T10:00:00' }] }],
         auxiliary: { _id: auxiliaryId },
       },
+      subscriptions,
       { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
       {},
       query,
@@ -312,6 +356,8 @@ describe('computeDraftFinalPay', () => {
         auxiliary: { _id: new ObjectId() },
       },
     ];
+    const subId = new ObjectId();
+    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
     const prevPay = [
       { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
       { auxiliary: new ObjectId(), hoursCounter: 25, diff: -3 },
@@ -319,6 +365,7 @@ describe('computeDraftFinalPay', () => {
     const existingPay = [{ auxiliary: new ObjectId() }];
 
     getEventsToPay.returns(payData);
+    getSubscriptionsForPay.returns(subscriptions);
     surchargeFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'surcharge' }], ['lean']));
     companyFindOne.returns(SinonMongoose.stubChainedQueries({}, ['lean']));
     distanceMatrixFind.returns(SinonMongoose.stubChainedQueries([{ _id: 'dm' }], ['lean']));

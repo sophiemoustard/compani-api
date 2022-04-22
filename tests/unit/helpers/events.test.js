@@ -1995,20 +1995,9 @@ describe('getContractWeekInfo', () => {
 
 describe('workingStats', () => {
   const auxiliaryId = new ObjectId();
-  const query = {
-    auxiliary: [auxiliaryId],
-    startDate: '2019-12-12',
-    endDate: '2019-12-15',
-  };
+  const query = { auxiliary: [auxiliaryId], startDate: '2019-12-12', endDate: '2019-12-15' };
   const distanceMatrix = {
-    data: {
-      rows: [{
-        elements: [{
-          distance: { value: 363998 },
-          duration: { value: 13790 },
-        }],
-      }],
-    },
+    data: { rows: [{ elements: [{ distance: { value: 363998 }, duration: { value: 13790 } }] }] },
     status: 200,
   };
   const companyId = new ObjectId();
@@ -2017,6 +2006,7 @@ describe('workingStats', () => {
   let findUserCompany;
   let findDistanceMatrix;
   let getEventsToPayStub;
+  let getSubscriptionsForPayStub;
   let getContractStub;
   let getContractWeekInfoStub;
   let getPayFromEventsStub;
@@ -2026,6 +2016,7 @@ describe('workingStats', () => {
     findUserCompany = sinon.stub(UserCompany, 'find');
     findDistanceMatrix = sinon.stub(DistanceMatrix, 'find');
     getEventsToPayStub = sinon.stub(EventRepository, 'getEventsToPay');
+    getSubscriptionsForPayStub = sinon.stub(DraftPayHelper, 'getSubscriptionsForPay');
     getContractStub = sinon.stub(EventHelper, 'getContract');
     getContractWeekInfoStub = sinon.stub(EventHelper, 'getContractWeekInfo');
     getPayFromEventsStub = sinon.stub(DraftPayHelper, 'getPayFromEvents');
@@ -2036,6 +2027,7 @@ describe('workingStats', () => {
     findUserCompany.restore();
     findDistanceMatrix.restore();
     getEventsToPayStub.restore();
+    getSubscriptionsForPayStub.restore();
     getContractStub.restore();
     getContractWeekInfoStub.restore();
     getPayFromEventsStub.restore();
@@ -2050,8 +2042,11 @@ describe('workingStats', () => {
     const contractInfo = { contractHours: 10, holidaysHours: 7 };
     const hours = { workedHours: 12 };
     const absencesHours = 3;
+    const subId = new ObjectId();
+    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
+    getSubscriptionsForPayStub.returns(subscriptions);
     getContractStub.returns(contract);
     getContractWeekInfoStub.returns(contractInfo);
     getPayFromEventsStub.returns(hours);
@@ -2072,7 +2067,15 @@ describe('workingStats', () => {
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
     sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
     sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, query);
-    sinon.assert.calledOnceWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], query);
+    sinon.assert.calledOnceWithExactly(
+      getPayFromEventsStub,
+      [],
+      auxiliaries[0],
+      subscriptions,
+      distanceMatrix,
+      [],
+      query
+    );
     sinon.assert.calledOnceWithExactly(getPayFromAbsencesStub, [], contract, query);
     SinonMongoose.calledOnceWithExactly(
       findUser,
@@ -2098,8 +2101,11 @@ describe('workingStats', () => {
     const hours = { workedHours: 12 };
     const absencesHours = 3;
     const users = [{ _id: new ObjectId(), user: auxiliaries[0]._id }];
+    const subId = new ObjectId();
+    const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
+    getSubscriptionsForPayStub.returns(subscriptions);
     getContractStub.returns(contract);
     getContractWeekInfoStub.returns(contractInfo);
     getPayFromEventsStub.returns(hours);
@@ -2123,6 +2129,7 @@ describe('workingStats', () => {
       getPayFromEventsStub,
       [],
       auxiliaries[0],
+      subscriptions,
       distanceMatrix,
       [],
       queryWithoutAuxiliary
@@ -2147,6 +2154,7 @@ describe('workingStats', () => {
   });
 
   it('should return {} if no contract in auxiliaries', async () => {
+    getSubscriptionsForPayStub.returns([{ _id: ObjectId(), service: { _id: ObjectId() } }]);
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
     findUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, firstname: 'toto' }]));
     findDistanceMatrix.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
@@ -2178,6 +2186,7 @@ describe('workingStats', () => {
     const contracts = [{ _id: new ObjectId() }];
 
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
+    getSubscriptionsForPayStub.returns([{ _id: ObjectId(), service: { _id: ObjectId() } }]);
     getContractStub.returns();
     findUser.returns(SinonMongoose.stubChainedQueries([{ _id: auxiliaryId, firstname: 'toto', contracts }]));
     findDistanceMatrix.returns(SinonMongoose.stubChainedQueries(distanceMatrix, ['lean']));
