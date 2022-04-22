@@ -61,6 +61,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         type: 'inter_b2b',
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00',
       };
       const coursesCountBefore = await Course.countDocuments({});
 
@@ -845,18 +846,31 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         misc: 'new name',
         trainer: new ObjectId(),
         contact: new ObjectId(),
+        estimatedStartDate: '2022-05-31T08:00:00',
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/courses/${courseIdFromAuthCompany}`,
+        url: `/courses/${coursesList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
 
       expect(response.statusCode).toBe(200);
 
-      const course = await Course.countDocuments({ _id: courseIdFromAuthCompany, ...payload }).lean();
+      const course = await Course.countDocuments({ _id: coursesList[4]._id, ...payload }).lean();
       expect(course).toEqual(1);
+    });
+
+    it('should return 400 if try to remove estimated start date', async () => {
+      const payload = { estimatedStartDate: '' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     const payloads = [
@@ -1003,6 +1017,20 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(course.slotsToPlan.length).toBe(0);
       expect(course.format).toBe('blended');
       expect(course.slots.every(slot => moment(slot.endDate).isBefore(payload.archivedAt))).toBeFalsy();
+    });
+
+    it('should return 403 if try to add estimated start date to course with slots', async () => {
+      const payload = {
+        estimatedStartDate: '2022-05-31T08:00:00',
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

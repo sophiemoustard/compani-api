@@ -647,7 +647,7 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsToPlan.length) return 'à planifier';
-  if (slotsGroupedByDate) {
+  if (slotsGroupedByDate.length) {
     const lastDate = slotsGroupedByDate.length - 1;
     const lastSlot = slotsGroupedByDate[lastDate].length - 1;
     return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format('dd/LL/yyyy HH:mm:ss');
@@ -655,11 +655,24 @@ const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   return '';
 };
 
+const getStartOfCourse = (slotsGroupedByDate) => {
+  if (!slotsGroupedByDate.length) return '';
+  return CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss') || '';
+};
+
+const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDate).isAfter(startDate) &&
+  CompaniDate(slot.endDate).isBefore(endDate);
+
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
   const courseIds = slots.map(slot => slot.course);
   const courses = await Course
-    .find({ _id: { $in: courseIds } })
+    .find({
+      $or: [
+        { _id: { $in: courseIds } },
+        { $and: [{ estimatedStartDate: { $lte: endDate, $gte: startDate } }, { archivedAt: { $exists: false } }] },
+      ],
+    })
     .populate({ path: 'company', select: 'name' })
     .populate({
       path: 'subProgram',
@@ -687,6 +700,9 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     })
     .lean();
 
+  const filteredCourses = courses
+    .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
+
   const questionnaireHistories = await QuestionnaireHistory
     .find({ course: { $in: courseIds } })
     .populate({ path: 'questionnaire', select: 'type' })
@@ -697,7 +713,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
 
   const rows = [];
 
-  for (const course of courses) {
+  for (const course of filteredCourses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
     const smsCount = smsList.filter(sms => UtilsHelper.areObjectIdsEquals(sms.course, course._id)).length;
     const attendanceSheetsCount = attendanceSheetList
@@ -753,10 +769,10 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
       'Référent Compani': UtilsHelper.formatIdentity(get(course, 'salesRepresentative.identity') || '', 'FL'),
       'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
-      'Nombre d\'inscrits': get(course, 'trainees.length') || '',
+      'Nombre d\'inscrits': get(course, 'trainees.length'),
       'Nombre de dates': slotsGroupedByDate.length,
-      'Nombre de créneaux': get(course, 'slots.length') || '',
-      'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length') || '',
+      'Nombre de créneaux': get(course, 'slots.length'),
+      'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length'),
       'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
@@ -766,7 +782,10 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
         : '',
       'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswersCount,
       'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswersCount,
-      'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss') || '',
+      'Date de démarrage souhaitée': course.estimatedStartDate
+        ? CompaniDate(course.estimatedStartDate).format('dd/LL/yyyy')
+        : '',
+      'Début de formation': getStartOfCourse(slotsGroupedByDate),
       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
       'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
       'Nombre de présences': subscribedTraineesAttendancesCount,

@@ -1737,12 +1737,27 @@ describe('exportCourseHistory', () => {
       type: INTER_B2B,
       subProgram: subProgramList[1],
       misc: 'group 2',
+      estimatedStartDate: '2019-01-01T08:00:00',
       trainer,
       salesRepresentative,
       contact: salesRepresentative,
       trainees: [traineeList[3], traineeList[4]],
       slotsToPlan: [courseSlotList[4]],
       slots: [courseSlotList[2], courseSlotList[3]],
+      bills: [],
+    },
+    {
+      _id: courseIdList[1],
+      type: INTER_B2B,
+      subProgram: subProgramList[1],
+      misc: 'group 3',
+      estimatedStartDate: '2022-01-01T08:00:00',
+      trainer,
+      salesRepresentative,
+      contact: salesRepresentative,
+      trainees: [traineeList[3], traineeList[4]],
+      slotsToPlan: [],
+      slots: [],
       bills: [],
     },
   ];
@@ -1765,7 +1780,7 @@ describe('exportCourseHistory', () => {
   let findCourseSlot;
   let findCourse;
   let groupSlotsByDate;
-  let getTotalDuration;
+  let getTotalDurationForExport;
   let findCourseSmsHistory;
   let findAttendanceSheet;
   let findQuestionnaireHistory;
@@ -1774,7 +1789,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
     findCourse = sinon.stub(Course, 'find');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
-    getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
+    getTotalDurationForExport = sinon.stub(UtilsHelper, 'getTotalDurationForExport');
     findCourseSmsHistory = sinon.stub(CourseSmsHistory, 'find');
     findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
     findQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'find');
@@ -1784,7 +1799,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot.restore();
     findCourse.restore();
     groupSlotsByDate.restore();
-    getTotalDuration.restore();
+    getTotalDurationForExport.restore();
     findCourseSmsHistory.restore();
     findAttendanceSheet.restore();
     findQuestionnaireHistory.restore();
@@ -1819,7 +1834,20 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourse,
       [
-        { query: 'find', args: [{ _id: { $in: courseSlotList.map(slot => slot.course) } }] },
+        {
+          query: 'find',
+          args: [{
+            $or: [
+              { _id: { $in: courseSlotList.map(slot => slot.course) } },
+              {
+                $and: [
+                  { estimatedStartDate: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
+                  { archivedAt: { $exists: false } },
+                ],
+              },
+            ],
+          }],
+        },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         {
           query: 'populate',
@@ -1856,7 +1884,7 @@ describe('exportCourseHistory', () => {
       ]
     );
     sinon.assert.notCalled(groupSlotsByDate);
-    sinon.assert.notCalled(getTotalDuration);
+    sinon.assert.notCalled(getTotalDurationForExport);
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
@@ -1881,8 +1909,10 @@ describe('exportCourseHistory', () => {
     findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
-    getTotalDuration.onCall(0).returns('4h');
-    getTotalDuration.onCall(1).returns('4h');
+    groupSlotsByDate.onCall(2).returns([]);
+    getTotalDurationForExport.onCall(0).returns('4,00');
+    getTotalDurationForExport.onCall(1).returns('4,00');
+    getTotalDurationForExport.onCall(2).returns('0,00');
     findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
       ['lean']
@@ -1917,6 +1947,7 @@ describe('exportCourseHistory', () => {
         'Complétion eLearning moyenne',
         'Nombre de réponses au questionnaire de recueil des attentes',
         'Nombre de réponses au questionnaire de satisfaction',
+        'Date de démarrage souhaitée',
         'Début de formation',
         'Fin de formation',
         'Nombre de feuilles d\'émargement chargées',
@@ -1941,13 +1972,14 @@ describe('exportCourseHistory', () => {
         3,
         1,
         2,
-        '',
+        0,
         '4,00',
         2,
         2,
         '',
         2,
         2,
+        '',
         '01/05/2021 10:00:00',
         '01/05/2021 18:00:00',
         1,
@@ -1979,6 +2011,7 @@ describe('exportCourseHistory', () => {
         '0,67',
         1,
         1,
+        '01/01/2019',
         '01/02/2021 09:00:00',
         'à planifier',
         0,
@@ -1987,6 +2020,38 @@ describe('exportCourseHistory', () => {
         1,
         2,
         '0,67',
+        '',
+      ],
+      [
+        courseList[1]._id,
+        'inter_b2b',
+        '',
+        '',
+        'Program 2',
+        'subProgram 2',
+        'group 3',
+        'Gilles FORMATEUR',
+        'Aline CONTACT-COM',
+        'Aline CONTACT-COM',
+        2,
+        0,
+        0,
+        0,
+        '0,00',
+        1,
+        0,
+        '0,67',
+        1,
+        1,
+        '01/01/2022',
+        '',
+        '',
+        0,
+        0,
+        0,
+        0,
+        0,
+        '',
         '',
       ],
     ]);
@@ -2003,7 +2068,20 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourse,
       [
-        { query: 'find', args: [{ _id: { $in: courseSlotList.map(slot => slot.course) } }] },
+        {
+          query: 'find',
+          args: [{
+            $or: [
+              { _id: { $in: courseSlotList.map(slot => slot.course) } },
+              {
+                $and: [
+                  { estimatedStartDate: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
+                  { archivedAt: { $exists: false } },
+                ],
+              },
+            ],
+          }],
+        },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         {
           query: 'populate',

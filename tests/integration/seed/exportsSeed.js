@@ -1105,6 +1105,18 @@ const courseList = [
     salesRepresentative: salesRepresentative._id,
     contact: salesRepresentative._id,
     trainees: [traineeList[3]._id, traineeList[4]._id],
+    estimatedStartDate: '2019-01-01T08:00:00',
+  },
+  {
+    _id: new ObjectId(),
+    type: INTER_B2B,
+    subProgram: subProgramList[1]._id,
+    misc: 'group 3',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[3]._id, traineeList[4]._id],
+    estimatedStartDate: '2022-01-01T08:00:00',
   },
 ];
 

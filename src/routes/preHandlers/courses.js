@@ -88,6 +88,8 @@ exports.authorizeCourseEdit = async (req) => {
       if (course.slots.some(slot => moment(slot.endDate).isAfter(archivedAt))) return Boom.forbidden();
     }
 
+    if (get(req, 'payload.estimatedStartDate') && course.slots.length) return Boom.forbidden();
+
     return null;
   } catch (e) {
     req.log('error', e);
