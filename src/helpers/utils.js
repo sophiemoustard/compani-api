@@ -217,7 +217,7 @@ exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
 
   const discountExclTaxes = exports.getExclTaxes(discount, vat);
 
-  return NumbersHelper.subtract(exclTaxes, discountExclTaxes);
+  return NumbersHelper.oldSubtract(exclTaxes, discountExclTaxes);
 };
 
 exports.getTotalDuration = (timePeriods) => {

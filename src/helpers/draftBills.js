@@ -84,7 +84,7 @@ exports.getSurchargedPrice = (event, eventSurcharges, price) => {
 };
 
 exports.getThirdPartyPayerPrice = (time, fundingInclTaxes, customerParticipationRate) => {
-  const tppParticipationRate = NumbersHelper.subtract(1, NumbersHelper.oldDivide(customerParticipationRate, 100));
+  const tppParticipationRate = NumbersHelper.oldSubtract(1, NumbersHelper.oldDivide(customerParticipationRate, 100));
 
   return NumbersHelper.oldMultiply(NumbersHelper.oldDivide(time, 60), fundingInclTaxes, tppParticipationRate);
 };
@@ -114,7 +114,7 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
   if (history && history.careHours < funding.careHours) {
     const totalCareHours = NumbersHelper.oldAdd(history.careHours, NumbersHelper.oldDivide(time, 60));
     chargedTime = totalCareHours > funding.careHours
-      ? NumbersHelper.oldMultiply(NumbersHelper.subtract(funding.careHours, history.careHours), 60)
+      ? NumbersHelper.oldMultiply(NumbersHelper.oldSubtract(funding.careHours, history.careHours), 60)
       : time;
     thirdPartyPayerPrice = exports.getThirdPartyPayerPrice(
       chargedTime,
@@ -127,7 +127,7 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
   }
 
   return {
-    customerPrice: NumbersHelper.subtract(price, thirdPartyPayerPrice),
+    customerPrice: NumbersHelper.oldSubtract(price, thirdPartyPayerPrice),
     thirdPartyPayerPrice,
     history: {
       careHours: NumbersHelper.oldDivide(chargedTime, 60),
@@ -149,7 +149,7 @@ exports.getFixedFundingSplit = (event, funding, price) => {
       thirdPartyPayerPrice = price;
       history.amountTTC = NumbersHelper.oldAdd(history.amountTTC, thirdPartyPayerPrice);
     } else {
-      thirdPartyPayerPrice = NumbersHelper.subtract(funding.amountTTC, history.amountTTC);
+      thirdPartyPayerPrice = NumbersHelper.oldSubtract(funding.amountTTC, history.amountTTC);
       history.amountTTC = funding.amountTTC;
     }
   }
@@ -157,7 +157,7 @@ exports.getFixedFundingSplit = (event, funding, price) => {
   const chargedTime = moment(event.endDate).diff(moment(event.startDate), 'm');
 
   return {
-    customerPrice: NumbersHelper.subtract(price, thirdPartyPayerPrice),
+    customerPrice: NumbersHelper.oldSubtract(price, thirdPartyPayerPrice),
     thirdPartyPayerPrice,
     history: { amountTTC: thirdPartyPayerPrice, fundingId: funding._id, nature: funding.nature },
     fundingId: funding._id,
