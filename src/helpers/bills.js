@@ -261,8 +261,8 @@ exports.list = async (query, credentials) => {
 
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
-  const vatMultiplier = NumbersHelper.divide(bddBillingItem.vat, 100);
-  const unitExclTaxes = NumbersHelper.divide(bi.unitInclTaxes, vatMultiplier + 1);
+  const vatMultiplier = NumbersHelper.oldDivide(bddBillingItem.vat, 100);
+  const unitExclTaxes = NumbersHelper.oldDivide(bi.unitInclTaxes, vatMultiplier + 1);
   const exclTaxes = NumbersHelper.oldMultiply(unitExclTaxes, bi.count);
 
   return {
@@ -353,7 +353,7 @@ exports.computeSurcharge = (subscription) => {
       const surchargePrice = NumbersHelper.oldMultiply(
         duration,
         subscription.unitInclTaxes,
-        NumbersHelper.divide(surcharge.percentage, 100)
+        NumbersHelper.oldDivide(surcharge.percentage, 100)
       );
 
       totalSurcharge = NumbersHelper.add(totalSurcharge, surchargePrice);
