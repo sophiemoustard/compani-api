@@ -96,7 +96,7 @@ exports.getPdfContent = async (bill) => {
       { text: bill.mainFee.count, alignment: 'center', marginTop: 8 },
       { text: UtilsHelper.formatPrice(bill.mainFee.price), alignment: 'center', marginTop: 8 },
       {
-        text: UtilsHelper.formatPrice(NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count)),
+        text: UtilsHelper.formatPrice(NumbersHelper.oldMultiply(bill.mainFee.price, bill.mainFee.count)),
         alignment: 'right',
         marginTop: 8,
       },
@@ -117,7 +117,7 @@ exports.getPdfContent = async (bill) => {
           { text: purchase.count, alignment: 'center', marginTop: 8 },
           { text: UtilsHelper.formatPrice(purchase.price), alignment: 'center', marginTop: 8 },
           {
-            text: UtilsHelper.formatPrice(NumbersHelper.multiply(purchase.price, purchase.count)),
+            text: UtilsHelper.formatPrice(NumbersHelper.oldMultiply(purchase.price, purchase.count)),
             alignment: 'right',
             marginTop: 8,
           },

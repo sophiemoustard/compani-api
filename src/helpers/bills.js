@@ -253,14 +253,14 @@ exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
   const vatMultiplier = NumbersHelper.divide(bddBillingItem.vat, 100);
   const unitExclTaxes = NumbersHelper.divide(bi.unitInclTaxes, vatMultiplier + 1);
-  const exclTaxes = NumbersHelper.multiply(unitExclTaxes, bi.count);
+  const exclTaxes = NumbersHelper.oldMultiply(unitExclTaxes, bi.count);
 
   return {
     billingItem: bi.billingItem,
     name: bddBillingItem.name,
     unitInclTaxes: bi.unitInclTaxes,
     count: bi.count,
-    inclTaxes: NumbersHelper.multiply(bi.unitInclTaxes, bi.count),
+    inclTaxes: NumbersHelper.oldMultiply(bi.unitInclTaxes, bi.count),
     exclTaxes,
     vat: bddBillingItem.vat,
   };
@@ -278,7 +278,7 @@ exports.formatAndCreateBill = async (payload, credentials) => {
 
   let netInclTaxes = 0;
   for (const bi of billingItemList) {
-    netInclTaxes = NumbersHelper.add(netInclTaxes, NumbersHelper.multiply(bi.count, bi.unitInclTaxes));
+    netInclTaxes = NumbersHelper.add(netInclTaxes, NumbersHelper.oldMultiply(bi.count, bi.unitInclTaxes));
   }
 
   const bill = {
@@ -322,7 +322,7 @@ exports.getUnitInclTaxes = (bill, subscription) => {
     const customerParticipationRate = NumbersHelper.divide(matchingVersion.customerParticipationRate, 100);
     const tppParticipationRate = NumbersHelper.subtract(1, customerParticipationRate);
 
-    return NumbersHelper.multiply(matchingVersion.unitTTCRate, tppParticipationRate);
+    return NumbersHelper.oldMultiply(matchingVersion.unitTTCRate, tppParticipationRate);
   }
 
   return subscription.unitInclTaxes;
@@ -338,7 +338,7 @@ exports.computeSurcharge = (subscription) => {
         ? moment(surcharge.endHour).diff(surcharge.startHour, 'm') / 60
         : moment(event.endDate).diff(event.startDate, 'm') / 60;
 
-      const surchargePrice = NumbersHelper.multiply(
+      const surchargePrice = NumbersHelper.oldMultiply(
         duration,
         subscription.unitInclTaxes,
         NumbersHelper.divide(surcharge.percentage, 100)
@@ -364,7 +364,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
-    const total = NumbersHelper.multiply(volume, unitInclTaxes);
+    const total = NumbersHelper.oldMultiply(volume, unitInclTaxes);
 
     formattedDetails.push({
       unitInclTaxes,
