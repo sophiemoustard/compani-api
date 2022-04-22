@@ -407,14 +407,14 @@ exports.formatBillDetailsForPdf = (bill) => {
   if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
 
   const totalCustomer = NumbersHelper.oldAdd(totalSubscription, totalBillingItem, totalSurcharge);
-  const totalTPP = NumbersHelper.oldAdd(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
+  const totalTPP = NumbersHelper.oldAdd(NumbersHelper.oldSubtract(bill.netInclTaxes, totalCustomer), totalDiscount);
   if (totalTPP < -ROUNDING_ERROR) {
     formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
   }
 
   return {
     totalExclTaxes: UtilsHelper.formatPrice(totalExclTaxes),
-    totalVAT: UtilsHelper.formatPrice(NumbersHelper.subtract(bill.netInclTaxes, totalExclTaxes)),
+    totalVAT: UtilsHelper.formatPrice(NumbersHelper.oldSubtract(bill.netInclTaxes, totalExclTaxes)),
     formattedDetails,
   };
 };

@@ -25,9 +25,9 @@ describe('oldAdd', () => {
   });
 });
 
-describe('subtract', () => {
+describe('oldSubtract', () => {
   it('should subtract numbers', async () => {
-    const result = NumbersHelper.subtract(0.7, 0.2);
+    const result = NumbersHelper.oldSubtract(0.7, 0.2);
 
     expect(result).toEqual(0.5);
   });
