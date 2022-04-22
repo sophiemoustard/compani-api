@@ -74,9 +74,9 @@ exports.getSurchargedPrice = (event, eventSurcharges, price) => {
     if (surcharge.startHour) {
       const surchargedDuration = moment(surcharge.endHour).diff(surcharge.startHour, 'm');
       const surchargedRatio = NumbersHelper.oldDivide(surchargedDuration, eventDuration);
-      coeff = NumbersHelper.add(coeff, NumbersHelper.oldMultiply(surchargedRatio, percentage));
+      coeff = NumbersHelper.oldAdd(coeff, NumbersHelper.oldMultiply(surchargedRatio, percentage));
     } else {
-      coeff = NumbersHelper.add(coeff, percentage);
+      coeff = NumbersHelper.oldAdd(coeff, percentage);
     }
   }
 
@@ -112,7 +112,7 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
 
   let chargedTime = 0;
   if (history && history.careHours < funding.careHours) {
-    const totalCareHours = NumbersHelper.add(history.careHours, NumbersHelper.oldDivide(time, 60));
+    const totalCareHours = NumbersHelper.oldAdd(history.careHours, NumbersHelper.oldDivide(time, 60));
     chargedTime = totalCareHours > funding.careHours
       ? NumbersHelper.oldMultiply(NumbersHelper.subtract(funding.careHours, history.careHours), 60)
       : time;
@@ -123,7 +123,7 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
     );
     history.careHours = totalCareHours > funding.careHours
       ? funding.careHours
-      : NumbersHelper.add(history.careHours, NumbersHelper.oldDivide(chargedTime, 60));
+      : NumbersHelper.oldAdd(history.careHours, NumbersHelper.oldDivide(chargedTime, 60));
   }
 
   return {
@@ -145,9 +145,9 @@ exports.getFixedFundingSplit = (event, funding, price) => {
   let thirdPartyPayerPrice = 0;
   if (funding.history && funding.history[0].amountTTC < funding.amountTTC) {
     const history = funding.history[0];
-    if (NumbersHelper.add(history.amountTTC, price) < funding.amountTTC) {
+    if (NumbersHelper.oldAdd(history.amountTTC, price) < funding.amountTTC) {
       thirdPartyPayerPrice = price;
-      history.amountTTC = NumbersHelper.add(history.amountTTC, thirdPartyPayerPrice);
+      history.amountTTC = NumbersHelper.oldAdd(history.amountTTC, thirdPartyPayerPrice);
     } else {
       thirdPartyPayerPrice = NumbersHelper.subtract(funding.amountTTC, history.amountTTC);
       history.amountTTC = funding.amountTTC;
@@ -213,9 +213,9 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
 
   return {
     eventsList: [...customerPrices.eventsList, { ...prices }],
-    hours: NumbersHelper.add(customerPrices.hours, NumbersHelper.oldDivide(eventDuration, 60)),
-    exclTaxes: NumbersHelper.add(customerPrices.exclTaxes, exclTaxesCustomer),
-    inclTaxes: NumbersHelper.add(customerPrices.inclTaxes, eventPrice.customerPrice),
+    hours: NumbersHelper.oldAdd(customerPrices.hours, NumbersHelper.oldDivide(eventDuration, 60)),
+    exclTaxes: NumbersHelper.oldAdd(customerPrices.exclTaxes, exclTaxesCustomer),
+    inclTaxes: NumbersHelper.oldAdd(customerPrices.inclTaxes, eventPrice.customerPrice),
   };
 };
 
@@ -241,9 +241,9 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
   return {
     ...tppPrices,
     [tpp._id]: {
-      exclTaxes: NumbersHelper.add(currentTppPrices.exclTaxes, exclTaxesTpp),
-      inclTaxes: NumbersHelper.add(currentTppPrices.inclTaxes, eventPrice.thirdPartyPayerPrice),
-      hours: NumbersHelper.add(currentTppPrices.hours, NumbersHelper.oldDivide(eventPrice.chargedTime, 60)),
+      exclTaxes: NumbersHelper.oldAdd(currentTppPrices.exclTaxes, exclTaxesTpp),
+      inclTaxes: NumbersHelper.oldAdd(currentTppPrices.inclTaxes, eventPrice.thirdPartyPayerPrice),
+      hours: NumbersHelper.oldAdd(currentTppPrices.hours, NumbersHelper.oldDivide(eventPrice.chargedTime, 60)),
       eventsList: [...currentTppPrices.eventsList, { ...prices }],
     },
   };

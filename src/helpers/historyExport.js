@@ -331,15 +331,15 @@ const formatBillsForExport = (bills) => {
     if (bill.subscriptions) {
       for (const sub of bill.subscriptions) {
         const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
-        totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
-        hours = NumbersHelper.add(hours, sub.hours);
+        totalExclTaxes = NumbersHelper.oldAdd(totalExclTaxes, subExclTaxesWithDiscount);
+        hours = NumbersHelper.oldAdd(hours, sub.hours);
       }
     }
 
     if (bill.billingItemList) {
       for (const bi of bill.billingItemList) {
         const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
-        totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
+        totalExclTaxes = NumbersHelper.oldAdd(totalExclTaxes, biExclTaxesWithDiscount);
       }
     }
 

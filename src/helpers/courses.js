@@ -66,7 +66,7 @@ exports.createCourse = async (payload) => {
 };
 
 exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
-  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.add(acc, value.theoreticalHours || 0), 0)
+  ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.oldAdd(acc, value.theoreticalHours || 0), 0)
   : 0
 );
 
