@@ -128,7 +128,7 @@ exports.formatBillingDataForFile = (billList, creditNoteList) => {
   let total = 0;
   const formattedBills = [];
   for (const bill of billsAndCreditNotes) {
-    total = NumbersHelper.add(total, bill.netInclTaxes.toFixed(2));
+    total = NumbersHelper.oldAdd(total, bill.netInclTaxes.toFixed(2));
     formattedBills.push({
       ...bill,
       netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
