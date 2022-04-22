@@ -17,9 +17,9 @@ describe('oldDivide', () => {
   });
 });
 
-describe('add', () => {
+describe('oldAdd', () => {
   it('should add numbers', async () => {
-    const result = NumbersHelper.add(0.6, 0.3, 1.2);
+    const result = NumbersHelper.oldAdd(0.6, 0.3, 1.2);
 
     expect(result).toEqual(2.1);
   });

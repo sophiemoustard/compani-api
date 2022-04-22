@@ -4,6 +4,6 @@ exports.oldMultiply = (...nums) => nums.reduce((acc, n) => BigNumber(acc).multip
 
 exports.oldDivide = (a, b) => BigNumber(a).dividedBy(b).toNumber();
 
-exports.add = (...nums) => nums.reduce((acc, n) => BigNumber(acc).plus(n).toNumber(), 0);
+exports.oldAdd = (...nums) => nums.reduce((acc, n) => BigNumber(acc).plus(n).toNumber(), 0);
 
 exports.subtract = (a, b) => BigNumber(a).minus(b).toNumber();
