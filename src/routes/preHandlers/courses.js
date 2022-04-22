@@ -77,9 +77,9 @@ exports.authorizeCourseEdit = async (req) => {
     if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
 
     const archivedAt = get(req, 'payload.archivedAt');
+    const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
+    const hasVendorRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
     if (archivedAt) {
-      const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
-      const hasVendorRole = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
       if (!hasVendorRole) return Boom.forbidden();
 
       if (!course.trainees.length || !course.slots.length) return Boom.forbidden();
@@ -88,7 +88,7 @@ exports.authorizeCourseEdit = async (req) => {
       if (course.slots.some(slot => moment(slot.endDate).isAfter(archivedAt))) return Boom.forbidden();
     }
 
-    if (get(req, 'payload.estimatedStartDate') && course.slots.length) return Boom.forbidden();
+    if (get(req, 'payload.estimatedStartDate') && (course.slots.length || !hasVendorRole)) return Boom.forbidden();
 
     return null;
   } catch (e) {

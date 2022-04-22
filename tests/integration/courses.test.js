@@ -1099,6 +1099,20 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 403 as user is client_admin and try to update estimated start date', async () => {
+      const payload = { estimatedStartDate: '2022-01-01T08:00:00' };
+      authToken = await getToken('client_admin');
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 as user is client_admin but not in the company of the course', async () => {
       const payload = {
         misc: 'new name',
