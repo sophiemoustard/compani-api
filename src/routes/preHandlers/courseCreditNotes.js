@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const CourseBill = require('../../models/CourseBill');
 const Company = require('../../models/Company');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
+const CourseCreditNote = require('../../models/CourseCreditNote');
 
 exports.authorizeCourseCreditNoteCreation = async (req) => {
   const { company: companyId, courseBill: courseBillId, date } = req.payload;
@@ -19,6 +20,13 @@ exports.authorizeCourseCreditNoteCreation = async (req) => {
   if (!courseBill.billedAt || courseBill.courseCreditNote || CompaniDate(date).isBefore(courseBill.billedAt)) {
     throw Boom.forbidden();
   }
+
+  return null;
+};
+
+exports.authorizeCreditNotePdfGet = async (req) => {
+  const courseCreditNote = await CourseCreditNote.countDocuments({ _id: req.params._id });
+  if (!courseCreditNote) throw Boom.notFound();
 
   return null;
 };

@@ -2,7 +2,7 @@ const expect = require('expect');
 const omit = require('lodash/omit');
 const { ObjectId } = require('mongodb');
 const app = require('../../server');
-const { courseBillsList, populateDB } = require('./seed/courseCreditNotesSeed');
+const { courseBillsList, courseCreditNote, populateDB } = require('./seed/courseCreditNotesSeed');
 const { getToken } = require('./helpers/authentication');
 const { authCompany } = require('../seed/authCompaniesSeed');
 const CourseCreditNote = require('../../src/models/CourseCreditNote');
@@ -140,6 +140,59 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
           method: 'POST',
           url: '/coursecreditnotes',
           payload,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('COURSE BILL ROUTES - GET /coursecreditnotes/{_id}/pdfs', () => {
+  let authToken;
+  beforeEach(populateDB);
+
+  describe('TRAINING_ORGANISATION_MANAGER', () => {
+    beforeEach(async () => {
+      authToken = await getToken('training_organisation_manager');
+    });
+
+    it('should download course creditNote for intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursecreditnotes/${courseCreditNote[0]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if credit note doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursecreditnotes/${new ObjectId()}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'client_admin', expectedCode: 403 },
+      { name: 'trainer', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/coursecreditnotes/${courseCreditNote[0]._id}/pdfs`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
