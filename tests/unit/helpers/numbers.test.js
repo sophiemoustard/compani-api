@@ -3,11 +3,25 @@ const expect = require('expect');
 const NumbersHelper = require('../../../src/helpers/numbers');
 
 describe('toBN', () => {
-  it('should multiply numbers', async () => {
+  it('should return BN object', async () => {
     const result = NumbersHelper.toBN(0.1);
 
     expect(BigNumber.isBigNumber(result)).toBeTruthy();
     expect(result.toString()).toEqual('0.1');
+  });
+});
+
+describe('toFixed', () => {
+  it('should round BN', () => {
+    const result = NumbersHelper.toFixed(BigNumber(1.234567));
+
+    expect(result).toEqual(1.23);
+  });
+
+  it('should round BN up', () => {
+    const result = NumbersHelper.toFixed(BigNumber(1.23987));
+
+    expect(result).toEqual(1.24);
   });
 });
 
