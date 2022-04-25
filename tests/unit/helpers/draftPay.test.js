@@ -2225,15 +2225,32 @@ describe('computeDraftPay', () => {
     sinon.assert.notCalled(computeAuxiliaryDraftPay);
     SinonMongoose.calledOnceWithExactly(
       companyFindOne,
-      [{ query: 'findOne', args: [{ _id: companyId }] }, { query: 'lean' }]
+      [
+        {
+          query: 'findOne',
+          args: [
+            { _id: companyId },
+            { 'rhConfig.phoneFeeAmount': 1, 'rhConfig.transportSubs': 1, 'rhConfig.amountPerKm': 1 },
+          ],
+        },
+        { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       surchargeFind,
-      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+      [
+        { query: 'find', args: [{ company: companyId }, { createdAt: 0, updatedAt: 0, company: 0, __v: 0 }] },
+        { query: 'lean' },
+      ]
     );
     SinonMongoose.calledOnceWithExactly(
       distanceMatrixFind,
-      [{ query: 'find', args: [{ company: companyId }] }, { query: 'lean' }]
+      [
+        {
+          query: 'find',
+          args: [{ company: companyId }, { origins: 1, destinations: 1, mode: 1, distance: 1, duration: 1 }],
+        },
+        { query: 'lean' },
+      ]
     );
   });
 
