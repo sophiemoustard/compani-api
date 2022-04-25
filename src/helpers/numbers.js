@@ -2,6 +2,8 @@ const { BigNumber } = require('bignumber.js');
 
 exports.toBN = a => BigNumber(a);
 
+exports.toString = a => BigNumber(a).toString();
+
 exports.toFixed = (a, decimalPlaces = 2) => parseFloat(BigNumber(a).toFixed(decimalPlaces));
 
 exports.oldMultiply = (...nums) => nums.reduce((acc, n) => BigNumber(acc).multipliedBy(n).toNumber(), 1);
@@ -19,3 +21,9 @@ exports.add = (...nums) => nums.reduce((acc, n) => BigNumber(acc).plus(n).toStri
 exports.oldSubtract = (a, b) => BigNumber(a).minus(b).toNumber();
 
 exports.subtract = (a, b) => BigNumber(a).minus(b).toString();
+
+exports.isGreaterThan = (a, b) => BigNumber(a).isGreaterThan(b);
+
+exports.isLessThan = (a, b) => BigNumber(a).isLessThan(b);
+
+exports.isEqualTo = (a, b) => BigNumber(a).isEqualTo(b);
