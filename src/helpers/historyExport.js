@@ -655,10 +655,9 @@ const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   return '';
 };
 
-const getStartOfCourse = (slotsGroupedByDate) => {
-  if (!slotsGroupedByDate.length) return '';
-  return CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss') || '';
-};
+const getStartOfCourse = slotsGroupedByDate => (slotsGroupedByDate.length
+  ? CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss')
+  : '');
 
 const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDate).isAfter(startDate) &&
   CompaniDate(slot.endDate).isBefore(endDate);
@@ -670,7 +669,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     .find({
       $or: [
         { _id: { $in: courseIds } },
-        { $and: [{ estimatedStartDate: { $lte: endDate, $gte: startDate } }, { archivedAt: { $exists: false } }] },
+        { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
       ],
     })
     .populate({ path: 'company', select: 'name' })
@@ -696,7 +695,11 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       path: 'bills',
       select: 'courseFundingOrganisation company billedAt',
       options: { isVendorUser: has(credentials, 'role.vendor') },
-      populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+      populate: [
+        { path: 'courseFundingOrganisation', select: 'name' },
+        { path: 'company', select: 'name' },
+        { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
+      ],
     })
     .lean();
 
@@ -754,9 +757,12 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
     const payer = course.bills
+      .filter(bill => !bill.courseCreditNote)
       .map(bill => get(bill, 'courseFundingOrganisation.name') || get(bill, 'company.name'))
       .toString();
-    const isBilled = course.bills.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
+    const isBilled = course.bills
+      .filter(bill => !bill.courseCreditNote)
+      .map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
 
     rows.push({
       Identifiant: course._id,

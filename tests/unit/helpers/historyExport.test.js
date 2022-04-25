@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
+const get = require('lodash/get');
 const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -1729,6 +1730,16 @@ describe('exportCourseHistory', () => {
           courseFundingOrganisation: { name: 'APA Paris' },
           billedAt: '2022-03-08T00:00:00.000Z',
           number: 'FACT-00001',
+          courseCreditNote: { courseBill: new ObjectId() },
+        },
+        {
+          course: courseIdList[0],
+          mainFee: { price: 120, count: 1 },
+          company,
+          courseFundingOrganisation: { name: 'APA Paris' },
+          billedAt: '2022-03-08T00:00:00.000Z',
+          number: 'FACT-00002',
+          courseCreditNote: null,
         },
       ],
     },
@@ -1840,10 +1851,8 @@ describe('exportCourseHistory', () => {
             $or: [
               { _id: { $in: courseSlotList.map(slot => slot.course) } },
               {
-                $and: [
-                  { estimatedStartDate: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
-                  { archivedAt: { $exists: false } },
-                ],
+                estimatedStartDate: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' },
+                archivedAt: { $exists: false },
               },
             ],
           }],
@@ -1877,7 +1886,11 @@ describe('exportCourseHistory', () => {
             path: 'bills',
             select: 'courseFundingOrganisation company billedAt',
             options: { isVendorUser: has(credentials, 'role.vendor') },
-            populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+            populate: [
+              { path: 'courseFundingOrganisation', select: 'name' },
+              { path: 'company', select: 'name' },
+              { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
+            ],
           }],
         },
         { query: 'lean' },
@@ -2074,10 +2087,8 @@ describe('exportCourseHistory', () => {
             $or: [
               { _id: { $in: courseSlotList.map(slot => slot.course) } },
               {
-                $and: [
-                  { estimatedStartDate: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
-                  { archivedAt: { $exists: false } },
-                ],
+                estimatedStartDate: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' },
+                archivedAt: { $exists: false },
               },
             ],
           }],
@@ -2111,7 +2122,11 @@ describe('exportCourseHistory', () => {
             path: 'bills',
             select: 'courseFundingOrganisation company billedAt',
             options: { isVendorUser: has(credentials, 'role.vendor') },
-            populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+            populate: [
+              { path: 'courseFundingOrganisation', select: 'name' },
+              { path: 'company', select: 'name' },
+              { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
+            ],
           }],
         },
         { query: 'lean' },
