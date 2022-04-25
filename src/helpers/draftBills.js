@@ -376,13 +376,19 @@ exports.formatCustomerBills = (customerBills, tppBills, query, customer) => {
   const groupedByCustomerBills = {
     customer,
     endDate: query.endDate,
-    customerBills: { bills: customerBills, total: UtilsHelper.sumReduce(customerBills, 'inclTaxes') },
+    customerBills: {
+      bills: customerBills,
+      total: NumbersHelper.toFixed(UtilsHelper.sumReduce(customerBills, 'inclTaxes')),
+    },
   };
 
   if (Object.values(tppBills).length) {
     groupedByCustomerBills.thirdPartyPayerBills = [];
     for (const bills of Object.values(tppBills)) {
-      groupedByCustomerBills.thirdPartyPayerBills.push({ bills, total: UtilsHelper.sumReduce(bills, 'inclTaxes') });
+      groupedByCustomerBills.thirdPartyPayerBills.push({
+        bills,
+        total: NumbersHelper.toFixed(UtilsHelper.sumReduce(bills, 'inclTaxes'))
+      });
     }
   }
 

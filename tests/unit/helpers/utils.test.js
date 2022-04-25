@@ -385,7 +385,9 @@ describe('getExclTaxes', () => {
 
 describe('sumReduce', () => {
   it('should sum element in array', () => {
-    expect(UtilsHelper.sumReduce([{ incl: 20 }, { incl: 12, excl: 23 }], 'incl')).toEqual(32);
+    const result = UtilsHelper.sumReduce([{ incl: 20 }, { incl: 12, excl: 23 }], 'incl');
+
+    expect(result).toEqual('32');
   });
 });
 
