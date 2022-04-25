@@ -203,7 +203,7 @@ exports.getExclTaxes = (inclTaxes, vat) => {
   return NumbersHelper.divide(inclTaxes, decimalVat);
 };
 
-exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.oldAdd(sum, (b[key] || 0)), 0);
+exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.add(sum, (b[key] || 0)), 0);
 
 exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
   if (!discount) return exclTaxes;
