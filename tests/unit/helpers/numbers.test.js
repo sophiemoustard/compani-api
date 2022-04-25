@@ -88,3 +88,30 @@ describe('subtract', () => {
     expect(result).toEqual('0.5');
   });
 });
+
+describe('isGreaterThan', () => {
+  it('should return true', async () => {
+    const result = NumbersHelper.isGreaterThan(0.7, 0.2);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false', async () => {
+    const result = NumbersHelper.isGreaterThan(0.7, 1.2);
+
+    expect(result).toBeFalsy();
+  });
+});
+
+describe('isEqualTo', () => {
+  it('should return true', () => {
+    const result = NumbersHelper.isEqualTo(1.23, 1.23);
+
+    expect(result).toBeTruthy();
+  });
+  it('should return false', () => {
+    const result = NumbersHelper.isEqualTo(1.23, 2.45);
+
+    expect(result).toBeFalsy();
+  });
+});
