@@ -2376,20 +2376,20 @@ describe('formatBillDetailsForPdf', () => {
   let computeSurcharge;
   let formatPrice;
   let formatHour;
-  let getExclTaxes;
+  let computeExclTaxesWithDiscount;
   beforeEach(() => {
     getUnitInclTaxes = sinon.stub(BillHelper, 'getUnitInclTaxes');
     computeSurcharge = sinon.stub(BillHelper, 'computeSurcharge');
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
     formatHour = sinon.stub(UtilsHelper, 'formatHour');
-    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
+    computeExclTaxesWithDiscount = sinon.stub(UtilsHelper, 'computeExclTaxesWithDiscount');
   });
   afterEach(() => {
     getUnitInclTaxes.restore();
     computeSurcharge.restore();
     formatPrice.restore();
     formatHour.restore();
-    getExclTaxes.restore();
+    computeExclTaxesWithDiscount.restore();
   });
 
   it('should return formatted details if service.nature is hourly', () => {
@@ -2411,7 +2411,7 @@ describe('formatBillDetailsForPdf', () => {
     computeSurcharge.returns(0);
     formatPrice.onCall(0).returns('430,54 €');
     formatPrice.onCall(1).returns('23,68 €');
-    getExclTaxes.returns(0);
+    computeExclTaxesWithDiscount.returns(430.5444);
 
     const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
 
@@ -2474,9 +2474,9 @@ describe('formatBillDetailsForPdf', () => {
     computeSurcharge.returns(12.24);
     formatPrice.onCall(0).returns('20,30 €');
     formatPrice.onCall(1).returns('1,70 €');
-    getExclTaxes.onCall(0).returns(4.739336);
-    getExclTaxes.onCall(1).returns(9.090909);
-    getExclTaxes.onCall(2).returns(0);
+    computeExclTaxesWithDiscount.onCall(0).returns(15.560664);
+    computeExclTaxesWithDiscount.onCall(1).returns(18.179091);
+    computeExclTaxesWithDiscount.onCall(2).returns(8.33);
 
     const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
 
