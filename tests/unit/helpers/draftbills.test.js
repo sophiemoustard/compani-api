@@ -596,14 +596,14 @@ describe('formatDraftBillsForCustomer', () => {
     const service = { vat: 20 };
     const eventPrice = { customerPrice: 21 };
 
-    getExclTaxes.returns(17.5);
+    getExclTaxes.returns('17.5');
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
     expect(result).toMatchObject({
       eventsList: [
         { event: '123456' },
-        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: 17.5 },
+        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: '17.5' },
       ],
       hours: 5,
       exclTaxes: 37.5,
@@ -618,14 +618,14 @@ describe('formatDraftBillsForCustomer', () => {
     const service = { vat: 20 };
     const eventPrice = { customerPrice: 21, surcharges: [{ name: 'test' }] };
 
-    getExclTaxes.returns(17.5);
+    getExclTaxes.returns('17.5');
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
     expect(result).toMatchObject({
       eventsList: [
         { event: '123456' },
-        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: 17.5, surcharges: [{ name: 'test' }] },
+        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: '17.5', surcharges: [{ name: 'test' }] },
       ],
       hours: 5,
       exclTaxes: 37.5,
@@ -639,8 +639,8 @@ describe('formatDraftBillsForCustomer', () => {
     const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const service = { vat: 20 };
     const eventPrice = { customerPrice: 21, thirdPartyPayerPrice: 15, thirdPartyPayer: 'tpp' };
-    getExclTaxes.onCall(0).returns(17.5);
-    getExclTaxes.onCall(1).returns(12.5);
+    getExclTaxes.onCall(0).returns('17.5');
+    getExclTaxes.onCall(1).returns('12.5');
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
@@ -650,8 +650,8 @@ describe('formatDraftBillsForCustomer', () => {
         {
           event: 'abc',
           inclTaxesCustomer: 21,
-          exclTaxesCustomer: 17.5,
-          exclTaxesTpp: 12.5,
+          exclTaxesCustomer: '17.5',
+          exclTaxesTpp: '12.5',
           inclTaxesTpp: 15,
           thirdPartyPayer: 'tpp',
         },
@@ -918,8 +918,8 @@ describe('formatDraftBillsForTPP', () => {
       chargedTime: 120,
     };
     const service = { vat: 20 };
-    getExclTaxes.onCall(0).returns(10);
-    getExclTaxes.onCall(1).returns(17.5);
+    getExclTaxes.onCall(0).returns('10');
+    getExclTaxes.onCall(1).returns('17.5');
 
     const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
 
@@ -931,10 +931,10 @@ describe('formatDraftBillsForTPP', () => {
       {
         event: 'abc',
         inclTaxesTpp: 12.5,
-        exclTaxesTpp: 10,
+        exclTaxesTpp: '10',
         thirdPartyPayer: tppId,
         inclTaxesCustomer: 21,
-        exclTaxesCustomer: 17.5,
+        exclTaxesCustomer: '17.5',
       },
     ]);
   });
@@ -975,7 +975,7 @@ describe('getDraftBillsPerSubscription', () => {
 
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
-    getExclTaxes.returns(70);
+    getExclTaxes.returns('70');
     computeBillingInfoForEvents.returns({
       prices: {
         customerPrices: { exclTaxes: 35 },
@@ -989,7 +989,7 @@ describe('getDraftBillsPerSubscription', () => {
       DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, '2019/02/01', '2019/03/01');
 
     expect(result.customer.exclTaxes).toEqual(35);
-    expect(result.customer.unitExclTaxes).toEqual(70);
+    expect(result.customer.unitExclTaxes).toEqual('70');
     expect(result.customer.unitInclTaxes).toEqual(21);
     expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
     expect(result.eventsByBillingItem).toEqual([{ d00000000000000000000001: [events[0]._id] }]);
@@ -1021,7 +1021,7 @@ describe('getDraftBillsPerSubscription', () => {
 
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
-    getExclTaxes.returns(70);
+    getExclTaxes.returns('70');
     computeBillingInfoForEvents.returns({
       prices: { customerPrices: { exclTaxes: 35 }, startDate: moment('2019/02/01', 'YY/MM/DD') },
       eventsByBillingItem: [],
@@ -1031,7 +1031,7 @@ describe('getDraftBillsPerSubscription', () => {
       DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, null, '2019/02/01', '2019/03/01');
 
     expect(result.customer.exclTaxes).toEqual(35);
-    expect(result.customer.unitExclTaxes).toEqual(70);
+    expect(result.customer.unitExclTaxes).toEqual('70');
     expect(result.customer.unitInclTaxes).toEqual(21);
     expect(result.eventsByBillingItem).toEqual([]);
     sinon.assert.calledOnceWithExactly(
@@ -1064,7 +1064,7 @@ describe('getDraftBillsPerSubscription', () => {
 
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
-    getExclTaxes.returns(70);
+    getExclTaxes.returns('70');
     computeBillingInfoForEvents.returns({
       prices: {
         customerPrices: { exclTaxes: 0 },
@@ -1153,7 +1153,7 @@ describe('formatBillingItems', () => {
       expect.objectContaining({
         billingItem: { _id: new ObjectId('d00000000000000000000001'), name: 'FI' },
         discount: 0,
-        unitExclTaxes: 0.9090909090909091,
+        unitExclTaxes: '0.90909090909090909091',
         unitInclTaxes: 1,
         vat: 10,
         eventsList: [{ event: eventId1 }, { event: eventId2 }, { event: eventId3 }],
@@ -1165,7 +1165,7 @@ describe('formatBillingItems', () => {
       expect.objectContaining({
         billingItem: { _id: new ObjectId('d00000000000000000000002'), name: 'EPI' },
         discount: 0,
-        unitExclTaxes: 4.545454545454546,
+        unitExclTaxes: '4.54545454545454545455',
         unitInclTaxes: 5,
         vat: 10,
         eventsList: [{ event: eventId1 }, { event: eventId2 }],
