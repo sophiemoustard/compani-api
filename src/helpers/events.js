@@ -486,18 +486,20 @@ exports.workingStats = async (query, credentials) => {
   const distanceMatrix = await DistanceMatrix.find({ company: companyId }).lean();
   const auxiliariesIds = auxiliaries.map(aux => aux._id);
   const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliariesIds, companyId);
+  const subscriptions = await DraftPayHelper.getSubscriptionsForPay(companyId);
 
   const workingStats = {};
   for (const auxiliary of auxiliaries) {
     const eventsToPay = eventsByAuxiliary
-      .find(g => g.auxiliary._id.toHexString() === auxiliary._id.toHexString()) || { absences: [], events: [] };
+      .find(g => UtilsHelper.areObjectIdsEquals(g.auxiliary._id, auxiliary._id)) || { absences: [], events: [] };
     const { contracts } = auxiliary;
     if (!contracts || !contracts.length) continue;
     const contract = exports.getContract(contracts, query.startDate, query.endDate);
     if (!contract) continue;
 
     const contractInfo = exports.getContractWeekInfo(contract, query);
-    const hours = await DraftPayHelper.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, [], query);
+    const hours =
+      await DraftPayHelper.getPayFromEvents(eventsToPay.events, auxiliary, subscriptions, distanceMatrix, [], query);
     const absencesHours = DraftPayHelper.getPayFromAbsences(eventsToPay.absences, contract, query);
     const hoursToWork = Math.max(contractInfo.contractHours - contractInfo.holidaysHours - absencesHours, 0);
     workingStats[auxiliary._id] = { workedHours: hours.workedHours, hoursToWork };
