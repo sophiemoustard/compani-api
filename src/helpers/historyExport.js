@@ -756,13 +756,12 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .filter(trainee => trainee.progress.eLearning >= 0)
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
-    const payer = course.bills
-      .filter(bill => !bill.courseCreditNote)
+
+    const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
+    const payer = courseBillsWithoutCreditNote
       .map(bill => get(bill, 'courseFundingOrganisation.name') || get(bill, 'company.name'))
       .toString();
-    const isBilled = course.bills
-      .filter(bill => !bill.courseCreditNote)
-      .map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
+    const isBilled = courseBillsWithoutCreditNote.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
 
     rows.push({
       Identifiant: course._id,
