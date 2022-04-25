@@ -39,7 +39,7 @@ describe('getPdfContent', () => {
       },
       company: { name: 'Test structure' },
       courseBill: { number: 'FACT-000045', date: '18/08/1998' },
-      funder: {
+      payer: {
         name: 'payeur',
         address: {
           fullAddress: '24 Avenue Daumesnil 75012 Paris',
@@ -218,7 +218,7 @@ describe('getPdfContent', () => {
       },
       company: { name: 'Test structure' },
       courseBill: { number: 'FACT-000045', date: '18/08/1998' },
-      funder: {
+      payer: {
         name: 'payeur',
         address: {
           fullAddress: '24 Avenue Daumesnil 75012 Paris',

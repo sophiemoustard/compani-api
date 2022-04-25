@@ -131,7 +131,7 @@ describe('generateCreditNotePdf', () => {
         courseBill: { number: 'FACT-00001', date: '08/03/2022' },
         vendorCompany,
         company: creditNote.company,
-        funder: creditNote.company,
+        payer: creditNote.company,
         course: creditNote.courseBill.course,
         mainFee: creditNote.courseBill.mainFee,
         billingPurchaseList: creditNote.courseBill.billingPurchaseList,

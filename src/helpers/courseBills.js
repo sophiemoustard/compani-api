@@ -148,7 +148,7 @@ exports.generateBillPdf = async (billId) => {
     date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
     vendorCompany,
     company: bill.company,
-    funder: bill.courseFundingOrganisation || bill.company,
+    payer: bill.courseFundingOrganisation || bill.company,
     course: bill.course,
     mainFee: bill.mainFee,
     billingPurchaseList: bill.billingPurchaseList,

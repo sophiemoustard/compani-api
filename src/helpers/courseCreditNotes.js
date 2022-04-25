@@ -47,7 +47,7 @@ exports.generateCreditNotePdf = async (creditNoteId) => {
       number: creditNote.courseBill.number,
       date: CompaniDate(creditNote.courseBill.billedAt).format('dd/LL/yyyy'),
     },
-    funder: creditNote.courseBill.courseFundingOrganisation || creditNote.company,
+    payer: creditNote.courseBill.courseFundingOrganisation || creditNote.company,
     course: creditNote.courseBill.course,
     mainFee: creditNote.courseBill.mainFee,
     billingPurchaseList: creditNote.courseBill.billingPurchaseList,

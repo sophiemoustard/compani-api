@@ -16,8 +16,27 @@ const getImages = async () => {
 const formatSiret = siret => siret &&
   `${siret.slice(0, 3)} ${siret.slice(3, 6)} ${siret.slice(6, 9)} ${siret.slice(9, 14)}`;
 
-exports.getHeader = async (data, isBill) => {
+exports.getHeader = async (data, isBill = false) => {
   const [compani] = await getImages();
+
+  const billRecipientSection = {
+    stack: [{ text: 'Formation pour le compte de' }, { text: get(data, 'company.name'), bold: true }],
+    alignment: 'right',
+  };
+
+  const affiliateBillSection = {
+    stack: [
+      {
+        text: [
+          'Avoir sur la facture ',
+          { text: get(data, 'courseBill.number'), bold: true },
+          { text: ` du ${get(data, 'courseBill.date')}` },
+        ],
+      },
+      { text: data.misc ? `Motif de l'avoir : ${data.misc}` : '' },
+    ],
+    alignment: 'right',
+  };
 
   return [
     {
@@ -54,29 +73,12 @@ exports.getHeader = async (data, isBill) => {
         {
           stack: [
             { text: isBill ? 'Facturer à' : '' },
-            { text: get(data, 'funder.name') || '', bold: true },
-            { text: get(data, 'funder.address.street') || '' },
-            { text: `${get(data, 'funder.address.zipCode') || ''} ${get(data, 'funder.address.city') || ''}` },
+            { text: get(data, 'payer.name') || '', bold: true },
+            { text: get(data, 'payer.address.street') || '' },
+            { text: `${get(data, 'payer.address.zipCode') || ''} ${get(data, 'payer.address.city') || ''}` },
           ],
         },
-        isBill
-          ? {
-            stack: [{ text: 'Formation pour le compte de' }, { text: get(data, 'company.name'), bold: true }],
-            alignment: 'right',
-          }
-          : {
-            stack: [
-              {
-                text: [
-                  'Avoir sur la facture ',
-                  { text: get(data, 'courseBill.number'), bold: true },
-                  { text: ` du ${get(data, 'courseBill.date')}` },
-                ],
-              },
-              { text: data.misc ? `Motif de l'avoir : ${data.misc}` : '' },
-            ],
-            alignment: 'right',
-          },
+        isBill ? billRecipientSection : affiliateBillSection,
       ],
     },
   ];

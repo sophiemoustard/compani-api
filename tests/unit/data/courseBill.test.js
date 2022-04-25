@@ -37,7 +37,7 @@ describe('getPdfContent', () => {
         siret: '27272727274124',
       },
       company: { name: 'Test structure' },
-      funder: {
+      payer: {
         name: 'payeur',
         address: {
           fullAddress: '24 Avenue Daumesnil 75012 Paris',
@@ -212,7 +212,7 @@ describe('getPdfContent', () => {
         siret: '27272727274124',
       },
       company: { name: 'Test structure' },
-      funder: {
+      payer: {
         name: 'payeur',
         address: {
           fullAddress: '24 Avenue Daumesnil 75012 Paris',
