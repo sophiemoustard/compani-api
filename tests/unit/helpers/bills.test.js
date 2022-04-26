@@ -2286,7 +2286,7 @@ describe('getUnitInclTaxes', () => {
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
-    expect(result).toBe(18);
+    expect(result).toBe('18');
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: '2022-01-24T09:00:00' }, { startDate: '2022-01-25T09:00:00' }],
