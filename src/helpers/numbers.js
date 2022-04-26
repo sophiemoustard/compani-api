@@ -1,7 +1,5 @@
 const { BigNumber } = require('bignumber.js');
 
-exports.toBN = a => BigNumber(a);
-
 exports.toString = a => BigNumber(a).toString();
 
 exports.toFixed = (a, decimalPlaces = 2) => parseFloat(BigNumber(a).toFixed(decimalPlaces));
