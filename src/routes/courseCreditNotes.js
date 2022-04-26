@@ -2,8 +2,8 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { create } = require('../controllers/courseCreditNoteController');
-const { authorizeCourseCreditNoteCreation } = require('./preHandlers/courseCreditNotes');
+const { create, generateCreditNotePdf } = require('../controllers/courseCreditNoteController');
+const { authorizeCourseCreditNoteCreation, authorizeCreditNotePdfGet } = require('./preHandlers/courseCreditNotes');
 const { requiredDateToISOString } = require('./validations/utils');
 
 exports.plugin = {
@@ -25,6 +25,19 @@ exports.plugin = {
         },
         pre: [{ method: authorizeCourseCreditNoteCreation }],
       },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/pdfs',
+      options: {
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+        },
+        auth: { scope: ['config:vendor'] },
+        pre: [{ method: authorizeCreditNotePdfGet }],
+      },
+      handler: generateCreditNotePdf,
     });
   },
 };

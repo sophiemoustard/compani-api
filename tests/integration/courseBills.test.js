@@ -196,7 +196,7 @@ describe('COURSE BILL ROUTES - GET /coursebills/{_id}/pdfs', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/coursebills/course=${courseList[2]._id}/pdfs`,
+          url: `/coursebills/${courseList[2]._id}/pdfs`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

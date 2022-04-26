@@ -2,8 +2,8 @@ const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const UtilsHelper = require('../../../src/helpers/utils');
-const CourseBill = require('../../../src/data/pdf/courseBilling/courseBill');
-const { COPPER_GREY_200, COPPER_600 } = require('../../../src/helpers/constants');
+const CourseCreditNote = require('../../../src/data/pdf/courseBilling/courseCreditNote');
+const { COPPER_GREY_200, ORANGE_600 } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -19,12 +19,13 @@ describe('getPdfContent', () => {
     formatPrice.restore();
   });
 
-  it('it should format and return course bill pdf (with billing items)', async () => {
+  it('should format and return course credit note pdf (with billing items)', async () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
-    const bill = {
-      number: 'FACT-000045',
-      date: '18/08/1998',
+    const creditNote = {
+      number: 'AV-000045',
+      date: '21/08/1998',
+      misc: 'motif',
       vendorCompany: {
         name: 'Auchan',
         address: {
@@ -37,6 +38,7 @@ describe('getPdfContent', () => {
         siret: '27272727274124',
       },
       company: { name: 'Test structure' },
+      courseBill: { number: 'FACT-000045', date: '18/08/1998' },
       payer: {
         name: 'payeur',
         address: {
@@ -62,9 +64,9 @@ describe('getPdfContent', () => {
             { image: paths[0], width: 200, height: 42, alignment: 'right' },
             {
               stack: [
-                { text: 'Facture', fontSize: 32 },
-                { text: 'FACT-000045', bold: true },
-                { text: 'Date de facture : 18/08/1998' },
+                { text: 'Avoir', fontSize: 32 },
+                { text: 'AV-000045', bold: true },
+                { text: 'Date de l\'avoir : 21/08/1998' },
               ],
               alignment: 'right',
             },
@@ -88,14 +90,17 @@ describe('getPdfContent', () => {
           columns: [
             {
               stack: [
-                { text: 'Facturer à' },
+                { text: '' },
                 { text: 'payeur', bold: true },
                 { text: '24 Avenue Daumesnil' },
                 { text: '75012 Paris' },
               ],
             },
             {
-              stack: [{ text: 'Formation pour le compte de' }, { text: 'Test structure', bold: true }],
+              stack: [
+                { text: ['Avoir sur la facture ', { text: 'FACT-000045', bold: true }, { text: ' du 18/08/1998' }] },
+                { text: 'Motif de l\'avoir : motif' },
+              ],
               alignment: 'right',
             },
           ],
@@ -161,17 +166,10 @@ describe('getPdfContent', () => {
             { text: '1300,00 €', alignment: 'right', width: 'auto' },
           ],
         },
-        {
-          text: 'Merci de lire attentivement nos Conditions Générales de Prestations et le(s) programme(s) de '
-            + 'formation en pièce-jointe.\nEn tant qu’organisme de formation, Compani est exonéré de la Taxe sur la '
-            + 'Valeur Ajoutée (TVA).',
-          fontSize: 8,
-          marginTop: 48,
-        },
       ],
       defaultStyle: { font: 'Avenir', fontSize: 12 },
       styles: {
-        header: { fillColor: COPPER_600, color: 'white' },
+        header: { fillColor: ORANGE_600, color: 'white' },
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
       },
     };
@@ -188,18 +186,19 @@ describe('getPdfContent', () => {
     formatPrice.onCall(5).returns('200,00 €');
     formatPrice.onCall(6).returns('1300,00 €');
 
-    const result = await CourseBill.getPdfContent(bill);
+    const result = await CourseCreditNote.getPdfContent(creditNote);
 
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
-  it('it should format and return course bill pdf (without billing items)', async () => {
+  it('should format and return course credit note pdf (without billing items)', async () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
-    const bill = {
-      number: 'FACT-000045',
-      date: '18/08/1998',
+    const creditNote = {
+      number: 'AV-000045',
+      date: '21/08/1998',
+      misc: 'motif',
       vendorCompany: {
         name: 'Auchan',
         address: {
@@ -212,6 +211,7 @@ describe('getPdfContent', () => {
         siret: '27272727274124',
       },
       company: { name: 'Test structure' },
+      courseBill: { number: 'FACT-000045', date: '18/08/1998' },
       payer: {
         name: 'payeur',
         address: {
@@ -233,9 +233,9 @@ describe('getPdfContent', () => {
             { image: paths[0], width: 200, height: 42, alignment: 'right' },
             {
               stack: [
-                { text: 'Facture', fontSize: 32 },
-                { text: 'FACT-000045', bold: true },
-                { text: 'Date de facture : 18/08/1998' },
+                { text: 'Avoir', fontSize: 32 },
+                { text: 'AV-000045', bold: true },
+                { text: 'Date de l\'avoir : 21/08/1998' },
               ],
               alignment: 'right',
             },
@@ -259,14 +259,17 @@ describe('getPdfContent', () => {
           columns: [
             {
               stack: [
-                { text: 'Facturer à' },
+                { text: '' },
                 { text: 'payeur', bold: true },
                 { text: '24 Avenue Daumesnil' },
                 { text: '75012 Paris' },
               ],
             },
             {
-              stack: [{ text: 'Formation pour le compte de' }, { text: 'Test structure', bold: true }],
+              stack: [
+                { text: ['Avoir sur la facture ', { text: 'FACT-000045', bold: true }, { text: ' du 18/08/1998' }] },
+                { text: 'Motif de l\'avoir : motif' },
+              ],
               alignment: 'right',
             },
           ],
@@ -308,17 +311,10 @@ describe('getPdfContent', () => {
             { text: '1000,00 €', alignment: 'right', width: 'auto' },
           ],
         },
-        {
-          text: 'Merci de lire attentivement nos Conditions Générales de Prestations et le(s) programme(s) de '
-            + 'formation en pièce-jointe.\nEn tant qu’organisme de formation, Compani est exonéré de la Taxe sur la '
-            + 'Valeur Ajoutée (TVA).',
-          fontSize: 8,
-          marginTop: 48,
-        },
       ],
       defaultStyle: { font: 'Avenir', fontSize: 12 },
       styles: {
-        header: { fillColor: COPPER_600, color: 'white' },
+        header: { fillColor: ORANGE_600, color: 'white' },
         description: { alignment: 'left', marginLeft: 8, fontSize: 10 },
       },
     };
@@ -331,7 +327,7 @@ describe('getPdfContent', () => {
     formatPrice.onCall(1).returns('1000,00 €');
     formatPrice.onCall(2).returns('1000,00 €');
 
-    const result = await CourseBill.getPdfContent(bill);
+    const result = await CourseCreditNote.getPdfContent(creditNote);
 
     expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
