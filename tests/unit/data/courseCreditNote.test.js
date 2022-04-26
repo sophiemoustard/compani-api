@@ -19,7 +19,7 @@ describe('getPdfContent', () => {
     formatPrice.restore();
   });
 
-  it('it should format and return course credit note pdf (with billing items)', async () => {
+  it('should format and return course credit note pdf (with billing items)', async () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
     const creditNote = {
@@ -98,13 +98,7 @@ describe('getPdfContent', () => {
             },
             {
               stack: [
-                {
-                  text: [
-                    'Avoir sur la facture ',
-                    { text: 'FACT-000045', bold: true },
-                    { text: ' du 18/08/1998' },
-                  ],
-                },
+                { text: ['Avoir sur la facture ', { text: 'FACT-000045', bold: true }, { text: ' du 18/08/1998' }] },
                 { text: 'Motif de l\'avoir : motif' },
               ],
               alignment: 'right',
@@ -198,7 +192,7 @@ describe('getPdfContent', () => {
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 
-  it('it should format and return course credit note pdf (without billing items)', async () => {
+  it('should format and return course credit note pdf (without billing items)', async () => {
     const paths = ['src/data/pdf/tmp/logo.png'];
 
     const creditNote = {
@@ -273,13 +267,7 @@ describe('getPdfContent', () => {
             },
             {
               stack: [
-                {
-                  text: [
-                    'Avoir sur la facture ',
-                    { text: 'FACT-000045', bold: true },
-                    { text: ' du 18/08/1998' },
-                  ],
-                },
+                { text: ['Avoir sur la facture ', { text: 'FACT-000045', bold: true }, { text: ' du 18/08/1998' }] },
                 { text: 'Motif de l\'avoir : motif' },
               ],
               alignment: 'right',
