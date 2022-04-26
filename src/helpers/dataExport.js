@@ -1,4 +1,3 @@
-const moment = require('moment');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const isEmpty = require('lodash/isEmpty');
@@ -16,6 +15,7 @@ const {
   ACTIVATED,
   EVENT_TRANSPORT_MODE_LIST,
 } = require('./constants');
+const { CompaniDate } = require('./dates/companiDates');
 const UtilsHelper = require('./utils');
 const Customer = require('../models/Customer');
 const Role = require('../models/Role');
@@ -90,7 +90,7 @@ exports.exportCustomers = async (credentials) => {
     const lastname = get(cus, 'identity.lastname');
     const mandates = get(cus, 'payment.mandates') || [];
     const lastMandate = UtilsHelper.getLastVersion(mandates, 'createdAt') || {};
-    const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
+    const signedAt = lastMandate.signedAt ? CompaniDate(lastMandate.signedAt).format('dd/LL/yyyy') : '';
     const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
     const firstIntervention = get(cus, 'firstIntervention.startDate');
     const situation = CUSTOMER_SITUATIONS.find(sit => sit.value === get(cus, 'followUp.situation'));
@@ -100,10 +100,10 @@ exports.exportCustomers = async (credentials) => {
       CIVILITY_LIST[get(cus, 'identity.title')] || '',
       lastname ? lastname.toUpperCase() : '',
       get(cus, 'identity.firstname') || '',
-      birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
+      birthDate ? CompaniDate(birthDate).format('dd/LL/yyyy') : '',
       get(cus, 'contact.primaryAddress.fullAddress') || '',
       get(cus, 'contact.primaryAddress.city') || '',
-      firstIntervention ? moment(firstIntervention).format('DD/MM/YYYY') : '',
+      firstIntervention ? CompaniDate(firstIntervention).format('dd/LL/yyyy') : '',
       get(cus, 'referent._id') || '',
       has(cus, 'referent.identity') ? formatIdentity(get(cus, 'referent.identity')) : '',
       situation ? situation.label : '',
@@ -118,7 +118,7 @@ exports.exportCustomers = async (credentials) => {
       subscriptionsCount,
       subscriptionsCount ? getServicesNameList(cus.subscriptions) : '',
       get(cus, 'fundings.length') || 0,
-      cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '',
+      cus.createdAt ? CompaniDate(cus.createdAt).format('dd/LL/yyyy') : '',
       getStatus(cus),
     ];
 
@@ -144,7 +144,7 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
     Titre: CIVILITY_LIST[get(aux, 'identity.title')] || '',
     Nom: lastname ? lastname.toUpperCase() : '',
     Prénom: get(aux, 'identity.firstname') || '',
-    'Date de naissance': birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
+    'Date de naissance': birthDate ? CompaniDate(birthDate).format('dd/LL/yyyy') : '',
     'Pays de naissance': countries[birthCountry] || '',
     'Departement de naissance': get(aux, 'identity.birthState') || '',
     'Ville de naissance': get(aux, 'identity.birthCity') || '',
@@ -155,13 +155,13 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
     'Nombre de contrats': contractsLength,
     Établissement: get(aux, 'establishment.name') || '',
     'Date de début de contrat prestataire': get(contract, 'startDate', null)
-      ? moment(contract.startDate).format('DD/MM/YYYY')
+      ? CompaniDate(contract.startDate).format('dd/LL/yyyy')
       : '',
     'Date de fin de contrat prestataire': get(contract, 'endDate', null)
-      ? moment(contract.endDate).format('DD/MM/YYYY')
+      ? CompaniDate(contract.endDate).format('dd/LL/yyyy')
       : '',
-    'Date d\'inactivité': inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
-    'Date de création': createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
+    'Date d\'inactivité': inactivityDate ? CompaniDate(inactivityDate).format('dd/LL/yyyy') : '',
+    'Date de création': createdAt ? CompaniDate(createdAt).format('dd/LL/yyyy') : '',
     'Mode de transport par défaut': EVENT_TRANSPORT_MODE_LIST[transport] || '',
   };
 };
@@ -246,7 +246,7 @@ exports.exportHelpers = async (credentials) => {
       get(customer, 'contact.primaryAddress.street') || '',
       get(customer, 'contact.primaryAddress.zipCode') || '',
       get(customer, 'contact.primaryAddress.city') || '',
-      hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '',
+      hel.createdAt ? CompaniDate(hel.createdAt).format('dd/LL/yyyy') : '',
     ]);
   }
 
@@ -277,8 +277,8 @@ exports.exportSectors = async (credentials) => {
       get(sectorHistory, 'auxiliary._id', null) || '',
       get(sectorHistory, 'auxiliary.identity.lastname', null) || '',
       get(sectorHistory, 'auxiliary.identity.firstname', null) || '',
-      moment(sectorHistory.startDate).format('DD/MM/YYYY'),
-      sectorHistory.endDate ? moment(sectorHistory.endDate).format('DD/MM/YYYY') : '',
+      CompaniDate(sectorHistory.startDate).format('dd/LL/yyyy'),
+      sectorHistory.endDate ? CompaniDate(sectorHistory.endDate).format('dd/LL/yyyy') : '',
     ]);
   }
 
@@ -310,12 +310,12 @@ exports.exportStaffRegister = async (credentials) => {
       get(contract, 'user.identity.lastname', '').toUpperCase(),
       get(contract, 'user.identity.firstname') || '',
       CIVILITY_LIST[get(contract, 'user.identity.title')] || '',
-      birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
+      birthDate ? CompaniDate(birthDate).format('dd/LL/yyyy') : '',
       nationalities[get(contract, 'user.identity.nationality')] || '',
       'Auxiliaire de vie',
       'CDI',
-      moment(contract.startDate).format('DD/MM/YYYY'),
-      contract.endDate ? moment(contract.endDate).format('DD/MM/YYYY') : '',
+      CompaniDate(contract.startDate).format('dd/LL/yyyy'),
+      contract.endDate ? CompaniDate(contract.endDate).format('dd/LL/yyyy') : '',
     ]);
   }
 
@@ -352,8 +352,8 @@ exports.exportReferents = async (credentials) => {
       CIVILITY_LIST[get(referentHistory, 'auxiliary.identity.title')] || '',
       get(referentHistory, 'auxiliary.identity.lastname', '').toUpperCase(),
       get(referentHistory, 'auxiliary.identity.firstname') || '',
-      moment(referentHistory.startDate).format('DD/MM/YYYY'),
-      referentHistory.endDate ? moment(referentHistory.endDate).format('DD/MM/YYYY') : '',
+      CompaniDate(referentHistory.startDate).format('dd/LL/yyyy'),
+      referentHistory.endDate ? CompaniDate(referentHistory.endDate).format('dd/LL/yyyy') : '',
     ]);
   }
 
@@ -389,9 +389,9 @@ exports.exportServices = async (credentials) => {
       UtilsHelper.formatFloatForExport(lastVersion.defaultUnitAmount),
       UtilsHelper.formatFloatForExport(lastVersion.vat),
       lastVersion.surcharge ? lastVersion.surcharge.name : '',
-      moment(lastVersion.startDate).format('DD/MM/YYYY'),
-      moment(service.createdAt).format('DD/MM/YYYY'),
-      moment(service.updatedAt).format('DD/MM/YYYY')]);
+      CompaniDate(lastVersion.startDate).format('dd/LL/yyyy'),
+      CompaniDate(service.createdAt).format('dd/LL/yyyy'),
+      CompaniDate(service.updatedAt).format('dd/LL/yyyy')]);
   }
 
   return data;
@@ -481,8 +481,8 @@ exports.exportFundings = async (credentials) => {
       get(funding, 'fundingPlanId') || '',
       nature ? nature.label : '',
       lastServiceVersion ? lastServiceVersion.name : '',
-      funding.startDate ? moment(funding.startDate).format('DD/MM/YYYY') : '',
-      funding.endDate ? moment(funding.endDate).format('DD/MM/YYYY') : '',
+      funding.startDate ? CompaniDate(funding.startDate).format('dd/LL/yyyy') : '',
+      funding.endDate ? CompaniDate(funding.endDate).format('dd/LL/yyyy') : '',
       funding.folderNumber || '',
       frequency ? frequency.label : '',
       UtilsHelper.formatFloatForExport(funding.amountTTC),
