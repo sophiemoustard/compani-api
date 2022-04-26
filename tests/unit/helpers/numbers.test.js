@@ -2,15 +2,6 @@ const { BigNumber } = require('bignumber.js');
 const expect = require('expect');
 const NumbersHelper = require('../../../src/helpers/numbers');
 
-describe('toBN', () => {
-  it('should return BN object', async () => {
-    const result = NumbersHelper.toBN(0.1);
-
-    expect(BigNumber.isBigNumber(result)).toBeTruthy();
-    expect(result.toString()).toEqual('0.1');
-  });
-});
-
 describe('toString', () => {
   it('should return a string', async () => {
     const result = NumbersHelper.toString(0.1);
@@ -104,8 +95,14 @@ describe('isGreaterThan', () => {
     expect(result).toBeTruthy();
   });
 
-  it('should return false', async () => {
+  it('should return false if less', async () => {
     const result = NumbersHelper.isGreaterThan(0.7, 1.2);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false if equal', async () => {
+    const result = NumbersHelper.isGreaterThan(0.7, 0.7);
 
     expect(result).toBeFalsy();
   });
@@ -118,8 +115,14 @@ describe('isLessThan', () => {
     expect(result).toBeTruthy();
   });
 
-  it('should return false', async () => {
+  it('should return false if greater', async () => {
     const result = NumbersHelper.isLessThan(1.7, 1.2);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false if equal', async () => {
+    const result = NumbersHelper.isLessThan(1.7, 1.7);
 
     expect(result).toBeFalsy();
   });
@@ -131,6 +134,7 @@ describe('isEqualTo', () => {
 
     expect(result).toBeTruthy();
   });
+
   it('should return false', () => {
     const result = NumbersHelper.isEqualTo(1.23, 2.45);
 

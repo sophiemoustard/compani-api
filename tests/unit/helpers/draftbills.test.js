@@ -238,7 +238,6 @@ describe('getSurchargedPrice', () => {
   it('should return the price surcharged globally', () => {
     const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
     const surcharges = [{ percentage: 25 }];
-
     const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 10);
 
     expect(result).toBe('12.5');
@@ -251,7 +250,6 @@ describe('getSurchargedPrice', () => {
       startHour: moment(event.startDate).add(1, 'h'),
       endHour: moment(event.startDate).add(2, 'h'),
     }];
-
     const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 24);
 
     expect(result).toBe('25');
@@ -263,7 +261,6 @@ describe('getSurchargedPrice', () => {
       { percentage: 25, startHour: '2019-06-29T11:00:00', endHour: '2019-06-29T12:00:00' },
       { percentage: 20, startHour: '2019-06-29T12:00:00', endHour: '2019-06-29T14:00:00' },
     ];
-
     const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 24);
 
     expect(result).toBe('26.6');
@@ -1121,7 +1118,7 @@ describe('formatBillingItems', () => {
     const eventsByBillingItemBySubscriptions = [
       {
         d00000000000000000000001: [{ _id: eventId1, fieldToOmit: 'test' }, { _id: eventId2 }],
-        d00000000000000000000002: [{ _id: eventId1 }, { _id: eventId2 }],
+        d00000000000000000000002: [{ _id: eventId1, auxiliary: '1234567' }, { _id: eventId2 }],
       },
       { d00000000000000000000001: [{ _id: eventId3 }] },
     ];
@@ -1174,7 +1171,7 @@ describe('formatBillingItems', () => {
         unitExclTaxes: '4.54545454545454545455',
         unitInclTaxes: '5',
         vat: 10,
-        eventsList: [{ event: eventId1 }, { event: eventId2 }],
+        eventsList: [{ event: eventId1, auxiliary: '1234567' }, { event: eventId2 }],
         exclTaxes: '9.0909090909090909091',
         inclTaxes: '10',
         startDate: '2019-12-31T07:00:00',
