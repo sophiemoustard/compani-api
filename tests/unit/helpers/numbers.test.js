@@ -11,6 +11,14 @@ describe('toBN', () => {
   });
 });
 
+describe('toString', () => {
+  it('should return a string', async () => {
+    const result = NumbersHelper.toString(0.1);
+
+    expect(result).toEqual('0.1');
+  });
+});
+
 describe('toFixed', () => {
   it('should round BN', () => {
     const result = NumbersHelper.toFixed(BigNumber(1.234567));
@@ -98,6 +106,20 @@ describe('isGreaterThan', () => {
 
   it('should return false', async () => {
     const result = NumbersHelper.isGreaterThan(0.7, 1.2);
+
+    expect(result).toBeFalsy();
+  });
+});
+
+describe('isLessThan', () => {
+  it('should return true', async () => {
+    const result = NumbersHelper.isLessThan(0.2, 0.7);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false', async () => {
+    const result = NumbersHelper.isLessThan(1.7, 1.2);
 
     expect(result).toBeFalsy();
   });
