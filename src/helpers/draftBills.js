@@ -68,22 +68,20 @@ exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
 
 // returns a string
 exports.getSurchargedPrice = (event, eventSurcharges, price) => {
-  let coeff = NumbersHelper.toString(1);
   const eventDuration = moment(event.endDate).diff(event.startDate, 'm');
   if (!eventDuration) return '0';
 
+  let coeff = NumbersHelper.multiply(eventDuration, 100);
   for (const surcharge of eventSurcharges) {
-    const percentage = NumbersHelper.divide(surcharge.percentage, 100);
     if (surcharge.startHour) {
       const surchargedDuration = moment(surcharge.endHour).diff(surcharge.startHour, 'm');
-      const surchargedRatio = NumbersHelper.divide(surchargedDuration, eventDuration);
-      coeff = NumbersHelper.add(coeff, NumbersHelper.multiply(surchargedRatio, percentage));
+      coeff = NumbersHelper.add(coeff, NumbersHelper.multiply(surchargedDuration, surcharge.percentage));
     } else {
-      coeff = NumbersHelper.add(coeff, percentage);
+      coeff = NumbersHelper.add(coeff, NumbersHelper.multiply(surcharge.percentage, eventDuration));
     }
   }
 
-  return NumbersHelper.multiply(coeff, price);
+  return NumbersHelper.divide(NumbersHelper.multiply(coeff, price), NumbersHelper.multiply(eventDuration, 100));
 };
 
 // returns a string
