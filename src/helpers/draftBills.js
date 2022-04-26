@@ -1,5 +1,5 @@
 const get = require('lodash/get');
-const pick = require('lodash/get');
+const pick = require('lodash/pick');
 const { ObjectId } = require('mongodb');
 const moment = require('../extensions/moment');
 const EventRepository = require('../repositories/EventRepository');
@@ -66,7 +66,13 @@ exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
   return populatedFundings;
 };
 
-// returns a string
+/**
+ *
+ * @param {object} event
+ * @param {array} eventSurcharges
+ * @param {string} price
+ * @returns string
+ */
 exports.getSurchargedPrice = (event, eventSurcharges, price) => {
   const eventDuration = moment(event.endDate).diff(event.startDate, 'm');
   let coeff = NumbersHelper.multiply(eventDuration, 100);
@@ -83,7 +89,13 @@ exports.getSurchargedPrice = (event, eventSurcharges, price) => {
   return NumbersHelper.divide(NumbersHelper.multiply(coeff, price), NumbersHelper.multiply(eventDuration, 100));
 };
 
-// returns a string
+/**
+ *
+ * @param {string} time
+ * @param {number} fundingInclTaxes
+ * @param {number} customerParticipationRate
+ * @returns string
+ */
 exports.getThirdPartyPayerPrice = (time, fundingInclTaxes, customerParticipationRate) => {
   const tppParticipationRate = NumbersHelper.subtract(1, NumbersHelper.divide(customerParticipationRate, 100));
 
@@ -107,6 +119,13 @@ exports.getMatchingHistory = (event, funding) => {
   return history;
 };
 
+/**
+ *
+ * @param {object} event
+ * @param {object} funding
+ * @param {string} price
+ * @returns object
+ */
 exports.getHourlyFundingSplit = (event, funding, price) => {
   let thirdPartyPayerPrice = NumbersHelper.toString(0);
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
@@ -143,6 +162,13 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
   };
 };
 
+/**
+ *
+ * @param {object} event
+ * @param {object} funding
+ * @param {string} price
+ * @returns object
+ */
 exports.getFixedFundingSplit = (event, funding, price) => {
   let thirdPartyPayerPrice = NumbersHelper.toString(0);
   if (funding.history && funding.history[0].amountTTC < funding.amountTTC) {
