@@ -23,6 +23,10 @@ const {
 } = require('./seed/customersSeed');
 const Customer = require('../../src/models/Customer');
 const CustomerAbsence = require('../../src/models/CustomerAbsence');
+const EventHistory = require('../../src/models/EventHistory');
+const Repetition = require('../../src/models/Repetition');
+const ReferentHistory = require('../../src/models/ReferentHistory');
+const CustomerPartner = require('../../src/models/CustomerPartner');
 const Event = require('../../src/models/Event');
 const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
@@ -951,6 +955,8 @@ describe('CUSTOMERS ROUTES', () => {
 
       it('should delete a customer without interventions', async () => {
         const customersBefore = await Customer.countDocuments({ company: authCompany._id });
+        const customerId = customersList[3]._id;
+
         const res = await app.inject({
           method: 'DELETE',
           url: `/customers/${customersList[3]._id}`,
@@ -963,8 +969,18 @@ describe('CUSTOMERS ROUTES', () => {
         const customers = await Customer.find({ company: authCompany._id }).lean();
         expect(customers.length).toBe(customersBefore - 1);
 
-        const helper = await Helper.countDocuments({ _id: userList[2]._id });
+        const helper = await Helper.countDocuments({ customer: customerId });
         expect(helper).toBe(0);
+        const referentHistories = await ReferentHistory.countDocuments({ customer: customerId });
+        expect(referentHistories).toBe(0);
+        const eventHistories = await EventHistory.countDocuments({ 'event.customer': customerId });
+        expect(eventHistories).toBe(0);
+        const repetitions = await Repetition.countDocuments({ customer: customerId });
+        expect(repetitions).toBe(0);
+        const customerPartners = await CustomerPartner.countDocuments({ customer: customerId });
+        expect(customerPartners).toBe(0);
+        const customerAbsences = await CustomerAbsence.countDocuments({ customer: customerId });
+        expect(customerAbsences).toBe(0);
       });
 
       it('should return a 404 error if no customer found', async () => {

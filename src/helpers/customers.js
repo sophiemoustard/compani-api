@@ -20,6 +20,7 @@ const Rum = require('../models/Rum');
 const User = require('../models/User');
 const SectorHistory = require('../models/SectorHistory');
 const UserCompany = require('../models/UserCompany');
+const CustomerAbsence = require('../models/CustomerAbsence');
 const EventRepository = require('../repositories/EventRepository');
 const translate = require('./translate');
 const { INTERVENTION } = require('./constants');
@@ -264,7 +265,8 @@ exports.removeCustomer = async (customerId) => {
     ReferentHistory.deleteMany({ customer: customerId }),
     EventHistory.deleteMany({ 'event.customer': customerId }),
     Repetition.deleteMany({ customer: customerId }),
-    CustomerPartner.deleteMany({ customer: customerId })
+    CustomerPartner.deleteMany({ customer: customerId }),
+    CustomerAbsence.deleteMany({ customer: customerId })
   );
 
   for (const helper of helpers) {

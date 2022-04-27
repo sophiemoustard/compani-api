@@ -17,6 +17,7 @@ const ReferentHistory = require('../../../src/models/ReferentHistory');
 const Repetition = require('../../../src/models/Repetition');
 const Rum = require('../../../src/models/Rum');
 const SectorHistory = require('../../../src/models/SectorHistory');
+const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const CustomerHelper = require('../../../src/helpers/customers');
@@ -1172,6 +1173,7 @@ describe('removeCustomer', () => {
   let deleteManyEventHistory;
   let deleteManyRepetition;
   let deleteManyCustomerPartner;
+  let deleteManyCustomerAbsence;
   let updateOneUser;
   let deleteFileDrive;
   beforeEach(() => {
@@ -1184,6 +1186,7 @@ describe('removeCustomer', () => {
     deleteManyEventHistory = sinon.stub(EventHistory, 'deleteMany');
     deleteManyRepetition = sinon.stub(Repetition, 'deleteMany');
     deleteManyCustomerPartner = sinon.stub(CustomerPartner, 'deleteMany');
+    deleteManyCustomerAbsence = sinon.stub(CustomerAbsence, 'deleteMany');
     updateOneUser = sinon.stub(User, 'updateOne');
     deleteFileDrive = sinon.stub(Drive, 'deleteFile');
   });
@@ -1197,6 +1200,7 @@ describe('removeCustomer', () => {
     deleteManyEventHistory.restore();
     deleteManyRepetition.restore();
     deleteManyCustomerPartner.restore();
+    deleteManyCustomerAbsence.restore();
     updateOneUser.restore();
     updateOneUser.restore();
     deleteFileDrive.restore();
@@ -1232,6 +1236,7 @@ describe('removeCustomer', () => {
     sinon.assert.calledOnceWithExactly(deleteManyEventHistory, { 'event.customer': customerId });
     sinon.assert.calledOnceWithExactly(deleteManyRepetition, { customer: customerId });
     sinon.assert.calledOnceWithExactly(deleteManyCustomerPartner, { customer: customerId });
+    sinon.assert.calledOnceWithExactly(deleteManyCustomerAbsence, { customer: customerId });
     sinon.assert.calledWithExactly(updateOneUser.getCall(0), { _id: helper1Id }, { $unset: { 'role.client': '' } });
     sinon.assert.calledWithExactly(updateOneUser.getCall(1), { _id: helper2Id }, { $unset: { 'role.client': '' } });
     sinon.assert.calledWithExactly(deleteOneUserCompany.getCall(0), { user: helper1Id });
