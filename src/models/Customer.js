@@ -136,14 +136,14 @@ const CustomerSchema = mongoose.Schema({
   toObject: { virtuals: true },
 });
 
-const countSubscriptionUsage = async (doc) => {
+const isSubscriptionUsedInEvents = async (doc) => {
   if (doc && doc.subscriptions && doc.subscriptions.length > 0) {
     for (const subscription of doc.subscriptions) {
-      subscription.eventCount = await Event.countDocuments(
+      subscription.isUsedInEvents = await Event.countDocuments(
         { subscription: subscription._id, company: doc.company },
         { limit: 1 }
       );
-      subscription.repetitionCount = await Repetition
+      subscription.isUsedInRepetitions = await Repetition
         .countDocuments({ subscription: subscription._id, company: doc.company }, { limit: 1 });
     }
   }
@@ -249,7 +249,7 @@ CustomerSchema.pre('find', validateQuery);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);
 formatQueryMiddlewareList().map(middleware => CustomerSchema.pre(middleware, formatQuery));
 
-CustomerSchema.post('findOne', countSubscriptionUsage);
+CustomerSchema.post('findOne', isSubscriptionUsedInEvents);
 CustomerSchema.post('findOne', populateHelpers);
 CustomerSchema.post('findOneAndUpdate', populateHelpers);
 CustomerSchema.post('find', populateHelpersForList);
