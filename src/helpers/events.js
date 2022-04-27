@@ -433,7 +433,7 @@ exports.createEventHistoryOnDeleteList = async (events, credentials) => {
 };
 
 exports.deleteEventsAndRepetition = async (query, shouldDeleteRepetitions, credentials) => {
-  const events = await Event.find(query, EventHistoriesHelper.PROJECTION_FILEDS).lean();
+  const events = await Event.find(query, EventHistoriesHelper.PROJECTION_FIELDS).lean();
 
   await EventsValidationHelper.checkDeletionIsAllowed(events);
 

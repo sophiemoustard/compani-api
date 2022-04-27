@@ -34,7 +34,7 @@ describe('getLastVersion', () => {
 });
 
 describe('getFirstVersion', () => {
-  it('should return the last version based on the date key', () => {
+  it('should return the first version based on the date key', () => {
     const versions = [
       { startDate: '2021-09-21T00:00:00', createdAt: '2021-09-21T00:00:00', _id: 1 },
       { startDate: '2021-09-24T00:00:00', createdAt: '2021-09-18T00:00:00', _id: 2 },

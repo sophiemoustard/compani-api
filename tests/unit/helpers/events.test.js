@@ -1691,7 +1691,7 @@ describe('deleteEventsAndRepetition', () => {
     sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FILEDS] }, { query: 'lean' }]
+      [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FIELDS] }, { query: 'lean' }]
     );
   });
 
@@ -1753,7 +1753,7 @@ describe('deleteEventsAndRepetition', () => {
     sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
     SinonMongoose.calledOnceWithExactly(
       find,
-      [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FILEDS] }, { query: 'lean' }]
+      [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FIELDS] }, { query: 'lean' }]
     );
   });
 
@@ -1784,7 +1784,7 @@ describe('deleteEventsAndRepetition', () => {
       sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
       SinonMongoose.calledOnceWithExactly(
         find,
-        [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FILEDS] }, { query: 'lean' }]
+        [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FIELDS] }, { query: 'lean' }]
       );
     }
   });
@@ -1816,7 +1816,7 @@ describe('deleteEventsAndRepetition', () => {
       sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
       SinonMongoose.calledOnceWithExactly(
         find,
-        [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FILEDS] }, { query: 'lean' }]
+        [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FIELDS] }, { query: 'lean' }]
       );
     }
   });

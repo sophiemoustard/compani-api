@@ -17,7 +17,7 @@ const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 const { CompaniDate } = require('./dates/companiDates');
 
-exports.PROJECTION_FILEDS = {
+exports.PROJECTION_FIELDS = {
   _id: 1,
   customer: 1,
   startDate: 1,
