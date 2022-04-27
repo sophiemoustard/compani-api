@@ -15,6 +15,7 @@ const CreditNote = require('../../../src/models/CreditNote');
 const TaxCertificate = require('../../../src/models/TaxCertificate');
 const Helper = require('../../../src/models/Helper');
 const UserCompany = require('../../../src/models/UserCompany');
+const EventHistory = require('../../../src/models/EventHistory');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const {
@@ -30,6 +31,8 @@ const {
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
+const CustomerPartner = require('../../../src/models/CustomerPartner');
+const Partner = require('../../../src/models/Partner');
 
 const subIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 const serviceIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
@@ -769,6 +772,12 @@ const referentHistories = [
     company: customersList[0].company,
     startDate: '2019-05-13T00:00:00',
   },
+  {
+    customer: customersList[3]._id,
+    auxiliary: referentList[1]._id,
+    company: customersList[0].company,
+    startDate: '2019-05-13T00:00:00',
+  },
 ];
 
 const otherCompanyCustomer = {
@@ -928,6 +937,14 @@ const userList = [
     local: { email: 'auxforcustomer@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
+    origin: WEBAPP,
+  },
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'HelperForCustomerToDelete', lastname: 'TheEtMoselle' },
+    local: { email: 'helper_for_customer_to_delete@alenvi.io', password: '123456!eR' },
+    refreshToken: uuidv4(),
+    role: { client: helperRoleId },
     origin: WEBAPP,
   },
 ];
@@ -1202,31 +1219,50 @@ const eventList = [
   },
 ];
 
-const customerAbsenceList = [{
-  company: authCompany._id,
-  customer: customersList[0]._id,
-  startDate: new Date().setDate(new Date().getDate() + 1, 0, 0),
-  endDate: new Date().setDate(new Date().getDate() + 1, 1, 0),
-  absenceType: HOSPITALIZATION,
-}];
+const customerAbsenceList = [
+  {
+    company: authCompany._id,
+    customer: customersList[0]._id,
+    startDate: new Date().setDate(new Date().getDate() + 1, 0, 0),
+    endDate: new Date().setDate(new Date().getDate() + 1, 1, 0),
+    absenceType: HOSPITALIZATION,
+  },
+  {
+    company: authCompany._id,
+    customer: customersList[3]._id,
+    startDate: '2022-02-02T00:00:00.000Z',
+    endDate: '2022-03-02T00:00:00.000Z',
+    absenceType: HOSPITALIZATION,
+  },
+];
 
 const repetitionParentId = new ObjectId();
 const repetition = {
   _id: new ObjectId(),
+  customer: customersList[3]._id,
   parentId: repetitionParentId,
   subscription: subIdList[3],
   repetition: { frequency: EVERY_WEEK },
   company: authCompany._id,
+  type: 'intervention',
+  address: {
+    fullAddress: '37 rue de ponthieu 75008 Paris',
+    zipCode: '75008',
+    city: 'Paris',
+    street: '37 rue de Ponthieu',
+    location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+  },
 };
 
 const helpersList = [
   { customer: customersList[0]._id, user: userList[0]._id, company: authCompany._id, referent: true },
   { customer: customersList[1]._id, user: userList[1]._id, company: authCompany._id, referent: true },
   { customer: customersList[4]._id, user: userList[2]._id, company: authCompany._id, referent: true },
+  { customer: customersList[3]._id, user: userList[7]._id, company: authCompany._id, referent: true },
   { customer: otherCompanyCustomerId, user: userList[3]._id, company: otherCompany._id, referent: true },
 ];
 
-const userCompanies = [
+const userCompaniesList = [
   { _id: new ObjectId(), user: referentList[0]._id, company: authCompany._id },
   { _id: new ObjectId(), user: referentList[1]._id, company: authCompany._id },
   { _id: new ObjectId(), user: userList[0]._id, company: authCompany._id },
@@ -1234,6 +1270,28 @@ const userCompanies = [
   { _id: new ObjectId(), user: userList[2]._id, company: authCompany._id },
   { _id: new ObjectId(), user: userList[3]._id, company: otherCompany._id },
   { _id: new ObjectId(), user: userList[4]._id, company: otherCompany._id },
+];
+
+const eventHistoriesList = [
+  {
+    event: { eventId: new ObjectId(), type: 'intervention', customer: customersList[3]._id },
+    company: authCompany._id,
+    action: 'event_creation',
+    auxiliaries: [referentList[1]._id],
+  },
+];
+
+const partnersList = [
+  {
+    _id: new ObjectId(),
+    identity: { firstname: 'Anne', lastname: 'Onyme' },
+    company: authCompany._id,
+    partnerOrganization: new ObjectId(),
+  },
+];
+
+const customerPartnersList = [
+  { _id: new ObjectId(), partner: partnersList[0]._id, customer: customersList[3], company: authCompany._id },
 ];
 
 const populateDB = async () => {
@@ -1244,8 +1302,11 @@ const populateDB = async () => {
     CreditNote.create(creditNote),
     Customer.create([...customersList, otherCompanyCustomer]),
     CustomerAbsence.create(customerAbsenceList),
+    CustomerPartner.create(customerPartnersList),
     Event.create(eventList),
+    EventHistory.create(eventHistoriesList),
     Helper.create(helpersList),
+    Partner.create(partnersList),
     Payment.create(payment),
     ReferentHistory.create(referentHistories),
     Repetition.create(repetition),
@@ -1255,7 +1316,7 @@ const populateDB = async () => {
     TaxCertificate.create(taxCertificate),
     ThirdPartyPayer.create(customerThirdPartyPayers),
     User.create([...userList, ...referentList]),
-    UserCompany.create(userCompanies),
+    UserCompany.create(userCompaniesList),
   ]);
 };
 
