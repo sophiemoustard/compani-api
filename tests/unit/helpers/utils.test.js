@@ -3,7 +3,6 @@ const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
-
 const UtilsHelper = require('../../../src/helpers/utils');
 
 describe('getLastVersion', () => {
@@ -342,19 +341,17 @@ describe('isStringedObjectId', () => {
 
 describe('getExclTaxes', () => {
   it('should return excluded taxes price', () => {
-    expect(Number.parseFloat(UtilsHelper.getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
-  });
-});
+    const result = UtilsHelper.getExclTaxes(20, 25);
 
-describe('getInclTaxes', () => {
-  it('should return excluded taxes price', () => {
-    expect(UtilsHelper.getInclTaxes(20, 2)).toEqual(20.4);
+    expect(result).toEqual('16');
   });
 });
 
 describe('sumReduce', () => {
   it('should sum element in array', () => {
-    expect(UtilsHelper.sumReduce([{ incl: 20 }, { incl: 12, excl: 23 }], 'incl')).toEqual(32);
+    const result = UtilsHelper.sumReduce([{ incl: 20 }, { incl: 12, excl: 23 }], 'incl');
+
+    expect(result).toEqual('32');
   });
 });
 
