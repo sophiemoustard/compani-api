@@ -23,7 +23,7 @@ describe('getLastVersion', () => {
     expect(UtilsHelper.getLastVersion([], 'toto')).toBeNull();
   });
 
-  it('should return the single element is versions only contains one element', () => {
+  it('should return the single element if versions only contains one element', () => {
     const versions = [{ startDate: '2021-09-21T00:00:00', createdAt: '2021-09-21T00:00:00', _id: 1 }];
 
     const result = UtilsHelper.getLastVersion(versions, 'startDate');
@@ -50,7 +50,7 @@ describe('getFirstVersion', () => {
     expect(UtilsHelper.getFirstVersion([], 'toto')).toBeNull();
   });
 
-  it('should return the single element is versions only contains one element', () => {
+  it('should return the single element if versions only contains one element', () => {
     const versions = [{ startDate: '2021-09-21T00:00:00', createdAt: '2021-09-21T00:00:00', _id: 1 }];
 
     const result = UtilsHelper.getFirstVersion(versions, 'startDate');
