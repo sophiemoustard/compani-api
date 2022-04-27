@@ -143,8 +143,10 @@ const isSubscriptionUsedInEvents = async (doc) => {
         { subscription: subscription._id, company: doc.company },
         { limit: 1 }
       );
-      subscription.isUsedInRepetitions = await Repetition
-        .countDocuments({ subscription: subscription._id, company: doc.company }, { limit: 1 });
+      subscription.isUsedInRepetitions = await Repetition.countDocuments(
+        { subscription: subscription._id, company: doc.company },
+        { limit: 1 }
+      );
     }
   }
 };
