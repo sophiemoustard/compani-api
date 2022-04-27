@@ -33,6 +33,33 @@ describe('getLastVersion', () => {
   });
 });
 
+describe('getFirstVersion', () => {
+  it('should return the last version based on the date key', () => {
+    const versions = [
+      { startDate: '2021-09-21T00:00:00', createdAt: '2021-09-21T00:00:00', _id: 1 },
+      { startDate: '2021-09-24T00:00:00', createdAt: '2021-09-18T00:00:00', _id: 2 },
+    ];
+
+    expect(UtilsHelper.getFirstVersion(versions, 'startDate')).toBeDefined();
+    expect(UtilsHelper.getFirstVersion(versions, 'startDate')._id).toEqual(1);
+    expect(UtilsHelper.getFirstVersion(versions, 'createdAt')).toBeDefined();
+    expect(UtilsHelper.getFirstVersion(versions, 'createdAt')._id).toEqual(2);
+  });
+
+  it('should return null if versions is empty', () => {
+    expect(UtilsHelper.getFirstVersion([], 'toto')).toBeNull();
+  });
+
+  it('should return the single element is versions only contains one element', () => {
+    const versions = [{ startDate: '2021-09-21T00:00:00', createdAt: '2021-09-21T00:00:00', _id: 1 }];
+
+    const result = UtilsHelper.getFirstVersion(versions, 'startDate');
+
+    expect(result).toBeDefined();
+    expect(result._id).toEqual(1);
+  });
+});
+
 describe('mergeLastVersionWithBaseObject', () => {
   let getLastVersion;
   beforeEach(() => {

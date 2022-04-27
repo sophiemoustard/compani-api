@@ -1725,8 +1725,8 @@ describe('deleteEventsAndRepetition', () => {
         customer: customerId,
         type: 'unavailability',
         repetition: { frequency: EVERY_WEEK, parentId },
-        startDate: '2019-10-7T11:30:00.000Z',
-        endDate: '2019-10-7T13:00:00.000Z',
+        startDate: '2019-10-07T11:30:00.000Z',
+        endDate: '2019-10-07T13:00:00.000Z',
         auxiliary: userId,
       },
       {
@@ -1738,17 +1738,13 @@ describe('deleteEventsAndRepetition', () => {
         auxiliary: userId,
       },
     ];
-    const eventsGroupedByParentId = {
-      '': [events[0], events[3]],
-      [parentId]: [events[1], events[2]],
-    };
 
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await EventHelper.deleteEventsAndRepetition(query, true, credentials);
 
-    sinon.assert.calledOnceWithExactly(createEventHistoryOnDeleteList, eventsGroupedByParentId[''], credentials);
-    sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, eventsGroupedByParentId[parentId][0], credentials);
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnDeleteList, [events[0], events[3]], credentials);
+    sinon.assert.calledOnceWithExactly(createEventHistoryOnDelete, events[2], credentials);
     sinon.assert.calledOnceWithExactly(repetitionDeleteOne, { parentId });
     sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: events.map(ev => ev._id) } });
     sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
