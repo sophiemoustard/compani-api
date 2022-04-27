@@ -433,19 +433,19 @@ exports.createEventHistoryOnDeleteList = async (events, credentials) => {
 };
 
 exports.deleteEventsAndRepetition = async (query, shouldDeleteRepetitions, credentials) => {
-  const events = await Event.find(query).lean();
+  const events = await Event.find(query, EventHistoriesHelper.PROJECTION_FIELDS).lean();
 
   await EventsValidationHelper.checkDeletionIsAllowed(events);
 
   if (!shouldDeleteRepetitions) {
-    await this.createEventHistoryOnDeleteList(events, credentials);
+    await exports.createEventHistoryOnDeleteList(events, credentials);
   } else {
     const eventsGroupedByParentId = groupBy(events, el => get(el, 'repetition.parentId') || '');
     for (const groupId of Object.keys(eventsGroupedByParentId)) {
-      if (!groupId) {
-        await this.createEventHistoryOnDeleteList(eventsGroupedByParentId[groupId], credentials);
-      } else {
-        await EventHistoriesHelper.createEventHistoryOnDelete(eventsGroupedByParentId[groupId][0], credentials);
+      if (!groupId) await exports.createEventHistoryOnDeleteList(eventsGroupedByParentId[groupId], credentials);
+      else {
+        const firstEvent = UtilsHelper.getFirstVersion(eventsGroupedByParentId[groupId], 'startDate');
+        await EventHistoriesHelper.createEventHistoryOnDelete(firstEvent, credentials);
         await Repetition.deleteOne({ parentId: groupId });
       }
     }
