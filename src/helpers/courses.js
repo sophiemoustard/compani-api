@@ -484,7 +484,7 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
 exports.groupSlotsByDate = (slots) => {
   const group = groupBy(slots, slot => CompaniDate(slot.startDate).format('dd/LL/yyyy'));
 
-  return Object.values(group).sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
+  return Object.values(group).sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
 };
 
 exports.formatIntraCourseForPdf = (course) => {
@@ -541,10 +541,14 @@ exports.formatInterCourseForPdf = (course) => {
 
 exports.generateAttendanceSheets = async (courseId) => {
   const course = await Course.findOne({ _id: courseId })
-    .populate('company')
-    .populate({ path: 'slots', populate: { path: 'step', select: 'type' } })
-    .populate({ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } })
-    .populate('trainer')
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
+    .populate({
+      path: 'trainees',
+      select: 'identity company',
+      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+    })
+    .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 

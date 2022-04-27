@@ -2082,13 +2082,20 @@ describe('generateAttendanceSheets', () => {
 
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
-      { query: 'populate', args: ['company'] },
-      { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'type' } }] },
+      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
       {
         query: 'populate',
-        args: [{ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } }],
+        args: [{ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } }],
       },
-      { query: 'populate', args: ['trainer'] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'trainees',
+          select: 'identity company',
+          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+        }],
+      },
+      { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
       {
         query: 'populate',
         args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
@@ -2116,13 +2123,20 @@ describe('generateAttendanceSheets', () => {
 
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
-      { query: 'populate', args: ['company'] },
-      { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'type' } }] },
+      { query: 'populate', args: [{ path: 'company', select: 'name' }] },
       {
         query: 'populate',
-        args: [{ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } }],
+        args: [{ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } }],
       },
-      { query: 'populate', args: ['trainer'] },
+      {
+        query: 'populate',
+        args: [{
+          path: 'trainees',
+          select: 'identity company',
+          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+        }],
+      },
+      { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
       {
         query: 'populate',
         args: [{ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } }],
