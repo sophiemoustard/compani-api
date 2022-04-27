@@ -139,9 +139,12 @@ const CustomerSchema = mongoose.Schema({
 const countSubscriptionUsage = async (doc) => {
   if (doc && doc.subscriptions && doc.subscriptions.length > 0) {
     for (const subscription of doc.subscriptions) {
-      subscription.eventCount = await Event.countDocuments({ subscription: subscription._id, company: doc.company });
+      subscription.eventCount = await Event.countDocuments(
+        { subscription: subscription._id, company: doc.company },
+        { limit: 1 }
+      );
       subscription.repetitionCount = await Repetition
-        .countDocuments({ subscription: subscription._id, company: doc.company });
+        .countDocuments({ subscription: subscription._id, company: doc.company }, { limit: 1 });
     }
   }
 };
