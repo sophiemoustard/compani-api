@@ -1689,7 +1689,10 @@ describe('deleteEventsAndRepetition', () => {
     sinon.assert.notCalled(createEventHistoryOnDelete);
     sinon.assert.notCalled(repetitionDeleteOne);
     sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
-    SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FILEDS] }, { query: 'lean' }]
+    );
   });
 
   it('should delete events with repetitions', async () => {
@@ -1748,7 +1751,10 @@ describe('deleteEventsAndRepetition', () => {
     sinon.assert.calledOnceWithExactly(repetitionDeleteOne, { parentId });
     sinon.assert.calledOnceWithExactly(deleteMany, { _id: { $in: events.map(ev => ev._id) } });
     sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
-    SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FILEDS] }, { query: 'lean' }]
+    );
   });
 
   it('should not delete event if at least one is billed', async () => {
@@ -1776,7 +1782,10 @@ describe('deleteEventsAndRepetition', () => {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
       sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
-      SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+      SinonMongoose.calledOnceWithExactly(
+        find,
+        [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FILEDS] }, { query: 'lean' }]
+      );
     }
   });
 
@@ -1805,7 +1814,10 @@ describe('deleteEventsAndRepetition', () => {
       sinon.assert.notCalled(createEventHistoryOnDeleteList);
       sinon.assert.notCalled(deleteMany);
       sinon.assert.calledOnceWithExactly(checkDeletionIsAllowed, events);
-      SinonMongoose.calledOnceWithExactly(find, [{ query: 'find', args: [query] }, { query: 'lean' }]);
+      SinonMongoose.calledOnceWithExactly(
+        find,
+        [{ query: 'find', args: [query, EventHistoriesHelper.PROJECTION_FILEDS] }, { query: 'lean' }]
+      );
     }
   });
 });
