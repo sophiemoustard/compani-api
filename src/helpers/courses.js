@@ -652,12 +652,15 @@ exports.deleteAccessRule = async (courseId, accessRuleId) => Course.updateOne(
   { $pull: { accessRules: accessRuleId } }
 );
 
-exports.formatHoursForConvocation = slots => slots.reduce((acc, slot) => {
-  const slotHours =
-    `${UtilsHelper.formatHourWithMinutes(slot.startDate)} - ${UtilsHelper.formatHourWithMinutes(slot.endDate)}`;
+exports.formatHoursForConvocation = slots => slots.reduce(
+  (acc, slot) => {
+    const slotHours =
+      `${UtilsHelper.formatHourWithMinutes(slot.startDate)} - ${UtilsHelper.formatHourWithMinutes(slot.endDate)}`;
 
-  return acc === '' ? slotHours : `${acc} / ${slotHours}`;
-}, '');
+    return acc === '' ? slotHours : `${acc} / ${slotHours}`;
+  },
+  ''
+);
 
 exports.formatCourseForConvocationPdf = (course) => {
   const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
@@ -688,7 +691,7 @@ exports.generateConvocationPdf = async (courseId) => {
       select: 'program',
       populate: { path: 'program', select: 'name description' },
     })
-    .populate('slots')
+    .populate({ path: 'slots', select: 'startDate endDate address meetingLink' })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
@@ -698,10 +701,7 @@ exports.generateConvocationPdf = async (courseId) => {
 
   const template = await CourseConvocation.getPdfContent(exports.formatCourseForConvocationPdf(course));
 
-  return {
-    pdf: await PdfHelper.generatePdf(template),
-    courseName,
-  };
+  return { pdf: await PdfHelper.generatePdf(template), courseName };
 };
 
 exports.getQuestionnaires = async (courseId) => {

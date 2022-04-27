@@ -2734,7 +2734,7 @@ describe('generateConvocationPdf', () => {
           populate: { path: 'program', select: 'name description' },
         }],
       },
-      { query: 'populate', args: ['slots'] },
+      { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate address meetingLink' }] },
       { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
       {
         query: 'populate',
