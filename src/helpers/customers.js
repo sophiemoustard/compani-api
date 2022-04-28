@@ -107,18 +107,16 @@ exports.getCustomersFirstIntervention = async (query, credentials) => {
 exports.getCustomersWithIntervention = async credentials =>
   EventRepository.getCustomersWithIntervention(get(credentials, 'company._id', null));
 
-exports.formatSubscriptionInPopulate = (doc) => {
-  const lastVersion = UtilsHelper.getLastVersion(doc.versions, 'startDate');
-  return ({ ...doc, versions: lastVersion, ...lastVersion });
+exports.formatServiceInPopulate = (service) => {
+  const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
+
+  return ({ ...service, versions: lastVersion, ...lastVersion });
 };
 
 exports.getCustomersWithSubscriptions = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   return Customer.find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
-    .populate({
-      path: 'subscriptions.service',
-      transform: exports.formatSubscriptionInPopulate,
-    })
+    .populate({ path: 'subscriptions.service', transform: exports.formatServiceInPopulate })
     .populate({
       path: 'referentHistories',
       match: { company: companyId },
