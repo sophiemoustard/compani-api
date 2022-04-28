@@ -268,7 +268,7 @@ exports.formatBillingItem = (bi, bddBillingItemList) => {
   return {
     billingItem: bi.billingItem,
     name: bddBillingItem.name,
-    unitInclTaxes: bi.unitInclTaxes,
+    unitInclTaxes: NumbersHelper.toString(bi.unitInclTaxes),
     count: bi.count,
     inclTaxes: NumbersHelper.multiply(bi.unitInclTaxes, bi.count),
     exclTaxes,

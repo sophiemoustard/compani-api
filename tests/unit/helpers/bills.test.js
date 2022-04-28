@@ -1912,7 +1912,7 @@ describe('formatBillingItem', () => {
     expect(result).toEqual({
       billingItem: billingItemId,
       name: 'bonjour',
-      unitInclTaxes: 60,
+      unitInclTaxes: '60',
       count: 3,
       inclTaxes: '180',
       exclTaxes: '150',
