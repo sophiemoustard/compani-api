@@ -770,7 +770,8 @@ describe('updateCreditNotes', () => {
           name: 'Frais de dossier',
           count: 2,
           inclTaxes: 60,
-          exclTaxes: 58.8235294117647,
+          // eslint-disable-next-line no-loss-of-precision
+          exclTaxes: 58.82352941176470588236,
           vat: 2,
         },
         {
@@ -779,7 +780,8 @@ describe('updateCreditNotes', () => {
           name: 'sku',
           count: 1,
           inclTaxes: 10,
-          exclTaxes: 9.523809523809524,
+          // eslint-disable-next-line no-loss-of-precision
+          exclTaxes: 9.52380952380952380952,
           vat: 5,
         },
       ],
@@ -858,20 +860,20 @@ describe('updateCreditNotes', () => {
           billingItemList: [
             {
               billingItem: billingItemId1,
-              unitInclTaxes: 30,
               name: 'Frais de dossier',
+              unitInclTaxes: '30',
               count: 2,
-              inclTaxes: 60,
-              exclTaxes: 58.8235294117647,
+              inclTaxes: '60',
+              exclTaxes: '58.82352941176470588236',
               vat: 2,
             },
             {
               billingItem: billingItemId2,
-              unitInclTaxes: 10,
               name: 'sku',
+              unitInclTaxes: '10',
               count: 1,
-              inclTaxes: 10,
-              exclTaxes: 9.523809523809524,
+              inclTaxes: '10',
+              exclTaxes: '9.52380952380952380952',
               vat: 5,
             },
           ],
