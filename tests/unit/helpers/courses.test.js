@@ -2341,14 +2341,17 @@ describe('generateCompletionCertificate', () => {
     sinon.assert.calledWithExactly(createReadStream.getCall(0), '1.docx');
     sinon.assert.calledWithExactly(createReadStream.getCall(1), '2.docx');
     sinon.assert.calledWithExactly(createReadStream.getCall(2), '3.docx');
-    sinon.assert.calledOnceWithExactly(downloadFileById, {
-      fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
-      tmpFilePath: '/path/certificate_template.docx',
-    });
+    sinon.assert.calledOnceWithExactly(
+      downloadFileById,
+      {
+        fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
+        tmpFilePath: '/path/certificate_template.docx',
+      }
+    );
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
-      { query: 'populate', args: ['slots'] },
-      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
       {
         query: 'populate',
         args: [{
@@ -2427,14 +2430,17 @@ describe('generateCompletionCertificate', () => {
       [{ name: 'Attestation - trainee 1.docx', file: readable1 }]
     );
     sinon.assert.calledOnceWithExactly(createReadStream, '1.docx');
-    sinon.assert.calledOnceWithExactly(downloadFileById, {
-      fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
-      tmpFilePath: '/path/certificate_template.docx',
-    });
+    sinon.assert.calledOnceWithExactly(
+      downloadFileById,
+      {
+        fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
+        tmpFilePath: '/path/certificate_template.docx',
+      }
+    );
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
-      { query: 'populate', args: ['slots'] },
-      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
       {
         query: 'populate',
         args: [{
@@ -2506,8 +2512,8 @@ describe('generateCompletionCertificate', () => {
     sinon.assert.calledOnceWithExactly(generatePdf, { content: 'test' });
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
       { query: 'findOne', args: [{ _id: courseId }] },
-      { query: 'populate', args: ['slots'] },
-      { query: 'populate', args: [{ path: 'trainees', populate: { path: 'company' } }] },
+      { query: 'populate', args: [{ path: 'slots', select: 'startDate endDate' }] },
+      { query: 'populate', args: [{ path: 'trainees', select: 'identity', populate: { path: 'company' } }] },
       {
         query: 'populate',
         args: [{
