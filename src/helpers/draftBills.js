@@ -234,7 +234,7 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
   };
   if (eventPrice.surcharges) prices.surcharges = eventPrice.surcharges;
 
-  if (eventPrice.thirdPartyPayerPrice) {
+  if (eventPrice.thirdPartyPayerPrice && !NumbersHelper.isEqualTo(eventPrice.thirdPartyPayerPrice, 0)) {
     prices.inclTaxesTpp = eventPrice.thirdPartyPayerPrice;
     prices.exclTaxesTpp = UtilsHelper.getExclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
     prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
