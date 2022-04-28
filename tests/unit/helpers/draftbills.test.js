@@ -609,7 +609,7 @@ describe('formatDraftBillsForCustomer', () => {
     const customerPrices = { exclTaxes: '20', inclTaxes: '25', hours: '3', eventsList: [{ event: '123456' }] };
     const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const service = { vat: 20 };
-    const eventPrice = { customerPrice: '21', surcharges: [{ name: 'test' }] };
+    const eventPrice = { customerPrice: '21', thirdPartyPayerPrice: '0', surcharges: [{ name: 'test' }] };
 
     getExclTaxes.returns('17.5');
 
