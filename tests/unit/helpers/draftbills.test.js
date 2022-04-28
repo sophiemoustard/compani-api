@@ -716,8 +716,8 @@ describe('computeBillingInfoForEvents', () => {
 
     getMatchingVersion.onCall(0).returns(matchingService1);
     getMatchingVersion.onCall(1).returns(matchingService2);
-    getEventBilling.onCall(0).returns({ customerPrice: '20' });
-    getEventBilling.onCall(1).returns({ customerPrice: '15' });
+    getEventBilling.onCall(0).returns({ customerPrice: '20', thirdPartyPayerPrice: '0' });
+    getEventBilling.onCall(1).returns({ customerPrice: '15', thirdPartyPayerPrice: '0' });
     formatDraftBillsForCustomer.onCall(0).returns({
       exclTaxes: '12',
       inclTaxes: '15',
@@ -750,14 +750,14 @@ describe('computeBillingInfoForEvents', () => {
       formatDraftBillsForCustomer.getCall(0),
       { exclTaxes: '0', inclTaxes: '0', hours: '0', eventsList: [] },
       events[0],
-      { customerPrice: '20' },
+      { customerPrice: '20', thirdPartyPayerPrice: '0' },
       matchingService1
     );
     sinon.assert.calledWithExactly(
       formatDraftBillsForCustomer.getCall(1),
       { exclTaxes: '12', inclTaxes: '15', hours: '2', eventsList: [events[0]] },
       events[1],
-      { customerPrice: '15' },
+      { customerPrice: '15', thirdPartyPayerPrice: '0' },
       matchingService2
     );
     sinon.assert.notCalled(getMatchingFunding);
