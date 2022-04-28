@@ -21,7 +21,7 @@ const billingItemsInCreditNoteDefinition = billingItemsDefinition;
 
 const billingItemsInBillDefinition = {
   ...billingItemsDefinition,
-  discount: { type: Number, default: 0 },
+  discount: { type: String, default: '0' },
   startDate: { type: Date },
   endDate: { type: Date },
   events: [{
