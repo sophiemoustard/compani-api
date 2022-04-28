@@ -42,6 +42,8 @@ describe('CompaniDate', () => {
           isAfter: expect.any(Function),
           isSame: expect.any(Function),
           isSameOrBefore: expect.any(Function),
+          isSameOrAfter: expect.any(Function),
+          isBetween: expect.any(Function),
           isHoliday: expect.any(Function),
           isBusinessDay: expect.any(Function),
           startOf: expect.any(Function),
@@ -423,6 +425,163 @@ describe('QUERY', () => {
         expect(e).toEqual(new Error('Invalid unit minutes'));
       } finally {
         sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+      }
+    });
+  });
+
+  describe('isBetween', () => {
+    let _formatMiscToCompaniDate;
+    const companiDate = CompaniDatesHelper.CompaniDate('2021-11-24T07:00:00.000Z');
+
+    beforeEach(() => {
+      _formatMiscToCompaniDate = sinon.spy(CompaniDatesHelper, '_formatMiscToCompaniDate');
+    });
+
+    afterEach(() => {
+      _formatMiscToCompaniDate.restore();
+    });
+
+    it('should return true if same as first date', () => {
+      const firstDate = '2021-11-24T07:00:00.000Z';
+      const secondDate = '2021-11-27T07:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return true if same as second date', () => {
+      const firstDate = '2021-11-21T07:00:00.000Z';
+      const secondDate = '2021-11-24T07:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return false if before first date', () => {
+      const firstDate = '2021-11-25T10:00:00.000Z';
+      const secondDate = '2021-11-27T10:00:00.000Z';
+      const result = companiDate.isBetween(firstDate, secondDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return true if before first date but same as specified unit', () => {
+      const firstDate = '2021-11-24T08:00:00.000Z';
+      const secondDate = '2021-11-27T08:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate, 'day');
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return true if after first date', () => {
+      const firstDate = '2021-11-23T10:00:00.000Z';
+      const secondDate = '2021-11-27T10:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return false if before specified unit (first date)', () => {
+      const firstDate = '2021-11-24T08:00:00.000Z';
+      const secondDate = '2021-11-27T08:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate, 'minute');
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return false if after second date', () => {
+      const firstDate = '2021-11-21T10:00:00.000Z';
+      const secondDate = '2021-11-23T10:00:00.000Z';
+      const result = companiDate.isBetween(firstDate, secondDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return true if after second date but same as specified unit', () => {
+      const firstDate = '2021-11-21T08:00:00.000Z';
+      const secondDate = '2021-11-24T08:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate, 'day');
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return true if before second date', () => {
+      const firstDate = '2021-11-23T10:00:00.000Z';
+      const secondDate = '2021-11-24T10:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return false if after specified unit (second date)', () => {
+      const firstDate = '2021-11-21T08:00:00.000Z';
+      const secondDate = '2021-11-24T06:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate, 'minute');
+
+      expect(result).toBe(false);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return true if between both dates #tag', () => {
+      const firstDate = '2021-11-21T08:00:00.000Z';
+      const secondDate = '2021-11-25T08:00:00.000Z';
+
+      const result = companiDate.isBetween(firstDate, secondDate);
+
+      expect(result).toBe(true);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
+    });
+
+    it('should return error if invalid otherDate', () => {
+      const firstDate = '2021-11-24T08:00:00.000Z';
+      try {
+        companiDate.isBetween(firstDate, null);
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid DateTime: wrong arguments'));
+      } finally {
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), null);
+      }
+    });
+
+    it('should return error if unit is plural', () => {
+      const firstDate = '2021-11-24T06:00:00.000Z';
+      const secondDate = '2021-11-27T06:00:00.000Z';
+      try {
+        companiDate.isBetween(firstDate, secondDate, 'minutes');
+      } catch (e) {
+        expect(e).toEqual(new Error('Invalid unit minutes'));
+      } finally {
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
+        sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
       }
     });
   });

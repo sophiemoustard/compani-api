@@ -421,8 +421,7 @@ exports.exportContractHistory = async (startDate, endDate, credentials) => {
     const identity = get(contract, 'user.identity') || {};
     for (let i = 0, l = contract.versions.length; i < l; i++) {
       const version = contract.versions[i];
-      if (version.startDate && CompaniDate(version.startDate).isSameOrAfter(startDate) &&
-        CompaniDate(version.startDate).isSameOrBefore(endDate)) {
+      if (version.startDate && CompaniDate(version.startDate).isBetween(startDate, endDate)) {
         rows.push([
           i === 0 ? 'Contrat' : 'Avenant',
           get(contract, 'user._id') || '',
@@ -481,7 +480,7 @@ const getHiringDate = (contracts) => {
   if (!contracts || contracts.length === 0) return null;
   if (contracts.length === 1) return contracts[0].startDate;
 
-  return contracts.map(contract => contract.startDate).sort((a, b) => (CompaniDate(a).isBefore(b) ? -1 : 1))[0];
+  return [...contracts].sort(DatesHelper.ascendingSort('startDate'))[0].startDate;
 };
 
 const formatLines = (surchargedPlanDetails, planName) => {
