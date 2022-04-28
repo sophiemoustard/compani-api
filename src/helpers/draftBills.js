@@ -22,7 +22,6 @@ const populateSurchargeAndBillingItem = (arr, surcharges, billingItems) => arr
 
 exports.populateAndFormatSubscription = async (subscription, surcharges, billingItems) => ({
   ...subscription,
-  versions: [...subscription.versions].sort(DatesHelper.descendingSort('startDate')),
   service: {
     ...subscription.service,
     versions: populateSurchargeAndBillingItem(subscription.service.versions, surcharges, billingItems),
