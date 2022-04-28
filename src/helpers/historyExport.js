@@ -97,6 +97,7 @@ const getServiceName = (service) => {
   if (!service) return null;
 
   const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
+
   return lastVersion.name;
 };
 

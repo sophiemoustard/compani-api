@@ -407,14 +407,14 @@ describe('getCustomersWithIntervention', () => {
   });
 });
 
-describe('formatSubscriptionInPopulate', () => {
+describe('formatServiceInPopulate', () => {
   it('should return subscription with last version only', () => {
     const subscription = {
       _id: new ObjectId(),
       versions: [{ startDate: '2021-01-10' }, { startDate: '2021-09-20' }, { startDate: '2020-12-10' }],
     };
 
-    const rep = CustomerHelper.formatSubscriptionInPopulate(subscription);
+    const rep = CustomerHelper.formatServiceInPopulate(subscription);
 
     expect(rep).toEqual({ ...subscription, versions: { startDate: '2021-09-20' }, startDate: '2021-09-20' });
   });
@@ -422,16 +422,16 @@ describe('formatSubscriptionInPopulate', () => {
 
 describe('getCustomersWithSubscriptions', () => {
   let findCustomer;
-  let formatSubscriptionInPopulateStub;
+  let formatServiceInPopulate;
 
   beforeEach(() => {
     findCustomer = sinon.stub(Customer, 'find');
-    formatSubscriptionInPopulateStub = sinon.stub(CustomerHelper, 'formatSubscriptionInPopulate');
+    formatServiceInPopulate = sinon.stub(CustomerHelper, 'formatServiceInPopulate');
   });
 
   afterEach(() => {
     findCustomer.restore();
-    formatSubscriptionInPopulateStub.restore();
+    formatServiceInPopulate.restore();
   });
 
   it('should return customers with subscriptions', async () => {
@@ -446,13 +446,7 @@ describe('getCustomersWithSubscriptions', () => {
       findCustomer,
       [
         { query: 'find', args: [{ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId }] },
-        {
-          query: 'populate',
-          args: [{
-            path: 'subscriptions.service',
-            transform: formatSubscriptionInPopulateStub,
-          }],
-        },
+        { query: 'populate', args: [{ path: 'subscriptions.service', transform: formatServiceInPopulate }] },
         {
           query: 'populate',
           args: [{
