@@ -44,7 +44,7 @@ const BillSchema = mongoose.Schema({
     discount: { type: String, default: 0 },
   }],
   origin: { type: String, enum: BILL_ORIGINS, default: COMPANI },
-  netInclTaxes: { type: String, required: true },
+  netInclTaxes: { type: Number, required: true },
   driveFile: driveResourceSchemaDefinition,
   sentAt: Date,
   shouldBeSent: { type: Boolean, default: false },
