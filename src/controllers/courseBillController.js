@@ -23,12 +23,9 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const courseBill = await CourseBillHelper.create(req.payload);
+    await CourseBillHelper.create(req.payload);
 
-    return {
-      message: translate[language].courseBillCreated,
-      data: { courseBill },
-    };
+    return { message: translate[language].courseBillCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
