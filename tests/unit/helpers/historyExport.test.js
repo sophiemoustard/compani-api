@@ -39,7 +39,6 @@ const {
   TIME_STAMPING_ACTIONS,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
-const DatesHelper = require('../../../src/helpers/dates');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 
 describe('getWorkingEventsForExport', () => {
@@ -233,8 +232,8 @@ describe('exportWorkingEventsHistory', () => {
       _id: auxiliaryId,
       identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
       sectorHistory: [
-        { startDate: '2018-09-12T00:00:00', sector: { name: 'Girafes - 75' } },
-        { startDate: '2019-09-12T00:00:00', sector: { name: 'Etoiles - 75' } },
+        { startDate: '2018-09-12T00:00:00.000Z', sector: { name: 'Girafes - 75' } },
+        { startDate: '2019-09-12T00:00:00.000Z', sector: { name: 'Etoiles - 75' } },
       ],
     },
   ];
@@ -254,11 +253,11 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: auxiliaryId,
-      startDate: '2019-05-20T08:00:00',
-      endDate: '2019-05-20T10:00:00',
+      startDate: '2019-05-20T08:00:00.000Z',
+      endDate: '2019-05-20T10:00:00.000Z',
       histories: [
         {
-          update: { startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' } },
+          update: { startHour: { from: '2019-05-20T08:00:00.000Z', to: '2019-05-20T08:01:18.000Z' } },
           event: { type: 'intervention', auxiliary: auxiliaryId },
           auxiliaries: [auxiliaryId],
           action: 'manual_time_stamping',
@@ -280,18 +279,18 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
-      startDate: '2019-05-20T08:00:00',
-      endDate: '2019-05-20T10:00:00',
+      startDate: '2019-05-20T08:00:00.000Z',
+      endDate: '2019-05-20T10:00:00.000Z',
       histories: [
         {
-          update: { startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' } },
+          update: { startHour: { from: '2019-05-20T08:00:00.000Z', to: '2019-05-20T08:01:18.000Z' } },
           event: { type: 'intervention', auxiliary: auxiliaryId },
           auxiliaries: [auxiliaryId],
           action: 'manual_time_stamping',
           manualTimeStampingReason: 'qrcode_missing',
         },
         {
-          update: { endHour: { from: '2019-05-20T10:00:00', to: '2019-05-20T10:03:24' } },
+          update: { endHour: { from: '2019-05-20T10:00:00.000Z', to: '2019-05-20T10:03:24.000Z' } },
           event: { type: 'intervention', auxiliary: auxiliaryId },
           auxiliaries: [auxiliaryId],
           action: 'manual_time_stamping',
@@ -313,8 +312,8 @@ describe('exportWorkingEventsHistory', () => {
         _id: new ObjectId(),
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
-      startDate: '2019-05-20T08:00:00',
-      endDate: '2019-05-20T10:00:00',
+      startDate: '2019-05-20T08:00:00.000Z',
+      endDate: '2019-05-20T10:00:00.000Z',
       misc: 'brbr',
       histories: [],
     },
@@ -322,18 +321,15 @@ describe('exportWorkingEventsHistory', () => {
   let getWorkingEventsForExport;
   let getLastVersion;
   let getAuxiliariesWithSectorHistory;
-  let formatDateAndTime;
   beforeEach(() => {
     getWorkingEventsForExport = sinon.stub(ExportHelper, 'getWorkingEventsForExport');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
     getAuxiliariesWithSectorHistory = sinon.stub(UserRepository, 'getAuxiliariesWithSectorHistory');
-    formatDateAndTime = sinon.stub(DatesHelper, 'formatDateAndTime');
   });
   afterEach(() => {
     getWorkingEventsForExport.restore();
     getLastVersion.restore();
     getAuxiliariesWithSectorHistory.restore();
-    formatDateAndTime.restore();
   });
 
   it('should return an array containing just the header', async () => {
@@ -347,16 +343,6 @@ describe('exportWorkingEventsHistory', () => {
   it('should return an array with the header and 3 rows', async () => {
     getWorkingEventsForExport.returns(events);
     getAuxiliariesWithSectorHistory.returns(auxiliaries);
-
-    formatDateAndTime.onCall(0).returns('20/05/2019 10:00:00');
-    formatDateAndTime.onCall(1).returns('20/05/2019 10:01:18');
-    formatDateAndTime.onCall(2).returns('20/05/2019 12:00:00');
-    formatDateAndTime.onCall(3).returns('20/05/2019 10:00:00');
-    formatDateAndTime.onCall(4).returns('20/05/2019 10:01:18');
-    formatDateAndTime.onCall(5).returns('20/05/2019 12:00:00');
-    formatDateAndTime.onCall(6).returns('20/05/2019 12:03:24');
-    formatDateAndTime.onCall(7).returns('20/05/2019 10:00:00');
-    formatDateAndTime.onCall(8).returns('20/05/2019 12:00:00');
 
     getLastVersion.callsFake(ver => ver[0]);
 

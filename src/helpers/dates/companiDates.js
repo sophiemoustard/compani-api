@@ -67,7 +67,13 @@ const CompaniDateFactory = (inputDate) => {
 
       return (_date.hasSame(otherDate, unit) || _date.startOf(unit) > otherDate.startOf(unit));
     },
+    isSameOrBetween(miscTypeFirstDate, miscTypeSecondDate, unit = 'millisecond') {
+      const firstDate = exports._formatMiscToCompaniDate(miscTypeFirstDate);
+      const secondDate = exports._formatMiscToCompaniDate(miscTypeSecondDate);
 
+      return (_date.hasSame(firstDate, unit) || _date.hasSame(secondDate, unit) ||
+        (_date.startOf(unit) > firstDate.startOf(unit) && _date.startOf(unit) < secondDate.startOf(unit)));
+    },
     isHoliday() {
       const { year } = _date;
       const holidays = getHolidays(year);
@@ -90,9 +96,11 @@ const CompaniDateFactory = (inputDate) => {
       return CompaniDateFactory(_date.endOf(unit));
     },
 
-    diff(miscTypeOtherDate, unit) {
+    diff(miscTypeOtherDate, unit, typeFloat = false) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
       const floatedDiff = _date.diff(otherDate, unit).as(unit);
+
+      if (typeFloat) return { [unit]: floatedDiff };
 
       return { [unit]: floatedDiff > 0 ? Math.floor(floatedDiff) : Math.ceil(floatedDiff) };
     },
