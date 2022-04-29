@@ -174,7 +174,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       TIMESTAMPING_ACTION_TYPE_LIST[get(endHourTimeStamping, 'action')] || '',
       get(endHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
-      UtilsHelper.formatFloatForExport(CompaniDate(event.endDate).diff(event.startDate, 'minutes').minutes / 60),
+      UtilsHelper.formatFloatForExport(CompaniDate(event.endDate).diff(event.startDate, 'hours', true).hours),
       repetition || '',
       event.kmDuringEvent ? UtilsHelper.formatFloatForExport(event.kmDuringEvent) : '',
       EVENT_TRANSPORT_MODE_LIST[get(event, 'transportMode')] || '',
@@ -421,7 +421,7 @@ exports.exportContractHistory = async (startDate, endDate, credentials) => {
     const identity = get(contract, 'user.identity') || {};
     for (let i = 0, l = contract.versions.length; i < l; i++) {
       const version = contract.versions[i];
-      if (version.startDate && CompaniDate(version.startDate).isBetween(startDate, endDate)) {
+      if (version.startDate && CompaniDate(version.startDate).isSameOrBetween(startDate, endDate)) {
         rows.push([
           i === 0 ? 'Contrat' : 'Avenant',
           get(contract, 'user._id') || '',
