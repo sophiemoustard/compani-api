@@ -476,7 +476,7 @@ describe('QUERY', () => {
 
     it('should return true if after second date but same as specified unit', () => {
       const firstDate = '2021-11-21T08:00:00.000Z';
-      const secondDate = '2021-11-24T08:00:00.000Z';
+      const secondDate = '2021-11-24T06:00:00.000Z';
 
       const result = companiDate.isSameOrBetween(firstDate, secondDate, 'day');
 
