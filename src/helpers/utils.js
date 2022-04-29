@@ -90,7 +90,7 @@ const roundFrenchPrice = (number) => {
 exports.formatPrice = val => (val ? roundFrenchPrice(val) : roundFrenchPrice(0));
 
 const roundFrenchNumber = (number) => {
-  const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'decimal' });
+  const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'decimal', maximumFractionDigits: 2 });
   return nf.format(number);
 };
 
