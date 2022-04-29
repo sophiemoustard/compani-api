@@ -2722,6 +2722,16 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(result.statusCode).toBe(403);
     });
 
+    it('should not delete customer funding if used in bill', async () => {
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
