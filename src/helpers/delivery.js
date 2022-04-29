@@ -263,8 +263,9 @@ exports.formatNonBilledEvents = async (events, startDate, endDate, credentials) 
 };
 
 exports.getEvents = async (query, credentials) => {
+  const { month, thirdPartyPayers, onlyPastEvents } = query;
   const companyId = get(credentials, 'company._id');
-  const tpps = UtilsHelper.formatObjectIdsArray(query.thirdPartyPayers);
+  const tpps = UtilsHelper.formatObjectIdsArray(thirdPartyPayers);
   const customersWithFundings = await Customer
     .find({ 'fundings.thirdPartyPayer': { $in: tpps }, company: companyId }, { fundings: 1 })
     .lean();
@@ -272,8 +273,10 @@ exports.getEvents = async (query, credentials) => {
     .filter(f => UtilsHelper.doesArrayIncludeId(tpps, f.thirdPartyPayer))
     .map(f => f.subscription);
 
-  const startDate = moment(query.month, 'MM-YYYY').startOf('month').toDate();
-  const endDate = moment(query.month, 'MM-YYYY').endOf('month').toDate();
+  const startDate = moment(month, 'MM-YYYY').startOf('month').toDate();
+  const endDate = onlyPastEvents
+    ? moment().subtract(1, 'day').endOf('day').toDate()
+    : moment(month, 'MM-YYYY').endOf('month').toDate();
 
   const events = await Event
     .find({
