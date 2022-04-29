@@ -463,28 +463,6 @@ describe('QUERY', () => {
       sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
     });
 
-    it('should return true if after first date', () => {
-      const firstDate = '2021-11-23T10:00:00.000Z';
-      const secondDate = '2021-11-27T10:00:00.000Z';
-
-      const result = companiDate.isSameOrBetween(firstDate, secondDate);
-
-      expect(result).toBe(true);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
-    });
-
-    it('should return true if before second date', () => {
-      const firstDate = '2021-11-23T10:00:00.000Z';
-      const secondDate = '2021-11-24T10:00:00.000Z';
-
-      const result = companiDate.isSameOrBetween(firstDate, secondDate);
-
-      expect(result).toBe(true);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(0), firstDate);
-      sinon.assert.calledWithExactly(_formatMiscToCompaniDate.getCall(1), secondDate);
-    });
-
     it('should return true if before first date but same as specified unit', () => {
       const firstDate = '2021-11-24T08:00:00.000Z';
       const secondDate = '2021-11-27T08:00:00.000Z';
