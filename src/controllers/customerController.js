@@ -353,9 +353,7 @@ const deleteFunding = async (req) => {
   try {
     await FundingHelper.deleteFunding(req.params._id, req.params.fundingId);
 
-    return {
-      message: translate[language].customerFundingRemoved,
-    };
+    return { message: translate[language].customerFundingRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

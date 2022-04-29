@@ -35,6 +35,7 @@ const { FUNDING_FREQUENCIES, FUNDING_NATURES, SITUATION_OPTIONS, STOP_REASONS } 
 const {
   authorizeCustomerDelete,
   authorizeCustomerUpdate,
+  authorizeFundingDeletion,
   authorizeCustomerGet,
   authorizeCustomerGetBySector,
   authorizeSubscriptionCreation,
@@ -488,7 +489,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), fundingId: Joi.objectId().required() }),
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }, { method: authorizeFundingDeletion }],
       },
       handler: deleteFunding,
     });

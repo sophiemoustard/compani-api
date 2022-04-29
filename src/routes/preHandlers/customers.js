@@ -205,3 +205,15 @@ exports.authorizeCustomerDelete = async (req) => {
 
   return null;
 };
+
+exports.authorizeFundingDeletion = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+
+  const bills = await Bill.countDocuments(
+    { 'subscriptions.events.fundingId': req.params.fundingId, company: companyId },
+    { limit: 1 }
+  );
+  if (bills) throw Boom.forbidden();
+
+  return null;
+};
