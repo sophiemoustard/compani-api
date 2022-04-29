@@ -188,7 +188,7 @@ exports.formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime
 
   return {
     'ns:CIDDHExchangedDocumentContext': getCIDDHExchangedDocumentContext(`I${transactionId}${eventIndex}`),
-    'ns:CIDDHExchangedDocument': getCIDDHExchangedDocument(`I${transactionId}${eventIndex}`, issueDateTime),
+    'ns:CIDDHExchangedDocument': getCIDDHExchangedDocument(event._id.toHexString(), issueDateTime),
     'ns:CIDDHSupplyChainTradeTransaction':
       getCIDDHSupplyChainTradeTransaction(event, funding, `I${transactionId}${eventIndex}`),
   };
