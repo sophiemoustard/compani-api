@@ -274,7 +274,9 @@ exports.getEvents = async (query, credentials) => {
     .map(f => f.subscription);
 
   const startDate = moment(month, 'MM-YYYY').startOf('month').toDate();
-  const endDate = onlyPastEvents
+  const yesterday = moment().subtract(1, 'day').endOf('day');
+  const endOfMonth = moment(month, 'MM-YYYY').endOf('month').toDate();
+  const endDate = onlyPastEvents && yesterday.isBefore(endOfMonth)
     ? moment().subtract(1, 'day').endOf('day').toDate()
     : moment(month, 'MM-YYYY').endOf('month').toDate();
 

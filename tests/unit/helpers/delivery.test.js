@@ -419,6 +419,64 @@ describe('getEvents', () => {
       companyId
     );
   });
+
+  it('should get only events from last month event if onlyPastEvents is true', async () => {
+    const companyId = new ObjectId();
+    const tpp1 = new ObjectId();
+    const query = { thirdPartyPayers: [tpp1.toHexString()], month: '12-2020', onlyPastEvents: true };
+    const startOfMonth = moment('12-2020', 'MM-YYYY').startOf('month').toDate();
+    const endOfMonth = moment('12-2020', 'MM-YYYY').endOf('month').toDate();
+    const customers = [{ _id: '321', fundings: [{ thirdPartyPayer: tpp1, subscription: '987' }] }];
+    const events = [{ isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } }];
+
+    findCustomers.returns(SinonMongoose.stubChainedQueries(customers, ['lean']));
+    findEvents.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
+    formatNonBilledEvents.returns([]);
+    formatEvents.returns([{ isBilled: true, _id: 'billed', auxiliary: 'aux' }]);
+
+    const result = await DeliveryHelper.getEvents(query, { company: { _id: companyId } });
+
+    expect(result).toEqual([{ isBilled: true, _id: 'billed', auxiliary: 'aux' }]);
+    SinonMongoose.calledOnceWithExactly(
+      findCustomers,
+      [
+        {
+          query: 'find',
+          args: [{ 'fundings.thirdPartyPayer': { $in: [tpp1] }, company: companyId }, { fundings: 1 }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findEvents,
+      [
+        {
+          query: 'find',
+          args: [{
+            subscription: { $in: ['987'] },
+            company: companyId,
+            endDate: { $gt: startOfMonth },
+            startDate: { $lt: endOfMonth },
+            auxiliary: { $exists: true },
+            'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } },
+          }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      formatNonBilledEvents,
+      [],
+      startOfMonth,
+      endOfMonth,
+      { company: { _id: companyId } }
+    );
+    sinon.assert.calledOnceWithExactly(
+      formatEvents,
+      [{ isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } }],
+      companyId
+    );
+  });
 });
 
 describe('getFileName', () => {
