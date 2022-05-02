@@ -240,7 +240,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(11);
+      expect(response.result.data.courses.length).toEqual(12);
     });
 
     it('should get strictly e-learning courses', async () => {
@@ -287,7 +287,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(8);
+      expect(response.result.data.courses.length).toEqual(9);
     });
 
     const roles = [
@@ -1149,10 +1149,6 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
 describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
   let authToken;
-  const courseIdWithTrainees = coursesList[4]._id;
-  const courseIdWithSlots = coursesList[5]._id;
-  const courseIdWithoutTraineesAndSlots = coursesList[6]._id;
-  const courseIdWithSlotsToPLan = coursesList[7]._id;
   beforeEach(populateDB);
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -1163,12 +1159,12 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
     it('should delete course', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseIdWithoutTraineesAndSlots}`,
+        url: `/courses/${coursesList[6]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(200);
-      const courseCount = await Course.countDocuments({ _id: courseIdWithoutTraineesAndSlots });
+      const courseCount = await Course.countDocuments({ _id: coursesList[6]._id });
       expect(courseCount).toBe(0);
     });
 
@@ -1185,7 +1181,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
     it('should return 403 as course has trainees', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseIdWithTrainees}`,
+        url: `/courses/${coursesList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1195,7 +1191,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
     it('should return 403 as course has slots to plan', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseIdWithSlotsToPLan}`,
+        url: `/courses/${coursesList[7]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1205,11 +1201,23 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
     it('should return 403 as course has slots', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/courses/${courseIdWithSlots}`,
+        url: `/courses/${coursesList[5]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should not delete course if billed', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[15]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+      const courseCount = await Course.countDocuments({ _id: coursesList[14]._id });
+      expect(courseCount).toBe(1);
     });
   });
 
@@ -1225,7 +1233,7 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'DELETE',
-          url: `/courses/${courseIdWithoutTraineesAndSlots}`,
+          url: `/courses/${coursesList[6]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

@@ -20,6 +20,7 @@ const {
 } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const UtilsHelper = require('../../helpers/utils');
+const CourseBill = require('../../models/CourseBill');
 
 const { language } = translate;
 
@@ -168,6 +169,12 @@ exports.authorizeCourseDeletion = async (req) => {
   if (course.trainees.length) return Boom.forbidden('stagiaire');
   if (course.slots.length) return Boom.forbidden('creneaux');
   if (course.slotsToPlan.length) return Boom.forbidden('a planifier');
+
+  const courseBills = await CourseBill.countDocuments(
+    { course: req.params._id, billedAt: { $exists: true, $type: 'date' } },
+    { limit: 1 }
+  );
+  if (courseBills) return Boom.forbidden('facture');
 
   return null;
 };
