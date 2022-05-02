@@ -22,6 +22,17 @@ describe('TELETRANSMISSION ROUTES - GET /teletransmission/delivery', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should generate xml delivery file only for past events', async () => {
+      const tppId = teletransmissionTppList[0]._id;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/teletransmission/delivery?thirdPartyPayers=${tppId}&month=09-2021&onlyPastEvents=true`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
     it('should return a 404 if tpp is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
