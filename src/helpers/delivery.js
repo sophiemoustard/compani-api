@@ -11,7 +11,7 @@ const XMLHelper = require('./xml');
 const DraftBillsHelper = require('./draftBills');
 const FundingsHelper = require('./fundings');
 const DatesHelper = require('./dates');
-const moment = require('../extensions/moment');
+const { CompaniDate } = require('./dates/companiDates');
 const { NOT_INVOICED_AND_NOT_PAID, TIME_STAMPING_ACTIONS } = require('./constants');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 
@@ -273,9 +273,9 @@ exports.getEvents = async (query, credentials) => {
     .filter(f => UtilsHelper.doesArrayIncludeId(tpps, f.thirdPartyPayer))
     .map(f => f.subscription);
 
-  const startDate = moment(month, 'MM-YYYY').startOf('month').toDate();
-  const yesterday = moment().subtract(1, 'day').endOf('day');
-  const endOfMonth = moment(month, 'MM-YYYY').endOf('month');
+  const startDate = CompaniDate(month, 'MM-yyyy').startOf('month').toDate();
+  const yesterday = CompaniDate().subtract({ days: 1 }).endOf('day');
+  const endOfMonth = CompaniDate(month, 'MM-yyyy').endOf('month');
   const endDate = onlyPastEvents && yesterday.isBefore(endOfMonth) ? yesterday.toDate() : endOfMonth.toDate();
 
   const events = await Event
@@ -317,8 +317,8 @@ exports.getFileName = async (query) => {
     .findOne({ _id: tppsQuery[0] }, { teletransmissionType: 1, companyCode: 1 })
     .lean();
 
-  const month = moment(query.month, 'MM-YYYY').format('YYYYMM');
-  const date = moment().format('YYMMDDHHmm');
+  const month = CompaniDate(query.month, 'MM-yyyy').format('yyyyMM');
+  const date = CompaniDate().format('yyMMddhhmm');
 
   return `${tpp.companyCode}-${month}-${tpp.teletransmissionType}-${date}.xml`;
 };

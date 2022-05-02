@@ -1,10 +1,10 @@
 const { ObjectId } = require('mongodb');
 const sinon = require('sinon');
-const moment = require('moment');
 const expect = require('expect');
 const SinonMongoose = require('../sinonMongoose');
 const DeliveryHelper = require('../../../src/helpers/delivery');
 const DraftBillsHelper = require('../../../src/helpers/draftBills');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const EventHistory = require('../../../src/models/EventHistory');
@@ -338,8 +338,8 @@ describe('getEvents', () => {
           args: [{
             subscription: { $in: ['234', '111', '987'] },
             company: companyId,
-            endDate: { $gt: moment('09-2021', 'MM-YYYY').startOf('month').toDate() },
-            startDate: { $lt: moment('09-2021', 'MM-YYYY').endOf('month').toDate() },
+            endDate: { $gt: CompaniDate('09-2021', 'MM-yyyy').startOf('month').toDate() },
+            startDate: { $lt: CompaniDate('09-2021', 'MM-yyyy').endOf('month').toDate() },
             auxiliary: { $exists: true },
             'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } },
           }],
@@ -350,8 +350,8 @@ describe('getEvents', () => {
     sinon.assert.calledOnceWithExactly(
       formatNonBilledEvents,
       [{ isBilled: false, _id: eventsIds[1] }],
-      moment('09-2021', 'MM-YYYY').startOf('month').toDate(),
-      moment('09-2021', 'MM-YYYY').endOf('month').toDate(),
+      CompaniDate('09-2021', 'MM-yyyy').startOf('month').toDate(),
+      CompaniDate('09-2021', 'MM-yyyy').endOf('month').toDate(),
       { company: { _id: companyId } }
     );
     sinon.assert.calledOnceWithExactly(
@@ -368,8 +368,12 @@ describe('getEvents', () => {
     const companyId = new ObjectId();
     const tpp1 = new ObjectId();
     const eventId = new ObjectId();
-    const query = { thirdPartyPayers: [tpp1.toHexString()], month: moment().format('MM-YYYY'), onlyPastEvents: true };
-    const endDate = moment().subtract(1, 'day').endOf('day').toDate();
+    const query = {
+      thirdPartyPayers: [tpp1.toHexString()],
+      month: CompaniDate().format('MM-yyyy'),
+      onlyPastEvents: true,
+    };
+    const endDate = CompaniDate().subtract({ days: 1 }).endOf('day').toDate();
     const customers = [{ _id: '321', fundings: [{ thirdPartyPayer: tpp1, subscription: '987' }] }];
     const events = [{ isBilled: true, _id: eventId, bills: { thirdPartyPayer: tpp1 } }];
 
@@ -399,7 +403,7 @@ describe('getEvents', () => {
           args: [{
             subscription: { $in: ['987'] },
             company: companyId,
-            endDate: { $gt: moment().startOf('month').toDate() },
+            endDate: { $gt: CompaniDate().startOf('month').toDate() },
             startDate: { $lt: endDate },
             auxiliary: { $exists: true },
             'cancel.condition': { $not: { $eq: NOT_INVOICED_AND_NOT_PAID } },
@@ -411,7 +415,7 @@ describe('getEvents', () => {
     sinon.assert.calledOnceWithExactly(
       formatNonBilledEvents,
       [],
-      moment().startOf('month').toDate(),
+      CompaniDate().startOf('month').toDate(),
       endDate,
       { company: { _id: companyId } }
     );
@@ -427,8 +431,8 @@ describe('getEvents', () => {
     const tpp1 = new ObjectId();
     const eventId = new ObjectId();
     const query = { thirdPartyPayers: [tpp1.toHexString()], month: '12-2020', onlyPastEvents: true };
-    const startOfMonth = moment('12-2020', 'MM-YYYY').startOf('month').toDate();
-    const endOfMonth = moment('12-2020', 'MM-YYYY').endOf('month').toDate();
+    const startOfMonth = CompaniDate('12-2020', 'MM-yyyy').startOf('month').toDate();
+    const endOfMonth = CompaniDate('12-2020', 'MM-yyyy').endOf('month').toDate();
     const customers = [{ _id: '321', fundings: [{ thirdPartyPayer: tpp1, subscription: '987' }] }];
     const events = [{ isBilled: true, _id: eventId, bills: { thirdPartyPayer: tpp1 } }];
 
@@ -499,7 +503,7 @@ describe('getFileName', () => {
 
     const result = await DeliveryHelper.getFileName(query);
 
-    expect(result).toEqual(`440-202109-APA-${moment().format('YYMMDDHHmm')}.xml`);
+    expect(result).toEqual(`440-202109-APA-${CompaniDate().format('yyMMddhhm')}.xml`);
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: tppId }, { teletransmissionType: 1, companyCode: 1 }] }, { query: 'lean' }]
