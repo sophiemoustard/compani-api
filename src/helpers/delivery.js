@@ -275,10 +275,8 @@ exports.getEvents = async (query, credentials) => {
 
   const startDate = moment(month, 'MM-YYYY').startOf('month').toDate();
   const yesterday = moment().subtract(1, 'day').endOf('day');
-  const endOfMonth = moment(month, 'MM-YYYY').endOf('month').toDate();
-  const endDate = onlyPastEvents && yesterday.isBefore(endOfMonth)
-    ? moment().subtract(1, 'day').endOf('day').toDate()
-    : moment(month, 'MM-YYYY').endOf('month').toDate();
+  const endOfMonth = moment(month, 'MM-YYYY').endOf('month');
+  const endDate = onlyPastEvents && yesterday.isBefore(endOfMonth) ? yesterday.toDate() : endOfMonth.toDate();
 
   const events = await Event
     .find({

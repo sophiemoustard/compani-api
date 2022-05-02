@@ -286,6 +286,7 @@ describe('getEvents', () => {
     const companyId = new ObjectId();
     const tpp1 = new ObjectId();
     const tpp2 = new ObjectId();
+    const eventsIds = [new ObjectId(), new ObjectId(), new ObjectId()];
     const query = { thirdPartyPayers: [tpp1.toHexString(), tpp2.toHexString()], month: '09-2021' };
     const customers = [
       {
@@ -301,23 +302,23 @@ describe('getEvents', () => {
       },
     ];
     const events = [
-      { isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } },
-      { isBilled: false, _id: 'not_billed' },
-      { isBilled: true, _id: 'billedbutwrongtpp', bills: { thirdPartyPayer: new ObjectId() } },
+      { isBilled: true, _id: eventsIds[0], bills: { thirdPartyPayer: tpp1 } },
+      { isBilled: false, _id: eventsIds[1] },
+      { isBilled: true, _id: eventsIds[2], bills: { thirdPartyPayer: new ObjectId() } },
     ];
     findCustomers.returns(SinonMongoose.stubChainedQueries(customers, ['lean']));
     findEvents.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-    formatNonBilledEvents.returns([{ isBilled: false, _id: 'not_billed', customer: '098', histories: [] }]);
+    formatNonBilledEvents.returns([{ isBilled: false, _id: eventsIds[1], customer: '098', histories: [] }]);
     formatEvents.returns([
-      { isBilled: false, _id: 'not_billed', auxiliary: 'auxiliary' },
-      { isBilled: true, _id: 'billed', auxiliary: 'aux' },
+      { isBilled: false, _id: eventsIds[1], auxiliary: 'auxiliary' },
+      { isBilled: true, _id: eventsIds[0], auxiliary: 'aux' },
     ]);
 
     const result = await DeliveryHelper.getEvents(query, { company: { _id: companyId } });
 
     expect(result).toEqual([
-      { isBilled: false, _id: 'not_billed', auxiliary: 'auxiliary' },
-      { isBilled: true, _id: 'billed', auxiliary: 'aux' },
+      { isBilled: false, _id: eventsIds[1], auxiliary: 'auxiliary' },
+      { isBilled: true, _id: eventsIds[0], auxiliary: 'aux' },
     ]);
     SinonMongoose.calledOnceWithExactly(
       findCustomers,
@@ -348,7 +349,7 @@ describe('getEvents', () => {
     );
     sinon.assert.calledOnceWithExactly(
       formatNonBilledEvents,
-      [{ isBilled: false, _id: 'not_billed' }],
+      [{ isBilled: false, _id: eventsIds[1] }],
       moment('09-2021', 'MM-YYYY').startOf('month').toDate(),
       moment('09-2021', 'MM-YYYY').endOf('month').toDate(),
       { company: { _id: companyId } }
@@ -356,8 +357,8 @@ describe('getEvents', () => {
     sinon.assert.calledOnceWithExactly(
       formatEvents,
       [
-        { isBilled: false, _id: 'not_billed', customer: '098', histories: [] },
-        { isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } },
+        { isBilled: false, _id: eventsIds[1], customer: '098', histories: [] },
+        { isBilled: true, _id: eventsIds[0], bills: { thirdPartyPayer: tpp1 } },
       ],
       companyId
     );
@@ -366,19 +367,20 @@ describe('getEvents', () => {
   it('should get only past events', async () => {
     const companyId = new ObjectId();
     const tpp1 = new ObjectId();
+    const eventId = new ObjectId();
     const query = { thirdPartyPayers: [tpp1.toHexString()], month: moment().format('MM-YYYY'), onlyPastEvents: true };
     const endDate = moment().subtract(1, 'day').endOf('day').toDate();
     const customers = [{ _id: '321', fundings: [{ thirdPartyPayer: tpp1, subscription: '987' }] }];
-    const events = [{ isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } }];
+    const events = [{ isBilled: true, _id: eventId, bills: { thirdPartyPayer: tpp1 } }];
 
     findCustomers.returns(SinonMongoose.stubChainedQueries(customers, ['lean']));
     findEvents.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     formatNonBilledEvents.returns([]);
-    formatEvents.returns([{ isBilled: true, _id: 'billed', auxiliary: 'aux' }]);
+    formatEvents.returns([{ isBilled: true, _id: eventId, auxiliary: 'aux' }]);
 
     const result = await DeliveryHelper.getEvents(query, { company: { _id: companyId } });
 
-    expect(result).toEqual([{ isBilled: true, _id: 'billed', auxiliary: 'aux' }]);
+    expect(result).toEqual([{ isBilled: true, _id: eventId, auxiliary: 'aux' }]);
     SinonMongoose.calledOnceWithExactly(
       findCustomers,
       [
@@ -415,7 +417,7 @@ describe('getEvents', () => {
     );
     sinon.assert.calledOnceWithExactly(
       formatEvents,
-      [{ isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } }],
+      [{ isBilled: true, _id: eventId, bills: { thirdPartyPayer: tpp1 } }],
       companyId
     );
   });
@@ -423,20 +425,21 @@ describe('getEvents', () => {
   it('should get only events from last month event if onlyPastEvents is true', async () => {
     const companyId = new ObjectId();
     const tpp1 = new ObjectId();
+    const eventId = new ObjectId();
     const query = { thirdPartyPayers: [tpp1.toHexString()], month: '12-2020', onlyPastEvents: true };
     const startOfMonth = moment('12-2020', 'MM-YYYY').startOf('month').toDate();
     const endOfMonth = moment('12-2020', 'MM-YYYY').endOf('month').toDate();
     const customers = [{ _id: '321', fundings: [{ thirdPartyPayer: tpp1, subscription: '987' }] }];
-    const events = [{ isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } }];
+    const events = [{ isBilled: true, _id: eventId, bills: { thirdPartyPayer: tpp1 } }];
 
     findCustomers.returns(SinonMongoose.stubChainedQueries(customers, ['lean']));
     findEvents.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     formatNonBilledEvents.returns([]);
-    formatEvents.returns([{ isBilled: true, _id: 'billed', auxiliary: 'aux' }]);
+    formatEvents.returns([{ isBilled: true, _id: eventId, auxiliary: 'aux' }]);
 
     const result = await DeliveryHelper.getEvents(query, { company: { _id: companyId } });
 
-    expect(result).toEqual([{ isBilled: true, _id: 'billed', auxiliary: 'aux' }]);
+    expect(result).toEqual([{ isBilled: true, _id: eventId, auxiliary: 'aux' }]);
     SinonMongoose.calledOnceWithExactly(
       findCustomers,
       [
@@ -473,7 +476,7 @@ describe('getEvents', () => {
     );
     sinon.assert.calledOnceWithExactly(
       formatEvents,
-      [{ isBilled: true, _id: 'billed', bills: { thirdPartyPayer: tpp1 } }],
+      [{ isBilled: true, _id: eventId, bills: { thirdPartyPayer: tpp1 } }],
       companyId
     );
   });
