@@ -2,7 +2,6 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const pick = require('lodash/pick');
 const uniqBy = require('lodash/uniqBy');
-const moment = require('../extensions/moment');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -97,16 +96,17 @@ const getServiceName = (service) => {
   if (!service) return null;
 
   const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
+
   return lastVersion.name;
 };
 
 const getMatchingSector = (histories, event) => histories
-  .filter(sh => moment(sh.startDate).isBefore(event.startDate))
+  .filter(sh => CompaniDate(sh.startDate).isBefore(event.startDate))
   .sort(DatesHelper.descendingSort('startDate'))[0];
 
 const displayDate = (path, timestamp = null, scheduledDate = null) => {
-  if (timestamp) return DatesHelper.formatDateAndTime(get(timestamp, path), 'DD MM YYYY hh mm ss');
-  if (scheduledDate) return DatesHelper.formatDateAndTime(scheduledDate, 'DD MM YYYY hh mm ss');
+  if (timestamp) return CompaniDate(get(timestamp, path)).format('dd/LL/yyyy HH:mm:ss');
+  if (scheduledDate) return CompaniDate(scheduledDate).format('dd/LL/yyyy HH:mm:ss');
   return '';
 };
 
@@ -174,7 +174,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       TIMESTAMPING_ACTION_TYPE_LIST[get(endHourTimeStamping, 'action')] || '',
       get(endHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
-      UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
+      UtilsHelper.formatFloatForExport(CompaniDate(event.endDate).diff(event.startDate, 'hours', true).hours),
       repetition || '',
       event.kmDuringEvent ? UtilsHelper.formatFloatForExport(event.kmDuringEvent) : '',
       EVENT_TRANSPORT_MODE_LIST[get(event, 'transportMode')] || '',
@@ -219,7 +219,7 @@ const absenceExportHeader = [
 
 exports.formatAbsence = (absence) => {
   const hours = DraftPayHelper.getAbsenceHours(absence, absence.auxiliary.contracts);
-  const datetimeFormat = absence.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
+  const datetimeFormat = absence.absenceNature === HOURLY ? 'dd/LL/yyyy HH:mm' : 'dd/LL/yyyy';
 
   return [
     get(absence, 'auxiliary._id') || '',
@@ -229,11 +229,11 @@ exports.formatAbsence = (absence) => {
     get(absence, 'auxiliary.sector.name') || '',
     ABSENCE_TYPE_LIST[absence.absence],
     ABSENCE_NATURE_LIST[absence.absenceNature],
-    moment(absence.startDate).format(datetimeFormat),
-    moment(absence.endDate).format(datetimeFormat),
+    CompaniDate(absence.startDate).format(datetimeFormat),
+    CompaniDate(absence.endDate).format(datetimeFormat),
     UtilsHelper.formatFloatForExport(hours),
     absence.extension ? 'oui' : 'non',
-    absence.extension ? moment(absence.extension.startDate).format(datetimeFormat) : '',
+    absence.extension ? CompaniDate(absence.extension.startDate).format(datetimeFormat) : '',
     absence.misc || '',
   ];
 };
@@ -243,26 +243,26 @@ exports.exportAbsencesHistory = async (start, end, credentials) => {
 
   const rows = [absenceExportHeader];
   for (const event of events) {
-    const absenceIsOnOneMonth = moment(event.startDate).isSame(event.endDate, 'month');
+    const absenceIsOnOneMonth = CompaniDate(event.startDate).isSame(event.endDate, 'month');
     if (absenceIsOnOneMonth) rows.push(exports.formatAbsence(event));
     else { // split absence by month to ease analytics
-      rows.push(exports.formatAbsence({ ...event, endDate: moment(event.startDate).endOf('month').toISOString() }));
+      rows.push(exports.formatAbsence({ ...event, endDate: CompaniDate(event.startDate).endOf('month').toISO() }));
 
-      const monthsDiff = moment(event.endDate).diff(event.startDate, 'month');
+      const monthsDiff = CompaniDate(event.endDate).diff(event.startDate, 'months').months;
       for (let i = 1; i <= monthsDiff; i++) {
-        const endOfMonth = moment(event.startDate).add(i, 'month').endOf('month').toISOString();
+        const endOfMonth = CompaniDate(event.startDate).add({ months: i }).endOf('month').toISO();
         rows.push(exports.formatAbsence({
           ...event,
-          endDate: moment(event.endDate).isBefore(endOfMonth) ? event.endDate : endOfMonth,
-          startDate: moment(event.startDate).add(i, 'month').startOf('month').toISOString(),
+          endDate: CompaniDate(event.endDate).isBefore(endOfMonth) ? event.endDate : endOfMonth,
+          startDate: CompaniDate(event.startDate).add({ months: i }).startOf('month').toISO(),
         }));
       }
 
-      if (moment(event.startDate).add(monthsDiff, 'month').endOf('month').isBefore(event.endDate)) {
+      if (CompaniDate(event.startDate).add({ months: monthsDiff }).endOf('month').isBefore(event.endDate)) {
         rows.push(exports.formatAbsence({
           ...event,
           endDate: event.endDate,
-          startDate: moment(event.startDate).add(monthsDiff + 1, 'month').startOf('month').toISOString(),
+          startDate: CompaniDate(event.startDate).add({ months: monthsDiff + 1 }).startOf('month').toISO(),
         }));
       }
     }
@@ -303,7 +303,7 @@ const formatRowCommonsForExport = (document) => {
 
   const cells = [
     document.number || '',
-    document.date ? moment(document.date).format('DD/MM/YYYY') : '',
+    document.date ? CompaniDate(document.date).format('dd/LL/yyyy') : '',
     customerId ? customerId.toHexString() : '',
     CIVILITY_LIST[customerIdentity.title] || '',
     (customerIdentity.lastname || '').toUpperCase(),
@@ -346,7 +346,7 @@ const formatBillsForExport = (bills) => {
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       UtilsHelper.formatFloatForExport(hours),
       exportBillSubscriptions(bill),
-      createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
+      createdAt ? CompaniDate(createdAt).format('dd/LL/yyyy') : '',
     ];
 
     rows.push(cells);
@@ -373,7 +373,7 @@ const formatCreditNotesForExport = (creditNotes) => {
       UtilsHelper.formatFloatForExport(totalInclTaxes),
       '',
       get(creditNote, 'subscription.service.name') || '',
-      createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
+      createdAt ? CompaniDate(createdAt).format('dd/LL/yyyy') : '',
     ];
 
     rows.push(cells);
@@ -421,15 +421,15 @@ exports.exportContractHistory = async (startDate, endDate, credentials) => {
     const identity = get(contract, 'user.identity') || {};
     for (let i = 0, l = contract.versions.length; i < l; i++) {
       const version = contract.versions[i];
-      if (version.startDate && moment(version.startDate).isBetween(startDate, endDate, null, '[]')) {
+      if (version.startDate && CompaniDate(version.startDate).isSameOrBetween(startDate, endDate)) {
         rows.push([
           i === 0 ? 'Contrat' : 'Avenant',
           get(contract, 'user._id') || '',
           CIVILITY_LIST[identity.title] || '',
           identity.firstname || '',
           identity.lastname || '',
-          version.startDate ? moment(version.startDate).format('DD/MM/YYYY') : '',
-          version.endDate ? moment(version.endDate).format('DD/MM/YYYY') : '',
+          version.startDate ? CompaniDate(version.startDate).format('dd/LL/yyyy') : '',
+          version.endDate ? CompaniDate(version.endDate).format('dd/LL/yyyy') : '',
           UtilsHelper.formatFloatForExport(version.grossHourlyRate),
           version.weeklyHours || '',
         ]);
@@ -480,7 +480,7 @@ const getHiringDate = (contracts) => {
   if (!contracts || contracts.length === 0) return null;
   if (contracts.length === 1) return contracts[0].startDate;
 
-  return contracts.map(contract => contract.startDate).sort((a, b) => new Date(a) - new Date(b))[0];
+  return [...contracts].sort(DatesHelper.ascendingSort('startDate'))[0].startDate;
 };
 
 const formatLines = (surchargedPlanDetails, planName) => {
@@ -522,8 +522,8 @@ exports.formatHoursWithDiff = (pay, key) =>
 exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const query = {
-    endDate: { $lte: moment(endDate).endOf('M').toDate() },
-    startDate: { $gte: moment(startDate).startOf('M').toDate() },
+    endDate: { $lte: CompaniDate(endDate).endOf('month').toDate() },
+    startDate: { $gte: CompaniDate(startDate).startOf('month').toDate() },
     company: companyId,
   };
 
@@ -561,11 +561,11 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
       get(pay, 'auxiliary.identity.firstname') || '',
       get(pay, 'auxiliary.identity.lastname').toUpperCase() || '',
       get(pay.auxiliary, 'sector.name') || '',
-      hiringDate ? moment(hiringDate).format('DD/MM/YYYY') : '',
-      moment(pay.startDate).format('DD/MM/YYYY'),
-      pay.endNotificationDate ? moment(pay.endNotificationDate).format('DD/MM/YYYY') : '',
+      hiringDate ? CompaniDate(hiringDate).format('dd/LL/yyyy') : '',
+      CompaniDate(pay.startDate).format('dd/LL/yyyy'),
+      pay.endNotificationDate ? CompaniDate(pay.endNotificationDate).format('dd/LL/yyyy') : '',
       pay.endReason ? END_CONTRACT_REASONS[pay.endReason] : '',
-      moment(pay.endDate).format('DD/MM/YYYY'),
+      CompaniDate(pay.endDate).format('dd/LL/yyyy'),
       UtilsHelper.formatFloatForExport(pay.contractHours),
       exports.formatHoursWithDiff(pay, 'absencesHours'),
       exports.formatHoursWithDiff(pay, 'hoursToWork'),
@@ -628,7 +628,7 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
     const cells = [
       PAYMENT_NATURE_LIST[payment.nature],
       payment.number || '',
-      moment(payment.date).format('DD/MM/YYYY'),
+      CompaniDate(payment.date).format('dd/LL/yyyy'),
       customerId ? customerId.toHexString() : '',
       CIVILITY_LIST[get(payment, 'customer.identity.title')] || '',
       get(payment, 'customer.identity.lastname', '').toUpperCase(),
@@ -647,7 +647,7 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsToPlan.length) return 'à planifier';
-  if (slotsGroupedByDate) {
+  if (slotsGroupedByDate.length) {
     const lastDate = slotsGroupedByDate.length - 1;
     const lastSlot = slotsGroupedByDate[lastDate].length - 1;
     return CompaniDate(slotsGroupedByDate[lastDate][lastSlot].endDate).format('dd/LL/yyyy HH:mm:ss');
@@ -655,11 +655,23 @@ const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   return '';
 };
 
+const getStartOfCourse = slotsGroupedByDate => (slotsGroupedByDate.length
+  ? CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss')
+  : '');
+
+const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDate).isAfter(startDate) &&
+  CompaniDate(slot.endDate).isBefore(endDate);
+
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
   const courseIds = slots.map(slot => slot.course);
   const courses = await Course
-    .find({ _id: { $in: courseIds } })
+    .find({
+      $or: [
+        { _id: { $in: courseIds } },
+        { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
+      ],
+    })
     .populate({ path: 'company', select: 'name' })
     .populate({
       path: 'subProgram',
@@ -683,9 +695,16 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       path: 'bills',
       select: 'courseFundingOrganisation company billedAt',
       options: { isVendorUser: has(credentials, 'role.vendor') },
-      populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+      populate: [
+        { path: 'courseFundingOrganisation', select: 'name' },
+        { path: 'company', select: 'name' },
+        { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
+      ],
     })
     .lean();
+
+  const filteredCourses = courses
+    .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
 
   const questionnaireHistories = await QuestionnaireHistory
     .find({ course: { $in: courseIds } })
@@ -697,7 +716,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
 
   const rows = [];
 
-  for (const course of courses) {
+  for (const course of filteredCourses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
     const smsCount = smsList.filter(sms => UtilsHelper.areObjectIdsEquals(sms.course, course._id)).length;
     const attendanceSheetsCount = attendanceSheetList
@@ -737,10 +756,12 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .filter(trainee => trainee.progress.eLearning >= 0)
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
-    const payer = course.bills
+
+    const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
+    const payer = courseBillsWithoutCreditNote
       .map(bill => get(bill, 'courseFundingOrganisation.name') || get(bill, 'company.name'))
       .toString();
-    const isBilled = course.bills.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
+    const isBilled = courseBillsWithoutCreditNote.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
 
     rows.push({
       Identifiant: course._id,
@@ -753,10 +774,10 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       Formateur: UtilsHelper.formatIdentity(get(course, 'trainer.identity') || '', 'FL'),
       'Référent Compani': UtilsHelper.formatIdentity(get(course, 'salesRepresentative.identity') || '', 'FL'),
       'Contact pour la formation': UtilsHelper.formatIdentity(get(course, 'contact.identity') || '', 'FL'),
-      'Nombre d\'inscrits': get(course, 'trainees.length') || '',
+      'Nombre d\'inscrits': get(course, 'trainees.length'),
       'Nombre de dates': slotsGroupedByDate.length,
-      'Nombre de créneaux': get(course, 'slots.length') || '',
-      'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length') || '',
+      'Nombre de créneaux': get(course, 'slots.length'),
+      'Nombre de créneaux à planifier': get(course, 'slotsToPlan.length'),
       'Durée Totale': UtilsHelper.getTotalDurationForExport(course.slots),
       'Nombre de SMS envoyés': smsCount,
       'Nombre de personnes connectées à l\'app': course.trainees
@@ -766,7 +787,10 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
         : '',
       'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswersCount,
       'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswersCount,
-      'Début de formation': CompaniDate(slotsGroupedByDate[0][0].startDate).format('dd/LL/yyyy HH:mm:ss') || '',
+      'Date de démarrage souhaitée': course.estimatedStartDate
+        ? CompaniDate(course.estimatedStartDate).format('dd/LL/yyyy')
+        : '',
+      'Début de formation': getStartOfCourse(slotsGroupedByDate),
       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
       'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
       'Nombre de présences': subscribedTraineesAttendancesCount,

@@ -588,7 +588,7 @@ describe('generateBillPdf', () => {
         date: '08/03/2022',
         vendorCompany,
         company: bill.company,
-        funder: bill.company,
+        payer: bill.company,
         course: bill.course,
         mainFee: bill.mainFee,
         billingPurchaseList: bill.billingPurchaseList,

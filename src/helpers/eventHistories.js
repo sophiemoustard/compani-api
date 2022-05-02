@@ -17,6 +17,22 @@ const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 const { CompaniDate } = require('./dates/companiDates');
 
+exports.PROJECTION_FIELDS = {
+  _id: 1,
+  customer: 1,
+  startDate: 1,
+  endDate: 1,
+  type: 1,
+  absence: 1,
+  internalHour: 1,
+  address: 1,
+  misc: 1,
+  repetition: 1,
+  sector: 1,
+  auxiliary: 1,
+  isBilled: 1,
+};
+
 exports.list = async (query, credentials) => {
   if (query.eventId) {
     return EventHistoryRepository.paginate({

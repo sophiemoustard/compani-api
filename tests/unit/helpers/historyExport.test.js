@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 const { ObjectId } = require('mongodb');
 const has = require('lodash/has');
+const get = require('lodash/get');
 const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
@@ -38,7 +39,6 @@ const {
   TIME_STAMPING_ACTIONS,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
-const DatesHelper = require('../../../src/helpers/dates');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 
 describe('getWorkingEventsForExport', () => {
@@ -232,8 +232,8 @@ describe('exportWorkingEventsHistory', () => {
       _id: auxiliaryId,
       identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
       sectorHistory: [
-        { startDate: '2018-09-12T00:00:00', sector: { name: 'Girafes - 75' } },
-        { startDate: '2019-09-12T00:00:00', sector: { name: 'Etoiles - 75' } },
+        { startDate: '2018-09-12T00:00:00.000Z', sector: { name: 'Girafes - 75' } },
+        { startDate: '2019-09-12T00:00:00.000Z', sector: { name: 'Etoiles - 75' } },
       ],
     },
   ];
@@ -253,11 +253,11 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: auxiliaryId,
-      startDate: '2019-05-20T08:00:00',
-      endDate: '2019-05-20T10:00:00',
+      startDate: '2019-05-20T08:00:00.000Z',
+      endDate: '2019-05-20T10:00:00.000Z',
       histories: [
         {
-          update: { startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' } },
+          update: { startHour: { from: '2019-05-20T08:00:00.000Z', to: '2019-05-20T08:01:18.000Z' } },
           event: { type: 'intervention', auxiliary: auxiliaryId },
           auxiliaries: [auxiliaryId],
           action: 'manual_time_stamping',
@@ -279,18 +279,18 @@ describe('exportWorkingEventsHistory', () => {
         identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       sector: { name: 'Girafes - 75' },
-      startDate: '2019-05-20T08:00:00',
-      endDate: '2019-05-20T10:00:00',
+      startDate: '2019-05-20T08:00:00.000Z',
+      endDate: '2019-05-20T10:00:00.000Z',
       histories: [
         {
-          update: { startHour: { from: '2019-05-20T08:00:00', to: '2019-05-20T08:01:18' } },
+          update: { startHour: { from: '2019-05-20T08:00:00.000Z', to: '2019-05-20T08:01:18.000Z' } },
           event: { type: 'intervention', auxiliary: auxiliaryId },
           auxiliaries: [auxiliaryId],
           action: 'manual_time_stamping',
           manualTimeStampingReason: 'qrcode_missing',
         },
         {
-          update: { endHour: { from: '2019-05-20T10:00:00', to: '2019-05-20T10:03:24' } },
+          update: { endHour: { from: '2019-05-20T10:00:00.000Z', to: '2019-05-20T10:03:24.000Z' } },
           event: { type: 'intervention', auxiliary: auxiliaryId },
           auxiliaries: [auxiliaryId],
           action: 'manual_time_stamping',
@@ -312,8 +312,8 @@ describe('exportWorkingEventsHistory', () => {
         _id: new ObjectId(),
         identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
-      startDate: '2019-05-20T08:00:00',
-      endDate: '2019-05-20T10:00:00',
+      startDate: '2019-05-20T08:00:00.000Z',
+      endDate: '2019-05-20T10:00:00.000Z',
       misc: 'brbr',
       histories: [],
     },
@@ -321,18 +321,15 @@ describe('exportWorkingEventsHistory', () => {
   let getWorkingEventsForExport;
   let getLastVersion;
   let getAuxiliariesWithSectorHistory;
-  let formatDateAndTime;
   beforeEach(() => {
     getWorkingEventsForExport = sinon.stub(ExportHelper, 'getWorkingEventsForExport');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
     getAuxiliariesWithSectorHistory = sinon.stub(UserRepository, 'getAuxiliariesWithSectorHistory');
-    formatDateAndTime = sinon.stub(DatesHelper, 'formatDateAndTime');
   });
   afterEach(() => {
     getWorkingEventsForExport.restore();
     getLastVersion.restore();
     getAuxiliariesWithSectorHistory.restore();
-    formatDateAndTime.restore();
   });
 
   it('should return an array containing just the header', async () => {
@@ -346,16 +343,6 @@ describe('exportWorkingEventsHistory', () => {
   it('should return an array with the header and 3 rows', async () => {
     getWorkingEventsForExport.returns(events);
     getAuxiliariesWithSectorHistory.returns(auxiliaries);
-
-    formatDateAndTime.onCall(0).returns('20/05/2019 10:00:00');
-    formatDateAndTime.onCall(1).returns('20/05/2019 10:01:18');
-    formatDateAndTime.onCall(2).returns('20/05/2019 12:00:00');
-    formatDateAndTime.onCall(3).returns('20/05/2019 10:00:00');
-    formatDateAndTime.onCall(4).returns('20/05/2019 10:01:18');
-    formatDateAndTime.onCall(5).returns('20/05/2019 12:00:00');
-    formatDateAndTime.onCall(6).returns('20/05/2019 12:03:24');
-    formatDateAndTime.onCall(7).returns('20/05/2019 10:00:00');
-    formatDateAndTime.onCall(8).returns('20/05/2019 12:00:00');
 
     getLastVersion.callsFake(ver => ver[0]);
 
@@ -1729,6 +1716,16 @@ describe('exportCourseHistory', () => {
           courseFundingOrganisation: { name: 'APA Paris' },
           billedAt: '2022-03-08T00:00:00.000Z',
           number: 'FACT-00001',
+          courseCreditNote: { courseBill: new ObjectId() },
+        },
+        {
+          course: courseIdList[0],
+          mainFee: { price: 120, count: 1 },
+          company,
+          courseFundingOrganisation: { name: 'APA Paris' },
+          billedAt: '2022-03-08T00:00:00.000Z',
+          number: 'FACT-00002',
+          courseCreditNote: null,
         },
       ],
     },
@@ -1737,12 +1734,27 @@ describe('exportCourseHistory', () => {
       type: INTER_B2B,
       subProgram: subProgramList[1],
       misc: 'group 2',
+      estimatedStartDate: '2019-01-01T08:00:00',
       trainer,
       salesRepresentative,
       contact: salesRepresentative,
       trainees: [traineeList[3], traineeList[4]],
       slotsToPlan: [courseSlotList[4]],
       slots: [courseSlotList[2], courseSlotList[3]],
+      bills: [],
+    },
+    {
+      _id: courseIdList[1],
+      type: INTER_B2B,
+      subProgram: subProgramList[1],
+      misc: 'group 3',
+      estimatedStartDate: '2022-01-01T08:00:00',
+      trainer,
+      salesRepresentative,
+      contact: salesRepresentative,
+      trainees: [traineeList[3], traineeList[4]],
+      slotsToPlan: [],
+      slots: [],
       bills: [],
     },
   ];
@@ -1765,7 +1777,7 @@ describe('exportCourseHistory', () => {
   let findCourseSlot;
   let findCourse;
   let groupSlotsByDate;
-  let getTotalDuration;
+  let getTotalDurationForExport;
   let findCourseSmsHistory;
   let findAttendanceSheet;
   let findQuestionnaireHistory;
@@ -1774,7 +1786,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot = sinon.stub(CourseSlot, 'find');
     findCourse = sinon.stub(Course, 'find');
     groupSlotsByDate = sinon.stub(CourseHelper, 'groupSlotsByDate');
-    getTotalDuration = sinon.stub(UtilsHelper, 'getTotalDuration');
+    getTotalDurationForExport = sinon.stub(UtilsHelper, 'getTotalDurationForExport');
     findCourseSmsHistory = sinon.stub(CourseSmsHistory, 'find');
     findAttendanceSheet = sinon.stub(AttendanceSheet, 'find');
     findQuestionnaireHistory = sinon.stub(QuestionnaireHistory, 'find');
@@ -1784,7 +1796,7 @@ describe('exportCourseHistory', () => {
     findCourseSlot.restore();
     findCourse.restore();
     groupSlotsByDate.restore();
-    getTotalDuration.restore();
+    getTotalDurationForExport.restore();
     findCourseSmsHistory.restore();
     findAttendanceSheet.restore();
     findQuestionnaireHistory.restore();
@@ -1819,7 +1831,18 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourse,
       [
-        { query: 'find', args: [{ _id: { $in: courseSlotList.map(slot => slot.course) } }] },
+        {
+          query: 'find',
+          args: [{
+            $or: [
+              { _id: { $in: courseSlotList.map(slot => slot.course) } },
+              {
+                estimatedStartDate: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' },
+                archivedAt: { $exists: false },
+              },
+            ],
+          }],
+        },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         {
           query: 'populate',
@@ -1849,14 +1872,18 @@ describe('exportCourseHistory', () => {
             path: 'bills',
             select: 'courseFundingOrganisation company billedAt',
             options: { isVendorUser: has(credentials, 'role.vendor') },
-            populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+            populate: [
+              { path: 'courseFundingOrganisation', select: 'name' },
+              { path: 'company', select: 'name' },
+              { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
+            ],
           }],
         },
         { query: 'lean' },
       ]
     );
     sinon.assert.notCalled(groupSlotsByDate);
-    sinon.assert.notCalled(getTotalDuration);
+    sinon.assert.notCalled(getTotalDurationForExport);
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
@@ -1881,8 +1908,10 @@ describe('exportCourseHistory', () => {
     findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
     groupSlotsByDate.onCall(0).returns([[courseSlotList[0], courseSlotList[1]]]);
     groupSlotsByDate.onCall(1).returns([[courseSlotList[2]], [courseSlotList[3]]]);
-    getTotalDuration.onCall(0).returns('4h');
-    getTotalDuration.onCall(1).returns('4h');
+    groupSlotsByDate.onCall(2).returns([]);
+    getTotalDurationForExport.onCall(0).returns('4,00');
+    getTotalDurationForExport.onCall(1).returns('4,00');
+    getTotalDurationForExport.onCall(2).returns('0,00');
     findCourseSmsHistory.returns(SinonMongoose.stubChainedQueries(
       [{ course: courseList[0]._id }, { course: courseList[0]._id }, { course: courseList[1]._id }],
       ['lean']
@@ -1917,6 +1946,7 @@ describe('exportCourseHistory', () => {
         'Complétion eLearning moyenne',
         'Nombre de réponses au questionnaire de recueil des attentes',
         'Nombre de réponses au questionnaire de satisfaction',
+        'Date de démarrage souhaitée',
         'Début de formation',
         'Fin de formation',
         'Nombre de feuilles d\'émargement chargées',
@@ -1941,13 +1971,14 @@ describe('exportCourseHistory', () => {
         3,
         1,
         2,
-        '',
+        0,
         '4,00',
         2,
         2,
         '',
         2,
         2,
+        '',
         '01/05/2021 10:00:00',
         '01/05/2021 18:00:00',
         1,
@@ -1979,6 +2010,7 @@ describe('exportCourseHistory', () => {
         '0,67',
         1,
         1,
+        '01/01/2019',
         '01/02/2021 09:00:00',
         'à planifier',
         0,
@@ -1987,6 +2019,38 @@ describe('exportCourseHistory', () => {
         1,
         2,
         '0,67',
+        '',
+      ],
+      [
+        courseList[1]._id,
+        'inter_b2b',
+        '',
+        '',
+        'Program 2',
+        'subProgram 2',
+        'group 3',
+        'Gilles FORMATEUR',
+        'Aline CONTACT-COM',
+        'Aline CONTACT-COM',
+        2,
+        0,
+        0,
+        0,
+        '0,00',
+        1,
+        0,
+        '0,67',
+        1,
+        1,
+        '01/01/2022',
+        '',
+        '',
+        0,
+        0,
+        0,
+        0,
+        0,
+        '',
         '',
       ],
     ]);
@@ -2003,7 +2067,18 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findCourse,
       [
-        { query: 'find', args: [{ _id: { $in: courseSlotList.map(slot => slot.course) } }] },
+        {
+          query: 'find',
+          args: [{
+            $or: [
+              { _id: { $in: courseSlotList.map(slot => slot.course) } },
+              {
+                estimatedStartDate: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' },
+                archivedAt: { $exists: false },
+              },
+            ],
+          }],
+        },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         {
           query: 'populate',
@@ -2033,7 +2108,11 @@ describe('exportCourseHistory', () => {
             path: 'bills',
             select: 'courseFundingOrganisation company billedAt',
             options: { isVendorUser: has(credentials, 'role.vendor') },
-            populate: [{ path: 'courseFundingOrganisation', select: 'name' }, { path: 'company', select: 'name' }],
+            populate: [
+              { path: 'courseFundingOrganisation', select: 'name' },
+              { path: 'company', select: 'name' },
+              { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
+            ],
           }],
         },
         { query: 'lean' },

@@ -47,6 +47,7 @@ const {
 } = require('./preHandlers/courses');
 const { INTRA } = require('../helpers/constants');
 const { ORIGIN_OPTIONS } = require('../models/User');
+const { dateToISOString } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-courses',
@@ -92,6 +93,7 @@ exports.plugin = {
             misc: Joi.string().allow('', null),
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
             salesRepresentative: Joi.objectId().required(),
+            estimatedStartDate: dateToISOString,
           }),
         },
         auth: { scope: ['courses:create'] },
@@ -182,6 +184,7 @@ exports.plugin = {
             contact: Joi.objectId().allow(''),
             salesRepresentative: Joi.objectId(),
             archivedAt: Joi.date(),
+            estimatedStartDate: dateToISOString,
           }),
         },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],

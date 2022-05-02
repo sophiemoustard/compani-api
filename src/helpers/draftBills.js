@@ -12,7 +12,7 @@ const SurchargesHelper = require('./surcharges');
 const DatesHelper = require('./dates');
 const FundingsHelper = require('./fundings');
 
-const populateSurchargeAndBillingItem = (arr, surcharges, billingItems) => arr
+const populateSurchargeAndBillingItem = (serviceVersions, surcharges, billingItems) => serviceVersions
   .map(v => ({
     ...v,
     ...(v.surcharge && { surcharge: surcharges.find(s => UtilsHelper.areObjectIdsEquals(s._id, v.surcharge)) }),
@@ -22,7 +22,6 @@ const populateSurchargeAndBillingItem = (arr, surcharges, billingItems) => arr
 
 exports.populateAndFormatSubscription = async (subscription, surcharges, billingItems) => ({
   ...subscription,
-  versions: [...subscription.versions].sort(DatesHelper.descendingSort('startDate')),
   service: {
     ...subscription.service,
     versions: populateSurchargeAndBillingItem(subscription.service.versions, surcharges, billingItems),

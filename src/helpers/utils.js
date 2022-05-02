@@ -12,7 +12,15 @@ const NumbersHelper = require('./numbers');
 exports.getLastVersion = (versions, dateKey) => {
   if (versions.length === 0) return null;
   if (versions.length === 1) return versions[0];
-  return [...versions].sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
+
+  return [...versions].sort(DatesHelper.descendingSort(dateKey))[0];
+};
+
+exports.getFirstVersion = (versions, dateKey) => {
+  if (versions.length === 0) return null;
+  if (versions.length === 1) return versions[0];
+
+  return [...versions].sort(DatesHelper.ascendingSort(dateKey))[0];
 };
 
 exports.mergeLastVersionWithBaseObject = (baseObj, dateKey) => {

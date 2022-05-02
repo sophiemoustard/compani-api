@@ -27,10 +27,7 @@ describe('populateAndFormatSubscription', () => {
     ];
     const subscription = {
       _id: 'abc',
-      versions: [
-        { unitTTCRate: 13, startDate: new Date('2019-01-20'), _id: 5 },
-        { unitTTCRate: 15, startDate: new Date('2019-02-24'), _id: 4 },
-      ],
+      versions: [{ unitTTCRate: 13, _id: 5 }, { unitTTCRate: 15, _id: 4 }],
       service: {
         versions: [
           { billingItems: [], startDate: new Date('2019-02-24'), _id: 1 },
@@ -50,10 +47,7 @@ describe('populateAndFormatSubscription', () => {
 
     expect(result).toEqual(expect.objectContaining({
       _id: 'abc',
-      versions: [
-        { unitTTCRate: 15, startDate: new Date('2019-02-24'), _id: 4 },
-        { unitTTCRate: 13, startDate: new Date('2019-01-20'), _id: 5 },
-      ],
+      versions: [{ unitTTCRate: 13, _id: 5 }, { unitTTCRate: 15, _id: 4 }],
       service: {
         versions: [
           {

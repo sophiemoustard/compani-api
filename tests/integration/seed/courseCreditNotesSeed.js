@@ -1,9 +1,45 @@
 const { ObjectId } = require('mongodb');
+const { INTRA } = require('../../../src/helpers/constants');
 const CourseBill = require('../../../src/models/CourseBill');
+const Course = require('../../../src/models/Course');
 const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumber');
+const SubProgram = require('../../../src/models/SubProgram');
+const VendorCompany = require('../../../src/models/VendorCompany');
+const Program = require('../../../src/models/Program');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+
+const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [new ObjectId()] }];
+
+const programList = [{ _id: new ObjectId(), name: 'Program 1', subPrograms: [subProgramList[0]._id] }];
+
+const vendorCompany = {
+  name: 'Vendor Company',
+  siret: '12345678901234',
+  address: {
+    fullAddress: '32 Rue du Loup 33000 Bordeaux',
+    street: '32 Rue du Loup',
+    city: 'Bordeaux',
+    zipCode: '33000',
+    location: { type: 'Point', coordinates: [-0.573054, 44.837914] },
+  },
+};
+
+const courseList = [
+  { // 0 - linked to bill 2
+    _id: new ObjectId(),
+    type: INTRA,
+    company: authCompany._id,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 1',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [new ObjectId()],
+
+  },
+];
 
 const courseBillsList = [
   { // 0 valid bill
@@ -22,7 +58,7 @@ const courseBillsList = [
   },
   { // 2 bill cancelled by credit note
     _id: new ObjectId(),
-    course: new ObjectId(),
+    course: courseList[0]._id,
     company: authCompany._id,
     mainFee: { price: 73, count: 1 },
     billedAt: '2022-05-30T10:00:00.000Z',
@@ -48,12 +84,17 @@ const populateDB = async () => {
 
   await Promise.all([
     CourseBill.create(courseBillsList),
+    Course.create(courseList),
     CourseCreditNote.create(courseCreditNote),
     CourseCreditNoteNumber.create(courseCreditNoteNumber),
+    Program.create(programList),
+    SubProgram.create(subProgramList),
+    VendorCompany.create(vendorCompany),
   ]);
 };
 
 module.exports = {
   populateDB,
   courseBillsList,
+  courseCreditNote,
 };

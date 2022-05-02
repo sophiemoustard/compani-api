@@ -18,6 +18,7 @@ exports.plugin = {
           query: Joi.object({
             thirdPartyPayers: objectIdOrArray.required(),
             month: monthValidation.required(),
+            onlyPastEvents: Joi.boolean(),
           }),
         },
         pre: [{ method: authorizeDelivery }],

@@ -21,6 +21,7 @@ const CourseSchema = mongoose.Schema({
     ref: 'User',
     required() { return this.format === BLENDED; },
   },
+  estimatedStartDate: { type: Date },
   archivedAt: { type: Date },
 }, { timestamps: true });
 

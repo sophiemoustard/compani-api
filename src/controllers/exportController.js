@@ -1,5 +1,4 @@
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const get = require('lodash/get');
 const {
   SERVICE,
@@ -22,6 +21,7 @@ const {
   TRANSPORT,
   END_OF_COURSE,
 } = require('../helpers/constants');
+const { CompaniDate } = require('../helpers/dates/companiDates');
 const HistoryExportHelper = require('../helpers/historyExport');
 const DataExportHelper = require('../helpers/dataExport');
 const { exportToCsv } = require('../helpers/file');
@@ -83,8 +83,8 @@ const exportHistory = async (req, h) => {
     const { type } = req.params;
     const { credentials } = req.auth;
 
-    const startDate = moment(req.query.startDate).startOf('day').toDate();
-    const endDate = moment(req.query.endDate).endOf('day').toDate();
+    const startDate = CompaniDate(req.query.startDate).startOf('day').toDate();
+    const endDate = CompaniDate(req.query.endDate).endOf('day').toDate();
 
     let exportArray;
     switch (type) {
