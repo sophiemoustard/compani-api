@@ -40,7 +40,7 @@ const BillSchema = mongoose.Schema({
     hours: { type: String, required() { return this.type === AUTOMATIC; } },
     unitInclTaxes: { type: String, required() { return this.type === AUTOMATIC; } },
     exclTaxes: { type: String, required() { return this.type === AUTOMATIC; } },
-    inclTaxes: { type: String, required() { return this.type === AUTOMATIC; } },
+    inclTaxes: { type: Number, required() { return this.type === AUTOMATIC; } },
     discount: { type: String, default: 0 },
   }],
   origin: { type: String, enum: BILL_ORIGINS, default: COMPANI },
