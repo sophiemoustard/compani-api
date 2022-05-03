@@ -46,7 +46,7 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
 };
 
 exports.removeCourseSlot = async (courseSlot, user) => {
-  const payload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address']);
+  const payload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
 
   await Promise.all([
     ...Object.values({

@@ -231,7 +231,7 @@ describe('updateCourseSlot', () => {
   });
 });
 
-describe('removeSlot', () => {
+describe('removeCourseSlot', () => {
   let deleteOne;
   let createHistoryOnSlotDeletion;
   beforeEach(() => {
