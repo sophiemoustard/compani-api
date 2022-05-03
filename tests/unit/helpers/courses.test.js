@@ -7,6 +7,7 @@ const { PassThrough } = require('stream');
 const Boom = require('@hapi/boom');
 const UtilsMock = require('../../utilsMock');
 const Course = require('../../../src/models/Course');
+const CourseBill = require('../../../src/models/CourseBill');
 const Attendance = require('../../../src/models/Attendance');
 const User = require('../../../src/models/User');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
@@ -1587,13 +1588,16 @@ describe('updateCourse', () => {
 
 describe('deleteCourse', () => {
   let deleteCourse;
+  let deleteCourseBill;
   let deleteCourseSmsHistory;
   beforeEach(() => {
     deleteCourse = sinon.stub(Course, 'deleteOne');
+    deleteCourseBill = sinon.stub(CourseBill, 'deleteMany');
     deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
   });
   afterEach(() => {
     deleteCourse.restore();
+    deleteCourseBill.restore();
     deleteCourseSmsHistory.restore();
   });
 
@@ -1602,6 +1606,10 @@ describe('deleteCourse', () => {
     await CourseHelper.deleteCourse(courseId);
 
     sinon.assert.calledOnceWithExactly(deleteCourse, { _id: courseId });
+    sinon.assert.calledOnceWithExactly(
+      deleteCourseBill,
+      { course: courseId, $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }] }
+    );
     sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
   });
 });
