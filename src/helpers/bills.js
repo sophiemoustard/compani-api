@@ -35,7 +35,7 @@ exports.formatSubscriptionData = (bill) => {
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.endDate, bill.subscription.service, 'startDate');
 
   return {
-    ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'exclTaxes', 'discount']),
+    ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'inclTaxes', 'exclTaxes', 'discount']),
     inclTaxes: parseFloat(UtilsHelper.getFixedNumber(bill.inclTaxes)),
     subscription: bill.subscription._id,
     service: { serviceId: matchingServiceVersion._id, ...pick(matchingServiceVersion, ['name', 'nature']) },
@@ -45,7 +45,8 @@ exports.formatSubscriptionData = (bill) => {
 };
 
 exports.formatBillingItemData = bill => ({
-  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'vat', 'discount']),
+  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'vat', 'discount']),
+  inclTaxes: parseFloat(UtilsHelper.getFixedNumber(bill.inclTaxes)),
   billingItem: bill.billingItem._id,
   events: bill.eventsList.map(ev => ({ ...pick(ev, ['startDate', 'endDate', 'auxiliary']), eventId: ev.event })),
   name: bill.billingItem.name,
