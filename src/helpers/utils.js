@@ -30,13 +30,15 @@ exports.mergeLastVersionWithBaseObject = (baseObj, dateKey) => {
   return { ...lastVersion, ...omit(baseObj, ['versions', 'createdAt']) };
 };
 
-// `obj` should by sort in descending order
-exports.getMatchingVersion = (date, obj, dateKey) => {
+const defaultFilterMethod = date => ver => DatesHelper.isSameOrBefore(ver.startDate, date, 'd') &&
+  (!ver.endDate || DatesHelper.isSameOrAfter(ver.endDate, date, 'd'));
+
+// `obj.versions` should by sort in descending order
+exports.getMatchingVersion = (date, obj, dateKey, filterMethod = defaultFilterMethod) => {
   if (obj.versions.length === 0) return null;
 
   const matchingVersion = [...obj.versions]
-    .filter(ver => DatesHelper.isSameOrBefore(ver.startDate, date, 'd') &&
-      (!ver.endDate || DatesHelper.isSameOrAfter(ver.endDate, date, 'd')))
+    .filter(filterMethod(date))
     .sort(DatesHelper.descendingSort(dateKey))[0];
   if (!matchingVersion) return null;
 

@@ -100,6 +100,7 @@ exports.deleteFunding = async (customerId, fundingId) => Customer.updateOne(
 );
 
 exports.getMatchingFunding = (eventDate, fundings) => {
+  // console.log('getMatchingFunding', eventDate, fundings);
   const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(eventDate) &&
     (!fund.endDate || moment(fund.endDate).isAfter(eventDate)));
 
