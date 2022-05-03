@@ -12,7 +12,7 @@ const billingItemsDefinition = {
   unitInclTaxes: { type: String, required: true },
   name: { type: String, required: true },
   count: { type: Number, required: true },
-  inclTaxes: { type: String, required: true },
+  inclTaxes: { type: Number, required: true },
   exclTaxes: { type: String, required: true },
   vat: { type: Number, required: true },
 };
