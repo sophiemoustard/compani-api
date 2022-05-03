@@ -23,10 +23,16 @@ exports.getCourseSlot = async (req) => {
   }
 };
 
-const formatAndCheckAuthorization = async (courseId, credentials) => {
+const canEditCourse = async (courseId) => {
   const course = await Course.findById(courseId).lean();
   if (!course) throw Boom.notFound();
   if (course.archivedAt) throw Boom.forbidden();
+
+  return course;
+};
+
+const formatAndCheckAuthorization = async (courseId, credentials) => {
+  const course = await canEditCourse(courseId);
 
   const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
   const courseCompanyId = course.company ? course.company.toHexString() : null;
@@ -60,7 +66,7 @@ const checkPayload = async (courseId, payload) => {
 exports.authorizeCreate = async (req) => {
   try {
     const courseId = get(req, 'payload.course') || '';
-    await formatAndCheckAuthorization(courseId, req.auth.credentials);
+    await canEditCourse(courseId);
     await checkPayload(courseId, req.payload);
 
     return null;
@@ -87,7 +93,11 @@ exports.authorizeDeletion = async (req) => {
   try {
     const { courseSlot } = req.pre;
 
-    await formatAndCheckAuthorization(courseSlot.course, req.auth.credentials);
+    await canEditCourse(courseSlot.course);
+
+    const courseStepHasOtherSlots = await CourseSlot
+      .countDocuments({ _id: { $nin: [courseSlot._id] }, course: courseSlot.course, step: courseSlot.step });
+    if (!courseStepHasOtherSlots) throw Boom.forbidden();
 
     const attendanceExists = await Attendance.countDocuments({ courseSlot: courseSlot._id });
     if (attendanceExists) throw Boom.conflict(translate[language].attendanceExists);

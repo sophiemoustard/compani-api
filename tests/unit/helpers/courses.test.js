@@ -29,6 +29,7 @@ const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/inte
 const IntraAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
 const CompletionCertificate = require('../../../src/data/pdf/completionCertificate');
+const CourseBill = require('../../../src/models/CourseBill');
 
 describe('createCourse', () => {
   let save;
@@ -1590,15 +1591,18 @@ describe('deleteCourse', () => {
   let deleteCourse;
   let deleteCourseBill;
   let deleteCourseSmsHistory;
+  let deleteCourseBill;
   beforeEach(() => {
     deleteCourse = sinon.stub(Course, 'deleteOne');
     deleteCourseBill = sinon.stub(CourseBill, 'deleteMany');
     deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
+    deleteCourseBill = sinon.stub(CourseBill, 'deleteMany');
   });
   afterEach(() => {
     deleteCourse.restore();
     deleteCourseBill.restore();
     deleteCourseSmsHistory.restore();
+    deleteCourseBill.restore();
   });
 
   it('should delete course and sms history', async () => {
@@ -1611,6 +1615,13 @@ describe('deleteCourse', () => {
       { course: courseId, $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }] }
     );
     sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
+    sinon.assert.calledOnceWithExactly(
+      deleteCourseBill,
+      {
+        course: courseId,
+        $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
+      }
+    );
   });
 });
 
