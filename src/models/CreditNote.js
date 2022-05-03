@@ -20,9 +20,9 @@ const CreditNoteSchema = mongoose.Schema(
     endDate: { type: Date },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true, immutable: true },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer', immutable: true },
-    exclTaxesCustomer: { type: Number, required() { return !this.thirdPartyPayer; } },
+    exclTaxesCustomer: { type: String, required() { return !this.thirdPartyPayer; } },
     inclTaxesCustomer: { type: Number, required() { return !this.thirdPartyPayer; } },
-    exclTaxesTpp: { type: Number, required() { return !!this.thirdPartyPayer; } },
+    exclTaxesTpp: { type: String, required() { return !!this.thirdPartyPayer; } },
     inclTaxesTpp: { type: Number, required() { return !!this.thirdPartyPayer; } },
     events: [
       {
@@ -34,11 +34,11 @@ const CreditNoteSchema = mongoose.Schema(
         bills: {
           type: mongoose.Schema(
             {
-              inclTaxesCustomer: { type: Number },
-              exclTaxesCustomer: { type: Number },
+              inclTaxesCustomer: { type: String },
+              exclTaxesCustomer: { type: String },
               thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
-              inclTaxesTpp: { type: Number },
-              exclTaxesTpp: { type: Number },
+              inclTaxesTpp: { type: String },
+              exclTaxesTpp: { type: String },
               fundingId: { type: mongoose.Schema.Types.ObjectId },
               nature: { type: String },
               careHours: { type: Number },
@@ -63,7 +63,7 @@ const CreditNoteSchema = mongoose.Schema(
         name: { type: String, required() { return get(this.subscription, 'service.serviceId', false); } },
       },
       vat: { type: Number },
-      unitInclTaxes: { type: Number },
+      unitInclTaxes: { type: String },
     },
     linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote', immutable: true },
     origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI, immutable: true },
