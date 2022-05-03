@@ -767,22 +767,12 @@ describe('updateCreditNotes', () => {
         {
           billingItem: billingItemId1,
           unitInclTaxes: 30,
-          name: 'Frais de dossier',
           count: 2,
-          inclTaxes: 60,
-          // eslint-disable-next-line no-loss-of-precision
-          exclTaxes: 58.82352941176470588236,
-          vat: 2,
         },
         {
           billingItem: billingItemId2,
           unitInclTaxes: 10,
-          name: 'sku',
           count: 1,
-          inclTaxes: 10,
-          // eslint-disable-next-line no-loss-of-precision
-          exclTaxes: 9.52380952380952380952,
-          vat: 5,
         },
       ],
     };
