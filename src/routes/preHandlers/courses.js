@@ -160,21 +160,22 @@ exports.authorizeCourseDeletion = async (req) => {
   const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
   if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole)) return Boom.forbidden();
 
-  const course = await Course.findOne({ _id: req.params._id })
-    .populate({ path: 'slots' })
-    .populate({ path: 'slotsToPlan' })
+  const course = await Course.findOne({ _id: req.params._id }, { trainees: 1 })
+    .populate({ path: 'slots', select: '_id' })
+    .populate({ path: 'slotsToPlan', select: '_id' })
     .lean();
   if (!course) return Boom.notFound();
 
-  if (course.trainees.length) return Boom.forbidden('stagiaire');
-  if (course.slots.length) return Boom.forbidden('creneaux');
-  if (course.slotsToPlan.length) return Boom.forbidden('a planifier');
+  if (course.trainees.length) return Boom.forbidden(translate[language].courseDeletionForbidden.trainees);
+  if (course.slots.length || course.slotsToPlan.length) {
+    return Boom.forbidden(translate[language].courseDeletionForbidden.slots);
+  }
 
   const courseBills = await CourseBill.countDocuments(
     { course: req.params._id, billedAt: { $exists: true, $type: 'date' } },
     { limit: 1 }
   );
-  if (courseBills) return Boom.forbidden('facture');
+  if (courseBills) return Boom.forbidden(translate[language].courseDeletionForbidden.billed);
 
   return null;
 };

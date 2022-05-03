@@ -302,7 +302,7 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-01-01T00:00:00.000Z',
   },
-  { // 15 course INTRA without trainees and slots
+  { // 15 course billed INTRA without trainees and slots
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
     misc: 'intra billed without trainee and slot',
