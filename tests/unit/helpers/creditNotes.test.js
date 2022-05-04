@@ -148,25 +148,26 @@ describe('getCreditNotes', () => {
 });
 
 describe('updateEventAndFundingHistory', () => {
-  let findOneAndUpdate;
+  let findOne;
   let updateOneFundingHistory;
   let find;
   let updateOneEvent;
   beforeEach(() => {
-    findOneAndUpdate = sinon.stub(FundingHistory, 'findOneAndUpdate');
+    findOne = sinon.stub(FundingHistory, 'findOne');
     updateOneFundingHistory = sinon.stub(FundingHistory, 'updateOne');
     find = sinon.stub(Event, 'find');
     updateOneEvent = sinon.stub(Event, 'updateOne');
   });
   afterEach(() => {
-    findOneAndUpdate.restore();
+    findOne.restore();
     updateOneFundingHistory.restore();
     find.restore();
     updateOneEvent.restore();
   });
 
-  it('should increment history for hourly and once funding', async () => {
+  it('should decrement history for hourly and once funding', async () => {
     const fundingId = new ObjectId();
+    const fundingHistoryId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
     const events = [{
       _id: new ObjectId(),
@@ -176,38 +177,20 @@ describe('updateEventAndFundingHistory', () => {
     }];
 
     find.returns(events);
-    findOneAndUpdate.returns(null);
+    findOne.onCall(0).returns(null);
+    findOne.onCall(1).returns({ _id: fundingHistoryId, careHours: 120 });
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
 
-    sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: -3 } });
+    sinon.assert.calledWithExactly(findOne.getCall(0), { fundingId, month: '01/2019' });
+    sinon.assert.calledWithExactly(findOne.getCall(1), { fundingId });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
-    sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { careHours: -3 } });
-    SinonMongoose.calledOnceWithExactly(
-      find,
-      [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
+    sinon.assert.calledOnceWithExactly(
+      updateOneFundingHistory,
+      { _id: fundingHistoryId },
+      { $set: { careHours: 117 } }
     );
-  });
-
-  it('should increment history for hourly and monthly funding', async () => {
-    const fundingId = new ObjectId();
-    const credentials = { company: { _id: new ObjectId() } };
-    const events = [{
-      _id: new ObjectId(),
-      company: new ObjectId(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
-      startDate: new Date('2019/01/19'),
-    }];
-
-    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-    findOneAndUpdate.returns(new FundingHistory());
-
-    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
-
-    sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: -3 } });
-    sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
-    sinon.assert.notCalled(updateOneFundingHistory);
     SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
@@ -216,6 +199,7 @@ describe('updateEventAndFundingHistory', () => {
 
   it('should decrement history for hourly and monthly funding', async () => {
     const fundingId = new ObjectId();
+    const fundingHistoryId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
     const events = [{
       _id: new ObjectId(),
@@ -225,13 +209,103 @@ describe('updateEventAndFundingHistory', () => {
     }];
 
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-    findOneAndUpdate.returns(null);
+    findOne.returns({ _id: fundingHistoryId, careHours: 12 });
+
+    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
+
+    sinon.assert.calledOnceWithExactly(findOne, { fundingId, month: '01/2019' });
+    sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { _id: fundingHistoryId }, { $set: { careHours: 9 } });
+    sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
+    );
+  });
+
+  it('should decrement history for fixed and once funding', async () => {
+    const fundingId = new ObjectId();
+    const fundingHistoryId = new ObjectId();
+    const eventId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const eventsToUpdate = [{ eventId }];
+    const events = [{
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectId(), inclTaxesTpp: 200 },
+      startDate: new Date('2019/01/19'),
+    }];
+
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
+    findOne.onCall(0).returns(null);
+    findOne.onCall(1).returns({ _id: fundingHistoryId, amountTTC: 1000 });
+
+    await CreditNoteHelper.updateEventAndFundingHistory(eventsToUpdate, false, credentials);
+
+    sinon.assert.calledWithExactly(findOne.getCall(0), { fundingId, month: '01/2019' });
+    sinon.assert.calledWithExactly(findOne.getCall(1), { fundingId });
+    sinon.assert.calledOnceWithExactly(
+      updateOneFundingHistory,
+      { _id: fundingHistoryId },
+      { $set: { amountTTC: 800 } }
+    );
+    sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [{ query: 'find', args: [{ _id: { $in: [eventId] }, company: credentials.company._id }] }, { query: 'lean' }]
+    );
+  });
+
+  it('should increment history for hourly and once funding', async () => {
+    const fundingId = new ObjectId();
+    const fundingHistoryId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const events = [{
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
+      startDate: new Date('2019/01/19'),
+    }];
+
+    find.returns(events);
+    findOne.onCall(0).returns(null);
+    findOne.onCall(1).returns({ _id: fundingHistoryId, careHours: 120 });
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
 
-    sinon.assert.calledOnceWithExactly(findOneAndUpdate, { fundingId, month: '01/2019' }, { $inc: { careHours: 3 } });
+    sinon.assert.calledWithExactly(findOne.getCall(0), { fundingId, month: '01/2019' });
+    sinon.assert.calledWithExactly(findOne.getCall(1), { fundingId });
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: true });
-    sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { careHours: 3 } });
+    sinon.assert.calledOnceWithExactly(
+      updateOneFundingHistory,
+      { _id: fundingHistoryId },
+      { $set: { careHours: 123 } }
+    );
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
+    );
+  });
+
+  it('should increment history for hourly and monthly funding', async () => {
+    const fundingId = new ObjectId();
+    const fundingHistoryId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const events = [{
+      _id: new ObjectId(),
+      company: new ObjectId(),
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
+      startDate: new Date('2019/01/19'),
+    }];
+
+    find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
+    findOne.returns({ _id: fundingHistoryId, careHours: 12 });
+
+    await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
+
+    sinon.assert.calledOnceWithExactly(findOne, { fundingId, month: '01/2019' });
+    sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { _id: fundingHistoryId }, { $set: { careHours: 15 } });
+    sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: true });
     SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [] }, company: credentials.company._id }] }, { query: 'lean' }]
@@ -240,22 +314,31 @@ describe('updateEventAndFundingHistory', () => {
 
   it('should increment history for fixed and once funding', async () => {
     const fundingId = new ObjectId();
+    const fundingHistoryId = new ObjectId();
     const eventId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
     const eventsToUpdate = [{ eventId }];
     const events = [{
       _id: new ObjectId(),
       company: new ObjectId(),
-      bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectId(), inclTaxesTpp: 666 },
+      bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectId(), inclTaxesTpp: 200 },
       startDate: new Date('2019/01/19'),
     }];
 
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
+    findOne.onCall(0).returns(null);
+    findOne.onCall(1).returns({ _id: fundingHistoryId, amountTTC: 1000 });
 
-    await CreditNoteHelper.updateEventAndFundingHistory(eventsToUpdate, false, credentials);
+    await CreditNoteHelper.updateEventAndFundingHistory(eventsToUpdate, true, credentials);
 
-    sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { fundingId }, { $inc: { amountTTC: -666 } });
-    sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
+    sinon.assert.calledWithExactly(findOne.getCall(0), { fundingId, month: '01/2019' });
+    sinon.assert.calledWithExactly(findOne.getCall(1), { fundingId });
+    sinon.assert.calledOnceWithExactly(
+      updateOneFundingHistory,
+      { _id: fundingHistoryId },
+      { $set: { amountTTC: 1200 } }
+    );
+    sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: true });
     SinonMongoose.calledOnceWithExactly(
       find,
       [{ query: 'find', args: [{ _id: { $in: [eventId] }, company: credentials.company._id }] }, { query: 'lean' }]
@@ -272,16 +355,13 @@ describe('formatCreditNoteNumber', () => {
 
 describe('formatCreditNote', () => {
   let formatCreditNoteNumber;
-  let getFixedNumber;
   let findBillingItem;
   beforeEach(() => {
     formatCreditNoteNumber = sinon.stub(CreditNoteHelper, 'formatCreditNoteNumber');
-    getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
     findBillingItem = sinon.stub(BillingItem, 'find');
   });
   afterEach(() => {
     formatCreditNoteNumber.restore();
-    getFixedNumber.restore();
     findBillingItem.restore();
   });
 
@@ -296,7 +376,6 @@ describe('formatCreditNote', () => {
     await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
 
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
-    sinon.assert.notCalled(getFixedNumber);
     sinon.assert.notCalled(findBillingItem);
   });
 
@@ -307,12 +386,10 @@ describe('formatCreditNote', () => {
     const seq = 432;
 
     formatCreditNoteNumber.returns('number');
-    getFixedNumber.returnsArg(0);
 
     const creditNote = await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
 
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
-    sinon.assert.calledOnceWithExactly(getFixedNumber, 98, 2);
     sinon.assert.notCalled(findBillingItem);
     expect(creditNote.number).toEqual('number');
     expect(creditNote.inclTaxesCustomer).toEqual(98);
@@ -325,12 +402,10 @@ describe('formatCreditNote', () => {
     const seq = 432;
 
     formatCreditNoteNumber.returns('number');
-    getFixedNumber.returnsArg(0);
 
     const creditNote = await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
 
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
-    sinon.assert.calledOnceWithExactly(getFixedNumber, 98, 2);
     sinon.assert.notCalled(findBillingItem);
     expect(creditNote.number).toEqual('number');
     expect(creditNote.inclTaxesTpp).toEqual(98);
@@ -347,7 +422,6 @@ describe('formatCreditNote', () => {
     const seq = 432;
 
     formatCreditNoteNumber.returns('number');
-    getFixedNumber.returnsArg(0);
     findBillingItem.returns(
       SinonMongoose.stubChainedQueries([{ _id: billingItemId, vat: 10, name: 'skusku' }], ['lean'])
     );
@@ -357,7 +431,6 @@ describe('formatCreditNote', () => {
     expect(creditNote.number).toEqual('number');
     expect(creditNote.inclTaxesCustomer).toEqual(98);
     sinon.assert.calledOnceWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
-    sinon.assert.calledOnceWithExactly(getFixedNumber, 98, 2);
     SinonMongoose.calledOnceWithExactly(
       findBillingItem,
       [
@@ -445,7 +518,7 @@ describe('createCreditNotes', () => {
       {
         date: '2019-07-30T00:00:00',
         inclTaxesCustomer: 123,
-        exclTaxesTpp: 0,
+        exclTaxesTpp: '0',
         inclTaxesTpp: 0,
         company: credentials.company._id,
       },
@@ -488,7 +561,7 @@ describe('createCreditNotes', () => {
         events: [{ _id: 'asdfghjkl' }],
         inclTaxesTpp: 123,
         thirdPartyPayer: 'qwertyuiop',
-        exclTaxesCustomer: 0,
+        exclTaxesCustomer: '0',
         inclTaxesCustomer: 0,
         company: credentials.company._id,
       },
@@ -526,7 +599,7 @@ describe('createCreditNotes', () => {
         date: '2019-07-30T00:00:00',
         inclTaxesTpp: 123,
         thirdPartyPayer: 'qwertyuiop',
-        exclTaxesCustomer: 0,
+        exclTaxesCustomer: '0',
         inclTaxesCustomer: 0,
         company: credentials.company._id,
       },
@@ -539,7 +612,7 @@ describe('createCreditNotes', () => {
       {
         date: '2019-07-30T00:00:00',
         inclTaxesCustomer: 654,
-        exclTaxesTpp: 0,
+        exclTaxesTpp: '0',
         inclTaxesTpp: 0,
         company: credentials.company._id,
       },
@@ -853,7 +926,7 @@ describe('updateCreditNotes', () => {
               name: 'Frais de dossier',
               unitInclTaxes: '30',
               count: 2,
-              inclTaxes: '60',
+              inclTaxes: 60,
               exclTaxes: '58.82352941176470588236',
               vat: 2,
             },
@@ -862,7 +935,7 @@ describe('updateCreditNotes', () => {
               name: 'sku',
               unitInclTaxes: '10',
               count: 1,
-              inclTaxes: '10',
+              inclTaxes: 10,
               exclTaxes: '9.52380952380952380952',
               vat: 5,
             },
