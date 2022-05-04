@@ -49,25 +49,25 @@ describe('NODE ENV', () => {
 });
 
 const clientHistoryExportTypes = [
-  {
-    exportType: WORKING_EVENT,
-    expectedRows: [
-      '\ufeff"Type";"Heure interne";"Service";"Début planifié";"Début horodaté";"Type d\'horodatage";"Motif";"Fin planifiée";"Fin horodatée";"Type d\'horodatage";"Motif";"Durée";"Répétition";"Déplacement véhiculé avec bénéficiaire";"Mode de transport spécifique";"Équipe";"Id Auxiliaire";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"',
-      `"Intervention";;"Service 1";"2019/01/17 15:30:19";"2019/01/17 15:35:19";"Manuel";"QR Code manquant";"2019/01/17 17:30:19";"2019/01/17 17:35:19";"QR Code";;"2,00";"Tous les jours";"23,00";"Transports en commun / À pied";"Etoile";;;;;"Oui";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";;"Non";"Non";;`,
-      `"Heure interne";"planning";;"2019/01/17 15:30:19";;;;"2019/01/17 17:30:19";;;;"2,00";;;;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";;;;;;"Non";"Non";;`,
-      `"Intervention";;"Service 1";"2019/01/16 10:30:19";;;;"2019/01/16 12:30:21";;;;"2,00";;;;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative de l'intervenant(e)"`,
-    ],
-    query: 'startDate=2019-01-15T10:00:00.000Z&endDate=2019-01-20T10:00:00.000Z',
-  },
-  {
-    exportType: ABSENCE,
-    expectedRows: [
-      '\ufeff"Id Auxiliaire";"Auxiliaire - Prénom";"Auxiliaire - Nom";"Auxiliaire - Titre";"Équipe";"Type";"Nature";"Début";"Fin";"Equivalent heures contrat";"Prolongation";"Absence d\'origine";"Divers"',
-      `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Absence injustifiée";"Horaire";"19/01/2019 14:00";"19/01/2019 16:00";"2,00";"non";;"test absence"`,
-      `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Congé";"Journalière";"19/01/2019";"21/01/2019";"4,00";"non";;`,
-    ],
-    query: 'startDate=2019-01-15T10:00:00.000Z&endDate=2019-01-21T10:00:00.000Z',
-  },
+  // {
+  //   exportType: WORKING_EVENT,
+  //   expectedRows: [
+  //     '\ufeff"Type";"Heure interne";"Service";"Début planifié";"Début horodaté";"Type d\'horodatage";"Motif";"Fin planifiée";"Fin horodatée";"Type d\'horodatage";"Motif";"Durée";"Répétition";"Déplacement véhiculé avec bénéficiaire";"Mode de transport spécifique";"Équipe";"Id Auxiliaire";"Auxiliaire - Titre";"Auxiliaire - Prénom";"Auxiliaire - Nom";"A affecter";"Id Bénéficiaire";"Bénéficiaire - Titre";"Bénéficiaire - Nom";"Bénéficiaire - Prénom";"Divers";"Facturé";"Annulé";"Statut de l\'annulation";"Raison de l\'annulation"',
+  //     `"Intervention";;"Service 1";"2019/01/17 15:30:19";"2019/01/17 15:35:19";"Manuel";"QR Code manquant";"2019/01/17 17:30:19";"2019/01/17 17:35:19";"QR Code";;"2,00";"Tous les jours";"23,00";"Transports en commun / À pied";"Etoile";;;;;"Oui";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";;"Non";"Non";;`,
+  //     `"Heure interne";"planning";;"2019/01/17 15:30:19";;;;"2019/01/17 17:30:19";;;;"2,00";;;;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";;;;;;"Non";"Non";;`,
+  //     `"Intervention";;"Service 1";"2019/01/16 10:30:19";;;;"2019/01/16 12:30:21";;;;"2,00";;;;"Etoile";${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Non";${customersList[3]._id.toHexString()};"M.";"BARDET";"Romain";"test";"Non";"Oui";"Facturée & payée";"Initiative de l'intervenant(e)"`,
+  //   ],
+  //   query: 'startDate=2019-01-15T10:00:00.000Z&endDate=2019-01-20T10:00:00.000Z',
+  // },
+  // {
+  //   exportType: ABSENCE,
+  //   expectedRows: [
+  //     '\ufeff"Id Auxiliaire";"Auxiliaire - Prénom";"Auxiliaire - Nom";"Auxiliaire - Titre";"Équipe";"Type";"Nature";"Début";"Fin";"Equivalent heures contrat";"Prolongation";"Absence d\'origine";"Divers"',
+  //     `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Absence injustifiée";"Horaire";"19/01/2019 14:00";"19/01/2019 16:00";"2,00";"non";;"test absence"`,
+  //     `${auxiliaryList[0]._id.toHexString()};"Lulu";"UIUI";"M.";"Etoile";"Congé";"Journalière";"19/01/2019";"21/01/2019";"4,00";"non";;`,
+  //   ],
+  //   query: 'startDate=2019-01-15T10:00:00.000Z&endDate=2019-01-21T10:00:00.000Z',
+  // },
   {
     exportType: BILL,
     expectedRows: [
@@ -78,35 +78,35 @@ const clientHistoryExportTypes = [
     ],
     query: 'startDate=2019-05-25T10:00:00.000Z&endDate=2019-05-29T10:00:00.000Z',
   },
-  {
-    exportType: PAYMENT,
-    expectedRows: [
-      '\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Moyen de paiement";"Montant TTC en €"',
-      `"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"220,00"`,
-      `"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"190,00"`,
-    ],
-    query: 'startDate=2019-05-25T10:00:00.000Z&endDate=2019-05-31T10:00:00.000Z',
-  },
-  {
-    exportType: PAY,
-    expectedRows: [
-      '\ufeff"Id Auxiliaire";"Titre";"Prénom";"Nom";"Equipe";"Date d\'embauche";"Début";"Date de notif";"Motif";"Fin";"Heures contrat";"Heures absences";"Heures à travailler";"Heures travaillées";"Dont exo non majo";"Dont exo et majo";"Détails des majo exo";"Dont non exo et non majo";"Dont non exo et majo";"Détails des majo non exo";"Heures transports";"Solde heures";"Dont diff mois précédent";"Compteur";"Heures sup à payer";"Heures comp à payer";"Mutuelle";"Remboursement transport";"Km payés";"Km parcourus";"Frais téléphoniques";"Prime";"Indemnité"',
-      `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";;;"31/01/2019";"151,00";"10,00";"30,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"0,00"`,
-      `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";;;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"0,00"`,
-      `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/01/2019";;"31/01/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"10,00"`,
-      `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/02/2019";;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"10,00"`,
-    ],
-    query: 'startDate=2019-01-01T10:00:00.000Z&endDate=2019-05-31T10:00:00.000Z',
-  },
-  {
-    exportType: TRANSPORT,
-    expectedRows: [
-      '\ufeff"Id de l\'auxiliaire";"Prénom de l\'auxiliaire";"Nom de l\'auxiliaire";"Heure de départ du trajet";"Heure d\'arrivée du trajet";"Adresse de départ";"Adresse d\'arrivée";"Distance";"Mode de transport";"Durée du trajet";"Durée inter vacation";"Pause prise en compte";"Durée rémunérée"',
-      `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11/01/2019 09:30:00";"11/01/2019 10:30:00";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";"0,230";"Transports en commun / À pied";"0,0639";"1,0000";"Non";"0,0639"`,
-      `"${auxiliaryList[1]._id}";"Lili";"Lolo";"11/01/2019 11:30:00";"11/01/2019 12:35:00";"42 Rue de la Procession 75015 Paris";"35 Rue du Test 75015 Paris";"0,230";"Véhicule personnel";"1,0833";"1,0833";"Oui";"1,0833"`,
-    ],
-    query: 'startDate=2019-01-01&endDate=2019-01-31',
-  },
+  // {
+  //   exportType: PAYMENT,
+  //   expectedRows: [
+  //     '\ufeff"Nature";"Identifiant";"Date";"Id Bénéficiaire";"Titre";"Nom";"Prénom";"Id tiers payeur";"Tiers payeur";"Moyen de paiement";"Montant TTC en €"',
+  //     `"Remboursement";"REG-1903203";"27/05/2019";"${paymentsList[0].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"220,00"`,
+  //     `"Paiement";"REG-1903201";"26/05/2019";"${paymentsList[1].customer}";"M.";"BARDET";"Romain";"${paymentsList[0].thirdPartyPayer}";"Toto";"Prélèvement";"190,00"`,
+  //   ],
+  //   query: 'startDate=2019-05-25T10:00:00.000Z&endDate=2019-05-31T10:00:00.000Z',
+  // },
+  // {
+  //   exportType: PAY,
+  //   expectedRows: [
+  //     '\ufeff"Id Auxiliaire";"Titre";"Prénom";"Nom";"Equipe";"Date d\'embauche";"Début";"Date de notif";"Motif";"Fin";"Heures contrat";"Heures absences";"Heures à travailler";"Heures travaillées";"Dont exo non majo";"Dont exo et majo";"Détails des majo exo";"Dont non exo et non majo";"Dont non exo et majo";"Détails des majo non exo";"Heures transports";"Solde heures";"Dont diff mois précédent";"Compteur";"Heures sup à payer";"Heures comp à payer";"Mutuelle";"Remboursement transport";"Km payés";"Km parcourus";"Frais téléphoniques";"Prime";"Indemnité"',
+  //     `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";;;"31/01/2019";"151,00";"10,00";"30,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"0,00"`,
+  //     `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";;;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"0,00"`,
+  //     `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/01/2019";;"31/01/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"10,00"`,
+  //     `${auxiliaryList[0]._id.toHexString()};"M.";"Lulu";"UIUI";"Etoile";"01/01/2018";"01/01/2019";"25/02/2019";;"28/02/2019";"151,00";"10,00";"20,00";"143,00";"99,00";"2,00";;"45,00";"5,00";;"6,00";"0,00";"8,00";"-20,00";"0,00";"0,00";"Non";"10,00";"12,00";"14,00";"0,00";"0,00";"10,00"`,
+  //   ],
+  //   query: 'startDate=2019-01-01T10:00:00.000Z&endDate=2019-05-31T10:00:00.000Z',
+  // },
+  // {
+  //   exportType: TRANSPORT,
+  //   expectedRows: [
+  //     '\ufeff"Id de l\'auxiliaire";"Prénom de l\'auxiliaire";"Nom de l\'auxiliaire";"Heure de départ du trajet";"Heure d\'arrivée du trajet";"Adresse de départ";"Adresse d\'arrivée";"Distance";"Mode de transport";"Durée du trajet";"Durée inter vacation";"Pause prise en compte";"Durée rémunérée"',
+  //     `"${auxiliaryList[0]._id}";"Lulu";"Uiui";"11/01/2019 09:30:00";"11/01/2019 10:30:00";"42 Rue de la Procession 75015 Paris";"37 Rue de Ponthieu 75008 Paris";"0,230";"Transports en commun / À pied";"0,0639";"1,0000";"Non";"0,0639"`,
+  //     `"${auxiliaryList[1]._id}";"Lili";"Lolo";"11/01/2019 11:30:00";"11/01/2019 12:35:00";"42 Rue de la Procession 75015 Paris";"35 Rue du Test 75015 Paris";"0,230";"Véhicule personnel";"1,0833";"1,0833";"Oui";"1,0833"`,
+  //   ],
+  //   query: 'startDate=2019-01-01&endDate=2019-01-31',
+  // },
 ];
 
 const vendorHistoryExportTypes = [
@@ -164,7 +164,7 @@ const vendorHistoryExportTypes = [
 ];
 
 clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
-  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history`, () => {
+  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history #tag`, () => {
     let authToken;
     before(populateDB);
 
@@ -184,7 +184,6 @@ clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
 
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
-
         for (let i = 0; i < expectedRows.length; i++) expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
       });
     });
