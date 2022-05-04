@@ -95,8 +95,10 @@ exports.authorizeDeletion = async (req) => {
 
     await canEditCourse(courseSlot.course);
 
-    const courseStepHasOtherSlots = await CourseSlot
-      .countDocuments({ _id: { $nin: [courseSlot._id] }, course: courseSlot.course, step: courseSlot.step });
+    const courseStepHasOtherSlots = await CourseSlot.countDocuments(
+      { _id: { $nin: [courseSlot._id] }, course: courseSlot.course, step: courseSlot.step },
+      { limit: 1 }
+    );
     if (!courseStepHasOtherSlots) throw Boom.forbidden();
 
     const attendanceExists = await Attendance.countDocuments({ courseSlot: courseSlot._id });
