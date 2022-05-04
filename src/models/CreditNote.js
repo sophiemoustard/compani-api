@@ -63,7 +63,7 @@ const CreditNoteSchema = mongoose.Schema(
         name: { type: String, required() { return get(this.subscription, 'service.serviceId', false); } },
       },
       vat: { type: Number },
-      unitInclTaxes: { type: String },
+      unitInclTaxes: { type: Number },
     },
     linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote', immutable: true },
     origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI, immutable: true },
