@@ -308,7 +308,7 @@ exports.getBills = async (query, credentials) => {
 
 exports.filterFundingVersion = date => ver => DatesHelper.isSameOrBefore(ver.createdAt, date);
 
-const getFunding = (bill, event) => bill.customer.fundings
+const getMatchingFunding = (bill, event) => bill.customer.fundings
   .map(fund => UtilsHelper.getMatchingVersion(bill.createdAt, fund, 'createdAt', exports.filterFundingVersion))
   .find(fund => UtilsHelper.areObjectIdsEquals(fund.thirdPartyPayer, bill.thirdPartyPayer._id) &&
       CompaniDate(fund.startDate).isSameOrBefore(event.startDate) &&
@@ -318,14 +318,14 @@ exports.getUnitInclTaxes = (bill, subscription) => {
   if (!bill.thirdPartyPayer) return subscription.unitInclTaxes;
 
   const lastEvent = UtilsHelper.getLastVersion(subscription.events, 'startDate');
-  const matchingVersion = getFunding(bill, lastEvent);
-  if (!matchingVersion) return 0;
+  const matchingFundingVersion = getMatchingFunding(bill, lastEvent);
+  if (!matchingFundingVersion) return 0;
 
-  if (matchingVersion.nature === HOURLY) {
-    const customerParticipationRate = NumbersHelper.divide(matchingVersion.customerParticipationRate, 100);
+  if (matchingFundingVersion.nature === HOURLY) {
+    const customerParticipationRate = NumbersHelper.divide(matchingFundingVersion.customerParticipationRate, 100);
     const tppParticipationRate = NumbersHelper.subtract(1, customerParticipationRate);
 
-    return NumbersHelper.multiply(matchingVersion.unitTTCRate, tppParticipationRate);
+    return NumbersHelper.multiply(matchingFundingVersion.unitTTCRate, tppParticipationRate);
   }
 
   return subscription.unitInclTaxes;
