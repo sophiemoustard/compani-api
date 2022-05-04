@@ -34,7 +34,7 @@ const billingItemsInBillDefinition = {
 
 const billingItemsInEventDefinition = [{
   billingItem: { type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem', required: true },
-  exclTaxes: { type: Number, required: true },
+  exclTaxes: { type: String, required: true },
   inclTaxes: { type: Number, required: true },
 }];
 
