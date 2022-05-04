@@ -503,7 +503,7 @@ describe('getFileName', () => {
 
     const result = await DeliveryHelper.getFileName(query);
 
-    expect(result).toEqual(`440-202109-APA-${CompaniDate().format('yyMMddhhm')}.xml`);
+    expect(result).toEqual(`440-202109-APA-${CompaniDate().format('yyMMddhhmm')}.xml`);
     SinonMongoose.calledOnceWithExactly(
       findOne,
       [{ query: 'findOne', args: [{ _id: tppId }, { teletransmissionType: 1, companyCode: 1 }] }, { query: 'lean' }]
