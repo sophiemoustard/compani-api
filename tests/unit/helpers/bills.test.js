@@ -1902,19 +1902,19 @@ describe('formatBillingItem', () => {
   it('should format billing item', () => {
     const billingItemId = new ObjectId();
     const billingItem = { billingItem: billingItemId, count: 3, unitInclTaxes: 60 };
-    const list = [
+    const billingItemList = [
       { _id: billingItemId, name: 'bonjour', vat: 20 },
       { _id: new ObjectId(), name: 'au revoir', vat: 40 },
     ];
 
-    const result = BillHelper.formatBillingItem(billingItem, list);
+    const result = BillHelper.formatBillingItem(billingItem, billingItemList);
 
     expect(result).toEqual({
       billingItem: billingItemId,
       name: 'bonjour',
       unitInclTaxes: '60',
       count: 3,
-      inclTaxes: '180',
+      inclTaxes: 180,
       exclTaxes: '150',
       vat: 20,
     });
