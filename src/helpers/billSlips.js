@@ -60,7 +60,7 @@ exports.createBillSlips = async (billList, endDate, company) => {
   const list = [];
   let { seq } = slipNumber;
   for (const tpp of tppIds) {
-    if (!tpp || billSlipList.some(bs => bs.thirdPartyPayer.toHexString() === tpp)) continue;
+    if (!tpp || billSlipList.some(bs => UtilsHelper.areObjectIdsEquals(bs.thirdPartyPayer, tpp))) continue;
     const number = exports.formatBillSlipNumber(company.prefixNumber, slipNumber.prefix, seq);
     list.push({ company: company._id, month, thirdPartyPayer: tpp, number });
     seq += 1;

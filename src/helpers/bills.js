@@ -272,7 +272,7 @@ exports.formatBillingItem = (bi, bddBillingItemList) => {
     name: bddBillingItem.name,
     unitInclTaxes: NumbersHelper.toString(bi.unitInclTaxes),
     count: bi.count,
-    inclTaxes: NumbersHelper.multiply(bi.unitInclTaxes, bi.count),
+    inclTaxes: parseFloat(NumbersHelper.multiply(bi.unitInclTaxes, bi.count)),
     exclTaxes,
     vat: bddBillingItem.vat,
   };
