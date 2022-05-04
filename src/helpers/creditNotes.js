@@ -15,7 +15,7 @@ const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
 const BillsHelper = require('./bills');
-const { HOURLY, CIVILITY_LIST } = require('./constants');
+const { CIVILITY_LIST } = require('./constants');
 const { COMPANI } = require('./constants');
 const CreditNotePdf = require('../data/pdf/billing/creditNote');
 const NumbersHelper = require('./numbers');
@@ -50,22 +50,25 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
 
   for (const event of events) {
     if (event.bills.thirdPartyPayer && event.bills.fundingId) {
-      if (event.bills.nature !== HOURLY) {
-        await FundingHistory.updateOne(
-          { fundingId: event.bills.fundingId },
-          { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } }
-        );
+      let fundingHistory = await FundingHistory.findOne({
+        fundingId: event.bills.fundingId,
+        month: moment(event.startDate).format('MM/YYYY'),
+      });
+
+      if (fundingHistory) {
+        const careHours = isBilled
+          ? NumbersHelper.add(fundingHistory.careHours, event.bills.careHours)
+          : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours);
+
+        await FundingHistory.updateOne({ _id: fundingHistory._id }, { $set: { careHours } });
       } else {
-        const history = await FundingHistory.findOneAndUpdate(
-          { fundingId: event.bills.fundingId, month: moment(event.startDate).format('MM/YYYY') },
-          { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
-        );
-        if (!history) {
-          await FundingHistory.updateOne(
-            { fundingId: event.bills.fundingId },
-            { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
-          );
-        }
+        fundingHistory = await FundingHistory.findOne({ fundingId: event.bills.fundingId });
+
+        const amountTTC = isBilled
+          ? NumbersHelper.add(fundingHistory.amountTTC, event.bills.inclTaxesTpp)
+          : NumbersHelper.subtract(fundingHistory.amountTTC, event.bills.inclTaxesTpp);
+
+        await FundingHistory.updateOne({ _id: fundingHistory._id }, { $set: { amountTTC } });
       }
     }
 
@@ -88,10 +91,10 @@ const formatBillingItemList = async (billingItemList) => {
 exports.formatCreditNote = async (payload, companyPrefix, prefix, seq) => {
   const creditNote = { ...payload, number: exports.formatCreditNoteNumber(companyPrefix, prefix, seq) };
   if (payload.inclTaxesCustomer) {
-    creditNote.inclTaxesCustomer = UtilsHelper.getFixedNumber(payload.inclTaxesCustomer, 2);
+    creditNote.inclTaxesCustomer = NumbersHelper.toFixed(payload.inclTaxesCustomer);
   }
 
-  if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = UtilsHelper.getFixedNumber(payload.inclTaxesTpp, 2);
+  if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = NumbersHelper.toFixed(payload.inclTaxesTpp);
 
   if (get(payload, 'billingItemList.length')) {
     creditNote.billingItemList = await formatBillingItemList(payload.billingItemList);
@@ -115,14 +118,19 @@ exports.createCreditNotes = async (payload, credentials) => {
   let tppCN;
   let customerCN;
   if (payload.inclTaxesTpp) {
-    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0, company: company._id };
+    const tppPayload = {
+      ...payload,
+      exclTaxesCustomer: NumbersHelper.toString(0),
+      inclTaxesCustomer: 0,
+      company: company._id,
+    };
     tppCN = await exports.formatCreditNote(tppPayload, company.prefixNumber, number.prefix, number.seq);
     number.seq += 1;
   }
   if (payload.inclTaxesCustomer) {
     const customerPayload = {
       ...omit(payload, ['thirdPartyPayer']),
-      exclTaxesTpp: 0,
+      exclTaxesTpp: NumbersHelper.toString(0),
       inclTaxesTpp: 0,
       company: company._id,
     };
