@@ -16,7 +16,7 @@ const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
 const BillsHelper = require('./bills');
 const { CIVILITY_LIST } = require('./constants');
-const { COMPANI } = require('./constants');
+const { HOURLY, COMPANI } = require('./constants');
 const CreditNotePdf = require('../data/pdf/billing/creditNote');
 const NumbersHelper = require('./numbers');
 
@@ -56,19 +56,28 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
       });
 
       if (fundingHistory) {
-        const careHours = isBilled
+        const careHours = parseFloat(isBilled
           ? NumbersHelper.add(fundingHistory.careHours, event.bills.careHours)
-          : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours);
+          : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours));
 
         await FundingHistory.updateOne({ _id: fundingHistory._id }, { $set: { careHours } });
       } else {
         fundingHistory = await FundingHistory.findOne({ fundingId: event.bills.fundingId });
 
-        const amountTTC = isBilled
-          ? NumbersHelper.add(fundingHistory.amountTTC, event.bills.inclTaxesTpp)
-          : NumbersHelper.subtract(fundingHistory.amountTTC, event.bills.inclTaxesTpp);
+        let payload;
+        if (event.bills.nature === HOURLY) {
+          const careHours = parseFloat(isBilled
+            ? NumbersHelper.add(fundingHistory.careHours, event.bills.careHours)
+            : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours));
+          payload = { careHours };
+        } else {
+          const amountTTC = parseFloat(isBilled
+            ? NumbersHelper.add(fundingHistory.amountTTC, event.bills.inclTaxesTpp)
+            : NumbersHelper.subtract(fundingHistory.amountTTC, event.bills.inclTaxesTpp));
+          payload = { amountTTC };
+        }
 
-        await FundingHistory.updateOne({ _id: fundingHistory._id }, { $set: { amountTTC } });
+        await FundingHistory.updateOne({ _id: fundingHistory._id }, { $set: payload });
       }
     }
 
