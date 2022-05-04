@@ -42,6 +42,7 @@ const InterAttendanceSheet = require('../data/pdf/attendanceSheet/interAttendanc
 const IntraAttendanceSheet = require('../data/pdf/attendanceSheet/intraAttendanceSheet');
 const CourseConvocation = require('../data/pdf/courseConvocation');
 const CompletionCertificate = require('../data/pdf/completionCertificate');
+const CourseBill = require('../models/CourseBill');
 
 exports.createCourse = payload => (new Course(payload)).save();
 
@@ -395,6 +396,10 @@ exports.updateCourse = async (courseId, payload) => {
 
 exports.deleteCourse = async courseId => Promise.all([
   Course.deleteOne({ _id: courseId }),
+  CourseBill.deleteMany({
+    course: courseId,
+    $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }],
+  }),
   CourseSmsHistory.deleteMany({ course: courseId }),
 ]);
 

@@ -30,6 +30,7 @@ const {
 } = require('../../seed/authUsersSeed');
 const { VIDEO, WEBAPP } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
+const CourseBill = require('../../../src/models/CourseBill');
 
 const traineeFromOtherCompany = {
   _id: new ObjectId(),
@@ -301,6 +302,27 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-01-01T00:00:00.000Z',
   },
+  { // 15 course billed INTRA without trainees and slots
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: 'intra billed without trainee and slot',
+    type: 'intra',
+    format: 'blended',
+    salesRepresentative: vendorAdmin._id,
+    company: authCompany._id,
+  },
+];
+
+const courseBillsList = [
+  {
+    _id: new ObjectId(),
+    course: coursesList[15]._id,
+    mainFee: { price: 1000, count: 1, description: 'Bonjour' },
+    company: authCompany._id,
+    billingPurchaseList: [],
+    billedAt: '2022-04-12T09:00:00',
+    number: 'F00001',
+  },
 ];
 
 const questionnaire = {
@@ -398,6 +420,7 @@ const populateDB = async () => {
     ActivityHistory.create(activitiesHistory),
     Card.create(cardsList),
     Course.create(coursesList),
+    CourseBill.create(courseBillsList),
     CourseSlot.create(slots),
     CourseSmsHistory.create(courseSmsHistory),
     Program.create(programsList),

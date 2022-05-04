@@ -290,6 +290,11 @@ module.exports = {
     courseFound: 'Course found.',
     courseUpdated: 'Course updated.',
     courseDeleted: 'Course deleted.',
+    courseDeletionForbidden: {
+      trainees: 'Deletion forbidden : trainees are added',
+      slots: 'Deletion forbidden : slots are added',
+      billed: 'Deletion forbidden : course is billed',
+    },
     courseTraineeAdded: 'Course trainee added.',
     courseTraineeRemoved: 'Course trainee removed.',
     courseTraineeAlreadyExists: 'Course trainee already added to course.',
@@ -669,6 +674,11 @@ module.exports = {
     courseFound: 'Formation trouvée.',
     courseUpdated: 'Formation mise à jour.',
     courseDeleted: 'Formation supprimée.',
+    courseDeletionForbidden: {
+      trainees: 'Suppression impossible : des apprenants sont inscrits',
+      slots: 'Suppression impossible : des créneaux sont rattachés',
+      billed: 'Suppression impossible : la formation a une facture',
+    },
     courseTraineeAdded: 'Stagiaire ajouté(e) à la formation.',
     courseTraineeRemoved: 'Stagiaire supprimé(e) de la formation.',
     courseTraineeAlreadyExists: 'Stagiaire déjà ajouté(e) à la formation.',
