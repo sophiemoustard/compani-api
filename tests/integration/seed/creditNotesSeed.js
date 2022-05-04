@@ -14,6 +14,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
+const FundingHistory = require('../../../src/models/FundingHistory');
 
 const billingItemList = [
   {
@@ -55,6 +56,8 @@ const creditNoteService = {
   nature: HOURLY,
 };
 
+const subId = new ObjectId();
+const fundingId = new ObjectId();
 const creditNoteCustomer = {
   _id: new ObjectId(),
   company: authCompany._id,
@@ -77,7 +80,7 @@ const creditNoteCustomer = {
   },
   subscriptions: [
     {
-      _id: new ObjectId(),
+      _id: subId,
       service: creditNoteService._id,
       versions: [{
         unitTTCRate: 12,
@@ -85,6 +88,26 @@ const creditNoteCustomer = {
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    },
+  ],
+  fundings: [
+    {
+      _id: fundingId,
+      nature: 'hourly',
+      subscription: subId,
+      thirdPartyPayer: creditNoteThirdPartyPayer._id,
+      frequency: 'once',
+      versions: [{
+        amountTTC: 0,
+        unitTTCRate: 20,
+        careHours: 24,
+        careDays: [0, 1, 2, 3, 4, 5, 6, 7],
+        customerParticipationRate: 0.45,
+        folderNumber: 'poiuytre',
+        fundingPlanId: 'qwertyuiop',
+        startDate: '2018-01-01T10:00:00.000+01:00',
+        createdAt: '2018-01-01T10:00:00.000+01:00',
       }],
     },
   ],
@@ -165,7 +188,7 @@ const creditNoteEvent = {
     exclTaxesCustomer: 15,
     inclTaxesTpp: 10,
     exclTaxesTpp: 5,
-    fundingId: new ObjectId(),
+    fundingId,
     nature: 'hourly',
     careHours: 2,
   },
@@ -437,6 +460,8 @@ const userCompanies = [
   { _id: new ObjectId(), user: otherCompanyUser._id, company: otherCompany._id },
 ];
 
+const fundingHistoryList = [{ company: authCompany._id, fundingId, amountTTC: 0, careHours: 12 }];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -445,6 +470,7 @@ const populateDB = async () => {
     CreditNote.create([...creditNotesList, otherCompanyCreditNote]),
     Customer.create([creditNoteCustomer, otherCompanyCustomer, archivedCustomer]),
     Event.create([creditNoteEvent, otherCompanyEvent]),
+    FundingHistory.create(fundingHistoryList),
     Helper.create(helpersList),
     Service.create([creditNoteService, otherCompanyService]),
     ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]),
