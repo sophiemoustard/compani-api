@@ -1,7 +1,7 @@
 const get = require('lodash/get');
-const has = require('lodash/has');
 const pick = require('lodash/pick');
 const uniqBy = require('lodash/uniqBy');
+const groupBy = require('lodash/groupBy');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -49,10 +49,10 @@ const CreditNote = require('../models/CreditNote');
 const Contract = require('../models/Contract');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseSlot = require('../models/CourseSlot');
-const Course = require('../models/Course');
 const Pay = require('../models/Pay');
 const Payment = require('../models/Payment');
 const FinalPay = require('../models/FinalPay');
+const CourseRepository = require('../repositories/CourseRepository');
 const EventRepository = require('../repositories/EventRepository');
 const UserRepository = require('../repositories/UserRepository');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
@@ -663,36 +663,26 @@ const getStartOfCourse = slotsGroupedByDate => (slotsGroupedByDate.length
 const isSlotInInterval = (slot, startDate, endDate) => CompaniDate(slot.startDate).isAfter(startDate) &&
   CompaniDate(slot.endDate).isBefore(endDate);
 
-const getAttendancesInfos = (course, attendanceSheetList) => {
-  const attendanceSheetsCount = attendanceSheetList
-    .filter(attendanceSheet => UtilsHelper.areObjectIdsEquals(attendanceSheet.course, course._id))
-    .length;
-
+const getAttendancesCountInfos = (course) => {
   const attendances = course.slots.map(slot => slot.attendances).flat();
   const courseTraineeList = course.trainees.map(trainee => trainee._id);
-  const subscribedTraineesAttendancesCount = attendances
+  const subscribedAttendances = attendances
     .filter(attendance => UtilsHelper.doesArrayIncludeId(courseTraineeList, attendance.trainee))
     .length;
-  const unsubscribedTraineesAttendancesCount = attendances.length - subscribedTraineesAttendancesCount;
 
-  const upComingSlotsCount = course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
-  const attendancesToCome = upComingSlotsCount * course.trainees.length;
-  const absencesCount = (course.slots.length * course.trainees.length) - subscribedTraineesAttendancesCount
-    - attendancesToCome;
+  const upComingSlots = course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
+  const attendancesToCome = upComingSlots * course.trainees.length;
 
-  const unsubscribedTraineesCount = uniqBy(attendances.map(a => a.trainee), trainee => trainee.toString())
+  const unsubscribedTrainees = uniqBy(attendances.map(a => a.trainee), trainee => trainee.toString())
     .filter(attendanceTrainee => !UtilsHelper.doesArrayIncludeId(courseTraineeList, attendanceTrainee))
     .length;
 
-  const pastSlotsCount = course.slots.length - upComingSlotsCount;
-
   return {
-    attendanceSheetsCount,
-    subscribedTraineesAttendancesCount,
-    unsubscribedTraineesAttendancesCount,
-    absencesCount,
-    unsubscribedTraineesCount,
-    pastSlotsCount,
+    subscribedAttendances,
+    unsubscribedAttendances: attendances.length - subscribedAttendances,
+    absences: (course.slots.length * course.trainees.length) - subscribedAttendances - attendancesToCome,
+    unsubscribedTrainees,
+    pastSlots: course.slots.length - upComingSlots,
   };
 };
 
@@ -703,13 +693,8 @@ const getBillsInfos = (bills) => {
     .toString();
   const isBilled = courseBillsWithoutCreditNote.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
 
-  const invoicedBill = courseBillsWithoutCreditNote.find(bill => bill.billedAt)
-    ? CourseBillHelper
-      .formatCourseBill(courseBillsWithoutCreditNote.find(bill => bill.billedAt), false)
-    : { netInclTaxes: '', paid: '', total: '' };
-  const { netInclTaxes } = invoicedBill;
-  const { paid } = invoicedBill;
-  const { total } = invoicedBill;
+  const { netInclTaxes, paid, total } = CourseBillHelper
+    .computeAmounts(courseBillsWithoutCreditNote.find(bill => bill.billedAt));
 
   return { isBilled, payer, netInclTaxes, paid, total };
 };
@@ -717,83 +702,42 @@ const getBillsInfos = (bills) => {
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
   const courseIds = slots.map(slot => slot.course);
-  const courses = await Course
-    .find({
-      $or: [
-        { _id: { $in: courseIds } },
-        { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
-      ],
-    })
-    .populate({ path: 'company', select: 'name' })
-    .populate({
-      path: 'subProgram',
-      select: 'name steps program',
-      populate: [
-        { path: 'program', select: 'name' },
-        {
-          path: 'steps',
-          select: 'type activities',
-          populate: { path: 'activities', populate: { path: 'activityHistories' } },
-        },
-      ],
-    })
-    .populate({ path: 'trainer', select: 'identity' })
-    .populate({ path: 'salesRepresentative', select: 'identity' })
-    .populate({ path: 'contact', select: 'identity' })
-    .populate({ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' })
-    .populate({ path: 'slotsToPlan', select: '_id' })
-    .populate({ path: 'trainees', select: 'firstMobileConnection' })
-    .populate({
-      path: 'bills',
-      select: 'courseFundingOrganisation company billedAt mainFee billingPurchaseList',
-      options: { isVendorUser: has(credentials, 'role.vendor') },
-      populate: [
-        { path: 'courseFundingOrganisation', select: 'name' },
-        { path: 'company', select: 'name' },
-        { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
-        {
-          path: 'coursePayments',
-          options: { isVendorUser: !!get(credentials, 'role.vendor') },
-          select: 'netInclTaxes nature',
-        },
-      ],
-    })
-    .lean();
+  const courses = await CourseRepository.findCoursesForExport(courseIds, startDate, endDate, credentials);
 
   const filteredCourses = courses
     .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
 
-  const questionnaireHistories = await QuestionnaireHistory
-    .find({ course: { $in: courseIds } })
-    .populate({ path: 'questionnaire', select: 'type' })
-    .lean();
-
-  const smsList = await CourseSmsHistory.find({ course: { $in: courseIds } }).lean();
-  const attendanceSheetList = await AttendanceSheet.find({ course: { $in: courseIds } }).lean();
+  const [questionnaireHistories, smsList, attendanceSheetList] = await Promise.all([
+    QuestionnaireHistory
+      .find({ course: { $in: courseIds } })
+      .populate({ path: 'questionnaire', select: 'type' })
+      .lean(),
+    CourseSmsHistory.find({ course: { $in: courseIds } }).lean(),
+    AttendanceSheet.find({ course: { $in: courseIds } }).lean(),
+  ]);
 
   const rows = [];
 
   for (const course of filteredCourses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
-    const smsCount = smsList.filter(sms => UtilsHelper.areObjectIdsEquals(sms.course, course._id)).length;
-
+    const smsCount = (groupBy(smsList, 'course')[course._id] || []).length;
+    const attendanceSheets = (groupBy(attendanceSheetList, 'course')[course._id] || []).length;
     const {
-      attendanceSheetsCount,
-      subscribedTraineesAttendancesCount,
-      unsubscribedTraineesAttendancesCount,
-      absencesCount,
-      unsubscribedTraineesCount,
-      pastSlotsCount,
-    } = getAttendancesInfos(course, attendanceSheetList);
+      subscribedAttendances,
+      unsubscribedAttendances,
+      absences,
+      unsubscribedTrainees,
+      pastSlots,
+    } = getAttendancesCountInfos(course);
 
-    const expectactionQuestionnaireAnswersCount = questionnaireHistories
+    const courseQuestionnaireHistories = groupBy(questionnaireHistories, 'course')[course._id] || [];
+
+    const expectactionQuestionnaireAnswers = courseQuestionnaireHistories
       .filter(qh => qh.questionnaire.type === EXPECTATIONS)
-      .filter(qh => UtilsHelper.areObjectIdsEquals(qh.course, course._id))
       .length;
 
-    const endQuestionnaireAnswersCount = questionnaireHistories
+    const endQuestionnaireAnswers = courseQuestionnaireHistories
       .filter(qh => qh.questionnaire.type === END_OF_COURSE)
-      .filter(qh => UtilsHelper.areObjectIdsEquals(qh.course, course._id))
       .length;
 
     const traineeProgressList = course.trainees
@@ -826,19 +770,19 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Complétion eLearning moyenne': traineeProgressList.length
         ? UtilsHelper.formatFloatForExport(combinedElearningProgress / course.trainees.length)
         : '',
-      'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswersCount,
-      'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswersCount,
+      'Nombre de réponses au questionnaire de recueil des attentes': expectactionQuestionnaireAnswers,
+      'Nombre de réponses au questionnaire de satisfaction': endQuestionnaireAnswers,
       'Date de démarrage souhaitée': course.estimatedStartDate
         ? CompaniDate(course.estimatedStartDate).format('dd/LL/yyyy')
         : '',
       'Début de formation': getStartOfCourse(slotsGroupedByDate),
       'Fin de formation': getEndOfCourse(slotsGroupedByDate, course.slotsToPlan),
-      'Nombre de feuilles d\'émargement chargées': attendanceSheetsCount,
-      'Nombre de présences': subscribedTraineesAttendancesCount,
-      'Nombre d\'absences': absencesCount,
-      'Nombre de stagiaires non prévus': unsubscribedTraineesCount,
-      'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
-      Avancement: UtilsHelper.formatFloatForExport(pastSlotsCount / (course.slots.length + course.slotsToPlan.length)),
+      'Nombre de feuilles d\'émargement chargées': attendanceSheets,
+      'Nombre de présences': subscribedAttendances,
+      'Nombre d\'absences': absences,
+      'Nombre de stagiaires non prévus': unsubscribedTrainees,
+      'Nombre de présences non prévues': unsubscribedAttendances,
+      Avancement: UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length)),
       Facturée: isBilled,
       'Montant facturé': netInclTaxes,
       'Montant réglé': paid,
@@ -874,12 +818,9 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
 
   for (const slot of courseSlots) {
     const slotDuration = UtilsHelper.getDurationForExport(slot.startDate, slot.endDate);
-    const subscribedTraineesAttendancesCount = slot.attendances
+    const subscribedAttendances = slot.attendances
       .filter(attendance => UtilsHelper.doesArrayIncludeId(slot.course.trainees, attendance.trainee))
       .length;
-    const unsubscribedTraineesAttendancesCount = slot.attendances.length - subscribedTraineesAttendancesCount;
-
-    const absencesCount = slot.course.trainees.length - subscribedTraineesAttendancesCount;
 
     const courseName = get(slot, 'course.type') === INTRA
       ? `${slot.course.company.name} - ${slot.course.subProgram.program.name} - ${slot.course.misc}`
@@ -896,9 +837,9 @@ exports.exportCourseSlotHistory = async (startDate, endDate) => {
       'Date de fin': CompaniDate(slot.endDate).format('dd/LL/yyyy HH:mm:ss') || '',
       Durée: slotDuration,
       Adresse: getAddress(slot),
-      'Nombre de présences': subscribedTraineesAttendancesCount,
-      'Nombre d\'absences': absencesCount,
-      'Nombre de présences non prévues': unsubscribedTraineesAttendancesCount,
+      'Nombre de présences': subscribedAttendances,
+      'Nombre d\'absences': slot.course.trainees.length - subscribedAttendances,
+      'Nombre de présences non prévues': slot.attendances.length - subscribedAttendances,
     });
   }
 

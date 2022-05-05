@@ -26,19 +26,26 @@ const getTimeProgress = (course) => {
   return pastSlotsCount / (course.slots.length + course.slotsToPlan.length);
 };
 
-exports.formatCourseBill = (courseBill, getProgress = true) => {
-  const netInclTaxes = exports.getNetInclTaxes(courseBill);
+exports.computeAmounts = (courseBill) => {
+  if (!courseBill) return { netInclTaxes: '', paid: '', total: '' };
 
+  const netInclTaxes = exports.getNetInclTaxes(courseBill);
   const totalPayments = BalanceHelper.computePayments(courseBill.coursePayments);
   const creditNote = courseBill.courseCreditNote ? netInclTaxes : 0;
   const paid = totalPayments + creditNote;
 
+  return { netInclTaxes, paid, total: paid - netInclTaxes };
+};
+
+exports.formatCourseBill = (courseBill) => {
+  const { netInclTaxes, paid, total } = this.computeAmounts(courseBill);
+
   return {
-    ...(getProgress && { progress: getTimeProgress(courseBill.course) }),
+    progress: getTimeProgress(courseBill.course),
     netInclTaxes,
     ...omit(courseBill, ['course.slots', 'course.slotsToPlan']),
     paid,
-    total: paid - netInclTaxes,
+    total,
   };
 };
 
