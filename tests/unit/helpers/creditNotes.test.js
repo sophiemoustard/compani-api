@@ -924,7 +924,7 @@ describe('updateCreditNotes', () => {
             {
               billingItem: billingItemId1,
               name: 'Frais de dossier',
-              unitInclTaxes: '30',
+              unitInclTaxes: 30,
               count: 2,
               inclTaxes: 60,
               exclTaxes: '58.82352941176470588236',
@@ -933,7 +933,7 @@ describe('updateCreditNotes', () => {
             {
               billingItem: billingItemId2,
               name: 'sku',
-              unitInclTaxes: '10',
+              unitInclTaxes: 10,
               count: 1,
               inclTaxes: 10,
               exclTaxes: '9.52380952380952380952',
