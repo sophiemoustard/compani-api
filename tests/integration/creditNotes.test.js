@@ -48,6 +48,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       bills: {
         inclTaxesCustomer: '10',
         exclTaxesCustomer: '8',
+        careHours: '12',
         billingItems: [{ billingItem: billingItemList[0]._id, exclTaxes: '12', inclTaxes: 14 }],
       },
     }],
