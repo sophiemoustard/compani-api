@@ -274,6 +274,8 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
   }
 };
 
+exports.removeUser = async user => User.deleteOne({ _id: user._id });
+
 exports.removeHelper = async (user) => {
   await HelpersHelper.remove(user._id);
   await UserCompany.deleteOne({ user: user._id });

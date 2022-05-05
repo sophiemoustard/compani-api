@@ -13,7 +13,7 @@ const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const Course = require('../../../src/models/Course');
-const { WEBAPP } = require('../../../src/helpers/constants');
+const { WEBAPP, MOBILE } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
 const {
   helperRoleId,
@@ -112,7 +112,7 @@ const contractNotStartedId = new ObjectId();
 const endedContractId = new ObjectId();
 
 const usersSeedList = [
-  {
+  { // 0
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
     local: { email: 'black@alenvi.io', password: '123456!eR' },
@@ -126,7 +126,7 @@ const usersSeedList = [
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
-  {
+  { // 1
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456!eR' },
@@ -136,7 +136,7 @@ const usersSeedList = [
     origin: WEBAPP,
     formationExpoTokenList: ['ExponentPushToken[jeSuisUnAutreIdExpo]'],
   },
-  {
+  { // 2
     _id: new ObjectId(),
     identity: { firstname: 'Coach3', lastname: 'Kitty' },
     local: { email: 'kitty@alenvi.io', password: '123456!eR' },
@@ -145,7 +145,7 @@ const usersSeedList = [
     inactivityDate: '2018-11-01T12:52:27.461Z',
     origin: WEBAPP,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     identity: { firstname: 'Helper1', lastname: 'Carolyn' },
     local: { email: 'carolyn@alenvi.io', password: '123456!eR' },
@@ -155,7 +155,7 @@ const usersSeedList = [
     passwordToken: { token: uuidv4(), expiresIn: new Date('2020-01-20').getTime() + 3600000 },
     origin: WEBAPP,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary2', lastname: 'Yellow' },
     local: { email: 'aux@alenvi.io', password: '123456!eR' },
@@ -165,7 +165,7 @@ const usersSeedList = [
     administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     origin: WEBAPP,
   },
-  {
+  { // 5
     _id: new ObjectId(),
     identity: { firstname: 'AuxiliaryWithoutCompany', lastname: 'Green' },
     local: { email: 'withouCompany@alenvi.io', password: '123456!eR' },
@@ -174,7 +174,7 @@ const usersSeedList = [
     administrative: { certificates: [{ driveId: '1234567890' }], driveFolder: { driveId: '0987654321' } },
     origin: WEBAPP,
   },
-  {
+  { // 6
     _id: new ObjectId(),
     identity: { firstname: 'adminion', lastname: 'Kitty' },
     local: { email: 'cae@alenvi.io', password: '123456!eR' },
@@ -182,28 +182,28 @@ const usersSeedList = [
     role: { client: clientAdminRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 7
     _id: new ObjectId(),
     identity: { firstname: 'no_role_trainee', lastname: 'test' },
     local: { email: 'no_role_trainee@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
-  {
+  { // 8
     _id: new ObjectId(),
     identity: { firstname: 'trainee_to_auxiliary', lastname: 'test' },
     local: { email: 'trainee_to_auxiliary@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
-  {
+  { // 9
     _id: new ObjectId(),
     identity: { firstname: 'user_without_company', lastname: 'test' },
     local: { email: 'user_without_company@alenvi.io', password: '123456!eR' },
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
-  {
+  { // 10
     _id: new ObjectId(),
     identity: { firstname: 'vendor', lastname: 'test' },
     local: { email: 'vendor@alenvi.io', password: '123456!eR' },
@@ -211,13 +211,23 @@ const usersSeedList = [
     refreshToken: uuidv4(),
     origin: WEBAPP,
   },
-  {
+  { // 11
     _id: new ObjectId(),
     identity: { firstname: 'trainer', lastname: 'no_company' },
     local: { email: 'traisner_no_company@compani.io', password: '123456!eR' },
     role: { vendor: trainerRoleId },
     refreshToken: uuidv4(),
     origin: WEBAPP,
+  },
+  { // 12
+    _id: new ObjectId(),
+    identity: { firstname: 'norole', lastname: 'no_company' },
+    refreshToken: uuidv4(),
+    local: { email: 'norole.no_company@alenvi.io', password: 'fdsf5P56D' },
+    contact: { phone: '0798640728' },
+    picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
+    origin: MOBILE,
+    formationExpoTokenList: ['ExponentPushToken[jeSuisUnIdExpo]'],
   },
 ];
 
@@ -325,6 +335,13 @@ const followingCourses = [
     trainees: [usersSeedList[0]._id],
     salesRepresentative: vendorAdmin._id,
   },
+  {
+    _id: new ObjectId(),
+    subProgram: new ObjectId(),
+    misc: 'elearning for all',
+    type: 'inter_b2c',
+    format: 'strictly_e_learning',
+  },
 ];
 
 const identityVerifications = [
@@ -357,6 +374,7 @@ module.exports = {
   isInList,
   customer,
   customerFromOtherCompany,
+  followingCourses,
   helperFromOtherCompany,
   userSectors,
   sectorHistories,

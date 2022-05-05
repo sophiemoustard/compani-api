@@ -1126,6 +1126,23 @@ describe('createUser', () => {
   });
 });
 
+describe('removeUser', () => {
+  let deleteOne;
+  beforeEach(() => {
+    deleteOne = sinon.stub(User, 'deleteOne');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+  });
+
+  it('should delete account', async () => {
+    const userId = new ObjectId();
+    await UsersHelper.removeUser({ _id: userId });
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: userId });
+  });
+});
+
 describe('removeHelper', () => {
   let updateOne;
   let remove;

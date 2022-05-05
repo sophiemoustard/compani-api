@@ -1,6 +1,8 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const UsersHelper = require('../helpers/users');
+const UtilsHelper = require('../helpers/utils');
 
 const { language } = translate;
 
@@ -135,9 +137,11 @@ const updateCertificates = async (req) => {
   }
 };
 
-const removeHelper = async (req) => {
+const removeUser = async (req) => {
   try {
-    await UsersHelper.removeHelper(req.pre.user);
+    if (UtilsHelper.areObjectIdsEquals(req.pre.user._id, get(req, 'auth.credentials._id'))) {
+      await UsersHelper.removeUser(req.pre.user);
+    } else await UsersHelper.removeHelper(req.pre.user);
 
     return { message: translate[language].userRemoved };
   } catch (e) {
@@ -228,7 +232,7 @@ module.exports = {
   show,
   exists,
   update,
-  removeHelper,
+  removeUser,
   updateCertificates,
   uploadFile,
   uploadPicture,

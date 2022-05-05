@@ -8,6 +8,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
+const Course = require('../../src/models/Course');
 const Role = require('../../src/models/Role');
 const UserCompany = require('../../src/models/UserCompany');
 const Helper = require('../../src/models/Helper');
@@ -31,10 +32,11 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
+  followingCourses,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
-const { trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/authUsersSeed');
+const { coach, trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/authUsersSeed');
 const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
@@ -1464,6 +1466,62 @@ describe('DELETE /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(404);
+    });
+
+    it('should return 403 if try to delete my own account', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${coach._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('NO_ROLE_NO_COMPANY', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(usersSeedList[12].local);
+    });
+
+    it('should delete user', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[12]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 403 if try to delete other account', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if is registered to course', async () => {
+      await app.inject({
+        method: 'POST',
+        url: `/courses/${followingCourses[2]._id}/register-e-learning`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      const isRegisteredToCourses = await Course
+        .countDocuments({ _id: followingCourses[2]._id, trainees: usersSeedList[12]._id });
+      expect(isRegisteredToCourses).toBe(1);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${noRoleNoCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
