@@ -24,7 +24,7 @@ exports.creditNoteValidations = {
       exclTaxesTpp: Joi.string(),
       fundingId: Joi.objectId(),
       nature: Joi.string(),
-      careHours: Joi.number(),
+      careHours: Joi.string(),
       surcharges: Joi.array().items(Joi.object({
         percentage: Joi.number().required(),
         name: Joi.string().required(),
