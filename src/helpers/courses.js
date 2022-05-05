@@ -540,7 +540,8 @@ exports.formatInterCourseForPdf = (course) => {
 };
 
 exports.generateAttendanceSheets = async (courseId) => {
-  const course = await Course.findOne({ _id: courseId })
+  const course = await Course
+    .findOne({ _id: courseId }, { misc: 1, type: 1 })
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
     .populate({
