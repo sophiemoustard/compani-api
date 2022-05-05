@@ -231,7 +231,7 @@ describe('updateCourseSlot', () => {
   });
 });
 
-describe('removeSlot', () => {
+describe('removeCourseSlot', () => {
   let deleteOne;
   let createHistoryOnSlotDeletion;
   beforeEach(() => {
@@ -243,7 +243,7 @@ describe('removeSlot', () => {
     createHistoryOnSlotDeletion.restore();
   });
 
-  it('should update a course slot', async () => {
+  it('should remove a course slot with dates', async () => {
     const user = { _id: new ObjectId() };
     const returnedCourseSlot = {
       _id: new ObjectId(),
@@ -258,6 +258,20 @@ describe('removeSlot', () => {
     const payload = pick(returnedCourseSlot, ['course', 'startDate', 'endDate', 'address']);
 
     sinon.assert.calledOnceWithExactly(createHistoryOnSlotDeletion, payload, user._id);
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: returnedCourseSlot._id });
+  });
+
+  it('should remove a course slot without dates', async () => {
+    const user = { _id: new ObjectId() };
+    const returnedCourseSlot = {
+      _id: new ObjectId(),
+      course: new ObjectId(),
+      address: { fullAddress: '55 rue du sku, Skuville' },
+    };
+
+    await CourseSlotsHelper.removeCourseSlot(returnedCourseSlot, user);
+
+    sinon.assert.notCalled(createHistoryOnSlotDeletion);
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: returnedCourseSlot._id });
   });
 });

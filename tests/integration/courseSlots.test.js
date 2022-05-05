@@ -6,6 +6,7 @@ const { populateDB, coursesList, courseSlotsList, trainer, stepsList } = require
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const CourseHistory = require('../../src/models/CourseHistory');
 const { SLOT_CREATION, SLOT_DELETION, SLOT_EDITION } = require('../../src/helpers/constants');
+const CourseSlot = require('../../src/models/CourseSlot');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -342,7 +343,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
   });
 
   describe('Other roles', () => {
-    it('should return 200 as user is course trainer', async () => {
+    it('should return 403 as user is course trainer', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
@@ -357,10 +358,10 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(403);
     });
 
-    it('should return 200 as user is coach from course company', async () => {
+    it('should return 403 as user is coach from course company', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
@@ -375,7 +376,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
         payload,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(403);
     });
 
     const roles = [
@@ -706,19 +707,50 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
 
       expect(response.statusCode).toBe(200);
 
+      const deletedSlot = await CourseSlot.countDocuments({ _id: courseSlotsList[0]._id });
       const courseHistory = await CourseHistory.countDocuments({
         course: courseSlotsList[0].course,
         'slot.startDate': courseSlotsList[0].startDate,
         action: SLOT_DELETION,
       });
 
+      expect(deletedSlot).toEqual(0);
       expect(courseHistory).toEqual(1);
+    });
+
+    it('should delete course slot without dates', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courseslots/${courseSlotsList[6]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const deletedSlot = await CourseSlot.countDocuments({ _id: courseSlotsList[6]._id });
+      const courseHistory = await CourseHistory.countDocuments({
+        course: courseSlotsList[6].course,
+        action: SLOT_DELETION,
+      });
+
+      expect(deletedSlot).toEqual(0);
+      expect(courseHistory).toEqual(0);
     });
 
     it('should return 403 if course is archived', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courseslots/${courseSlotsList[5]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if only slot in step', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courseslots/${courseSlotsList[7]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -747,7 +779,7 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
   });
 
   describe('Other roles', () => {
-    it('should return a 200 as user is course trainer', async () => {
+    it('should return a 403 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'DELETE',
@@ -755,10 +787,10 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(403);
     });
 
-    it('should return 200 as user is client admin from course company', async () => {
+    it('should return 403 as user is client admin from course company', async () => {
       authToken = await getToken('client_admin');
       const response = await app.inject({
         method: 'DELETE',
@@ -766,7 +798,7 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(403);
     });
 
     const roles = [

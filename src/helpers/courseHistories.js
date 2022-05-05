@@ -7,9 +7,9 @@ exports.createHistory = async (course, createdBy, action, payload) =>
   CourseHistory.create({ course, createdBy, action, ...payload });
 
 exports.createHistoryOnSlotCreation = (payload, userId) => {
-  const pickedFields = payload.address && Object.values(payload.address).length
-    ? ['startDate', 'endDate', 'address']
-    : ['startDate', 'endDate'];
+  const pickedFields = ['startDate', 'endDate'];
+  if (payload.address && Object.values(payload.address).length) pickedFields.push('address');
+  else if (payload.meetingLink) pickedFields.push('meetingLink');
 
   return exports.createHistory(
     payload.course,
@@ -20,9 +20,9 @@ exports.createHistoryOnSlotCreation = (payload, userId) => {
 };
 
 exports.createHistoryOnSlotDeletion = (payload, userId) => {
-  const pickedFields = payload.address && Object.values(payload.address).length
-    ? ['startDate', 'endDate', 'address']
-    : ['startDate', 'endDate'];
+  const pickedFields = ['startDate', 'endDate'];
+  if (payload.address && Object.values(payload.address).length) pickedFields.push('address');
+  else if (payload.meetingLink) pickedFields.push('meetingLink');
 
   return exports.createHistory(
     payload.course,

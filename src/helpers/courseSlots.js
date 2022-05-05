@@ -46,10 +46,14 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
 };
 
 exports.removeCourseSlot = async (courseSlot, user) => {
-  const payload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address']);
+  const payload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
 
   await Promise.all([
-    CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id),
+    ...Object.values({
+      ...(payload.startDate &&
+      [CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id)]
+      ),
+    }),
     CourseSlot.deleteOne({ _id: courseSlot._id }),
   ]);
 };

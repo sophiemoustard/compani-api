@@ -200,7 +200,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['courses:edit'] },
+        auth: { scope: ['courses:create'] },
         pre: [{ method: authorizeCourseDeletion }],
       },
       handler: deleteCourse,
