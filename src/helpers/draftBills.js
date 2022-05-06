@@ -418,7 +418,7 @@ exports.formatCustomerBills = (customerBills, tppBills, query, customer) => {
     endDate: query.endDate,
     customerBills: {
       bills: customerBills,
-      total: NumbersHelper.toFixed(UtilsHelper.sumReduce(customerBills, 'inclTaxes')),
+      total: NumbersHelper.toFixedToFloat(UtilsHelper.sumReduce(customerBills, 'inclTaxes')),
     },
   };
 
@@ -427,7 +427,7 @@ exports.formatCustomerBills = (customerBills, tppBills, query, customer) => {
     for (const bills of Object.values(tppBills)) {
       groupedByCustomerBills.thirdPartyPayerBills.push({
         bills,
-        total: NumbersHelper.toFixed(UtilsHelper.sumReduce(bills, 'inclTaxes')),
+        total: NumbersHelper.toFixedToFloat(UtilsHelper.sumReduce(bills, 'inclTaxes')),
       });
     }
   }
