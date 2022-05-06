@@ -1,4 +1,6 @@
+const get = require('lodash/get');
 const Course = require('../models/Course');
+const CourseSlot = require('../models/CourseSlot');
 
 exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(query)
   .populate({ path: 'company', select: 'name' })
@@ -17,3 +19,49 @@ exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(
   })
   .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
   .lean({ virtuals: populateVirtual });
+
+exports.findCoursesForExport = async (startDate, endDate, credentials) => {
+  const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
+  const courseIds = slots.map(slot => slot.course);
+  const isVendorUser = !!get(credentials, 'role.vendor');
+
+  return Course
+    .find({
+      $or: [
+        { _id: { $in: courseIds } },
+        { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
+      ],
+      select: '_id type misc estimatedStartDate',
+    })
+    .populate({ path: 'company', select: 'name' })
+    .populate({
+      path: 'subProgram',
+      select: 'name steps program',
+      populate: [
+        { path: 'program', select: 'name' },
+        {
+          path: 'steps',
+          select: 'type activities',
+          populate: { path: 'activities', populate: { path: 'activityHistories' } },
+        },
+      ],
+    })
+    .populate({ path: 'trainer', select: 'identity' })
+    .populate({ path: 'salesRepresentative', select: 'identity' })
+    .populate({ path: 'contact', select: 'identity' })
+    .populate({ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' })
+    .populate({ path: 'slotsToPlan', select: '_id' })
+    .populate({ path: 'trainees', select: 'firstMobileConnection' })
+    .populate({
+      path: 'bills',
+      select: 'courseFundingOrganisation company billedAt mainFee billingPurchaseList',
+      options: { isVendorUser },
+      populate: [
+        { path: 'courseFundingOrganisation', select: 'name' },
+        { path: 'company', select: 'name' },
+        { path: 'courseCreditNote', options: { isVendorUser }, select: '_id' },
+        { path: 'coursePayments', options: { isVendorUser }, select: 'netInclTaxes nature' },
+      ],
+    })
+    .lean();
+};
