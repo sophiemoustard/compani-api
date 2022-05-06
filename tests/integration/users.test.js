@@ -1504,7 +1504,7 @@ describe('DELETE /users/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if is registered to course', async () => {
+    it('should return 403 if user is registered to course', async () => {
       await app.inject({
         method: 'POST',
         url: `/courses/${courses[2]._id}/register-e-learning`,
@@ -1518,6 +1518,22 @@ describe('DELETE /users/:id', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${noRoleNoCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('HELPER', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(usersSeedList[3].local);
+    });
+
+    it('should return 403 if helper try to delete himself', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[3]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 

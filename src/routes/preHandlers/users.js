@@ -164,10 +164,10 @@ exports.authorizeUserDeletion = async (req) => {
   const { user } = req.pre;
   const companyId = get(credentials, 'company._id') || null;
   const clientRoleId = get(user, 'role.client');
-  const vendorRoleId = get(user, 'role.vendor');
 
-  if (!clientRoleId && !vendorRoleId && !user.company) {
-    const isRegisteredToCourses = await Course.countDocuments({ trainees: req.params._id });
+  if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
+    if (user.company) throw Boom.forbidden();
+    const isRegisteredToCourses = await Course.countDocuments({ trainees: req.params._id }, { limit: 1 });
     if (isRegisteredToCourses) throw Boom.forbidden();
 
     return null;
