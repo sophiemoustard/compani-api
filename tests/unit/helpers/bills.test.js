@@ -2462,8 +2462,8 @@ describe('formatBillDetailsForPdf', () => {
       formattedDetails: [
         { unitInclTaxes: '22', vat: 5.5, name: 'Forfait nuit', volume: 1, total: '22' },
         { name: 'Majorations', total: '12.24' },
-        { name: 'Frais de dossier', unitInclTaxes: '30', volume: 1, total: '30', vat: 10 },
-        { name: 'Equipement de protection individuel', unitInclTaxes: '2', volume: 5, total: '10', vat: 15 },
+        { name: 'Frais de dossier', unitInclTaxes: '30', volume: '1', total: '30', vat: 10 },
+        { name: 'Equipement de protection individuel', unitInclTaxes: '2', volume: '5', total: '10', vat: 15 },
         { name: 'Remises', total: -15 },
         { name: 'Prise en charge du/des tiers(s) payeur(s)', total: '-9.24' },
       ],
