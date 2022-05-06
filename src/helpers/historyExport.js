@@ -710,11 +710,11 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courseIds = filteredCourses.map(course => course._id);
   const [questionnaireHistories, smsList, attendanceSheetList] = await Promise.all([
     QuestionnaireHistory
-      .find({ course: { $in: courseIds } })
+      .find({ course: { $in: courseIds }, select: 'course questionnaire' })
       .populate({ path: 'questionnaire', select: 'type' })
       .lean(),
-    CourseSmsHistory.find({ course: { $in: courseIds } }).lean(),
-    AttendanceSheet.find({ course: { $in: courseIds } }).lean(),
+    CourseSmsHistory.find({ course: { $in: courseIds }, select: 'course' }).lean(),
+    AttendanceSheet.find({ course: { $in: courseIds }, select: 'course' }).lean(),
   ]);
 
   const rows = [];

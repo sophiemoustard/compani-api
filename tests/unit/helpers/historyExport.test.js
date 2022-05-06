@@ -1844,6 +1844,7 @@ describe('exportCourseHistory', () => {
                 archivedAt: { $exists: false },
               },
             ],
+            select: '_id type misc estimatedStartDate',
           }],
         },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
@@ -1898,18 +1899,18 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
-        { query: 'find', args: [{ course: { $in: [] } }] },
+        { query: 'find', args: [{ course: { $in: [] }, select: 'course questionnaire' }] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'lean' },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
       findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: [] } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: [] } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
     );
   });
 
@@ -2100,6 +2101,7 @@ describe('exportCourseHistory', () => {
                 archivedAt: { $exists: false },
               },
             ],
+            select: '_id type misc estimatedStartDate',
           }],
         },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
@@ -2152,18 +2154,18 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
-        { query: 'find', args: [{ course: { $in: courseIdList } }] },
+        { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course questionnaire' }] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'lean' },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
       findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: courseIdList } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: courseIdList } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
     );
   });
 });

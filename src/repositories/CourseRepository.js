@@ -31,6 +31,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
         { _id: { $in: courseIds } },
         { estimatedStartDate: { $lte: endDate, $gte: startDate }, archivedAt: { $exists: false } },
       ],
+      select: '_id type misc estimatedStartDate',
     })
     .populate({ path: 'company', select: 'name' })
     .populate({
