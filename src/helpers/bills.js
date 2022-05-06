@@ -407,7 +407,7 @@ exports.formatBillDetailsForPdf = (bill) => {
       formattedDetails.push({
         ...pick(bi, ['name', 'vat']),
         unitInclTaxes: NumbersHelper.toString(bi.unitInclTaxes),
-        volume: bi.count,
+        volume: UtilsHelper.roundFrenchNumber(bi.count),
         total: NumbersHelper.toString(bi.inclTaxes),
       });
     }

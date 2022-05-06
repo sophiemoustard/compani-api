@@ -89,12 +89,15 @@ const roundFrenchPrice = (number) => {
 
 exports.formatPrice = val => (val ? roundFrenchPrice(val) : roundFrenchPrice(0));
 
-const roundFrenchNumber = (number) => {
-  const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'decimal', maximumFractionDigits: 2 });
+exports.roundFrenchNumber = (number, digits) => {
+  const nf = new Intl.NumberFormat(
+    'fr-FR',
+    { minimumFractionDigits: digits, style: 'decimal', maximumFractionDigits: digits }
+  );
   return nf.format(number);
 };
 
-exports.formatHour = val => (val ? `${roundFrenchNumber(val)}h` : `${roundFrenchNumber(0)}h`);
+exports.formatHour = val => (val ? `${exports.roundFrenchNumber(val, 2)}h` : `${exports.roundFrenchNumber(0, 2)}h`);
 
 exports.formatHourWithMinutes = hour => (moment(hour).minutes()
   ? moment(hour).format('HH[h]mm')

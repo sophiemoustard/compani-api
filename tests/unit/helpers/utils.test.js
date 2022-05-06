@@ -189,6 +189,20 @@ describe('formatPrice', () => {
   });
 });
 
+describe('roundFrenchNumber', () => {
+  it('should round french number', () => {
+    const res = UtilsHelper.roundFrenchNumber(5.5);
+    expect(res).toEqual('5,5');
+  });
+});
+
+describe('formatHour', () => {
+  it('should format hour', () => {
+    const res = UtilsHelper.formatHour(5.5);
+    expect(res).toEqual('5,50h');
+  });
+});
+
 describe('getFullTitleFromIdentity', () => {
   const identityBase = {
     title: 'mr',
