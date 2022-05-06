@@ -1128,18 +1128,28 @@ describe('createUser', () => {
 
 describe('removeUser', () => {
   let deleteOne;
+  let removeHelper;
   beforeEach(() => {
     deleteOne = sinon.stub(User, 'deleteOne');
+    removeHelper = sinon.stub(UsersHelper, 'removeHelper');
   });
   afterEach(() => {
     deleteOne.restore();
+    removeHelper.restore();
   });
 
   it('should delete account', async () => {
     const userId = new ObjectId();
-    await UsersHelper.removeUser({ _id: userId });
+    await UsersHelper.removeUser({ _id: userId }, { _id: userId });
 
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: userId });
+  });
+
+  it('should call removeHelper', async () => {
+    const userId = new ObjectId();
+    await UsersHelper.removeUser({ _id: userId }, { _id: new ObjectId() });
+
+    sinon.assert.calledOnceWithExactly(UsersHelper.removeHelper, { _id: userId });
   });
 });
 

@@ -32,7 +32,7 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
-  followingCourses,
+  courses,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
@@ -1507,12 +1507,12 @@ describe('DELETE /users/:id', () => {
     it('should return 403 if is registered to course', async () => {
       await app.inject({
         method: 'POST',
-        url: `/courses/${followingCourses[2]._id}/register-e-learning`,
+        url: `/courses/${courses[2]._id}/register-e-learning`,
         headers: { 'x-access-token': authToken },
       });
 
       const isRegisteredToCourses = await Course
-        .countDocuments({ _id: followingCourses[2]._id, trainees: usersSeedList[12]._id });
+        .countDocuments({ _id: courses[2]._id, trainees: usersSeedList[12]._id });
       expect(isRegisteredToCourses).toBe(1);
 
       const response = await app.inject({

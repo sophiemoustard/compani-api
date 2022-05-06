@@ -319,7 +319,7 @@ const sectorHistories = [
   { auxiliary: usersSeedList[4]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
 ];
 
-const followingCourses = [
+const courses = [
   {
     _id: new ObjectId(),
     subProgram: new ObjectId(),
@@ -355,7 +355,7 @@ const populateDB = async () => {
 
   await Promise.all([
     Contract.create(contracts),
-    Course.create(followingCourses),
+    Course.create(courses),
     Customer.create(customer, customerFromOtherCompany),
     Establishment.create(establishmentList),
     Helper.create(helpers),
@@ -374,7 +374,7 @@ module.exports = {
   isInList,
   customer,
   customerFromOtherCompany,
-  followingCourses,
+  courses,
   helperFromOtherCompany,
   userSectors,
   sectorHistories,
