@@ -219,30 +219,46 @@ describe('populateFundings', () => {
 });
 
 describe('getSurchargedPrice', () => {
-  const event = {
-    startDate: '2019-06-29T10:00:00.000+02:00',
-    endDate: '2019-06-29T16:00:00.000+02:00',
-  };
-
   it('should return the price if there is no surcharge', () => {
-    expect(DraftBillsHelper.getSurchargedPrice(event, [], 11)).toBe(11);
+    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
+
+    const result = DraftBillsHelper.getSurchargedPrice(event, [], 11);
+
+    expect(result).toBe(11);
+  });
+
+  it('should return the price if less than one minute', () => {
+    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T10:00:02.000+02:00' };
+
+    const result = DraftBillsHelper.getSurchargedPrice(event, [], 11);
+
+    expect(result).toBe(0);
   });
 
   it('should return the price surcharged globally', () => {
+    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
     const surcharges = [{ percentage: 25 }];
-    expect(DraftBillsHelper.getSurchargedPrice(event, surcharges, 10)).toBe(12.5);
+
+    const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 10);
+
+    expect(result).toBe(12.5);
   });
 
   it('should return the price surcharged once', () => {
+    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
     const surcharges = [{
       percentage: 25,
       startHour: moment(event.startDate).add(1, 'h'),
       endHour: moment(event.startDate).add(2, 'h'),
     }];
-    expect(DraftBillsHelper.getSurchargedPrice(event, surcharges, 24)).toBe(25);
+
+    const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 24);
+
+    expect(result).toBe(25);
   });
 
   it('should return the price surcharged twice', () => {
+    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
     const surcharges = [{
       percentage: 25,
       startHour: moment(event.startDate).add(1, 'h'),
@@ -252,7 +268,10 @@ describe('getSurchargedPrice', () => {
       startHour: moment(event.startDate).add(2, 'h'),
       endHour: moment(event.startDate).add(4, 'h'),
     }];
-    expect(DraftBillsHelper.getSurchargedPrice(event, surcharges, 24)).toBe(26.6);
+
+    const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 24);
+
+    expect(result).toBe(26.6);
   });
 });
 
