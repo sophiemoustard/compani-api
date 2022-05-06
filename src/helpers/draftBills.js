@@ -306,7 +306,10 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
     const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
     customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
-    if (matchingFunding && !NumbersHelper.isEqualTo(eventPrice.thirdPartyPayerPrice, 0)) {
+
+    const tppParticipationPrice = eventPrice.thirdPartyPayerPrice &&
+      !NumbersHelper.isEqualTo(eventPrice.thirdPartyPayerPrice, 0);
+    if (matchingFunding && tppParticipationPrice) {
       thirdPartyPayerPrices = exports.formatDraftBillsForTPP(
         thirdPartyPayerPrices,
         matchingFunding.thirdPartyPayer,
@@ -348,7 +351,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
   };
 
   const draftBillsPerSubscription = {};
-  if (!NumbersHelper.isEqualTo(customerPrices.exclTaxes, 0)) {
+  if (customerPrices.exclTaxes &&!NumbersHelper.isEqualTo(customerPrices.exclTaxes, 0)) {
     draftBillsPerSubscription.customer = { ...draftBillInfo, ...customerPrices };
   }
   if (fundings && Object.keys(thirdPartyPayerPrices).length !== 0) {
