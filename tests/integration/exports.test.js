@@ -141,7 +141,7 @@ const vendorHistoryExportTypes = [
 ];
 
 clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
-  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history #tag`, () => {
+  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history`, () => {
     let authToken;
     before(populateDB);
 
@@ -161,6 +161,7 @@ clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
 
         const rows = response.result.split('\r\n');
         expect(rows.length).toBe(expectedRows.length);
+
         for (let i = 0; i < expectedRows.length; i++) expect(rows.some(r => r === expectedRows[i])).toBeTruthy();
       });
     });
