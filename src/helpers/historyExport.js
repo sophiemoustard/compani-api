@@ -707,7 +707,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const filteredCourses = courses
     .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
 
-  const courseIds = uniqBy(filteredCourses.map(course => course._id));
+  const courseIds = filteredCourses.map(course => course._id);
   const [questionnaireHistories, smsList, attendanceSheetList] = await Promise.all([
     QuestionnaireHistory
       .find({ course: { $in: courseIds } })
@@ -735,11 +735,9 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
     } = getAttendancesCountInfos(course);
 
     const courseQuestionnaireHistories = groupedCourseQuestionnaireHistories[course._id] || [];
-
     const expectactionQuestionnaireAnswers = courseQuestionnaireHistories
       .filter(qh => qh.questionnaire.type === EXPECTATIONS)
       .length;
-
     const endQuestionnaireAnswers = courseQuestionnaireHistories
       .filter(qh => qh.questionnaire.type === END_OF_COURSE)
       .length;

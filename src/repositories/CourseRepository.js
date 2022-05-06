@@ -59,11 +59,7 @@ exports.findCoursesForExport = async (startDate, endDate, credentials) => {
         { path: 'courseFundingOrganisation', select: 'name' },
         { path: 'company', select: 'name' },
         { path: 'courseCreditNote', options: { isVendorUser }, select: '_id' },
-        {
-          path: 'coursePayments',
-          options: { isVendorUser },
-          select: 'netInclTaxes nature',
-        },
+        { path: 'coursePayments', options: { isVendorUser }, select: 'netInclTaxes nature' },
       ],
     })
     .lean();
