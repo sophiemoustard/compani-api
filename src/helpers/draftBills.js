@@ -351,7 +351,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
   };
 
   const draftBillsPerSubscription = {};
-  if (customerPrices.exclTaxes &&!NumbersHelper.isEqualTo(customerPrices.exclTaxes, 0)) {
+  if (customerPrices.exclTaxes && !NumbersHelper.isEqualTo(customerPrices.exclTaxes, 0)) {
     draftBillsPerSubscription.customer = { ...draftBillInfo, ...customerPrices };
   }
   if (fundings && Object.keys(thirdPartyPayerPrices).length !== 0) {
