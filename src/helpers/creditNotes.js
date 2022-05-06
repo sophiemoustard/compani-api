@@ -198,9 +198,10 @@ const formatEventForPdf = event => ({
   surcharges: event.bills.surcharges && PdfHelper.formatEventSurchargesForPdf(event.bills.surcharges),
 });
 
-const computeCreditNoteEventVat = (creditNote, event) => (!NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
-  ? NumbersHelper.subtract(event.bills.inclTaxesTpp, event.bills.exclTaxesTpp)
-  : NumbersHelper.subtract(event.bills.inclTaxesCustomer, event.bills.exclTaxesCustomer));
+const computeCreditNoteEventVat = (creditNote, event) => (
+  creditNote.exclTaxes && !NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
+    ? NumbersHelper.subtract(event.bills.inclTaxesTpp, event.bills.exclTaxesTpp)
+    : NumbersHelper.subtract(event.bills.inclTaxesCustomer, event.bills.exclTaxesCustomer));
 
 const formatBillingItemForPdf = billingItem => pick(
   billingItem,
@@ -260,7 +261,7 @@ exports.formatPdf = (creditNote, company) => {
         identity: { ...creditNote.customer.identity, title: CIVILITY_LIST[get(creditNote, 'customer.identity.title')] },
         contact: creditNote.customer.contact,
       },
-      totalExclTaxes: !NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
+      totalExclTaxes: creditNote.exclTaxesTpp && !NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
         ? UtilsHelper.formatPrice(parseFloat(creditNote.exclTaxesTpp))
         : UtilsHelper.formatPrice(parseFloat(creditNote.exclTaxesCustomer)),
       netInclTaxes: creditNote.inclTaxesTpp
