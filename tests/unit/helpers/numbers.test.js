@@ -10,15 +10,15 @@ describe('toString', () => {
   });
 });
 
-describe('toFixed', () => {
+describe('toFixedToFloat', () => {
   it('should round BN', () => {
-    const result = NumbersHelper.toFixed(BigNumber(1.234567));
+    const result = NumbersHelper.toFixedToFloat(BigNumber(1.234567));
 
     expect(result).toEqual(1.23);
   });
 
   it('should round BN up', () => {
-    const result = NumbersHelper.toFixed(BigNumber(1.23987));
+    const result = NumbersHelper.toFixedToFloat(BigNumber(1.23987));
 
     expect(result).toEqual(1.24);
   });
