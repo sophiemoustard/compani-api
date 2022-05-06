@@ -35,22 +35,24 @@ exports.formatSubscriptionData = (bill) => {
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.endDate, bill.subscription.service, 'startDate');
 
   return {
-    ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'exclTaxes', 'discount']),
+    ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'exclTaxes']),
     inclTaxes: parseFloat(UtilsHelper.getFixedNumber(bill.inclTaxes)),
     subscription: bill.subscription._id,
     service: { serviceId: matchingServiceVersion._id, ...pick(matchingServiceVersion, ['name', 'nature']) },
     vat: matchingServiceVersion.vat,
     events: exports.formatBilledEvents(bill),
+    discount: NumbersHelper.toFixedToFloat(bill.discount),
   };
 };
 
 exports.formatBillingItemData = bill => ({
-  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'vat', 'discount']),
+  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'vat']),
   inclTaxes: parseFloat(UtilsHelper.getFixedNumber(bill.inclTaxes)),
   billingItem: bill.billingItem._id,
   events: bill.eventsList.map(ev => ({ ...pick(ev, ['startDate', 'endDate', 'auxiliary']), eventId: ev.event })),
   name: bill.billingItem.name,
   count: bill.eventsList.length,
+  discount: NumbersHelper.toFixedToFloat(bill.discount),
 });
 
 exports.formatCustomerBills = (customerBills, customer, number, company) => {
