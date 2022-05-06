@@ -484,7 +484,7 @@ exports.formatInterCourseSlotsForPdf = (slot) => {
 exports.groupSlotsByDate = (slots) => {
   const group = groupBy(slots, slot => CompaniDate(slot.startDate).format('dd/LL/yyyy'));
 
-  return Object.values(group).sort((a, b) => new Date(a[0].startDate) - new Date(b[0].startDate));
+  return Object.values(group).sort((a, b) => DatesHelper.ascendingSort('startDate')(a[0], b[0]));
 };
 
 exports.formatIntraCourseForPdf = (course) => {
@@ -540,11 +540,16 @@ exports.formatInterCourseForPdf = (course) => {
 };
 
 exports.generateAttendanceSheets = async (courseId) => {
-  const course = await Course.findOne({ _id: courseId })
-    .populate('company')
-    .populate({ path: 'slots', populate: { path: 'step', select: 'type' } })
-    .populate({ path: 'trainees', populate: { path: 'company', populate: { path: 'company', select: 'name' } } })
-    .populate('trainer')
+  const course = await Course
+    .findOne({ _id: courseId }, { misc: 1, type: 1 })
+    .populate({ path: 'company', select: 'name' })
+    .populate({ path: 'slots', select: 'step startDate endDate address', populate: { path: 'step', select: 'type' } })
+    .populate({
+      path: 'trainees',
+      select: 'identity company',
+      populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+    })
+    .populate({ path: 'trainer', select: 'identity' })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } })
     .lean();
 
@@ -578,15 +583,51 @@ const getTraineeInformations = (trainee, courseAttendances) => {
   return { traineeIdentity, attendanceDuration };
 };
 
+const generateCompletionCertificatePdf = async (courseData, courseAttendances, trainee) => {
+  const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+
+  const template = await CompletionCertificate.getPdfContent({
+    ...courseData,
+    trainee: { identity: traineeIdentity, attendanceDuration },
+    date: CompaniDate().format('dd/LL/yyyy'),
+  });
+
+  return { pdf: await PdfHelper.generatePdf(template), name: `Attestation - ${traineeIdentity}.pdf` };
+};
+
+const generateCompletionCertificateWord = async (courseData, courseAttendances, trainee, templatePath) => {
+  const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
+  const filePath = await DocxHelper.createDocx(
+    templatePath,
+    {
+      ...courseData,
+      trainee: { identity: traineeIdentity, attendanceDuration },
+      date: CompaniDate().format('dd/LL/yyyy'),
+    }
+  );
+
+  return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
+};
+
+const getTraineelist = (course, credentials) => {
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
+  const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
+    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
+  const canAccessAllTrainees = isRofOrAdmin || isCourseTrainer;
+
+  return canAccessAllTrainees
+    ? course.trainees
+    : course.trainees.filter(t => UtilsHelper.areObjectIdsEquals(t.company, get(credentials, 'company._id')));
+};
+
 exports.generateCompletionCertificates = async (courseId, credentials, origin = null) => {
   const course = await Course.findOne({ _id: courseId })
-    .populate('slots')
-    .populate({ path: 'trainees', populate: { path: 'company' } })
+    .populate({ path: 'slots', select: 'startDate endDate' })
+    .populate({ path: 'trainees', select: 'identity', populate: { path: 'company' } })
     .populate({ path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name learningGoals' } })
     .lean();
 
-  const slotIds = course.slots.map(s => s._id);
-  const courseAttendances = await Attendance.find({ courseSlot: slotIds })
+  const attendances = await Attendance.find({ courseSlot: course.slots.map(s => s._id) })
     .populate({ path: 'courseSlot', select: 'startDate endDate' })
     .lean();
 
@@ -594,48 +635,18 @@ exports.generateCompletionCertificates = async (courseId, credentials, origin = 
 
   if (origin === MOBILE) {
     const trainee = course.trainees.find(t => UtilsHelper.areObjectIdsEquals(t._id, credentials._id));
-    const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
-    const template = await CompletionCertificate.getPdfContent({
-      ...courseData,
-      trainee: { identity: traineeIdentity, attendanceDuration },
-      date: CompaniDate().format('dd/LL/yyyy'),
-    });
-
-    return {
-      pdf: await PdfHelper.generatePdf(template),
-      name: `Attestation - ${traineeIdentity}.pdf`,
-    };
+    return generateCompletionCertificatePdf(courseData, attendances, trainee);
   }
 
-  const certificateTemplatePath = path.join(os.tmpdir(), 'certificate_template.docx');
+  const templatePath = path.join(os.tmpdir(), 'certificate_template.docx');
   await drive.downloadFileById({
     fileId: process.env.GOOGLE_DRIVE_TRAINING_CERTIFICATE_TEMPLATE_ID,
-    tmpFilePath: certificateTemplatePath,
+    tmpFilePath: templatePath,
   });
-  const isVendor = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
-  const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
-    UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
-  const canAccessAllTrainees = isVendor || isCourseTrainer;
-  const trainees = canAccessAllTrainees
-    ? course.trainees
-    : course.trainees
-      .filter(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, get(credentials, 'company._id')));
+  const promises = getTraineelist(course, credentials)
+    .map(trainee => generateCompletionCertificateWord(courseData, attendances, trainee, templatePath));
 
-  const fileListPromises = trainees.map(async (trainee) => {
-    const { traineeIdentity, attendanceDuration } = getTraineeInformations(trainee, courseAttendances);
-    const filePath = await DocxHelper.createDocx(
-      certificateTemplatePath,
-      {
-        ...courseData,
-        trainee: { identity: traineeIdentity, attendanceDuration },
-        date: CompaniDate().format('dd/LL/yyyy'),
-      }
-    );
-
-    return { name: `Attestation - ${traineeIdentity}.docx`, file: fs.createReadStream(filePath) };
-  });
-
-  return ZipHelper.generateZip('attestations.zip', await Promise.all(fileListPromises));
+  return ZipHelper.generateZip('attestations.zip', await Promise.all(promises));
 };
 
 exports.addAccessRule = async (courseId, payload) => Course.updateOne(
@@ -648,12 +659,15 @@ exports.deleteAccessRule = async (courseId, accessRuleId) => Course.updateOne(
   { $pull: { accessRules: accessRuleId } }
 );
 
-exports.formatHoursForConvocation = slots => slots.reduce((acc, slot) => {
-  const slotHours =
-    `${UtilsHelper.formatHourWithMinutes(slot.startDate)} - ${UtilsHelper.formatHourWithMinutes(slot.endDate)}`;
+exports.formatHoursForConvocation = slots => slots.reduce(
+  (acc, slot) => {
+    const slotHours =
+      `${UtilsHelper.formatHourWithMinutes(slot.startDate)} - ${UtilsHelper.formatHourWithMinutes(slot.endDate)}`;
 
-  return acc === '' ? slotHours : `${acc} / ${slotHours}`;
-}, '');
+    return acc === '' ? slotHours : `${acc} / ${slotHours}`;
+  },
+  ''
+);
 
 exports.formatCourseForConvocationPdf = (course) => {
   const slotsGroupedByDate = exports.groupSlotsByDate(course.slots);
@@ -678,13 +692,13 @@ exports.formatCourseForConvocationPdf = (course) => {
 };
 
 exports.generateConvocationPdf = async (courseId) => {
-  const course = await Course.findOne({ _id: courseId })
+  const course = await Course.findOne({ _id: courseId }, { misc: 1 })
     .populate({
       path: 'subProgram',
       select: 'program',
       populate: { path: 'program', select: 'name description' },
     })
-    .populate('slots')
+    .populate({ path: 'slots', select: 'startDate endDate address meetingLink' })
     .populate({ path: 'slotsToPlan', select: '_id' })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone local.email' })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname biography' })
@@ -694,10 +708,7 @@ exports.generateConvocationPdf = async (courseId) => {
 
   const template = await CourseConvocation.getPdfContent(exports.formatCourseForConvocationPdf(course));
 
-  return {
-    pdf: await PdfHelper.generatePdf(template),
-    courseName,
-  };
+  return { pdf: await PdfHelper.generatePdf(template), courseName };
 };
 
 exports.getQuestionnaires = async (courseId) => {
