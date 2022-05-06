@@ -610,10 +610,10 @@ const generateCompletionCertificateWord = async (courseData, courseAttendances, 
 };
 
 const getTraineelist = (course, credentials) => {
-  const isVendor = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
+  const isRofOrAdmin = [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(credentials, 'role.vendor.name'));
   const isCourseTrainer = [TRAINER].includes(get(credentials, 'role.vendor.name')) &&
     UtilsHelper.areObjectIdsEquals(credentials._id, course.trainer);
-  const canAccessAllTrainees = isVendor || isCourseTrainer;
+  const canAccessAllTrainees = isRofOrAdmin || isCourseTrainer;
 
   return canAccessAllTrainees
     ? course.trainees
@@ -692,7 +692,7 @@ exports.formatCourseForConvocationPdf = (course) => {
 };
 
 exports.generateConvocationPdf = async (courseId) => {
-  const course = await Course.findOne({ _id: courseId })
+  const course = await Course.findOne({ _id: courseId }, { misc: 1 })
     .populate({
       path: 'subProgram',
       select: 'program',

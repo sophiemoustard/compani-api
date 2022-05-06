@@ -2731,7 +2731,7 @@ describe('generateConvocationPdf', () => {
 
     expect(result).toEqual({ pdf: 'pdf', courseName: 'Comment-attraper-des-Pokemons' });
     SinonMongoose.calledOnceWithExactly(courseFindOne, [
-      { query: 'findOne', args: [{ _id: courseId }] },
+      { query: 'findOne', args: [{ _id: courseId }, { misc: 1 }] },
       {
         query: 'populate',
         args: [{
