@@ -693,20 +693,21 @@ const getBillsInfos = (bills) => {
     .toString();
   const isBilled = courseBillsWithoutCreditNote.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
 
-  const { netInclTaxes, paid, total } = CourseBillHelper
-    .computeAmounts(courseBillsWithoutCreditNote.find(bill => bill.billedAt));
+  const validatedBill = courseBillsWithoutCreditNote.find(bill => bill.billedAt);
+  const { netInclTaxes, paid, total } = validatedBill
+    ? CourseBillHelper.computeAmounts(validatedBill)
+    : { netInclTaxes: '', paid: '', total: '' };
 
   return { isBilled, payer, netInclTaxes, paid, total };
 };
 
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
-  const slots = await CourseSlot.find({ startDate: { $lte: endDate }, endDate: { $gte: startDate } }).lean();
-  const courseIds = slots.map(slot => slot.course);
-  const courses = await CourseRepository.findCoursesForExport(courseIds, startDate, endDate, credentials);
+  const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
 
   const filteredCourses = courses
     .filter(course => !course.slots.length || course.slots.some(slot => isSlotInInterval(slot, startDate, endDate)));
 
+  const courseIds = uniqBy(filteredCourses.map(course => course._id));
   const [questionnaireHistories, smsList, attendanceSheetList] = await Promise.all([
     QuestionnaireHistory
       .find({ course: { $in: courseIds } })
@@ -717,11 +718,14 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   ]);
 
   const rows = [];
+  const groupedSms = groupBy(smsList, 'course');
+  const grouppedAttendanceSheets = groupBy(attendanceSheetList, 'course');
+  const groupedCourseQuestionnaireHistories = groupBy(questionnaireHistories, 'course');
 
   for (const course of filteredCourses) {
     const slotsGroupedByDate = CourseHelper.groupSlotsByDate(course.slots);
-    const smsCount = (groupBy(smsList, 'course')[course._id] || []).length;
-    const attendanceSheets = (groupBy(attendanceSheetList, 'course')[course._id] || []).length;
+    const smsCount = (groupedSms[course._id] || []).length;
+    const attendanceSheets = (grouppedAttendanceSheets[course._id] || []).length;
     const {
       subscribedAttendances,
       unsubscribedAttendances,
@@ -730,7 +734,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       pastSlots,
     } = getAttendancesCountInfos(course);
 
-    const courseQuestionnaireHistories = groupBy(questionnaireHistories, 'course')[course._id] || [];
+    const courseQuestionnaireHistories = groupedCourseQuestionnaireHistories[course._id] || [];
 
     const expectactionQuestionnaireAnswers = courseQuestionnaireHistories
       .filter(qh => qh.questionnaire.type === EXPECTATIONS)

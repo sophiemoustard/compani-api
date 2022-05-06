@@ -1658,7 +1658,7 @@ describe('exportCourseHistory', () => {
   const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
   const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
 
-  const courseIdList = [new ObjectId(), new ObjectId()];
+  const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
 
   const courseSlotList = [
     {
@@ -1747,7 +1747,7 @@ describe('exportCourseHistory', () => {
       bills: [],
     },
     {
-      _id: courseIdList[1],
+      _id: courseIdList[2],
       type: INTER_B2B,
       subProgram: subProgramList[1],
       misc: 'group 3',
@@ -1898,18 +1898,18 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
-        { query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'find', args: [{ course: { $in: [] } }] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'lean' },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
       findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: [] } }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: [] } }] }, { query: 'lean' }]
     );
   });
 
@@ -2042,7 +2042,7 @@ describe('exportCourseHistory', () => {
         '',
       ],
       [
-        courseList[1]._id,
+        courseList[2]._id,
         'inter_b2b',
         '',
         '',
@@ -2057,11 +2057,11 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '0,00',
-        1,
+        0,
         0,
         '0,67',
-        1,
-        1,
+        0,
+        0,
         '01/01/2022',
         '',
         '',
@@ -2152,18 +2152,18 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
-        { query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'find', args: [{ course: { $in: courseIdList } }] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'lean' },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
       findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: courseIdList } }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: courseIdList } }] }, { query: 'lean' }]
     );
   });
 });
