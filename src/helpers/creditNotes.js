@@ -99,10 +99,10 @@ const formatBillingItemList = async (billingItemList) => {
 exports.formatCreditNote = async (payload, companyPrefix, prefix, seq) => {
   const creditNote = { ...payload, number: exports.formatCreditNoteNumber(companyPrefix, prefix, seq) };
   if (payload.inclTaxesCustomer) {
-    creditNote.inclTaxesCustomer = NumbersHelper.toFixed(payload.inclTaxesCustomer);
+    creditNote.inclTaxesCustomer = NumbersHelper.toFixedToFloat(payload.inclTaxesCustomer);
   }
 
-  if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = NumbersHelper.toFixed(payload.inclTaxesTpp);
+  if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = NumbersHelper.toFixedToFloat(payload.inclTaxesTpp);
 
   if (get(payload, 'billingItemList.length')) {
     creditNote.billingItemList = await formatBillingItemList(payload.billingItemList);
