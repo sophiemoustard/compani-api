@@ -16,7 +16,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             course: Joi.objectId().required(),
-            step: Joi.objectId(),
+            step: Joi.objectId().required(),
           }),
         },
         pre: [{ method: authorizeCreate }],

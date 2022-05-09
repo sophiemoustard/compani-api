@@ -70,14 +70,13 @@ exports.authorizeCreate = async (req) => {
     const { course: courseId, step: stepId } = req.payload;
     await canEditCourse(courseId);
 
-    if (stepId) {
-      const course = await Course.findById(courseId, { subProgram: 1 })
-        .populate({ path: 'subProgram', select: 'steps' }).lean();
-      const isStepElearning = await Step.countDocuments({ _id: stepId, type: E_LEARNING }).lean();
+    const course = await Course.findById(courseId, { subProgram: 1 })
+      .populate({ path: 'subProgram', select: 'steps' }).lean();
+    const isStepElearning = await Step.countDocuments({ _id: stepId, type: E_LEARNING }).lean();
 
-      if (isStepElearning) throw Boom.badRequest();
-      if (!UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
-    }
+    if (isStepElearning) throw Boom.badRequest();
+    if (!UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
+
     return null;
   } catch (e) {
     req.log('error', e);
