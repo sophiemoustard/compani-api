@@ -66,9 +66,16 @@ const checkPayload = async (courseId, payload) => {
 exports.authorizeCreate = async (req) => {
   try {
     const courseId = get(req, 'payload.course') || '';
+    const stepId = get(req, 'payload.step') || '';
     await canEditCourse(courseId);
-    await checkPayload(courseId, req.payload);
 
+    if (stepId) {
+      const course = await Course.findById(courseId).populate({ path: 'subProgram', select: 'steps' }).lean();
+      const step = await Step.findById(stepId).lean();
+
+      if (step.type === E_LEARNING) throw Boom.badRequest();
+      if (!course.subProgram.steps.map(s => s.toHexString()).includes(stepId)) throw Boom.badRequest();
+    }
     return null;
   } catch (e) {
     req.log('error', e);
