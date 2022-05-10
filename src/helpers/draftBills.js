@@ -307,9 +307,8 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
 
     customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
 
-    const tppParticipationPrice = eventPrice.thirdPartyPayerPrice &&
-      !NumbersHelper.isEqualTo(eventPrice.thirdPartyPayerPrice, 0);
-    if (matchingFunding && tppParticipationPrice) {
+    const hasTppPrice = eventPrice.thirdPartyPayerPrice && !NumbersHelper.isEqualTo(eventPrice.thirdPartyPayerPrice, 0);
+    if (matchingFunding && hasTppPrice) {
       thirdPartyPayerPrices = exports.formatDraftBillsForTPP(
         thirdPartyPayerPrices,
         matchingFunding.thirdPartyPayer,
