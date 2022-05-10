@@ -345,7 +345,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
     startDate: startDate.toDate(),
     endDate: moment(endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: UtilsHelper.getExclTaxes(unitTTCRate, serviceMatchingVersion.vat),
-    unitInclTaxes: NumbersHelper.toString(unitTTCRate),
+    unitInclTaxes: unitTTCRate,
     vat: serviceMatchingVersion.vat || 0,
   };
 
@@ -401,7 +401,7 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
       billingItem: { _id: new ObjectId(billingItemId), name: bddBillingItem.name },
       discount: 0,
       unitExclTaxes,
-      unitInclTaxes: NumbersHelper.toString(bddBillingItem.defaultUnitAmount),
+      unitInclTaxes: bddBillingItem.defaultUnitAmount,
       vat: bddBillingItem.vat,
       eventsList: eventsList.map(ev => ({ event: ev._id, ...pick(ev, ['startDate', 'endDate', 'auxiliary']) })),
       exclTaxes: NumbersHelper.multiply(unitExclTaxes, eventsList.length),

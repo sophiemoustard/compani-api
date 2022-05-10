@@ -83,7 +83,7 @@ exports.plugin = {
                   startDate: Joi.date().required(),
                   endDate: Joi.date().required(),
                   unitExclTaxes: Joi.string().required(),
-                  unitInclTaxes: Joi.string().required(),
+                  unitInclTaxes: Joi.number().required(),
                   eventsList: Joi.array().items(Joi.object({
                     event: Joi.objectId().required(),
                     startDate: Joi.date().required(),
@@ -120,7 +120,7 @@ exports.plugin = {
                   startDate: Joi.date().required(),
                   endDate: Joi.date().required(),
                   unitExclTaxes: Joi.string().required(),
-                  unitInclTaxes: Joi.string().required(),
+                  unitInclTaxes: Joi.number().required(),
                   eventsList: Joi.array().items(Joi.object({
                     event: Joi.objectId().required(),
                     startDate: Joi.date().required(),
