@@ -306,7 +306,9 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
     const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
     customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
-    if (matchingFunding && !NumbersHelper.isEqualTo(eventPrice.thirdPartyPayerPrice, 0)) {
+
+    const hasTppPrice = eventPrice.thirdPartyPayerPrice && !NumbersHelper.isEqualTo(eventPrice.thirdPartyPayerPrice, 0);
+    if (matchingFunding && hasTppPrice) {
       thirdPartyPayerPrices = exports.formatDraftBillsForTPP(
         thirdPartyPayerPrices,
         matchingFunding.thirdPartyPayer,
@@ -348,7 +350,7 @@ exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingS
   };
 
   const draftBillsPerSubscription = {};
-  if (!NumbersHelper.isEqualTo(customerPrices.exclTaxes, 0)) {
+  if (customerPrices.exclTaxes && !NumbersHelper.isEqualTo(customerPrices.exclTaxes, 0)) {
     draftBillsPerSubscription.customer = { ...draftBillInfo, ...customerPrices };
   }
   if (fundings && Object.keys(thirdPartyPayerPrices).length !== 0) {
@@ -418,7 +420,7 @@ exports.formatCustomerBills = (customerBills, tppBills, query, customer) => {
     endDate: query.endDate,
     customerBills: {
       bills: customerBills,
-      total: NumbersHelper.toFixed(UtilsHelper.sumReduce(customerBills, 'inclTaxes')),
+      total: NumbersHelper.toFixedToFloat(UtilsHelper.sumReduce(customerBills, 'inclTaxes')),
     },
   };
 
@@ -427,7 +429,7 @@ exports.formatCustomerBills = (customerBills, tppBills, query, customer) => {
     for (const bills of Object.values(tppBills)) {
       groupedByCustomerBills.thirdPartyPayerBills.push({
         bills,
-        total: NumbersHelper.toFixed(UtilsHelper.sumReduce(bills, 'inclTaxes')),
+        total: NumbersHelper.toFixedToFloat(UtilsHelper.sumReduce(bills, 'inclTaxes')),
       });
     }
   }

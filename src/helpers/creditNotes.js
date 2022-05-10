@@ -15,8 +15,7 @@ const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const BillSlipHelper = require('./billSlips');
 const BillsHelper = require('./bills');
-const { HOURLY, CIVILITY_LIST } = require('./constants');
-const { COMPANI } = require('./constants');
+const { CIVILITY_LIST, HOURLY, COMPANI } = require('./constants');
 const CreditNotePdf = require('../data/pdf/billing/creditNote');
 const NumbersHelper = require('./numbers');
 
@@ -50,22 +49,34 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
 
   for (const event of events) {
     if (event.bills.thirdPartyPayer && event.bills.fundingId) {
-      if (event.bills.nature !== HOURLY) {
-        await FundingHistory.updateOne(
-          { fundingId: event.bills.fundingId },
-          { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } }
-        );
+      let fundingHistory = await FundingHistory.findOne({
+        fundingId: event.bills.fundingId,
+        month: moment(event.startDate).format('MM/YYYY'),
+      });
+
+      if (fundingHistory) {
+        const careHours = parseFloat(isBilled
+          ? NumbersHelper.add(fundingHistory.careHours, event.bills.careHours)
+          : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours));
+
+        await FundingHistory.updateOne({ _id: fundingHistory._id }, { $set: { careHours } });
       } else {
-        const history = await FundingHistory.findOneAndUpdate(
-          { fundingId: event.bills.fundingId, month: moment(event.startDate).format('MM/YYYY') },
-          { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
-        );
-        if (!history) {
-          await FundingHistory.updateOne(
-            { fundingId: event.bills.fundingId },
-            { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
-          );
+        fundingHistory = await FundingHistory.findOne({ fundingId: event.bills.fundingId });
+
+        let payload;
+        if (event.bills.nature === HOURLY) {
+          const careHours = parseFloat(isBilled
+            ? NumbersHelper.add(fundingHistory.careHours, event.bills.careHours)
+            : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours));
+          payload = { careHours };
+        } else {
+          const amountTTC = parseFloat(isBilled
+            ? NumbersHelper.add(fundingHistory.amountTTC, event.bills.inclTaxesTpp)
+            : NumbersHelper.subtract(fundingHistory.amountTTC, event.bills.inclTaxesTpp));
+          payload = { amountTTC };
         }
+
+        await FundingHistory.updateOne({ _id: fundingHistory._id }, { $set: payload });
       }
     }
 
@@ -88,10 +99,10 @@ const formatBillingItemList = async (billingItemList) => {
 exports.formatCreditNote = async (payload, companyPrefix, prefix, seq) => {
   const creditNote = { ...payload, number: exports.formatCreditNoteNumber(companyPrefix, prefix, seq) };
   if (payload.inclTaxesCustomer) {
-    creditNote.inclTaxesCustomer = UtilsHelper.getFixedNumber(payload.inclTaxesCustomer, 2);
+    creditNote.inclTaxesCustomer = NumbersHelper.toFixedToFloat(payload.inclTaxesCustomer);
   }
 
-  if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = UtilsHelper.getFixedNumber(payload.inclTaxesTpp, 2);
+  if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = NumbersHelper.toFixedToFloat(payload.inclTaxesTpp);
 
   if (get(payload, 'billingItemList.length')) {
     creditNote.billingItemList = await formatBillingItemList(payload.billingItemList);
@@ -115,14 +126,19 @@ exports.createCreditNotes = async (payload, credentials) => {
   let tppCN;
   let customerCN;
   if (payload.inclTaxesTpp) {
-    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0, company: company._id };
+    const tppPayload = {
+      ...payload,
+      exclTaxesCustomer: NumbersHelper.toString(0),
+      inclTaxesCustomer: 0,
+      company: company._id,
+    };
     tppCN = await exports.formatCreditNote(tppPayload, company.prefixNumber, number.prefix, number.seq);
     number.seq += 1;
   }
   if (payload.inclTaxesCustomer) {
     const customerPayload = {
       ...omit(payload, ['thirdPartyPayer']),
-      exclTaxesTpp: 0,
+      exclTaxesTpp: NumbersHelper.toString(0),
       inclTaxesTpp: 0,
       company: company._id,
     };
@@ -182,9 +198,10 @@ const formatEventForPdf = event => ({
   surcharges: event.bills.surcharges && PdfHelper.formatEventSurchargesForPdf(event.bills.surcharges),
 });
 
-const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTpp
-  ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
-  : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
+const computeCreditNoteEventVat = (creditNote, event) => (
+  creditNote.exclTaxes && !NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
+    ? NumbersHelper.subtract(event.bills.inclTaxesTpp, event.bills.exclTaxesTpp)
+    : NumbersHelper.subtract(event.bills.inclTaxesCustomer, event.bills.exclTaxesCustomer));
 
 const formatBillingItemForPdf = billingItem => pick(
   billingItem,
@@ -208,13 +225,15 @@ exports.formatPdf = (creditNote, company) => {
     misc: creditNote.misc,
   };
 
-  if (creditNote.events && creditNote.events.length > 0) {
+  if (creditNote.events && creditNote.events.length) {
     computedData.formattedEvents = [];
     const sortedEvents = creditNote.events.map(ev => ev).sort((ev1, ev2) => ev1.startDate - ev2.startDate);
 
     for (const event of sortedEvents) {
       computedData.formattedEvents.push(formatEventForPdf(event));
-      computedData.totalVAT += computeCreditNoteEventVat(creditNote, event);
+      computedData.totalVAT = parseFloat(
+        NumbersHelper.add(computedData.totalVAT, computeCreditNoteEventVat(creditNote, event))
+      );
     }
   } else if (creditNote.subscription) {
     computedData.subscription = {
@@ -225,9 +244,11 @@ exports.formatPdf = (creditNote, company) => {
     computedData.billingItems = [];
     for (const billingItem of creditNote.billingItemList) {
       computedData.billingItems.push(formatBillingItemForPdf(billingItem));
-      computedData.totalVAT = NumbersHelper.oldAdd(
-        computedData.totalVAT,
-        NumbersHelper.oldSubtract(billingItem.inclTaxes, billingItem.exclTaxes)
+      computedData.totalVAT = parseFloat(
+        NumbersHelper.add(
+          computedData.totalVAT,
+          NumbersHelper.subtract(billingItem.inclTaxes, billingItem.exclTaxes)
+        )
       );
     }
   }
@@ -240,9 +261,9 @@ exports.formatPdf = (creditNote, company) => {
         identity: { ...creditNote.customer.identity, title: CIVILITY_LIST[get(creditNote, 'customer.identity.title')] },
         contact: creditNote.customer.contact,
       },
-      totalExclTaxes: creditNote.exclTaxesTpp
-        ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp)
-        : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
+      totalExclTaxes: creditNote.exclTaxesTpp && !NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
+        ? UtilsHelper.formatPrice(parseFloat(creditNote.exclTaxesTpp))
+        : UtilsHelper.formatPrice(parseFloat(creditNote.exclTaxesCustomer)),
       netInclTaxes: creditNote.inclTaxesTpp
         ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp)
         : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
