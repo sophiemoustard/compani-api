@@ -112,7 +112,7 @@ const EventSchema = mongoose.Schema(
       exclTaxesTpp: { type: String },
       fundingId: { type: mongoose.Schema.Types.ObjectId },
       nature: { type: String },
-      careHours: { type: Number },
+      careHours: { type: String },
       surcharges: { type: billEventSurchargesSchemaDefinition, _id: 0 },
       billingItems: { type: billingItemsInEventDefinition, _id: 0 },
     },
