@@ -1,6 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
+const has = require('lodash/has');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillingItem = require('../models/BillingItem');
@@ -26,7 +27,7 @@ exports.formatBilledEvents = (bill) => {
   else pickedFields.push('inclTaxesCustomer', 'exclTaxesCustomer');
 
   return bill.eventsList.map(ev => (ev.history && ev.history.careHours
-    ? { eventId: ev.event, ...pick(ev, pickedFields), careHours: ev.history.careHours }
+    ? { eventId: ev.event, ...pick(ev, pickedFields), careHours: NumbersHelper.toString(ev.history.careHours) }
     : { eventId: ev.event, ...pick(ev, pickedFields) }
   ));
 };
@@ -73,7 +74,10 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     if (draftBill.subscription) {
       bill.subscriptions.push(exports.formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
-        billedEvents[ev.event] = { ...ev };
+        billedEvents[ev.event] = {
+          ...ev,
+          ...(has(ev, 'careHours') && { careHours: NumbersHelper.toString(ev.careHours) }),
+        };
       }
     } else {
       bill.billingItemList.push(exports.formatBillingItemData(draftBill));
@@ -128,8 +132,9 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
     for (const draftBill of tpp.bills) {
       tppBill.subscriptions.push(exports.formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
-        if (ev.history.nature === HOURLY) billedEvents[ev.event] = { ...ev, careHours: ev.history.careHours };
-        else billedEvents[ev.event] = { ...ev };
+        if (ev.history.nature === HOURLY) {
+          billedEvents[ev.event] = { ...ev, careHours: NumbersHelper.toString(ev.history.careHours) };
+        } else billedEvents[ev.event] = { ...ev };
 
         if (ev.history.month) {
           if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { [ev.history.month]: ev.history };
