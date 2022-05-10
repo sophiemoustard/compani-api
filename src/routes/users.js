@@ -12,7 +12,7 @@ const {
   show,
   exists,
   update,
-  removeHelper,
+  removeUser,
   updateCertificates,
   uploadFile,
   uploadPicture,
@@ -278,7 +278,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
-        auth: { scope: ['users:edit'] },
+        auth: { scope: ['users:edit', 'user:edit-{params._id}'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
@@ -287,7 +287,7 @@ exports.plugin = {
           { method: authorizeUserDeletion },
         ],
       },
-      handler: removeHelper,
+      handler: removeUser,
     });
 
     server.route({
