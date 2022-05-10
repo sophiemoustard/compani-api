@@ -7,6 +7,7 @@ const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const flat = require('flat');
 const { v4: uuidv4 } = require('uuid');
+const CompanyLinkRequest = require('../models/CompanyLinkRequest');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const UserCompany = require('../models/UserCompany');
@@ -275,8 +276,10 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 };
 
 exports.removeUser = async (user, credentials) => {
-  if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) await User.deleteOne({ _id: user._id });
-  else await exports.removeHelper(user);
+  if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
+    await CompanyLinkRequest.deleteOne({ user: user._id });
+    await User.deleteOne({ _id: user._id });
+  } else await exports.removeHelper(user);
 };
 
 exports.removeHelper = async (user) => {

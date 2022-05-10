@@ -13,6 +13,7 @@ const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const Course = require('../../../src/models/Course');
+const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const { WEBAPP, MOBILE } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
 const {
@@ -231,6 +232,12 @@ const usersSeedList = [
   },
 ];
 
+const companyLinkRequest = {
+  _id: new ObjectId(),
+  user: usersSeedList[12]._id,
+  company: authCompany._id,
+};
+
 const customer = {
   _id: new ObjectId(),
   company: authCompany._id,
@@ -364,6 +371,7 @@ const populateDB = async () => {
     SectorHistory.create(sectorHistories),
     User.create([...usersSeedList, ...usersFromOtherCompanyList]),
     UserCompany.create(userCompanies),
+    CompanyLinkRequest.create(companyLinkRequest),
   ]);
 };
 

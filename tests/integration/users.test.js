@@ -9,6 +9,7 @@ const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
 const Course = require('../../src/models/Course');
+const CompanyLinkRequest = require('../../src/models/CompanyLinkRequest');
 const Role = require('../../src/models/Role');
 const UserCompany = require('../../src/models/UserCompany');
 const Helper = require('../../src/models/Helper');
@@ -1492,6 +1493,9 @@ describe('DELETE /users/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
+
+      const companyLinkRequest = await CompanyLinkRequest.countDocuments({ user: usersSeedList[12]._id });
+      expect(companyLinkRequest).toBe(0);
     });
 
     it('should return 403 if try to delete other account', async () => {
