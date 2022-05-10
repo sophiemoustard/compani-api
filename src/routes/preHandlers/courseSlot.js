@@ -7,6 +7,7 @@ const Attendance = require('../../models/Attendance');
 const translate = require('../../helpers/translate');
 const { checkAuthorization } = require('./courses');
 const { E_LEARNING, ON_SITE, REMOTE } = require('../../helpers/constants');
+const UtilsHelper = require('../../helpers/utils');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
@@ -52,11 +53,12 @@ const checkPayload = async (courseId, payload) => {
   }
 
   if (stepId) {
-    const course = await Course.findById(courseId).populate({ path: 'subProgram', select: 'steps' }).lean();
+    const course = await Course.findById(courseId, { subProgram: 1 })
+      .populate({ path: 'subProgram', select: 'steps' }).lean();
     const step = await Step.findById(stepId).lean();
 
     if (step.type === E_LEARNING) throw Boom.badRequest();
-    if (!course.subProgram.steps.map(s => s.toHexString()).includes(stepId)) throw Boom.badRequest();
+    if (!UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
     if ((payload.address && step.type !== ON_SITE) || (payload.meetingLink && step.type !== REMOTE)) {
       throw Boom.badRequest();
     }
@@ -65,10 +67,17 @@ const checkPayload = async (courseId, payload) => {
 
 exports.authorizeCreate = async (req) => {
   try {
-    const courseId = get(req, 'payload.course') || '';
+    const { course: courseId, step: stepId } = req.payload;
     await canEditCourse(courseId);
-    await checkPayload(courseId, req.payload);
 
+    if (stepId) {
+      const course = await Course.findById(courseId, { subProgram: 1 })
+        .populate({ path: 'subProgram', select: 'steps' }).lean();
+      const isStepElearning = await Step.countDocuments({ _id: stepId, type: E_LEARNING }).lean();
+
+      if (isStepElearning) throw Boom.badRequest();
+      if (!UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
+    }
     return null;
   } catch (e) {
     req.log('error', e);

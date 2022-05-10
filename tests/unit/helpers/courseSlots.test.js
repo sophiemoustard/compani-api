@@ -2,7 +2,6 @@ const sinon = require('sinon');
 const expect = require('expect');
 const pick = require('lodash/pick');
 const { ObjectId } = require('mongodb');
-const moment = require('../../../src/extensions/moment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const Step = require('../../../src/models/Step');
 const CourseSlotsHelper = require('../../../src/helpers/courseSlots');
@@ -66,55 +65,18 @@ describe('hasConflicts', () => {
 
 describe('createCourseSlot', () => {
   let save;
-  let hasConflicts;
-  let createHistoryOnSlotCreation;
   beforeEach(() => {
     save = sinon.stub(CourseSlot.prototype, 'save').returnsThis();
-    hasConflicts = sinon.stub(CourseSlotsHelper, 'hasConflicts');
-    createHistoryOnSlotCreation = sinon.stub(CourseHistoriesHelper, 'createHistoryOnSlotCreation');
   });
   afterEach(() => {
     save.restore();
-    hasConflicts.restore();
-    createHistoryOnSlotCreation.restore();
   });
 
   it('should create a course slot', async () => {
-    const newSlot = {
-      startDate: '2019-02-03T09:00:00.000Z',
-      endDate: '2019-02-03T10:00:00.000Z',
-      address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
-      course: new ObjectId(),
-      step: new ObjectId(),
-    };
-    const user = { _id: new ObjectId() };
-    hasConflicts.returns(false);
+    const newSlot = { course: new ObjectId(), step: new ObjectId() };
 
-    const result = await CourseSlotsHelper.createCourseSlot(newSlot, user);
-    sinon.assert.calledOnceWithExactly(hasConflicts, newSlot);
-    sinon.assert.calledOnceWithExactly(createHistoryOnSlotCreation, newSlot, user._id);
+    const result = await CourseSlotsHelper.createCourseSlot(newSlot);
     expect(result.course).toEqual(newSlot.course);
-    expect(moment(result.startDate).toISOString()).toEqual(moment(newSlot.startDate).toISOString());
-    expect(moment(result.endDate).toISOString()).toEqual(moment(newSlot.endDate).toISOString());
-  });
-
-  it('should throw an error if conflicts', async () => {
-    const newSlot = {
-      startDate: '2019-02-03T09:00:00.000Z',
-      endDate: '2019-02-03T10:00:00.000Z',
-      address: { fullAddress: 'ertyui', street: '12345', zipCode: '12345', city: 'qwert' },
-      course: new ObjectId(),
-      step: new ObjectId(),
-    };
-    hasConflicts.returns(true);
-
-    try {
-      await CourseSlotsHelper.createCourseSlot(newSlot);
-    } catch (e) {
-      expect(e.output.statusCode).toEqual(409);
-    } finally {
-      sinon.assert.calledOnceWithExactly(hasConflicts, newSlot);
-    }
   });
 });
 

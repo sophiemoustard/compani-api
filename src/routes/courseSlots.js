@@ -15,12 +15,8 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object({
-            startDate: Joi.date(),
-            endDate: Joi.date().when('startDate', { is: Joi.exist(), then: Joi.required() }),
-            address: Joi.alternatives().try(addressValidation, {}),
-            meetingLink: Joi.string().allow(''),
             course: Joi.objectId().required(),
-            step: Joi.objectId().when('startDate', { is: Joi.exist(), then: Joi.required() }),
+            step: Joi.objectId(),
           }),
         },
         pre: [{ method: authorizeCreate }],
