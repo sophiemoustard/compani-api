@@ -54,7 +54,8 @@ const checkPayload = async (courseId, payload) => {
 
   if (stepId) {
     const course = await Course.findById(courseId, { subProgram: 1 })
-      .populate({ path: 'subProgram', select: 'steps' }).lean();
+      .populate({ path: 'subProgram', select: 'steps' })
+      .lean();
     const step = await Step.findById(stepId).lean();
 
     if (step.type === E_LEARNING) throw Boom.badRequest();
@@ -71,7 +72,8 @@ exports.authorizeCreate = async (req) => {
     await canEditCourse(courseId);
 
     const course = await Course.findById(courseId, { subProgram: 1 })
-      .populate({ path: 'subProgram', select: 'steps' }).lean();
+      .populate({ path: 'subProgram', select: 'steps' })
+      .lean();
     const isStepElearning = await Step.countDocuments({ _id: stepId, type: E_LEARNING }).lean();
 
     if (isStepElearning) throw Boom.badRequest();

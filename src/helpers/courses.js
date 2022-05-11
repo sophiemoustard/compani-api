@@ -200,7 +200,7 @@ exports.getCourse = async (course, loggedUser) => {
         },
       ],
     })
-    .populate({ path: 'slots', populate: { path: 'step', select: 'name type' } })
+    .populate({ path: 'slots', select: 'step startDate endDate address meetingLink' })
     .populate({ path: 'slotsToPlan', select: '_id step' })
     .populate({
       path: 'trainees',
