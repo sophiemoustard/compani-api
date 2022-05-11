@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 const CompanyLinkRequest = require('../models/CompanyLinkRequest');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const Course = require('../models/Course');
 const UserCompany = require('../models/UserCompany');
 const Contract = require('../models/Contract');
 const translate = require('./translate');
@@ -278,6 +279,7 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
 exports.removeUser = async (user, credentials) => {
   if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
     await CompanyLinkRequest.deleteOne({ user: user._id });
+    await Course.updateMany({ trainees: user._id }, { $pull: { trainees: user._id } });
     await User.deleteOne({ _id: user._id });
   } else await exports.removeHelper(user);
 };

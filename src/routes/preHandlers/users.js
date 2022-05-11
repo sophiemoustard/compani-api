@@ -167,8 +167,33 @@ exports.authorizeUserDeletion = async (req) => {
 
   if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
     if (user.company) throw Boom.forbidden();
-    const isRegisteredToCourses = await Course.countDocuments({ trainees: req.params._id }, { limit: 1 });
-    if (isRegisteredToCourses) throw Boom.forbidden();
+    const coursesList = await Course
+      .find({ trainees: req.params._id })
+      .populate(
+        {
+          path: 'subProgram',
+          select: 'steps',
+          populate: {
+            path: 'steps',
+            select: 'activities',
+            populate: {
+              path: 'activities',
+              populate: { path: 'activityHistories', select: '_id', match: { user: req.params._id } },
+            },
+          },
+        })
+      .lean();
+
+    const hasActivityHistories = coursesList
+      .some(course => course.subProgram.steps
+        .some(step => step.activities
+          .some(activity => activity.activityHistories.length)
+        )
+      );
+
+    if (hasActivityHistories) {
+      throw Boom.forbidden(translate[language].userIsRegisteredToCourses);
+    }
 
     return null;
   }

@@ -22,6 +22,7 @@ module.exports = {
     userAuthentified: 'User authenticated successfully.',
     userLogout: 'User disconnected successfully.',
     userRoleConflict: 'User already has a role on this interface.',
+    userIsRegisteredToCourses: 'User is registered to courses',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
     /* Api */
@@ -406,6 +407,7 @@ module.exports = {
     userAuthentified: 'Compte authentifié avec succès.',
     userLogout: 'Compte déconnecté avec succès.',
     userRoleConflict: 'Ce compte a déjà un rôle sur cette interface.',
+    userIsRegisteredToCourses: 'Le compte est inscrit à des formations',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Api */

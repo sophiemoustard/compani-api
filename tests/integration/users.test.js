@@ -8,6 +8,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
+const ActivityHistory = require('../../src/models/ActivityHistory');
 const Course = require('../../src/models/Course');
 const CompanyLinkRequest = require('../../src/models/CompanyLinkRequest');
 const Role = require('../../src/models/Role');
@@ -33,7 +34,7 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
-  courses,
+  activityList,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
@@ -1496,6 +1497,9 @@ describe('DELETE /users/:id', () => {
 
       const companyLinkRequest = await CompanyLinkRequest.countDocuments({ user: usersSeedList[12]._id });
       expect(companyLinkRequest).toBe(0);
+
+      const course = await Course.countDocuments({ trainees: usersSeedList[12]._id });
+      expect(course).toBe(0);
     });
 
     it('should return 403 if try to delete other account', async () => {
@@ -1508,20 +1512,21 @@ describe('DELETE /users/:id', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return 403 if user is registered to course', async () => {
+    it('should return 403 if user has activity histories', async () => {
       await app.inject({
         method: 'POST',
-        url: `/courses/${courses[2]._id}/register-e-learning`,
+        url: '/activityhistories',
+        payload: { user: usersSeedList[12]._id, activity: activityList[0]._id, score: 2 },
         headers: { 'x-access-token': authToken },
       });
 
-      const isRegisteredToCourses = await Course
-        .countDocuments({ _id: courses[2]._id, trainees: usersSeedList[12]._id });
-      expect(isRegisteredToCourses).toBe(1);
+      const hasActivityHistories = await ActivityHistory
+        .countDocuments({ user: usersSeedList[12]._id, activity: activityList[0]._id });
+      expect(hasActivityHistories).toBe(1);
 
       const response = await app.inject({
         method: 'DELETE',
-        url: `/users/${noRoleNoCompany._id.toHexString()}`,
+        url: `/users/${usersSeedList[12]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 

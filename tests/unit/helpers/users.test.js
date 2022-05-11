@@ -18,6 +18,7 @@ const HelpersHelper = require('../../../src/helpers/helpers');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
+const Course = require('../../../src/models/Course');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Role = require('../../../src/models/Role');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -1130,15 +1131,18 @@ describe('createUser', () => {
 describe('removeUser', () => {
   let deleteOne;
   let deleteOneCompanyLinkRequest;
+  let updateManyCourse;
   let removeHelper;
   beforeEach(() => {
     deleteOne = sinon.stub(User, 'deleteOne');
     deleteOneCompanyLinkRequest = sinon.stub(CompanyLinkRequest, 'deleteOne');
+    updateManyCourse = sinon.stub(Course, 'updateMany');
     removeHelper = sinon.stub(UsersHelper, 'removeHelper');
   });
   afterEach(() => {
     deleteOne.restore();
     deleteOneCompanyLinkRequest.restore();
+    updateManyCourse.restore();
     removeHelper.restore();
   });
 
@@ -1148,6 +1152,7 @@ describe('removeUser', () => {
 
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: userId });
     sinon.assert.calledOnceWithExactly(deleteOneCompanyLinkRequest, { user: userId });
+    sinon.assert.calledOnceWithExactly(updateManyCourse, { trainees: userId }, { $pull: { trainees: userId } });
   });
 
   it('should call removeHelper', async () => {

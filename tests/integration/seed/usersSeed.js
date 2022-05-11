@@ -2,6 +2,9 @@ const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
 const moment = require('moment');
 const User = require('../../../src/models/User');
+const Step = require('../../../src/models/Step');
+const SubProgram = require('../../../src/models/SubProgram');
+const Activity = require('../../../src/models/Activity');
 const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
@@ -14,7 +17,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
 const Course = require('../../../src/models/Course');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
-const { WEBAPP, MOBILE } = require('../../../src/helpers/constants');
+const { WEBAPP, MOBILE, VIDEO } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
 const {
   helperRoleId,
@@ -326,6 +329,11 @@ const sectorHistories = [
   { auxiliary: usersSeedList[4]._id, sector: userSectors[0]._id, company: authCompany._id, startDate: '2018-12-10' },
 ];
 
+const activityList = [{ _id: new ObjectId(), name: 'great activity', type: VIDEO, cards: [] }];
+
+const stepList = [{ _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: [activityList[0]._id] }];
+const subProgram = { _id: new ObjectId(), name: 'program', steps: stepList };
+
 const courses = [
   {
     _id: new ObjectId(),
@@ -344,10 +352,11 @@ const courses = [
   },
   {
     _id: new ObjectId(),
-    subProgram: new ObjectId(),
+    subProgram: subProgram._id,
     misc: 'elearning for all',
     type: 'inter_b2c',
     format: 'strictly_e_learning',
+    trainees: [usersSeedList[12]._id],
   },
 ];
 
@@ -361,6 +370,7 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
+    Activity.create(activityList),
     Contract.create(contracts),
     Course.create(courses),
     Customer.create(customer, customerFromOtherCompany),
@@ -369,6 +379,8 @@ const populateDB = async () => {
     IdentityVerification.create(identityVerifications),
     Sector.create(userSectors),
     SectorHistory.create(sectorHistories),
+    Step.create(stepList),
+    SubProgram.create(subProgram),
     User.create([...usersSeedList, ...usersFromOtherCompanyList]),
     UserCompany.create(userCompanies),
     CompanyLinkRequest.create(companyLinkRequest),
@@ -382,7 +394,6 @@ module.exports = {
   isInList,
   customer,
   customerFromOtherCompany,
-  courses,
   helperFromOtherCompany,
   userSectors,
   sectorHistories,
@@ -390,4 +401,5 @@ module.exports = {
   coachFromOtherCompany,
   auxiliaryFromOtherCompany,
   userCompanies,
+  activityList,
 };
