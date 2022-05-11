@@ -148,7 +148,7 @@ describe('formatBilledEvents', () => {
         fundingId: 'fundingId',
         inclTaxesTpp: 5,
         exclTaxesTpp: 4,
-        careHours: 0.5,
+        careHours: '0.5',
       },
       {
         eventId: '456',
@@ -158,7 +158,7 @@ describe('formatBilledEvents', () => {
         fundingId: 'fundingId',
         inclTaxesTpp: 3,
         exclTaxesTpp: 2,
-        careHours: 2,
+        careHours: '2',
       },
     ]);
   });
