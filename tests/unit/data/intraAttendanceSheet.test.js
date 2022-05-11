@@ -59,7 +59,7 @@ describe('getPdfContent', () => {
         [{ text: 'Signature de l\'intervenant(e)', italics: true, margin: [0, 8, 0, 0] }, { text: '' }],
       ],
       widths: ['*', '*'],
-      heights: ['auto', 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+      heights: ['auto', 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28],
     };
     const pdf = {
       content: [
