@@ -37,7 +37,7 @@ exports.formatSubscriptionData = (bill) => {
 
   return {
     ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'exclTaxes']),
-    inclTaxes: parseFloat(UtilsHelper.getFixedNumber(bill.inclTaxes)),
+    inclTaxes: NumbersHelper.toFixedToFloat(bill.inclTaxes),
     subscription: bill.subscription._id,
     service: { serviceId: matchingServiceVersion._id, ...pick(matchingServiceVersion, ['name', 'nature']) },
     vat: matchingServiceVersion.vat,
@@ -48,7 +48,7 @@ exports.formatSubscriptionData = (bill) => {
 
 exports.formatBillingItemData = bill => ({
   ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'vat']),
-  inclTaxes: parseFloat(UtilsHelper.getFixedNumber(bill.inclTaxes)),
+  inclTaxes: NumbersHelper.toFixedToFloat(bill.inclTaxes),
   billingItem: bill.billingItem._id,
   events: bill.eventsList.map(ev => ({ ...pick(ev, ['startDate', 'endDate', 'auxiliary']), eventId: ev.event })),
   name: bill.billingItem.name,
