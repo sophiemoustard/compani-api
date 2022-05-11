@@ -31,7 +31,7 @@ exports.getPdfContent = async (data) => {
         } else body[row].push({ text: '' });
       }
     }
-    const heights = Array(14).fill(30);
+    const heights = Array(14).fill(28);
     heights[0] = 'auto';
     const table = [{
       table: { body, widths: Array(body[0].length).fill('*'), heights },
