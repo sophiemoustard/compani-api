@@ -993,7 +993,7 @@ describe('getDraftBillsPerSubscription', () => {
 
     expect(result.customer.exclTaxes).toEqual('35');
     expect(result.customer.unitExclTaxes).toEqual('70');
-    expect(result.customer.unitInclTaxes).toEqual('21');
+    expect(result.customer.unitInclTaxes).toEqual(21);
     expect(result.thirdPartyPayer[tppId].hours).toEqual('3');
     expect(result.eventsByBillingItem).toEqual([{ d00000000000000000000001: [events[0]._id] }]);
     sinon.assert.calledOnceWithExactly(
@@ -1035,7 +1035,7 @@ describe('getDraftBillsPerSubscription', () => {
 
     expect(result.customer.exclTaxes).toEqual('35');
     expect(result.customer.unitExclTaxes).toEqual('70');
-    expect(result.customer.unitInclTaxes).toEqual('21');
+    expect(result.customer.unitInclTaxes).toEqual(21);
     expect(result.eventsByBillingItem).toEqual([]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
@@ -1157,7 +1157,7 @@ describe('formatBillingItems', () => {
         billingItem: { _id: new ObjectId('d00000000000000000000001'), name: 'FI' },
         discount: 0,
         unitExclTaxes: '0.90909090909090909091',
-        unitInclTaxes: '1',
+        unitInclTaxes: 1,
         vat: 10,
         eventsList: [{ event: eventId1 }, { event: eventId2 }, { event: eventId3 }],
         exclTaxes: '2.72727272727272727273',
@@ -1169,7 +1169,7 @@ describe('formatBillingItems', () => {
         billingItem: { _id: new ObjectId('d00000000000000000000002'), name: 'EPI' },
         discount: 0,
         unitExclTaxes: '4.54545454545454545455',
-        unitInclTaxes: '5',
+        unitInclTaxes: 5,
         vat: 10,
         eventsList: [{ event: eventId1, auxiliary: '1234567' }, { event: eventId2 }],
         exclTaxes: '9.0909090909090909091',
