@@ -1,4 +1,9 @@
 module.exports = {
+  // ENV
+  PRODUCTION: 'production',
+  DEVELOPMENT: 'development',
+  TEST: 'test',
+  // COLOR
   COPPER_50: '#F0FAF7',
   COPPER_500: '#1D7C8F',
   COPPER_600: '#005774',
