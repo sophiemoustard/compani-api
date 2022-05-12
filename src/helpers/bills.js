@@ -1,7 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const has = require('lodash/has');
+const flat = require('flat');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillingItem = require('../models/BillingItem');
@@ -26,8 +26,9 @@ exports.formatBilledEvents = (bill) => {
   if (bill.thirdPartyPayer) pickedFields.push('inclTaxesTpp', 'exclTaxesTpp', 'fundingId');
   else pickedFields.push('inclTaxesCustomer', 'exclTaxesCustomer');
 
-  return bill.eventsList.map(ev => (ev.history && ev.history.careHours
-    ? { eventId: ev.event, ...pick(ev, pickedFields), careHours: NumbersHelper.toString(ev.history.careHours) }
+  return bill.eventsList.map(ev => (ev.history && ev.history.careHours &&
+      !NumbersHelper.isEqualTo(ev.history.careHours, '0')
+    ? { eventId: ev.event, ...pick(ev, pickedFields), careHours: ev.history.careHours }
     : { eventId: ev.event, ...pick(ev, pickedFields) }
   ));
 };
@@ -74,10 +75,7 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     if (draftBill.subscription) {
       bill.subscriptions.push(exports.formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
-        billedEvents[ev.event] = {
-          ...ev,
-          ...(has(ev, 'careHours') && { careHours: NumbersHelper.toString(ev.careHours) }),
-        };
+        billedEvents[ev.event] = { ...ev };
       }
     } else {
       bill.billingItemList.push(exports.formatBillingItemData(draftBill));
@@ -133,8 +131,10 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
       tppBill.subscriptions.push(exports.formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
         if (ev.history.nature === HOURLY) {
-          billedEvents[ev.event] = { ...ev, careHours: NumbersHelper.toString(ev.history.careHours) };
-        } else billedEvents[ev.event] = { ...ev };
+          billedEvents[ev.event] = { ...ev, careHours: ev.history.careHours };
+        } else {
+          billedEvents[ev.event] = { ...ev };
+        }
 
         if (ev.history.month) {
           if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { [ev.history.month]: ev.history };
@@ -177,23 +177,34 @@ exports.updateEvents = async (eventsToUpdate) => {
 exports.updateFundingHistories = async (histories, companyId) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
-    if (histories[id].amountTTC) {
+    let fundingHistory = await FundingHistory
+      .findOne({ fundingId: id, company: companyId }, { amountTTC: 1, careHours: 1 })
+      .lean();
+
+    if (histories[id].amountTTC && !NumbersHelper.isEqualTo(histories[id].amountTTC, '0')) {
+      const newAmountTTC = NumbersHelper.add(get(fundingHistory, 'amountTTC') || 0, histories[id].amountTTC);
       promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
-        { $inc: { amountTTC: histories[id].amountTTC } },
+        { $set: flat({ amountTTC: newAmountTTC }) },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
-    } else if (histories[id].careHours) {
+    } else if (histories[id].careHours && !NumbersHelper.isEqualTo(histories[id].careHours, '0')) {
+      const newCareHours = NumbersHelper.add(get(fundingHistory, 'careHours') || 0, histories[id].careHours);
       promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
-        { $inc: { careHours: histories[id].careHours } },
+        { $set: flat({ careHours: newCareHours }) },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else {
       for (const month of Object.keys(histories[id])) {
+        fundingHistory = await FundingHistory
+          .findOne({ fundingId: id, company: companyId, month }, { amountTTC: 1, careHours: 1 })
+          .lean();
+        const newCareHours = NumbersHelper.add(get(fundingHistory, 'careHours') || 0, histories[id][month].careHours);
+
         promises.push(FundingHistory.updateOne(
           { fundingId: id, month, company: companyId },
-          { $inc: { careHours: histories[id][month].careHours } },
+          { $set: flat({ careHours: newCareHours }) },
           { new: true, upsert: true, setDefaultsOnInsert: true }
         ));
       }
