@@ -131,13 +131,13 @@ describe('populateFundings', () => {
     }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
-    const returnedHistory = { careHours: 4, fundingId };
+    const returnedHistory = { careHours: '4', fundingId };
     mergeLastVersionWithBaseObjectStub.returns(funding);
     findOneFundingHistory.returns(SinonMongoose.stubChainedQueries(returnedHistory, ['lean']));
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
-    expect(result[0].history).toMatchObject([{ careHours: 4, fundingId }]);
+    expect(result[0].history).toMatchObject([{ careHours: '4', fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledOnceWithExactly(findOneFundingHistory, [
       { query: 'findOne', args: [{ fundingId: fundings[0]._id }] },
@@ -162,7 +162,7 @@ describe('populateFundings', () => {
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
-    expect(result[0].history).toMatchObject([{ careHours: 0, amountTTC: 0, fundingId }]);
+    expect(result[0].history).toMatchObject([{ careHours: '0', amountTTC: '0', fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledOnceWithExactly(findOneFundingHistory, [
       { query: 'findOne', args: [{ fundingId: fundings[0]._id }] },
@@ -182,8 +182,8 @@ describe('populateFundings', () => {
     }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const returnedHistories = [
-      { careHours: 3, fundingId, month: '01/2019' },
-      { careHours: 5, fundingId, month: '02/2019' },
+      { careHours: '3', fundingId, month: '01/2019' },
+      { careHours: '5', fundingId, month: '02/2019' },
     ];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     mergeLastVersionWithBaseObjectStub.returns(funding);
@@ -193,7 +193,7 @@ describe('populateFundings', () => {
 
     expect(result[0].history.length).toEqual(3);
     const addedHistory = result[0].history.find(hist => hist.month === '03/2019');
-    expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
+    expect(addedHistory).toMatchObject({ careHours: '0', amountTTC: '0', fundingId, month: '03/2019' });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledOnceWithExactly(findFundingHistory, [
       { query: 'find', args: [{ fundingId: fundings[0]._id, company: companyId }] },
@@ -276,7 +276,7 @@ describe('getThirdPartyPayerPrice', () => {
 describe('getMatchingHistory', () => {
   it('should return history for once frequency', () => {
     const fundingId = new ObjectId();
-    const funding = { _id: fundingId, frequency: 'once', history: [{ fundingId, careHours: 2 }] };
+    const funding = { _id: fundingId, frequency: 'once', history: [{ fundingId, careHours: '2' }] };
 
     const result = DraftBillsHelper.getMatchingHistory({}, funding);
 
@@ -288,13 +288,13 @@ describe('getMatchingHistory', () => {
     const funding = {
       _id: fundingId,
       frequency: 'monthly',
-      history: [{ fundingId, careHours: 2, month: '03/2019' }, { fundingId, careHours: 4, month: '02/2019' }],
+      history: [{ fundingId, careHours: '2', month: '03/2019' }, { fundingId, careHours: '4', month: '02/2019' }],
     };
     const event = { startDate: new Date('2019/03/12') };
 
     const result = DraftBillsHelper.getMatchingHistory(event, funding);
 
-    expect(result).toMatchObject({ fundingId, careHours: 2, month: '03/2019' });
+    expect(result).toMatchObject({ fundingId, careHours: '2', month: '03/2019' });
   });
 
   it('should create history and add to list when missing for monthly frequency', () => {
@@ -302,13 +302,13 @@ describe('getMatchingHistory', () => {
     const funding = {
       _id: fundingId,
       frequency: 'monthly',
-      history: [{ fundingId, careHours: 2, month: '01/2019' }, { fundingId, careHours: 4, month: '02/2019' }],
+      history: [{ fundingId, careHours: '2', month: '01/2019' }, { fundingId, careHours: '4', month: '02/2019' }],
     };
     const event = { startDate: new Date('2019/03/12') };
 
     const result = DraftBillsHelper.getMatchingHistory(event, funding);
 
-    expect(result).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
+    expect(result).toMatchObject({ careHours: '0', amountTTC: '0', fundingId, month: '03/2019' });
   });
 });
 
@@ -330,15 +330,15 @@ describe('getHourlyFundingSplit', () => {
     const funding = {
       _id: new ObjectId(),
       unitTTCRate: 21,
-      careHours: 4,
+      careHours: '4',
       frequency: 'once',
       nature: 'hourly',
       customerParticipationRate: 20,
-      history: { careHours: 1 },
+      history: { careHours: '1' },
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
-    getMatchingHistory.returns({ careHours: 1 });
+    getMatchingHistory.returns({ careHours: '1' });
     getThirdPartyPayerPrice.returns('28');
 
     const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, price);
@@ -353,14 +353,14 @@ describe('getHourlyFundingSplit', () => {
     const funding = {
       _id: new ObjectId(),
       unitTTCRate: 21,
-      careHours: 4,
+      careHours: '4',
       frequency: 'once',
       customerParticipationRate: 20,
-      history: { careHours: 3 },
+      history: { careHours: '3' },
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
-    getMatchingHistory.returns({ careHours: 3 });
+    getMatchingHistory.returns({ careHours: '3' });
     getThirdPartyPayerPrice.returns('14');
 
     const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, price);
@@ -378,8 +378,8 @@ describe('getFixedFundingSplit', () => {
 
   it('Case 1. Event fully invoiced to TPP', () => {
     const funding = {
-      history: [{ amountTTC: 10 }],
-      amountTTC: 100,
+      history: [{ amountTTC: '10' }],
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
@@ -392,8 +392,8 @@ describe('getFixedFundingSplit', () => {
 
   it('Case 2. Event partially invoiced to TPP', () => {
     const funding = {
-      history: [{ amountTTC: 79 }],
-      amountTTC: 100,
+      history: [{ amountTTC: '79' }],
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
@@ -469,10 +469,10 @@ describe('getEventBilling', () => {
     const funding = {
       nature: 'hourly',
       unitTTCRate: 15,
-      careHours: 4,
+      careHours: '4',
       frequency: 'once',
       customerParticipationRate: 0,
-      history: { careHours: 1 },
+      history: { careHours: '1' },
       thirdPartyPayer: { _id: new ObjectId() },
     };
     getHourlyFundingSplit.returns({ customerPrice: '0', thirdPartyPayerPrice: '42' });
@@ -490,8 +490,8 @@ describe('getEventBilling', () => {
     const service = { vat: 20, nature: 'hourly' };
     const funding = {
       nature: 'fixed',
-      history: { amountTTC: 50 },
-      amountTTC: 100,
+      history: { amountTTC: '50' },
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
     getFixedFundingSplit.returns({ customerPrice: '0', thirdPartyPayerPrice: '42' });
@@ -510,10 +510,10 @@ describe('getEventBilling', () => {
     const funding = {
       nature: 'hourly',
       unitTTCRate: 15,
-      careHours: 4,
+      careHours: '4',
       frequency: 'once',
       customerParticipationRate: 0,
-      history: { careHours: 1 },
+      history: { careHours: '1' },
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
@@ -534,8 +534,8 @@ describe('getEventBilling', () => {
     const service = { vat: 20, nature: 'hourly', surcharge: { publicHoliday: 10 } };
     const funding = {
       nature: 'fixed',
-      history: { amountTTC: 50 },
-      amountTTC: 100,
+      history: { amountTTC: '50' },
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
@@ -557,8 +557,8 @@ describe('getEventBilling', () => {
     const service = { vat: 20, nature: 'hourly' };
     const funding = {
       nature: 'fixed',
-      history: { amountTTC: 50 },
-      amountTTC: 100,
+      history: { amountTTC: '50' },
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
 

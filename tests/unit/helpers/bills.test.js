@@ -1,5 +1,6 @@
 const expect = require('expect');
 const moment = require('moment');
+const flat = require('flat');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const pick = require('lodash/pick');
@@ -121,7 +122,7 @@ describe('formatBilledEvents', () => {
           fundingId: 'fundingId',
           inclTaxesTpp: 5,
           exclTaxesTpp: 4,
-          history: { careHours: 0.5 },
+          history: { careHours: '0.5' },
         },
         {
           event: '456',
@@ -133,7 +134,7 @@ describe('formatBilledEvents', () => {
           fundingId: 'fundingId',
           inclTaxesTpp: 3,
           exclTaxesTpp: 2,
-          history: { careHours: 2 },
+          history: { careHours: '2' },
         },
       ],
     };
@@ -1120,11 +1121,14 @@ describe('updateEvents', () => {
 });
 
 describe('updateFundingHistories', () => {
+  let findOne;
   let updateOne;
   beforeEach(() => {
+    findOne = sinon.stub(FundingHistory, 'findOne');
     updateOne = sinon.stub(FundingHistory, 'updateOne');
   });
   afterEach(() => {
+    findOne.restore();
     updateOne.restore();
   });
 
@@ -1132,90 +1136,218 @@ describe('updateFundingHistories', () => {
     const companyId = new ObjectId();
     await BillHelper.updateFundingHistories([], companyId);
 
+    sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
   });
   it('should update history of fixed funding', async () => {
     const companyId = new ObjectId();
     const fundingId = new ObjectId();
-    const histories = { [fundingId.toHexString()]: { amountTTC: 12 } };
+    const histories = { [fundingId.toHexString()]: { amountTTC: '12' } };
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: fundingId, careHours: '0', amountTTC: '2.34' }, ['lean']));
 
     await BillHelper.updateFundingHistories(histories, companyId);
 
-    sinon.assert.calledWithExactly(
-      updateOne,
-      { fundingId: fundingId.toHexString(), company: companyId },
-      { $inc: { amountTTC: 12 } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ fundingId: fundingId.toHexString(), company: companyId }, { amountTTC: 1, careHours: 1 }],
+        },
+        { query: 'lean' },
+      ]
     );
-  });
-  it('should update history of hourly and once funding', async () => {
-    const companyId = new ObjectId();
-    const fundingId = new ObjectId();
-    const histories = { [fundingId.toHexString()]: { careHours: 12 } };
-
-    await BillHelper.updateFundingHistories(histories, companyId);
-
     sinon.assert.calledWithExactly(
       updateOne,
       { fundingId: fundingId.toHexString(), company: companyId },
-      { $inc: { careHours: 12 } },
+      { $set: flat({ amountTTC: '14.34' }) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
   it('should update history of hourly and monthly funding', async () => {
     const companyId = new ObjectId();
     const fundingId = new ObjectId();
-    const histories = { [fundingId]: { 11: { careHours: 12 }, 12: { careHours: 18 } } };
+    const histories = { [fundingId]: { 11: { careHours: '12' }, 12: { careHours: '18' } } };
+    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries(
+      { _id: fundingId, careHours: '4.33', amountTTC: '0' },
+      ['lean']
+    ));
+    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries(
+      { _id: fundingId, careHours: '4.33', amountTTC: '0', month: '11' },
+      ['lean']
+    ));
+    findOne.onCall(2).returns(SinonMongoose.stubChainedQueries(
+      { _id: fundingId, careHours: '142', amountTTC: '0', month: '12' },
+      ['lean']
+    ));
 
     await BillHelper.updateFundingHistories(histories, companyId);
 
-    sinon.assert.calledTwice(updateOne);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ fundingId: fundingId.toHexString(), company: companyId }, { amountTTC: 1, careHours: 1 }],
+        },
+        { query: 'lean' },
+      ],
+      0
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: fundingId.toHexString(), company: companyId, month: '11' },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      1
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: fundingId.toHexString(), company: companyId, month: '12' },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      2
+    );
     sinon.assert.calledWithExactly(
       updateOne.getCall(0),
       { fundingId: fundingId.toHexString(), company: companyId, month: '11' },
-      { $inc: { careHours: 12 } },
+      { $set: flat({ careHours: '16.33' }) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(1),
       { fundingId: fundingId.toHexString(), company: companyId, month: '12' },
-      { $inc: { careHours: 18 } },
+      { $set: flat({ careHours: '160' }) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
   it('should update list of histories', async () => {
     const companyId = new ObjectId();
     const histories = {
-      1: { amountTTC: 12 },
-      2: { careHours: 12 },
-      3: { 11: { careHours: 12 }, 12: { careHours: 18 } },
+      1: { careHours: '12' },
+      2: { amountTTC: '12' },
+      3: { 11: { careHours: '12' }, 12: { careHours: '59.33' } },
     };
+
+    findOne.onCall(0).returns(
+      SinonMongoose.stubChainedQueries({ _id: '1', careHours: '14', amountTTC: '0' }, ['lean'])
+    );
+    findOne.onCall(1).returns(
+      SinonMongoose.stubChainedQueries({ _id: '2', careHours: '0', amountTTC: '135.67' }, ['lean'])
+    );
+    findOne.onCall(2).returns(
+      SinonMongoose.stubChainedQueries({ _id: '3', careHours: '68', amountTTC: '0' }, ['lean'])
+    );
+    findOne.onCall(3).returns(
+      SinonMongoose.stubChainedQueries({ _id: '3', careHours: '68', amountTTC: '0', month: '11' }, ['lean'])
+    );
+    findOne.onCall(4).returns(
+      SinonMongoose.stubChainedQueries({ _id: '3', careHours: '40.67', amountTTC: '0', month: '12' }, ['lean'])
+    );
 
     await BillHelper.updateFundingHistories(histories, companyId);
 
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ fundingId: '1', company: companyId }, { amountTTC: 1, careHours: 1 }],
+        },
+        { query: 'lean' },
+      ],
+      0
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ fundingId: '2', company: companyId }, { amountTTC: 1, careHours: 1 }],
+        },
+        { query: 'lean' },
+      ],
+      1
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: '3', company: companyId },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      2
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: '3', company: companyId, month: '11' },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      3
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: '3', company: companyId, month: '12' },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      4
+    );
     sinon.assert.callCount(updateOne, 4);
     sinon.assert.calledWithExactly(
       updateOne.getCall(0),
       { fundingId: '1', company: companyId },
-      { $inc: { amountTTC: 12 } },
+      { $set: flat({ careHours: '26' }) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(1),
       { fundingId: '2', company: companyId },
-      { $inc: { careHours: 12 } },
+      { $set: flat({ amountTTC: '147.67' }) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(2),
       { fundingId: '3', company: companyId, month: '11' },
-      { $inc: { careHours: 12 } },
+      { $set: flat({ careHours: '80' }) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(3),
       { fundingId: '3', company: companyId, month: '12' },
-      { $inc: { careHours: 18 } },
+      { $set: flat({ careHours: '100' }) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
