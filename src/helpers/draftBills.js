@@ -45,16 +45,21 @@ exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
     funding.thirdPartyPayer = tpp;
     if (funding.frequency !== MONTHLY) {
       const history = await FundingHistory.findOne({ fundingId: funding._id }).lean();
-      if (history) funding.history = [history];
-      else funding.history = [{ careHours: 0, amountTTC: 0, fundingId: funding._id }];
+      if (history) {
+        funding.history = [history];
+      } else {
+        funding.history = [
+          { careHours: NumbersHelper.toString(0), amountTTC: NumbersHelper.toString(0), fundingId: funding._id },
+        ];
+      }
     } else {
       const history = await FundingHistory.find({ fundingId: funding._id, company: companyId }).lean();
       if (history) funding.history = history;
       if (history.length === 0 || !history) funding.history = [];
       if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {
         funding.history.push({
-          careHours: 0,
-          amountTTC: 0,
+          careHours: NumbersHelper.toString(0),
+          amountTTC: NumbersHelper.toString(0),
           fundingId: funding._id,
           month: moment(endDate).format('MM/YYYY'),
         });
@@ -110,8 +115,8 @@ exports.getMatchingHistory = (event, funding) => {
   if (history) return history;
 
   funding.history.push({
-    careHours: 0,
-    amountTTC: 0,
+    careHours: NumbersHelper.toString(0),
+    amountTTC: NumbersHelper.toString(0),
     fundingId: funding._id,
     month: moment(event.startDate).format('MM/YYYY'),
   });
@@ -133,7 +138,7 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
   const history = exports.getMatchingHistory(event, funding);
 
   let chargedTime = NumbersHelper.toString(0);
-  if (history && history.careHours < funding.careHours) {
+  if (history && NumbersHelper.isLessThan(history.careHours, funding.careHours)) {
     const totalCareHours = NumbersHelper.add(history.careHours, NumbersHelper.divide(time, 60));
     chargedTime = NumbersHelper.isGreaterThan(totalCareHours, funding.careHours)
       ? NumbersHelper.multiply(NumbersHelper.subtract(funding.careHours, history.careHours), 60)
@@ -145,7 +150,7 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
     );
     history.careHours = NumbersHelper.isGreaterThan(totalCareHours, funding.careHours)
       ? funding.careHours
-      : parseFloat(NumbersHelper.add(history.careHours, NumbersHelper.divide(chargedTime, 60)));
+      : NumbersHelper.add(history.careHours, NumbersHelper.divide(chargedTime, 60));
   }
 
   return {
@@ -172,11 +177,11 @@ exports.getHourlyFundingSplit = (event, funding, price) => {
  */
 exports.getFixedFundingSplit = (event, funding, price) => {
   let thirdPartyPayerPrice = NumbersHelper.toString(0);
-  if (funding.history && funding.history[0].amountTTC < funding.amountTTC) {
+  if (funding.history && NumbersHelper.isLessThan(funding.history[0].amountTTC, funding.amountTTC)) {
     const history = funding.history[0];
     if (NumbersHelper.isLessThan(NumbersHelper.add(history.amountTTC, price), funding.amountTTC)) {
       thirdPartyPayerPrice = price;
-      history.amountTTC = parseFloat(NumbersHelper.add(history.amountTTC, thirdPartyPayerPrice));
+      history.amountTTC = NumbersHelper.add(history.amountTTC, thirdPartyPayerPrice);
     } else {
       thirdPartyPayerPrice = NumbersHelper.subtract(funding.amountTTC, history.amountTTC);
       history.amountTTC = funding.amountTTC;
