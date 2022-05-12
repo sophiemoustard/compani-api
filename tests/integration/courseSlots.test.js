@@ -23,20 +23,8 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create course slot', async () => {
+    it('should create course slot to plan for a specific step', async () => {
       const payload = { course: courseSlotsList[0].course, step: stepsList[0]._id };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/courseslots',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should create slot to plan', async () => {
-      const payload = { course: coursesList[0]._id };
       const response = await app.inject({
         method: 'POST',
         url: '/courseslots',
@@ -83,7 +71,7 @@ describe('COURSE SLOTS ROUTES - POST /courseslots', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    const missingParams = ['course'];
+    const missingParams = ['course', 'step'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const payload = { step: stepsList[0]._id, course: coursesList[0]._id };

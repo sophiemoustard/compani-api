@@ -667,8 +667,8 @@ describe('getCourse', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name type' } }] },
-        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'step startDate endDate address meetingLink' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id step' }] },
         {
           query: 'populate',
           args: [{
@@ -736,8 +736,8 @@ describe('getCourse', () => {
             ],
           }],
         },
-        { query: 'populate', args: [{ path: 'slots', populate: { path: 'step', select: 'name type' } }] },
-        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
+        { query: 'populate', args: [{ path: 'slots', select: 'step startDate endDate address meetingLink' }] },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id step' }] },
         {
           query: 'populate',
           args: [{
