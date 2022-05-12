@@ -150,7 +150,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
-        step: stepsList[0]._id,
         address: {
           street: '39 rue de Ponthieu',
           zipCode: '75008',
@@ -181,14 +180,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
-        step: stepsList[0]._id,
-        address: {
-          street: '39 rue de Ponthieu',
-          zipCode: '75008',
-          city: 'Paris',
-          fullAddress: '37 rue de Ponthieu 75008 Paris',
-          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-        },
+        meetingLink: 'https://meet.ology.com',
       };
       const response = await app.inject({
         method: 'PUT',
@@ -212,7 +204,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
-        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -228,7 +219,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: courseSlotsList[0].startDate,
         endDate: courseSlotsList[0].endDate,
-        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -243,7 +233,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
     it('should return 400 if endDate without startDate', async () => {
       const payload = {
         endDate: '2020-03-04T09:00:00',
-        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -258,7 +247,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
     it('should return 400 if startDate without endDate', async () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
-        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -274,7 +262,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-05T12:00:00',
-        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -290,7 +277,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T15:00:00',
         endDate: '2020-03-04T12:00:00',
-        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -306,7 +292,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-03-04T09:00:00',
         endDate: '2020-03-04T11:00:00',
-        step: stepsList[0]._id,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -318,74 +303,10 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 400 if step is eLearning', async () => {
-      const payload = {
-        startDate: '2020-03-04T17:00:00',
-        endDate: '2020-03-04T19:00:00',
-        course: coursesList[0]._id,
-        step: stepsList[1]._id,
-        address: {
-          street: '37 rue de Ponthieu',
-          zipCode: '75008',
-          city: 'Paris',
-          fullAddress: '37 rue de Ponthieu 75008 Paris',
-          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-        },
-      };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if step is not from program', async () => {
-      const payload = {
-        startDate: '2020-03-04T17:00:00',
-        endDate: '2020-03-04T19:00:00',
-        course: coursesList[0]._id,
-        step: stepsList[1]._id,
-        address: {
-          street: '37 rue de Ponthieu',
-          zipCode: '75008',
-          city: 'Paris',
-          fullAddress: '37 rue de Ponthieu 75008 Paris',
-          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-        },
-      };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 error if missing step parameter', async () => {
-      const payload = {
-        startDate: '2020-03-04T09:00:00',
-        endDate: '2020-03-04T11:00:00',
-        step: stepsList[0]._id,
-      };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: omit({ ...payload }, 'step'),
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 400 if step is remote but address is in payload', async () => {
+    it('should return 400 if slot is remote but address is in payload', async () => {
       const payload = {
         startDate: '2020-01-04T17:00:00',
         endDate: '2020-01-04T20:00:00',
-        step: stepsList[4]._id,
         address: {
           street: '37 rue de Ponthieu',
           zipCode: '75008',
@@ -396,7 +317,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       };
       const response = await app.inject({
         method: 'PUT',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
+        url: `/courseslots/${courseSlotsList[8]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -408,7 +329,6 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       const payload = {
         startDate: '2020-01-04T17:00:00',
         endDate: '2020-01-04T20:00:00',
-        step: stepsList[0]._id,
         meetingLink: 'meet.google.com',
       };
       const response = await app.inject({
@@ -425,7 +345,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
   describe('Other roles', () => {
     it('should a 200 as user is course trainer', async () => {
       authToken = await getTokenByCredentials(trainer.local);
-      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
+      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[2]._id}`,
@@ -438,7 +358,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     it('should return 200 as user is client admin from course company', async () => {
       authToken = await getToken('client_admin');
-      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
+      const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
       const response = await app.inject({
         method: 'PUT',
         url: `/courseslots/${courseSlotsList[0]._id}`,
@@ -458,7 +378,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00', step: stepsList[0]._id };
+        const payload = { startDate: '2020-03-04T09:00:00', endDate: '2020-03-04T11:00:00' };
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'PUT',

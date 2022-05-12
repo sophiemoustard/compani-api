@@ -14,7 +14,10 @@ const { language } = translate;
 
 exports.getCourseSlot = async (req) => {
   try {
-    const courseSlot = await CourseSlot.findOne({ _id: req.params._id }).lean();
+    const courseSlot = await CourseSlot
+      .findOne({ _id: req.params._id })
+      .populate({ path: 'step', select: '_id type' })
+      .lean();
     if (!courseSlot) throw Boom.notFound(translate[language].courseSlotNotFound);
 
     return courseSlot;
@@ -41,8 +44,9 @@ const formatAndCheckAuthorization = async (courseId, credentials) => {
   checkAuthorization(credentials, courseTrainerId, courseCompanyId);
 };
 
-const checkPayload = async (courseId, payload) => {
-  const { startDate, endDate, step: stepId } = payload;
+const checkPayload = async (courseSlot, payload) => {
+  const { course: courseId, step } = courseSlot;
+  const { startDate, endDate } = payload;
   const hasBothDates = !!(startDate && endDate);
   const hasOneDate = !!(startDate || endDate);
   if (hasOneDate) {
@@ -52,17 +56,14 @@ const checkPayload = async (courseId, payload) => {
     if (!(sameDay && startDateBeforeEndDate)) throw Boom.badRequest();
   }
 
-  if (stepId) {
-    const course = await Course.findById(courseId, { subProgram: 1 })
-      .populate({ path: 'subProgram', select: 'steps' })
-      .lean();
-    const step = await Step.findById(stepId).lean();
+  const course = await Course.findById(courseId, { subProgram: 1 })
+    .populate({ path: 'subProgram', select: 'steps' })
+    .lean();
 
-    if (step.type === E_LEARNING) throw Boom.badRequest();
-    if (!UtilsHelper.doesArrayIncludeId(course.subProgram.steps, stepId)) throw Boom.badRequest();
-    if ((payload.address && step.type !== ON_SITE) || (payload.meetingLink && step.type !== REMOTE)) {
-      throw Boom.badRequest();
-    }
+  if (step.type === E_LEARNING) throw Boom.badRequest();
+  if (!UtilsHelper.doesArrayIncludeId(course.subProgram.steps, step._id)) throw Boom.badRequest();
+  if ((payload.address && step.type !== ON_SITE) || (payload.meetingLink && step.type !== REMOTE)) {
+    throw Boom.badRequest();
   }
 };
 
@@ -88,9 +89,10 @@ exports.authorizeCreate = async (req) => {
 
 exports.authorizeUpdate = async (req) => {
   try {
+    const { courseSlot } = req.pre;
     const courseId = get(req, 'pre.courseSlot.course') || '';
     await formatAndCheckAuthorization(courseId, req.auth.credentials);
-    await checkPayload(courseId, req.payload);
+    await checkPayload(courseSlot, req.payload);
 
     return null;
   } catch (e) {
@@ -106,7 +108,7 @@ exports.authorizeDeletion = async (req) => {
     await canEditCourse(courseSlot.course);
 
     const courseStepHasOtherSlots = await CourseSlot.countDocuments(
-      { _id: { $nin: [courseSlot._id] }, course: courseSlot.course, step: courseSlot.step },
+      { _id: { $nin: [courseSlot._id] }, course: courseSlot.course, step: courseSlot.step._id },
       { limit: 1 }
     );
     if (!courseStepHasOtherSlots) throw Boom.forbidden();

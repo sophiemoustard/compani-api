@@ -36,7 +36,6 @@ exports.plugin = {
             endDate: Joi.date().required(),
             address: Joi.alternatives().try(addressValidation, {}),
             meetingLink: Joi.string().allow(''),
-            step: Joi.objectId().when('startDate', { is: Joi.exist(), then: Joi.required() }),
           }),
         },
         pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],
