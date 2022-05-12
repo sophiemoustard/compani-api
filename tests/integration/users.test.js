@@ -1486,7 +1486,7 @@ describe('DELETE /users/:id', () => {
       authToken = await getTokenByCredentials(usersSeedList[12].local);
     });
 
-    it('should delete user', async () => {
+    it('should delete user registered to course (without activity histories) & with company link request', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${usersSeedList[12]._id.toHexString()}`,

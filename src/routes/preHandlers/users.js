@@ -1,7 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const flat = require('flat');
-const Course = require('../../models/Course');
+const ActivityHistory = require('../../models/ActivityHistory');
 const User = require('../../models/User');
 const Role = require('../../models/Role');
 const Customer = require('../../models/Customer');
@@ -167,33 +167,9 @@ exports.authorizeUserDeletion = async (req) => {
 
   if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
     if (user.company) throw Boom.forbidden();
-    const coursesList = await Course
-      .find({ trainees: req.params._id })
-      .populate(
-        {
-          path: 'subProgram',
-          select: 'steps',
-          populate: {
-            path: 'steps',
-            select: 'activities',
-            populate: {
-              path: 'activities',
-              populate: { path: 'activityHistories', select: '_id', match: { user: req.params._id } },
-            },
-          },
-        })
-      .lean();
+    const hasActivityHistories = await ActivityHistory.countDocuments({ user: req.params._id }, { limit: 1 });
 
-    const hasActivityHistories = coursesList
-      .some(course => course.subProgram.steps
-        .some(step => step.activities
-          .some(activity => activity.activityHistories.length)
-        )
-      );
-
-    if (hasActivityHistories) {
-      throw Boom.forbidden(translate[language].userIsRegisteredToCourses);
-    }
+    if (hasActivityHistories) throw Boom.forbidden(translate[language].userHasActivityHistories);
 
     return null;
   }

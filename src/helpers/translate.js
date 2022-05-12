@@ -22,7 +22,6 @@ module.exports = {
     userAuthentified: 'User authenticated successfully.',
     userLogout: 'User disconnected successfully.',
     userRoleConflict: 'User already has a role on this interface.',
-    userIsRegisteredToCourses: 'User is registered to courses',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
     /* Api */
@@ -331,6 +330,7 @@ module.exports = {
     /* Activities */
     activityHistoryCreated: 'Activity history created.',
     activityHistoriesFound: 'Activity histories found.',
+    userHasActivityHistories: 'User has activity histories',
     /* AttendanceSheets */
     attendanceSheetCreated: 'AttendanceSheet created.',
     attendanceSheetsFound: 'AttendanceSheets found.',
@@ -407,7 +407,6 @@ module.exports = {
     userAuthentified: 'Compte authentifié avec succès.',
     userLogout: 'Compte déconnecté avec succès.',
     userRoleConflict: 'Ce compte a déjà un rôle sur cette interface.',
-    userIsRegisteredToCourses: 'Le compte est inscrit à des formations',
     /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Api */
@@ -716,6 +715,7 @@ module.exports = {
     /* Activities */
     activityHistoryCreated: 'Historique d\'activité créé.',
     activityHistoriesFound: 'Historiques d\'activité trouvés.',
+    userHasActivityHistories: 'Le compte a des historiques d\'activités',
     /* AttendanceSheets */
     attendanceSheetCreated: 'Feuille d\'émargement créée.',
     attendanceSheetsFound: 'Feuilles d\'émargement trouvées.',
