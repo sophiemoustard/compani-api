@@ -1498,6 +1498,9 @@ describe('DELETE /users/:id', () => {
       const companyLinkRequest = await CompanyLinkRequest.countDocuments({ user: usersSeedList[12]._id });
       expect(companyLinkRequest).toBe(0);
 
+      const activityHistories = await ActivityHistory.countDocuments({ user: usersSeedList[12]._id });
+      expect(activityHistories).toBe(0);
+
       const course = await Course.countDocuments({ trainees: usersSeedList[12]._id });
       expect(course).toBe(0);
     });
