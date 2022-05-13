@@ -633,7 +633,7 @@ const customerFromOtherCompany = {
 const fundingHistory = {
   _id: new ObjectId(),
   fundingId: new ObjectId(),
-  amountTTC: 12,
+  amountTTC: '12',
   nature: 'fixed',
   company: authCompany._id,
 };
