@@ -55,9 +55,9 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
       });
 
       if (fundingHistory) {
-        const careHours = parseFloat(isBilled
+        const careHours = isBilled
           ? NumbersHelper.add(fundingHistory.careHours, event.bills.careHours)
-          : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours));
+          : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours);
 
         await FundingHistory.updateOne({ _id: fundingHistory._id }, { $set: { careHours } });
       } else {
@@ -65,14 +65,14 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
 
         let payload;
         if (event.bills.nature === HOURLY) {
-          const careHours = parseFloat(isBilled
+          const careHours = isBilled
             ? NumbersHelper.add(fundingHistory.careHours, event.bills.careHours)
-            : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours));
+            : NumbersHelper.subtract(fundingHistory.careHours, event.bills.careHours);
           payload = { careHours };
         } else {
-          const amountTTC = parseFloat(isBilled
+          const amountTTC = isBilled
             ? NumbersHelper.add(fundingHistory.amountTTC, event.bills.inclTaxesTpp)
-            : NumbersHelper.subtract(fundingHistory.amountTTC, event.bills.inclTaxesTpp));
+            : NumbersHelper.subtract(fundingHistory.amountTTC, event.bills.inclTaxesTpp);
           payload = { amountTTC };
         }
 

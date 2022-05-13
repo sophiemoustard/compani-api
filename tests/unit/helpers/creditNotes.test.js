@@ -172,13 +172,13 @@ describe('updateEventAndFundingHistory', () => {
     const events = [{
       _id: new ObjectId(),
       company: new ObjectId(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: '3' },
       startDate: new Date('2019/01/19'),
     }];
 
     find.returns(events);
     findOne.onCall(0).returns(null);
-    findOne.onCall(1).returns({ _id: fundingHistoryId, careHours: 120 });
+    findOne.onCall(1).returns({ _id: fundingHistoryId, careHours: '120' });
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
@@ -189,7 +189,7 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(
       updateOneFundingHistory,
       { _id: fundingHistoryId },
-      { $set: { careHours: 117 } }
+      { $set: { careHours: '117' } }
     );
     SinonMongoose.calledOnceWithExactly(
       find,
@@ -204,17 +204,21 @@ describe('updateEventAndFundingHistory', () => {
     const events = [{
       _id: new ObjectId(),
       company: new ObjectId(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: '3' },
       startDate: new Date('2019/01/19'),
     }];
 
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
-    findOne.returns({ _id: fundingHistoryId, careHours: 12 });
+    findOne.returns({ _id: fundingHistoryId, careHours: '12' });
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
 
     sinon.assert.calledOnceWithExactly(findOne, { fundingId, month: '01/2019' });
-    sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { _id: fundingHistoryId }, { $set: { careHours: 9 } });
+    sinon.assert.calledOnceWithExactly(
+      updateOneFundingHistory,
+      { _id: fundingHistoryId },
+      { $set: { careHours: '9' } }
+    );
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
     SinonMongoose.calledOnceWithExactly(
       find,
@@ -237,7 +241,7 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     findOne.onCall(0).returns(null);
-    findOne.onCall(1).returns({ _id: fundingHistoryId, amountTTC: 1000 });
+    findOne.onCall(1).returns({ _id: fundingHistoryId, amountTTC: '1000' });
 
     await CreditNoteHelper.updateEventAndFundingHistory(eventsToUpdate, false, credentials);
 
@@ -246,7 +250,7 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(
       updateOneFundingHistory,
       { _id: fundingHistoryId },
-      { $set: { amountTTC: 800 } }
+      { $set: { amountTTC: '800' } }
     );
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: false });
     SinonMongoose.calledOnceWithExactly(
@@ -262,13 +266,13 @@ describe('updateEventAndFundingHistory', () => {
     const events = [{
       _id: new ObjectId(),
       company: new ObjectId(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: '3' },
       startDate: new Date('2019/01/19'),
     }];
 
     find.returns(events);
     findOne.onCall(0).returns(null);
-    findOne.onCall(1).returns({ _id: fundingHistoryId, careHours: 120 });
+    findOne.onCall(1).returns({ _id: fundingHistoryId, careHours: '120' });
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
 
     await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
@@ -279,7 +283,7 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(
       updateOneFundingHistory,
       { _id: fundingHistoryId },
-      { $set: { careHours: 123 } }
+      { $set: { careHours: '123' } }
     );
     SinonMongoose.calledOnceWithExactly(
       find,
@@ -294,7 +298,7 @@ describe('updateEventAndFundingHistory', () => {
     const events = [{
       _id: new ObjectId(),
       company: new ObjectId(),
-      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: 3 },
+      bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectId(), careHours: '3' },
       startDate: new Date('2019/01/19'),
     }];
 
@@ -304,7 +308,11 @@ describe('updateEventAndFundingHistory', () => {
     await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
 
     sinon.assert.calledOnceWithExactly(findOne, { fundingId, month: '01/2019' });
-    sinon.assert.calledOnceWithExactly(updateOneFundingHistory, { _id: fundingHistoryId }, { $set: { careHours: 15 } });
+    sinon.assert.calledOnceWithExactly(
+      updateOneFundingHistory,
+      { _id: fundingHistoryId },
+      { $set: { careHours: '15' } }
+    );
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: true });
     SinonMongoose.calledOnceWithExactly(
       find,
@@ -327,7 +335,7 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(SinonMongoose.stubChainedQueries(events, ['lean']));
     findOne.onCall(0).returns(null);
-    findOne.onCall(1).returns({ _id: fundingHistoryId, amountTTC: 1000 });
+    findOne.onCall(1).returns({ _id: fundingHistoryId, amountTTC: '1000' });
 
     await CreditNoteHelper.updateEventAndFundingHistory(eventsToUpdate, true, credentials);
 
@@ -336,7 +344,7 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.calledOnceWithExactly(
       updateOneFundingHistory,
       { _id: fundingHistoryId },
-      { $set: { amountTTC: 1200 } }
+      { $set: { amountTTC: '1200' } }
     );
     sinon.assert.calledOnceWithExactly(updateOneEvent, { _id: events[0]._id }, { isBilled: true });
     SinonMongoose.calledOnceWithExactly(
