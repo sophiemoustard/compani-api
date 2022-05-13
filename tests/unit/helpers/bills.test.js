@@ -1,6 +1,5 @@
 const expect = require('expect');
 const moment = require('moment');
-const flat = require('flat');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const pick = require('lodash/pick');
@@ -1160,7 +1159,7 @@ describe('updateFundingHistories', () => {
     sinon.assert.calledWithExactly(
       updateOne,
       { fundingId: fundingId.toHexString(), company: companyId },
-      { $set: flat({ amountTTC: '14.34' }) },
+      { $set: { amountTTC: '14.34' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
@@ -1225,13 +1224,13 @@ describe('updateFundingHistories', () => {
     sinon.assert.calledWithExactly(
       updateOne.getCall(0),
       { fundingId: fundingId.toHexString(), company: companyId, month: '11' },
-      { $set: flat({ careHours: '16.33' }) },
+      { $set: { careHours: '16.33' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(1),
       { fundingId: fundingId.toHexString(), company: companyId, month: '12' },
-      { $set: flat({ careHours: '160' }) },
+      { $set: { careHours: '160' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
@@ -1329,25 +1328,25 @@ describe('updateFundingHistories', () => {
     sinon.assert.calledWithExactly(
       updateOne.getCall(0),
       { fundingId: '1', company: companyId },
-      { $set: flat({ careHours: '26' }) },
+      { $set: { careHours: '26' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(1),
       { fundingId: '2', company: companyId },
-      { $set: flat({ amountTTC: '147.67' }) },
+      { $set: { amountTTC: '147.67' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(2),
       { fundingId: '3', company: companyId, month: '11' },
-      { $set: flat({ careHours: '80' }) },
+      { $set: { careHours: '80' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(3),
       { fundingId: '3', company: companyId, month: '12' },
-      { $set: flat({ careHours: '100' }) },
+      { $set: { careHours: '100' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
