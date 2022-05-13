@@ -1,7 +1,6 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-const flat = require('flat');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillingItem = require('../models/BillingItem');
@@ -130,11 +129,8 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
     for (const draftBill of tpp.bills) {
       tppBill.subscriptions.push(exports.formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
-        if (ev.history.nature === HOURLY) {
-          billedEvents[ev.event] = { ...ev, careHours: ev.history.careHours };
-        } else {
-          billedEvents[ev.event] = { ...ev };
-        }
+        if (ev.history.nature === HOURLY) billedEvents[ev.event] = { ...ev, careHours: ev.history.careHours };
+        else billedEvents[ev.event] = { ...ev };
 
         if (ev.history.month) {
           if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { [ev.history.month]: ev.history };
@@ -185,14 +181,14 @@ exports.updateFundingHistories = async (histories, companyId) => {
       const newAmountTTC = NumbersHelper.add(get(fundingHistory, 'amountTTC') || 0, histories[id].amountTTC);
       promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
-        { $set: flat({ amountTTC: newAmountTTC }) },
+        { $set: { amountTTC: newAmountTTC } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else if (histories[id].careHours && !NumbersHelper.isEqualTo(histories[id].careHours, '0')) {
       const newCareHours = NumbersHelper.add(get(fundingHistory, 'careHours') || 0, histories[id].careHours);
       promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
-        { $set: flat({ careHours: newCareHours }) },
+        { $set: { careHours: newCareHours } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else {
@@ -204,7 +200,7 @@ exports.updateFundingHistories = async (histories, companyId) => {
 
         promises.push(FundingHistory.updateOne(
           { fundingId: id, month, company: companyId },
-          { $set: flat({ careHours: newCareHours }) },
+          { $set: { careHours: newCareHours } },
           { new: true, upsert: true, setDefaultsOnInsert: true }
         ));
       }
