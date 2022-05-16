@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const get = require('lodash/get');
 const translate = require('../helpers/translate');
 const UsersHelper = require('../helpers/users');
 
@@ -135,9 +136,9 @@ const updateCertificates = async (req) => {
   }
 };
 
-const removeHelper = async (req) => {
+const removeUser = async (req) => {
   try {
-    await UsersHelper.removeHelper(req.pre.user);
+    await UsersHelper.removeUser(req.pre.user, get(req, 'auth.credentials'));
 
     return { message: translate[language].userRemoved };
   } catch (e) {
@@ -228,7 +229,7 @@ module.exports = {
   show,
   exists,
   update,
-  removeHelper,
+  removeUser,
   updateCertificates,
   uploadFile,
   uploadPicture,

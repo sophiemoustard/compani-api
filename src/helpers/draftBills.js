@@ -66,6 +66,7 @@ exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
 exports.getSurchargedPrice = (event, eventSurcharges, price) => {
   let coef = 1;
   const eventDuration = moment(event.endDate).diff(event.startDate, 'm');
+  if (!eventDuration) return 0;
 
   for (const surcharge of eventSurcharges) {
     if (surcharge.startHour) {

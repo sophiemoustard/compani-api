@@ -10,6 +10,7 @@ const CreditNote = require('../models/CreditNote');
 const FundingHistory = require('../models/FundingHistory');
 const BillSlipHelper = require('./billSlips');
 const UtilsHelper = require('./utils');
+const DatesHelper = require('./dates');
 const NumbersHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
@@ -305,24 +306,26 @@ exports.getBills = async (query, credentials) => {
   return Bill.find(billsQuery).populate({ path: 'thirdPartyPayer', select: '_id name' }).lean();
 };
 
-const getFunding = (fundings, thirdPartyPayer, event) => fundings
-  .map(fund => UtilsHelper.mergeLastVersionWithBaseObject(fund, 'createdAt'))
-  .find(fund => UtilsHelper.areObjectIdsEquals(fund.thirdPartyPayer, thirdPartyPayer._id) &&
-    CompaniDate(fund.startDate).isSameOrBefore(event.startDate) &&
-    (!fund.endDate || CompaniDate(fund.endDate).isSameOrAfter(event.startDate)));
+exports.filterFundingVersion = date => ver => DatesHelper.isSameOrBefore(ver.createdAt, date);
+
+const getMatchingFunding = (bill, event) => bill.customer.fundings
+  .map(fund => UtilsHelper.getMatchingVersion(bill.createdAt, fund, 'createdAt', exports.filterFundingVersion))
+  .find(fund => UtilsHelper.areObjectIdsEquals(fund.thirdPartyPayer, bill.thirdPartyPayer._id) &&
+      CompaniDate(fund.startDate).isSameOrBefore(event.startDate) &&
+      (!fund.endDate || CompaniDate(fund.endDate).isSameOrAfter(event.startDate)));
 
 exports.getUnitInclTaxes = (bill, subscription) => {
   if (!bill.thirdPartyPayer) return subscription.unitInclTaxes;
 
   const lastEvent = UtilsHelper.getLastVersion(subscription.events, 'startDate');
-  const matchingVersion = getFunding(bill.customer.fundings, bill.thirdPartyPayer, lastEvent);
-  if (!matchingVersion) return 0;
+  const matchingFundingVersion = getMatchingFunding(bill, lastEvent);
+  if (!matchingFundingVersion) return 0;
 
-  if (matchingVersion.nature === HOURLY) {
-    const customerParticipationRate = NumbersHelper.divide(matchingVersion.customerParticipationRate, 100);
+  if (matchingFundingVersion.nature === HOURLY) {
+    const customerParticipationRate = NumbersHelper.divide(matchingFundingVersion.customerParticipationRate, 100);
     const tppParticipationRate = NumbersHelper.subtract(1, customerParticipationRate);
 
-    return NumbersHelper.multiply(matchingVersion.unitTTCRate, tppParticipationRate);
+    return NumbersHelper.multiply(matchingFundingVersion.unitTTCRate, tppParticipationRate);
   }
 
   return subscription.unitInclTaxes;
@@ -410,7 +413,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 exports.formatEventsForPdf = (events, service) => {
   const formattedEvents = [];
 
-  const sortedEvents = events.map(ev => ev).sort((ev1, ev2) => ev1.startDate - ev2.startDate);
+  const sortedEvents = [...events].sort(DatesHelper.ascendingSort('startDate'));
   for (const ev of sortedEvents) {
     const formattedEvent = {
       identity: `${ev.auxiliary.identity.firstname.substring(0, 1)}. ${ev.auxiliary.identity.lastname}`,
@@ -471,7 +474,12 @@ exports.generateBillPdf = async (params, credentials) => {
     .populate({ path: 'subscriptions.events.auxiliary', select: 'identity' })
     .lean();
 
-  const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
+  const company = await Company
+    .findOne(
+      { _id: get(credentials, 'company._id') },
+      { rcs: 1, rna: 1, address: 1, logo: 1, name: 1, 'customersConfig.billFooter': 1 }
+    )
+    .lean();
   const data = exports.formatPdf(bill, company);
   const template = await BillPdf.getPdfContent(data);
   const pdf = await PdfHelper.generatePdf(template);

@@ -69,7 +69,27 @@ describe('createHistoryOnSlotCreation', () => {
     );
   });
 
-  it('should create a courseHistory without address', async () => {
+  it('should create a courseHistory with meetingLink', async () => {
+    const payload = {
+      startDate: '2019-02-03T09:00:00.000Z',
+      endDate: '2019-02-03T10:00:00.000Z',
+      meetingLink: 'https://meet.google.com',
+      course: new ObjectId(),
+    };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnSlotCreation(payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      payload.course,
+      userId,
+      SLOT_CREATION,
+      { slot: { startDate: payload.startDate, endDate: payload.endDate, meetingLink: payload.meetingLink } }
+    );
+  });
+
+  it('should create a courseHistory without address or meetingLink', async () => {
     const payload = {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
@@ -100,7 +120,7 @@ describe('createHistoryOnSlotDeletion', () => {
     createHistory.restore();
   });
 
-  it('should create a courseHistory', async () => {
+  it('should create a courseHistory with address', async () => {
     const payload = {
       startDate: '2019-02-03T09:00:00.000Z',
       endDate: '2019-02-03T10:00:00.000Z',
@@ -123,6 +143,45 @@ describe('createHistoryOnSlotDeletion', () => {
       userId,
       SLOT_DELETION,
       { slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address } }
+    );
+  });
+
+  it('should create a courseHistory with meetingLink', async () => {
+    const payload = {
+      startDate: '2019-02-03T09:00:00.000Z',
+      endDate: '2019-02-03T10:00:00.000Z',
+      meetingLink: 'https://meet.google.com',
+      course: new ObjectId(),
+    };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      payload.course,
+      userId,
+      SLOT_DELETION,
+      { slot: { startDate: payload.startDate, endDate: payload.endDate, meetingLink: payload.meetingLink } }
+    );
+  });
+
+  it('should create a courseHistory without address or meetingLink', async () => {
+    const payload = {
+      startDate: '2019-02-03T09:00:00.000Z',
+      endDate: '2019-02-03T10:00:00.000Z',
+      course: new ObjectId(),
+    };
+    const userId = new ObjectId();
+
+    await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
+
+    sinon.assert.calledOnceWithExactly(
+      createHistory,
+      payload.course,
+      userId,
+      SLOT_DELETION,
+      { slot: { startDate: payload.startDate, endDate: payload.endDate } }
     );
   });
 });

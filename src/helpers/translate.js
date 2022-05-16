@@ -330,6 +330,7 @@ module.exports = {
     /* Activities */
     activityHistoryCreated: 'Activity history created.',
     activityHistoriesFound: 'Activity histories found.',
+    userHasActivityHistories: 'User has activity histories',
     /* AttendanceSheets */
     attendanceSheetCreated: 'AttendanceSheet created.',
     attendanceSheetsFound: 'AttendanceSheets found.',
@@ -714,6 +715,7 @@ module.exports = {
     /* Activities */
     activityHistoryCreated: 'Historique d\'activité créé.',
     activityHistoriesFound: 'Historiques d\'activité trouvés.',
+    userHasActivityHistories: 'Le compte a des historiques d\'activités',
     /* AttendanceSheets */
     attendanceSheetCreated: 'Feuille d\'émargement créée.',
     attendanceSheetsFound: 'Feuilles d\'émargement trouvées.',

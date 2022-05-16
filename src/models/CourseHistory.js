@@ -19,6 +19,7 @@ const CourseHistorySchema = mongoose.Schema({
     startDate: { type: Date, required: () => [SLOT_CREATION, SLOT_DELETION].includes(this.action) },
     endDate: { type: Date, required: () => [SLOT_CREATION, SLOT_DELETION].includes(this.action) },
     address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
+    meetingLink: { type: String },
   },
   update: {
     startDate: {

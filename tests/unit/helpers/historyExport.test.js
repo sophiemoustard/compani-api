@@ -37,6 +37,7 @@ const {
   EXPECTATIONS,
   END_OF_COURSE,
   TIME_STAMPING_ACTIONS,
+  PAYMENT,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
@@ -1657,7 +1658,7 @@ describe('exportCourseHistory', () => {
   const trainer = { _id: new ObjectId(), identity: { firstname: 'Gilles', lastname: 'Formateur' } };
   const salesRepresentative = { _id: new ObjectId(), identity: { firstname: 'Aline', lastname: 'Contact-Com' } };
 
-  const courseIdList = [new ObjectId(), new ObjectId()];
+  const courseIdList = [new ObjectId(), new ObjectId(), new ObjectId()];
 
   const courseSlotList = [
     {
@@ -1717,6 +1718,7 @@ describe('exportCourseHistory', () => {
           billedAt: '2022-03-08T00:00:00.000Z',
           number: 'FACT-00001',
           courseCreditNote: { courseBill: new ObjectId() },
+          coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
         },
         {
           course: courseIdList[0],
@@ -1726,6 +1728,7 @@ describe('exportCourseHistory', () => {
           billedAt: '2022-03-08T00:00:00.000Z',
           number: 'FACT-00002',
           courseCreditNote: null,
+          coursePayments: [{ netInclTaxes: 110, nature: PAYMENT }],
         },
       ],
     },
@@ -1744,7 +1747,7 @@ describe('exportCourseHistory', () => {
       bills: [],
     },
     {
-      _id: courseIdList[1],
+      _id: courseIdList[2],
       type: INTER_B2B,
       subProgram: subProgramList[1],
       misc: 'group 3',
@@ -1841,6 +1844,7 @@ describe('exportCourseHistory', () => {
                 archivedAt: { $exists: false },
               },
             ],
+            select: '_id type misc estimatedStartDate',
           }],
         },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
@@ -1863,19 +1867,27 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
-        { query: 'populate', args: [{ path: 'slotsToPlan' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' }],
+        },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
         {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'courseFundingOrganisation company billedAt',
+            select: 'courseFundingOrganisation company billedAt mainFee billingPurchaseList',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [
               { path: 'courseFundingOrganisation', select: 'name' },
               { path: 'company', select: 'name' },
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
+              {
+                path: 'coursePayments',
+                options: { isVendorUser: !!get(credentials, 'role.vendor') },
+                select: 'netInclTaxes nature',
+              },
             ],
           }],
         },
@@ -1887,18 +1899,18 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
-        { query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'find', args: [{ course: { $in: [] }, select: 'course questionnaire' }] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'lean' },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
       findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: [] }, select: 'course' }] }, { query: 'lean' }]
     );
   });
 
@@ -1956,6 +1968,9 @@ describe('exportCourseHistory', () => {
         'Nombre de présences non prévues',
         'Avancement',
         'Facturée',
+        'Montant facturé',
+        'Montant réglé',
+        'Solde',
       ],
       [
         courseList[0]._id,
@@ -1988,6 +2003,9 @@ describe('exportCourseHistory', () => {
         0,
         '1,00',
         'Oui',
+        120,
+        110,
+        -10,
       ],
       [
         courseList[1]._id,
@@ -2020,9 +2038,12 @@ describe('exportCourseHistory', () => {
         2,
         '0,67',
         '',
+        '',
+        '',
+        '',
       ],
       [
-        courseList[1]._id,
+        courseList[2]._id,
         'inter_b2b',
         '',
         '',
@@ -2037,11 +2058,11 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '0,00',
-        1,
+        0,
         0,
         '0,67',
-        1,
-        1,
+        0,
+        0,
         '01/01/2022',
         '',
         '',
@@ -2050,6 +2071,9 @@ describe('exportCourseHistory', () => {
         0,
         0,
         0,
+        '',
+        '',
+        '',
         '',
         '',
       ],
@@ -2077,6 +2101,7 @@ describe('exportCourseHistory', () => {
                 archivedAt: { $exists: false },
               },
             ],
+            select: '_id type misc estimatedStartDate',
           }],
         },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
@@ -2099,19 +2124,27 @@ describe('exportCourseHistory', () => {
         { query: 'populate', args: [{ path: 'trainer', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'salesRepresentative', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'contact', select: 'identity' }] },
-        { query: 'populate', args: [{ path: 'slots', populate: 'attendances' }] },
-        { query: 'populate', args: [{ path: 'slotsToPlan' }] },
+        {
+          query: 'populate',
+          args: [{ path: 'slots', populate: 'attendances', select: 'attendances startDate endDate' }],
+        },
+        { query: 'populate', args: [{ path: 'slotsToPlan', select: '_id' }] },
         { query: 'populate', args: [{ path: 'trainees', select: 'firstMobileConnection' }] },
         {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'courseFundingOrganisation company billedAt',
+            select: 'courseFundingOrganisation company billedAt mainFee billingPurchaseList',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [
               { path: 'courseFundingOrganisation', select: 'name' },
               { path: 'company', select: 'name' },
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
+              {
+                path: 'coursePayments',
+                options: { isVendorUser: !!get(credentials, 'role.vendor') },
+                select: 'netInclTaxes nature',
+              },
             ],
           }],
         },
@@ -2121,18 +2154,18 @@ describe('exportCourseHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findQuestionnaireHistory,
       [
-        { query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] },
+        { query: 'find', args: [{ course: { $in: courseIdList }, select: 'course questionnaire' }] },
         { query: 'populate', args: [{ path: 'questionnaire', select: 'type' }] },
         { query: 'lean' },
       ]
     );
     SinonMongoose.calledOnceWithExactly(
       findCourseSmsHistory,
-      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
     );
     SinonMongoose.calledOnceWithExactly(
       findAttendanceSheet,
-      [{ query: 'find', args: [{ course: { $in: courseSlotList.map(slot => slot.course) } }] }, { query: 'lean' }]
+      [{ query: 'find', args: [{ course: { $in: courseIdList }, select: 'course' }] }, { query: 'lean' }]
     );
   });
 });

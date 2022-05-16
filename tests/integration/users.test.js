@@ -8,6 +8,9 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const app = require('../../server');
 const User = require('../../src/models/User');
+const ActivityHistory = require('../../src/models/ActivityHistory');
+const Course = require('../../src/models/Course');
+const CompanyLinkRequest = require('../../src/models/CompanyLinkRequest');
 const Role = require('../../src/models/Role');
 const UserCompany = require('../../src/models/UserCompany');
 const Helper = require('../../src/models/Helper');
@@ -31,10 +34,11 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
+  activityList,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
-const { trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/authUsersSeed');
+const { coach, trainer, userList, noRoleNoCompany, auxiliary } = require('../seed/authUsersSeed');
 const { rolesList, auxiliaryRoleId, coachRoleId, trainerRoleId, helperRoleId } = require('../seed/authRolesSeed');
 const GDriveStorageHelper = require('../../src/helpers/gDriveStorage');
 const GCloudStorageHelper = require('../../src/helpers/gCloudStorage');
@@ -1464,6 +1468,88 @@ describe('DELETE /users/:id', () => {
       });
 
       expect(res.statusCode).toBe(404);
+    });
+
+    it('should return 403 if try to delete my own account', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${coach._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('NO_ROLE_NO_COMPANY', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(usersSeedList[12].local);
+    });
+
+    it('should delete user registered to course (without activity histories) & with company link request', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[12]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const companyLinkRequest = await CompanyLinkRequest.countDocuments({ user: usersSeedList[12]._id });
+      expect(companyLinkRequest).toBe(0);
+
+      const activityHistories = await ActivityHistory.countDocuments({ user: usersSeedList[12]._id });
+      expect(activityHistories).toBe(0);
+
+      const course = await Course.countDocuments({ trainees: usersSeedList[12]._id });
+      expect(course).toBe(0);
+    });
+
+    it('should return 403 if try to delete other account', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if user has activity histories', async () => {
+      await app.inject({
+        method: 'POST',
+        url: '/activityhistories',
+        payload: { user: usersSeedList[12]._id, activity: activityList[0]._id, score: 2 },
+        headers: { 'x-access-token': authToken },
+      });
+
+      const hasActivityHistories = await ActivityHistory
+        .countDocuments({ user: usersSeedList[12]._id, activity: activityList[0]._id });
+      expect(hasActivityHistories).toBe(1);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[12]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('HELPER', () => {
+    beforeEach(async () => {
+      authToken = await getTokenByCredentials(usersSeedList[3].local);
+    });
+
+    it('should return 403 if helper try to delete himself', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[3]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

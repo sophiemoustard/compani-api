@@ -30,6 +30,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CourseBill = require('../../../src/models/CourseBill');
+const CoursePayment = require('../../../src/models/CoursePayment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
@@ -68,6 +69,7 @@ const {
   PUBLISHED,
   END_OF_COURSE,
   LESSON,
+  DIRECT_DEBIT,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -1143,6 +1145,16 @@ const courseBill =
     number: 'FACT-00001',
   };
 
+const coursePayment = {
+  number: 'REG-00001',
+  date: '2022-03-09T00:00:00.000Z',
+  company: authCompany._id,
+  courseBill: courseBill._id,
+  netInclTaxes: 1100,
+  nature: PAYMENT,
+  type: DIRECT_DEBIT,
+};
+
 const activityHistoryList = [
   { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[0]._id },
   { _id: new ObjectId(), user: traineeList[3]._id, activity: activityList[1]._id },
@@ -1302,6 +1314,7 @@ const populateDB = async () => {
     Course.create(courseList),
     CourseBill.create(courseBill),
     CourseFundingOrganisation.create(courseFundingOrganisation),
+    CoursePayment.create(coursePayment),
     CourseSlot.create(courseSlotList),
     CourseSmsHistory.create(smsList),
     CreditNote.create(creditNotesList),

@@ -15,16 +15,12 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object({
-            startDate: Joi.date(),
-            endDate: Joi.date().when('startDate', { is: Joi.exist(), then: Joi.required() }),
-            address: Joi.alternatives().try(addressValidation, {}),
-            meetingLink: Joi.string().allow(''),
             course: Joi.objectId().required(),
-            step: Joi.objectId().when('startDate', { is: Joi.exist(), then: Joi.required() }),
+            step: Joi.objectId().required(),
           }),
         },
         pre: [{ method: authorizeCreate }],
-        auth: { scope: ['courses:edit'] },
+        auth: { scope: ['courses:create'] },
       },
       handler: create,
     });
@@ -40,7 +36,6 @@ exports.plugin = {
             endDate: Joi.date().required(),
             address: Joi.alternatives().try(addressValidation, {}),
             meetingLink: Joi.string().allow(''),
-            step: Joi.objectId().when('startDate', { is: Joi.exist(), then: Joi.required() }),
           }),
         },
         pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeUpdate }],
@@ -57,7 +52,7 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
         pre: [{ method: getCourseSlot, assign: 'courseSlot' }, { method: authorizeDeletion }],
-        auth: { scope: ['courses:edit'] },
+        auth: { scope: ['courses:create'] },
       },
       handler: remove,
     });

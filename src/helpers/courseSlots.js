@@ -20,21 +20,14 @@ exports.hasConflicts = async (slot) => {
   return !!slotsInConflict;
 };
 
-exports.createCourseSlot = async (payload, user) => {
-  const hasConflicts = await exports.hasConflicts(payload);
-  if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
-
-  if (payload.startDate) await CourseHistoriesHelper.createHistoryOnSlotCreation(payload, user._id);
-
-  return (new CourseSlot(payload)).save();
-};
+exports.createCourseSlot = async payload => (new CourseSlot(payload)).save();
 
 exports.updateCourseSlot = async (slotFromDb, payload, user) => {
   const hasConflicts = await exports.hasConflicts({ ...slotFromDb, ...payload });
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
   const updatePayload = { $set: payload };
-  const step = await Step.findById(payload.step).lean();
+  const step = await Step.findById(slotFromDb.step._id).lean();
 
   if (step.type === ON_SITE || !payload.meetingLink) updatePayload.$unset = { meetingLink: '' };
   if (step.type === REMOTE || !payload.address) updatePayload.$unset = { ...updatePayload.$unset, address: '' };
@@ -46,10 +39,14 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
 };
 
 exports.removeCourseSlot = async (courseSlot, user) => {
-  const payload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address']);
+  const payload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
 
   await Promise.all([
-    CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id),
+    ...Object.values({
+      ...(payload.startDate &&
+      [CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id)]
+      ),
+    }),
     CourseSlot.deleteOne({ _id: courseSlot._id }),
   ]);
 };

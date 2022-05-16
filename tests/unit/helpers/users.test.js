@@ -18,6 +18,8 @@ const HelpersHelper = require('../../../src/helpers/helpers');
 const UserCompaniesHelper = require('../../../src/helpers/userCompanies');
 const User = require('../../../src/models/User');
 const Contract = require('../../../src/models/Contract');
+const Course = require('../../../src/models/Course');
+const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Role = require('../../../src/models/Role');
 const UserCompany = require('../../../src/models/UserCompany');
 const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP } = require('../../../src/helpers/constants');
@@ -1123,6 +1125,41 @@ describe('createUser', () => {
         [{ query: 'findById', args: [payload.role, { name: 1, interface: 1 }] }, { query: 'lean' }]
       );
     }
+  });
+});
+
+describe('removeUser', () => {
+  let deleteOne;
+  let deleteOneCompanyLinkRequest;
+  let updateManyCourse;
+  let removeHelper;
+  beforeEach(() => {
+    deleteOne = sinon.stub(User, 'deleteOne');
+    deleteOneCompanyLinkRequest = sinon.stub(CompanyLinkRequest, 'deleteOne');
+    updateManyCourse = sinon.stub(Course, 'updateMany');
+    removeHelper = sinon.stub(UsersHelper, 'removeHelper');
+  });
+  afterEach(() => {
+    deleteOne.restore();
+    deleteOneCompanyLinkRequest.restore();
+    updateManyCourse.restore();
+    removeHelper.restore();
+  });
+
+  it('should delete account', async () => {
+    const userId = new ObjectId();
+    await UsersHelper.removeUser({ _id: userId }, { _id: userId });
+
+    sinon.assert.calledOnceWithExactly(deleteOne, { _id: userId });
+    sinon.assert.calledOnceWithExactly(deleteOneCompanyLinkRequest, { user: userId });
+    sinon.assert.calledOnceWithExactly(updateManyCourse, { trainees: userId }, { $pull: { trainees: userId } });
+  });
+
+  it('should call removeHelper', async () => {
+    const userId = new ObjectId();
+    await UsersHelper.removeUser({ _id: userId }, { _id: new ObjectId() });
+
+    sinon.assert.calledOnceWithExactly(UsersHelper.removeHelper, { _id: userId });
   });
 });
 

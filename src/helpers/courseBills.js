@@ -26,19 +26,26 @@ const getTimeProgress = (course) => {
   return pastSlotsCount / (course.slots.length + course.slotsToPlan.length);
 };
 
-const formatCourseBill = (courseBill) => {
-  const netInclTaxes = exports.getNetInclTaxes(courseBill);
+exports.computeAmounts = (courseBill) => {
+  if (!courseBill) return { netInclTaxes: 0, paid: 0, total: 0 };
 
+  const netInclTaxes = exports.getNetInclTaxes(courseBill);
   const totalPayments = BalanceHelper.computePayments(courseBill.coursePayments);
   const creditNote = courseBill.courseCreditNote ? netInclTaxes : 0;
   const paid = totalPayments + creditNote;
+
+  return { netInclTaxes, paid, total: paid - netInclTaxes };
+};
+
+exports.formatCourseBill = (courseBill) => {
+  const { netInclTaxes, paid, total } = this.computeAmounts(courseBill);
 
   return {
     progress: getTimeProgress(courseBill.course),
     netInclTaxes,
     ...omit(courseBill, ['course.slots', 'course.slotsToPlan']),
     paid,
-    total: paid - netInclTaxes,
+    total,
   };
 };
 
@@ -58,7 +65,7 @@ const balance = async (company, credentials) => {
     .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .lean();
 
-  return courseBills.map(bill => formatCourseBill(bill));
+  return courseBills.map(bill => exports.formatCourseBill(bill));
 };
 
 exports.list = async (query, credentials) => {

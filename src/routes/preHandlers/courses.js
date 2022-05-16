@@ -157,9 +157,6 @@ exports.getCourseTrainee = async (req) => {
 };
 
 exports.authorizeCourseDeletion = async (req) => {
-  const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
-  if (![TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole)) return Boom.forbidden();
-
   const course = await Course.findOne({ _id: req.params._id }, { trainees: 1 })
     .populate({ path: 'slots', select: '_id' })
     .populate({ path: 'slotsToPlan', select: '_id' })

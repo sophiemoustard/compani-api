@@ -7,6 +7,7 @@ const SinonMongoose = require('../sinonMongoose');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 describe('updateHistoryOnSectorUpdate', () => {
   const auxiliaryId = new ObjectId();
@@ -32,41 +33,80 @@ describe('updateHistoryOnSectorUpdate', () => {
     createHistoryStub.restore();
   });
 
-  it('should create sector history if no previous one', async () => {
+  it('should create sector history if no previous one and not in contract', async () => {
+    const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
+
     findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
     find.returns(SinonMongoose.stubChainedQueries([], ['sort', 'lean']));
 
-    const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
+    await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
-    expect(result).toBeUndefined();
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
+      [
+        {
+          query: 'findOne',
+          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'lean' },
+
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'sort', args: [{ startDate: -1 }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.calledWithExactly(
       createHistoryStub,
       { _id: auxiliaryId, sector: sector.toHexString() },
       companyId
     );
+    sinon.assert.notCalled(updateOne);
   });
 
   it('should return nothing if last sector history sector is same than new one', async () => {
     const sectorHistory = { _id: new ObjectId(), sector, startDate: '2019-09-10T00:00:00' };
+    const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
 
     findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
     find.returns(SinonMongoose.stubChainedQueries([{ _id: new ObjectId() }], ['sort', 'lean']));
 
-    const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
+    await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
-    expect(result).toEqual(null);
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
+      [
+        {
+          query: 'findOne',
+          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'lean' },
+      ]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'sort', args: [{ startDate: -1 }] },
+        { query: 'lean' },
+      ]
     );
     sinon.assert.notCalled(createHistoryStub);
+    sinon.assert.notCalled(updateOne);
   });
 
   it('should return an error if no last sector history and has an ongoing contract', async () => {
+    const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
     try {
       findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
       find.returns(SinonMongoose.stubChainedQueries(
@@ -81,14 +121,36 @@ describe('updateHistoryOnSectorUpdate', () => {
     } finally {
       SinonMongoose.calledOnceWithExactly(
         findOne,
-        [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
+        [
+          {
+            query: 'findOne',
+            args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+          },
+          { query: 'lean' },
+
+        ]
+      );
+      SinonMongoose.calledOnceWithExactly(
+        find,
+        [
+          {
+            query: 'find',
+            args: [
+              { user: auxiliaryId, company: companyId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] },
+            ],
+          },
+          { query: 'sort', args: [{ startDate: -1 }] },
+          { query: 'lean' },
+        ]
       );
       sinon.assert.notCalled(createHistoryStub);
+      sinon.assert.notCalled(updateOne);
     }
   });
 
   it('should update sector history if auxiliary does not have contract', async () => {
     const sectorHistory = { _id: new ObjectId(), sector: new ObjectId(), startDate: '2019-09-10T00:00:00' };
+    const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
 
     findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
     find.returns(SinonMongoose.stubChainedQueries([], ['sort', 'lean']));
@@ -99,55 +161,77 @@ describe('updateHistoryOnSectorUpdate', () => {
     expect(result).toEqual({ sector });
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
+      [
+        {
+          query: 'findOne',
+          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'lean' },
+      ]
     );
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
+        {
+          query: 'find',
+          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
         { query: 'sort', args: [{ startDate: -1 }] },
         { query: 'lean' },
       ]
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary: auxiliaryId, endDate: null },
+      { _id: sectorHistory._id },
       { $set: { sector: sector.toHexString() } }
     );
     sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should update sector history if auxiliary is between contracts', async () => {
-    findOne.returns(SinonMongoose.stubChainedQueries(null, ['lean']));
+    const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
+    const sectorHistory = { _id: new ObjectId(), sector: new ObjectId() };
+    findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
     find.returns(SinonMongoose.stubChainedQueries(
       [{ startDate: '2020-01-01T00:00:00', endDate: '2020-08-01T23:59:59' }, { startDate: moment().add(1, 'd') }],
       ['sort', 'lean']
     ));
-    createHistoryStub.returns({ sector });
+    updateOne.returns({ sector });
 
     const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
 
     expect(result).toEqual({ sector });
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
+      [
+        {
+          query: 'findOne',
+          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'lean' },
+      ]
     );
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
+        {
+          query: 'find',
+          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
         { query: 'sort', args: [{ startDate: -1 }] },
         { query: 'lean' },
       ]
     );
     sinon.assert.calledOnceWithExactly(
-      createHistoryStub,
-      { _id: auxiliaryId, sector: sector.toHexString() },
-      companyId
+      updateOne,
+      { _id: sectorHistory._id },
+      { $set: { sector: sector.toHexString() } }
     );
+    sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should update sector history if many changes made on the same day', async () => {
+    const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
     const sectorHistory = { _id: new ObjectId(), sector: new ObjectId(), startDate: moment().startOf('day') };
 
     findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
@@ -159,25 +243,35 @@ describe('updateHistoryOnSectorUpdate', () => {
     expect(result).toEqual({ sector });
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
+      [
+        {
+          query: 'findOne',
+          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'lean' },
+      ]
     );
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
+        {
+          query: 'find',
+          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
         { query: 'sort', args: [{ startDate: -1 }] },
         { query: 'lean' },
       ]
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary: auxiliaryId, endDate: null },
+      { _id: sectorHistory._id },
       { $set: { sector: sector.toHexString() } }
     );
     sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should update sector history and create new one', async () => {
+    const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
     const sectorHistory = { _id: new ObjectId(), sector: new ObjectId(), startDate: '2019-10-10' };
 
     findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
@@ -195,23 +289,88 @@ describe('updateHistoryOnSectorUpdate', () => {
       createHistoryStub,
       { _id: auxiliaryId, sector: sector.toHexString() },
       companyId,
-      moment().startOf('day').toDate()
+      moment().startOf('day').toDate(),
+      undefined
     );
     SinonMongoose.calledOnceWithExactly(
       findOne,
-      [{ query: 'findOne', args: [{ auxiliary: auxiliaryId, endDate: null }] }, { query: 'lean' }]
+      [
+        {
+          query: 'findOne',
+          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'lean' },
+      ]
     );
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ user: auxiliaryId, company: companyId, endDate: null }] },
+        {
+          query: 'find',
+          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
         { query: 'sort', args: [{ startDate: -1 }] },
         { query: 'lean' },
       ]
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
-      { auxiliary: auxiliaryId, endDate: null },
+      { _id: sectorHistory._id },
+      { $set: { endDate: moment().subtract(1, 'day').endOf('day').toDate() } }
+    );
+  });
+
+  it('should update sector history and create new one if existing history has endDate in the futur', async () => {
+    const yesterday = moment().subtract(1, 'day').endOf('day').toDate();
+    const contractEndDate = CompaniDate().add(4, 'days').toDate();
+    const sectorHistory = {
+      _id: new ObjectId(),
+      sector: new ObjectId(),
+      startDate: '2019-10-10T00:00:00',
+      endDate: contractEndDate,
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(sectorHistory, ['lean']));
+    find.returns(SinonMongoose.stubChainedQueries(
+      [{ _id: new ObjectId(), startDate: '2019-10-12T00:00:00', endDate: contractEndDate }],
+      ['sort', 'lean']
+    ));
+    updateOne.returns({ sector });
+    createHistoryStub.returns({ auxiliary: auxiliaryId });
+
+    const result = await SectorHistoryHelper.updateHistoryOnSectorUpdate(auxiliaryId, sector.toHexString(), companyId);
+
+    expect(result).toEqual({ auxiliary: auxiliaryId });
+    sinon.assert.calledWithExactly(
+      createHistoryStub,
+      { _id: auxiliaryId, sector: sector.toHexString() },
+      companyId,
+      moment().startOf('day').toDate(),
+      contractEndDate
+    );
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ auxiliary: auxiliaryId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [{ user: auxiliaryId, company: companyId, $or: [{ endDate: { $gt: yesterday } }, { endDate: null }] }],
+        },
+        { query: 'sort', args: [{ startDate: -1 }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: sectorHistory._id },
       { $set: { endDate: moment().subtract(1, 'day').endOf('day').toDate() } }
     );
   });
