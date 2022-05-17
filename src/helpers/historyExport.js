@@ -688,9 +688,7 @@ const getAttendancesCountInfos = (course) => {
 
 const getBillsInfos = (bills) => {
   const courseBillsWithoutCreditNote = bills.filter(bill => !bill.courseCreditNote);
-  const payer = courseBillsWithoutCreditNote
-    .map(bill => get(bill, 'courseFundingOrganisation.name') || get(bill, 'company.name'))
-    .toString();
+  const payer = courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')).toString();
   const isBilled = courseBillsWithoutCreditNote.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
 
   const validatedBill = courseBillsWithoutCreditNote.find(bill => bill.billedAt);

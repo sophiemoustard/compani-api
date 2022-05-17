@@ -1714,7 +1714,7 @@ describe('exportCourseHistory', () => {
           course: courseIdList[0],
           mainFee: { price: 120, count: 1 },
           company,
-          courseFundingOrganisation: { name: 'APA Paris' },
+          payer: { name: 'APA Paris' },
           billedAt: '2022-03-08T00:00:00.000Z',
           number: 'FACT-00001',
           courseCreditNote: { courseBill: new ObjectId() },
@@ -1724,7 +1724,7 @@ describe('exportCourseHistory', () => {
           course: courseIdList[0],
           mainFee: { price: 120, count: 1 },
           company,
-          courseFundingOrganisation: { name: 'APA Paris' },
+          payer: { name: 'APA Paris' },
           billedAt: '2022-03-08T00:00:00.000Z',
           number: 'FACT-00002',
           courseCreditNote: null,
@@ -1877,10 +1877,11 @@ describe('exportCourseHistory', () => {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'courseFundingOrganisation company billedAt mainFee billingPurchaseList',
+            select: 'payer company billedAt mainFee billingPurchaseList',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [
-              { path: 'courseFundingOrganisation', select: 'name' },
+              { path: 'payer.fundingOrganisation', select: 'name' },
+              { path: 'payer.company', select: 'name' },
               { path: 'company', select: 'name' },
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
               {
@@ -2134,10 +2135,11 @@ describe('exportCourseHistory', () => {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'courseFundingOrganisation company billedAt mainFee billingPurchaseList',
+            select: 'payer company billedAt mainFee billingPurchaseList',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [
-              { path: 'courseFundingOrganisation', select: 'name' },
+              { path: 'payer.fundingOrganisation', select: 'name' },
+              { path: 'payer.company', select: 'name' },
               { path: 'company', select: 'name' },
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
               {

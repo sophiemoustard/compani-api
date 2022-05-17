@@ -158,6 +158,7 @@ const courseBillsList = [
     course: courseList[0]._id,
     company: authCompany._id,
     mainFee: { price: 120, count: 1 },
+    payer: { company: authCompany._id },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 90, count: 1 },
       { _id: new ObjectId(), billingItem: billingItemList[1]._id, price: 400, count: 1 },
@@ -168,12 +169,13 @@ const courseBillsList = [
     course: courseList[1]._id,
     company: authCompany._id,
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
-    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+    payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
   },
   { // 2 - already billed without funder
     _id: new ObjectId(),
     course: courseList[3]._id,
     company: authCompany._id,
+    payer: { company: authCompany._id },
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     billedAt: '2022-03-07T00:00:00.000Z',
     number: 'FACT-00001',
@@ -185,6 +187,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: courseList[4]._id,
     company: authCompany._id,
+    payer: { company: authCompany._id },
     mainFee: { price: 10, count: 1 },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 12, count: 7, description: 'soupe du soir' },
@@ -197,7 +200,7 @@ const courseBillsList = [
     mainFee: { price: 200, count: 2, description: 'Salut' },
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00002',
-    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+    payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
@@ -206,6 +209,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: courseList[6]._id,
     company: companyWithoutAddress._id,
+    payer: { company: companyWithoutAddress._id },
     mainFee: { price: 200, count: 2, description: 'yoyo' },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },

@@ -111,7 +111,28 @@ describe('generateCreditNotePdf', () => {
         ],
         number: 'FACT-00001',
         billedAt: '2022-03-08T00:00:00.000Z',
-        courseFundingOrganisation: '',
+        company: {
+          name: 'test',
+          address: {
+            fullAddress: '24 Avenue Daumesnil 75012 Paris',
+            street: '24 Avenue Daumesnil',
+            city: 'Paris',
+            zipCode: '75012',
+            location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+          },
+        },
+        courseFundingOrganisation: {
+          company: {
+            name: 'test',
+            address: {
+              fullAddress: '24 Avenue Daumesnil 75012 Paris',
+              street: '24 Avenue Daumesnil',
+              city: 'Paris',
+              zipCode: '75012',
+              location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+            },
+          },
+        },
       },
     };
 
@@ -131,7 +152,7 @@ describe('generateCreditNotePdf', () => {
         courseBill: { number: 'FACT-00001', date: '08/03/2022' },
         vendorCompany,
         company: creditNote.company,
-        payer: creditNote.company,
+        payer: creditNote.courseBill.payer,
         course: creditNote.courseBill.course,
         mainFee: creditNote.courseBill.mainFee,
         billingPurchaseList: creditNote.courseBill.billingPurchaseList,
@@ -146,14 +167,15 @@ describe('generateCreditNotePdf', () => {
           args: [
             {
               path: 'courseBill',
-              select: 'course number date courseFundingOrganisation billingPurchaseList mainFee billedAt',
+              select: 'course number date payer billingPurchaseList mainFee billedAt',
               populate: [
                 {
                   path: 'course',
                   select: 'subProgram',
                   populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
                 },
-                { path: 'courseFundingOrganisation', select: 'name address' },
+                { path: 'payer.fundingOrganisation', select: 'name address' },
+                { path: 'payer.company', select: 'name address' },
                 {
                   path: 'billingPurchaseList',
                   select: 'billingItem',

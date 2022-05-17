@@ -11,17 +11,21 @@ const translate = require('../../helpers/translate');
 const { language } = translate;
 
 exports.authorizeCourseBillCreation = async (req) => {
-  const { course, company, courseFundingOrganisation } = req.payload;
-  const companyExists = await Company.countDocuments({ _id: company });
+  const { course, company: companyId, payer } = req.payload;
+  const companyExists = await Company.countDocuments({ _id: companyId });
   if (!companyExists) throw Boom.notFound();
 
-  const courseExists = await Course.countDocuments({ _id: course, company });
+  const courseExists = await Course.countDocuments({ _id: course, company: companyId });
   if (!courseExists) throw Boom.notFound();
 
-  if (courseFundingOrganisation) {
-    const courseFundingOrganisationExists = await CourseFundingOrganisation
-      .countDocuments({ _id: courseFundingOrganisation });
-    if (!courseFundingOrganisationExists) throw Boom.notFound();
+  if (payer) {
+    if (payer.fundingOrganisation) {
+      const fundingOrganisation = await CourseFundingOrganisation.countDocuments({ _id: payer.fundingOrganisation });
+      if (!fundingOrganisation) throw Boom.notFound();
+    } else {
+      const company = await Company.countDocuments({ _id: payer.company });
+      if (!company) throw Boom.notFound();
+    }
   }
 
   return null;
@@ -45,35 +49,40 @@ exports.authorizeCourseBillGet = async (req) => {
 exports.authorizeCourseBillUpdate = async (req) => {
   const courseBill = await CourseBill
     .findOne({ _id: req.params._id })
-    .populate({ path: 'company', select: 'address' })
+    .populate({ path: 'payer.company', select: 'address' })
+    .populate({ path: 'payer.fundingOrganisation', select: 'address' })
     .lean();
   if (!courseBill) throw Boom.notFound();
+  if (req.payload.payer) {
+    if (req.payload.payer.fundingOrganisation) {
+      const courseFundingOrganisationExists = await CourseFundingOrganisation
+        .countDocuments({ _id: req.payload.payer.fundingOrganisation });
 
-  if (req.payload.courseFundingOrganisation) {
-    const courseFundingOrganisationExists = await CourseFundingOrganisation
-      .countDocuments({ _id: req.payload.courseFundingOrganisation });
-    if (!courseFundingOrganisationExists) throw Boom.notFound();
+      if (!courseFundingOrganisationExists) throw Boom.notFound();
+    } else {
+      const companyExists = await Company.countDocuments({ _id: req.payload.payer.company });
+      if (!companyExists) throw Boom.notFound();
+    }
   }
 
   if (req.payload.billedAt) {
     if (courseBill.billedAt) throw Boom.forbidden();
-    if (!get(courseBill, 'courseFundingOrganisation') && !get(courseBill, 'company.address')) {
+    if (!get(courseBill, 'payer.address')) {
       throw Boom.forbidden(translate[language].courseCompanyAddressMissing);
     }
   }
 
   if (courseBill.billedAt) {
-    if (has(req.payload, 'courseFundingOrganisation')) {
-      const payloadCourseFundingOrga = req.payload.courseFundingOrganisation;
-      const courseBillCourseFundingOrga = courseBill.courseFundingOrganisation;
-      const isCourseFundingOrganisationEqual = (!payloadCourseFundingOrga && !courseBillCourseFundingOrga) ||
-        UtilsHelper.areObjectIdsEquals(payloadCourseFundingOrga, courseBillCourseFundingOrga);
+    if (has(req.payload, 'payer')) {
+      const payloadPayer = get(req, 'payload.payer.company') || get(req, 'payload.payer.fundingOrganisation');
+      const courseBillPayer = courseBill.payer._id;
+      const isPayerEqual = UtilsHelper.areObjectIdsEquals(payloadPayer, courseBillPayer);
 
-      if (!isCourseFundingOrganisationEqual) throw Boom.forbidden();
+      if (!isPayerEqual) throw Boom.forbidden();
     }
 
     const payloadKeys = UtilsHelper
-      .getKeysOf2DepthObject(omit(req.payload, ['courseFundingOrganisation', 'mainFee.description']));
+      .getKeysOf2DepthObject(omit(req.payload, ['payer', 'mainFee.description']));
     const areFieldsChanged = payloadKeys.some(key => get(req.payload, key) !== get(courseBill, key));
     if (areFieldsChanged) throw Boom.forbidden();
   }
