@@ -37,22 +37,23 @@ const CompanySchema = mongoose.Schema({
   auxiliariesFolderId: { type: String, required: true },
   rhConfig: {
     grossHourlyRate: { type: Number, default: 0 },
-    phoneFeeAmount: Number,
-    amountPerKm: Number,
+    phoneFeeAmount: { type: Number },
+    amountPerKm: { type: Number },
     transportSubs: [{
-      department: String,
-      price: Number,
+      department: { type: String },
+      price: { type: Number },
     }],
     templates: {
       contract: driveResourceSchemaDefinition,
       contractVersion: driveResourceSchemaDefinition,
     },
+    shouldPayHolidays: { type: Boolean, default: false },
   },
   customersConfig: {
     billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS },
     billFooter: { type: String },
     templates: {
-      folderId: String,
+      folderId: { type: String },
       debitMandate: driveResourceSchemaDefinition,
       quote: driveResourceSchemaDefinition,
       gcs: driveResourceSchemaDefinition,
