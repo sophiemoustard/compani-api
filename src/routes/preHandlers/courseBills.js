@@ -1,5 +1,5 @@
 const Boom = require('@hapi/boom');
-const { get, has, omit } = require('lodash');
+const { get, omit } = require('lodash');
 const Company = require('../../models/Company');
 const Course = require('../../models/Course');
 const CourseBill = require('../../models/CourseBill');
@@ -12,18 +12,19 @@ const { language } = translate;
 
 exports.authorizeCourseBillCreation = async (req) => {
   const { course, company: companyId, payer } = req.payload;
-  const companyExists = await Company.countDocuments({ _id: companyId });
+  const companyExists = await Company.countDocuments({ _id: companyId }, { limit: 1 });
   if (!companyExists) throw Boom.notFound();
 
-  const courseExists = await Course.countDocuments({ _id: course, company: companyId });
+  const courseExists = await Course.countDocuments({ _id: course, company: companyId }, { limit: 1 });
   if (!courseExists) throw Boom.notFound();
 
   if (payer) {
     if (payer.fundingOrganisation) {
-      const fundingOrganisation = await CourseFundingOrganisation.countDocuments({ _id: payer.fundingOrganisation });
+      const fundingOrganisation = await CourseFundingOrganisation
+        .countDocuments({ _id: payer.fundingOrganisation }, { limit: 1 });
       if (!fundingOrganisation) throw Boom.notFound();
     } else {
-      const company = await Company.countDocuments({ _id: payer.company });
+      const company = await Company.countDocuments({ _id: payer.company }, { limit: 1 });
       if (!company) throw Boom.notFound();
     }
   }
@@ -35,12 +36,12 @@ exports.authorizeCourseBillGet = async (req) => {
   const { course, company } = req.query;
 
   if (course) {
-    const courseExists = await Course.countDocuments({ _id: course });
+    const courseExists = await Course.countDocuments({ _id: course }, { limit: 1 });
     if (!courseExists) throw Boom.notFound();
   }
 
   if (company) {
-    const companyExists = await Company.countDocuments({ _id: company });
+    const companyExists = await Company.countDocuments({ _id: company }, { limit: 1 });
     if (!companyExists) throw Boom.notFound();
   }
   return null;
@@ -56,11 +57,11 @@ exports.authorizeCourseBillUpdate = async (req) => {
   if (req.payload.payer) {
     if (req.payload.payer.fundingOrganisation) {
       const courseFundingOrganisationExists = await CourseFundingOrganisation
-        .countDocuments({ _id: req.payload.payer.fundingOrganisation });
+        .countDocuments({ _id: req.payload.payer.fundingOrganisation }, { limit: 1 });
 
       if (!courseFundingOrganisationExists) throw Boom.notFound();
     } else {
-      const companyExists = await Company.countDocuments({ _id: req.payload.payer.company });
+      const companyExists = await Company.countDocuments({ _id: req.payload.payer.company }, { limit: 1 });
       if (!companyExists) throw Boom.notFound();
     }
   }
@@ -73,16 +74,8 @@ exports.authorizeCourseBillUpdate = async (req) => {
   }
 
   if (courseBill.billedAt) {
-    if (has(req.payload, 'payer')) {
-      const payloadPayer = get(req, 'payload.payer.company') || get(req, 'payload.payer.fundingOrganisation');
-      const courseBillPayer = courseBill.payer._id;
-      const isPayerEqual = UtilsHelper.areObjectIdsEquals(payloadPayer, courseBillPayer);
-
-      if (!isPayerEqual) throw Boom.forbidden();
-    }
-
     const payloadKeys = UtilsHelper
-      .getKeysOf2DepthObject(omit(req.payload, ['payer', 'mainFee.description']));
+      .getKeysOf2DepthObject(omit(req.payload, ['mainFee.description']));
     const areFieldsChanged = payloadKeys.some(key => get(req.payload, key) !== get(courseBill, key));
     if (areFieldsChanged) throw Boom.forbidden();
   }
@@ -92,7 +85,7 @@ exports.authorizeCourseBillUpdate = async (req) => {
 
 exports.authorizeCourseBillingPurchaseAddition = async (req) => {
   const { billingItem } = req.payload;
-  const billingItemExists = await CourseBillingItem.countDocuments({ _id: billingItem });
+  const billingItemExists = await CourseBillingItem.countDocuments({ _id: billingItem }, { limit: 1 });
   if (!billingItemExists) throw Boom.notFound();
 
   const courseBill = await CourseBill.findOne({ _id: req.params._id }).lean();
@@ -144,7 +137,7 @@ exports.authorizeCourseBillingPurchaseDelete = async (req) => {
 
 exports.authorizeBillPdfGet = async (req) => {
   const isBillValidated = await CourseBill
-    .countDocuments({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } });
+    .countDocuments({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } }, { limit: 1 });
   if (!isBillValidated) throw Boom.notFound();
 
   return null;

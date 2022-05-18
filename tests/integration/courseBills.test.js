@@ -287,6 +287,20 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       });
     });
 
+    it('should return 400 if payer is funding organisation and company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        payload: {
+          ...payload,
+          payer: { fundingOrganisation: courseFundingOrganisationList[0]._id, company: otherCompany._id },
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const wrongParams = ['course', 'company'];
     wrongParams.forEach((param) => {
       it(`should return 404 as ${param} doesn't exists`, async () => {
@@ -576,6 +590,17 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
 
         expect(response.statusCode).toBe(400);
       });
+    });
+
+    it('should return 400 if payer is funding organisation and company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[0]._id}`,
+        payload: { payer: { fundingOrganisation: courseFundingOrganisationList[0]._id, company: authCompany._id } },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 404 if course bill doesn\'t exist', async () => {

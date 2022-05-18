@@ -100,17 +100,14 @@ exports.updateCourseBill = async (courseBillId, payload) => {
     };
   } else {
     let payloadToSet = payload;
-    let payloadToUnset = {};
+    const payloadToUnset = {};
     if (get(payload, 'mainFee.description') === '') {
       payloadToSet = omit(payloadToSet, 'mainFee.description');
-      payloadToUnset = { ...payloadToUnset, 'mainFee.description': '' };
+      payloadToUnset['mainFee.description'] = '';
     }
 
-    if (get(payload, 'payer.company')) {
-      payloadToUnset = { ...payloadToUnset, 'payer.fundingOrganisation': '' };
-    } else if (get(payload, 'payer.fundingOrganisation')) {
-      payloadToUnset = { ...payloadToUnset, 'payer.company': '' };
-    }
+    if (get(payload, 'payer.company')) payloadToUnset['payer.fundingOrganisation'] = '';
+    else if (get(payload, 'payer.fundingOrganisation')) payloadToUnset['payer.company'] = '';
 
     formattedPayload = {
       ...(Object.keys(payloadToSet).length && { $set: flat(payloadToSet, { safe: true }) }),
@@ -151,8 +148,8 @@ exports.generateBillPdf = async (billId) => {
     })
     .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
     .populate({ path: 'company', select: 'name address' })
-    .populate('payer.fundingOrganisation')
-    .populate('payer.company')
+    .populate({ path: 'payer.fundingOrganisation' })
+    .populate({ path: 'payer.company' })
     .lean();
 
   const data = {
