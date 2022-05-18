@@ -219,7 +219,7 @@ describe('updateCompany', () => {
   });
   it('should update company', async () => {
     const companyId = new ObjectId();
-    const payload = { tradeName: 'toto' };
+    const payload = { tradeName: 'toto', rhConfig: { shouldPayHolidays: true } };
     findOneAndUpdate.returns({ _id: companyId });
 
     const result = await CompanyHelper.updateCompany(companyId, payload);
@@ -228,7 +228,7 @@ describe('updateCompany', () => {
     sinon.assert.calledWithExactly(
       findOneAndUpdate,
       { _id: companyId },
-      { $set: flat({ tradeName: 'toto' }) },
+      { $set: flat({ tradeName: 'toto', rhConfig: { shouldPayHolidays: true } }) },
       { new: true }
     );
   });
