@@ -39,6 +39,8 @@ function formatPayer(doc, next) {
 }
 
 function formatPayers(docs, next) {
+  if (this._fields['payer.fundingOrganisation']) return next();
+
   for (const doc of docs) {
     if (get(doc, 'payer.company')) doc.payer = doc.payer.company;
     if (get(doc, 'payer.fundingOrganisation')) doc.payer = doc.payer.fundingOrganisation;
