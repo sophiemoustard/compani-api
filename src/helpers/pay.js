@@ -130,7 +130,7 @@ const updateVersionsWithSectorDates = (version, sector) => {
   return returnedVersion;
 };
 
-exports.computeHoursToWork = (month, contracts) => {
+exports.computeHoursToWork = (month, contracts, shouldPayHolidays) => {
   const contractsInfoSum = { contractHours: 0, holidaysHours: 0, absencesHours: 0 };
 
   for (const contract of contracts) {
@@ -145,7 +145,7 @@ exports.computeHoursToWork = (month, contracts) => {
     versions = versions.map(version => updateVersionsWithSectorDates(version, contract.sector));
     const contractWithSectorDates = { ...contract, versions };
 
-    const contractInfo = DraftPayHelper.getContractMonthInfo(contractWithSectorDates, contractQuery);
+    const contractInfo = DraftPayHelper.getContractMonthInfo(contractWithSectorDates, contractQuery, shouldPayHolidays);
     contractsInfoSum.contractHours += contractInfo.contractHours;
     contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
 
@@ -164,6 +164,7 @@ exports.computeHoursToWork = (month, contracts) => {
 exports.getHoursToWorkBySector = async (query, credentials) => {
   const hoursToWorkBySector = [];
   const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
+  const shouldPayHolidays = get(credentials.company.rhConfig, 'shouldPayHolidays');
 
   const contractsAndAbsencesBySector = await SectorHistoryRepository.getContractsAndAbsencesBySector(
     query.month,
@@ -174,7 +175,7 @@ exports.getHoursToWorkBySector = async (query, credentials) => {
   for (const sector of contractsAndAbsencesBySector) {
     hoursToWorkBySector.push({
       sector: sector._id,
-      hoursToWork: exports.computeHoursToWork(query.month, sector.contracts),
+      hoursToWork: exports.computeHoursToWork(query.month, sector.contracts, shouldPayHolidays),
     });
   }
 

@@ -361,7 +361,7 @@ exports.saveCompletedContract = async (everSignDoc) => {
   );
 };
 
-exports.getContractInfo = (versions, query, monthRatio) => {
+exports.getContractInfo = (versions, query, monthRatio, shouldPayHolidays) => {
   let contractHours = 0;
   let workedDays = 0;
   let holidaysHours = 0;
@@ -373,7 +373,7 @@ exports.getContractInfo = (versions, query, monthRatio) => {
     const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
       ? moment(version.endDate).endOf('d').toDate()
       : moment(query.endDate).toDate();
-    const ratio = UtilsHelper.getDaysRatioBetweenTwoDates(startDate, endDate);
+    const ratio = UtilsHelper.getDaysRatioBetweenTwoDates(startDate, endDate, shouldPayHolidays);
 
     const versionDays = ratio.businessDays + ratio.holidays;
     workedDays += versionDays;
