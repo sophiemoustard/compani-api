@@ -148,8 +148,8 @@ exports.generateBillPdf = async (billId) => {
     })
     .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
     .populate({ path: 'company', select: 'name address' })
-    .populate({ path: 'payer.fundingOrganisation' })
-    .populate({ path: 'payer.company' })
+    .populate({ path: 'payer.fundingOrganisation', select: 'name address' })
+    .populate({ path: 'payer.company', select: 'name address' })
     .lean();
 
   const data = {

@@ -642,8 +642,8 @@ describe('generateBillPdf', () => {
           }],
         },
         { query: 'populate', args: [{ path: 'company', select: 'name address' }] },
-        { query: 'populate', args: [{ path: 'payer.fundingOrganisation' }] },
-        { query: 'populate', args: [{ path: 'payer.company' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name address' }] },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name address' }] },
         { query: 'lean' },
       ]);
   });
