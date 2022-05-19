@@ -2,6 +2,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
+const { keyBy } = require('lodash');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -145,7 +146,9 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
   const companyId = get(credentials, 'company._id');
   const events = await exports.getWorkingEventsForExport(startDate, endDate, companyId);
   const auxiliaryIds = [...new Set(events.map(ev => ev.auxiliary))];
-  const auxiliaries = await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId);
+  console.time('getAuxiliariesWithSectorHistory');
+  const auxiliaries = keyBy(await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId), '_id');
+  console.timeEnd('getAuxiliariesWithSectorHistory');
 
   const rows = [workingEventExportHeader];
 
@@ -153,9 +156,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
     let repetition = get(event.repetition, 'frequency');
     repetition = NEVER === repetition ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
 
-    const auxiliary = event.auxiliary
-      ? auxiliaries.find(aux => aux._id.toHexString() === event.auxiliary.toHexString())
-      : null;
+    const auxiliary = auxiliaries[event.auxiliary];
     const auxiliarySector = auxiliary ? getMatchingSector(auxiliary.sectorHistory, event) : null;
 
     const startHourTimeStamping = event.histories.find(history => get(history, 'update.startHour'));
