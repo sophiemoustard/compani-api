@@ -111,7 +111,7 @@ const displayDate = (path, timestamp = null, scheduledDate = null) => {
   if (timestamp) date = CompaniDate(get(timestamp, path)).toLocalISO();
   if (scheduledDate) date = CompaniDate(scheduledDate).toLocalISO();
 
-  return date.replace('-', '/').replace('-', '/').replace('T', ' ').slice(0, 19);
+  return date.replace(/-/g, '/').replace('T', ' ').slice(0, 19);
 };
 
 exports.EVENT_PROJECTION_FILEDS = {
