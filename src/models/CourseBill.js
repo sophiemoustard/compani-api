@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
@@ -49,6 +50,20 @@ function formatPayers(docs, next) {
   return next();
 }
 
+function save(next) {
+  try {
+    const courseBill = this;
+
+    if (!courseBill.payer) return next(Boom.badRequest());
+
+    const isCompanyOrFundingOrganisation = !(!!this.payer.company === !!this.payer.fundingOrganisation);
+
+    return isCompanyOrFundingOrganisation ? next() : next(Boom.badRequest());
+  } catch (e) {
+    return next(e);
+  }
+}
+
 CourseBillSchema.virtual('coursePayments', { ref: 'CoursePayment', localField: '_id', foreignField: 'courseBill' });
 
 CourseBillSchema.virtual(
@@ -59,6 +74,7 @@ CourseBillSchema.virtual(
 CourseBillSchema.pre('find', validateQuery);
 CourseBillSchema.pre('aggregate', validateAggregation);
 formatQueryMiddlewareList().map(middleware => CourseBillSchema.pre(middleware, formatQuery));
+CourseBillSchema.pre('save', save);
 
 CourseBillSchema.post('find', formatPayers);
 CourseBillSchema.post('findOne', formatPayer);
