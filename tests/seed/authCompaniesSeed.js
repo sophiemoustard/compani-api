@@ -33,6 +33,7 @@ const authCompany = {
   rhConfig: {
     amountPerKm: 0.22,
     phoneFeeAmount: 18,
+    shouldPayHolidays: true,
   },
 };
 
