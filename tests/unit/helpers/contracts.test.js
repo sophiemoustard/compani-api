@@ -1434,7 +1434,8 @@ describe('getContractInfo', () => {
     const query = { startDate: '2019-06-03', endDate: '2019-06-07' };
     getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 0, holidays: 0 });
 
-    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
+    const result = ContractHelper
+      .getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 }, false);
 
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(8);
@@ -1443,7 +1444,8 @@ describe('getContractInfo', () => {
     sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-06-03').toDate(),
-      moment('2019-06-07').toDate()
+      moment('2019-06-07').toDate(),
+      false
     );
   });
 
@@ -1452,13 +1454,15 @@ describe('getContractInfo', () => {
     const query = { startDate: '2019-06-03', endDate: '2019-06-09' };
     getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
 
-    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
+    const result = ContractHelper
+      .getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 }, false);
 
     expect(result).toBeDefined();
     sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-06-03').startOf('d').toDate(),
-      moment('2019-06-09').toDate()
+      moment('2019-06-09').toDate(),
+      false
     );
   });
 
@@ -1470,7 +1474,8 @@ describe('getContractInfo', () => {
     const query = { startDate: '2019-06-27', endDate: '2019-07-05' };
     getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
 
-    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
+    const result = ContractHelper
+      .getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 }, false);
 
     expect(result).toBeDefined();
     sinon.assert.calledTwice(getDaysRatioBetweenTwoDates);
@@ -1481,7 +1486,7 @@ describe('getContractInfo', () => {
     const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
     getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 0, holidays: 1 });
 
-    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
+    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 }, true);
 
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(12);
@@ -1492,7 +1497,8 @@ describe('getContractInfo', () => {
       moment('2019-05-04')
         .startOf('d')
         .toDate(),
-      moment('2019-05-10').toDate()
+      moment('2019-05-10').toDate(),
+      true
     );
   });
 });
