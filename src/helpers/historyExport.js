@@ -107,12 +107,14 @@ const getMatchingSector = (histories, event) => histories
   .sort(DatesHelper.descendingSort('startDate'))[0];
 
 const displayDate = (path, timestamp = null, scheduledDate = null) => {
-  if (timestamp) return CompaniDate(get(timestamp, path)).format('dd/LL/yyyy HH:mm:ss');
-  if (scheduledDate) return CompaniDate(scheduledDate).format('dd/LL/yyyy HH:mm:ss');
-  return '';
+  let date = '';
+  if (timestamp) date = CompaniDate(get(timestamp, path)).toLocalISO();
+  if (scheduledDate) date = CompaniDate(scheduledDate).toLocalISO();
+
+  return date.replace('-', '/').replace('-', '/').replace('T', ' ').slice(0, 19);
 };
 
-const EVENT_PROJECTION_FILEDS = {
+exports.EVENT_PROJECTION_FILEDS = {
   type: 1,
   startDate: 1,
   endDate: 1,
@@ -139,7 +141,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     endDate: { $gte: startDate },
   };
 
-  const events = await Event.find(query, EVENT_PROJECTION_FILEDS)
+  const events = await Event.find(query, exports.EVENT_PROJECTION_FILEDS)
     .sort({ startDate: -1 })
     .populate({
       path: 'customer',

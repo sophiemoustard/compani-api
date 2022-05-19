@@ -37,6 +37,10 @@ const CompaniDateFactory = (inputDate) => {
       return _date.toUTC().toISO();
     },
 
+    toLocalISO() {
+      return _date.toLocal().toISO();
+    },
+
     // QUERY
     isBefore(miscTypeOtherDate) {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);

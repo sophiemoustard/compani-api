@@ -134,6 +134,15 @@ describe('DISPLAY', () => {
       expect(result).toEqual('2021-12-24T09:00:00.000Z');
     });
   });
+
+  describe('toLocalISO', () => {
+    it('should return a string ISO 8601 equivalent to companiDate (in local)', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2021-12-24T12:00:00.000+03:00');
+      const result = companiDate.toLocalISO();
+
+      expect(result).toEqual('2021-12-24T10:00:00.000+01:00');
+    });
+  });
 });
 
 describe('QUERY', () => {
