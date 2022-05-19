@@ -182,7 +182,7 @@ describe('getWorkingEventsForExport', () => {
           query: 'populate',
           args: [{
             path: 'customer',
-            populate: { path: 'subscriptions', populate: 'service', select: 'versions' },
+            populate: { path: 'subscriptions', select: 'service', populate: { path: 'service', select: 'versions' } },
             select: 'subscriptions identity',
           }],
         },

@@ -145,8 +145,8 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     .sort({ startDate: -1 })
     .populate({
       path: 'customer',
-      populate: { path: 'subscriptions', populate: 'service', select: 'versions' },
       select: 'subscriptions identity',
+      populate: { path: 'subscriptions', select: 'service', populate: { path: 'service', select: 'versions' } },
     })
     .populate({ path: 'internalHour', select: 'name' })
     .populate({ path: 'sector', select: 'name' })
