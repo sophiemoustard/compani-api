@@ -135,11 +135,8 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
   const query = {
     company: companyId,
     type: { $in: [INTERVENTION, INTERNAL_HOUR] },
-    $or: [
-      { startDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-    ],
+    startDate: { $lte: endDate },
+    endDate: { $gte: startDate },
   };
 
   const events = await Event.find(query, EVENT_PROJECTION_FILEDS)
