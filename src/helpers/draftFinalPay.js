@@ -1,6 +1,5 @@
 const moment = require('moment');
 const get = require('lodash/get');
-const { WEEKS_PER_MONTH } = require('./constants');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
 const DistanceMatrix = require('../models/DistanceMatrix');
@@ -8,19 +7,6 @@ const ContractRepository = require('../repositories/ContractRepository');
 const EventRepository = require('../repositories/EventRepository');
 const DraftPayHelper = require('./draftPay');
 const UtilsHelper = require('./utils');
-const ContractHelper = require('./contracts');
-
-exports.getContractMonthInfo = (contract, query) => {
-  const start = moment(query.startDate).startOf('M').toDate();
-  const end = moment(query.startDate).endOf('M').toDate();
-  const versions = contract.versions.filter(ver => (moment(ver.startDate).isSameOrBefore(query.endDate) &&
-    ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate)));
-  const monthBusinessDays = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
-
-  const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);
-
-  return { contractHours: info.contractHours * WEEKS_PER_MONTH, workedDaysRatio: info.workedDaysRatio };
-};
 
 exports.computeAuxiliaryDraftFinalPay = async (
   auxiliary,

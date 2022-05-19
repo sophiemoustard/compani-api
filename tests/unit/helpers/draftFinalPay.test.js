@@ -4,8 +4,6 @@ const moment = require('moment');
 const { ObjectId } = require('mongodb');
 const DraftFinalPayHelper = require('../../../src/helpers/draftFinalPay');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
-const ContractHelper = require('../../../src/helpers/contracts');
-const UtilsHelper = require('../../../src/helpers/utils');
 const Company = require('../../../src/models/Company');
 const Surcharge = require('../../../src/models/Surcharge');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
@@ -13,47 +11,6 @@ const FinalPay = require('../../../src/models/FinalPay');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const SinonMongoose = require('../sinonMongoose');
-
-describe('getContractMonthInfo', () => {
-  let getDaysRatioBetweenTwoDates;
-  let getContractInfo;
-  beforeEach(() => {
-    getDaysRatioBetweenTwoDates = sinon.stub(UtilsHelper, 'getDaysRatioBetweenTwoDates');
-    getContractInfo = sinon.stub(ContractHelper, 'getContractInfo');
-  });
-  afterEach(() => {
-    getDaysRatioBetweenTwoDates.restore();
-    getContractInfo.restore();
-  });
-
-  it('should get contract month info', () => {
-    const versions = [
-      { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-      { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
-    ];
-    const contract = { versions, endDate: '2019-05-16' };
-    const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
-    getDaysRatioBetweenTwoDates.returns(4);
-    getContractInfo.returns({ contractHours: 12, workedDaysRatio: 1 / 4 });
-
-    const result = DraftFinalPayHelper.getContractMonthInfo(contract, query);
-
-    expect(result).toBeDefined();
-    expect(result.contractHours).toBe(52);
-    expect(result.workedDaysRatio).toBe(1 / 4);
-    sinon.assert.calledWithExactly(
-      getDaysRatioBetweenTwoDates,
-      moment('2019-05-06').startOf('M').toDate(),
-      moment('2019-05-06').endOf('M').toDate()
-    );
-    sinon.assert.calledWithExactly(
-      getContractInfo,
-      [{ endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 }],
-      query,
-      4
-    );
-  });
-});
 
 describe('computeAuxiliaryDraftFinalPay', () => {
   let computeBalance;
