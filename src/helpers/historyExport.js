@@ -112,6 +112,25 @@ const displayDate = (path, timestamp = null, scheduledDate = null) => {
   return '';
 };
 
+const EVENT_PROJECTION_FILEDS = {
+  type: 1,
+  startDate: 1,
+  endDate: 1,
+  auxiliary: 1,
+  sector: 1,
+  customer: 1,
+  subscription: 1,
+  internalHour: 1,
+  address: 1,
+  misc: 1,
+  repetition: 1,
+  isCancelled: 1,
+  cancel: 1,
+  isBilled: 1,
+  transportMode: 1,
+  kmDuringEvent: 1,
+};
+
 exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
   const query = {
     company: companyId,
@@ -123,32 +142,39 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     ],
   };
 
-  const events = await Event.find(query)
+  const events = await Event.find(query, EVENT_PROJECTION_FILEDS)
     .sort({ startDate: -1 })
-    .populate({ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } })
-    .populate('internalHour')
-    .populate('sector')
-    .populate({ path: 'histories', match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId } })
+    .populate({
+      path: 'customer',
+      populate: { path: 'subscriptions', populate: 'service', select: 'versions' },
+      select: 'subscriptions identity',
+    })
+    .populate({ path: 'internalHour', select: 'name' })
+    .populate({ path: 'sector', select: 'name' })
+    .populate({
+      path: 'histories',
+      match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId },
+      select: 'update action manualTimeStampingReason',
+    })
     .lean();
 
-  const eventsWithPopulatedSubscription = events.map((event) => {
+  return events.map((event) => {
     if (event.type !== INTERVENTION) return event;
-    const { subscription, customer } = event;
-    const customerSubscription = customer.subscriptions.find(sub =>
-      UtilsHelper.areObjectIdsEquals(sub._id, subscription));
-    return { ...event, subscription: customerSubscription };
-  });
 
-  return eventsWithPopulatedSubscription;
+    const { subscription, customer } = event;
+
+    return {
+      ...event,
+      subscription: customer.subscriptions.find(sub => UtilsHelper.areObjectIdsEquals(sub._id, subscription)),
+    };
+  });
 };
 
 exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id');
   const events = await exports.getWorkingEventsForExport(startDate, endDate, companyId);
   const auxiliaryIds = [...new Set(events.map(ev => ev.auxiliary))];
-  console.time('getAuxiliariesWithSectorHistory');
   const auxiliaries = keyBy(await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId), '_id');
-  console.timeEnd('getAuxiliariesWithSectorHistory');
 
   const rows = [workingEventExportHeader];
 
