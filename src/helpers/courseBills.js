@@ -6,6 +6,7 @@ const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
 const PdfHelper = require('./pdf');
 const BalanceHelper = require('./balances');
+const UtilsHelper = require('./utils');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
 const { LIST } = require('./constants');
@@ -51,7 +52,7 @@ exports.formatCourseBill = (courseBill) => {
 
 const balance = async (company, credentials) => {
   const courseBills = await CourseBill
-    .find({ company, billedAt: { $exists: true, $type: 'date' } })
+    .find({ $or: [{ company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
     .populate({
       path: 'course',
       select: 'misc slots slotsToPlan subProgram',
@@ -63,6 +64,10 @@ const balance = async (company, credentials) => {
     })
     .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
+    .setOptions({
+      isVendorUser: !!get(credentials, 'role.vendor'),
+      requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, credentials.company._id),
+    })
     .lean();
 
   return courseBills.map(bill => exports.formatCourseBill(bill));
