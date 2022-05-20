@@ -2,6 +2,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const uniqBy = require('lodash/uniqBy');
 const groupBy = require('lodash/groupBy');
+const { keyBy } = require('lodash');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -106,46 +107,73 @@ const getMatchingSector = (histories, event) => histories
   .sort(DatesHelper.descendingSort('startDate'))[0];
 
 const displayDate = (path, timestamp = null, scheduledDate = null) => {
-  if (timestamp) return CompaniDate(get(timestamp, path)).format('dd/LL/yyyy HH:mm:ss');
-  if (scheduledDate) return CompaniDate(scheduledDate).format('dd/LL/yyyy HH:mm:ss');
-  return '';
+  let date = '';
+  if (timestamp) date = CompaniDate(get(timestamp, path)).toLocalISO();
+  if (scheduledDate) date = CompaniDate(scheduledDate).toLocalISO();
+
+  return date.replace(/-/g, '/').replace('T', ' ').slice(0, 19);
+};
+
+exports.EVENT_PROJECTION_FILEDS = {
+  type: 1,
+  startDate: 1,
+  endDate: 1,
+  auxiliary: 1,
+  sector: 1,
+  customer: 1,
+  subscription: 1,
+  internalHour: 1,
+  address: 1,
+  misc: 1,
+  repetition: 1,
+  isCancelled: 1,
+  cancel: 1,
+  isBilled: 1,
+  transportMode: 1,
+  kmDuringEvent: 1,
 };
 
 exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
   const query = {
     company: companyId,
     type: { $in: [INTERVENTION, INTERNAL_HOUR] },
-    $or: [
-      { startDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-    ],
+    startDate: { $lte: endDate },
+    endDate: { $gte: startDate },
   };
 
-  const events = await Event.find(query)
+  const events = await Event.find(query, exports.EVENT_PROJECTION_FILEDS)
     .sort({ startDate: -1 })
-    .populate({ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } })
-    .populate('internalHour')
-    .populate('sector')
-    .populate({ path: 'histories', match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId } })
+    .populate({
+      path: 'customer',
+      select: 'subscriptions identity',
+      populate: { path: 'subscriptions', select: 'service', populate: { path: 'service', select: 'versions' } },
+    })
+    .populate({ path: 'internalHour', select: 'name' })
+    .populate({ path: 'sector', select: 'name' })
+    .populate({
+      path: 'histories',
+      match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId },
+      select: 'update action manualTimeStampingReason',
+    })
     .lean();
 
-  const eventsWithPopulatedSubscription = events.map((event) => {
+  return events.map((event) => {
     if (event.type !== INTERVENTION) return event;
-    const { subscription, customer } = event;
-    const customerSubscription = customer.subscriptions.find(sub =>
-      UtilsHelper.areObjectIdsEquals(sub._id, subscription));
-    return { ...event, subscription: customerSubscription };
-  });
 
-  return eventsWithPopulatedSubscription;
+    const { subscription, customer } = event;
+
+    return {
+      ...event,
+      subscription: customer.subscriptions.find(sub => UtilsHelper.areObjectIdsEquals(sub._id, subscription)),
+    };
+  });
 };
 
 exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id');
   const events = await exports.getWorkingEventsForExport(startDate, endDate, companyId);
   const auxiliaryIds = [...new Set(events.map(ev => ev.auxiliary))];
-  const auxiliaries = await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId);
+  const auxiliaries = keyBy(await UserRepository.getAuxiliariesWithSectorHistory(auxiliaryIds, companyId), '_id');
 
   const rows = [workingEventExportHeader];
 
@@ -153,9 +181,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
     let repetition = get(event.repetition, 'frequency');
     repetition = NEVER === repetition ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
 
-    const auxiliary = event.auxiliary
-      ? auxiliaries.find(aux => aux._id.toHexString() === event.auxiliary.toHexString())
-      : null;
+    const auxiliary = auxiliaries[event.auxiliary];
     const auxiliarySector = auxiliary ? getMatchingSector(auxiliary.sectorHistory, event) : null;
 
     const startHourTimeStamping = event.histories.find(history => get(history, 'update.startHour'));
