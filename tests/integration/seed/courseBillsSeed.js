@@ -150,7 +150,7 @@ const billingItemList = [
   { _id: new ObjectId(), name: 'petit déjeuner' },
 ];
 
-const courseBillNumber = { _id: new ObjectId(), seq: 1 };
+const courseBillNumber = { _id: new ObjectId(), seq: 3 };
 
 const courseBillsList = [
   { // 0
@@ -214,6 +214,18 @@ const courseBillsList = [
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
+  },
+  { // 6 - payer is other company
+    _id: new ObjectId(),
+    course: courseList[6]._id,
+    company: otherCompany._id,
+    payer: { company: authCompany._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00003',
   },
 ];
 
