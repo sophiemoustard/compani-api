@@ -100,15 +100,15 @@ exports.getBalancesFromCreditNotes = (creditNote, payments, tppList) => {
     : payments.find(pay => isCustomerAndTppDoc(creditNote, pay));
 
   const paid = matchingPayment && matchingPayment.payments ? exports.computePayments(matchingPayment.payments) : 0;
-  const billed = -creditNote.refund;
+  const billedString = NumbersHelper.subtract(0, creditNote.refund);
 
   return {
     customer: creditNote.customer,
     participationRate: exports.formatParticipationRate(creditNote, tppList),
-    billed,
+    billed: NumbersHelper.toFixedToFloat(billedString),
     paid,
     toPay: 0,
-    balance: NumbersHelper.toFixedToFloat(NumbersHelper.subtract(paid, billed)),
+    balance: NumbersHelper.toFixedToFloat(NumbersHelper.subtract(paid, billedString)),
     ...(creditNote.thirdPartyPayer && { thirdPartyPayer: { ...creditNote.thirdPartyPayer } }),
   };
 };
@@ -147,9 +147,7 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
     customersIds = notArchivedCustomers.map(cus => cus._id);
   }
 
-  // TODO : replace $sum par un $push puis un reduce ?
   const bills = await BillRepository.findAmountsGroupedByClient(companyId, customersIds, maxDate);
-  // TODO : replace $sum par un $push puis un reduce ?
   const customerCNAggregation = await CreditNoteRepository
     .findAmountsGroupedByCustomer(companyId, customersIds, maxDate);
   const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId, customersIds, maxDate);
