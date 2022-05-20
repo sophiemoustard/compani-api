@@ -1,17 +1,18 @@
 const moment = require('moment');
 const groupBy = require('lodash/groupBy');
+const NumbersHelper = require('../helpers/numbers');
 const Bill = require('../models/Bill');
 
 exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = null) => {
   const rules = [{ customer: { $in: customersIds } }];
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
-  const billsAmounts = await Bill.aggregate([
+  const bills = await Bill.aggregate([
     { $match: { $and: rules } },
     {
       $group: {
         _id: { tpp: { $ifNull: ['$thirdPartyPayer', null] }, customer: '$customer' },
-        billed: { $sum: '$netInclTaxes' },
+        billedList: { $push: '$netInclTaxes' },
       },
     },
     { $lookup: { from: 'customers', localField: '_id.customer', foreignField: '_id', as: 'customer' } },
@@ -23,12 +24,15 @@ exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = n
         _id: 1,
         customer: { _id: 1, identity: 1, payment: 1, fundings: 1 },
         thirdPartyPayer: { name: 1, _id: 1 },
-        billed: 1,
+        billedList: 1,
       },
     },
   ]).option({ company: companyId });
 
-  return billsAmounts;
+  return bills.map(bill => ({
+    ...bill,
+    billed: bill.billedList.reduce((acc, b) => NumbersHelper.add(acc, b), NumbersHelper.toString(0)),
+  }));
 };
 
 exports.findBillsAndHelpersByCustomer = async (date) => {
