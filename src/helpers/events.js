@@ -471,8 +471,8 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 });
 
 exports.workingStats = async (query, credentials) => {
-  const companyId = get(credentials.company, '_id');
-  const shouldPayHolidays = get(credentials.company.rhConfig, 'shouldPayHolidays');
+  const companyId = get(credentials, 'company._id');
+  const shouldPayHolidays = get(credentials, 'company.rhConfig.shouldPayHolidays');
   let auxiliaryIds = [];
 
   if (query.auxiliary) {

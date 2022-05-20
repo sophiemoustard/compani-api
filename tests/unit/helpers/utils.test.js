@@ -263,7 +263,7 @@ describe('getDaysRatioBetweenTwoDates', () => {
     expect(result).toEqual({ holidays: 0, sundays: 1, businessDays: 5 });
   });
 
-  it('Case 3. Holidays in range and shouldPayHolidays', () => {
+  it('Case 3. Holidays in range and company should pay holidays', () => {
     const start = new Date('2022/04/17');
     const end = new Date('2022/04/19');
     const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, true);
@@ -272,7 +272,7 @@ describe('getDaysRatioBetweenTwoDates', () => {
     expect(result).toEqual({ holidays: 1, sundays: 1, businessDays: 1 });
   });
 
-  it('Case 4. Holidays in range and shouldPayHolidays', () => {
+  it('Case 4. Holidays in range and company should not pay holidays', () => {
     const start = new Date('2022/04/17');
     const end = new Date('2022/04/19');
     const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, false);

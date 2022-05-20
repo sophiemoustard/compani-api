@@ -386,7 +386,7 @@ const getPhoneFees = (auxiliary, contractInfo, company) => {
 };
 
 exports.computeBalance = async (auxiliary, contract, eventsToPay, subscriptions, company, query, dm, surcharges) => {
-  const shouldPayHolidays = get(company.rhConfig, 'shouldPayHolidays');
+  const shouldPayHolidays = get(company, 'rhConfig.shouldPayHolidays');
   const contractInfo = exports.getContractMonthInfo(contract, query, shouldPayHolidays);
 
   const contractEvents = filterEvents(eventsToPay, contract);

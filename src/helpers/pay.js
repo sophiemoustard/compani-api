@@ -164,7 +164,7 @@ exports.computeHoursToWork = (month, contracts, shouldPayHolidays) => {
 exports.getHoursToWorkBySector = async (query, credentials) => {
   const hoursToWorkBySector = [];
   const sectors = UtilsHelper.formatObjectIdsArray(query.sector);
-  const shouldPayHolidays = get(credentials.company.rhConfig, 'shouldPayHolidays');
+  const shouldPayHolidays = get(credentials, 'company.rhConfig.shouldPayHolidays');
 
   const contractsAndAbsencesBySector = await SectorHistoryRepository.getContractsAndAbsencesBySector(
     query.month,
