@@ -30,8 +30,10 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
   if (hasEmptyDates) {
     const historyPayload = pick(slotFromDb, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
     await CourseHistoriesHelper.createHistoryOnSlotDeletion(historyPayload, user._id);
-    await CourseSlot
-      .updateOne({ _id: slotFromDb._id }, { $unset: { startDate: '', endDate: '', meetingLink: '', address: '' } });
+    await CourseSlot.updateOne(
+      { _id: slotFromDb._id },
+      { $unset: { startDate: '', endDate: '', meetingLink: '', address: '' } }
+    );
   } else {
     const updatePayload = { $set: payload };
     const step = await Step.findById(slotFromDb.step._id).lean();
