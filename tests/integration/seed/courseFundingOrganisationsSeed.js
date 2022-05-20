@@ -34,7 +34,7 @@ const courseBills = [
     course: new ObjectId(),
     mainFee: { price: 1000, count: 1 },
     company: new ObjectId(),
-    courseFundingOrganisation: courseFundingOrganisationsList[1]._id,
+    payer: { fundingOrganisation: courseFundingOrganisationsList[1]._id },
     billingPurchaseList: [],
   },
 ];

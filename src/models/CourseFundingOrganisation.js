@@ -12,7 +12,7 @@ const CourseFundingOrganisationSchema = mongoose.Schema({
 CourseFundingOrganisationSchema.virtual('courseBillCount', {
   ref: 'CourseBill',
   localField: '_id',
-  foreignField: 'courseFundingOrganisation',
+  foreignField: 'payer.fundingOrganisation',
   count: true,
 });
 

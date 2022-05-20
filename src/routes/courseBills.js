@@ -56,7 +56,10 @@ exports.plugin = {
               count: Joi.number().positive().integer().required(),
             }).required(),
             company: Joi.objectId().required(),
-            courseFundingOrganisation: Joi.objectId(),
+            payer: Joi.object({
+              company: Joi.objectId(),
+              fundingOrganisation: Joi.objectId(),
+            }).xor('company', 'fundingOrganisation').required(),
           }),
         },
         pre: [{ method: authorizeCourseBillCreation }],
@@ -73,7 +76,10 @@ exports.plugin = {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.alternatives().try(
             Joi.object({
-              courseFundingOrganisation: Joi.objectId().allow(''),
+              payer: Joi.object({
+                company: Joi.objectId(),
+                fundingOrganisation: Joi.objectId(),
+              }).oxor('company', 'fundingOrganisation'),
               mainFee: Joi.object({
                 price: Joi.number().positive(),
                 count: Joi.number().positive().integer(),

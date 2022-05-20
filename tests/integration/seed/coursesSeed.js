@@ -322,6 +322,7 @@ const courseBillsList = [
     billingPurchaseList: [],
     billedAt: '2022-04-12T09:00:00',
     number: 'F00001',
+    payer: { company: authCompany._id },
   },
 ];
 

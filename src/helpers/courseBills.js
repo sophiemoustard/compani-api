@@ -73,7 +73,8 @@ exports.list = async (query, credentials) => {
     const courseBills = await CourseBill
       .find({ course: query.course })
       .populate({ path: 'company', select: 'name' })
-      .populate({ path: 'courseFundingOrganisation', select: 'name' })
+      .populate({ path: 'payer.fundingOrganisation', select: 'name' })
+      .populate({ path: 'payer.company', select: 'name' })
       .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
       .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
       .lean();
@@ -99,14 +100,14 @@ exports.updateCourseBill = async (courseBillId, payload) => {
     };
   } else {
     let payloadToSet = payload;
-    let payloadToUnset = {};
-
-    for (const key of ['courseFundingOrganisation', 'mainFee.description']) {
-      if (get(payload, key) === '') {
-        payloadToSet = omit(payloadToSet, key);
-        payloadToUnset = { ...payloadToUnset, [key]: '' };
-      }
+    const payloadToUnset = {};
+    if (get(payload, 'mainFee.description') === '') {
+      payloadToSet = omit(payloadToSet, 'mainFee.description');
+      payloadToUnset['mainFee.description'] = '';
     }
+
+    if (get(payload, 'payer.company')) payloadToUnset['payer.fundingOrganisation'] = '';
+    else if (get(payload, 'payer.fundingOrganisation')) payloadToUnset['payer.company'] = '';
 
     formattedPayload = {
       ...(Object.keys(payloadToSet).length && { $set: flat(payloadToSet, { safe: true }) }),
@@ -147,7 +148,8 @@ exports.generateBillPdf = async (billId) => {
     })
     .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
     .populate({ path: 'company', select: 'name address' })
-    .populate('courseFundingOrganisation')
+    .populate({ path: 'payer.fundingOrganisation', select: 'name address' })
+    .populate({ path: 'payer.company', select: 'name address' })
     .lean();
 
   const data = {
@@ -155,7 +157,7 @@ exports.generateBillPdf = async (billId) => {
     date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
     vendorCompany,
     company: bill.company,
-    payer: bill.courseFundingOrganisation || bill.company,
+    payer: bill.payer,
     course: bill.course,
     mainFee: bill.mainFee,
     billingPurchaseList: bill.billingPurchaseList,
