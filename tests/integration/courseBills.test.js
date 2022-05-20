@@ -317,7 +317,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
 
     const wrongPayers = ['company', 'fundingOrganisation'];
     wrongPayers.forEach((payer) => {
-      it(`should return 404 as ${payer} as payer doesn't exists`, async () => {
+      it(`should return 404 if ${payer} doesn't exists`, async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/coursebills',

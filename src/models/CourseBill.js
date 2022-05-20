@@ -16,7 +16,7 @@ const CourseBillSchema = mongoose.Schema({
       company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     }, { _id: false, id: false }),
     required: true,
-    validate() { return !(!!this.payer.company === !!this.payer.fundingOrganisation); },
+    validate() { return !!this.payer.company !== !!this.payer.fundingOrganisation; },
   },
   billingPurchaseList: {
     type: [mongoose.Schema({
