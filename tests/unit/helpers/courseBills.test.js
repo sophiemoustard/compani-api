@@ -10,7 +10,14 @@ const PdfHelper = require('../../../src/helpers/pdf');
 const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
-const { LIST, BALANCE, PAYMENT, REFUND } = require('../../../src/helpers/constants');
+const {
+  LIST,
+  BALANCE,
+  PAYMENT,
+  REFUND,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+} = require('../../../src/helpers/constants');
 
 describe('getNetInclTaxes', () => {
   it('should return total price (without billing purchases)', async () => {
@@ -144,7 +151,7 @@ describe('list', () => {
       slotsToPlan: [],
     };
 
-    const credentials = { role: { vendor: new ObjectId() } };
+    const credentials = { role: { vendor: { name: 'training_organisation_manager' } }, company: { _id: companyId } };
     const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
     const courseBills = [
       {
@@ -166,7 +173,7 @@ describe('list', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(courseBills));
+    find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
 
     const result = await CourseBillHelper.list({ company: companyId, action: BALANCE }, credentials);
 
@@ -198,7 +205,13 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ company: companyId, billedAt: { $exists: true, $type: 'date' } }] },
+        {
+          query: 'find',
+          args: [{
+            $or: [{ company: companyId }, { 'payer.company': companyId }],
+            billedAt: { $exists: true, $type: 'date' },
+          }],
+        },
         {
           query: 'populate',
           args: [{
@@ -219,6 +232,12 @@ describe('list', () => {
           query: 'populate',
           args: [{ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
         },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+          }],
+        },
         { query: 'lean' },
       ]
     );
@@ -235,7 +254,7 @@ describe('list', () => {
       slotsToPlan: [],
     };
 
-    const credentials = { role: { vendor: new ObjectId() } };
+    const credentials = { role: { vendor: { name: 'vendor_admin' } }, company: { _id: companyId } };
     const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
     const courseBills = [
       {
@@ -257,7 +276,7 @@ describe('list', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(courseBills));
+    find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
 
     const result = await CourseBillHelper.list({ company: companyId, action: BALANCE }, credentials);
 
@@ -289,7 +308,13 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ company: companyId, billedAt: { $exists: true, $type: 'date' } }] },
+        {
+          query: 'find',
+          args: [{
+            $or: [{ company: companyId }, { 'payer.company': companyId }],
+            billedAt: { $exists: true, $type: 'date' },
+          }],
+        },
         {
           query: 'populate',
           args: [{
@@ -309,6 +334,12 @@ describe('list', () => {
         {
           query: 'populate',
           args: [{ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+        },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+          }],
         },
         { query: 'lean' },
       ]

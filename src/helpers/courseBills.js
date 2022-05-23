@@ -8,7 +8,7 @@ const PdfHelper = require('./pdf');
 const BalanceHelper = require('./balances');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
-const { LIST } = require('./constants');
+const { LIST, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.getNetInclTaxes = (bill) => {
@@ -51,7 +51,7 @@ exports.formatCourseBill = (courseBill) => {
 
 const balance = async (company, credentials) => {
   const courseBills = await CourseBill
-    .find({ company, billedAt: { $exists: true, $type: 'date' } })
+    .find({ $or: [{ company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
     .populate({
       path: 'course',
       select: 'misc slots slotsToPlan subProgram',
@@ -63,6 +63,9 @@ const balance = async (company, credentials) => {
     })
     .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
+    .setOptions({
+      isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+    })
     .lean();
 
   return courseBills.map(bill => exports.formatCourseBill(bill));

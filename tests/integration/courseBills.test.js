@@ -70,7 +70,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
     });
 
-    it('should get company bills ', async () => {
+    it('should get company bills', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursebills?company=${authCompany._id}&action=balance`,
@@ -78,7 +78,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(2);
+      expect(response.result.data.courseBills.length).toEqual(3);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
@@ -543,7 +543,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(200);
 
       const isBilled = await CourseBill
-        .countDocuments({ _id: courseBillsList[0]._id, billedAt: '2022-03-08T00:00:00.000Z', number: 'FACT-00002' });
+        .countDocuments({ _id: courseBillsList[0]._id, billedAt: '2022-03-08T00:00:00.000Z', number: 'FACT-00004' });
       expect(isBilled).toBeTruthy();
     });
 
