@@ -7,6 +7,7 @@ const CourseBillingItem = require('../../models/CourseBillingItem');
 const CourseFundingOrganisation = require('../../models/CourseFundingOrganisation');
 const UtilsHelper = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
+const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, BALANCE } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -33,7 +34,16 @@ exports.authorizeCourseBillCreation = async (req) => {
 };
 
 exports.authorizeCourseBillGet = async (req) => {
-  const { course, company } = req.query;
+  const { course, company, action } = req.query;
+
+  const { credentials } = req.auth;
+  const userVendorRole = get(credentials, 'role.vendor.name');
+  const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
+
+  if (!isAdminVendor) {
+    if (action !== BALANCE) throw Boom.badRequest();
+    if (!UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id'))) throw Boom.notFound();
+  }
 
   if (course) {
     const courseExists = await Course.countDocuments({ _id: course }, { limit: 1 });
@@ -136,9 +146,18 @@ exports.authorizeCourseBillingPurchaseDelete = async (req) => {
 };
 
 exports.authorizeBillPdfGet = async (req) => {
-  const isBillValidated = await CourseBill
-    .countDocuments({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } }, { limit: 1 });
-  if (!isBillValidated) throw Boom.notFound();
+  const { credentials } = req.auth;
+  const userVendorRole = get(credentials, 'role.vendor.name');
+  const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
+
+  const bill = await CourseBill
+    .findOne({ _id: req.params._id, billedAt: { $exists: true, $type: 'date' } }, { company: 1, payer: 1 }).lean();
+  if (!bill) throw Boom.notFound();
+
+  if (!isAdminVendor) {
+    if (!UtilsHelper.areObjectIdsEquals(bill.company, get(credentials, 'company._id')) &&
+      !UtilsHelper.areObjectIdsEquals(bill.payer, get(credentials, 'company._id'))) throw Boom.notFound();
+  }
 
   return null;
 };

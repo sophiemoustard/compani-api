@@ -118,6 +118,28 @@ const courseList = [
     contact: new ObjectId(),
     trainees: [],
   },
+  { // 7 - linked to bill 6
+    _id: new ObjectId(),
+    type: INTRA,
+    company: otherCompany._id,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 7',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [],
+  },
+  { // 8 - linked to bill 7
+    _id: new ObjectId(),
+    type: INTRA,
+    company: otherCompany._id,
+    subProgram: new ObjectId(),
+    misc: 'group 7',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [],
+  },
 ];
 const courseFundingOrganisationList = [
   {
@@ -150,7 +172,7 @@ const billingItemList = [
   { _id: new ObjectId(), name: 'petit déjeuner' },
 ];
 
-const courseBillNumber = { _id: new ObjectId(), seq: 3 };
+const courseBillNumber = { _id: new ObjectId(), seq: 4 };
 
 const courseBillsList = [
   { // 0
@@ -217,7 +239,7 @@ const courseBillsList = [
   },
   { // 6 - payer is other company
     _id: new ObjectId(),
-    course: courseList[6]._id,
+    course: courseList[7]._id,
     company: otherCompany._id,
     payer: { company: authCompany._id },
     mainFee: { price: 200, count: 2, description: 'yoyo' },
@@ -226,6 +248,18 @@ const courseBillsList = [
     ],
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00003',
+  },
+  { // 6 - payer and company is other company
+    _id: new ObjectId(),
+    course: courseList[8]._id,
+    company: otherCompany._id,
+    payer: { company: otherCompany._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00004',
   },
 ];
 

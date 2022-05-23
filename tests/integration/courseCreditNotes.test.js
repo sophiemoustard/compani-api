@@ -39,10 +39,10 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const newCreditNote = await CourseCreditNote.countDocuments({ ...payload, number: 'AV-00002' });
+      const newCreditNote = await CourseCreditNote.countDocuments({ ...payload, number: 'AV-00004' });
       const newCreditNoteNumber = await CourseCourseCreditNoteNumber.findOne({}).lean();
       expect(newCreditNote).toBeTruthy();
-      expect(newCreditNoteNumber.seq).toBe(2);
+      expect(newCreditNoteNumber.seq).toBe(4);
     });
 
     it('should create a credit note without misc', async () => {
@@ -179,11 +179,47 @@ describe('COURSE BILL ROUTES - GET /coursecreditnotes/{_id}/pdfs', () => {
     });
   });
 
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should download own course creditNote for intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursecreditnotes/${courseCreditNote[0]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should download course creditNote for intra course as payer', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursecreditnotes/${courseCreditNote[1]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if wrong credit note', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursecreditnotes/${courseCreditNote[2]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
