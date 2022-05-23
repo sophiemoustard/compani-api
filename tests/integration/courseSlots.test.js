@@ -446,26 +446,6 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should delete course slot and create courseHistory', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const deletedSlot = await CourseSlot.countDocuments({ _id: courseSlotsList[0]._id });
-      const courseHistory = await CourseHistory.countDocuments({
-        course: courseSlotsList[0].course,
-        'slot.startDate': courseSlotsList[0].startDate,
-        action: SLOT_DELETION,
-      });
-
-      expect(deletedSlot).toEqual(0);
-      expect(courseHistory).toEqual(1);
-    });
-
     it('should delete course slot without dates', async () => {
       const response = await app.inject({
         method: 'DELETE',

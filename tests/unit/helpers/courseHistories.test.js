@@ -265,44 +265,6 @@ describe('createHistoryOnSlotEdition', () => {
   });
 });
 
-describe('createHistoryOnSlotDeletion', () => {
-  let createHistory;
-
-  beforeEach(() => {
-    createHistory = sinon.stub(CourseHistoriesHelper, 'createHistory');
-  });
-
-  afterEach(() => {
-    createHistory.restore();
-  });
-
-  it('should create a courseHistory', async () => {
-    const payload = {
-      startDate: '2019-02-03T09:00:00.000Z',
-      endDate: '2019-02-03T10:00:00.000Z',
-      address: {
-        fullAddress: 'ertyui',
-        street: '12345',
-        zipCode: '12345',
-        city: 'qwert',
-        location: { type: 'Point', coordinates: [0, 1] },
-      },
-      course: new ObjectId(),
-    };
-    const userId = new ObjectId();
-
-    await CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, userId);
-
-    sinon.assert.calledOnceWithExactly(
-      createHistory,
-      payload.course,
-      userId,
-      SLOT_DELETION,
-      { slot: { startDate: payload.startDate, endDate: payload.endDate, address: payload.address } }
-    );
-  });
-});
-
 describe('createHistoryOnTraineeAddition', () => {
   let createHistory;
 
