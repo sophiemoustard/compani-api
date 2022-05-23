@@ -7,11 +7,17 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const PdfHelper = require('../../../src/helpers/pdf');
-const UtilsHelper = require('../../../src/helpers/utils');
 const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
-const { LIST, BALANCE, PAYMENT, REFUND } = require('../../../src/helpers/constants');
+const {
+  LIST,
+  BALANCE,
+  PAYMENT,
+  REFUND,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+} = require('../../../src/helpers/constants');
 
 describe('getNetInclTaxes', () => {
   it('should return total price (without billing purchases)', async () => {
@@ -229,8 +235,7 @@ describe('list', () => {
         {
           query: 'setOptions',
           args: [{
-            isVendorUser: !!get(credentials, 'role.vendor'),
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
           }],
         },
         { query: 'lean' },
@@ -333,8 +338,7 @@ describe('list', () => {
         {
           query: 'setOptions',
           args: [{
-            isVendorUser: !!get(credentials, 'role.vendor'),
-            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
           }],
         },
         { query: 'lean' },
