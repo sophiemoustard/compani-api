@@ -12,7 +12,7 @@ const list = async (req) => {
 
     const balances = await getBalances(req.auth.credentials);
 
-    const filteredBalances = balances.filter(client => client.balance < -1 || client.balance > 1);
+    const filteredBalances = balances.filter(client => client.balance <= -1 || client.balance >= 1);
 
     return {
       message: translate[language].balancesFound,
