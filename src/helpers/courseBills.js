@@ -9,7 +9,7 @@ const BalanceHelper = require('./balances');
 const UtilsHelper = require('./utils');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
-const { LIST } = require('./constants');
+const { LIST, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.getNetInclTaxes = (bill) => {
@@ -65,7 +65,7 @@ const balance = async (company, credentials) => {
     .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .setOptions({
-      isVendorUser: !!get(credentials, 'role.vendor'),
+      isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
       requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, credentials.company._id),
     })
     .lean();

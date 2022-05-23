@@ -145,7 +145,7 @@ describe('list', () => {
       slotsToPlan: [],
     };
 
-    const credentials = { role: { vendor: new ObjectId() }, company: { _id: companyId } };
+    const credentials = { role: { vendor: { name: 'training_organisation_manager' } }, company: { _id: companyId } };
     const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
     const courseBills = [
       {
@@ -249,7 +249,7 @@ describe('list', () => {
       slotsToPlan: [],
     };
 
-    const credentials = { role: { vendor: new ObjectId() }, company: { _id: companyId } };
+    const credentials = { role: { vendor: { name: 'vendor_admin' } }, company: { _id: companyId } };
     const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
     const courseBills = [
       {
