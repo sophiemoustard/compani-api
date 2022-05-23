@@ -26,14 +26,16 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
   const hasConflicts = await exports.hasConflicts({ ...slotFromDb, ...payload });
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
-  const hasEmptyDates = !payload.endDate && !payload.startDate;
-  if (hasEmptyDates) {
+  const shouldEmptyDates = !payload.endDate && !payload.startDate;
+  if (shouldEmptyDates) {
     const historyPayload = pick(slotFromDb, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
-    await CourseHistoriesHelper.createHistoryOnSlotDeletion(historyPayload, user._id);
-    await CourseSlot.updateOne(
-      { _id: slotFromDb._id },
-      { $unset: { startDate: '', endDate: '', meetingLink: '', address: '' } }
-    );
+    await Promise.all([
+      CourseHistoriesHelper.createHistoryOnSlotDeletion(historyPayload, user._id),
+      CourseSlot.updateOne(
+        { _id: slotFromDb._id },
+        { $unset: { startDate: '', endDate: '', meetingLink: '', address: '' } }
+      ),
+    ]);
   } else {
     const updatePayload = { $set: payload };
     const step = await Step.findById(slotFromDb.step._id).lean();
