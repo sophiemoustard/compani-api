@@ -61,6 +61,8 @@ const balance = async (company, credentials) => {
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
+    .populate({ path: 'payer.company', select: 'name' })
+    .populate({ path: 'payer.fundingOrganisation', select: 'name' })
     .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
     .setOptions({
