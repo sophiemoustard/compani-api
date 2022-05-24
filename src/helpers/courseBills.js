@@ -55,7 +55,7 @@ const balance = async (company, credentials) => {
     .find({ $or: [{ company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
     .populate({
       path: 'course',
-      select: 'misc slots slotsToPlan subProgram',
+      select: 'misc slots slotsToPlan subProgram company',
       populate: [
         { path: 'slots' },
         { path: 'slotsToPlan' },

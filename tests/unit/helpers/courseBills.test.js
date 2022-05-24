@@ -217,7 +217,7 @@ describe('list', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'misc slots slotsToPlan subProgram',
+            select: 'misc slots slotsToPlan subProgram company',
             populate: [
               { path: 'slots' },
               { path: 'slotsToPlan' },
@@ -337,7 +337,7 @@ describe('list', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'misc slots slotsToPlan subProgram',
+            select: 'misc slots slotsToPlan subProgram company',
             populate: [
               { path: 'slots' },
               { path: 'slotsToPlan' },
