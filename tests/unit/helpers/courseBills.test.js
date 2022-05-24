@@ -224,6 +224,8 @@ describe('list', () => {
             ],
           }],
         },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
           query: 'populate',
           args: [{ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
@@ -327,6 +329,8 @@ describe('list', () => {
             ],
           }],
         },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
           query: 'populate',
           args: [{ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
