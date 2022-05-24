@@ -172,8 +172,16 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
     if (payload.billingItemList) payloadToSet.billingItemList = await formatBillingItemList(payload.billingItemList);
     creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payloadToSet }, { new: true });
   } else {
-    const tppPayload = { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
-    const customerPayload = { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
+    const tppPayload = {
+      ...payload,
+      inclTaxesCustomer: NumbersHelper.toString(0),
+      exclTaxesCustomer: NumbersHelper.toString(0),
+    };
+    const customerPayload = {
+      ...payload,
+      inclTaxesTpp: NumbersHelper.toString(0),
+      exclTaxesTpp: NumbersHelper.toString(0),
+    };
 
     if (creditNoteFromDB.thirdPartyPayer) {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });

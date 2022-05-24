@@ -668,7 +668,7 @@ describe('updateCreditNotes', () => {
       startDate: '2019-04-29T06:00:00.000Z',
       endDate: '2019-04-29T15:00:00.000Z',
       serviceName: 'Toto',
-      bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
+      bills: { inclTaxesCustomer: '234', exclTaxesCustomer: '221', surcharges: [{ percentage: 30 }] },
     }],
     customer: {
       identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
@@ -676,9 +676,9 @@ describe('updateCreditNotes', () => {
       subscriptions: [{ _id: new ObjectId(), service: { versions: [{ name: 'Toto' }] } }],
     },
     date: '2019-04-29T22:00:00.000Z',
-    exclTaxesCustomer: 221,
+    exclTaxesCustomer: '221',
     inclTaxesCustomer: 234,
-    exclTaxesTpp: 21,
+    exclTaxesTpp: '21',
     inclTaxesTpp: 34,
   };
   const credentials = { company: { _id: new ObjectId() } };
@@ -714,16 +714,16 @@ describe('updateCreditNotes', () => {
         startDate: '2019-04-29T06:00:00.000Z',
         endDate: '2019-04-29T15:00:00.000Z',
         serviceName: 'Toto',
-        bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
+        bills: { inclTaxesCustomer: '234', exclTaxesCustomer: '221', surcharges: [{ percentage: 30 }] },
       }],
       customer: {
         identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
         contact: { primaryAddress: { fullAddress: 'La ruche' } },
         subscriptions: [{ _id: creditNote.customer.subscriptions[0]._id, service: { versions: [{ name: 'Toto' }] } }],
       },
-      exclTaxesCustomer: 221,
+      exclTaxesCustomer: '221',
       inclTaxesCustomer: 234,
-      exclTaxesTpp: 21,
+      exclTaxesTpp: '21',
       inclTaxesTpp: 34,
       date: '2020-04-29T22:00:00.000Z',
     });
@@ -747,7 +747,7 @@ describe('updateCreditNotes', () => {
         startDate: '2019-04-30T06:00:00.000Z',
         endDate: '2019-04-30T15:00:00.000Z',
         serviceName: 'Toto',
-        bills: { inclTaxesCustomer: 123, exclTaxesCustomer: 90 },
+        bills: { inclTaxesCustomer: '123', exclTaxesCustomer: '90' },
       }],
     };
     const updatedCreditNote = { ...creditNoteWithLink, events: payload.events };
@@ -767,13 +767,13 @@ describe('updateCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(
       findByIdAndUpdate,
       creditNote._id,
-      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { $set: { ...payload, inclTaxesTpp: '0', exclTaxesTpp: '0' } },
       { new: true }
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: creditNoteWithLink.linkedCreditNote },
-      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      { $set: { ...payload, inclTaxesCustomer: '0', exclTaxesCustomer: '0' } },
       { new: true }
     );
     sinon.assert.notCalled(findBillingItem);
@@ -790,7 +790,7 @@ describe('updateCreditNotes', () => {
         startDate: '2019-04-30T06:00:00.000Z',
         endDate: '2019-04-30T15:00:00.000Z',
         serviceName: 'Toto',
-        bills: { inclTaxesCustomer: 123, exclTaxesCustomer: 90 },
+        bills: { inclTaxesCustomer: '123', exclTaxesCustomer: '90' },
       }],
     };
     const updatedCreditNote = { ...creditNoteWithLink, events: payload.events };
@@ -809,13 +809,13 @@ describe('updateCreditNotes', () => {
     sinon.assert.calledOnceWithExactly(
       findByIdAndUpdate,
       creditNote._id,
-      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      { $set: { ...payload, inclTaxesCustomer: '0', exclTaxesCustomer: '0' } },
       { new: true }
     );
     sinon.assert.calledOnceWithExactly(
       updateOne,
       { _id: creditNoteWithLink.linkedCreditNote },
-      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { $set: { ...payload, inclTaxesTpp: '0', exclTaxesTpp: '0' } },
       { new: true }
     );
     sinon.assert.notCalled(findBillingItem);
@@ -826,9 +826,9 @@ describe('updateCreditNotes', () => {
       _id: new ObjectId(),
       number: 1,
       date: '2019-04-29T22:00:00.000Z',
-      exclTaxesCustomer: 28,
+      exclTaxesCustomer: '28',
       inclTaxesCustomer: 30,
-      exclTaxesTpp: 0,
+      exclTaxesTpp: '0',
       inclTaxesTpp: 0,
       billingItemList: [{
         billingItem: new ObjectId(),
@@ -836,7 +836,7 @@ describe('updateCreditNotes', () => {
         name: 'Frais de dossier',
         count: 1,
         inclTaxes: 30,
-        exclTaxes: 28,
+        exclTaxes: '28',
         vat: 2,
       }],
     };
@@ -862,9 +862,9 @@ describe('updateCreditNotes', () => {
       _id: creditNoteWithBillingItem._id,
       number: 1,
       date: '2019-04-29T22:00:00.000Z',
-      exclTaxesCustomer: 28,
+      exclTaxesCustomer: '28',
       inclTaxesCustomer: 30,
-      exclTaxesTpp: 0,
+      exclTaxesTpp: '0',
       inclTaxesTpp: 0,
       billingItemList: [
         {
@@ -873,7 +873,7 @@ describe('updateCreditNotes', () => {
           name: 'Frais de dossier',
           count: 2,
           inclTaxes: 60,
-          exclTaxes: 58.8235294117647,
+          exclTaxes: '58.8235294117647',
           vat: 2,
         },
         {
@@ -882,7 +882,7 @@ describe('updateCreditNotes', () => {
           name: 'sku',
           count: 1,
           inclTaxes: 10,
-          exclTaxes: 9.523809523809524,
+          exclTaxes: '9.523809523809524',
           vat: 5,
         },
       ],
@@ -898,9 +898,9 @@ describe('updateCreditNotes', () => {
       _id: creditNoteWithBillingItem._id,
       number: 1,
       date: '2019-04-29T22:00:00.000Z',
-      exclTaxesCustomer: 28,
+      exclTaxesCustomer: '28',
       inclTaxesCustomer: 30,
-      exclTaxesTpp: 0,
+      exclTaxesTpp: '0',
       inclTaxesTpp: 0,
       billingItemList: [
         {
@@ -909,7 +909,7 @@ describe('updateCreditNotes', () => {
           name: 'Frais de dossier',
           count: 2,
           inclTaxes: 60,
-          exclTaxes: 58.8235294117647,
+          exclTaxes: '58.8235294117647',
           vat: 2,
         },
         {
@@ -918,7 +918,7 @@ describe('updateCreditNotes', () => {
           name: 'sku',
           count: 1,
           inclTaxes: 10,
-          exclTaxes: 9.523809523809524,
+          exclTaxes: '9.523809523809524',
           vat: 5,
         },
       ],
