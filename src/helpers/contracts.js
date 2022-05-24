@@ -361,11 +361,11 @@ exports.saveCompletedContract = async (everSignDoc) => {
   );
 };
 
-exports.getContractInfo = (versions, query, monthRatio) => {
+exports.getContractInfo = (versions, query, periodRatio, shouldPayHolidays) => {
   let contractHours = 0;
   let workedDays = 0;
   let holidaysHours = 0;
-  const monthDays = monthRatio.businessDays + monthRatio.holidays;
+  const periodDays = periodRatio.businessDays + periodRatio.holidays;
   for (const version of versions) {
     const startDate = moment(version.startDate).isBefore(query.startDate)
       ? moment(query.startDate).toDate()
@@ -373,15 +373,15 @@ exports.getContractInfo = (versions, query, monthRatio) => {
     const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
       ? moment(version.endDate).endOf('d').toDate()
       : moment(query.endDate).toDate();
-    const ratio = UtilsHelper.getDaysRatioBetweenTwoDates(startDate, endDate);
+    const ratio = UtilsHelper.getDaysRatioBetweenTwoDates(startDate, endDate, shouldPayHolidays);
 
     const versionDays = ratio.businessDays + ratio.holidays;
     workedDays += versionDays;
-    contractHours += version.weeklyHours * (versionDays / monthDays);
+    contractHours += version.weeklyHours * (versionDays / periodDays);
     holidaysHours += (version.weeklyHours / 6) * ratio.holidays;
   }
 
-  return { contractHours, holidaysHours, workedDaysRatio: workedDays / monthDays };
+  return { contractHours, holidaysHours, workedDaysRatio: workedDays / periodDays };
 };
 
 exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {

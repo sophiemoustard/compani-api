@@ -454,13 +454,13 @@ exports.deleteEventsAndRepetition = async (query, shouldDeleteRepetitions, crede
   await Event.deleteMany({ _id: { $in: events.map(ev => ev._id) } });
 };
 
-exports.getContractWeekInfo = (contract, query) => {
+exports.getContractWeekInfo = (contract, query, shouldPayHolidays) => {
   const start = moment(query.startDate).startOf('w').toDate();
   const end = moment(query.startDate).endOf('w').toDate();
-  const weekRatio = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+  const weekRatio = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, shouldPayHolidays);
   const versions = ContractHelper.getMatchingVersionsList(contract.versions || [], query);
 
-  return ContractHelper.getContractInfo(versions, query, weekRatio);
+  return ContractHelper.getContractInfo(versions, query, weekRatio, shouldPayHolidays);
 };
 
 exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
@@ -471,7 +471,8 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 });
 
 exports.workingStats = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id');
+  const shouldPayHolidays = get(credentials, 'company.rhConfig.shouldPayHolidays');
   let auxiliaryIds = [];
 
   if (query.auxiliary) {
@@ -497,7 +498,7 @@ exports.workingStats = async (query, credentials) => {
     const contract = exports.getContract(contracts, query.startDate, query.endDate);
     if (!contract) continue;
 
-    const contractInfo = exports.getContractWeekInfo(contract, query);
+    const contractInfo = exports.getContractWeekInfo(contract, query, shouldPayHolidays);
     const hours =
       await DraftPayHelper.getPayFromEvents(eventsToPay.events, auxiliary, subscriptions, distanceMatrix, [], query);
     const absencesHours = DraftPayHelper.getPayFromAbsences(eventsToPay.absences, contract, query);

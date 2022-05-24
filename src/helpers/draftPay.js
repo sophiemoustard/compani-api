@@ -32,13 +32,13 @@ const ContractHelper = require('./contracts');
 const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 
-exports.getContractMonthInfo = (contract, query) => {
+exports.getContractMonthInfo = (contract, query, shouldPayHolidays) => {
   const start = moment(query.startDate).startOf('M').toDate();
   const end = moment(query.startDate).endOf('M').toDate();
-  const monthBusinessDays = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+  const monthBusinessDays = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, shouldPayHolidays);
   const versions = ContractHelper.getMatchingVersionsList(contract.versions || [], query);
 
-  const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);
+  const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays, shouldPayHolidays);
 
   return {
     contractHours: info.contractHours * WEEKS_PER_MONTH,
@@ -386,7 +386,8 @@ const getPhoneFees = (auxiliary, contractInfo, company) => {
 };
 
 exports.computeBalance = async (auxiliary, contract, eventsToPay, subscriptions, company, query, dm, surcharges) => {
-  const contractInfo = exports.getContractMonthInfo(contract, query);
+  const shouldPayHolidays = get(company, 'rhConfig.shouldPayHolidays');
+  const contractInfo = exports.getContractMonthInfo(contract, query, shouldPayHolidays);
 
   const contractEvents = filterEvents(eventsToPay, contract);
   const hours = await exports.getPayFromEvents(contractEvents, auxiliary, subscriptions, dm, surcharges, query);
@@ -545,7 +546,12 @@ exports.computeDraftPay = async (auxiliaries, query, credentials) => {
   const [company, surcharges, dm] = await Promise.all([
     Company.findOne(
       { _id: companyId },
-      { 'rhConfig.phoneFeeAmount': 1, 'rhConfig.transportSubs': 1, 'rhConfig.amountPerKm': 1 }
+      {
+        'rhConfig.phoneFeeAmount': 1,
+        'rhConfig.transportSubs': 1,
+        'rhConfig.amountPerKm': 1,
+        'rhConfig.shouldPayHolidays': 1,
+      }
     )
       .lean(),
     Surcharge.find({ company: companyId }, { createdAt: 0, updatedAt: 0, company: 0, __v: 0 }).lean(),

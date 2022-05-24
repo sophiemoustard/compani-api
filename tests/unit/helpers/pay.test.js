@@ -785,9 +785,9 @@ describe('computeHoursToWork', () => {
     getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
     getPayFromAbsences.returns(6);
 
-    const result = PayHelper.computeHoursToWork('122019', contracts);
+    const result = PayHelper.computeHoursToWork('122019', contracts, false);
     expect(result).toBe(74);
-    sinon.assert.calledWithExactly(getContractMonthInfoStub, contracts[0], contractQuery);
+    sinon.assert.calledWithExactly(getContractMonthInfoStub, contracts[0], contractQuery, false);
     sinon.assert.calledWithExactly(getPayFromAbsences, contracts[0].absences, contracts[0], contractQuery);
     sinon.assert.calledWithExactly(getMatchingVersionsListStub, contracts[0].versions, contractQuery);
   });
@@ -802,10 +802,10 @@ describe('computeHoursToWork', () => {
     getMatchingVersionsListStub.onCall(0).returns(contracts[0].versions);
     getMatchingVersionsListStub.onCall(1).returns(contracts[1].versions);
 
-    const result = PayHelper.computeHoursToWork('122019', contracts);
+    const result = PayHelper.computeHoursToWork('122019', contracts, false);
     expect(result).toBe(175);
-    sinon.assert.calledWithExactly(getContractMonthInfoStub.getCall(0), contracts[0], contractQuery);
-    sinon.assert.calledWithExactly(getContractMonthInfoStub.getCall(1), contracts[1], contractQuery);
+    sinon.assert.calledWithExactly(getContractMonthInfoStub.getCall(0), contracts[0], contractQuery, false);
+    sinon.assert.calledWithExactly(getContractMonthInfoStub.getCall(1), contracts[1], contractQuery, false);
     sinon.assert.calledWithExactly(getMatchingVersionsListStub, contracts[0].versions, contractQuery);
     sinon.assert.notCalled(getPayFromAbsences);
   });
@@ -830,9 +830,9 @@ describe('computeHoursToWork', () => {
     getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
     getMatchingVersionsListStub.returns(contracts[0].versions);
 
-    const result = PayHelper.computeHoursToWork('122019', contracts);
+    const result = PayHelper.computeHoursToWork('122019', contracts, false);
     expect(result).toBe(80);
-    sinon.assert.calledWithExactly(getContractMonthInfoStub, newContract, { ...contractQuery, endDate });
+    sinon.assert.calledWithExactly(getContractMonthInfoStub, newContract, { ...contractQuery, endDate }, false);
     sinon.assert.calledWithExactly(getMatchingVersionsListStub, contracts[0].versions, { ...contractQuery, endDate });
     sinon.assert.notCalled(getPayFromAbsences);
   });
@@ -857,16 +857,16 @@ describe('computeHoursToWork', () => {
     getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
     getMatchingVersionsListStub.returns(contracts[0].versions);
 
-    const result = PayHelper.computeHoursToWork('122019', contracts);
+    const result = PayHelper.computeHoursToWork('122019', contracts, false);
     expect(result).toBe(80);
-    sinon.assert.calledWithExactly(getContractMonthInfoStub, newContract, { ...contractQuery, startDate });
+    sinon.assert.calledWithExactly(getContractMonthInfoStub, newContract, { ...contractQuery, startDate }, false);
     sinon.assert.calledWithExactly(getMatchingVersionsListStub, contracts[0].versions, { ...contractQuery, startDate });
     sinon.assert.notCalled(getPayFromAbsences);
   });
 });
 
 describe('getHoursToWorkBySector', () => {
-  const credentials = { company: { _id: new ObjectId() } };
+  const credentials = { company: { _id: new ObjectId(), rhConfig: { shouldPayHolidays: false } } };
   let getContractsAndAbsencesBySectorStub;
   let computeHoursToWorkStub;
 
@@ -905,8 +905,18 @@ describe('getHoursToWorkBySector', () => {
       query.sector.map(sector => new ObjectId(sector)),
       credentials.company._id
     );
-    sinon.assert.calledWithExactly(computeHoursToWorkStub.getCall(0), query.month, contractAndAbsences[0].contracts);
-    sinon.assert.calledWithExactly(computeHoursToWorkStub.getCall(1), query.month, contractAndAbsences[1].contracts);
+    sinon.assert.calledWithExactly(
+      computeHoursToWorkStub.getCall(0),
+      query.month,
+      contractAndAbsences[0].contracts,
+      false
+    );
+    sinon.assert.calledWithExactly(
+      computeHoursToWorkStub.getCall(1),
+      query.month,
+      contractAndAbsences[1].contracts,
+      false
+    );
   });
 
   it('should return hours to work by sector (sectors as string + no absences)', async () => {
@@ -931,6 +941,6 @@ describe('getHoursToWorkBySector', () => {
       [new ObjectId(query.sector)],
       credentials.company._id
     );
-    sinon.assert.calledWithExactly(computeHoursToWorkStub, query.month, contractAndAbsences[0].contracts);
+    sinon.assert.calledWithExactly(computeHoursToWorkStub, query.month, contractAndAbsences[0].contracts, false);
   });
 });

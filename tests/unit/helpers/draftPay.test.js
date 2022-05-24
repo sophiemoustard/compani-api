@@ -40,7 +40,7 @@ describe('getContractMonthInfo', () => {
     getContractInfo.returns({ contractHours: 24, workedDaysRatio: 1 / 4 });
     getMatchingVersionsList.returns(versions[1]);
 
-    const result = DraftPayHelper.getContractMonthInfo(contract, query);
+    const result = DraftPayHelper.getContractMonthInfo(contract, query, false);
 
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(104);
@@ -48,9 +48,10 @@ describe('getContractMonthInfo', () => {
     sinon.assert.calledOnceWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-05-06').startOf('M').toDate(),
-      moment('2019-05-06').endOf('M').toDate()
+      moment('2019-05-06').endOf('M').toDate(),
+      false
     );
-    sinon.assert.calledOnceWithExactly(getContractInfo, versions[1], query, 4);
+    sinon.assert.calledOnceWithExactly(getContractInfo, versions[1], query, 4, false);
   });
 });
 
@@ -1624,7 +1625,7 @@ describe('computeBalance', () => {
     };
     const subId = new ObjectId();
     const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
-    const company = { rhConfig: { phoneFeeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37, shouldPayHolidays: false } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
@@ -1674,7 +1675,7 @@ describe('computeBalance', () => {
     };
     const subId = new ObjectId();
     const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
-    const company = { rhConfig: { phoneFeeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37, shouldPayHolidays: false } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
@@ -1725,7 +1726,7 @@ describe('computeBalance', () => {
     };
     const subId = new ObjectId();
     const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
-    const company = { rhConfig: { phoneFeeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37, shouldPayHolidays: false } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
 
     getPayFromEvents.returns({ workedHours: 0, notSurchargedAndNotExempt: 0, surchargedAndNotExempt: 0 });
@@ -1763,7 +1764,7 @@ describe('computeAuxiliaryDraftPay', () => {
     };
     const contract = { startDate: '2019-05-13T00:00:00' };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
-    const company = { rhConfig: { phoneFeeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37, shouldPayHolidays: false } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = { hoursCounter: 10, diff: { hoursBalance: 2 } };
     const subId = new ObjectId();
@@ -1834,7 +1835,7 @@ describe('computeAuxiliaryDraftPay', () => {
     };
     const contract = { startDate: '2019-05-13T00:00:00' };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
-    const company = { rhConfig: { phoneFeeAmount: 37 } };
+    const company = { rhConfig: { phoneFeeAmount: 37, shouldPayHolidays: false } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = null;
     const subId = new ObjectId();
@@ -2201,7 +2202,7 @@ describe('computeDraftPay', () => {
 
   it('should return an empty array if no auxiliary', async () => {
     const companyId = new ObjectId();
-    const credentials = { company: { _id: companyId } };
+    const credentials = { company: { _id: companyId, rhConfig: { shouldPayHolidays: false } } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const subId = new ObjectId();
     const subscriptions = { [subId]: { _id: ObjectId(), service: { _id: ObjectId() } } };
@@ -2230,7 +2231,12 @@ describe('computeDraftPay', () => {
           query: 'findOne',
           args: [
             { _id: companyId },
-            { 'rhConfig.phoneFeeAmount': 1, 'rhConfig.transportSubs': 1, 'rhConfig.amountPerKm': 1 },
+            {
+              'rhConfig.phoneFeeAmount': 1,
+              'rhConfig.transportSubs': 1,
+              'rhConfig.amountPerKm': 1,
+              'rhConfig.shouldPayHolidays': 1,
+            },
           ],
         },
         { query: 'lean' }]
@@ -2287,6 +2293,23 @@ describe('computeDraftPay', () => {
     const result = await DraftPayHelper.computeDraftPay([aux], query, credentials);
 
     expect(result).toEqual([]);
+    SinonMongoose.calledOnceWithExactly(
+      companyFindOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { _id: companyId },
+            {
+              'rhConfig.phoneFeeAmount': 1,
+              'rhConfig.transportSubs': 1,
+              'rhConfig.amountPerKm': 1,
+              'rhConfig.shouldPayHolidays': 1,
+            },
+          ],
+        },
+        { query: 'lean' }]
+    );
     sinon.assert.calledOnceWithExactly(
       getPreviousMonthPay,
       [aux],
@@ -2337,6 +2360,23 @@ describe('computeDraftPay', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
+    SinonMongoose.calledOnceWithExactly(
+      companyFindOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { _id: companyId },
+            {
+              'rhConfig.phoneFeeAmount': 1,
+              'rhConfig.transportSubs': 1,
+              'rhConfig.amountPerKm': 1,
+              'rhConfig.shouldPayHolidays': 1,
+            },
+          ],
+        },
+        { query: 'lean' }]
+    );
     sinon.assert.calledOnceWithExactly(
       getPreviousMonthPay,
       auxiliaries,
@@ -2389,6 +2429,23 @@ describe('computeDraftPay', () => {
     const result = await DraftPayHelper.computeDraftPay(auxiliaries, query, credentials);
 
     expect(result).toEqual([{ hoursBalance: 120 }]);
+    SinonMongoose.calledOnceWithExactly(
+      companyFindOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { _id: companyId },
+            {
+              'rhConfig.phoneFeeAmount': 1,
+              'rhConfig.transportSubs': 1,
+              'rhConfig.amountPerKm': 1,
+              'rhConfig.shouldPayHolidays': 1,
+            },
+          ],
+        },
+        { query: 'lean' }]
+    );
     sinon.assert.notCalled(getPreviousMonthPay);
     sinon.assert.calledOnceWithExactly(
       computeAuxiliaryDraftPay,
@@ -2424,7 +2481,7 @@ describe('getDraftPay', () => {
   it('should return an empty array if no auxiliary', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const end = moment(query.endDate).endOf('d').toDate();
-    const credentials = { company: { _id: '1234567890' } };
+    const credentials = { company: { _id: '1234567890', rhConfig: { shouldPayHolidays: false } } };
     getAuxiliariesToPay.returns([]);
     const result = await DraftPayHelper.getDraftPay(query, credentials);
 
