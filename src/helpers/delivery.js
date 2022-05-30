@@ -18,7 +18,8 @@ const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const CADRE_PRESTATAIRE = 'PRE';
 const MISSING_START_TIME_STAMP = 'COA';
 const MISSING_END_TIME_STAMP = 'COD';
-const MISSING_BOTH_TIME_STAMP = 'CO2';
+const EDITED_BOTH_TIME_STAMP = 'CO2';
+const MISSING_BOTH_TIME_STAMP = 'CRE';
 const AUXILIARY_CONTACT = 'INT';
 const SPECIFIED_CI_TRADE_PRODUCT_NAME = 'Aide aux personnes âgées';
 
@@ -90,14 +91,21 @@ const getShipFromCITradeParty = auxiliary => ({
   'pie:PostalCITradeAddress': getPostalCITradeAddress(get(auxiliary, 'company.address')),
 });
 
-// Délivrance retenue : les horaires validés de début et de fin  d’intervention
-const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTimeStamped) => {
+exports.getTypeCode = (isStartTimeStamped, isEndTimeStamped, hasTimeStamp) => {
   let typeCode = '';
   if (!isStartTimeStamped || !isEndTimeStamped) {
     if (isStartTimeStamped) typeCode = MISSING_END_TIME_STAMP;
     else if (isEndTimeStamped) typeCode = MISSING_START_TIME_STAMP;
+    else if (hasTimeStamp) typeCode = EDITED_BOTH_TIME_STAMP;
     else typeCode = MISSING_BOTH_TIME_STAMP;
   }
+
+  return typeCode;
+};
+
+// Délivrance retenue : les horaires validés de début et de fin  d’intervention
+const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTimeStamped, hasTimeStamp) => {
+  const typeCode = exports.getTypeCode(isStartTimeStamped, isEndTimeStamped, hasTimeStamp);
 
   const actualDespatchCISupplyChainEvent = {
     TypeCode: { '#text': typeCode, '@listAgencyName': 'EDESS', '@listID': 'ESPPADOM_EFFECTIVITY_AJUST' },
@@ -110,16 +118,23 @@ const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTim
   return actualDespatchCISupplyChainEvent;
 };
 
+exports.getTimeStampInfo = (event) => {
+  const isStartTimeStamped = event.histories.some(h => !!h.update.startHour && !h.isCancelled);
+  const isEndTimeStamped = event.histories.some(h => !!h.update.endHour && !h.isCancelled);
+  const hasTimeStamp = event.histories.some(h => (!!h.update.endHour || !!h.update.startHour));
+
+  return { isStartTimeStamped, isEndTimeStamped, hasTimeStamp };
+};
+
 // Précisions de delivrance (bénéficiaire et contexte)
 const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
-  const isStartTimeStamped = event.histories.some(h => !!h.update.startHour);
-  const isEndTimeStamped = event.histories.some(h => !!h.update.endHour);
+  const { isStartTimeStamped, isEndTimeStamped, hasTimeStamp } = exports.getTimeStampInfo(event);
 
   const applicableCIDDHSupplyChainTradeDelivery = {
     ShipToCITradeParty: getShipToCITradeParty(customer),
     ShipFromCITradeParty: getShipFromCITradeParty(event.auxiliary),
     ActualDespatchCISupplyChainEvent:
-      getActualDespatchCISupplyChainEvent(event, isStartTimeStamped, isEndTimeStamped),
+      getActualDespatchCISupplyChainEvent(event, isStartTimeStamped, isEndTimeStamped, hasTimeStamp),
   };
 
   if (isStartTimeStamped && isEndTimeStamped) {
@@ -223,7 +238,6 @@ exports.getEventHistories = async (events, companyId) => {
       action: { $in: TIME_STAMPING_ACTIONS },
       'event.eventId': { $in: events.map(ev => ev._id) },
       company: companyId,
-      isCancelled: false,
     })
     .lean();
 
