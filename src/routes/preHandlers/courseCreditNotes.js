@@ -40,10 +40,9 @@ exports.authorizeCreditNotePdfGet = async (req) => {
 
   if (!isAdminVendor) {
     const companyId = get(credentials, 'company._id');
-    if (!UtilsHelper.areObjectIdsEquals(creditNote.company, companyId) &&
-      !UtilsHelper.areObjectIdsEquals(creditNote.courseBill.payer, companyId)) {
-      throw Boom.notFound();
-    }
+    const hasSameCompany = UtilsHelper.areObjectIdsEquals(creditNote.company, companyId);
+    const isPayer = UtilsHelper.areObjectIdsEquals(creditNote.courseBill.payer, companyId);
+    if (!hasSameCompany && !isPayer) throw Boom.notFound();
   }
 
   return null;

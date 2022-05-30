@@ -138,14 +138,14 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.result.data.courseBills.length).toEqual(3);
     });
 
-    it('should return 404 if wrong company', async () => {
+    it('should return 403 if wrong company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursebills?company=${otherCompany._id}&action=balance`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 400 if wrong action in query', async () => {
@@ -241,16 +241,6 @@ describe('COURSE BILL ROUTES - GET /coursebills/{_id}/pdfs', () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursebills/${courseBillsList[6]._id}/pdfs`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-    });
-
-    it('should download course bill for intra course', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/coursebills/${courseBillsList[2]._id}/pdfs`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 

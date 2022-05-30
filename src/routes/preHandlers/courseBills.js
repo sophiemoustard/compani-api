@@ -42,7 +42,7 @@ exports.authorizeCourseBillGet = async (req) => {
 
   if (!isAdminVendor) {
     if (action !== BALANCE) throw Boom.badRequest();
-    if (!UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id'))) throw Boom.notFound();
+    if (!UtilsHelper.areObjectIdsEquals(company, get(credentials, 'company._id'))) throw Boom.forbidden();
   }
 
   if (course) {
@@ -156,8 +156,9 @@ exports.authorizeBillPdfGet = async (req) => {
 
   if (!isAdminVendor) {
     const companyId = get(credentials, 'company._id');
-    if (!UtilsHelper.areObjectIdsEquals(bill.company, companyId) &&
-      !UtilsHelper.areObjectIdsEquals(bill.payer, companyId)) throw Boom.notFound();
+    const hasSameCompany = UtilsHelper.areObjectIdsEquals(bill.company, companyId);
+    const isPayer = UtilsHelper.areObjectIdsEquals(bill.payer, companyId);
+    if (!hasSameCompany && !isPayer) throw Boom.notFound();
   }
 
   return null;
