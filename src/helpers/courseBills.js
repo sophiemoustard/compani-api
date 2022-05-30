@@ -157,12 +157,13 @@ exports.generateBillPdf = async (billId) => {
     .populate({ path: 'payer.company', select: 'name address' })
     .lean();
 
+  const { payer } = bill;
   const data = {
     number: bill.number,
     date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
     vendorCompany,
     company: bill.company,
-    payer: bill.payer,
+    payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },
     course: bill.course,
     mainFee: bill.mainFee,
     billingPurchaseList: bill.billingPurchaseList,

@@ -1125,13 +1125,7 @@ const courseList = [
 const courseFundingOrganisation = {
   _id: new ObjectId(),
   name: 'APA Paris',
-  address: {
-    street: '1 avenue Denfert Rochereau',
-    zipCode: '75014',
-    city: 'Paris',
-    fullAddress: '1 avenue Denfert Rochereau 75014 Paris',
-    location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-  },
+  address: '1 avenue Denfert Rochereau 75014 Paris',
 };
 
 const courseBill =

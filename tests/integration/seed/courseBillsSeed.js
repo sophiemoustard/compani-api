@@ -120,28 +120,8 @@ const courseList = [
   },
 ];
 const courseFundingOrganisationList = [
-  {
-    _id: new ObjectId(),
-    name: 'APA Paris',
-    address: {
-      street: '1 avenue Denfert Rochereau',
-      zipCode: '75014',
-      city: 'Paris',
-      fullAddress: '1 avenue Denfert Rochereau 75014 Paris',
-      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-    },
-  },
-  {
-    _id: new ObjectId(),
-    name: 'APA Lyon',
-    address: {
-      street: '1 avenue Denfert Rochereau',
-      zipCode: '69002',
-      city: 'Lyon',
-      fullAddress: '1 avenue Denfert Rochereau 69002 Lyon',
-      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-    },
-  },
+  { _id: new ObjectId(), name: 'APA Paris', address: '1 avenue Denfert Rochereau 75014 Paris' },
+  { _id: new ObjectId(), name: 'APA Lyon', address: '1 avenue Denfert Rochereau 69002 Lyon' },
 ];
 
 const billingItemList = [
