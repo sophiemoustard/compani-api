@@ -1,8 +1,8 @@
 const Boom = require('@hapi/boom');
-const moment = require('moment');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
 const Customer = require('../models/Customer');
+const { CompaniDate } = require('./dates/companiDates');
 const SubscriptionsHelper = require('./subscriptions');
 const UtilsHelper = require('./utils');
 const translate = require('./translate');
@@ -27,10 +27,10 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
       const lastVersion = UtilsHelper.getLastVersion(fund.versions, 'createdAt');
 
       const checkedFundingIsAfter = !!lastVersion.endDate &&
-        moment(checkedFunding.versions[0].startDate).isAfter(lastVersion.endDate, 'day');
+        !CompaniDate(checkedFunding.versions[0].startDate).isSameOrBefore(lastVersion.endDate, 'day');
       const noCareDaysInCommon = checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
       const checkedFundingIsBefore = !!checkedFunding.versions[0].endDate &&
-        moment(checkedFunding.versions[0].endDate).isBefore(lastVersion.startDate, 'day');
+      !CompaniDate(checkedFunding.versions[0].endDate).isSameOrAfter(lastVersion.startDate, 'day');
 
       return checkedFundingIsAfter || checkedFundingIsBefore || noCareDaysInCommon;
     });
@@ -100,12 +100,12 @@ exports.deleteFunding = async (customerId, fundingId) => Customer.updateOne(
 );
 
 exports.getMatchingFunding = (eventDate, fundings) => {
-  const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(eventDate) &&
-    (!fund.endDate || moment(fund.endDate).isAfter(eventDate)));
+  const filteredByDateFundings = fundings.filter(fund => CompaniDate(fund.startDate).isSameOrBefore(eventDate) &&
+    (!fund.endDate || CompaniDate(fund.endDate).isAfter(eventDate)));
 
-  if (moment(eventDate).startOf('d').isHoliday()) {
+  if (CompaniDate(eventDate).isHoliday()) {
     return filteredByDateFundings.find(funding => funding.careDays.includes(CARE_HOLIDAY)) || null;
   }
 
-  return filteredByDateFundings.find(funding => funding.careDays.includes(moment(eventDate).isoWeekday() - 1)) || null;
+  return filteredByDateFundings.find(funding => funding.careDays.includes(CompaniDate(eventDate).weekday())) || null;
 };

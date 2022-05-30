@@ -10,7 +10,6 @@ const UtilsHelper = require('./utils');
 const XMLHelper = require('./xml');
 const DraftBillsHelper = require('./draftBills');
 const FundingsHelper = require('./fundings');
-const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 const { NOT_INVOICED_AND_NOT_PAID, TIME_STAMPING_ACTIONS } = require('./constants');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
@@ -63,7 +62,7 @@ const getShipToCITradeParty = (customer) => { // order matters
   shipToCITradeParty['pie:LastName'] = get(customer, 'identity.lastname') || '';
 
   const birthDate = get(customer, 'identity.birthDate');
-  if (birthDate) shipToCITradeParty['pie:BirthDate'] = DatesHelper.toLocalISOString(birthDate);
+  if (birthDate) shipToCITradeParty['pie:BirthDate'] = CompaniDate(birthDate).toLocalISO();
 
   shipToCITradeParty['pie:PostalCITradeAddress'] = getPostalCITradeAddress(get(customer, 'contact.primaryAddress'));
 
@@ -102,8 +101,8 @@ const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTim
   const actualDespatchCISupplyChainEvent = {
     TypeCode: { '#text': typeCode, '@listAgencyName': 'EDESS', '@listID': 'ESPPADOM_EFFECTIVITY_AJUST' },
     OccurrenceCISpecifiedPeriod: {
-      'qdt:StartDateTime': DatesHelper.toLocalISOString(event.startDate),
-      'qdt:EndDateTime': DatesHelper.toLocalISOString(event.endDate),
+      'qdt:StartDateTime': CompaniDate(event.startDate).toLocalISO(),
+      'qdt:EndDateTime': CompaniDate(event.endDate).toLocalISO(),
     },
   };
 
@@ -125,8 +124,8 @@ const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
   if (isStartTimeStamped && isEndTimeStamped) {
     applicableCIDDHSupplyChainTradeDelivery.AdditionalReferencedCIReferencedDocument = {
       EffectiveCISpecifiedPeriod: {
-        StartDateTime: { CertifiedDateTime: DatesHelper.toLocalISOString(event.startDate) },
-        EndDateTime: { CertifiedDateTime: DatesHelper.toLocalISOString(event.endDate) },
+        StartDateTime: { CertifiedDateTime: CompaniDate(event.startDate).toLocalISO() },
+        EndDateTime: { CertifiedDateTime: CompaniDate(event.endDate).toLocalISO() },
       },
     };
   }
@@ -303,7 +302,7 @@ exports.getEvents = async (query, credentials) => {
  * => pour un tiers payeur, on récupere la liste des inteventions qui sont reliées à un plan d'aide
  */
 exports.getCrossIndustryDespatchAdvice = async (query, credentials) => {
-  const issueDateTime = DatesHelper.toLocalISOString();
+  const issueDateTime = CompaniDate().toLocalISO();
   const transactionId = issueDateTime.replace(/T/g, '').replace(/-/g, '').replace(/:/g, '');
 
   return (await exports.getEvents(query, credentials))
