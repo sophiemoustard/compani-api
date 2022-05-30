@@ -155,8 +155,9 @@ exports.authorizeBillPdfGet = async (req) => {
   if (!bill) throw Boom.notFound();
 
   if (!isAdminVendor) {
-    if (!UtilsHelper.areObjectIdsEquals(bill.company, get(credentials, 'company._id')) &&
-      !UtilsHelper.areObjectIdsEquals(bill.payer, get(credentials, 'company._id'))) throw Boom.notFound();
+    const companyId = get(credentials, 'company._id');
+    if (!UtilsHelper.areObjectIdsEquals(bill.company, companyId) &&
+      !UtilsHelper.areObjectIdsEquals(bill.payer, companyId)) throw Boom.notFound();
   }
 
   return null;

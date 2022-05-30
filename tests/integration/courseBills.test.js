@@ -148,7 +148,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 400 if query if wrong action', async () => {
+    it('should return 400 if wrong action in query', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursebills?course=${courseList[0]._id}&action=list`,
