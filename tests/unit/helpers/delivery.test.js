@@ -594,7 +594,7 @@ describe('getTimeStampInfo', () => {
   });
 });
 
-describe('getTypeCode #tag', () => {
+describe('getTypeCode', () => {
   it('should get typeCode for event with both timestamp', () => {
     const typeCode = DeliveryHelper.getTypeCode(true, true, true);
 
