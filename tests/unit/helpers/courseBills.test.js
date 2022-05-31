@@ -7,6 +7,7 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const PdfHelper = require('../../../src/helpers/pdf');
+const UtilsHelper = require('../../../src/helpers/utils');
 const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
@@ -216,7 +217,7 @@ describe('list', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'misc slots slotsToPlan subProgram',
+            select: 'misc slots slotsToPlan subProgram company',
             populate: [
               { path: 'slots' },
               { path: 'slotsToPlan' },
@@ -228,16 +229,31 @@ describe('list', () => {
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
           query: 'populate',
-          args: [{ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+          args: [{
+            path: 'courseCreditNote',
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            },
+          }],
         },
         {
           query: 'populate',
-          args: [{ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+          args: [{
+            path: 'coursePayments',
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            },
+          }],
         },
         {
           query: 'setOptions',
           args: [{
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
           }],
         },
         { query: 'lean' },
@@ -321,7 +337,7 @@ describe('list', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'misc slots slotsToPlan subProgram',
+            select: 'misc slots slotsToPlan subProgram company',
             populate: [
               { path: 'slots' },
               { path: 'slotsToPlan' },
@@ -333,16 +349,31 @@ describe('list', () => {
         { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
           query: 'populate',
-          args: [{ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+          args: [{
+            path: 'courseCreditNote',
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            },
+          }],
         },
         {
           query: 'populate',
-          args: [{ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+          args: [{
+            path: 'coursePayments',
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            },
+          }],
         },
         {
           query: 'setOptions',
           args: [{
             isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
           }],
         },
         { query: 'lean' },

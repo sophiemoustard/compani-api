@@ -14,7 +14,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:edit'] },
         validate: {
           payload: Joi.object().keys({
             courseBill: Joi.objectId().required(),
@@ -34,7 +34,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:read'] },
         pre: [{ method: authorizeCreditNotePdfGet }],
       },
       handler: generateCreditNotePdf,

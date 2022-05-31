@@ -7,7 +7,7 @@ const CourseCreditNoteNumber = require('../../../src/models/CourseCreditNoteNumb
 const SubProgram = require('../../../src/models/SubProgram');
 const VendorCompany = require('../../../src/models/VendorCompany');
 const Program = require('../../../src/models/Program');
-const { authCompany } = require('../../seed/authCompaniesSeed');
+const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const subProgramList = [{ _id: new ObjectId(), name: 'subProgram 1', steps: [new ObjectId()] }];
@@ -67,6 +67,24 @@ const courseBillsList = [
     billedAt: '2022-05-30T10:00:00.000Z',
     number: 'FACT-00002',
   },
+  { // 3 bill cancelled by credit note (otherCompany but autCompany as payer)
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    company: otherCompany._id,
+    payer: { company: authCompany._id },
+    mainFee: { price: 73, count: 1 },
+    billedAt: '2022-05-30T10:00:00.000Z',
+    number: 'FACT-00003',
+  },
+  { // 4 bill cancelled by credit note (otherCompany)
+    _id: new ObjectId(),
+    course: courseList[0]._id,
+    company: otherCompany._id,
+    payer: { company: otherCompany._id },
+    mainFee: { price: 73, count: 1 },
+    billedAt: '2022-05-30T10:00:00.000Z',
+    number: 'FACT-00004',
+  },
 ];
 
 const courseCreditNote = [
@@ -78,9 +96,25 @@ const courseCreditNote = [
     misc: 'wesh',
     company: authCompany._id,
   },
+  {
+    _id: new ObjectId(),
+    number: 'AV-00002',
+    courseBill: courseBillsList[3]._id,
+    date: '2022-04-08T10:00:00.000Z',
+    misc: 'wesh',
+    company: otherCompany._id,
+  },
+  {
+    _id: new ObjectId(),
+    number: 'AV-00003',
+    courseBill: courseBillsList[4]._id,
+    date: '2022-04-08T10:00:00.000Z',
+    misc: 'wesh',
+    company: otherCompany._id,
+  },
 ];
 
-const courseCreditNoteNumber = { _id: new ObjectId(), seq: 1 };
+const courseCreditNoteNumber = { _id: new ObjectId(), seq: 3 };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
