@@ -211,10 +211,10 @@ const computeCreditNoteEventVat = (creditNote, event) => (
     ? NumbersHelper.subtract(event.bills.inclTaxesTpp, event.bills.exclTaxesTpp)
     : NumbersHelper.subtract(event.bills.inclTaxesCustomer, event.bills.exclTaxesCustomer));
 
-const formatBillingItemForPdf = billingItem => ({
-  ...pick(billingItem, ['name', 'unitInclTaxes', 'vat', 'inclTaxes']),
-  count: UtilsHelper.roundFrenchNumber(billingItem.count),
-});
+const formatBillingItemForPdf = billingItem => pick(
+  billingItem,
+  ['name', 'unitInclTaxes', 'vat', 'count', 'inclTaxes']
+);
 
 exports.formatPdf = (creditNote, company) => {
   const computedData = {
