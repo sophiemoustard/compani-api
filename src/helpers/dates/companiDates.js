@@ -42,16 +42,16 @@ const CompaniDateFactory = (inputDate) => {
     },
 
     // QUERY
-    isBefore(miscTypeOtherDate) {
+    isBefore(miscTypeOtherDate, unit = 'millisecond') {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
-      return _date < otherDate;
+      return _date.startOf(unit) < otherDate.startOf(unit);
     },
 
-    isAfter(miscTypeOtherDate) {
+    isAfter(miscTypeOtherDate, unit = 'millisecond') {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
-      return _date > otherDate;
+      return _date.startOf(unit) > otherDate.startOf(unit);
     },
 
     isSame(miscTypeOtherDate, unit = 'millisecond') {
