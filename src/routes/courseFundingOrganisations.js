@@ -7,7 +7,6 @@ const {
   authorizeCourseFundingOrganisationCreation,
   authorizeCourseFundingOrganisationDeletion,
 } = require('./preHandlers/courseFundingOrganisation');
-const { addressValidation } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-course-funding-organisations',
@@ -26,7 +25,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             name: Joi.string().required(),
-            address: addressValidation.required(),
+            address: Joi.string().required(),
           }),
         },
         auth: { scope: ['config:vendor'] },

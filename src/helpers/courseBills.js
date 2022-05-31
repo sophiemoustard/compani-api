@@ -171,15 +171,16 @@ exports.generateBillPdf = async (billId) => {
     .populate({ path: 'payer.company', select: 'name address' })
     .lean();
 
+  const { number, billedAt, company, payer, course, mainFee, billingPurchaseList } = bill;
   const data = {
-    number: bill.number,
-    date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
+    number,
+    date: CompaniDate(billedAt).format('dd/LL/yyyy'),
     vendorCompany,
-    company: bill.company,
-    payer: bill.payer,
-    course: bill.course,
-    mainFee: bill.mainFee,
-    billingPurchaseList: bill.billingPurchaseList,
+    company,
+    payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },
+    course,
+    mainFee,
+    billingPurchaseList,
   };
   const template = await CourseBillPdf.getPdfContent(data);
   const pdf = await PdfHelper.generatePdf(template);

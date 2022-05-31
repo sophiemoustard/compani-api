@@ -39,13 +39,7 @@ describe('getPdfContent', () => {
       company: { name: 'Test structure' },
       payer: {
         name: 'payeur',
-        address: {
-          fullAddress: '24 Avenue Daumesnil 75012 Paris',
-          street: '24 Avenue Daumesnil',
-          city: 'Paris',
-          zipCode: '75012',
-          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
-        },
+        address: '24 Avenue Daumesnil 75012 Paris',
       },
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description' },
@@ -90,8 +84,7 @@ describe('getPdfContent', () => {
               stack: [
                 { text: 'Facturer à' },
                 { text: 'payeur', bold: true },
-                { text: '24 Avenue Daumesnil' },
-                { text: '75012 Paris' },
+                { text: '24 Avenue Daumesnil 75012 Paris' },
               ],
             },
             {
@@ -214,13 +207,7 @@ describe('getPdfContent', () => {
       company: { name: 'Test structure' },
       payer: {
         name: 'payeur',
-        address: {
-          fullAddress: '24 Avenue Daumesnil 75012 Paris',
-          street: '24 Avenue Daumesnil',
-          city: 'Paris',
-          zipCode: '75012',
-          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
-        },
+        address: '24 Avenue Daumesnil 75012 Paris',
       },
       course: { subProgram: { program: { name: 'Test' } } },
       mainFee: { price: 1000, count: 1, description: 'description' },
@@ -261,8 +248,7 @@ describe('getPdfContent', () => {
               stack: [
                 { text: 'Facturer à' },
                 { text: 'payeur', bold: true },
-                { text: '24 Avenue Daumesnil' },
-                { text: '75012 Paris' },
+                { text: '24 Avenue Daumesnil 75012 Paris' },
               ],
             },
             {

@@ -59,16 +59,7 @@ describe('COURSE FUNDING ORGANISATION ROUTES - GET /coursefundingorganisations',
 describe('COURSE FUNDING ORGANISATION ROUTES - POST /coursefundingorganisations', () => {
   let authToken;
   beforeEach(populateDB);
-  const payload = {
-    name: 'mon organisation',
-    address: {
-      street: '37 rue de Ponthieu',
-      zipCode: '75008',
-      city: 'Paris',
-      fullAddress: '37 rue de Ponthieu 75008 Paris',
-      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-    },
-  };
+  const payload = { name: 'mon organisation', address: '37 rue de Ponthieu 75008 Paris' };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {

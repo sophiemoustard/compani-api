@@ -74,8 +74,7 @@ exports.getHeader = async (data, isBill = false) => {
           stack: [
             { text: isBill ? 'Facturer à' : '' },
             { text: get(data, 'payer.name') || '', bold: true },
-            { text: get(data, 'payer.address.street') || '' },
-            { text: `${get(data, 'payer.address.zipCode') || ''} ${get(data, 'payer.address.city') || ''}` },
+            { text: get(data, 'payer.address') || '' },
           ],
         },
         isBill ? billRecipientSection : affiliateBillSection,
