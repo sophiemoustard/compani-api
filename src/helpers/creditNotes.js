@@ -174,12 +174,12 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
   } else {
     const tppPayload = {
       ...payload,
-      inclTaxesCustomer: NumbersHelper.toString(0),
+      inclTaxesCustomer: 0,
       exclTaxesCustomer: NumbersHelper.toString(0),
     };
     const customerPayload = {
       ...payload,
-      inclTaxesTpp: NumbersHelper.toString(0),
+      inclTaxesTpp: 0,
       exclTaxesTpp: NumbersHelper.toString(0),
     };
 
