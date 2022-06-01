@@ -20,7 +20,6 @@ const MISSING_END_TIME_STAMP = 'COD';
 const MISSING_BOTH_TIME_STAMP = 'CO2';
 const AUXILIARY_CONTACT = 'INT';
 const SPECIFIED_CI_TRADE_PRODUCT_NAME = 'Aide aux personnes âgées';
-const DATE_FORMAT = 'yyyy-LL-dd\'T\'HH:mm:ss';
 
 // Identifiant de transaction du flux delivery
 const getCIDDHExchangedDocumentContext = transactionId => ({ VersionID: '1.4', SpecifiedTransactionID: transactionId });
@@ -63,7 +62,7 @@ const getShipToCITradeParty = (customer) => { // order matters
   shipToCITradeParty['pie:LastName'] = get(customer, 'identity.lastname') || '';
 
   const birthDate = get(customer, 'identity.birthDate');
-  if (birthDate) shipToCITradeParty['pie:BirthDate'] = CompaniDate(birthDate).format(DATE_FORMAT);
+  if (birthDate) shipToCITradeParty['pie:BirthDate'] = CompaniDate(birthDate).toLocalISO().slice(0, 19);
 
   shipToCITradeParty['pie:PostalCITradeAddress'] = getPostalCITradeAddress(get(customer, 'contact.primaryAddress'));
 
@@ -102,8 +101,8 @@ const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTim
   const actualDespatchCISupplyChainEvent = {
     TypeCode: { '#text': typeCode, '@listAgencyName': 'EDESS', '@listID': 'ESPPADOM_EFFECTIVITY_AJUST' },
     OccurrenceCISpecifiedPeriod: {
-      'qdt:StartDateTime': CompaniDate(event.startDate).format(DATE_FORMAT),
-      'qdt:EndDateTime': CompaniDate(event.endDate).format(DATE_FORMAT),
+      'qdt:StartDateTime': CompaniDate(event.startDate).toLocalISO().slice(0, 19),
+      'qdt:EndDateTime': CompaniDate(event.endDate).toLocalISO().slice(0, 19),
     },
   };
 
@@ -125,8 +124,8 @@ const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
   if (isStartTimeStamped && isEndTimeStamped) {
     applicableCIDDHSupplyChainTradeDelivery.AdditionalReferencedCIReferencedDocument = {
       EffectiveCISpecifiedPeriod: {
-        StartDateTime: { CertifiedDateTime: CompaniDate(event.startDate).format(DATE_FORMAT) },
-        EndDateTime: { CertifiedDateTime: CompaniDate(event.endDate).format(DATE_FORMAT) },
+        StartDateTime: { CertifiedDateTime: CompaniDate(event.startDate).toLocalISO().slice(0, 19) },
+        EndDateTime: { CertifiedDateTime: CompaniDate(event.endDate).toLocalISO().slice(0, 19) },
       },
     };
   }
@@ -303,7 +302,7 @@ exports.getEvents = async (query, credentials) => {
  * => pour un tiers payeur, on récupere la liste des inteventions qui sont reliées à un plan d'aide
  */
 exports.getCrossIndustryDespatchAdvice = async (query, credentials) => {
-  const issueDateTime = CompaniDate().format(DATE_FORMAT);
+  const issueDateTime = CompaniDate().toLocalISO().slice(0, 19);
   const transactionId = issueDateTime.replace(/T/g, '').replace(/-/g, '').replace(/:/g, '');
 
   return (await exports.getEvents(query, credentials))
