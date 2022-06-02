@@ -32,7 +32,7 @@ exports.getBillSlips = async (credentials) => {
     billSlipList.push({ ...creditNote, netInclTaxes: -creditNote.netInclTaxes });
   }
 
-  return billSlipList;
+  return billSlipList.map(bs => ({ ...bs, netInclTaxes: NumbersHelper.toFixedToFloat(bs.netInclTaxes) }));
 };
 
 exports.formatBillSlipNumber = (companyPrefixNumber, prefix, seq) =>
@@ -78,12 +78,14 @@ exports.formatFundingInfo = (info, billingDoc) => {
   const matchingVersion = UtilsHelper.mergeLastVersionWithBaseObject(matchingFunding, 'createdAt');
   if (!matchingVersion) return null;
 
-  const tppParticipationRate = UtilsHelper.formatPercentage(
-    NumbersHelper.divide(NumbersHelper.subtract(100, matchingVersion.customerParticipationRate), 100) 
+  const tppParticipationRate = NumbersHelper.toFixedToFloat(
+    NumbersHelper.divide(NumbersHelper.subtract(100, matchingVersion.customerParticipationRate), 100),
+    4
   );
 
-  const customerParticipationRate = UtilsHelper.formatPercentage(
-    NumbersHelper.divide(matchingVersion.customerParticipationRate, 100)
+  const customerParticipationRate = NumbersHelper.toFixedToFloat(
+    NumbersHelper.divide(matchingVersion.customerParticipationRate, 100),
+    4
   );
 
   return {
@@ -92,8 +94,8 @@ exports.formatFundingInfo = (info, billingDoc) => {
     date: moment(info.date).format('DD/MM/YYYY'),
     customer: get(info, 'customer.identity.lastname'),
     folderNumber: matchingVersion.folderNumber || '',
-    tppParticipationRate,
-    customerParticipationRate,
+    tppParticipationRate: UtilsHelper.formatPercentage(tppParticipationRate),
+    customerParticipationRate: UtilsHelper.formatPercentage(customerParticipationRate),
     careHours: UtilsHelper.formatHour(matchingVersion.careHours),
     unitTTCRate: UtilsHelper.formatPrice(matchingVersion.unitTTCRate),
     billedCareHours: 0,
@@ -143,8 +145,8 @@ exports.formatBillingDataForFile = (billList, creditNoteList) => {
     total = NumbersHelper.add(total, NumbersHelper.toFixedToFloat(netInclTaxes));
     formattedBills.push({
       ...bill,
-      netInclTaxes: UtilsHelper.formatPrice(netInclTaxes),
-      billedCareHours: UtilsHelper.formatHour(bill.billedCareHours),
+      netInclTaxes: UtilsHelper.formatPrice(NumbersHelper.toFixedToFloat(netInclTaxes)),
+      billedCareHours: UtilsHelper.formatHour(NumbersHelper.toFixedToFloat(bill.billedCareHours)),
     });
   }
 
@@ -154,7 +156,7 @@ exports.formatBillingDataForFile = (billList, creditNoteList) => {
     return moment(a.createdAt).isBefore(b.createdAt) ? -1 : 1;
   });
 
-  return { total: UtilsHelper.formatPrice(total), formattedBills };
+  return { total: UtilsHelper.formatPrice(NumbersHelper.toFixedToFloat(total)), formattedBills };
 };
 
 exports.formatFile = (billSlip, billList, creditNoteList, company) => {
