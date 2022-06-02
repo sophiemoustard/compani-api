@@ -18,18 +18,16 @@ exports.getBillSlips = async (credentials) => {
 
   for (const billSlip of billSlipList) {
     const billSlipMonth = billSlip.month;
-    const billSlipTppId = billSlip.thirdPartyPayer._id.toHexString();
     const creditNote = creditNoteList.find(cn => cn.month === billSlipMonth &&
-      cn.thirdPartyPayer._id.toHexString() === billSlipTppId);
+      UtilsHelper.areObjectIdsEquals(cn.thirdPartyPayer._id, billSlip.thirdPartyPayer._id));
     if (!creditNote) continue;
-    billSlip.netInclTaxes -= creditNote.netInclTaxes;
+    billSlip.netInclTaxes = NumbersHelper.subtract(billSlip.netInclTaxes, creditNote.netInclTaxes);
   }
 
   for (const creditNote of creditNoteList) {
     const creditNoteMonth = creditNote.month;
-    const creditNoteTppId = creditNote.thirdPartyPayer._id.toHexString();
     const bill = billSlipList.find(bs => creditNoteMonth === bs.month &&
-      creditNoteTppId === bs.thirdPartyPayer._id.toHexString());
+      UtilsHelper.areObjectIdsEquals(creditNote.thirdPartyPayer._id, bs.thirdPartyPayer._id));
     if (bill) continue;
     billSlipList.push({ ...creditNote, netInclTaxes: -creditNote.netInclTaxes });
   }
