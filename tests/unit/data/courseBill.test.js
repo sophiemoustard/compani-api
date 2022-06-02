@@ -155,9 +155,7 @@ describe('getPdfContent', () => {
           ],
         },
         {
-          text: 'Merci de lire attentivement nos Conditions Générales de Prestations et le(s) programme(s) de '
-            + 'formation en pièce-jointe.\nEn tant qu’organisme de formation, Compani est exonéré de la Taxe sur la '
-            + 'Valeur Ajoutée (TVA).',
+          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
           fontSize: 8,
           marginTop: 48,
         },
@@ -295,9 +293,7 @@ describe('getPdfContent', () => {
           ],
         },
         {
-          text: 'Merci de lire attentivement nos Conditions Générales de Prestations et le(s) programme(s) de '
-            + 'formation en pièce-jointe.\nEn tant qu’organisme de formation, Compani est exonéré de la Taxe sur la '
-            + 'Valeur Ajoutée (TVA).',
+          text: 'En tant qu’organisme de formation, Compani est exonéré de la Taxe sur la Valeur Ajoutée (TVA).',
           fontSize: 8,
           marginTop: 48,
         },
