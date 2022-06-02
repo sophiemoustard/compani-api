@@ -113,9 +113,9 @@ exports.formatBillingDataForFile = (billList, creditNoteList) => {
         }
         billingData[event.fundingId].billedCareHours =
           NumbersHelper.add(billingData[event.fundingId].billedCareHours, event.careHours);
-
         billingData[event.fundingId].netInclTaxes =
           NumbersHelper.add(billingData[event.fundingId].netInclTaxes, event.inclTaxesTpp);
+        if (subscription.discount) billingData[event.fundingId].discount = subscription.discount;
       }
       billsAndCreditNotes = billsAndCreditNotes.concat(Object.values(billingData));
     }
@@ -139,10 +139,11 @@ exports.formatBillingDataForFile = (billList, creditNoteList) => {
   let total = NumbersHelper.toString(0);
   const formattedBills = [];
   for (const bill of billsAndCreditNotes) {
-    total = NumbersHelper.add(total, NumbersHelper.toFixedToFloat(bill.netInclTaxes));
+    const netInclTaxes = bill.discount ? NumbersHelper.subtract(bill.netInclTaxes, bill.discount) : bill.netInclTaxes;
+    total = NumbersHelper.add(total, NumbersHelper.toFixedToFloat(netInclTaxes));
     formattedBills.push({
       ...bill,
-      netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
+      netInclTaxes: UtilsHelper.formatPrice(netInclTaxes),
       billedCareHours: UtilsHelper.formatHour(bill.billedCareHours),
     });
   }
