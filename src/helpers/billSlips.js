@@ -72,11 +72,19 @@ exports.createBillSlips = async (billList, endDate, company) => {
 
 exports.formatFundingInfo = (info, billingDoc) => {
   const matchingFunding = info.customer.fundings
-    .find(f => f._id.toHexString() === billingDoc.fundingId.toHexString());
+    .find(f => UtilsHelper.areObjectIdsEquals(f._id, billingDoc.fundingId));
   if (!matchingFunding || matchingFunding.frequency !== MONTHLY) return null;
 
   const matchingVersion = UtilsHelper.mergeLastVersionWithBaseObject(matchingFunding, 'createdAt');
   if (!matchingVersion) return null;
+
+  const tppParticipationRate = UtilsHelper.formatPercentage(
+    NumbersHelper.divide(NumbersHelper.subtract(100, matchingVersion.customerParticipationRate), 100) 
+  );
+
+  const customerParticipationRate = UtilsHelper.formatPercentage(
+    NumbersHelper.divide(matchingVersion.customerParticipationRate, 100)
+  );
 
   return {
     number: info.number || '',
@@ -84,8 +92,8 @@ exports.formatFundingInfo = (info, billingDoc) => {
     date: moment(info.date).format('DD/MM/YYYY'),
     customer: get(info, 'customer.identity.lastname'),
     folderNumber: matchingVersion.folderNumber || '',
-    tppParticipationRate: UtilsHelper.formatPercentage((100 - matchingVersion.customerParticipationRate) / 100),
-    customerParticipationRate: UtilsHelper.formatPercentage(matchingVersion.customerParticipationRate / 100),
+    tppParticipationRate,
+    customerParticipationRate,
     careHours: UtilsHelper.formatHour(matchingVersion.careHours),
     unitTTCRate: UtilsHelper.formatPrice(matchingVersion.unitTTCRate),
     billedCareHours: 0,
@@ -103,8 +111,11 @@ exports.formatBillingDataForFile = (billList, creditNoteList) => {
           const formattedInfo = exports.formatFundingInfo(bill, event);
           if (formattedInfo) billingData[event.fundingId] = formattedInfo;
         }
-        billingData[event.fundingId].billedCareHours += event.careHours;
-        billingData[event.fundingId].netInclTaxes += event.inclTaxesTpp;
+        billingData[event.fundingId].billedCareHours =
+          NumbersHelper.add(billingData[event.fundingId].billedCareHours, event.careHours);
+
+        billingData[event.fundingId].netInclTaxes =
+          NumbersHelper.add(billingData[event.fundingId].netInclTaxes, event.inclTaxesTpp);
       }
       billsAndCreditNotes = billsAndCreditNotes.concat(Object.values(billingData));
     }
@@ -117,16 +128,18 @@ exports.formatBillingDataForFile = (billList, creditNoteList) => {
         const formattedInfo = exports.formatFundingInfo(creditNote, event.bills);
         if (formattedInfo) billingData[event.bills.fundingId] = formattedInfo;
       }
-      billingData[event.bills.fundingId].billedCareHours += event.bills.careHours;
-      billingData[event.bills.fundingId].netInclTaxes -= event.bills.inclTaxesTpp;
+      billingData[event.bills.fundingId].billedCareHours =
+        NumbersHelper.add(billingData[event.bills.fundingId].billedCareHours, event.bills.careHours);
+      billingData[event.bills.fundingId].netInclTaxes =
+        NumbersHelper.subtract(billingData[event.bills.fundingId].netInclTaxes, event.bills.inclTaxesTpp);
     }
     billsAndCreditNotes = billsAndCreditNotes.concat(Object.values(billingData));
   }
 
-  let total = 0;
+  let total = NumbersHelper.toString(0);
   const formattedBills = [];
   for (const bill of billsAndCreditNotes) {
-    total = NumbersHelper.oldAdd(total, bill.netInclTaxes.toFixed(2));
+    total = NumbersHelper.add(total, NumbersHelper.toFixedToFloat(bill.netInclTaxes));
     formattedBills.push({
       ...bill,
       netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
