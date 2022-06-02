@@ -207,7 +207,7 @@ const formatEventForPdf = event => ({
 });
 
 const computeCreditNoteEventVat = (creditNote, event) => (
-  creditNote.exclTaxes && !NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
+  creditNote.exclTaxesTpp && !NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
     ? NumbersHelper.subtract(event.bills.inclTaxesTpp, event.bills.exclTaxesTpp)
     : NumbersHelper.subtract(event.bills.inclTaxesCustomer, event.bills.exclTaxesCustomer));
 
