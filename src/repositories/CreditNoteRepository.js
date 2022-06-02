@@ -55,63 +55,64 @@ exports.findAmountsGroupedByTpp = async (companyId, customersIds, dateMax = null
   return tppCreditNotesAmounts;
 };
 
-exports.getCreditNoteList = async companyId => CreditNote.aggregate([
-  { $match: { thirdPartyPayer: { $exists: true } } },
-  {
-    $group: {
-      _id: { thirdPartyPayer: '$thirdPartyPayer', year: { $year: '$date' }, month: { $month: '$date' } },
-      creditNotes: { $push: '$$ROOT' },
-      firstCreditNote: { $first: '$$ROOT' },
-    },
-  },
-  {
-    $addFields: {
-      netInclTaxes: {
-        $reduce: {
-          input: '$creditNotes',
-          initialValue: 0,
-          in: { $add: ['$$value', '$$this.inclTaxesTpp'] },
-        },
+exports.getCreditNoteList = async (companyId) => {
+  const creditNoteList = await CreditNote.aggregate([
+    { $match: { thirdPartyPayer: { $exists: true } } },
+    {
+      $group: {
+        _id: { thirdPartyPayer: '$thirdPartyPayer', year: { $year: '$date' }, month: { $month: '$date' } },
+        creditNotes: { $push: '$$ROOT' },
+        firstCreditNote: { $first: '$$ROOT' },
       },
-      month: { $substr: [{ $dateToString: { date: '$firstCreditNote.date', format: '%d-%m-%Y' } }, 3, -1] },
     },
-  },
-  {
-    $lookup: {
-      from: 'billslips',
-      as: 'billSlip',
-      let: { thirdPartyPayerId: '$_id.thirdPartyPayer', month: '$month' },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [{ $eq: ['$thirdPartyPayer', '$$thirdPartyPayerId'] }, { $eq: ['$month', '$$month'] }],
+    {
+      $addFields: {
+        month: { $substr: [{ $dateToString: { date: '$firstCreditNote.date', format: '%d-%m-%Y' } }, 3, -1] },
+      },
+    },
+    {
+      $lookup: {
+        from: 'billslips',
+        as: 'billSlip',
+        let: { thirdPartyPayerId: '$_id.thirdPartyPayer', month: '$month' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ['$thirdPartyPayer', '$$thirdPartyPayerId'] }, { $eq: ['$month', '$$month'] }],
+              },
             },
           },
-        },
-      ],
+        ],
+      },
     },
-  },
-  { $unwind: { path: '$billSlip' } },
-  {
-    $lookup: {
-      from: 'thirdpartypayers',
-      localField: '_id.thirdPartyPayer',
-      foreignField: '_id',
-      as: 'thirdPartyPayer',
+    { $unwind: { path: '$billSlip' } },
+    {
+      $lookup: {
+        from: 'thirdpartypayers',
+        localField: '_id.thirdPartyPayer',
+        foreignField: '_id',
+        as: 'thirdPartyPayer',
+      },
     },
-  },
-  { $unwind: { path: '$thirdPartyPayer' } },
-  {
-    $project: {
-      _id: '$billSlip._id',
-      netInclTaxes: 1,
-      thirdPartyPayer: { _id: 1, name: 1 },
-      month: 1,
-      number: '$billSlip.number',
+    { $unwind: { path: '$thirdPartyPayer' } },
+    {
+      $project: {
+        _id: '$billSlip._id',
+        creditNotes: 1,
+        thirdPartyPayer: { _id: 1, name: 1 },
+        month: 1,
+        number: '$billSlip.number',
+      },
     },
-  },
-]).option({ company: companyId });
+  ]).option({ company: companyId });
+
+  return creditNoteList.map(creditNote => ({
+    ...creditNote,
+    netInclTaxes: creditNote.creditNotes
+      .reduce((acc, cn) => NumbersHelper.add(acc, cn.inclTaxesTpp), NumbersHelper.toString(0)),
+  }));
+};
 
 exports.getCreditNoteFromBillSlip = async (billSlip, companyId) => {
   const query = {
