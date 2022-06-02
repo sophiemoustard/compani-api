@@ -136,7 +136,6 @@ describe('getEventHistories', () => {
             action: { $in: TIME_STAMPING_ACTIONS },
             'event.eventId': { $in: [event1, event2, event3] },
             company: companyId,
-            isCancelled: false,
           }],
         },
         { query: 'lean' },
@@ -508,5 +507,121 @@ describe('getFileName', () => {
       findOne,
       [{ query: 'findOne', args: [{ _id: tppId }, { teletransmissionType: 1, companyCode: 1 }] }, { query: 'lean' }]
     );
+  });
+});
+
+describe('getTimeStampInfo', () => {
+  it('should return info for event with both timestamp', () => {
+    const histories = [
+      { update: { startHour: '2022-05-12T12:22:30.000Z' } },
+      { update: { endHour: '2022-05-12T12:22:30.000Z' } },
+    ];
+
+    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
+
+    expect(timeStampInfo.isStartTimeStamped).toBe(true);
+    expect(timeStampInfo.isEndTimeStamped).toBe(true);
+    expect(timeStampInfo.hasTimeStamp).toBe(true);
+  });
+
+  it('should return info for event with startDate timestamp only (endDate cancelled)', () => {
+    const histories = [
+      { update: { startHour: '2022-05-12T12:22:30.000Z' } },
+      { update: { endHour: '2022-05-12T12:22:30.000Z' }, isCancelled: true },
+    ];
+
+    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
+
+    expect(timeStampInfo.isStartTimeStamped).toBe(true);
+    expect(timeStampInfo.isEndTimeStamped).toBe(false);
+    expect(timeStampInfo.hasTimeStamp).toBe(true);
+  });
+
+  it('should return info for event with startDate timestamp only (no endDate)', () => {
+    const histories = [{ update: { startHour: '2022-05-12T12:22:30.000Z' } }];
+
+    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
+
+    expect(timeStampInfo.isStartTimeStamped).toBe(true);
+    expect(timeStampInfo.isEndTimeStamped).toBe(false);
+    expect(timeStampInfo.hasTimeStamp).toBe(true);
+  });
+
+  it('should return info for event with endDate timestamp only (startDate cancelled)', () => {
+    const histories = [
+      { update: { startHour: '2022-05-12T12:22:30.000Z' }, isCancelled: true },
+      { update: { endHour: '2022-05-12T12:22:30.000Z' } },
+    ];
+
+    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
+
+    expect(timeStampInfo.isStartTimeStamped).toBe(false);
+    expect(timeStampInfo.isEndTimeStamped).toBe(true);
+    expect(timeStampInfo.hasTimeStamp).toBe(true);
+  });
+
+  it('should return info for event with endDate timestamp only (no startDate)', () => {
+    const histories = [{ update: { endHour: '2022-05-12T12:22:30.000Z' } }];
+
+    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
+
+    expect(timeStampInfo.isStartTimeStamped).toBe(false);
+    expect(timeStampInfo.isEndTimeStamped).toBe(true);
+    expect(timeStampInfo.hasTimeStamp).toBe(true);
+  });
+
+  it('should return info for event with both timestamp cancelled', () => {
+    const histories = [
+      { update: { startHour: '2022-05-12T12:22:30.000Z' }, isCancelled: true },
+      { update: { endHour: '2022-05-12T12:22:30.000Z' }, isCancelled: true },
+    ];
+
+    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
+
+    expect(timeStampInfo.isStartTimeStamped).toBe(false);
+    expect(timeStampInfo.isEndTimeStamped).toBe(false);
+    expect(timeStampInfo.hasTimeStamp).toBe(true);
+  });
+
+  it('should return info for event without timestamp', () => {
+    const histories = [];
+
+    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
+
+    expect(timeStampInfo.isStartTimeStamped).toBe(false);
+    expect(timeStampInfo.isEndTimeStamped).toBe(false);
+    expect(timeStampInfo.hasTimeStamp).toBe(false);
+  });
+});
+
+describe('getTypeCode', () => {
+  it('should get typeCode for event with both timestamp', () => {
+    const typeCode = DeliveryHelper.getTypeCode(true, true, true);
+
+    expect(typeCode).toBe('');
+  });
+
+  it('should get typeCode for event with only startDate timestamp', () => {
+    const typeCode = DeliveryHelper.getTypeCode(true, false, true);
+
+    expect(typeCode).toBe('COD');
+  });
+
+  it('should get typeCode for event with only endDate timestamp', () => {
+    const typeCode = DeliveryHelper.getTypeCode(false, true, true);
+
+    expect(typeCode).toBe('COA');
+  });
+
+  it('should get typeCode for event with both timestamps but cancelled', () => {
+    const typeCode = DeliveryHelper.getTypeCode(false, false, true);
+
+    expect(typeCode).toBe('CO2');
+  });
+
+  it('should get typeCode for event with no timestamps', () => {
+    const typeCode = DeliveryHelper.getTypeCode(false, false, false);
+
+    expect(typeCode).toBe('CRE');
   });
 });

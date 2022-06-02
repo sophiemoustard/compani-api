@@ -248,7 +248,7 @@ describe('getDaysRatioBetweenTwoDates', () => {
   it('Case 1. No sundays nor holidays in range', () => {
     const start = new Date('2019/05/21');
     const end = new Date('2019/05/23');
-    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, true);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ holidays: 0, sundays: 0, businessDays: 3 });
@@ -257,19 +257,28 @@ describe('getDaysRatioBetweenTwoDates', () => {
   it('Case 2. Sundays in range', () => {
     const start = new Date('2019/05/18');
     const end = new Date('2019/05/23');
-    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, true);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ holidays: 0, sundays: 1, businessDays: 5 });
   });
 
-  it('Case 3. Holidays in range', () => {
+  it('Case 3. Holidays in range and company should pay holidays', () => {
     const start = new Date('2022/04/17');
     const end = new Date('2022/04/19');
-    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, true);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ holidays: 1, sundays: 1, businessDays: 1 });
+  });
+
+  it('Case 4. Holidays in range and company should not pay holidays', () => {
+    const start = new Date('2022/04/17');
+    const end = new Date('2022/04/19');
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end, false);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ holidays: 0, sundays: 1, businessDays: 2 });
   });
 });
 

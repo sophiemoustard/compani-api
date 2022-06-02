@@ -33,7 +33,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    await CourseSlotsHelper.removeCourseSlot(req.pre.courseSlot, req.auth.credentials);
+    await CourseSlotsHelper.removeCourseSlot(req.pre.courseSlot);
 
     return {
       message: translate[language].courseSlotDeleted,

@@ -6,9 +6,10 @@ const CourseBill = require('../models/CourseBill');
 const CourseBillsNumber = require('../models/CourseBillsNumber');
 const PdfHelper = require('./pdf');
 const BalanceHelper = require('./balances');
+const UtilsHelper = require('./utils');
 const VendorCompaniesHelper = require('./vendorCompanies');
 const CourseBillPdf = require('../data/pdf/courseBilling/courseBill');
-const { LIST } = require('./constants');
+const { LIST, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.getNetInclTaxes = (bill) => {
@@ -51,18 +52,36 @@ exports.formatCourseBill = (courseBill) => {
 
 const balance = async (company, credentials) => {
   const courseBills = await CourseBill
-    .find({ company, billedAt: { $exists: true, $type: 'date' } })
+    .find({ $or: [{ company }, { 'payer.company': company }], billedAt: { $exists: true, $type: 'date' } })
     .populate({
       path: 'course',
-      select: 'misc slots slotsToPlan subProgram',
+      select: 'misc slots slotsToPlan subProgram company',
       populate: [
         { path: 'slots' },
         { path: 'slotsToPlan' },
         { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
       ],
     })
-    .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
-    .populate({ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
+    .populate({ path: 'payer.company', select: 'name' })
+    .populate({ path: 'payer.fundingOrganisation', select: 'name' })
+    .populate({
+      path: 'courseCreditNote',
+      options: {
+        isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, credentials.company._id),
+      },
+    })
+    .populate({
+      path: 'coursePayments',
+      options: {
+        isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+        requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, credentials.company._id),
+      },
+    })
+    .setOptions({
+      isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+      requestingOwnInfos: UtilsHelper.areObjectIdsEquals(company, credentials.company._id),
+    })
     .lean();
 
   return courseBills.map(bill => exports.formatCourseBill(bill));
@@ -73,7 +92,8 @@ exports.list = async (query, credentials) => {
     const courseBills = await CourseBill
       .find({ course: query.course })
       .populate({ path: 'company', select: 'name' })
-      .populate({ path: 'courseFundingOrganisation', select: 'name' })
+      .populate({ path: 'payer.fundingOrganisation', select: 'name' })
+      .populate({ path: 'payer.company', select: 'name' })
       .populate({ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } })
       .setOptions({ isVendorUser: !!get(credentials, 'role.vendor') })
       .lean();
@@ -99,14 +119,14 @@ exports.updateCourseBill = async (courseBillId, payload) => {
     };
   } else {
     let payloadToSet = payload;
-    let payloadToUnset = {};
-
-    for (const key of ['courseFundingOrganisation', 'mainFee.description']) {
-      if (get(payload, key) === '') {
-        payloadToSet = omit(payloadToSet, key);
-        payloadToUnset = { ...payloadToUnset, [key]: '' };
-      }
+    const payloadToUnset = {};
+    if (get(payload, 'mainFee.description') === '') {
+      payloadToSet = omit(payloadToSet, 'mainFee.description');
+      payloadToUnset['mainFee.description'] = '';
     }
+
+    if (get(payload, 'payer.company')) payloadToUnset['payer.fundingOrganisation'] = '';
+    else if (get(payload, 'payer.fundingOrganisation')) payloadToUnset['payer.company'] = '';
 
     formattedPayload = {
       ...(Object.keys(payloadToSet).length && { $set: flat(payloadToSet, { safe: true }) }),
@@ -147,18 +167,20 @@ exports.generateBillPdf = async (billId) => {
     })
     .populate({ path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } })
     .populate({ path: 'company', select: 'name address' })
-    .populate('courseFundingOrganisation')
+    .populate({ path: 'payer.fundingOrganisation', select: 'name address' })
+    .populate({ path: 'payer.company', select: 'name address' })
     .lean();
 
+  const { number, billedAt, company, payer, course, mainFee, billingPurchaseList } = bill;
   const data = {
-    number: bill.number,
-    date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
+    number,
+    date: CompaniDate(billedAt).format('dd/LL/yyyy'),
     vendorCompany,
-    company: bill.company,
-    payer: bill.courseFundingOrganisation || bill.company,
-    course: bill.course,
-    mainFee: bill.mainFee,
-    billingPurchaseList: bill.billingPurchaseList,
+    company,
+    payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },
+    course,
+    mainFee,
+    billingPurchaseList,
   };
   const template = await CourseBillPdf.getPdfContent(data);
   const pdf = await PdfHelper.generatePdf(template);

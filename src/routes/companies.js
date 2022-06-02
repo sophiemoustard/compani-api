@@ -61,6 +61,7 @@ exports.plugin = {
                   link: Joi.string().allow(null),
                 }),
               }),
+              shouldPayHolidays: Joi.boolean(),
             }),
             customersConfig: Joi.object().keys({
               billingPeriod: Joi.string().valid(...COMPANY_BILLING_PERIODS),

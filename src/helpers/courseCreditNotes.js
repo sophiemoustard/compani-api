@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const CourseCreditNote = require('../models/CourseCreditNote');
 const CourseCreditNoteNumber = require('../models/CourseCreditNoteNumber');
 const VendorCompaniesHelper = require('./vendorCompanies');
@@ -23,20 +24,22 @@ exports.generateCreditNotePdf = async (creditNoteId) => {
   const creditNote = await CourseCreditNote.findOne({ _id: creditNoteId })
     .populate({
       path: 'courseBill',
-      select: 'course number date courseFundingOrganisation billingPurchaseList mainFee billedAt',
+      select: 'course number date payer billingPurchaseList mainFee billedAt',
       populate: [
         {
           path: 'course',
           select: 'subProgram',
           populate: { path: 'subProgram', select: 'program', populate: [{ path: 'program', select: 'name' }] },
         },
-        { path: 'courseFundingOrganisation', select: 'name address' },
+        { path: 'payer.fundingOrganisation', select: 'name address' },
+        { path: 'payer.company', select: 'name address' },
         { path: 'billingPurchaseList', select: 'billingItem', populate: { path: 'billingItem', select: 'name' } },
       ],
     })
     .populate({ path: 'company', select: 'name address' })
     .lean();
 
+  const payer = get(creditNote, 'courseBill.payer');
   const data = {
     number: creditNote.number,
     date: CompaniDate(creditNote.date).format('dd/LL/yyyy'),
@@ -47,7 +50,7 @@ exports.generateCreditNotePdf = async (creditNoteId) => {
       number: creditNote.courseBill.number,
       date: CompaniDate(creditNote.courseBill.billedAt).format('dd/LL/yyyy'),
     },
-    payer: creditNote.courseBill.courseFundingOrganisation || creditNote.company,
+    payer: { name: payer.name, address: get(payer, 'address.fullAddress') || payer.address },
     course: creditNote.courseBill.course,
     mainFee: creditNote.courseBill.mainFee,
     billingPurchaseList: creditNote.courseBill.billingPurchaseList,

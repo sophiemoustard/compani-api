@@ -135,7 +135,7 @@ exports.capitalize = (s) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-exports.getDaysRatioBetweenTwoDates = (start, end) => {
+exports.getDaysRatioBetweenTwoDates = (start, end, shouldPayHolidays) => {
   let holidays = 0;
   let sundays = 0;
   let businessDays = 0;
@@ -144,7 +144,7 @@ exports.getDaysRatioBetweenTwoDates = (start, end) => {
   const range = Array.from(moment().range(start, end).by('days'));
   for (const day of range) {
     // startOf('day') is necessery to check fr holidays in business day
-    if (day.startOf('d').isHoliday() && day.day() !== 0) holidays += 1;
+    if (shouldPayHolidays && day.startOf('d').isHoliday() && day.day() !== 0) holidays += 1;
     else if (day.day() !== 0) businessDays += 1;
     else sundays += 1;
   }

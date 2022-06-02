@@ -16,7 +16,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:edit'] },
         validate: {
           payload: Joi.object({
             date: requiredDateToISOString.required(),
@@ -36,7 +36,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({

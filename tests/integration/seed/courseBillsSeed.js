@@ -118,30 +118,32 @@ const courseList = [
     contact: new ObjectId(),
     trainees: [],
   },
+  { // 7 - linked to bill 6
+    _id: new ObjectId(),
+    type: INTRA,
+    company: otherCompany._id,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 7',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [],
+  },
+  { // 8 - linked to bill 7
+    _id: new ObjectId(),
+    type: INTRA,
+    company: otherCompany._id,
+    subProgram: new ObjectId(),
+    misc: 'group 7',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [],
+  },
 ];
 const courseFundingOrganisationList = [
-  {
-    _id: new ObjectId(),
-    name: 'APA Paris',
-    address: {
-      street: '1 avenue Denfert Rochereau',
-      zipCode: '75014',
-      city: 'Paris',
-      fullAddress: '1 avenue Denfert Rochereau 75014 Paris',
-      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-    },
-  },
-  {
-    _id: new ObjectId(),
-    name: 'APA Lyon',
-    address: {
-      street: '1 avenue Denfert Rochereau',
-      zipCode: '69002',
-      city: 'Lyon',
-      fullAddress: '1 avenue Denfert Rochereau 69002 Lyon',
-      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
-    },
-  },
+  { _id: new ObjectId(), name: 'APA Paris', address: '1 avenue Denfert Rochereau 75014 Paris' },
+  { _id: new ObjectId(), name: 'APA Lyon', address: '1 avenue Denfert Rochereau 69002 Lyon' },
 ];
 
 const billingItemList = [
@@ -150,7 +152,7 @@ const billingItemList = [
   { _id: new ObjectId(), name: 'petit déjeuner' },
 ];
 
-const courseBillNumber = { _id: new ObjectId(), seq: 1 };
+const courseBillNumber = { _id: new ObjectId(), seq: 4 };
 
 const courseBillsList = [
   { // 0
@@ -158,6 +160,7 @@ const courseBillsList = [
     course: courseList[0]._id,
     company: authCompany._id,
     mainFee: { price: 120, count: 1 },
+    payer: { company: authCompany._id },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 90, count: 1 },
       { _id: new ObjectId(), billingItem: billingItemList[1]._id, price: 400, count: 1 },
@@ -168,12 +171,13 @@ const courseBillsList = [
     course: courseList[1]._id,
     company: authCompany._id,
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
-    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+    payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
   },
   { // 2 - already billed without funder
     _id: new ObjectId(),
     course: courseList[3]._id,
     company: authCompany._id,
+    payer: { company: authCompany._id },
     mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
     billedAt: '2022-03-07T00:00:00.000Z',
     number: 'FACT-00001',
@@ -185,6 +189,7 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: courseList[4]._id,
     company: authCompany._id,
+    payer: { company: authCompany._id },
     mainFee: { price: 10, count: 1 },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 12, count: 7, description: 'soupe du soir' },
@@ -197,7 +202,7 @@ const courseBillsList = [
     mainFee: { price: 200, count: 2, description: 'Salut' },
     billedAt: '2022-04-07T00:00:00.000Z',
     number: 'FACT-00002',
-    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+    payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
@@ -206,10 +211,35 @@ const courseBillsList = [
     _id: new ObjectId(),
     course: courseList[6]._id,
     company: companyWithoutAddress._id,
+    payer: { company: companyWithoutAddress._id },
     mainFee: { price: 200, count: 2, description: 'yoyo' },
     billingPurchaseList: [
       { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
     ],
+  },
+  { // 6 - payer is other company
+    _id: new ObjectId(),
+    course: courseList[7]._id,
+    company: otherCompany._id,
+    payer: { company: authCompany._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00003',
+  },
+  { // 6 - payer and company is other company
+    _id: new ObjectId(),
+    course: courseList[8]._id,
+    company: otherCompany._id,
+    payer: { company: otherCompany._id },
+    mainFee: { price: 200, count: 2, description: 'yoyo' },
+    billingPurchaseList: [
+      { _id: new ObjectId(), billingItem: billingItemList[0]._id, price: 9, count: 1 },
+    ],
+    billedAt: '2022-04-07T00:00:00.000Z',
+    number: 'FACT-00004',
   },
 ];
 

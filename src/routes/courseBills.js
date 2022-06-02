@@ -30,7 +30,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:read'] },
         validate: {
           query: Joi.object({
             action: Joi.string().required().valid(LIST, BALANCE),
@@ -47,7 +47,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:edit'] },
         validate: {
           payload: Joi.object({
             course: Joi.objectId().required(),
@@ -56,7 +56,10 @@ exports.plugin = {
               count: Joi.number().positive().integer().required(),
             }).required(),
             company: Joi.objectId().required(),
-            courseFundingOrganisation: Joi.objectId(),
+            payer: Joi.object({
+              company: Joi.objectId(),
+              fundingOrganisation: Joi.objectId(),
+            }).xor('company', 'fundingOrganisation').required(),
           }),
         },
         pre: [{ method: authorizeCourseBillCreation }],
@@ -68,12 +71,15 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.alternatives().try(
             Joi.object({
-              courseFundingOrganisation: Joi.objectId().allow(''),
+              payer: Joi.object({
+                company: Joi.objectId(),
+                fundingOrganisation: Joi.objectId(),
+              }).oxor('company', 'fundingOrganisation'),
               mainFee: Joi.object({
                 price: Joi.number().positive(),
                 count: Joi.number().positive().integer(),
@@ -92,7 +98,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/billingpurchases',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
@@ -111,7 +117,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/billingpurchases/{billingPurchaseId}',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), billingPurchaseId: Joi.objectId().required() }),
           payload: Joi.object({
@@ -129,7 +135,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/billingpurchases/{billingPurchaseId}',
       options: {
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:edit'] },
         validate: {
           params: Joi.object({ _id: Joi.objectId().required(), billingPurchaseId: Joi.objectId().required() }),
         },
@@ -145,7 +151,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
         },
-        auth: { scope: ['config:vendor'] },
+        auth: { scope: ['coursebills:read'] },
         pre: [{ method: authorizeBillPdfGet }],
       },
       handler: generateBillPdf,

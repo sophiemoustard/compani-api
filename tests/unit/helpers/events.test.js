@@ -1987,7 +1987,7 @@ describe('getContractWeekInfo', () => {
     getContractInfo.returns({ contractHours: 26, workedDaysRatio: 1 / 4 });
     getMatchingVersionsList.returns(versions[1]);
 
-    const result = EventHelper.getContractWeekInfo(contract, query);
+    const result = EventHelper.getContractWeekInfo(contract, query, true);
 
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(26);
@@ -1995,9 +1995,10 @@ describe('getContractWeekInfo', () => {
     sinon.assert.calledOnceWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-11-20').startOf('w').toDate(),
-      moment('2019-11-20').endOf('w').toDate()
+      moment('2019-11-20').endOf('w').toDate(),
+      true
     );
-    sinon.assert.calledOnceWithExactly(getContractInfo, versions[1], query, 4);
+    sinon.assert.calledOnceWithExactly(getContractInfo, versions[1], query, 4, true);
   });
 });
 
@@ -2009,7 +2010,7 @@ describe('workingStats', () => {
     status: 200,
   };
   const companyId = new ObjectId();
-  const credentials = { company: { _id: companyId } };
+  const credentials = { company: { _id: companyId, rhConfig: { shouldPayHolidays: false } } };
   let findUser;
   let findUserCompany;
   let findDistanceMatrix;
@@ -2074,7 +2075,7 @@ describe('workingStats', () => {
     sinon.assert.notCalled(findUserCompany);
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
     sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
-    sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, query);
+    sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, query, false);
     sinon.assert.calledOnceWithExactly(
       getPayFromEventsStub,
       [],
@@ -2132,7 +2133,7 @@ describe('workingStats', () => {
     expect(result).toEqual(expectedResult);
     sinon.assert.calledOnceWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
     sinon.assert.calledOnceWithExactly(getContractStub, contracts, query.startDate, query.endDate);
-    sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, queryWithoutAuxiliary);
+    sinon.assert.calledOnceWithExactly(getContractWeekInfoStub, contract, queryWithoutAuxiliary, false);
     sinon.assert.calledOnceWithExactly(
       getPayFromEventsStub,
       [],

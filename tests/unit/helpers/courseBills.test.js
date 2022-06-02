@@ -7,14 +7,27 @@ const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillHelper = require('../../../src/helpers/courseBills');
 const VendorCompaniesHelper = require('../../../src/helpers/vendorCompanies');
 const PdfHelper = require('../../../src/helpers/pdf');
+const UtilsHelper = require('../../../src/helpers/utils');
 const CourseBillPdf = require('../../../src/data/pdf/courseBilling/courseBill');
 const SinonMongoose = require('../sinonMongoose');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
-const { LIST, BALANCE, PAYMENT, REFUND } = require('../../../src/helpers/constants');
+const {
+  LIST,
+  BALANCE,
+  PAYMENT,
+  REFUND,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
+} = require('../../../src/helpers/constants');
 
 describe('getNetInclTaxes', () => {
   it('should return total price (without billing purchases)', async () => {
-    const bill = { course: new ObjectId(), company: { name: 'Company' }, mainFee: { price: 120, count: 2 } };
+    const bill = {
+      course: new ObjectId(),
+      company: { name: 'Company' },
+      mainFee: { price: 120, count: 2 },
+      payer: { company: new ObjectId() },
+    };
 
     const result = await CourseBillHelper.getNetInclTaxes(bill);
     expect(result).toEqual(240);
@@ -24,6 +37,7 @@ describe('getNetInclTaxes', () => {
     const bill = {
       course: new ObjectId(),
       company: { name: 'Company' },
+      payer: { company: new ObjectId() },
       mainFee: { price: 120, count: 2 },
       billingPurchaseList: [
         { billingItem: new ObjectId(), price: 90, count: 1 },
@@ -53,7 +67,7 @@ describe('list', () => {
         course: courseId,
         company: { name: 'Company' },
         mainFee: { price: 120, count: 2 },
-        courseFundingOrganisation: { name: 'Funder' },
+        payer: { name: 'Funder' },
       },
     ];
     find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
@@ -64,7 +78,7 @@ describe('list', () => {
       course: courseId,
       company: { name: 'Company' },
       mainFee: { price: 120, count: 2 },
-      courseFundingOrganisation: { name: 'Funder' },
+      payer: { name: 'Funder' },
       netInclTaxes: 240,
     }]);
     SinonMongoose.calledOnceWithExactly(
@@ -72,7 +86,8 @@ describe('list', () => {
       [
         { query: 'find', args: [{ course: courseId }] },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
-        { query: 'populate', args: [{ path: 'courseFundingOrganisation', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseCreditNote', options: { isVendorUser: true } }] },
         { query: 'setOptions', args: [{ isVendorUser: has(credentials, 'role.vendor') }] },
         { query: 'lean' },
@@ -90,7 +105,7 @@ describe('list', () => {
         course: courseId,
         company: { name: 'Company' },
         mainFee: { price: 120, count: 2 },
-        courseFundingOrganisation: { name: 'Funder' },
+        payer: { name: 'Funder' },
         billingPurchaseList: [
           { billingItem: billingItemList[0]._id, price: 90, count: 1 },
           { billingItem: billingItemList[1]._id, price: 400, count: 1 },
@@ -105,7 +120,7 @@ describe('list', () => {
       course: courseId,
       company: { name: 'Company' },
       mainFee: { price: 120, count: 2 },
-      courseFundingOrganisation: { name: 'Funder' },
+      payer: { name: 'Funder' },
       billingPurchaseList: [
         { billingItem: billingItemList[0]._id, price: 90, count: 1 },
         { billingItem: billingItemList[1]._id, price: 400, count: 1 },
@@ -117,7 +132,8 @@ describe('list', () => {
       [
         { query: 'find', args: [{ course: courseId }] },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
-        { query: 'populate', args: [{ path: 'courseFundingOrganisation', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
         { query: 'populate', args: [{ path: 'courseCreditNote', options: { isVendorUser: true } }] },
         { query: 'setOptions', args: [{ isVendorUser: has(credentials, 'role.vendor') }] },
         { query: 'lean' },
@@ -136,14 +152,14 @@ describe('list', () => {
       slotsToPlan: [],
     };
 
-    const credentials = { role: { vendor: new ObjectId() } };
+    const credentials = { role: { vendor: { name: 'training_organisation_manager' } }, company: { _id: companyId } };
     const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
     const courseBills = [
       {
         course,
         company: companyId,
         mainFee: { price: 120, count: 2 },
-        courseFundingOrganisation: { name: 'Funder' },
+        payer: { company: companyId },
         billingPurchaseList: [
           { billingItem: billingItemList[0]._id, price: 90, count: 1 },
           { billingItem: billingItemList[1]._id, price: 400, count: 1 },
@@ -158,7 +174,7 @@ describe('list', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(courseBills));
+    find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
 
     const result = await CourseBillHelper.list({ company: companyId, action: BALANCE }, credentials);
 
@@ -170,7 +186,7 @@ describe('list', () => {
       },
       company: companyId,
       mainFee: { price: 120, count: 2 },
-      courseFundingOrganisation: { name: 'Funder' },
+      payer: { company: companyId },
       billingPurchaseList: [
         { billingItem: billingItemList[0]._id, price: 90, count: 1 },
         { billingItem: billingItemList[1]._id, price: 400, count: 1 },
@@ -190,12 +206,18 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ company: companyId, billedAt: { $exists: true, $type: 'date' } }] },
+        {
+          query: 'find',
+          args: [{
+            $or: [{ company: companyId }, { 'payer.company': companyId }],
+            billedAt: { $exists: true, $type: 'date' },
+          }],
+        },
         {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'misc slots slotsToPlan subProgram',
+            select: 'misc slots slotsToPlan subProgram company',
             populate: [
               { path: 'slots' },
               { path: 'slotsToPlan' },
@@ -203,13 +225,36 @@ describe('list', () => {
             ],
           }],
         },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
           query: 'populate',
-          args: [{ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+          args: [{
+            path: 'courseCreditNote',
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            },
+          }],
         },
         {
           query: 'populate',
-          args: [{ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+          args: [{
+            path: 'coursePayments',
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            },
+          }],
+        },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+          }],
         },
         { query: 'lean' },
       ]
@@ -227,14 +272,14 @@ describe('list', () => {
       slotsToPlan: [],
     };
 
-    const credentials = { role: { vendor: new ObjectId() } };
+    const credentials = { role: { vendor: { name: 'vendor_admin' } }, company: { _id: companyId } };
     const billingItemList = [{ _id: new ObjectId(), name: 'article 1' }, { _id: new ObjectId(), name: 'article 2' }];
     const courseBills = [
       {
         course,
         company: companyId,
         mainFee: { price: 120, count: 2 },
-        courseFundingOrganisation: { name: 'Funder' },
+        payer: { company: companyId },
         billingPurchaseList: [
           { billingItem: billingItemList[0]._id, price: 90, count: 1 },
           { billingItem: billingItemList[1]._id, price: 400, count: 1 },
@@ -249,7 +294,7 @@ describe('list', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries(courseBills));
+    find.returns(SinonMongoose.stubChainedQueries(courseBills, ['populate', 'setOptions', 'lean']));
 
     const result = await CourseBillHelper.list({ company: companyId, action: BALANCE }, credentials);
 
@@ -261,7 +306,7 @@ describe('list', () => {
       },
       company: companyId,
       mainFee: { price: 120, count: 2 },
-      courseFundingOrganisation: { name: 'Funder' },
+      payer: { company: companyId },
       billingPurchaseList: [
         { billingItem: billingItemList[0]._id, price: 90, count: 1 },
         { billingItem: billingItemList[1]._id, price: 400, count: 1 },
@@ -281,12 +326,18 @@ describe('list', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [{ company: companyId, billedAt: { $exists: true, $type: 'date' } }] },
+        {
+          query: 'find',
+          args: [{
+            $or: [{ company: companyId }, { 'payer.company': companyId }],
+            billedAt: { $exists: true, $type: 'date' },
+          }],
+        },
         {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'misc slots slotsToPlan subProgram',
+            select: 'misc slots slotsToPlan subProgram company',
             populate: [
               { path: 'slots' },
               { path: 'slotsToPlan' },
@@ -294,13 +345,36 @@ describe('list', () => {
             ],
           }],
         },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
         {
           query: 'populate',
-          args: [{ path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+          args: [{
+            path: 'courseCreditNote',
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            },
+          }],
         },
         {
           query: 'populate',
-          args: [{ path: 'coursePayments', options: { isVendorUser: !!get(credentials, 'role.vendor') } }],
+          args: [{
+            path: 'coursePayments',
+            options: {
+              isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN]
+                .includes(get(credentials, 'role.vendor.name')),
+              requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+            },
+          }],
+        },
+        {
+          query: 'setOptions',
+          args: [{
+            isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
+            requestingOwnInfos: UtilsHelper.areObjectIdsEquals(companyId, credentials.company._id),
+          }],
         },
         { query: 'lean' },
       ]
@@ -324,7 +398,7 @@ describe('create', () => {
       course: new ObjectId(),
       company: new ObjectId(),
       mainFee: { price: 120, count: 1 },
-      courseFundingOrganisation: new ObjectId(),
+      payer: { fundingOrganisation: new ObjectId() },
     };
     await CourseBillHelper.create(payload);
 
@@ -346,21 +420,31 @@ describe('updateCourseBill', () => {
     findOneAndUpdateCourseBillsNumber.restore();
   });
 
-  it('should update a course bill funder', async () => {
+  it('should update a course bill funder with funding organisation', async () => {
     const courseBillId = new ObjectId();
-    const payload = { courseFundingOrganisation: new ObjectId() };
+    const fundingOrganisationId = new ObjectId();
+    const payload = { payer: { fundingOrganisation: fundingOrganisationId } };
     await CourseBillHelper.updateCourseBill(courseBillId, payload);
 
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $set: payload });
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: courseBillId },
+      { $set: { 'payer.fundingOrganisation': fundingOrganisationId }, $unset: { 'payer.company': '' } }
+    );
     sinon.assert.notCalled(findOneAndUpdateCourseBillsNumber);
   });
 
-  it('should remove a course bill funder', async () => {
+  it('should update a course bill funder with company', async () => {
     const courseBillId = new ObjectId();
-    const payload = { courseFundingOrganisation: '' };
+    const companyId = new ObjectId();
+    const payload = { payer: { company: companyId } };
     await CourseBillHelper.updateCourseBill(courseBillId, payload);
 
-    sinon.assert.calledOnceWithExactly(updateOne, { _id: courseBillId }, { $unset: payload });
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: courseBillId },
+      { $set: { 'payer.company': companyId }, $unset: { 'payer.fundingOrganisation': '' } }
+    );
     sinon.assert.notCalled(findOneAndUpdateCourseBillsNumber);
   });
 
@@ -571,7 +655,16 @@ describe('generateBillPdf', () => {
           location: { type: 'Point', coordinates: [2.37345, 48.848024] },
         },
       },
-      courseFundingOrganisation: '',
+      payer: {
+        name: 'test',
+        address: {
+          fullAddress: '24 Avenue Daumesnil 75012 Paris',
+          street: '24 Avenue Daumesnil',
+          city: 'Paris',
+          zipCode: '75012',
+          location: { type: 'Point', coordinates: [2.37345, 48.848024] },
+        },
+      },
     };
 
     getVendorCompany.returns(vendorCompany);
@@ -588,7 +681,7 @@ describe('generateBillPdf', () => {
         date: '08/03/2022',
         vendorCompany,
         company: bill.company,
-        payer: bill.company,
+        payer: { name: 'test', address: '24 Avenue Daumesnil 75012 Paris' },
         course: bill.course,
         mainFee: bill.mainFee,
         billingPurchaseList: bill.billingPurchaseList,
@@ -613,7 +706,8 @@ describe('generateBillPdf', () => {
           }],
         },
         { query: 'populate', args: [{ path: 'company', select: 'name address' }] },
-        { query: 'populate', args: ['courseFundingOrganisation'] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name address' }] },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name address' }] },
         { query: 'lean' },
       ]);
   });

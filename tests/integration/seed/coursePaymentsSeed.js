@@ -14,12 +14,14 @@ const courseBillsList = [
     mainFee: { price: 1200.20, count: 1 },
     billedAt: '2022-03-06T00:00:00.000Z',
     number: 'FACT-00001',
+    payer: { company: authCompany._id },
   },
   { // 1
     _id: new ObjectId(),
     course: new ObjectId(),
     company: authCompany._id,
     mainFee: { price: 1200, count: 1, description: 'Lorem ipsum' },
+    payer: { company: authCompany._id },
   },
 ];
 

@@ -26,27 +26,28 @@ exports.updateCourseSlot = async (slotFromDb, payload, user) => {
   const hasConflicts = await exports.hasConflicts({ ...slotFromDb, ...payload });
   if (hasConflicts) throw Boom.conflict(translate[language].courseSlotConflict);
 
-  const updatePayload = { $set: payload };
-  const step = await Step.findById(slotFromDb.step._id).lean();
-
-  if (step.type === ON_SITE || !payload.meetingLink) updatePayload.$unset = { meetingLink: '' };
-  if (step.type === REMOTE || !payload.address) updatePayload.$unset = { ...updatePayload.$unset, address: '' };
-
-  await Promise.all([
-    CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, user._id),
-    CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload),
-  ]);
-};
-
-exports.removeCourseSlot = async (courseSlot, user) => {
-  const payload = pick(courseSlot, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
-
-  await Promise.all([
-    ...Object.values({
-      ...(payload.startDate &&
-      [CourseHistoriesHelper.createHistoryOnSlotDeletion(payload, user._id)]
+  const shouldEmptyDates = !payload.endDate && !payload.startDate;
+  if (shouldEmptyDates) {
+    const historyPayload = pick(slotFromDb, ['course', 'startDate', 'endDate', 'address', 'meetingLink']);
+    await Promise.all([
+      CourseHistoriesHelper.createHistoryOnSlotDeletion(historyPayload, user._id),
+      CourseSlot.updateOne(
+        { _id: slotFromDb._id },
+        { $unset: { startDate: '', endDate: '', meetingLink: '', address: '' } }
       ),
-    }),
-    CourseSlot.deleteOne({ _id: courseSlot._id }),
-  ]);
+    ]);
+  } else {
+    const updatePayload = { $set: payload };
+    const step = await Step.findById(slotFromDb.step._id).lean();
+
+    if (step.type === ON_SITE || !payload.meetingLink) updatePayload.$unset = { meetingLink: '' };
+    if (step.type === REMOTE || !payload.address) updatePayload.$unset = { ...updatePayload.$unset, address: '' };
+
+    await Promise.all([
+      CourseHistoriesHelper.createHistoryOnSlotEdition(slotFromDb, payload, user._id),
+      CourseSlot.updateOne({ _id: slotFromDb._id }, updatePayload),
+    ]);
+  }
 };
+
+exports.removeCourseSlot = async courseSlot => CourseSlot.deleteOne({ _id: courseSlot._id });

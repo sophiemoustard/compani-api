@@ -1,3 +1,4 @@
+const pick = require('lodash/pick');
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const { omit, set } = require('lodash');
@@ -29,7 +30,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should get course bill for intra course (without course funding organisation)', async () => {
+    it('should get course bill for intra course (with company as payer)', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursebills?course=${courseList[0]._id}&action=list`,
@@ -41,6 +42,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       expect(response.result.data.courseBills[0]).toMatchObject({
         course: courseList[0]._id,
         company: authCompany._id,
+        payer: pick(authCompany, ['_id', 'name']),
         mainFee: { price: 120, count: 1 },
         billingPurchaseList: [
           { billingItem: billingItemList[0]._id, price: 90, count: 1 },
@@ -50,7 +52,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
     });
 
-    it('should get course bill for intra course (with course funding organisation)', async () => {
+    it('should get course bill for intra course (with funding organisation as payer)', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursebills?course=${courseList[1]._id}&action=list`,
@@ -64,11 +66,11 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
         company: authCompany._id,
         mainFee: { price: 120, count: 1 },
         netInclTaxes: 120,
-        courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+        payer: pick(courseFundingOrganisationList[0], ['_id', 'name']),
       });
     });
 
-    it('should get company bills ', async () => {
+    it('should get company bills', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/coursebills?company=${authCompany._id}&action=balance`,
@@ -76,7 +78,7 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courseBills.length).toEqual(2);
+      expect(response.result.data.courseBills.length).toEqual(3);
     });
 
     it('should return 404 if course doesn\'t exist', async () => {
@@ -120,11 +122,48 @@ describe('COURSE BILL ROUTES - GET /coursebills', () => {
     });
   });
 
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should get company bills', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills?company=${authCompany._id}&action=balance`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courseBills.length).toEqual(3);
+    });
+
+    it('should return 403 if wrong company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills?company=${otherCompany._id}&action=balance`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 400 if wrong action in query', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills?course=${courseList[0]._id}&action=list`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -183,11 +222,47 @@ describe('COURSE BILL ROUTES - GET /coursebills/{_id}/pdfs', () => {
     });
   });
 
+  describe('CLIENT_ADMIN', () => {
+    beforeEach(async () => {
+      authToken = await getToken('client_admin');
+    });
+
+    it('should download own course bill for intra course', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[2]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should download course bill for intra course (as payer)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[6]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 404 if bill has wrong company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/coursebills/${courseBillsList[7]._id}/pdfs`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
   describe('Other roles', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
-      { name: 'client_admin', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
       { name: 'trainer', expectedCode: 403 },
     ];
 
@@ -213,7 +288,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
     course: courseList[2]._id,
     company: otherCompany._id,
     mainFee: { price: 120, count: 1 },
-    courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+    payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
   };
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
@@ -221,7 +296,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create a course bill with courseFundingOrganisation', async () => {
+    it('should create a course bill with fundingOrganisation as payer', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
@@ -235,12 +310,12 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(count).toBe(courseBillsList.length + 1);
     });
 
-    it('should create a course bill without courseFundingOrganisation', async () => {
+    it('should create a course bill with company as payer', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: omit(payload, 'courseFundingOrganisation'),
+        payload: { ...payload, payer: { company: otherCompany._id } },
       });
 
       expect(response.statusCode).toBe(200);
@@ -249,7 +324,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(count).toBe(courseBillsList.length + 1);
     });
 
-    const missingParams = ['course', 'company', 'mainFee', 'mainFee.price', 'mainFee.count'];
+    const missingParams = ['course', 'company', 'mainFee', 'mainFee.price', 'mainFee.count', 'payer'];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {
         const response = await app.inject({
@@ -285,13 +360,41 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       });
     });
 
-    const wrongParams = ['course', 'company', 'courseFundingOrganisation'];
+    it('should return 400 if payer is funding organisation and company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        payload: {
+          ...payload,
+          payer: { fundingOrganisation: courseFundingOrganisationList[0]._id, company: otherCompany._id },
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    const wrongParams = ['course', 'company'];
     wrongParams.forEach((param) => {
       it(`should return 404 as ${param} doesn't exists`, async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/coursebills',
           payload: { ...payload, [param]: new ObjectId() },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+    });
+
+    const wrongPayers = ['company', 'fundingOrganisation'];
+    wrongPayers.forEach((payer) => {
+      it(`should return 404 if ${payer} doesn't exists`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/coursebills',
+          payload: { ...payload, payer: { [payer]: new ObjectId() } },
           headers: { 'x-access-token': authToken },
         });
 
@@ -344,67 +447,71 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should add a courseFundingOrganisation to course bill', async () => {
+    it('should add a fundingOrganisation as payer to course bill', async () => {
       const countBefore = await CourseBill.countDocuments({
         _id: courseBillsList[0]._id,
-        courseFundingOrganisation: { $exists: false },
+        'payer.fundingOrganisation': { $exists: false },
       });
 
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { courseFundingOrganisation: courseFundingOrganisationList[0]._id },
+        payload: { payer: { fundingOrganisation: courseFundingOrganisationList[0]._id } },
       });
 
       expect(response.statusCode).toBe(200);
 
       const countAfter = await CourseBill.countDocuments({
         _id: courseBillsList[0]._id,
-        courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+        payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
       });
       expect(countBefore).toBeTruthy();
       expect(countAfter).toBeTruthy();
     });
 
-    it('should change courseFundingOrganisation to course bill', async () => {
+    it('should add a company as payer to course bill', async () => {
       const countBefore = await CourseBill.countDocuments({
         _id: courseBillsList[1]._id,
-        courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+        'payer.company': { $exists: false },
       });
 
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { courseFundingOrganisation: courseFundingOrganisationList[1]._id },
+        payload: { payer: { company: authCompany._id } },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const countAfter = await CourseBill.countDocuments({
+        _id: courseBillsList[0]._id,
+        payer: { company: authCompany._id },
+      });
+      expect(countBefore).toBeTruthy();
+      expect(countAfter).toBeTruthy();
+    });
+
+    it('should change fundingOrganisation to course bill', async () => {
+      const countBefore = await CourseBill.countDocuments({
+        _id: courseBillsList[1]._id,
+        payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
+      });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { payer: { fundingOrganisation: courseFundingOrganisationList[1]._id } },
       });
 
       expect(response.statusCode).toBe(200);
 
       const countAfter = await CourseBill.countDocuments({
         _id: courseBillsList[1]._id,
-        courseFundingOrganisation: courseFundingOrganisationList[1]._id,
+        payer: { fundingOrganisation: courseFundingOrganisationList[1]._id },
       });
-      expect(countBefore).toBeTruthy();
-      expect(countAfter).toBeTruthy();
-    });
-
-    it('should remove courseFundingOrganisation on course bill', async () => {
-      const countBefore = await CourseBill
-        .countDocuments({ _id: courseBillsList[1]._id, courseFundingOrganisation: { $exists: true } });
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/coursebills/${courseBillsList[1]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { courseFundingOrganisation: '' },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const countAfter = await CourseBill
-        .countDocuments({ _id: courseBillsList[1]._id, courseFundingOrganisation: { $exists: false } });
       expect(countBefore).toBeTruthy();
       expect(countAfter).toBeTruthy();
     });
@@ -509,7 +616,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.statusCode).toBe(200);
 
       const isBilled = await CourseBill
-        .countDocuments({ _id: courseBillsList[0]._id, billedAt: '2022-03-08T00:00:00.000Z', number: 'FACT-00002' });
+        .countDocuments({ _id: courseBillsList[0]._id, billedAt: '2022-03-08T00:00:00.000Z', number: 'FACT-00005' });
       expect(isBilled).toBeTruthy();
     });
 
@@ -558,22 +665,44 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       });
     });
 
+    it('should return 400 if payer is funding organisation and company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[0]._id}`,
+        payload: { payer: { fundingOrganisation: courseFundingOrganisationList[0]._id, company: authCompany._id } },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return 404 if course bill doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${new ObjectId()}`,
-        payload: { courseFundingOrganisation: courseFundingOrganisationList[0]._id },
+        payload: { payer: { fundingOrganisation: courseFundingOrganisationList[0]._id } },
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 404 if course funding organisation doesn\'t exist', async () => {
+    it('should return 404 if funding organisation as payer doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[0]._id}`,
-        payload: { courseFundingOrganisation: new ObjectId() },
+        payload: { payer: { fundingOrganisation: new ObjectId() } },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 if company as payer doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/coursebills/${courseBillsList[0]._id}`,
+        payload: { payer: { company: new ObjectId() } },
         headers: { 'x-access-token': authToken },
       });
 
@@ -614,13 +743,13 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
       expect(response.result.message.startsWith('Erreur lors de la facturation, l\'adresse')).toBeTruthy();
     });
 
-    it('should return 403 if adding courseFundingOrganisation', async () => {
+    it('should return 403 if adding payer on validated bill', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/coursebills/${courseBillsList[2]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
-          courseFundingOrganisation: courseFundingOrganisationList[0]._id,
+          payer: { fundingOrganisation: courseFundingOrganisationList[0]._id },
           mainFee: { price: 120, count: 1, description: 'Lorem ipsum' },
         },
       });
@@ -629,13 +758,13 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
     });
 
     const forbiddenUpdatesPayload = {
-      courseFundingOrganisation: courseBillsList[4].courseFundingOrganisation,
+      payer: { fundingOrganisation: courseBillsList[4].payer.fundingOrganisation },
       mainFee: { price: 200, count: 2, description: 'Salut' },
     };
     const forbiddenUpdates = [
       { key: 'mainFee.price', value: 333 },
       { key: 'mainFee.count', value: 12 },
-      { key: 'courseFundingOrganisation', value: '' },
+      { key: 'payer.fundingOrganisation', value: courseFundingOrganisationList[1]._id },
     ];
     forbiddenUpdates.forEach((param) => {
       it(`should return 403 if updating ${param.key}`, async () => {
@@ -666,7 +795,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
           method: 'PUT',
           url: `/coursebills/${courseBillsList[0]._id}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
-          payload: { courseFundingOrganisation: courseFundingOrganisationList[0]._id },
+          payload: { payer: { fundingOrganisation: courseFundingOrganisationList[0]._id } },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

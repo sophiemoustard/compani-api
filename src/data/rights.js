@@ -23,6 +23,8 @@ const rights = [
   { permission: 'config:read', rolesConcerned: [CLIENT_ADMIN, COACH, AUXILIARY, PLANNING_REFERENT], subscription: ERP, description: 'Consulter les infos de configuration' },
   { permission: 'config:vendor', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Consulter et éditer les infos de configuration de facturation des formations' },
   { permission: 'contracts:edit', rolesConcerned: [CLIENT_ADMIN, COACH], subscription: ERP, description: 'Editer les contrats' },
+  { permission: 'coursebills:read', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, CLIENT_ADMIN], description: 'Consulter les informations de facturation' },
+  { permission: 'coursebills:edit', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Editer une facture ou un avoir' },
   { permission: 'courses:create', rolesConcerned: [VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER], description: 'Créer une formation' },
   { permission: 'courses:edit', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Editer les formations' },
   { permission: 'courses:read', rolesConcerned: [CLIENT_ADMIN, COACH, VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER], description: 'Consulter les données des formations' },

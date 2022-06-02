@@ -1,18 +1,16 @@
 const mongoose = require('mongoose');
 const { formatQuery, formatQueryMiddlewareList } = require('./preHooks/validate');
 
-const addressSchemaDefinition = require('./schemaDefinitions/address');
-
 const CourseFundingOrganisationSchema = mongoose.Schema({
   // unique mongo index on 'name' (with case and diacritics insensitive collation) has been added manually in mep58
   name: { type: String, required: true },
-  address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }), required: true },
+  address: { type: String, required: true },
 }, { timestamps: true });
 
 CourseFundingOrganisationSchema.virtual('courseBillCount', {
   ref: 'CourseBill',
   localField: '_id',
-  foreignField: 'courseFundingOrganisation',
+  foreignField: 'payer.fundingOrganisation',
   count: true,
 });
 

@@ -134,6 +134,15 @@ describe('DISPLAY', () => {
       expect(result).toEqual('2021-12-24T09:00:00.000Z');
     });
   });
+
+  describe('toLocalISO', () => {
+    it('should return a string ISO 8601 equivalent to companiDate (in local)', () => {
+      const companiDate = CompaniDatesHelper.CompaniDate('2021-12-24T12:00:00.000+03:00');
+      const result = companiDate.toLocalISO();
+
+      expect(result).toEqual('2021-12-24T10:00:00.000+01:00');
+    });
+  });
 });
 
 describe('QUERY', () => {
@@ -157,9 +166,17 @@ describe('QUERY', () => {
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
-    it('should return false is date is not before other date', () => {
+    it('should return false if date is not before other date', () => {
       const otherDate = '2021-11-01T05:00:00.000Z';
       const result = companiDate.isBefore(otherDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return false if date is before but same as specified unit', () => {
+      const otherDate = '2021-11-01T07:00:12.000Z';
+      const result = companiDate.isBefore(otherDate, 'minute');
 
       expect(result).toBe(false);
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
@@ -196,9 +213,17 @@ describe('QUERY', () => {
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
     });
 
-    it('should return false is date is not after other date', () => {
+    it('should return false if date is not after other date', () => {
       const otherDate = '2021-11-01T10:00:00.000Z';
       const result = companiDate.isAfter(otherDate);
+
+      expect(result).toBe(false);
+      sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);
+    });
+
+    it('should return false if date is after but same as specified unit', () => {
+      const otherDate = '2021-11-01T05:00:00.000Z';
+      const result = companiDate.isAfter(otherDate, 'day');
 
       expect(result).toBe(false);
       sinon.assert.calledOnceWithExactly(_formatMiscToCompaniDate, otherDate);

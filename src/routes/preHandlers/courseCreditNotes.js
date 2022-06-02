@@ -4,6 +4,8 @@ const CourseBill = require('../../models/CourseBill');
 const Company = require('../../models/Company');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 const CourseCreditNote = require('../../models/CourseCreditNote');
+const UtilsHelper = require('../../helpers/utils');
+const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('../../helpers/constants');
 
 exports.authorizeCourseCreditNoteCreation = async (req) => {
   const { company: companyId, courseBill: courseBillId, date } = req.payload;
@@ -25,8 +27,23 @@ exports.authorizeCourseCreditNoteCreation = async (req) => {
 };
 
 exports.authorizeCreditNotePdfGet = async (req) => {
-  const courseCreditNote = await CourseCreditNote.countDocuments({ _id: req.params._id });
-  if (!courseCreditNote) throw Boom.notFound();
+  const { credentials } = req.auth;
+  const userVendorRole = get(credentials, 'role.vendor.name');
+  const isAdminVendor = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
+
+  const creditNote = await CourseCreditNote
+    .findOne({ _id: req.params._id }, { company: 1, courseBill: 1 })
+    .populate({ path: 'courseBill', select: 'payer' })
+    .lean();
+
+  if (!creditNote) throw Boom.notFound();
+
+  if (!isAdminVendor) {
+    const companyId = get(credentials, 'company._id');
+    const hasSameCompany = UtilsHelper.areObjectIdsEquals(creditNote.company, companyId);
+    const isPayer = UtilsHelper.areObjectIdsEquals(creditNote.courseBill.payer, companyId);
+    if (!hasSameCompany && !isPayer) throw Boom.notFound();
+  }
 
   return null;
 };

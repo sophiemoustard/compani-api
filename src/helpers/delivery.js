@@ -10,7 +10,6 @@ const UtilsHelper = require('./utils');
 const XMLHelper = require('./xml');
 const DraftBillsHelper = require('./draftBills');
 const FundingsHelper = require('./fundings');
-const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 const { NOT_INVOICED_AND_NOT_PAID, TIME_STAMPING_ACTIONS } = require('./constants');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
@@ -18,9 +17,12 @@ const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const CADRE_PRESTATAIRE = 'PRE';
 const MISSING_START_TIME_STAMP = 'COA';
 const MISSING_END_TIME_STAMP = 'COD';
-const MISSING_BOTH_TIME_STAMP = 'CO2';
+const EDITED_BOTH_TIME_STAMP = 'CO2';
+const MISSING_BOTH_TIME_STAMP = 'CRE';
 const AUXILIARY_CONTACT = 'INT';
 const SPECIFIED_CI_TRADE_PRODUCT_NAME = 'Aide aux personnes âgées';
+
+const formatDate = date => date.toLocalISO().slice(0, 19);
 
 // Identifiant de transaction du flux delivery
 const getCIDDHExchangedDocumentContext = transactionId => ({ VersionID: '1.4', SpecifiedTransactionID: transactionId });
@@ -63,7 +65,7 @@ const getShipToCITradeParty = (customer) => { // order matters
   shipToCITradeParty['pie:LastName'] = get(customer, 'identity.lastname') || '';
 
   const birthDate = get(customer, 'identity.birthDate');
-  if (birthDate) shipToCITradeParty['pie:BirthDate'] = DatesHelper.toLocalISOString(birthDate);
+  if (birthDate) shipToCITradeParty['pie:BirthDate'] = formatDate(CompaniDate(birthDate));
 
   shipToCITradeParty['pie:PostalCITradeAddress'] = getPostalCITradeAddress(get(customer, 'contact.primaryAddress'));
 
@@ -90,43 +92,57 @@ const getShipFromCITradeParty = auxiliary => ({
   'pie:PostalCITradeAddress': getPostalCITradeAddress(get(auxiliary, 'company.address')),
 });
 
-// Délivrance retenue : les horaires validés de début et de fin  d’intervention
-const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTimeStamped) => {
+exports.getTypeCode = (isStartTimeStamped, isEndTimeStamped, hasTimeStamp) => {
   let typeCode = '';
   if (!isStartTimeStamped || !isEndTimeStamped) {
     if (isStartTimeStamped) typeCode = MISSING_END_TIME_STAMP;
     else if (isEndTimeStamped) typeCode = MISSING_START_TIME_STAMP;
+    else if (hasTimeStamp) typeCode = EDITED_BOTH_TIME_STAMP;
     else typeCode = MISSING_BOTH_TIME_STAMP;
   }
+
+  return typeCode;
+};
+
+// Délivrance retenue : les horaires validés de début et de fin  d’intervention
+const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTimeStamped, hasTimeStamp) => {
+  const typeCode = exports.getTypeCode(isStartTimeStamped, isEndTimeStamped, hasTimeStamp);
 
   const actualDespatchCISupplyChainEvent = {
     TypeCode: { '#text': typeCode, '@listAgencyName': 'EDESS', '@listID': 'ESPPADOM_EFFECTIVITY_AJUST' },
     OccurrenceCISpecifiedPeriod: {
-      'qdt:StartDateTime': DatesHelper.toLocalISOString(event.startDate),
-      'qdt:EndDateTime': DatesHelper.toLocalISOString(event.endDate),
+      'qdt:StartDateTime': formatDate(CompaniDate(event.startDate)),
+      'qdt:EndDateTime': formatDate(CompaniDate(event.endDate)),
     },
   };
 
   return actualDespatchCISupplyChainEvent;
 };
 
+exports.getTimeStampInfo = (event) => {
+  const isStartTimeStamped = event.histories.some(h => !!h.update.startHour && !h.isCancelled);
+  const isEndTimeStamped = event.histories.some(h => !!h.update.endHour && !h.isCancelled);
+  const hasTimeStamp = event.histories.some(h => (!!h.update.endHour || !!h.update.startHour));
+
+  return { isStartTimeStamped, isEndTimeStamped, hasTimeStamp };
+};
+
 // Précisions de delivrance (bénéficiaire et contexte)
 const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
-  const isStartTimeStamped = event.histories.some(h => !!h.update.startHour);
-  const isEndTimeStamped = event.histories.some(h => !!h.update.endHour);
+  const { isStartTimeStamped, isEndTimeStamped, hasTimeStamp } = exports.getTimeStampInfo(event);
 
   const applicableCIDDHSupplyChainTradeDelivery = {
     ShipToCITradeParty: getShipToCITradeParty(customer),
     ShipFromCITradeParty: getShipFromCITradeParty(event.auxiliary),
     ActualDespatchCISupplyChainEvent:
-      getActualDespatchCISupplyChainEvent(event, isStartTimeStamped, isEndTimeStamped),
+      getActualDespatchCISupplyChainEvent(event, isStartTimeStamped, isEndTimeStamped, hasTimeStamp),
   };
 
   if (isStartTimeStamped && isEndTimeStamped) {
     applicableCIDDHSupplyChainTradeDelivery.AdditionalReferencedCIReferencedDocument = {
       EffectiveCISpecifiedPeriod: {
-        StartDateTime: { CertifiedDateTime: DatesHelper.toLocalISOString(event.startDate) },
-        EndDateTime: { CertifiedDateTime: DatesHelper.toLocalISOString(event.endDate) },
+        StartDateTime: { CertifiedDateTime: formatDate(CompaniDate(event.startDate)) },
+        EndDateTime: { CertifiedDateTime: formatDate(CompaniDate(event.endDate)) },
       },
     };
   }
@@ -223,7 +239,6 @@ exports.getEventHistories = async (events, companyId) => {
       action: { $in: TIME_STAMPING_ACTIONS },
       'event.eventId': { $in: events.map(ev => ev._id) },
       company: companyId,
-      isCancelled: false,
     })
     .lean();
 
@@ -303,7 +318,7 @@ exports.getEvents = async (query, credentials) => {
  * => pour un tiers payeur, on récupere la liste des inteventions qui sont reliées à un plan d'aide
  */
 exports.getCrossIndustryDespatchAdvice = async (query, credentials) => {
-  const issueDateTime = DatesHelper.toLocalISOString();
+  const issueDateTime = formatDate(CompaniDate());
   const transactionId = issueDateTime.replace(/T/g, '').replace(/-/g, '').replace(/:/g, '');
 
   return (await exports.getEvents(query, credentials))

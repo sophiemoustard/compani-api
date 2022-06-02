@@ -153,16 +153,6 @@ describe('getWorkingEventsForExport', () => {
   const startDate = moment('2019-05-20T08:00:00').toDate();
   const endDate = moment('2019-05-20T10:00:00').toDate();
 
-  const payload = {
-    company: companyId,
-    type: { $in: [INTERVENTION, INTERNAL_HOUR] },
-    $or: [
-      { startDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-    ],
-  };
-
   let find;
   beforeEach(() => {
     find = sinon.stub(Event, 'find');
@@ -172,6 +162,13 @@ describe('getWorkingEventsForExport', () => {
   });
 
   it('should return events for history export', async () => {
+    const query = {
+      company: companyId,
+      type: { $in: [INTERVENTION, INTERNAL_HOUR] },
+      startDate: { $lte: endDate },
+      endDate: { $gte: startDate },
+    };
+
     find.returns(SinonMongoose.stubChainedQueries(events, ['populate', 'sort', 'lean']));
 
     const result = await ExportHelper.getWorkingEventsForExport(startDate, endDate, companyId);
@@ -179,14 +176,25 @@ describe('getWorkingEventsForExport', () => {
     SinonMongoose.calledOnceWithExactly(
       find,
       [
-        { query: 'find', args: [payload] },
+        { query: 'find', args: [query, ExportHelper.EVENT_PROJECTION_FILEDS] },
         { query: 'sort', args: [{ startDate: -1 }] },
-        { query: 'populate', args: [{ path: 'customer', populate: { path: 'subscriptions', populate: 'service' } }] },
-        { query: 'populate', args: ['internalHour'] },
-        { query: 'populate', args: ['sector'] },
         {
           query: 'populate',
-          args: [{ path: 'histories', match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId } }],
+          args: [{
+            path: 'customer',
+            populate: { path: 'subscriptions', select: 'service', populate: { path: 'service', select: 'versions' } },
+            select: 'subscriptions identity',
+          }],
+        },
+        { query: 'populate', args: [{ path: 'internalHour', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'sector', select: 'name' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'histories',
+            match: { action: { $in: TIME_STAMPING_ACTIONS }, company: companyId },
+            select: 'update action manualTimeStampingReason',
+          }],
         },
         { query: 'lean' },
       ]
@@ -351,15 +359,15 @@ describe('exportWorkingEventsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
-        '20/05/2019 12:00:00', '', '', '', '2,00', 'Une fois par semaine', '667,00', 'Transports en commun / À pied',
+      ['Intervention', '', 'Lala', '2019/05/20 10:00:00', '2019/05/20 10:01:18', 'Manuel', 'QR Code manquant',
+        '2019/05/20 12:00:00', '', '', '', '2,00', 'Une fois par semaine', '667,00', 'Transports en commun / À pied',
         'Girafes - 75', expect.any(ObjectId), '', 'Jean-Claude', 'VAN DAMME', 'Non', expect.any(ObjectId), 'Mme',
         'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
-      ['Intervention', '', 'Lala', '20/05/2019 10:00:00', '20/05/2019 10:01:18', 'Manuel', 'QR Code manquant',
-        '20/05/2019 12:00:00', '20/05/2019 12:03:24', 'Manuel', 'Problème de caméra', '2,00', 'Une fois par semaine',
+      ['Intervention', '', 'Lala', '2019/05/20 10:00:00', '2019/05/20 10:01:18', 'Manuel', 'QR Code manquant',
+        '2019/05/20 12:00:00', '2019/05/20 12:03:24', 'Manuel', 'Problème de caméra', '2,00', 'Une fois par semaine',
         '', '', 'Girafes - 75', '', '', '', '', 'Oui', expect.any(ObjectId), 'Mme', 'MATHY', 'Mimi', '',
         'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '', '20/05/2019 10:00:00', '', '', '', '20/05/2019 12:00:00', '', '', '',
+      ['Heure interne', 'Formation', '', '2019/05/20 10:00:00', '', '', '', '2019/05/20 12:00:00', '', '', '',
         '2,00', '', '4124,00', 'Véhicule d\'entreprise', 'Etoiles - 75', '', '', '', '', 'Oui', expect.any(ObjectId), 'M.',
         'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative de l\'intervenant(e)'],
     ]);
@@ -1714,7 +1722,7 @@ describe('exportCourseHistory', () => {
           course: courseIdList[0],
           mainFee: { price: 120, count: 1 },
           company,
-          courseFundingOrganisation: { name: 'APA Paris' },
+          payer: { name: 'APA Paris' },
           billedAt: '2022-03-08T00:00:00.000Z',
           number: 'FACT-00001',
           courseCreditNote: { courseBill: new ObjectId() },
@@ -1724,7 +1732,7 @@ describe('exportCourseHistory', () => {
           course: courseIdList[0],
           mainFee: { price: 120, count: 1 },
           company,
-          courseFundingOrganisation: { name: 'APA Paris' },
+          payer: { name: 'APA Paris' },
           billedAt: '2022-03-08T00:00:00.000Z',
           number: 'FACT-00002',
           courseCreditNote: null,
@@ -1877,10 +1885,11 @@ describe('exportCourseHistory', () => {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'courseFundingOrganisation company billedAt mainFee billingPurchaseList',
+            select: 'payer company billedAt mainFee billingPurchaseList',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [
-              { path: 'courseFundingOrganisation', select: 'name' },
+              { path: 'payer.fundingOrganisation', select: 'name' },
+              { path: 'payer.company', select: 'name' },
               { path: 'company', select: 'name' },
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
               {
@@ -2134,10 +2143,11 @@ describe('exportCourseHistory', () => {
           query: 'populate',
           args: [{
             path: 'bills',
-            select: 'courseFundingOrganisation company billedAt mainFee billingPurchaseList',
+            select: 'payer company billedAt mainFee billingPurchaseList',
             options: { isVendorUser: has(credentials, 'role.vendor') },
             populate: [
-              { path: 'courseFundingOrganisation', select: 'name' },
+              { path: 'payer.fundingOrganisation', select: 'name' },
+              { path: 'payer.company', select: 'name' },
               { path: 'company', select: 'name' },
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
               {

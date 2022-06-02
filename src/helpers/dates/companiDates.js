@@ -37,17 +37,21 @@ const CompaniDateFactory = (inputDate) => {
       return _date.toUTC().toISO();
     },
 
-    // QUERY
-    isBefore(miscTypeOtherDate) {
-      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
-
-      return _date < otherDate;
+    toLocalISO() {
+      return _date.toLocal().toISO();
     },
 
-    isAfter(miscTypeOtherDate) {
+    // QUERY
+    isBefore(miscTypeOtherDate, unit = 'millisecond') {
       const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
 
-      return _date > otherDate;
+      return _date.startOf(unit) < otherDate.startOf(unit);
+    },
+
+    isAfter(miscTypeOtherDate, unit = 'millisecond') {
+      const otherDate = exports._formatMiscToCompaniDate(miscTypeOtherDate);
+
+      return _date.startOf(unit) > otherDate.startOf(unit);
     },
 
     isSame(miscTypeOtherDate, unit = 'millisecond') {

@@ -192,12 +192,44 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       expect(response.statusCode).toBe(200);
 
       const courseHistory = await CourseHistory.countDocuments({
-        course: courseSlotsList[0].course,
+        course: courseSlotsList[8].course,
         'update.startDate.to': payload.startDate,
         action: SLOT_EDITION,
       });
 
       expect(courseHistory).toEqual(1);
+    });
+
+    it('should remove dates', async () => {
+      const payload = { startDate: '', endDate: '' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[8]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const courseHistory = await CourseHistory.countDocuments({
+        course: courseSlotsList[8].course,
+        'slot.startDate': courseSlotsList[8].startDate,
+        'slot.endDate': courseSlotsList[8].endDate,
+        'slot.meetingLink': courseSlotsList[8].meetingLink,
+        action: SLOT_DELETION,
+      });
+
+      const slot = await CourseSlot.countDocuments({
+        course: courseSlotsList[8].course,
+        startDate: courseSlotsList[8].startDate,
+        endDate: courseSlotsList[8].endDate,
+        meetingLink: courseSlotsList[8].meetingLink,
+      });
+      const slotListCount = await CourseSlot.countDocuments();
+
+      expect(courseHistory).toEqual(1);
+      expect(slot).toBeFalsy();
+      expect(slotListCount).toEqual(courseSlotsList.length);
     });
 
     it('should return 403 if course is archived', async () => {
@@ -228,6 +260,18 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(409);
+    });
+
+    it('should return 400 if remove only one date', async () => {
+      const payload = { startDate: '2020-03-04T09:00:00', endDate: '' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courseslots/${courseSlotsList[8]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return 400 if endDate without startDate', async () => {
@@ -400,26 +444,6 @@ describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
       authToken = await getToken('training_organisation_manager');
-    });
-
-    it('should delete course slot and create courseHistory', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courseslots/${courseSlotsList[0]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const deletedSlot = await CourseSlot.countDocuments({ _id: courseSlotsList[0]._id });
-      const courseHistory = await CourseHistory.countDocuments({
-        course: courseSlotsList[0].course,
-        'slot.startDate': courseSlotsList[0].startDate,
-        action: SLOT_DELETION,
-      });
-
-      expect(deletedSlot).toEqual(0);
-      expect(courseHistory).toEqual(1);
     });
 
     it('should delete course slot without dates', async () => {

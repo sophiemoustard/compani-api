@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { create, update, remove } = require('../controllers/courseSlotController');
-const { addressValidation } = require('./validations/utils');
+const { addressValidation, requiredDateToISOString } = require('./validations/utils');
 const { getCourseSlot, authorizeCreate, authorizeUpdate, authorizeDeletion } = require('./preHandlers/courseSlot');
 
 exports.plugin = {
@@ -32,8 +32,8 @@ exports.plugin = {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
           payload: Joi.object({
-            startDate: Joi.date().required(),
-            endDate: Joi.date().required(),
+            startDate: requiredDateToISOString.allow(''),
+            endDate: requiredDateToISOString.allow(''),
             address: Joi.alternatives().try(addressValidation, {}),
             meetingLink: Joi.string().allow(''),
           }),
