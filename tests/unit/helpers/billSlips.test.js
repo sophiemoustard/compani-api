@@ -352,13 +352,13 @@ describe('formatBillingDataForFile', () => {
   it('should format bills for pdf', () => {
     const fundingId = new ObjectId();
     const fundings = [{ _id: fundingId, versions: [{ _id: new ObjectId() }], frequency: 'monthly' }];
-    const event = { fundingId, careHours: 2, inclTaxesTpp: 12 };
+    const event = { fundingId, careHours: 14, inclTaxesTpp: 240 };
     const billList = [
       {
         createdAt: moment('2020-01-01').toDate(),
         number: 'number',
         customer: { fundings, identity: { firstname: 'abc' } },
-        subscriptions: [{ events: [event] }],
+        subscriptions: [{ events: [event], discount: 1.24 }],
       },
     ];
     const eventCreditNote = { bills: { fundingId, inclTaxesTpp: 12, careHours: 2 } };
@@ -403,11 +403,12 @@ describe('formatBillingDataForFile', () => {
 
     const result = BillSlipHelper.formatBillingDataForFile(billList, creditNoteList);
 
-    expect(result.total).toEqual(-10);
+    expect(result.total).toEqual(216.76);
     expect(result.formattedBills).toEqual([
       {
-        billedCareHours: 2,
-        netInclTaxes: 12,
+        billedCareHours: 14,
+        netInclTaxes: 238.76,
+        discount: 1.24,
         number: 'number',
         customer: 'abc',
         createdAt: moment('2020-01-01').toDate(),
@@ -430,10 +431,10 @@ describe('formatBillingDataForFile', () => {
     sinon.assert.calledWithExactly(formatFundingInfo.getCall(0), billList[0], event);
     sinon.assert.calledWithExactly(formatFundingInfo.getCall(1), creditNoteList[0], eventCreditNote.bills);
     sinon.assert.calledWithExactly(formatFundingInfo.getCall(2), creditNoteList[1], creditNoteList[1].events[0].bills);
-    sinon.assert.calledWithExactly(formatPrice.getCall(0), 12);
+    sinon.assert.calledWithExactly(formatPrice.getCall(0), 238.76);
     sinon.assert.calledWithExactly(formatPrice.getCall(1), -12);
     sinon.assert.calledWithExactly(formatPrice.getCall(2), -10);
-    sinon.assert.calledWithExactly(formatHour.getCall(0), 2);
+    sinon.assert.calledWithExactly(formatHour.getCall(0), 14);
     sinon.assert.calledWithExactly(formatHour.getCall(1), 2);
     sinon.assert.calledWithExactly(formatHour.getCall(2), 1);
   });
