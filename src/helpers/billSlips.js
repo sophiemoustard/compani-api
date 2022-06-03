@@ -21,7 +21,9 @@ exports.getBillSlips = async (credentials) => {
     const creditNote = creditNoteList.find(cn => cn.month === billSlipMonth &&
       UtilsHelper.areObjectIdsEquals(cn.thirdPartyPayer._id, billSlip.thirdPartyPayer._id));
     if (!creditNote) continue;
-    billSlip.netInclTaxes = NumbersHelper.subtract(billSlip.netInclTaxes, creditNote.netInclTaxes);
+    billSlip.netInclTaxes = NumbersHelper.toFixedToFloat(
+      NumbersHelper.subtract(billSlip.netInclTaxes, creditNote.netInclTaxes)
+    );
   }
 
   for (const creditNote of creditNoteList) {
@@ -29,10 +31,13 @@ exports.getBillSlips = async (credentials) => {
     const bill = billSlipList.find(bs => creditNoteMonth === bs.month &&
       UtilsHelper.areObjectIdsEquals(creditNote.thirdPartyPayer._id, bs.thirdPartyPayer._id));
     if (bill) continue;
-    billSlipList.push({ ...creditNote, netInclTaxes: NumbersHelper.multiply(-1, creditNote.netInclTaxes) });
+    billSlipList.push({
+      ...creditNote,
+      netInclTaxes: NumbersHelper.toFixedToFloat(NumbersHelper.multiply(-1, creditNote.netInclTaxes)),
+    });
   }
 
-  return billSlipList.map(bs => ({ ...bs, netInclTaxes: NumbersHelper.toFixedToFloat(bs.netInclTaxes) }));
+  return billSlipList;
 };
 
 exports.formatBillSlipNumber = (companyPrefixNumber, prefix, seq) =>
