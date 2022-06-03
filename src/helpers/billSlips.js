@@ -29,7 +29,7 @@ exports.getBillSlips = async (credentials) => {
     const bill = billSlipList.find(bs => creditNoteMonth === bs.month &&
       UtilsHelper.areObjectIdsEquals(creditNote.thirdPartyPayer._id, bs.thirdPartyPayer._id));
     if (bill) continue;
-    billSlipList.push({ ...creditNote, netInclTaxes: -creditNote.netInclTaxes });
+    billSlipList.push({ ...creditNote, netInclTaxes: NumbersHelper.multiply(-1, creditNote.netInclTaxes) });
   }
 
   return billSlipList.map(bs => ({ ...bs, netInclTaxes: NumbersHelper.toFixedToFloat(bs.netInclTaxes) }));
