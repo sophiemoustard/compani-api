@@ -1011,8 +1011,8 @@ describe('formatPdf', () => {
       date: '2019-04-29T22:00:00.000Z',
       exclTaxesCustomer: 221,
       inclTaxesCustomer: 234,
-      exclTaxesTpp: 21,
-      inclTaxesTpp: 34,
+      exclTaxesTpp: 0,
+      inclTaxesTpp: 0,
     };
     const expectedResult = {
       creditNote: {
@@ -1050,6 +1050,9 @@ describe('formatPdf', () => {
     const result = CreditNoteHelper.formatPdf(creditNote, company);
 
     expect(result).toEqual(expectedResult);
+    sinon.assert.calledWithExactly(formatPrice.getCall(0), 13);
+    sinon.assert.calledWithExactly(formatPrice.getCall(1), 221);
+    sinon.assert.calledWithExactly(formatPrice.getCall(2), 234);
     sinon.assert.calledOnceWithExactly(formatEventSurchargesForPdf, [{ percentage: 30 }]);
   });
 
@@ -1074,7 +1077,7 @@ describe('formatPdf', () => {
       date: '2019-04-29T22:00:00.000Z',
       exclTaxesTpp: 21,
       inclTaxesTpp: 34,
-      exclTaxesCustomer: 221,
+      exclTaxesCustomer: 220,
       inclTaxesCustomer: 234,
       thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } },
     };
@@ -1124,6 +1127,9 @@ describe('formatPdf', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
+    sinon.assert.calledWithExactly(formatPrice.getCall(0), 13);
+    sinon.assert.calledWithExactly(formatPrice.getCall(1), 21);
+    sinon.assert.calledWithExactly(formatPrice.getCall(2), 34);
     sinon.assert.notCalled(formatEventSurchargesForPdf);
   });
 
