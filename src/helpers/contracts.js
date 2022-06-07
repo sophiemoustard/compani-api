@@ -20,7 +20,7 @@ const ReferentHistoryHelper = require('./referentHistories');
 const UtilsHelper = require('./utils');
 const DatesHelper = require('./dates');
 const GDriveStorageHelper = require('./gDriveStorage');
-const { AUXILIARY, TIME_STAMPING_ACTIONS } = require('./constants');
+const { AUXILIARY, TIME_STAMPING_ACTIONS, UNAVAILABILITY, INTERNAL_HOUR, INTERVENTION } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
@@ -315,6 +315,7 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
     if (eventCount) throw Boom.forbidden();
 
     await Contract.deleteOne({ _id: contractId });
+    await EventHelper.removeRepetitionsOnContractEnd(contract);
     await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
     await SectorHistoryHelper.updateHistoryOnContractDeletion(contract, companyId);
   }
