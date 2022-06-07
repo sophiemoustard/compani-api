@@ -871,7 +871,7 @@ describe('populateEvents', () => {
   });
 });
 
-describe('removeRepetitionsOnContractEnd', () => {
+describe('removeRepetitionsOnContractEndOrDeletion', () => {
   let updateManyRepetition;
   let deleteManyRepetition;
 
@@ -890,7 +890,7 @@ describe('removeRepetitionsOnContractEnd', () => {
   it('should unassigned repetition intervention and remove other repetitions', async () => {
     const contract = { endDate: '2019-10-02T08:00:00.000Z', user: { _id: userId, sector: sectorId } };
 
-    await EventHelper.removeRepetitionsOnContractEnd(contract);
+    await EventHelper.removeRepetitionsOnContractEndOrDeletion(contract);
     sinon.assert.calledOnceWithExactly(
       updateManyRepetition,
       { auxiliary: userId, type: 'intervention' },

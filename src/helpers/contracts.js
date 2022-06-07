@@ -175,7 +175,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   await EventHelper.unassignInterventionsOnContractEnd(updatedContract, credentials);
-  await EventHelper.removeRepetitionsOnContractEnd(updatedContract);
+  await EventHelper.removeRepetitionsOnContractEndOrDeletion(updatedContract);
   await EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials);
   await EventHelper.updateAbsencesOnContractEnd(updatedContract.user._id, updatedContract.endDate, credentials);
   await ReferentHistoryHelper.unassignReferentOnContractEnd(updatedContract);
@@ -315,7 +315,7 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
     if (eventCount) throw Boom.forbidden();
 
     await Contract.deleteOne({ _id: contractId });
-    await EventHelper.removeRepetitionsOnContractEnd(contract);
+    await EventHelper.removeRepetitionsOnContractEndOrDeletion(contract);
     await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
     await SectorHistoryHelper.updateHistoryOnContractDeletion(contract, companyId);
   }
