@@ -296,10 +296,18 @@ exports.updateVersion = async (contractId, versionId, versionPayload, credential
 };
 
 exports.deleteVersion = async (contractId, versionId, credentials) => {
-  const contract = await Contract.findOne({ _id: contractId, 'versions.0': { $exists: true } });
+  const companyId = get(credentials, 'company._id', null);
+
+  const contract = await Contract
+    .findOne({ _id: contractId, 'versions.0': { $exists: true } })
+    .populate({
+      path: 'user',
+      select: 'sector',
+      populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+    })
+    .lean({ virtuals: true });
   if (!contract) return;
 
-  const companyId = get(credentials, 'company._id', null);
   const isLastVersion = contract.versions[contract.versions.length - 1]._id.toHexString() === versionId;
   if (!isLastVersion) throw Boom.forbidden();
   const deletedVersion = contract.versions[contract.versions.length - 1];
@@ -316,7 +324,7 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
 
     await Contract.deleteOne({ _id: contractId });
     await EventHelper.removeRepetitionsOnContractEndOrDeletion(contract);
-    await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
+    await User.updateOne({ _id: contract.user._id }, { $pull: { contracts: contract._id } });
     await SectorHistoryHelper.updateHistoryOnContractDeletion(contract, companyId);
   }
 
