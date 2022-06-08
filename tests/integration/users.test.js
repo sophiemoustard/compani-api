@@ -1505,17 +1505,7 @@ describe('DELETE /users/:id', () => {
       expect(course).toBe(0);
     });
 
-    it('should return 403 if try to delete other account', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/users/${usersSeedList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if user has activity histories', async () => {
+    it('should anonymise account if user has activity histories', async () => {
       await app.inject({
         method: 'POST',
         url: '/activityhistories',
@@ -1530,6 +1520,31 @@ describe('DELETE /users/:id', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${usersSeedList[12]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const companyLinkRequest = await CompanyLinkRequest.countDocuments({ user: usersSeedList[12]._id });
+      expect(companyLinkRequest).toBe(0);
+
+      const activityHistories = await ActivityHistory.countDocuments({ user: usersSeedList[12]._id });
+      expect(activityHistories).toBe(1);
+
+      const course = await Course.countDocuments({ trainees: usersSeedList[12]._id });
+      expect(course).toBe(1);
+
+      const explicitUser = await User.countDocuments({ 'local.email': 'norole.no_company@alenvi.io' });
+      expect(explicitUser).toBe(0);
+
+      const anonymousUser = await User.countDocuments({ _id: usersSeedList[12]._id });
+      expect(anonymousUser).toBe(1);
+    });
+
+    it('should return 403 if try to delete other account', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${usersSeedList[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
