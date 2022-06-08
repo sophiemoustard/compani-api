@@ -36,17 +36,17 @@ exports.formatTable = (items, options) => {
 
 const fonts = {
   Avenir: {
-    normal: 'src/data/pdf/fonts/Avenir-Regular.otf',
-    bold: 'src/data/pdf/fonts/Avenir-Bold.otf',
-    italics: 'src/data/pdf/fonts/Avenir-Italic.otf',
+    normal: '../data/pdf/fonts/Avenir-Regular.otf',
+    bold: '../data/pdf/fonts/Avenir-Bold.otf',
+    italics: '../data/pdf/fonts/Avenir-Italic.otf',
   },
   Calibri: {
-    normal: 'src/data/pdf/fonts/Calibri-Regular.ttf',
-    bold: 'src/data/pdf/fonts/Calibri-Bold.TTF',
-    italics: 'src/data/pdf/fonts/Calibri-Italic.ttf',
+    normal: '../data/pdf/fonts/Calibri-Regular.ttf',
+    bold: '../data/pdf/fonts/Calibri-Bold.TTF',
+    italics: '../data/pdf/fonts/Calibri-Italic.ttf',
   },
   icon: {
-    normal: 'src/data/pdf/fonts/icon.ttf',
+    normal: '../data/pdf/fonts/icon.ttf',
   },
 };
 

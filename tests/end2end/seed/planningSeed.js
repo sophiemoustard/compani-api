@@ -27,7 +27,7 @@ const service = {
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',
-    startDate: '2019-01-16T17:58:15',
+    startDate: '2019-01-16T17:58:15.000Z',
     vat: 12,
     exemptFromCharges: false,
   }],
@@ -51,7 +51,7 @@ const customer = {
     _id: subscriptionId,
     service: service._id,
     versions: [
-      { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+      { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
     ],
   }],
 };
@@ -113,14 +113,14 @@ const referentHistories = [
     customer: customer._id,
     auxiliary: loggedAuxiliary._id,
     company: customer.company,
-    startDate: '2017-05-13T00:00:00',
-    endDate: '2018-05-13T23:59:59',
+    startDate: '2017-05-13T00:00:00.000Z',
+    endDate: '2018-05-13T23:59:59.000Z',
   },
   {
     customer: customer._id,
     auxiliary: secondAuxiliary._id,
     company: customer.company,
-    startDate: '2018-05-14T00:00:00',
+    startDate: '2018-05-14T00:00:00.000Z',
   },
 ];
 
@@ -131,14 +131,14 @@ const sectorHistories = [
     _id: new ObjectId(),
     auxiliary: loggedAuxiliary._id,
     sector: sectors[0]._id,
-    startDate: '2020-03-20T00:00:00',
+    startDate: '2020-03-20T00:00:00.000Z',
     company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     auxiliary: secondAuxiliary._id,
     sector: sectors[0]._id,
-    startDate: '2020-03-20T00:00:00',
+    startDate: '2020-03-20T00:00:00.000Z',
     company: authCompany._id,
   },
 ];
@@ -194,6 +194,7 @@ const eventList = [
   },
 ];
 
+console.log('test for end2end API', moment());
 const populatePlanning = async () => {
   await Customer.deleteMany();
   await Helper.deleteMany();
