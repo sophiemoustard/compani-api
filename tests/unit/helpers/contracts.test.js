@@ -1352,17 +1352,32 @@ describe('deleteVersion', () => {
   });
 
   it('should delete contract', async () => {
+    const sectorId = new ObjectId();
     const contract = {
       _id: contractId,
       startDate: '2019-09-09',
-      user: 'toot',
+      user: { _id: 'toot', sector: sectorId },
       versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     };
     countAuxiliaryEventsBetweenDates.returns(0);
-    findOneContract.returns(contract);
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract));
     updateHistoryOnContractDeletionStub.returns();
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
-    sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+    SinonMongoose.calledOnceWithExactly(
+      findOneContract,
+      [
+        { query: 'findOne', args: [{ _id: contractId.toHexString(), 'versions.0': { $exists: true } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'user',
+            select: 'sector',
+            populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+          }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
     sinon.assert.calledWithExactly(countAuxiliaryEventsBetweenDates, {
       auxiliary: 'toot',
       startDate: '2019-09-09',
@@ -1379,22 +1394,34 @@ describe('deleteVersion', () => {
 
   it('should throw forbidden error as deletion is not allowed', async () => {
     try {
+      const sectorId = new ObjectId();
       const contract = {
         _id: contractId,
-        user: 'toot',
+        user: { _id: 'toot', sector: sectorId },
         versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
       };
       countAuxiliaryEventsBetweenDates.returns(1);
-      findOneContract.returns(contract);
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract));
 
       await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(403);
     } finally {
-      sinon.assert.calledWithExactly(findOneContract, {
-        _id: contractId.toHexString(),
-        'versions.0': { $exists: true },
-      });
+      SinonMongoose.calledOnceWithExactly(
+        findOneContract,
+        [
+          { query: 'findOne', args: [{ _id: contractId.toHexString(), 'versions.0': { $exists: true } }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'user',
+              select: 'sector',
+              populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+            }],
+          },
+          { query: 'lean', args: [{ virtuals: true }] },
+        ]
+      );
       sinon.assert.notCalled(saveContract);
       sinon.assert.called(countAuxiliaryEventsBetweenDates);
       sinon.assert.notCalled(deleteOne);
@@ -1412,7 +1439,7 @@ describe('deleteVersion', () => {
       user: 'toot',
       versions: [{ _id: new ObjectId() }, { _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     });
-    findOneContract.returns(contract);
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract));
 
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
     sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });

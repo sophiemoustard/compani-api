@@ -318,7 +318,7 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
     contract.save();
   } else {
     const { user, startDate } = contract;
-    const query = { auxiliary: user, startDate, company: companyId };
+    const query = { auxiliary: user._id, startDate, company: companyId };
     const eventCount = await EventRepository.countAuxiliaryEventsBetweenDates(query);
     if (eventCount) throw Boom.forbidden();
 

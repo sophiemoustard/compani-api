@@ -85,7 +85,6 @@ exports.updateHistoryOnContractUpdate = async (contractId, versionToUpdate, comp
 
 exports.updateHistoryOnContractDeletion = async (contract, companyId) => {
   const sectorHistory = await SectorHistory.findOne({ auxiliary: contract.user._id, endDate: null }).lean();
-  console.log('start: ', contract.startDate);
   await SectorHistory.remove({
     auxiliary: contract.user._id,
     company: companyId,
