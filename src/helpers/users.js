@@ -277,40 +277,47 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
   }
 };
 
+const anonymiseAccount = async (user) => {
+  const fieldsToUnset = { 'local.password': '', 'identity.firstname': '', passwordToken: '' };
+  const fieldsToKeep = ['local', 'identity', 'origin', 'serialNumber', '_id', 'createdAt', 'updatedAt'];
+
+  for (const key of Object.keys(user)) {
+    if (!fieldsToKeep.includes(key)) {
+      const entry = { [key]: '' };
+      Object.assign(fieldsToUnset, entry);
+    }
+  }
+  await User.updateOne(
+    { _id: user._id },
+    {
+      $unset: fieldsToUnset,
+      $set: {
+        origin: MOBILE,
+        'identity.lastname': 'Utilisateur supprimé',
+        'local.email': `archivagecompte+${user._id}@compani.fr`,
+        serialNumber: user._id,
+        refreshToken: user._id,
+        isAnonymised: true,
+      },
+    },
+    { strict: false }
+  );
+};
+
+const deleteAccount = async (user) => {
+  await Course.updateMany({ trainees: user._id }, { $pull: { trainees: user._id } });
+  await User.deleteOne({ _id: user._id });
+};
+
 exports.removeUser = async (user, credentials) => {
   if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
     const hasActivityHistories = await ActivityHistory.countDocuments({ user: user._id }, { limit: 1 });
     await CompanyLinkRequest.deleteOne({ user: user._id });
-    if (hasActivityHistories) {
-      const fieldsToUnset = { 'local.password': '', 'identity.firstname': '', passwordToken: '' };
-      const fieldsToKeep = ['local', 'identity', 'origin', 'serialNumber', '_id', 'company', 'createdAt', 'updatedAt'];
-
-      for (const key of Object.keys(user)) {
-        if (!fieldsToKeep.includes(key)) {
-          const entry = { [key]: '' };
-          Object.assign(fieldsToUnset, entry);
-        }
-      }
-      await User.updateOne(
-        { _id: user._id },
-        {
-          $unset: fieldsToUnset,
-          $set: {
-            origin: MOBILE,
-            'identity.lastname': 'Utilisateur supprimé',
-            'local.email': `archivagecompte+${user._id}@compani.fr`,
-            serialNumber: user._id,
-            refreshToken: user._id,
-            isAnonymised: true,
-          },
-        },
-        { strict: false }
-      );
-    } else {
-      await Course.updateMany({ trainees: user._id }, { $pull: { trainees: user._id } });
-      await User.deleteOne({ _id: user._id });
-    }
-  } else await exports.removeHelper(user);
+    if (hasActivityHistories) await anonymiseAccount(user);
+    else await deleteAccount(user);
+  } else {
+    await exports.removeHelper(user);
+  }
 };
 
 exports.removeHelper = async (user) => {
