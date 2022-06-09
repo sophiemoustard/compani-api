@@ -440,7 +440,7 @@ describe('endContract', () => {
   let findOneContract;
   let findOneAndUpdateContract;
   let updateUserInactivityDate;
-  let removeRepetitionsOnContractEnd;
+  let removeRepetitionsOnContractEndOrDeletion;
   let unassignInterventionsOnContractEnd;
   let removeEventsExceptInterventionsOnContractEnd;
   let updateAbsencesOnContractEnd;
@@ -454,7 +454,7 @@ describe('endContract', () => {
     eventCountDocuments = sinon.stub(Event, 'countDocuments');
     findOneAndUpdateContract = sinon.stub(Contract, 'findOneAndUpdate');
     updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
-    removeRepetitionsOnContractEnd = sinon.stub(EventHelper, 'removeRepetitionsOnContractEnd');
+    removeRepetitionsOnContractEndOrDeletion = sinon.stub(EventHelper, 'removeRepetitionsOnContractEndOrDeletion');
     unassignInterventionsOnContractEnd = sinon.stub(EventHelper, 'unassignInterventionsOnContractEnd');
     removeEventsExceptInterventionsOnContractEnd = sinon.stub(
       EventHelper,
@@ -468,7 +468,7 @@ describe('endContract', () => {
     findOneContract.restore();
     findOneAndUpdateContract.restore();
     updateUserInactivityDate.restore();
-    removeRepetitionsOnContractEnd.restore();
+    removeRepetitionsOnContractEndOrDeletion.restore();
     unassignInterventionsOnContractEnd.restore();
     removeEventsExceptInterventionsOnContractEnd.restore();
     countDocumentHistories.restore();
@@ -509,7 +509,7 @@ describe('endContract', () => {
 
     expect(result).toMatchObject(updatedContract);
     sinon.assert.calledWithExactly(updateUserInactivityDate, updatedContract.user._id, payload.endDate, credentials);
-    sinon.assert.calledWithExactly(removeRepetitionsOnContractEnd, updatedContract);
+    sinon.assert.calledWithExactly(removeRepetitionsOnContractEndOrDeletion, updatedContract);
     sinon.assert.calledWithExactly(unassignInterventionsOnContractEnd, updatedContract, credentials);
     sinon.assert.calledWithExactly(unassignReferentOnContractEnd, updatedContract);
     sinon.assert.calledWithExactly(removeEventsExceptInterventionsOnContractEnd, updatedContract, credentials);
@@ -617,7 +617,7 @@ describe('endContract', () => {
       expect(e.output.statusCode).toEqual(403);
     } finally {
       sinon.assert.notCalled(updateUserInactivityDate);
-      sinon.assert.notCalled(removeRepetitionsOnContractEnd);
+      sinon.assert.notCalled(removeRepetitionsOnContractEndOrDeletion);
       sinon.assert.notCalled(unassignInterventionsOnContractEnd);
       sinon.assert.notCalled(unassignReferentOnContractEnd);
       sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
@@ -701,7 +701,7 @@ describe('endContract', () => {
       expect(e.output.statusCode).toEqual(403);
     } finally {
       sinon.assert.notCalled(updateUserInactivityDate);
-      sinon.assert.notCalled(removeRepetitionsOnContractEnd);
+      sinon.assert.notCalled(removeRepetitionsOnContractEndOrDeletion);
       sinon.assert.notCalled(unassignInterventionsOnContractEnd);
       sinon.assert.notCalled(unassignReferentOnContractEnd);
       sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
@@ -754,7 +754,7 @@ describe('endContract', () => {
       expect(e.output.statusCode).toEqual(409);
     } finally {
       sinon.assert.notCalled(updateUserInactivityDate);
-      sinon.assert.notCalled(removeRepetitionsOnContractEnd);
+      sinon.assert.notCalled(removeRepetitionsOnContractEndOrDeletion);
       sinon.assert.notCalled(unassignInterventionsOnContractEnd);
       sinon.assert.notCalled(unassignReferentOnContractEnd);
       sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
@@ -1324,6 +1324,7 @@ describe('deleteVersion', () => {
   let deleteFile;
   let countAuxiliaryEventsBetweenDates;
   let updateHistoryOnContractDeletionStub;
+  let removeRepetitionsOnContractEndOrDeletion;
   const versionId = new ObjectId();
   const contractId = new ObjectId();
   const credentials = { company: { _id: new ObjectId() } };
@@ -1334,6 +1335,7 @@ describe('deleteVersion', () => {
     updateOneCustomer = sinon.stub(Customer, 'updateOne');
     updateOneUser = sinon.stub(User, 'updateOne');
     deleteFile = sinon.stub(GDriveStorageHelper, 'deleteFile');
+    removeRepetitionsOnContractEndOrDeletion = sinon.stub(EventHelper, 'removeRepetitionsOnContractEndOrDeletion');
     countAuxiliaryEventsBetweenDates = sinon.stub(EventRepository, 'countAuxiliaryEventsBetweenDates');
     updateHistoryOnContractDeletionStub = sinon.stub(SectorHistoryHelper, 'updateHistoryOnContractDeletion');
   });
@@ -1344,22 +1346,38 @@ describe('deleteVersion', () => {
     updateOneCustomer.restore();
     updateOneUser.restore();
     deleteFile.restore();
+    removeRepetitionsOnContractEndOrDeletion.restore();
     countAuxiliaryEventsBetweenDates.restore();
     updateHistoryOnContractDeletionStub.restore();
   });
 
   it('should delete contract', async () => {
+    const sectorId = new ObjectId();
     const contract = {
       _id: contractId,
       startDate: '2019-09-09',
-      user: 'toot',
+      user: { _id: 'toot', sector: sectorId },
       versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     };
     countAuxiliaryEventsBetweenDates.returns(0);
-    findOneContract.returns(contract);
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract));
     updateHistoryOnContractDeletionStub.returns();
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
-    sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+    SinonMongoose.calledOnceWithExactly(
+      findOneContract,
+      [
+        { query: 'findOne', args: [{ _id: contractId.toHexString(), 'versions.0': { $exists: true } }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'user',
+            select: 'sector',
+            populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+          }],
+        },
+        { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
     sinon.assert.calledWithExactly(countAuxiliaryEventsBetweenDates, {
       auxiliary: 'toot',
       startDate: '2019-09-09',
@@ -1367,6 +1385,7 @@ describe('deleteVersion', () => {
     });
     sinon.assert.notCalled(saveContract);
     sinon.assert.calledWithExactly(deleteOne, { _id: contractId.toHexString() });
+    sinon.assert.calledWithExactly(removeRepetitionsOnContractEndOrDeletion, contract);
     sinon.assert.calledWithExactly(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
     sinon.assert.notCalled(updateOneCustomer);
     sinon.assert.calledWithExactly(deleteFile, '123456789');
@@ -1375,25 +1394,38 @@ describe('deleteVersion', () => {
 
   it('should throw forbidden error as deletion is not allowed', async () => {
     try {
+      const sectorId = new ObjectId();
       const contract = {
         _id: contractId,
-        user: 'toot',
+        user: { _id: 'toot', sector: sectorId },
         versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
       };
       countAuxiliaryEventsBetweenDates.returns(1);
-      findOneContract.returns(contract);
+      findOneContract.returns(SinonMongoose.stubChainedQueries(contract));
 
       await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(403);
     } finally {
-      sinon.assert.calledWithExactly(findOneContract, {
-        _id: contractId.toHexString(),
-        'versions.0': { $exists: true },
-      });
+      SinonMongoose.calledOnceWithExactly(
+        findOneContract,
+        [
+          { query: 'findOne', args: [{ _id: contractId.toHexString(), 'versions.0': { $exists: true } }] },
+          {
+            query: 'populate',
+            args: [{
+              path: 'user',
+              select: 'sector',
+              populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+            }],
+          },
+          { query: 'lean', args: [{ virtuals: true }] },
+        ]
+      );
       sinon.assert.notCalled(saveContract);
       sinon.assert.called(countAuxiliaryEventsBetweenDates);
       sinon.assert.notCalled(deleteOne);
+      sinon.assert.notCalled(removeRepetitionsOnContractEndOrDeletion);
       sinon.assert.notCalled(updateOneUser);
       sinon.assert.notCalled(updateOneCustomer);
       sinon.assert.notCalled(deleteFile);
@@ -1407,12 +1439,13 @@ describe('deleteVersion', () => {
       user: 'toot',
       versions: [{ _id: new ObjectId() }, { _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     });
-    findOneContract.returns(contract);
+    findOneContract.returns(SinonMongoose.stubChainedQueries(contract));
 
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
     sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
     sinon.assert.called(saveContract);
     sinon.assert.notCalled(deleteOne);
+    sinon.assert.notCalled(removeRepetitionsOnContractEndOrDeletion);
     sinon.assert.notCalled(updateOneUser);
     sinon.assert.notCalled(updateOneCustomer);
     sinon.assert.calledWithExactly(deleteFile, '123456789');

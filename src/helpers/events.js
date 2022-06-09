@@ -316,7 +316,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   return exports.populateEventSubscription(updatedEvent);
 };
 
-exports.removeRepetitionsOnContractEnd = async (contract) => {
+exports.removeRepetitionsOnContractEndOrDeletion = async (contract) => {
   const { sector, _id: auxiliaryId } = contract.user;
 
   await Repetition.updateMany(
