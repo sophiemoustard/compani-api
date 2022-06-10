@@ -22,7 +22,8 @@ const Course = require('../../../src/models/Course');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const Role = require('../../../src/models/Role');
 const UserCompany = require('../../../src/models/UserCompany');
-const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP } = require('../../../src/helpers/constants');
+const { HELPER, AUXILIARY_WITHOUT_COMPANY, WEBAPP, MOBILE } = require('../../../src/helpers/constants');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 
 const { language } = translate;
 
@@ -1133,26 +1134,68 @@ describe('removeUser', () => {
   let deleteOneCompanyLinkRequest;
   let updateManyCourse;
   let removeHelper;
+  let countDocumentsActivityHistories;
+  let updateOne;
   beforeEach(() => {
     deleteOne = sinon.stub(User, 'deleteOne');
     deleteOneCompanyLinkRequest = sinon.stub(CompanyLinkRequest, 'deleteOne');
     updateManyCourse = sinon.stub(Course, 'updateMany');
     removeHelper = sinon.stub(UsersHelper, 'removeHelper');
+    countDocumentsActivityHistories = sinon.stub(ActivityHistory, 'countDocuments');
+    updateOne = sinon.stub(User, 'updateOne');
   });
   afterEach(() => {
     deleteOne.restore();
     deleteOneCompanyLinkRequest.restore();
     updateManyCourse.restore();
     removeHelper.restore();
+    countDocumentsActivityHistories.restore();
+    updateOne.restore();
   });
 
   it('should delete account', async () => {
     const userId = new ObjectId();
+    countDocumentsActivityHistories.returns(0);
+
     await UsersHelper.removeUser({ _id: userId }, { _id: userId });
 
+    sinon.assert.calledOnceWithExactly(countDocumentsActivityHistories, { user: userId }, { limit: 1 });
     sinon.assert.calledOnceWithExactly(deleteOne, { _id: userId });
     sinon.assert.calledOnceWithExactly(deleteOneCompanyLinkRequest, { user: userId });
     sinon.assert.calledOnceWithExactly(updateManyCourse, { trainees: userId }, { $pull: { trainees: userId } });
+    sinon.assert.notCalled(updateOne);
+  });
+
+  it('should anonymize account', async () => {
+    const userId = new ObjectId();
+    countDocumentsActivityHistories.returns(1);
+
+    await UsersHelper.removeUser({ _id: userId }, { _id: userId });
+
+    sinon.assert.calledOnceWithExactly(countDocumentsActivityHistories, { user: userId }, { limit: 1 });
+    sinon.assert.calledOnceWithExactly(
+      updateOne,
+      { _id: userId },
+      {
+        $unset: {
+          'identity.firstname': '',
+          'local.password': '',
+          passwordToken: '',
+        },
+        $set: {
+          origin: MOBILE,
+          'identity.lastname': 'Utilisateur supprimé',
+          'local.email': `archivagecompte+${userId}@compani.fr`,
+          serialNumber: userId,
+          refreshToken: userId,
+          isAnonymised: true,
+        },
+      },
+      { strict: false }
+    );
+    sinon.assert.calledOnceWithExactly(deleteOneCompanyLinkRequest, { user: userId });
+    sinon.assert.notCalled(deleteOne);
+    sinon.assert.notCalled(updateManyCourse);
   });
 
   it('should call removeHelper', async () => {
