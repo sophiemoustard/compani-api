@@ -513,73 +513,46 @@ describe('getFileName', () => {
 describe('getTimeStampInfo', () => {
   it('should return info for event with both timestamp', () => {
     const histories = [
-      { update: { startHour: '2022-05-12T12:22:30.000Z' } },
-      { update: { endHour: '2022-05-12T12:22:30.000Z' } },
+      { createdAt: '2022-05-12T12:22:30.000Z', update: { startHour: '2022-05-12T12:22:30.000Z', isCancelled: true } },
+      { createdAt: '2022-05-12T13:26:30.000Z', update: { endHour: '2022-05-12T13:26:30.000Z' } },
+      { createdAt: '2022-05-12T12:24:30.000Z', update: { startHour: '2022-05-12T12:24:30.000Z' } },
+      { createdAt: '2022-05-12T12:22:30.000Z', update: { endHour: '2022-05-12T12:22:30.000Z', isCancelled: true } },
     ];
 
     const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
 
-    expect(timeStampInfo.isStartTimeStamped).toBe(true);
-    expect(timeStampInfo.isEndTimeStamped).toBe(true);
+    expect(timeStampInfo.startTimeStampList).toStrictEqual([
+      { createdAt: '2022-05-12T12:24:30.000Z', update: { startHour: '2022-05-12T12:24:30.000Z' } },
+      { createdAt: '2022-05-12T12:22:30.000Z', update: { startHour: '2022-05-12T12:22:30.000Z', isCancelled: true } },
+    ]);
+    expect(timeStampInfo.endTimeStampList).toStrictEqual([
+      { createdAt: '2022-05-12T13:26:30.000Z', update: { endHour: '2022-05-12T13:26:30.000Z' } },
+      { createdAt: '2022-05-12T12:22:30.000Z', update: { endHour: '2022-05-12T12:22:30.000Z', isCancelled: true } },
+    ]);
     expect(timeStampInfo.hasTimeStamp).toBe(true);
   });
 
-  it('should return info for event with startDate timestamp only (endDate cancelled)', () => {
-    const histories = [
-      { update: { startHour: '2022-05-12T12:22:30.000Z' } },
-      { update: { endHour: '2022-05-12T12:22:30.000Z' }, isCancelled: true },
-    ];
+  it('should return info for event with startDate timestamp only', () => {
+    const histories = [{ createdAt: '2022-05-12T12:22:30.000Z', update: { startHour: '2022-05-12T12:22:30.000Z' } }];
 
     const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
 
-    expect(timeStampInfo.isStartTimeStamped).toBe(true);
-    expect(timeStampInfo.isEndTimeStamped).toBe(false);
+    expect(timeStampInfo.startTimeStampList).toStrictEqual([
+      { createdAt: '2022-05-12T12:22:30.000Z', update: { startHour: '2022-05-12T12:22:30.000Z' } },
+    ]);
+    expect(timeStampInfo.endTimeStampList).toStrictEqual([]);
     expect(timeStampInfo.hasTimeStamp).toBe(true);
   });
 
-  it('should return info for event with startDate timestamp only (no endDate)', () => {
-    const histories = [{ update: { startHour: '2022-05-12T12:22:30.000Z' } }];
+  it('should return info for event with endDate timestamp only', () => {
+    const histories = [{ createdAt: '2022-05-12T12:22:30.000Z', update: { endHour: '2022-05-12T12:22:30.000Z' } }];
 
     const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
 
-    expect(timeStampInfo.isStartTimeStamped).toBe(true);
-    expect(timeStampInfo.isEndTimeStamped).toBe(false);
-    expect(timeStampInfo.hasTimeStamp).toBe(true);
-  });
-
-  it('should return info for event with endDate timestamp only (startDate cancelled)', () => {
-    const histories = [
-      { update: { startHour: '2022-05-12T12:22:30.000Z' }, isCancelled: true },
-      { update: { endHour: '2022-05-12T12:22:30.000Z' } },
-    ];
-
-    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
-
-    expect(timeStampInfo.isStartTimeStamped).toBe(false);
-    expect(timeStampInfo.isEndTimeStamped).toBe(true);
-    expect(timeStampInfo.hasTimeStamp).toBe(true);
-  });
-
-  it('should return info for event with endDate timestamp only (no startDate)', () => {
-    const histories = [{ update: { endHour: '2022-05-12T12:22:30.000Z' } }];
-
-    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
-
-    expect(timeStampInfo.isStartTimeStamped).toBe(false);
-    expect(timeStampInfo.isEndTimeStamped).toBe(true);
-    expect(timeStampInfo.hasTimeStamp).toBe(true);
-  });
-
-  it('should return info for event with both timestamp cancelled', () => {
-    const histories = [
-      { update: { startHour: '2022-05-12T12:22:30.000Z' }, isCancelled: true },
-      { update: { endHour: '2022-05-12T12:22:30.000Z' }, isCancelled: true },
-    ];
-
-    const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
-
-    expect(timeStampInfo.isStartTimeStamped).toBe(false);
-    expect(timeStampInfo.isEndTimeStamped).toBe(false);
+    expect(timeStampInfo.startTimeStampList).toStrictEqual([]);
+    expect(timeStampInfo.endTimeStampList).toStrictEqual([
+      { createdAt: '2022-05-12T12:22:30.000Z', update: { endHour: '2022-05-12T12:22:30.000Z' } },
+    ]);
     expect(timeStampInfo.hasTimeStamp).toBe(true);
   });
 
@@ -588,39 +561,39 @@ describe('getTimeStampInfo', () => {
 
     const timeStampInfo = DeliveryHelper.getTimeStampInfo({ histories });
 
-    expect(timeStampInfo.isStartTimeStamped).toBe(false);
-    expect(timeStampInfo.isEndTimeStamped).toBe(false);
+    expect(timeStampInfo.startTimeStampList).toStrictEqual([]);
+    expect(timeStampInfo.endTimeStampList).toStrictEqual([]);
     expect(timeStampInfo.hasTimeStamp).toBe(false);
   });
 });
 
 describe('getTypeCode', () => {
   it('should get typeCode for event with both timestamp', () => {
-    const typeCode = DeliveryHelper.getTypeCode(true, true, true);
+    const typeCode = DeliveryHelper.getTypeCode([{ isCancelled: false }], [{}], true);
 
     expect(typeCode).toBe('');
   });
 
   it('should get typeCode for event with only startDate timestamp', () => {
-    const typeCode = DeliveryHelper.getTypeCode(true, false, true);
+    const typeCode = DeliveryHelper.getTypeCode([{ isCancelled: false }], [], true);
 
     expect(typeCode).toBe('COD');
   });
 
   it('should get typeCode for event with only endDate timestamp', () => {
-    const typeCode = DeliveryHelper.getTypeCode(false, true, true);
+    const typeCode = DeliveryHelper.getTypeCode([{ isCancelled: true }], [{ isCancelled: false }], true);
 
     expect(typeCode).toBe('COA');
   });
 
   it('should get typeCode for event with both timestamps but cancelled', () => {
-    const typeCode = DeliveryHelper.getTypeCode(false, false, true);
+    const typeCode = DeliveryHelper.getTypeCode([{ isCancelled: true }], [{ isCancelled: true }], true);
 
     expect(typeCode).toBe('CO2');
   });
 
   it('should get typeCode for event with no timestamps', () => {
-    const typeCode = DeliveryHelper.getTypeCode(false, false, false);
+    const typeCode = DeliveryHelper.getTypeCode([], [], false);
 
     expect(typeCode).toBe('CRE');
   });

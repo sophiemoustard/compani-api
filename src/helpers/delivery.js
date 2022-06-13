@@ -10,6 +10,7 @@ const UtilsHelper = require('./utils');
 const XMLHelper = require('./xml');
 const DraftBillsHelper = require('./draftBills');
 const FundingsHelper = require('./fundings');
+const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 const { NOT_INVOICED_AND_NOT_PAID, TIME_STAMPING_ACTIONS } = require('./constants');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
@@ -92,8 +93,11 @@ const getShipFromCITradeParty = auxiliary => ({
   'pie:PostalCITradeAddress': getPostalCITradeAddress(get(auxiliary, 'company.address')),
 });
 
-exports.getTypeCode = (isStartTimeStamped, isEndTimeStamped, hasTimeStamp) => {
+exports.getTypeCode = (startTimeStampList, endTimeStampList, hasTimeStamp) => {
   let typeCode = '';
+  const isStartTimeStamped = startTimeStampList.length && startTimeStampList.some(ev => !ev.isCancelled);
+  const isEndTimeStamped = endTimeStampList.length && endTimeStampList.some(ev => !ev.isCancelled);
+
   if (!isStartTimeStamped || !isEndTimeStamped) {
     if (isStartTimeStamped) typeCode = MISSING_END_TIME_STAMP;
     else if (isEndTimeStamped) typeCode = MISSING_START_TIME_STAMP;
@@ -105,8 +109,8 @@ exports.getTypeCode = (isStartTimeStamped, isEndTimeStamped, hasTimeStamp) => {
 };
 
 // Délivrance retenue : les horaires validés de début et de fin  d’intervention
-const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTimeStamped, hasTimeStamp) => {
-  const typeCode = exports.getTypeCode(isStartTimeStamped, isEndTimeStamped, hasTimeStamp);
+const getActualDespatchCISupplyChainEvent = (event, startTimeStampList, endTimeStampList, hasTimeStamp) => {
+  const typeCode = exports.getTypeCode(startTimeStampList, endTimeStampList, hasTimeStamp);
 
   const actualDespatchCISupplyChainEvent = {
     TypeCode: { '#text': typeCode, '@listAgencyName': 'EDESS', '@listID': 'ESPPADOM_EFFECTIVITY_AJUST' },
@@ -120,29 +124,36 @@ const getActualDespatchCISupplyChainEvent = (event, isStartTimeStamped, isEndTim
 };
 
 exports.getTimeStampInfo = (event) => {
-  const isStartTimeStamped = event.histories.some(h => !!h.update.startHour && !h.isCancelled);
-  const isEndTimeStamped = event.histories.some(h => !!h.update.endHour && !h.isCancelled);
+  const startTimeStampList = event.histories.filter(h => !!h.update.startHour)
+    .sort(DatesHelper.descendingSort('createdAt'));
+  const endTimeStampList = event.histories.filter(h => !!h.update.endHour)
+    .sort(DatesHelper.descendingSort('createdAt'));
   const hasTimeStamp = event.histories.some(h => (!!h.update.endHour || !!h.update.startHour));
 
-  return { isStartTimeStamped, isEndTimeStamped, hasTimeStamp };
+  return { startTimeStampList, endTimeStampList, hasTimeStamp };
 };
 
 // Précisions de delivrance (bénéficiaire et contexte)
 const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
-  const { isStartTimeStamped, isEndTimeStamped, hasTimeStamp } = exports.getTimeStampInfo(event);
+  const { startTimeStampList, endTimeStampList, hasTimeStamp } = exports.getTimeStampInfo(event);
 
   const applicableCIDDHSupplyChainTradeDelivery = {
     ShipToCITradeParty: getShipToCITradeParty(customer),
     ShipFromCITradeParty: getShipFromCITradeParty(event.auxiliary),
     ActualDespatchCISupplyChainEvent:
-      getActualDespatchCISupplyChainEvent(event, isStartTimeStamped, isEndTimeStamped, hasTimeStamp),
+      getActualDespatchCISupplyChainEvent(event, startTimeStampList, endTimeStampList, hasTimeStamp),
   };
 
-  if (isStartTimeStamped && isEndTimeStamped) {
+  if (startTimeStampList.length || endTimeStampList.length) {
+    const lastStartTimeStamp = startTimeStampList[0];
+    const lastEndTimeStamp = endTimeStampList[0];
+
     applicableCIDDHSupplyChainTradeDelivery.AdditionalReferencedCIReferencedDocument = {
       EffectiveCISpecifiedPeriod: {
-        StartDateTime: { CertifiedDateTime: formatDate(CompaniDate(event.startDate)) },
-        EndDateTime: { CertifiedDateTime: formatDate(CompaniDate(event.endDate)) },
+        ...(lastStartTimeStamp &&
+          { StartDateTime: { CertifiedDateTime: formatDate(CompaniDate(lastStartTimeStamp.event.startDate)) } }),
+        ...(lastEndTimeStamp &&
+          { EndDateTime: { CertifiedDateTime: formatDate(CompaniDate(lastEndTimeStamp.event.endDate)) } }),
       },
     };
   }
