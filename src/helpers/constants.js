@@ -530,10 +530,12 @@ module.exports = {
     };
   },
   // EXPORTS HISTORY
+  NO_DATA: 'Aucune donnée sur la periode selectionnée',
   TRANSPORT: 'transport',
   WORKING_EVENT: 'working_event', // intervention or internal hours
   COURSE: 'course',
   COURSE_SLOT: 'course_slot',
+  COURSE_BILL: 'course_bill',
   get HISTORY_EXPORT_TYPES() {
     return [
       this.WORKING_EVENT,
@@ -546,6 +548,7 @@ module.exports = {
       this.COURSE_SLOT,
       this.TRANSPORT,
       this.END_OF_COURSE,
+      this.COURSE_BILL,
     ];
   },
   get CLIENT_EXPORT_TYPES() {
@@ -568,7 +571,7 @@ module.exports = {
       this.TRANSPORT,
     ];
   },
-  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT, this.END_OF_COURSE]; },
+  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT, this.END_OF_COURSE, this.COURSE_BILL]; },
   // COURSE BILLING
   LIST: 'list',
   BALANCE: 'balance',
