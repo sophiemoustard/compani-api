@@ -209,7 +209,10 @@ exports.getCourse = async (course, loggedUser) => {
     })
     .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
     .populate({ path: 'accessRules', select: 'name' })
-    .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
+    .populate({
+      path: 'salesRepresentative',
+      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+    })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' })
     .lean();
 
