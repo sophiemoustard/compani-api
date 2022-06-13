@@ -21,6 +21,7 @@ const {
   COURSE_SLOT,
   TRANSPORT,
   END_OF_COURSE,
+  COURSE_BILL,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -137,6 +138,16 @@ const vendorHistoryExportTypes = [
       `${courseList[1]._id};"Program 2";"subProgram 2";"Gilles FORMATEUR";"Un autre SAS";"27/01/2021 21:31:04";"Paul TRAINEE";"trainee2@compani.fr";;;;"15 centimes,15 euros"`,
     ],
     query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
+  },
+  {
+    exportType: COURSE_BILL,
+    expectedRows: [
+      '\ufeff"Nature";"Identifiant";"Date";"Id formation";"Formation";"Structure";"Payeur";"Montant TTC";"Montant réglé";"Avoir";"Montant soldé";"Solde"',
+      `"Facture";"FACT-00001";"08/03/2022";${courseList[0]._id};"Test SAS - Program 1 - group 1";"Test SAS";"APA Paris";1200;1100;;;-100`,
+      `"Facture";"FACT-00002";"08/03/2022";${courseList[3]._id};"Test SAS - Program 1 - group 4";"Test SAS";"APA Paris";1200;0;"AV-00001";1200;0`,
+      `"Avoir";"AV-00001";"09/03/2022";${courseList[3]._id};"Test SAS - Program 1 - group 4";"Test SAS";"APA Paris";1200;;;;`,
+    ],
+    query: 'startDate=2022-03-01T10:00:00.000Z&endDate=2022-04-20T10:00:00.000Z',
   },
 ];
 

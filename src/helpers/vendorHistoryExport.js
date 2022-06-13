@@ -301,6 +301,7 @@ exports.exportEndOfCourseQuestionnaireHistory = async (startDate, endDate) => {
 };
 
 exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, credentials) => {
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
   const courseBills = await CourseBill
     .find({ billedAt: { $lte: endDate, $gte: startDate } })
     .populate(
@@ -313,16 +314,9 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     .populate({ path: 'company', select: 'name' })
     .populate({ path: 'payer.company', select: 'name' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name' })
-    .populate({
-      path: 'courseCreditNote',
-      select: 'number date createdAt',
-      options: {
-        isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-      },
-    })
-    .setOptions({
-      isVendorUser: [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name')),
-    })
+    .populate({ path: 'courseCreditNote', select: 'number date', options: { isVendorUser } })
+    .populate({ path: 'coursePayments', options: { isVendorUser }, select: 'netInclTaxes nature' })
+    .setOptions({ isVendorUser })
     .lean();
 
   const rows = [];
@@ -341,7 +335,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       Identifiant: bill.number,
       Date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
       ...commonInfos,
-      'Montant réglé': paid,
+      'Montant réglé': bill.courseCreditNote ? paid - netInclTaxes : paid,
       Avoir: get(bill, 'courseCreditNote.number') || '',
       'Montant soldé': bill.courseCreditNote ? netInclTaxes : '',
       Solde: total,

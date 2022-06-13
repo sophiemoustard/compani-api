@@ -23,9 +23,12 @@ const {
   EXPECTATIONS,
   END_OF_COURSE,
   PAYMENT,
+  TRAINING_ORGANISATION_MANAGER,
+  VENDOR_ADMIN,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
+const CourseBill = require('../../../src/models/CourseBill');
 
 describe('exportCourseHistory', () => {
   const traineeList = [
@@ -208,7 +211,7 @@ describe('exportCourseHistory', () => {
     { _id: new ObjectId(), course: courseList[1]._id, user: traineeList[3]._id, questionnaire: questionnaireList[1] },
   ];
 
-  const credentials = { company: { _id: new ObjectId() } };
+  const credentials = { company: { _id: new ObjectId(), role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } } };
 
   let findCourseSlot;
   let findCourse;
@@ -1025,6 +1028,175 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
           }],
         },
         { query: 'lean', args: [{ virtuals: true }] },
+      ]
+    );
+  });
+});
+
+describe('exportCourseBillAndCreditNoteHistory', () => {
+  const subProgram = { _id: new ObjectId(), program: { name: 'Program 1' } };
+  const courseId = new ObjectId();
+  const company = { _id: new ObjectId(), name: 'Test SAS' };
+  const course = { _id: courseId, subProgram, misc: 'group 1' };
+  const courseBillList = [
+    {
+      course,
+      mainFee: { price: 120, count: 1 },
+      company,
+      payer: { name: 'APA Paris' },
+      billedAt: '2022-03-08T00:00:00.000Z',
+      number: 'FACT-00001',
+      courseCreditNote: { number: 'AV-00001', date: '2022-03-09T00:00:00.000Z' },
+      coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
+    },
+    {
+      course,
+      mainFee: { price: 120, count: 1 },
+      company,
+      payer: { name: 'APA Paris' },
+      billedAt: '2022-03-08T00:00:00.000Z',
+      number: 'FACT-00002',
+      courseCreditNote: null,
+      coursePayments: [{ netInclTaxes: 110, nature: PAYMENT }],
+    },
+  ];
+  const credentials = { company: { _id: new ObjectId() }, role: { vendor: { name: TRAINING_ORGANISATION_MANAGER } } };
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+
+  let findCourseBill;
+
+  beforeEach(() => {
+    findCourseBill = sinon.stub(CourseBill, 'find');
+  });
+
+  afterEach(() => {
+    findCourseBill.restore();
+  });
+
+  it('should return an empty array if no course', async () => {
+    findCourseBill.returns(SinonMongoose.stubChainedQueries([], ['populate', 'setOptions', 'lean']));
+
+    const result = await ExportHelper.exportCourseBillAndCreditNoteHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
+
+    expect(result).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseBill,
+      [
+        {
+          query: 'find',
+          args: [{ billedAt: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'subProgram misc',
+            populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'courseCreditNote', select: 'number date', options: { isVendorUser } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'coursePayments', options: { isVendorUser }, select: 'netInclTaxes nature' }],
+        },
+        { query: 'setOptions', args: [{ isVendorUser }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    findCourseBill.returns(SinonMongoose.stubChainedQueries(courseBillList, ['populate', 'setOptions', 'lean']));
+
+    const result = await ExportHelper
+      .exportCourseBillAndCreditNoteHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
+
+    expect(result).toEqual([
+      [
+        'Nature',
+        'Identifiant',
+        'Date',
+        'Id formation',
+        'Formation',
+        'Structure',
+        'Payeur',
+        'Montant TTC',
+        'Montant réglé',
+        'Avoir',
+        'Montant soldé',
+        'Solde',
+      ],
+      [
+        'Facture',
+        'FACT-00001',
+        '08/03/2022',
+        course._id,
+        'Test SAS - Program 1 - group 1',
+        'Test SAS',
+        'APA Paris',
+        120,
+        10,
+        'AV-00001',
+        120,
+        10,
+      ],
+      [
+        'Avoir',
+        'AV-00001',
+        '09/03/2022',
+        course._id,
+        'Test SAS - Program 1 - group 1',
+        'Test SAS',
+        'APA Paris',
+        120,
+        '',
+        '',
+        '',
+        '',
+      ],
+      [
+        'Facture',
+        'FACT-00002',
+        '08/03/2022',
+        course._id,
+        'Test SAS - Program 1 - group 1',
+        'Test SAS',
+        'APA Paris',
+        120,
+        110,
+        '',
+        '',
+        -10,
+      ],
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findCourseBill,
+      [
+        {
+          query: 'find',
+          args: [{ billedAt: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'course',
+            select: 'subProgram misc',
+            populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.company', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'payer.fundingOrganisation', select: 'name' }] },
+        { query: 'populate', args: [{ path: 'courseCreditNote', select: 'number date', options: { isVendorUser } }] },
+        {
+          query: 'populate',
+          args: [{ path: 'coursePayments', options: { isVendorUser }, select: 'netInclTaxes nature' }],
+        },
+        { query: 'setOptions', args: [{ isVendorUser }] },
+        { query: 'lean' },
       ]
     );
   });
