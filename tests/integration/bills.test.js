@@ -799,7 +799,7 @@ describe('BILL ROUTES - GET /bills/', () => {
   });
 });
 
-describe('BILL ROUTES - POST /bills', () => {
+describe('BILL ROUTES - POST /bills #tag', () => {
   let authToken;
   beforeEach(populateDB);
 
