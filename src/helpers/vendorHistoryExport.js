@@ -27,7 +27,6 @@ const AttendanceSheet = require('../models/AttendanceSheet');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const CourseSlot = require('../models/CourseSlot');
 const CourseBill = require('../models/CourseBill');
-
 const CourseRepository = require('../repositories/CourseRepository');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const Questionnaire = require('../models/Questionnaire');
@@ -170,9 +169,9 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre de présences non prévues': unsubscribedAttendances,
       Avancement: UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length)),
       Facturée: isBilled,
-      'Montant facturé': netInclTaxes,
-      'Montant réglé': paid,
-      Solde: total,
+      'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
+      'Montant réglé': UtilsHelper.formatFloatForExport(paid),
+      Solde: UtilsHelper.formatFloatForExport(total),
     });
   }
 
@@ -331,7 +330,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       Formation: `${bill.company.name} - ${bill.course.subProgram.program.name} - ${bill.course.misc}`,
       Structure: bill.company.name,
       Payeur: bill.payer.name,
-      'Montant TTC': netInclTaxes,
+      'Montant TTC': UtilsHelper.formatFloatForExport(netInclTaxes),
     };
 
     const formattedBill = {
@@ -339,10 +338,12 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       Identifiant: bill.number,
       Date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
       ...commonInfos,
-      'Montant réglé': bill.courseCreditNote ? NumbersHelper.subtract(paid, netInclTaxes) : paid,
+      'Montant réglé': bill.courseCreditNote
+        ? UtilsHelper.formatFloatForExport(NumbersHelper.subtract(paid, netInclTaxes))
+        : UtilsHelper.formatFloatForExport(paid),
       Avoir: get(bill, 'courseCreditNote.number') || '',
-      'Montant soldé': bill.courseCreditNote ? netInclTaxes : '',
-      Solde: total,
+      'Montant soldé': bill.courseCreditNote ? UtilsHelper.formatFloatForExport(netInclTaxes) : '',
+      Solde: UtilsHelper.formatFloatForExport(total),
     };
 
     rows.push(formattedBill);
