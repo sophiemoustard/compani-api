@@ -165,7 +165,7 @@ exports.authorizeUserDeletion = async (req) => {
   const clientRoleId = get(user, 'role.client');
 
   if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
-    if (user.company) throw Boom.forbidden();
+    if (user.company) throw Boom.forbidden(translate[language].userDeletionForbidden);
 
     return null;
   }
