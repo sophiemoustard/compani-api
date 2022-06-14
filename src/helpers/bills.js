@@ -283,7 +283,7 @@ exports.formatAndCreateBill = async (payload, credentials) => {
   }
 
   const bill = {
-    ...pick(payload, ['date', 'customer']),
+    ...pick(payload, ['date', 'customer', 'shouldBeSent']),
     netInclTaxes,
     type: MANUAL,
     number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq),
