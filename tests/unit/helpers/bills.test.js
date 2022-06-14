@@ -1912,7 +1912,7 @@ describe('formatAndCreateBill', () => {
     create.restore();
   });
 
-  it('should format and create a bill and send an email to customer', async () => {
+  it('should format and create a bill and send an email to helper', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId, prefixNumber: '101' } };
     const billingItemId1 = new ObjectId();
@@ -1976,7 +1976,7 @@ describe('formatAndCreateBill', () => {
     );
   });
 
-  it('should format and create a bill and not send an email to customer', async () => {
+  it('should format and create a bill and not send an email to helper', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId, prefixNumber: '101' } };
     const billingItemId1 = new ObjectId();
