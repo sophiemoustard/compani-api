@@ -15,6 +15,7 @@ const Establishment = require('../../../src/models/Establishment');
 const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
+const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Course = require('../../../src/models/Course');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
 const { WEBAPP, MOBILE, VIDEO } = require('../../../src/helpers/constants');
@@ -360,6 +361,10 @@ const courses = [
   },
 ];
 
+const activityHistoryList = [
+  { _id: new ObjectId(), activity: activityList[0]._id, user: usersSeedList[12]._id, date: '2021-01-25T10:05:32.582Z' },
+];
+
 const identityVerifications = [
   { _id: new ObjectId(), email: 'carolyn@alenvi.io', code: '3310', createdAt: new Date('2021-01-25T10:05:32.582Z') },
 ];
@@ -371,6 +376,7 @@ const populateDB = async () => {
 
   await Promise.all([
     Activity.create(activityList),
+    ActivityHistory.create(activityHistoryList),
     Contract.create(contracts),
     Course.create(courses),
     Customer.create(customer, customerFromOtherCompany),

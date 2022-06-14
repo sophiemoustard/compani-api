@@ -153,7 +153,6 @@ const UserSchema = mongoose.Schema({
   firstMobileConnection: { type: Date },
   origin: { type: String, enum: ORIGIN_OPTIONS, required: true, immutable: true },
   formationExpoTokenList: [{ type: String }],
-  isAnonymised: { type: Boolean },
 }, {
   timestamps: true,
   toObject: { virtuals: true },
