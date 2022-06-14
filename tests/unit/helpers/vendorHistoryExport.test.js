@@ -256,7 +256,7 @@ describe('exportCourseHistory', () => {
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(result).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    expect(result).toEqual([['Aucune donnée sur la période sélectionnée']]);
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
@@ -708,7 +708,7 @@ describe('exportCourseSlotHistory', () => {
 
     const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(result).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    expect(result).toEqual([['Aucune donnée sur la période sélectionnée']]);
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
@@ -941,7 +941,7 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
       '2021-06-30:12:00.000Z'
     );
 
-    expect(exportArray).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    expect(exportArray).toEqual([['Aucune donnée sur la période sélectionnée']]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
@@ -1078,7 +1078,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
 
     const result = await ExportHelper.exportCourseBillAndCreditNoteHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
-    expect(result).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    expect(result).toEqual([['Aucune donnée sur la période sélectionnée']]);
     SinonMongoose.calledOnceWithExactly(
       findCourseBill,
       [

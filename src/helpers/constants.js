@@ -530,7 +530,7 @@ module.exports = {
     };
   },
   // EXPORTS HISTORY
-  NO_DATA: 'Aucune donnée sur la periode selectionnée',
+  NO_DATA: 'Aucune donnée sur la période sélectionnée',
   TRANSPORT: 'transport',
   WORKING_EVENT: 'working_event', // intervention or internal hours
   COURSE: 'course',

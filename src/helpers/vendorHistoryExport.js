@@ -14,9 +14,13 @@ const {
   QUESTION_ANSWER,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
+  BILLING_DOCUMENTS,
+  CREDIT_NOTE,
+  BILL,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const UtilsHelper = require('./utils');
+const NumbersHelper = require('./numbers');
 const CourseBillHelper = require('./courseBills');
 const CourseHelper = require('./courses');
 const AttendanceSheet = require('../models/AttendanceSheet');
@@ -326,16 +330,16 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       'Id formation': bill.course._id,
       Formation: `${bill.company.name} - ${bill.course.subProgram.program.name} - ${bill.course.misc}`,
       Structure: bill.company.name,
-      Payeur: get(bill, 'payer.name'),
+      Payeur: bill.payer.name,
       'Montant TTC': netInclTaxes,
     };
 
     const formattedBill = {
-      Nature: 'Facture',
+      Nature: BILLING_DOCUMENTS[BILL],
       Identifiant: bill.number,
       Date: CompaniDate(bill.billedAt).format('dd/LL/yyyy'),
       ...commonInfos,
-      'Montant réglé': bill.courseCreditNote ? paid - netInclTaxes : paid,
+      'Montant réglé': bill.courseCreditNote ? NumbersHelper.subtract(paid, netInclTaxes) : paid,
       Avoir: get(bill, 'courseCreditNote.number') || '',
       'Montant soldé': bill.courseCreditNote ? netInclTaxes : '',
       Solde: total,
@@ -345,7 +349,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
 
     if (bill.courseCreditNote) {
       const formattedCreditNote = {
-        Nature: 'Avoir',
+        Nature: BILLING_DOCUMENTS[CREDIT_NOTE],
         Identifiant: bill.courseCreditNote.number,
         Date: CompaniDate(bill.courseCreditNote.date).format('dd/LL/yyyy'),
         ...commonInfos,

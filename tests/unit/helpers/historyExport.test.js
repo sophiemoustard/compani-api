@@ -1620,7 +1620,7 @@ describe('exportTransportsHistory', () => {
     const credentials = { company: { _id: new ObjectId() } };
     const exportArray = await ExportHelper.exportTransportsHistory('2021-06-24', '2021-06-30', credentials);
 
-    expect(exportArray).toEqual([['Aucune donnée sur la periode selectionnée']]);
+    expect(exportArray).toEqual([['Aucune donnée sur la période sélectionnée']]);
     sinon.assert.notCalled(getPaidTransportInfo);
   });
 
