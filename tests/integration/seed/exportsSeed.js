@@ -30,6 +30,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Course = require('../../../src/models/Course');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
 const CourseBill = require('../../../src/models/CourseBill');
+const CourseCreditNote = require('../../../src/models/CourseCreditNote');
 const CoursePayment = require('../../../src/models/CoursePayment');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
@@ -1120,6 +1121,28 @@ const courseList = [
     trainees: [traineeList[3]._id, traineeList[4]._id],
     estimatedStartDate: '2022-01-01T08:00:00',
   },
+  {
+    _id: new ObjectId(),
+    type: INTRA,
+    company: authCompany._id,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 4',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+  },
+  {
+    _id: new ObjectId(),
+    type: INTRA,
+    company: authCompany._id,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 5',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+  },
 ];
 
 const courseFundingOrganisation = {
@@ -1128,7 +1151,7 @@ const courseFundingOrganisation = {
   address: '1 avenue Denfert Rochereau 75014 Paris',
 };
 
-const courseBill =
+const courseBillList = [
   {
     _id: new ObjectId(),
     course: courseList[0]._id,
@@ -1137,16 +1160,44 @@ const courseBill =
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-03-08T00:00:00.000Z',
     number: 'FACT-00001',
-  };
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[3]._id,
+    mainFee: { price: 1200, count: 1 },
+    company: authCompany._id,
+    payer: { fundingOrganisation: courseFundingOrganisation._id },
+    billedAt: '2022-03-08T00:00:00.000Z',
+    number: 'FACT-00002',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[4]._id,
+    mainFee: { price: 1200, count: 1 },
+    company: authCompany._id,
+    payer: { fundingOrganisation: courseFundingOrganisation._id },
+    billedAt: '2022-06-08T00:00:00.000Z',
+    number: 'FACT-00003',
+  },
+];
 
 const coursePayment = {
   number: 'REG-00001',
   date: '2022-03-09T00:00:00.000Z',
   company: authCompany._id,
-  courseBill: courseBill._id,
+  courseBill: courseBillList[0]._id,
   netInclTaxes: 1100,
   nature: PAYMENT,
   type: DIRECT_DEBIT,
+};
+
+const courseCreditNote = {
+  _id: new ObjectId(),
+  number: 'AV-00001',
+  courseBill: courseBillList[1]._id,
+  misc: 'annulé',
+  date: '2022-03-09T00:00:00.000Z',
+  company: authCompany._id,
 };
 
 const activityHistoryList = [
@@ -1306,7 +1357,8 @@ const populateDB = async () => {
     Card.create(cardList),
     Contract.create(contractList),
     Course.create(courseList),
-    CourseBill.create(courseBill),
+    CourseBill.create(courseBillList),
+    CourseCreditNote.create(courseCreditNote),
     CourseFundingOrganisation.create(courseFundingOrganisation),
     CoursePayment.create(coursePayment),
     CourseSlot.create(courseSlotList),

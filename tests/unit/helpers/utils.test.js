@@ -229,7 +229,7 @@ describe('getFullTitleFromIdentity', () => {
 
 describe('formatFloatForExport', () => {
   const validCases = [[0, '0,00'], [1, '1,00'], [7.1, '7,10'], [3.56, '3,56'], [4.23506, '4,24']];
-  const invalidValues = [null, undefined, NaN];
+  const invalidValues = [null, undefined, NaN, ''];
 
   validCases.forEach(([param, result]) => {
     it('should return a formatted float on a valid float', () => {
