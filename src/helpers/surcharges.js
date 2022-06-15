@@ -1,6 +1,9 @@
 const get = require('lodash/get');
+const momentRange = require('moment-range');
 const moment = require('../extensions/moment');
 const Surcharge = require('../models/Surcharge');
+
+momentRange.extendMoment(moment);
 
 exports.list = async credentials => Surcharge.find({ company: get(credentials, 'company._id') }).lean();
 
@@ -49,23 +52,38 @@ const surchargeConditions = [
 
 exports.getEventSurcharges = (event, surcharge) => {
   const start = moment(event.startDate);
-
-  for (const surchargeCondition of surchargeConditions) {
-    const percentage = surcharge[surchargeCondition.key] || 0;
-
-    if (surchargeCondition.condition(start)) return [{ percentage, name: surchargeCondition.name }];
-  }
-
-  const {
-    evening, eveningEndTime, eveningStartTime,
-    custom, customStartTime, customEndTime,
-  } = surcharge;
   const end = moment(event.endDate);
+  const eventRange = moment.range(start, end);
+
   const surcharges = [];
+  const { evening, eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime } = surcharge;
+
   const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening);
   if (eveningSurcharge) surcharges.push({ ...eveningSurcharge, name: 'Soirée' });
+
   const customSurcharge = exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom);
   if (customSurcharge) surcharges.push({ ...customSurcharge, name: 'Personalisée' });
 
+  const hourlySurcharges = surcharges;
+  for (const hourlySurcharge of hourlySurcharges) {
+    for (const surchargeCondition of surchargeConditions) {
+      const percentage = surcharge[surchargeCondition.key] || 0;
+      if (surchargeCondition.condition(start)) {
+        if (percentage >= hourlySurcharge.percentage) return [{ percentage, name: surchargeCondition.name }];
+        const surchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
+        const intersection = eventRange.intersect(surchargeRange);
+        const diff = eventRange.subtract(intersection);
+        if (Object.keys(diff[0]).length) {
+          surcharges.push({
+            percentage,
+            startHour: diff[0].start.toDate(),
+            endHour: diff[0].end.toDate(),
+            name: surchargeCondition.name,
+          });
+          return surcharges;
+        }
+      }
+    }
+  }
   return surcharges;
 };
