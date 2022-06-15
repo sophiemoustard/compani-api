@@ -318,7 +318,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     .populate({ path: 'payer.company', select: 'name' })
     .populate({ path: 'payer.fundingOrganisation', select: 'name' })
     .populate({ path: 'courseCreditNote', select: 'number date', options: { isVendorUser } })
-    .populate({ path: 'coursePayments', options: { isVendorUser }, select: 'netInclTaxes nature' })
+    .populate({ path: 'coursePayments', select: 'netInclTaxes nature', options: { isVendorUser } })
     .setOptions({ isVendorUser })
     .lean();
 

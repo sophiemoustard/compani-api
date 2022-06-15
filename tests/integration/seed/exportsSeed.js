@@ -1132,6 +1132,17 @@ const courseList = [
     contact: salesRepresentative._id,
     trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
   },
+  {
+    _id: new ObjectId(),
+    type: INTRA,
+    company: authCompany._id,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 5',
+    trainer: trainer._id,
+    salesRepresentative: salesRepresentative._id,
+    contact: salesRepresentative._id,
+    trainees: [traineeList[0]._id, traineeList[1]._id, traineeList[2]._id],
+  },
 ];
 
 const courseFundingOrganisation = {
@@ -1158,6 +1169,15 @@ const courseBillList = [
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-03-08T00:00:00.000Z',
     number: 'FACT-00002',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[4]._id,
+    mainFee: { price: 1200, count: 1 },
+    company: authCompany._id,
+    payer: { fundingOrganisation: courseFundingOrganisation._id },
+    billedAt: '2022-06-08T00:00:00.000Z',
+    number: 'FACT-00003',
   },
 ];
 

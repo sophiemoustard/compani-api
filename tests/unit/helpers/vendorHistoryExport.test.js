@@ -25,6 +25,7 @@ const {
   PAYMENT,
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
+  NO_DATA,
 } = require('../../../src/helpers/constants');
 const SinonMongoose = require('../sinonMongoose');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
@@ -256,7 +257,7 @@ describe('exportCourseHistory', () => {
 
     const result = await ExportHelper.exportCourseHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(result).toEqual([['Aucune donnée sur la période sélectionnée']]);
+    expect(result).toEqual([[NO_DATA]]);
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
@@ -322,8 +323,8 @@ describe('exportCourseHistory', () => {
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
               {
                 path: 'coursePayments',
-                options: { isVendorUser: !!get(credentials, 'role.vendor') },
                 select: 'netInclTaxes nature',
+                options: { isVendorUser: !!get(credentials, 'role.vendor') },
               },
             ],
           }],
@@ -351,7 +352,7 @@ describe('exportCourseHistory', () => {
     );
   });
 
-  it('should return an array with the header and 2 rows', async () => {
+  it('should return an array with the header and 3 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList, ['lean']));
     findCourse.returns(SinonMongoose.stubChainedQueries(courseList));
     findQuestionnaireHistory.returns(SinonMongoose.stubChainedQueries(questionnaireHistoriesList));
@@ -580,8 +581,8 @@ describe('exportCourseHistory', () => {
               { path: 'courseCreditNote', options: { isVendorUser: !!get(credentials, 'role.vendor') }, select: '_id' },
               {
                 path: 'coursePayments',
-                options: { isVendorUser: !!get(credentials, 'role.vendor') },
                 select: 'netInclTaxes nature',
+                options: { isVendorUser: !!get(credentials, 'role.vendor') },
               },
             ],
           }],
@@ -708,7 +709,7 @@ describe('exportCourseSlotHistory', () => {
 
     const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
 
-    expect(result).toEqual([['Aucune donnée sur la période sélectionnée']]);
+    expect(result).toEqual([[NO_DATA]]);
     SinonMongoose.calledOnceWithExactly(
       findCourseSlot,
       [
@@ -734,7 +735,7 @@ describe('exportCourseSlotHistory', () => {
     );
   });
 
-  it('should return an array with the header and 2 rows', async () => {
+  it('should return an array with the header and 4 rows', async () => {
     findCourseSlot.returns(SinonMongoose.stubChainedQueries(courseSlotList));
 
     const result = await ExportHelper.exportCourseSlotHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z');
@@ -1078,7 +1079,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
 
     const result = await ExportHelper.exportCourseBillAndCreditNoteHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
 
-    expect(result).toEqual([['Aucune donnée sur la période sélectionnée']]);
+    expect(result).toEqual([[NO_DATA]]);
     SinonMongoose.calledOnceWithExactly(
       findCourseBill,
       [
@@ -1108,7 +1109,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
     );
   });
 
-  it('should return an array with the header and 2 rows', async () => {
+  it('should return an array with the header and 3 rows', async () => {
     findCourseBill.returns(SinonMongoose.stubChainedQueries(courseBillList, ['populate', 'setOptions', 'lean']));
 
     const result = await ExportHelper
