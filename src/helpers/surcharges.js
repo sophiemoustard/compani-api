@@ -21,17 +21,23 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
     .hour(surchargeStart.substring(0, 2))
     .minute(surchargeStart.substring(3))
     .toISOString();
-  let formattedEnd = moment(eventStart)
+  const formattedEnd = moment(eventStart)
     .hour(surchargeEnd.substring(0, 2))
     .minute(surchargeEnd.substring(3))
     .toISOString();
-
-  if (moment(formattedStart).isAfter(formattedEnd)) formattedEnd = moment(formattedEnd).add(1, 'd').toISOString();
-
   const eventRange = moment.range(eventStart, eventEnd);
-  const surchargeRange = moment.range(formattedStart, formattedEnd);
 
-  const intersection = eventRange.intersect(surchargeRange);
+  let intersection;
+  if (moment(formattedStart).isAfter(formattedEnd)) {
+    const firstSurchargeRange = moment.range(moment(eventStart).startOf('d'), formattedEnd);
+    const secondSurchargeRange = moment.range(formattedStart, moment(eventStart).endOf('d'));
+
+    intersection = eventRange.intersect(firstSurchargeRange) || eventRange.intersect(secondSurchargeRange);
+  } else {
+    const surchargeRange = moment.range(formattedStart, formattedEnd);
+    intersection = eventRange.intersect(surchargeRange);
+  }
+
   if (!intersection) return null;
 
   return {
@@ -72,8 +78,9 @@ exports.getEventSurcharges = (event, surcharge) => {
         if (percentage >= hourlySurcharge.percentage) return [{ percentage, name: surchargeCondition.name }];
         const surchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
         const intersection = eventRange.intersect(surchargeRange);
-        const diff = eventRange.subtract(intersection);
-        if (Object.keys(diff[0]).length) {
+        const diff = eventRange.subtract(intersection) || {};
+
+        if (diff.length && Object.keys(diff[0]).length) {
           surcharges.push({
             percentage,
             startHour: diff[0].start.toDate(),
