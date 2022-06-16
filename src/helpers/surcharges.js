@@ -14,7 +14,7 @@ exports.update = async (surcharge, payload) => Surcharge.updateOne({ _id: surcha
 
 exports.delete = async surcharge => Surcharge.deleteOne({ _id: surcharge._id });
 
-exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage) => {
+exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage, name) => {
   if (!percentage || percentage <= 0) return null;
 
   const formattedStart = moment(eventStart)
@@ -27,35 +27,40 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
     .toISOString();
   const eventRange = moment.range(eventStart, eventEnd);
 
-  let intersection;
   if (moment(formattedStart).isAfter(formattedEnd)) {
     const firstSurchargeRange = moment.range(moment(eventStart).startOf('d'), formattedEnd);
     const secondSurchargeRange = moment.range(formattedStart, moment(eventStart).endOf('d'));
+    const intersectionFirst = eventRange.intersect(firstSurchargeRange);
+    const intersectionSecond = eventRange.intersect(secondSurchargeRange);
+    console.log(intersectionFirst.end.toDate());
 
-    intersection = eventRange.intersect(firstSurchargeRange) || eventRange.intersect(secondSurchargeRange); // Pourquoi ce ou ? Si les deux intersect ?
-  } else {
-    const surchargeRange = moment.range(formattedStart, formattedEnd);
-    intersection = eventRange.intersect(surchargeRange);
+    return [
+      ...(intersectionFirst &&
+        [{ percentage, name, startHour: intersectionFirst.start.toDate(), endHour: intersectionFirst.end.toDate() }]),
+      ...(intersectionSecond &&
+        [{ percentage, name, startHour: intersectionSecond.start.toDate(), endHour: intersectionSecond.end.toDate() }]),
+    ];
+  }
+  const surchargeRange = moment.range(formattedStart, formattedEnd);
+  const intersection = eventRange.intersect(surchargeRange);
+
+  if (intersection) {
+    return [{ percentage, name, startHour: intersection.start.toDate(), endHour: intersection.end.toDate() }];
   }
 
-  if (!intersection) return null;
-
-  return {
-    percentage,
-    startHour: intersection.start.toDate(),
-    endHour: intersection.end.toDate(),
-  };
+  return null;
 };
 
 const getHourlySurchargeList = (start, end, surcharge) => {
   const { evening, eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime } = surcharge;
   const hourlySurchargeList = [];
 
-  const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening);
-  if (eveningSurcharge) hourlySurchargeList.push({ ...eveningSurcharge, name: 'Soirée' });
+  const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening, 'Soirée');
+  if (eveningSurcharge) hourlySurchargeList.push(...eveningSurcharge);
 
-  const customSurcharge = exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom);
-  if (customSurcharge) hourlySurchargeList.push({ ...customSurcharge, name: 'Personalisée' });
+  const customSurcharge =
+    exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom, 'Personnalisée');
+  if (customSurcharge) hourlySurchargeList.push(...customSurcharge);
 
   return hourlySurchargeList;
 };
@@ -130,5 +135,6 @@ exports.getEventSurcharges = (event, surcharge) => {
   }
 
   surchargeList.push(...hourlySurchargeList);
+  console.log(surchargeList);
   return surchargeList;
 };
