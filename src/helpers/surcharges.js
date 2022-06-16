@@ -32,7 +32,7 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
     const firstSurchargeRange = moment.range(moment(eventStart).startOf('d'), formattedEnd);
     const secondSurchargeRange = moment.range(formattedStart, moment(eventStart).endOf('d'));
 
-    intersection = eventRange.intersect(firstSurchargeRange) || eventRange.intersect(secondSurchargeRange);
+    intersection = eventRange.intersect(firstSurchargeRange) || eventRange.intersect(secondSurchargeRange); // Pourquoi ce ou ? Si les deux intersect ?
   } else {
     const surchargeRange = moment.range(formattedStart, formattedEnd);
     intersection = eventRange.intersect(surchargeRange);
@@ -104,36 +104,45 @@ exports.getEventSurcharges = (event, surcharge) => {
   const hourlySurchargeList = getHourlySurchargeList(start, end, surcharge);
   const dailySurcharge = getDailySurcharge(start, end, surcharge);
 
-  let surchargeList;
   if (!hourlySurchargeList.length && !dailySurcharge) return [];
 
-  if (hourlySurchargeList.length) surchargeList = [];
-  else surchargeList = [dailySurcharge];
+  let surchargeList = [dailySurcharge];
 
   if (dailySurcharge) {
+    console.log(hourlySurchargeList);
     for (const hourlySurcharge of hourlySurchargeList) {
-      if (hourlySurcharge.percentage <= dailySurcharge.percentage) {
-        surchargeList.push(dailySurcharge);
-        continue;
-      }
+      // console.log('hourlySurcharge', hourlySurcharge);
+      if (hourlySurcharge.percentage <= dailySurcharge.percentage) continue;
 
-      const hourlySurchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
-      const dailySurchargeRange = moment.range(dailySurcharge.startHour, dailySurcharge.endHour);
-      const dailySurchargeIntervalList = dailySurchargeRange.subtract(hourlySurchargeRange);
+      const surchargePartToAdd = [];
+      for (const [index, dailySurchargePart] of surchargeList.entries()) {
+        // console.log('index, dailySurchargePart', index, dailySurchargePart);
+        const hourlySurchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
+        const dailySurchargeRange = moment.range(dailySurchargePart.startHour, dailySurchargePart.endHour);
+        const dailySurchargeIntervalList = dailySurchargeRange.subtract(hourlySurchargeRange);
+        // console.log('hourlySurchargeRange', hourlySurchargeRange);
+        // console.log('dailySurchargeRange', dailySurchargeRange);
+        // console.log('dailySurchargeIntervalList', dailySurchargeIntervalList);
 
-      surchargeList.push(hourlySurcharge);
-      for (const dailySurchargeInterval of dailySurchargeIntervalList) {
-        surchargeList.push({
-          ...dailySurcharge,
-          startHour: dailySurchargeInterval.start.toDate(),
-          endHour: dailySurchargeInterval.end.toDate(),
-        });
+        // console.log('surchargeList before', surchargeList);
+        // console.log(dailySurchargeIntervalList.length);
+        if (dailySurchargeIntervalList.length) {
+          surchargeList.splice(index, 1);
+          // console.log('surchargeList after', surchargeList);
+        }
+        for (const dailySurchargeInterval of dailySurchargeIntervalList) {
+          surchargePartToAdd.push({
+            ...dailySurchargePart,
+            startHour: dailySurchargeInterval.start.toDate(),
+            endHour: dailySurchargeInterval.end.toDate(),
+          });
+        }
       }
+      surchargeList.push(...surchargePartToAdd);
     }
-  } else {
-    surchargeList = hourlySurchargeList;
   }
 
+  surchargeList.push(...hourlySurchargeList);
   console.log(surchargeList);
 
   // for (const hourlySurcharge of hourlySurcharges) {
