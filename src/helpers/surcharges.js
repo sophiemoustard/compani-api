@@ -32,7 +32,6 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
     const secondSurchargeRange = moment.range(formattedStart, moment(eventStart).endOf('d'));
     const intersectionFirst = eventRange.intersect(firstSurchargeRange);
     const intersectionSecond = eventRange.intersect(secondSurchargeRange);
-    console.log(intersectionFirst.end.toDate());
 
     return [
       ...(intersectionFirst &&
@@ -86,7 +85,7 @@ const getDailySurcharge = (start, end, surcharge) => {
     const percentage = surcharge[key] || 0;
     if (condition(start)) {
       dailySurcharges.push({ percentage, name, startHour: start.toDate(), endHour: end.toDate() });
-      continue;
+      break;
     }
   }
 
@@ -95,7 +94,7 @@ const getDailySurcharge = (start, end, surcharge) => {
     const percentage = surcharge[key] || 0;
     if (condition(start)) {
       dailySurcharges.push({ percentage, name, startHour: start.toDate(), endHour: end.toDate() });
-      continue;
+      break;
     }
   }
 
