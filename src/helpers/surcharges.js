@@ -47,50 +47,115 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
   };
 };
 
-const surchargeConditions = [
+const getHourlySurchargeList = (start, end, surcharge) => {
+  const { evening, eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime } = surcharge;
+  const hourlySurchargeList = [];
+
+  const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening);
+  if (eveningSurcharge) hourlySurchargeList.push({ ...eveningSurcharge, name: 'Soirée' });
+
+  const customSurcharge = exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom);
+  if (customSurcharge) hourlySurchargeList.push({ ...customSurcharge, name: 'Personalisée' });
+
+  return hourlySurchargeList;
+};
+
+// Order matters : we stop to test condition as soon as we found one true
+const holidaySurchargeConditionList = [
   { key: 'twentyFifthOfDecember', condition: start => start.format('DD/MM') === '25/12', name: '25 Décembre' },
   { key: 'firstOfMay', condition: start => start.format('DD/MM') === '01/05', name: '1er Mai' },
   { key: 'firstOfJanuary', condition: start => start.format('DD/MM') === '01/01', name: '1er Janvier' },
   { key: 'publicHoliday', condition: start => moment(start).startOf('d').isHoliday(), name: 'Jour férié' },
+];
+
+const weekEndSurchargeConditionList = [
   { key: 'saturday', condition: start => start.isoWeekday() === 6, name: 'Samedi' },
   { key: 'sunday', condition: start => start.isoWeekday() === 7, name: 'Dimanche' },
 ];
+
+const getDailySurcharge = (start, end, surcharge) => {
+  const dailySurcharges = [];
+
+  for (const holidaySurchargeCondition of holidaySurchargeConditionList) {
+    const { key, name, condition } = holidaySurchargeCondition;
+    const percentage = surcharge[key] || 0;
+    if (condition(start)) {
+      dailySurcharges.push({ percentage, name, startHour: start.toDate(), endHour: end.toDate() });
+      continue;
+    }
+  }
+
+  for (const weekEndSurchargeCondition of weekEndSurchargeConditionList) {
+    const { key, name, condition } = weekEndSurchargeCondition;
+    const percentage = surcharge[key] || 0;
+    if (condition(start)) {
+      dailySurcharges.push({ percentage, name, startHour: start.toDate(), endHour: end.toDate() });
+      continue;
+    }
+  }
+
+  return dailySurcharges.sort((a, b) => (a.percentage > b.percentage ? -1 : 1))[0];
+};
 
 exports.getEventSurcharges = (event, surcharge) => {
   const start = moment(event.startDate);
   const end = moment(event.endDate);
   const eventRange = moment.range(start, end);
+  const hourlySurchargeList = getHourlySurchargeList(start, end, surcharge);
+  const dailySurcharge = getDailySurcharge(start, end, surcharge);
 
-  const surcharges = [];
-  const { evening, eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime } = surcharge;
+  let surchargeList;
+  if (!hourlySurchargeList.length && !dailySurcharge) return [];
 
-  const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening);
-  if (eveningSurcharge) surcharges.push({ ...eveningSurcharge, name: 'Soirée' });
+  if (hourlySurchargeList.length) surchargeList = [];
+  else surchargeList = [dailySurcharge];
 
-  const customSurcharge = exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom);
-  if (customSurcharge) surcharges.push({ ...customSurcharge, name: 'Personalisée' });
+  if (dailySurcharge) {
+    for (const hourlySurcharge of hourlySurchargeList) {
+      if (hourlySurcharge.percentage <= dailySurcharge.percentage) {
+        surchargeList.push(dailySurcharge);
+        continue;
+      }
 
-  const hourlySurcharges = surcharges;
-  for (const hourlySurcharge of hourlySurcharges) {
-    for (const surchargeCondition of surchargeConditions) {
-      const percentage = surcharge[surchargeCondition.key] || 0;
-      if (surchargeCondition.condition(start)) {
-        if (percentage >= hourlySurcharge.percentage) return [{ percentage, name: surchargeCondition.name }];
-        const surchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
-        const intersection = eventRange.intersect(surchargeRange);
-        const diff = eventRange.subtract(intersection) || {};
+      const hourlySurchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
+      const dailySurchargeRange = moment.range(dailySurcharge.startHour, dailySurcharge.endHour);
+      const dailySurchargeIntervalList = dailySurchargeRange.subtract(hourlySurchargeRange);
 
-        if (diff.length && Object.keys(diff[0]).length) {
-          surcharges.push({
-            percentage,
-            startHour: diff[0].start.toDate(),
-            endHour: diff[0].end.toDate(),
-            name: surchargeCondition.name,
-          });
-          return surcharges;
-        }
+      surchargeList.push(hourlySurcharge);
+      for (const dailySurchargeInterval of dailySurchargeIntervalList) {
+        surchargeList.push({
+          ...dailySurcharge,
+          startHour: dailySurchargeInterval.start.toDate(),
+          endHour: dailySurchargeInterval.end.toDate(),
+        });
       }
     }
+  } else {
+    surchargeList = hourlySurchargeList;
   }
-  return surcharges;
+
+  console.log(surchargeList);
+
+  // for (const hourlySurcharge of hourlySurcharges) {
+  //   for (const surchargeCondition of surchargeConditions) {
+  //     const percentage = surcharge[surchargeCondition.key] || 0;
+  //     if (surchargeCondition.condition(start)) {
+  //       if (percentage >= hourlySurcharge.percentage) return [{ percentage, name: surchargeCondition.name }];
+  //       const surchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
+  //       const intersection = eventRange.intersect(surchargeRange);
+  //       const diff = eventRange.subtract(intersection) || {};
+
+  //       if (diff.length && Object.keys(diff[0]).length) {
+  //         surcharges.push({
+  //           percentage,
+  //           startHour: diff[0].start.toDate(),
+  //           endHour: diff[0].end.toDate(),
+  //           name: surchargeCondition.name,
+  //         });
+  //         return surcharges;
+  //       }
+  //     }
+  //   }
+  // }
+  return surchargeList;
 };
