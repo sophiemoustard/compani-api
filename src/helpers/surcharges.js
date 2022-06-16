@@ -33,12 +33,25 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
     const intersectionFirst = eventRange.intersect(firstSurchargeRange);
     const intersectionSecond = eventRange.intersect(secondSurchargeRange);
 
-    return [
-      ...(intersectionFirst &&
-        [{ percentage, name, startHour: intersectionFirst.start.toDate(), endHour: intersectionFirst.end.toDate() }]),
-      ...(intersectionSecond &&
-        [{ percentage, name, startHour: intersectionSecond.start.toDate(), endHour: intersectionSecond.end.toDate() }]),
-    ];
+    const rep = [];
+    if (intersectionFirst) {
+      rep.push({
+        percentage,
+        name,
+        startHour: intersectionFirst.start.toDate(),
+        endHour: intersectionFirst.end.toDate(),
+      });
+    }
+    if (intersectionSecond) {
+      rep.push({
+        percentage,
+        name,
+        startHour: intersectionSecond.start.toDate(),
+        endHour: intersectionSecond.end.toDate(),
+      });
+    }
+
+    return rep;
   }
   const surchargeRange = moment.range(formattedStart, formattedEnd);
   const intersection = eventRange.intersect(surchargeRange);
@@ -47,7 +60,7 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
     return [{ percentage, name, startHour: intersection.start.toDate(), endHour: intersection.end.toDate() }];
   }
 
-  return null;
+  return [];
 };
 
 const getHourlySurchargeList = (start, end, surcharge) => {
@@ -55,11 +68,11 @@ const getHourlySurchargeList = (start, end, surcharge) => {
   const hourlySurchargeList = [];
 
   const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening, 'Soirée');
-  if (eveningSurcharge) hourlySurchargeList.push(...eveningSurcharge);
+  if (eveningSurcharge.length) hourlySurchargeList.push(...eveningSurcharge);
 
   const customSurcharge =
     exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom, 'Personnalisée');
-  if (customSurcharge) hourlySurchargeList.push(...customSurcharge);
+  if (customSurcharge.length) hourlySurchargeList.push(...customSurcharge);
 
   return hourlySurchargeList;
 };
@@ -108,6 +121,7 @@ exports.getEventSurcharges = (event, surcharge) => {
   const dailySurcharge = getDailySurcharge(start, end, surcharge);
 
   if (!hourlySurchargeList.length && !dailySurcharge) return [];
+  if (!dailySurcharge) return hourlySurchargeList;
 
   const surchargeList = [dailySurcharge];
   if (dailySurcharge) {
