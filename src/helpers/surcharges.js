@@ -100,36 +100,23 @@ const getDailySurcharge = (start, end, surcharge) => {
 exports.getEventSurcharges = (event, surcharge) => {
   const start = moment(event.startDate);
   const end = moment(event.endDate);
-  const eventRange = moment.range(start, end);
   const hourlySurchargeList = getHourlySurchargeList(start, end, surcharge);
   const dailySurcharge = getDailySurcharge(start, end, surcharge);
 
   if (!hourlySurchargeList.length && !dailySurcharge) return [];
 
-  let surchargeList = [dailySurcharge];
-
+  const surchargeList = [dailySurcharge];
   if (dailySurcharge) {
-    console.log(hourlySurchargeList);
     for (const hourlySurcharge of hourlySurchargeList) {
-      // console.log('hourlySurcharge', hourlySurcharge);
       if (hourlySurcharge.percentage <= dailySurcharge.percentage) continue;
 
       const surchargePartToAdd = [];
       for (const [index, dailySurchargePart] of surchargeList.entries()) {
-        // console.log('index, dailySurchargePart', index, dailySurchargePart);
         const hourlySurchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
         const dailySurchargeRange = moment.range(dailySurchargePart.startHour, dailySurchargePart.endHour);
         const dailySurchargeIntervalList = dailySurchargeRange.subtract(hourlySurchargeRange);
-        // console.log('hourlySurchargeRange', hourlySurchargeRange);
-        // console.log('dailySurchargeRange', dailySurchargeRange);
-        // console.log('dailySurchargeIntervalList', dailySurchargeIntervalList);
 
-        // console.log('surchargeList before', surchargeList);
-        // console.log(dailySurchargeIntervalList.length);
-        if (dailySurchargeIntervalList.length) {
-          surchargeList.splice(index, 1);
-          // console.log('surchargeList after', surchargeList);
-        }
+        if (dailySurchargeIntervalList.length) surchargeList.splice(index, 1);
         for (const dailySurchargeInterval of dailySurchargeIntervalList) {
           surchargePartToAdd.push({
             ...dailySurchargePart,
@@ -143,28 +130,5 @@ exports.getEventSurcharges = (event, surcharge) => {
   }
 
   surchargeList.push(...hourlySurchargeList);
-  console.log(surchargeList);
-
-  // for (const hourlySurcharge of hourlySurcharges) {
-  //   for (const surchargeCondition of surchargeConditions) {
-  //     const percentage = surcharge[surchargeCondition.key] || 0;
-  //     if (surchargeCondition.condition(start)) {
-  //       if (percentage >= hourlySurcharge.percentage) return [{ percentage, name: surchargeCondition.name }];
-  //       const surchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
-  //       const intersection = eventRange.intersect(surchargeRange);
-  //       const diff = eventRange.subtract(intersection) || {};
-
-  //       if (diff.length && Object.keys(diff[0]).length) {
-  //         surcharges.push({
-  //           percentage,
-  //           startHour: diff[0].start.toDate(),
-  //           endHour: diff[0].end.toDate(),
-  //           name: surchargeCondition.name,
-  //         });
-  //         return surcharges;
-  //       }
-  //     }
-  //   }
-  // }
   return surchargeList;
 };
