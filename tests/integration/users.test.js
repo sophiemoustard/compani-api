@@ -34,7 +34,6 @@ const {
   sectorHistories,
   establishmentList,
   auxiliaryFromOtherCompany,
-  activityList,
 } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { otherCompany, authCompany } = require('../seed/authCompaniesSeed');
@@ -1486,7 +1485,7 @@ describe('DELETE /users/:id', () => {
       authToken = await getTokenByCredentials(usersSeedList[12].local);
     });
 
-    it('should delete user registered to course (without activity histories) & with company link request', async () => {
+    it('should delete user and its data', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${usersSeedList[12]._id.toHexString()}`,
@@ -1509,27 +1508,6 @@ describe('DELETE /users/:id', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/users/${usersSeedList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 if user has activity histories', async () => {
-      await app.inject({
-        method: 'POST',
-        url: '/activityhistories',
-        payload: { user: usersSeedList[12]._id, activity: activityList[0]._id, score: 2 },
-        headers: { 'x-access-token': authToken },
-      });
-
-      const hasActivityHistories = await ActivityHistory
-        .countDocuments({ user: usersSeedList[12]._id, activity: activityList[0]._id });
-      expect(hasActivityHistories).toBe(1);
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/users/${usersSeedList[12]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 

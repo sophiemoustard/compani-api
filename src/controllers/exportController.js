@@ -20,9 +20,11 @@ const {
   COURSE_SLOT,
   TRANSPORT,
   END_OF_COURSE,
+  COURSE_BILL,
 } = require('../helpers/constants');
 const { CompaniDate } = require('../helpers/dates/companiDates');
 const HistoryExportHelper = require('../helpers/historyExport');
+const VendorHistoryExportHelper = require('../helpers/vendorHistoryExport');
 const DataExportHelper = require('../helpers/dataExport');
 const { exportToCsv } = require('../helpers/file');
 
@@ -107,16 +109,20 @@ const exportHistory = async (req, h) => {
         exportArray = await HistoryExportHelper.exportContractHistory(startDate, endDate, credentials);
         break;
       case COURSE:
-        exportArray = await HistoryExportHelper.exportCourseHistory(startDate, endDate, credentials);
+        exportArray = await VendorHistoryExportHelper.exportCourseHistory(startDate, endDate, credentials);
         break;
       case COURSE_SLOT:
-        exportArray = await HistoryExportHelper.exportCourseSlotHistory(startDate, endDate);
+        exportArray = await VendorHistoryExportHelper.exportCourseSlotHistory(startDate, endDate);
         break;
       case TRANSPORT:
         exportArray = await HistoryExportHelper.exportTransportsHistory(startDate, endDate, credentials);
         break;
       case END_OF_COURSE:
-        exportArray = await HistoryExportHelper.exportEndOfCourseQuestionnaireHistory(startDate, endDate);
+        exportArray = await VendorHistoryExportHelper.exportEndOfCourseQuestionnaireHistory(startDate, endDate);
+        break;
+      case COURSE_BILL:
+        exportArray =
+          await VendorHistoryExportHelper.exportCourseBillAndCreditNoteHistory(startDate, endDate, credentials);
         break;
     }
 

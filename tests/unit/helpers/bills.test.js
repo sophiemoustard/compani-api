@@ -1912,7 +1912,7 @@ describe('formatAndCreateBill', () => {
     create.restore();
   });
 
-  it('should format and create a bill', async () => {
+  it('should format and create a bill and send an email to helper', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId, prefixNumber: '101' } };
     const billingItemId1 = new ObjectId();
@@ -1920,6 +1920,7 @@ describe('formatAndCreateBill', () => {
     const payload = {
       customer: new ObjectId(),
       date: '2021-09-01',
+      shouldBeSent: true,
       billingItemList: [
         { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
         { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
@@ -1970,6 +1971,71 @@ describe('formatAndCreateBill', () => {
         type: 'manual',
         billingItemList: [{ inclTaxes: 180 }, { inclTaxes: 150 }],
         company: companyId,
+        shouldBeSent: true,
+      }
+    );
+  });
+
+  it('should format and create a bill and not send an email to helper', async () => {
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId, prefixNumber: '101' } };
+    const billingItemId1 = new ObjectId();
+    const billingItemId2 = new ObjectId();
+    const payload = {
+      customer: new ObjectId(),
+      date: '2021-09-01',
+      shouldBeSent: false,
+      billingItemList: [
+        { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
+        { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+      ],
+    };
+
+    getBillNumber.returns({ prefix: 'FACT-101', seq: 1 });
+    formatBillNumber.returns('FACT-101092100001');
+    findBillingItem.returns(
+      SinonMongoose.stubChainedQueries([{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }], ['lean'])
+    );
+    formatBillingItem.onCall(0).returns({ inclTaxes: 180 });
+    formatBillingItem.onCall(1).returns({ inclTaxes: 150 });
+
+    await BillHelper.formatAndCreateBill(payload, credentials);
+
+    sinon.assert.calledOnceWithExactly(getBillNumber, '2021-09-01', companyId);
+    sinon.assert.calledOnceWithExactly(formatBillNumber, '101', 'FACT-101', 1);
+    SinonMongoose.calledOnceWithExactly(
+      findBillingItem,
+      [
+        { query: 'find', args: [{ _id: { $in: [billingItemId1, billingItemId2] } }, { vat: 1, name: 1 }] },
+        { query: 'lean' },
+      ]
+    );
+    sinon.assert.calledOnceWithExactly(
+      updateOneBillNumber,
+      { prefix: 'FACT-101', company: companyId },
+      { $set: { seq: 2 } }
+    );
+    sinon.assert.calledWithExactly(
+      formatBillingItem.getCall(0),
+      { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
+      [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
+    );
+    sinon.assert.calledWithExactly(
+      formatBillingItem.getCall(1),
+      { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+      [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
+    );
+    sinon.assert.calledOnceWithExactly(
+      create,
+      {
+        number: 'FACT-101092100001',
+        date: '2021-09-01',
+        customer: payload.customer,
+        netInclTaxes: 50,
+        type: 'manual',
+        billingItemList: [{ inclTaxes: 180 }, { inclTaxes: 150 }],
+        company: companyId,
+        shouldBeSent: false,
       }
     );
   });

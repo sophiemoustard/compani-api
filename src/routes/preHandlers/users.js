@@ -1,7 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
 const flat = require('flat');
-const ActivityHistory = require('../../models/ActivityHistory');
 const User = require('../../models/User');
 const Role = require('../../models/Role');
 const Customer = require('../../models/Customer');
@@ -166,10 +165,7 @@ exports.authorizeUserDeletion = async (req) => {
   const clientRoleId = get(user, 'role.client');
 
   if (UtilsHelper.areObjectIdsEquals(user._id, credentials._id)) {
-    if (user.company) throw Boom.forbidden();
-    const hasActivityHistories = await ActivityHistory.countDocuments({ user: req.params._id }, { limit: 1 });
-
-    if (hasActivityHistories) throw Boom.forbidden(translate[language].userHasActivityHistories);
+    if (user.company) throw Boom.forbidden(translate[language].userDeletionForbidden);
 
     return null;
   }

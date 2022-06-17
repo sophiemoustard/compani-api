@@ -175,7 +175,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     .lean({ autopopulate: true, virtuals: true });
 
   await EventHelper.unassignInterventionsOnContractEnd(updatedContract, credentials);
-  await EventHelper.removeRepetitionsOnContractEnd(updatedContract);
+  await EventHelper.removeRepetitionsOnContractEndOrDeletion(updatedContract);
   await EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials);
   await EventHelper.updateAbsencesOnContractEnd(updatedContract.user._id, updatedContract.endDate, credentials);
   await ReferentHistoryHelper.unassignReferentOnContractEnd(updatedContract);
@@ -296,10 +296,18 @@ exports.updateVersion = async (contractId, versionId, versionPayload, credential
 };
 
 exports.deleteVersion = async (contractId, versionId, credentials) => {
-  const contract = await Contract.findOne({ _id: contractId, 'versions.0': { $exists: true } });
+  const companyId = get(credentials, 'company._id', null);
+
+  const contract = await Contract
+    .findOne({ _id: contractId, 'versions.0': { $exists: true } })
+    .populate({
+      path: 'user',
+      select: 'sector',
+      populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
+    })
+    .lean({ virtuals: true });
   if (!contract) return;
 
-  const companyId = get(credentials, 'company._id', null);
   const isLastVersion = contract.versions[contract.versions.length - 1]._id.toHexString() === versionId;
   if (!isLastVersion) throw Boom.forbidden();
   const deletedVersion = contract.versions[contract.versions.length - 1];
@@ -310,12 +318,13 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
     contract.save();
   } else {
     const { user, startDate } = contract;
-    const query = { auxiliary: user, startDate, company: companyId };
+    const query = { auxiliary: user._id, startDate, company: companyId };
     const eventCount = await EventRepository.countAuxiliaryEventsBetweenDates(query);
     if (eventCount) throw Boom.forbidden();
 
     await Contract.deleteOne({ _id: contractId });
-    await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
+    await EventHelper.removeRepetitionsOnContractEndOrDeletion(contract);
+    await User.updateOne({ _id: contract.user._id }, { $pull: { contracts: contract._id } });
     await SectorHistoryHelper.updateHistoryOnContractDeletion(contract, companyId);
   }
 

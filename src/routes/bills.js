@@ -170,6 +170,7 @@ exports.plugin = {
           payload: Joi.object({
             customer: Joi.objectId().required(),
             date: Joi.date().required(),
+            shouldBeSent: Joi.boolean().required(),
             ...billingItemListValidations,
           }),
         },

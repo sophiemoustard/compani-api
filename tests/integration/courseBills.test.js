@@ -626,7 +626,7 @@ describe('COURSE BILL ROUTES - PUT /coursebills/{_id}', () => {
         url: `/coursebills/${courseBillsList[4]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
-          courseFundingOrganisation: courseBillsList[4].courseFundingOrganisation,
+          payer: { fundingOrganisation: courseBillsList[4].payer.fundingOrganisation },
           mainFee: { price: 200, count: 2, description: 'desk rip Sean' },
         },
       });

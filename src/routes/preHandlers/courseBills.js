@@ -85,8 +85,9 @@ exports.authorizeCourseBillUpdate = async (req) => {
 
   if (courseBill.billedAt) {
     const payloadKeys = UtilsHelper
-      .getKeysOf2DepthObject(omit(req.payload, ['mainFee.description']));
-    const areFieldsChanged = payloadKeys.some(key => get(req.payload, key) !== get(courseBill, key));
+      .getKeysOf2DepthObject(omit(req.payload, ['mainFee.description', 'payer']));
+    const areFieldsChanged = payloadKeys.some(key => get(req.payload, key) !== get(courseBill, key)) ||
+      !UtilsHelper.areObjectIdsEquals(Object.values(req.payload.payer)[0], courseBill.payer._id);
     if (areFieldsChanged) throw Boom.forbidden();
   }
 

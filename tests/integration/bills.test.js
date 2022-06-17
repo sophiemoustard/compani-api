@@ -812,6 +812,7 @@ describe('BILL ROUTES - POST /bills', () => {
       const payload = {
         customer: billCustomerList[0]._id,
         date: new Date('2021-09-02T20:00:00'),
+        shouldBeSent: true,
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
       };
       const response = await app.inject({
@@ -827,12 +828,13 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(billsCount).toBe(1 + authBillList.length);
     });
 
-    const missingParams = ['customer', 'date'];
+    const missingParams = ['customer', 'date', 'shouldBeSent'];
     missingParams.forEach((param) => {
       it(`should return 400 as ${param} is missing`, async () => {
         const payload = {
           customer: billCustomerList[0]._id,
           date: new Date('2021-09-02T20:00:00'),
+          shouldBeSent: true,
           billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
         };
         const response = await app.inject({
@@ -853,6 +855,7 @@ describe('BILL ROUTES - POST /bills', () => {
         const payload = {
           customer: billCustomerList[0]._id,
           date: new Date('2021-09-02T20:00:00'),
+          shouldBeSent: true,
           billingItemList: [billingItem],
         };
         const response = await app.inject({
@@ -870,6 +873,7 @@ describe('BILL ROUTES - POST /bills', () => {
       const payload = {
         customer: new ObjectId(),
         date: new Date('2021-09-02T20:00:00'),
+        shouldBeSent: true,
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
       };
       const response = await app.inject({
@@ -886,6 +890,7 @@ describe('BILL ROUTES - POST /bills', () => {
       const payload = {
         customer: billCustomerList[0]._id,
         date: new Date('2021-09-02T20:00:00'),
+        shouldBeSent: true,
         billingItemList: [
           { billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 },
           { billingItem: new ObjectId(), unitInclTaxes: 15, count: 2 },
@@ -905,6 +910,7 @@ describe('BILL ROUTES - POST /bills', () => {
       const payload = {
         customer: billCustomerList[0]._id,
         date: new Date('2021-09-02T20:00:00'),
+        shouldBeSent: true,
         billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 15, count: 2 }],
       };
       const response = await app.inject({
@@ -921,6 +927,7 @@ describe('BILL ROUTES - POST /bills', () => {
       const payload = {
         customer: billCustomerList[3]._id,
         date: new Date('2021-09-02T20:00:00'),
+        shouldBeSent: true,
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
       };
       const response = await app.inject({
@@ -940,6 +947,7 @@ describe('BILL ROUTES - POST /bills', () => {
       const payload = {
         customer: billCustomerList[0]._id,
         date: new Date('2021-09-02T20:00:00'),
+        shouldBeSent: true,
         billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
       };
       const response = await app.inject({
@@ -970,6 +978,7 @@ describe('BILL ROUTES - POST /bills', () => {
         const payload = {
           customer: new ObjectId(),
           date: '2021-09-02T20:00:00',
+          shouldBeSent: true,
           billingItemList: [{ billingItem: billingItemList[0]._id, unitInclTaxes: 15, count: 2 }],
         };
 
