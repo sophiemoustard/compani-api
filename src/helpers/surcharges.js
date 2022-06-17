@@ -63,7 +63,7 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
   return [];
 };
 
-const getHourlySurchargeList = (start, end, surcharge) => {
+exports.getHourlySurchargeList = (start, end, surcharge) => {
   const { evening, eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime } = surcharge;
   const hourlySurchargeList = [];
 
@@ -90,7 +90,7 @@ const weekEndSurchargeConditionList = [
   { key: 'sunday', condition: start => start.isoWeekday() === 7, name: 'Dimanche' },
 ];
 
-const getDailySurcharge = (start, end, surcharge) => {
+exports.getDailySurcharge = (start, end, surcharge) => {
   const dailySurcharges = [];
 
   for (const holidaySurchargeCondition of holidaySurchargeConditionList) {
@@ -111,14 +111,14 @@ const getDailySurcharge = (start, end, surcharge) => {
     }
   }
 
-  return dailySurcharges.sort((a, b) => (a.percentage > b.percentage ? -1 : 1))[0];
+  return dailySurcharges.sort((a, b) => (a.percentage > b.percentage ? -1 : 1))[0] || null;
 };
 
 exports.getEventSurcharges = (event, surcharge) => {
   const start = moment(event.startDate);
   const end = moment(event.endDate);
-  const hourlySurchargeList = getHourlySurchargeList(start, end, surcharge);
-  const dailySurcharge = getDailySurcharge(start, end, surcharge);
+  const hourlySurchargeList = exports.getHourlySurchargeList(start, end, surcharge);
+  const dailySurcharge = exports.getDailySurcharge(start, end, surcharge);
 
   if (!hourlySurchargeList.length && !dailySurcharge) return [];
   if (!dailySurcharge) return hourlySurchargeList;

@@ -216,10 +216,174 @@ describe('getCustomSurcharge', () => {
   });
 });
 
+describe('getHourlySurchargeList', () => {
+  let getCustomSurcharge;
+  beforeEach(() => {
+    getCustomSurcharge = sinon.stub(SurchargesHelper, 'getCustomSurcharge');
+  });
+
+  afterEach(() => {
+    getCustomSurcharge.restore();
+  });
+
+  it('should return [] if no evening surcharge and no custom surcharge', () => {
+    const start = '2022-06-01T12:00:00';
+    const end = '2022-06-01T15:00:00';
+    getCustomSurcharge.onCall(0).returns([]);
+    getCustomSurcharge.onCall(1).returns([]);
+    const surcharge = {
+      evening: 10,
+      eveningStartTime: 20,
+      eveningEndTime: 23,
+      custom: 25,
+      customStartTime: 12,
+      customEndTime: 14,
+    };
+
+    const rep = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
+
+    expect(rep).toStrictEqual([]);
+    sinon.assert.calledWithExactly(getCustomSurcharge.getCall(0), start, end, 20, 23, 10, 'Soirée');
+    sinon.assert.calledWithExactly(getCustomSurcharge.getCall(1), start, end, 12, 14, 25, 'Personnalisée');
+  });
+
+  it('should return surcharge info if has evening surcharge but no custom surcharge', () => {
+    const start = '2022-06-01T19:00:00';
+    const end = '2022-06-01T22:00:00';
+    getCustomSurcharge.onCall(0).returns(
+      [{ percentage: 10, startHour: '2022-06-01T20:00:00', endHour: '2022-06-01T22:00:00', name: 'Soirée' }]
+    );
+    getCustomSurcharge.onCall(1).returns([]);
+    const surcharge = {
+      evening: 10,
+      eveningStartTime: 20,
+      eveningEndTime: 23,
+      custom: 25,
+      customStartTime: 12,
+      customEndTime: 14,
+    };
+
+    const rep = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
+
+    expect(rep).toStrictEqual(
+      [{ percentage: 10, startHour: '2022-06-01T20:00:00', endHour: '2022-06-01T22:00:00', name: 'Soirée' }]
+    );
+  });
+
+  it('should return surcharge info if no evening surcharge but has custom surcharge', () => {
+    const start = '2022-06-01T10:00:00';
+    const end = '2022-06-01T17:00:00';
+    getCustomSurcharge.onCall(1).returns(
+      [{ percentage: 25, startHour: '2022-06-01T12:00:00', endHour: '2022-06-01T14:00:00', name: 'Personnalisée' }]
+    );
+    getCustomSurcharge.onCall(0).returns([]);
+    const surcharge = {
+      evening: 10,
+      eveningStartTime: 20,
+      eveningEndTime: 23,
+      custom: 25,
+      customStartTime: 12,
+      customEndTime: 14,
+    };
+
+    const rep = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
+
+    expect(rep).toStrictEqual(
+      [{ percentage: 25, startHour: '2022-06-01T12:00:00', endHour: '2022-06-01T14:00:00', name: 'Personnalisée' }]
+    );
+  });
+
+  it('should return surcharge info if has evening surcharge and custom surcharge', () => {
+    const start = '2022-06-01T10:00:00';
+    const end = '2022-06-01T22:00:00';
+    getCustomSurcharge.onCall(0).returns(
+      [{ percentage: 10, startHour: '2022-06-01T20:00:00', endHour: '2022-06-01T22:00:00', name: 'Soirée' }]
+    );
+    getCustomSurcharge.onCall(1).returns(
+      [{ percentage: 25, startHour: '2022-06-01T12:00:00', endHour: '2022-06-01T14:00:00', name: 'Personnalisée' }]
+    );
+    const surcharge = {
+      evening: 10,
+      eveningStartTime: 20,
+      eveningEndTime: 23,
+      custom: 25,
+      customStartTime: 12,
+      customEndTime: 14,
+    };
+
+    const rep = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
+
+    expect(rep).toStrictEqual([
+      { percentage: 10, startHour: '2022-06-01T20:00:00', endHour: '2022-06-01T22:00:00', name: 'Soirée' },
+      { percentage: 25, startHour: '2022-06-01T12:00:00', endHour: '2022-06-01T14:00:00', name: 'Personnalisée' },
+    ]);
+  });
+});
+
+describe('getDailySurcharge #tag', () => {
+  const surcharge = {
+    name: 'Default',
+    saturday: 12,
+    sunday: 25,
+    publicHoliday: 100,
+    twentyFifthOfDecember: 30,
+    firstOfMay: 50,
+    firstOfJanuary: 90,
+  };
+
+  it('should return null if no daily surcharge', () => {
+    const start = moment('2022-06-17T12:00:00');
+    const end = moment('2022-06-17T14:00:00');
+
+    const rep = SurchargesHelper.getDailySurcharge(start, end, surcharge);
+
+    expect(rep).toBe(null);
+  });
+
+  it('should return holiday surcharge if percentage is higher', () => {
+    const start = moment('2022-01-01T12:00:00');
+    const end = moment('2022-01-01T14:00:00');
+
+    const rep = SurchargesHelper.getDailySurcharge(start, end, surcharge);
+
+    expect(rep).toStrictEqual({
+      percentage: 90,
+      name: '1er Janvier',
+      startHour: start.toDate(),
+      endHour: end.toDate(),
+    });
+  });
+
+  it('should return weekend surcharge if percentage is higher', () => {
+    const specificSurcharge = {
+      name: 'Default',
+      saturday: 100,
+      sunday: 25,
+      publicHoliday: 17,
+      twentyFifthOfDecember: 30,
+      firstOfMay: 50,
+      firstOfJanuary: 12,
+    };
+    const start = moment('2022-01-01T12:00:00');
+    const end = moment('2022-01-01T14:00:00');
+
+    const rep = SurchargesHelper.getDailySurcharge(start, end, specificSurcharge);
+
+    expect(rep).toStrictEqual({
+      percentage: 100,
+      name: 'Samedi',
+      startHour: start.toDate(),
+      endHour: end.toDate(),
+    });
+  });
+});
+
 describe('getEventSurcharges', () => {
   let getCustomSurchargeStub;
   let emptySurcharge;
   let surchargeAllSet;
+  let getHourlySurchargeList;
+  let getDailySurchargeList;
 
   beforeEach(() => {
     emptySurcharge = {
@@ -253,9 +417,13 @@ describe('getEventSurcharges', () => {
     };
 
     getCustomSurchargeStub = sinon.stub(SurchargesHelper, 'getCustomSurcharge');
+    getHourlySurchargeList = sinon.stub(SurchargesHelper, 'getHourlySurchargeList');
+    getDailySurchargeList = sinon.stub(SurchargesHelper, 'getDailySurchargeList');
   });
   afterEach(() => {
     getCustomSurchargeStub.restore();
+    getHourlySurchargeList.restore();
+    getDailySurchargeList.restore();
   });
 
   it('should return the matching surcharge, even if surcharge values are all 0', () => {
