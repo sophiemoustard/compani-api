@@ -124,30 +124,36 @@ exports.getEventSurcharges = (event, surcharge) => {
   if (!dailySurcharge) return hourlySurchargeList;
 
   const surchargeList = [dailySurcharge];
-  if (dailySurcharge) {
-    for (const hourlySurcharge of hourlySurchargeList) {
-      if (hourlySurcharge.percentage <= dailySurcharge.percentage) continue;
+  const hourlySurchargeToAddList = [];
+  for (const hourlySurcharge of hourlySurchargeList) {
+    if (hourlySurcharge.percentage <= dailySurcharge.percentage) continue;
 
-      const surchargePartToAdd = [];
-      for (const [index, dailySurchargePart] of surchargeList.entries()) {
-        const hourlySurchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
-        const dailySurchargeRange = moment.range(dailySurchargePart.startHour, dailySurchargePart.endHour);
-        const dailySurchargeIntervalList = dailySurchargeRange.subtract(hourlySurchargeRange);
+    const surchargePartToAdd = [];
+    for (const [index, dailySurchargePart] of surchargeList.entries()) {
+      const hourlySurchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
+      const dailySurchargeRange = moment.range(dailySurchargePart.startHour, dailySurchargePart.endHour);
 
-        if (dailySurchargeIntervalList.length) surchargeList.splice(index, 1);
-        for (const dailySurchargeInterval of dailySurchargeIntervalList) {
-          surchargePartToAdd.push({
-            ...dailySurchargePart,
-            startHour: dailySurchargeInterval.start.toDate(),
-            endHour: dailySurchargeInterval.end.toDate(),
-          });
-        }
+      const intersection = dailySurchargeRange.intersect(hourlySurchargeRange);
+      if (!intersection) continue;
+
+      const dailySurchargeIntervalList = dailySurchargeRange.subtract(hourlySurchargeRange);
+
+      if (dailySurchargeIntervalList.length) {
+        surchargeList.splice(index, 1);
+        hourlySurchargeToAddList.push(hourlySurcharge);
       }
-      surchargeList.push(...surchargePartToAdd);
+
+      for (const dailySurchargeInterval of dailySurchargeIntervalList) {
+        surchargePartToAdd.push({
+          ...dailySurchargePart,
+          startHour: dailySurchargeInterval.start.toDate(),
+          endHour: dailySurchargeInterval.end.toDate(),
+        });
+      }
     }
+    surchargeList.push(...surchargePartToAdd);
   }
 
-  surchargeList.push(...hourlySurchargeList);
-  console.log(surchargeList);
+  surchargeList.push(...hourlySurchargeToAddList);
   return surchargeList;
 };

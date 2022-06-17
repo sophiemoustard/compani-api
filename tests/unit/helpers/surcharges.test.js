@@ -320,7 +320,7 @@ describe('getHourlySurchargeList', () => {
   });
 });
 
-describe('getDailySurcharge #tag', () => {
+describe('getDailySurcharge', () => {
   const surcharge = {
     name: 'Default',
     saturday: 12,
@@ -376,80 +376,28 @@ describe('getDailySurcharge #tag', () => {
       endHour: end.toDate(),
     });
   });
-});
 
-describe('getEventSurcharges', () => {
-  let getCustomSurchargeStub;
-  let emptySurcharge;
-  let surchargeAllSet;
-  let getHourlySurchargeList;
-  let getDailySurchargeList;
-
-  beforeEach(() => {
-    emptySurcharge = {
-      twentyFifthOfDecember: 0,
-      firstOfMay: 0,
+  it('should handle surcharge in right order', () => {
+    const specificSurcharge = {
+      name: 'Default',
+      saturday: 100,
+      sunday: 25,
+      publicHoliday: 17,
+      twentyFifthOfDecember: 30,
+      firstOfMay: 50,
       firstOfJanuary: 0,
-      publicHoliday: 0,
-      saturday: 0,
-      sunday: 0,
-      evening: 0,
-      eveningEndTime: '22:00',
-      eveningStartTime: '20:00',
-      custom: 0,
-      customStartTime: '17:00',
-      customEndTime: '19:00',
     };
+    const start = moment('2021-01-01T12:00:00');
+    const end = moment('2021-01-01T14:00:00');
 
-    surchargeAllSet = {
-      twentyFifthOfDecember: 10,
-      firstOfMay: 12,
-      firstOfJanuary: 13,
-      publicHoliday: 14,
-      saturday: 16,
-      sunday: 18,
-      evening: 20,
-      eveningEndTime: '22:00',
-      eveningStartTime: '20:00',
-      custom: 22,
-      customStartTime: '17:00',
-      customEndTime: '19:00',
-    };
+    const rep = SurchargesHelper.getDailySurcharge(start, end, specificSurcharge);
 
-    getCustomSurchargeStub = sinon.stub(SurchargesHelper, 'getCustomSurcharge');
-    getHourlySurchargeList = sinon.stub(SurchargesHelper, 'getHourlySurchargeList');
-    getDailySurchargeList = sinon.stub(SurchargesHelper, 'getDailySurchargeList');
-  });
-  afterEach(() => {
-    getCustomSurchargeStub.restore();
-    getHourlySurchargeList.restore();
-    getDailySurchargeList.restore();
-  });
-
-  it('should return the matching surcharge, even if surcharge values are all 0', () => {
-    const event = {
-      startDate: '2019-05-01T16:00:00.000',
-      endDate: '2019-05-01T23:00:00.000',
-    };
-
-    getCustomSurchargeStub.returnsArg(4);
-    getCustomSurchargeStub.returns();
-
-    expect(SurchargesHelper.getEventSurcharges(event, emptySurcharge)).toEqual([{
+    expect(rep).toStrictEqual({
       percentage: 0,
-      name: '1er Mai',
-    }]);
-  });
-
-  it('should return no surcharges if none match', () => {
-    const event = {
-      startDate: '2019-05-03T16:00:00.000',
-      endDate: '2019-05-03T23:00:00.000',
-    };
-
-    getCustomSurchargeStub.returns();
-
-    expect(SurchargesHelper.getEventSurcharges(event, surchargeAllSet)).toEqual([]);
+      name: '1er Janvier',
+      startHour: start.toDate(),
+      endHour: end.toDate(),
+    });
   });
 
   const dailySurcharges = [
@@ -462,70 +410,170 @@ describe('getEventSurcharges', () => {
   ];
 
   dailySurcharges.forEach((dailySurcharge) => {
-    const surcharge = { ...surchargeAllSet, [dailySurcharge.key]: 35 };
+    const specificSurcharge = { ...surcharge, [dailySurcharge.key]: 35 };
     const event = {
-      startDate: moment(dailySurcharge.date).hour(16).toISOString(),
-      endDate: moment(dailySurcharge.date).hour(18).toISOString(),
+      startDate: moment(dailySurcharge.date).hour(16),
+      endDate: moment(dailySurcharge.date).hour(18),
     };
 
     it(`should return one surcharge for ${dailySurcharge.label}`, () => {
-      getCustomSurchargeStub.returnsArg(4);
+      const rep = SurchargesHelper.getDailySurcharge(event.startDate, event.endDate, specificSurcharge);
 
-      expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
+      expect(rep).toEqual({
         percentage: 35,
         name: dailySurcharge.name,
-      }]);
+        startHour: event.startDate.toDate(),
+        endHour: event.endDate.toDate(),
+      });
     });
   });
 
   dailySurcharges.forEach((dailySurcharge) => {
-    const surcharge = { ...emptySurcharge, [dailySurcharge.key]: 22 };
+    const specificSurcharge = { ...surcharge, [dailySurcharge.key]: 22 };
     const event = {
-      startDate: moment('2019-06-03').hour(16).toISOString(),
-      endDate: moment('2019-06-03').hour(23).toISOString(),
+      startDate: moment('2019-06-03').hour(16),
+      endDate: moment('2019-06-03').hour(23),
     };
 
     it(`should return no surcharge for ${dailySurcharge.label}`, () => {
-      getCustomSurchargeStub.returnsArg(4);
+      const rep = SurchargesHelper.getDailySurcharge(event.startDate, event.endDate, specificSurcharge);
 
-      expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([]);
+      expect(rep).toEqual(null);
     });
   });
+});
 
-  it('should return the surchage with the highest level', () => {
-    const event = { startDate: '2021-12-25T07:00:00', endDate: '2021-12-25T09:00:00' };
-    const surcharge = { saturday: 10, twentyFifthOfDecember: 30 };
+describe('getEventSurcharges', () => {
+  let getCustomSurchargeStub;
+  const surchargeAllSet = {
+    twentyFifthOfDecember: 10,
+    firstOfMay: 12,
+    firstOfJanuary: 13,
+    publicHoliday: 14,
+    saturday: 16,
+    sunday: 18,
+    evening: 20,
+    eveningEndTime: '22:00',
+    eveningStartTime: '20:00',
+    custom: 22,
+    customStartTime: '17:00',
+    customEndTime: '19:00',
+  };
+  let getHourlySurchargeList;
+  let getDailySurcharge;
 
-    getCustomSurchargeStub.returnsArg(4);
-
-    expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
-      percentage: 30,
-      name: '25 Décembre',
-    }]);
+  beforeEach(() => {
+    getCustomSurchargeStub = sinon.stub(SurchargesHelper, 'getCustomSurcharge');
+    getHourlySurchargeList = sinon.stub(SurchargesHelper, 'getHourlySurchargeList');
+    getDailySurcharge = sinon.stub(SurchargesHelper, 'getDailySurcharge');
+  });
+  afterEach(() => {
+    getCustomSurchargeStub.restore();
+    getHourlySurchargeList.restore();
+    getDailySurcharge.restore();
   });
 
-  it('should return the surchage with the highest level, even if percentage is 0', () => {
-    const event = { startDate: '2021-12-25T07:00:00', endDate: '2021-12-25T09:00:00' };
-    const surcharge = { saturday: 10, twentyFifthOfDecember: 0 };
+  it('should return [] if no dailySurcharge and no hourlySurchargeList', () => {
+    const event = { startDate: '2022-06-06T10:00:00', endDate: '2022-06-06T12:00:00' };
+    getHourlySurchargeList.returns([]);
+    getDailySurcharge.returns(null);
 
-    getCustomSurchargeStub.returnsArg(4);
+    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
 
-    expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
-      percentage: 0,
-      name: '25 Décembre',
-    }]);
+    expect(rep).toStrictEqual([]);
   });
 
-  it('should return two surcharges with ranges', () => {
+  it('should return hourlySurchargeList if no dailySurcharge but has hourlySurchargeList', () => {
+    const event = { startDate: '2022-06-06T10:00:00', endDate: '2022-06-06T12:00:00' };
+    getHourlySurchargeList.returns([{ percentage: 10 }]);
+    getDailySurcharge.returns(null);
+
+    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
+
+    expect(rep).toStrictEqual([{ percentage: 10 }]);
+  });
+
+  it('should return surcharge info when daily is higher than hourly', () => {
+    const event = { startDate: '2022-06-06T10:00:00', endDate: '2022-06-06T12:00:00' };
+    getHourlySurchargeList.returns([{ percentage: 10 }, { percentage: 15 }]);
+    getDailySurcharge.returns({ percentage: 25 });
+
+    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
+
+    expect(rep).toStrictEqual([{ percentage: 25 }]);
+  });
+
+  it('should return surcharge info with daily and hourly info', () => {
     const event = {
-      startDate: '2019-04-18T01:00:00',
-      endDate: '2019-04-18T02:00:00',
+      startDate: moment('2022-06-06T10:00:00').toDate(),
+      endDate: moment('2022-06-06T23:00:00').toDate(),
     };
+    getHourlySurchargeList.returns([
+      {
+        percentage: 40,
+        startHour: moment('2022-06-06T12:00:00').toDate(),
+        endHour: moment('2022-06-06T14:00:00').toDate(),
+        name: 'Personnalisée',
+      },
+      {
+        percentage: 30,
+        startHour: moment('2022-06-06T20:00:00').toDate(),
+        endHour: moment('2022-06-06T22:00:00').toDate(),
+        name: 'Soirée',
+      },
+    ]);
+    getDailySurcharge.returns(
+      {
+        percentage: 25,
+        startHour: moment('2022-06-06T10:00:00').toDate(),
+        endHour: moment('2022-06-06T23:00:00').toDate(),
+        name: 'daily',
+      }
+    );
 
-    getCustomSurchargeStub.onCall(0).returns({ percentage: 20 });
-    getCustomSurchargeStub.onCall(1).returns({ percentage: 22 });
+    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
 
-    expect(SurchargesHelper.getEventSurcharges(event, surchargeAllSet))
-      .toEqual([{ percentage: 20, name: 'Soirée' }, { percentage: 22, name: 'Personalisée' }]);
+    expect(rep).toStrictEqual([
+      {
+        percentage: 25,
+        startHour: moment('2022-06-06T10:00:00').toDate(),
+        endHour: moment('2022-06-06T12:00:00').toDate(),
+        name: 'daily',
+      },
+      {
+        percentage: 25,
+        startHour: moment('2022-06-06T14:00:00').toDate(),
+        endHour: moment('2022-06-06T20:00:00').toDate(),
+        name: 'daily',
+      },
+      {
+        percentage: 25,
+        startHour: moment('2022-06-06T22:00:00').toDate(),
+        endHour: moment('2022-06-06T23:00:00').toDate(),
+        name: 'daily',
+      },
+      {
+        percentage: 40,
+        startHour: moment('2022-06-06T12:00:00').toDate(),
+        endHour: moment('2022-06-06T14:00:00').toDate(),
+        name: 'Personnalisée',
+      },
+      {
+        percentage: 30,
+        startHour: moment('2022-06-06T20:00:00').toDate(),
+        endHour: moment('2022-06-06T22:00:00').toDate(),
+        name: 'Soirée',
+      },
+    ]);
+  });
+
+  it('should return the surcharge, even if surcharge values are all 0', () => {
+    const event = { startDate: '2022-06-06T10:00:00', endDate: '2022-06-06T12:00:00' };
+    getHourlySurchargeList.returns([{ percentage: 0 }, { percentage: 0 }]);
+    getDailySurcharge.returns({ percentage: 0, name: 'daily' });
+
+    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
+
+    expect(rep).toStrictEqual([{ percentage: 0, name: 'daily' }]);
   });
 });
