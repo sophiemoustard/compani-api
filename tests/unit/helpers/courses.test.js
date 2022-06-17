@@ -677,7 +677,13 @@ describe('getCourse', () => {
             populate: { path: 'company', populate: { path: 'company', select: 'name' } },
           }],
         },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'trainer',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          }],
+        },
         { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
         {
           query: 'populate',
@@ -752,7 +758,13 @@ describe('getCourse', () => {
             populate: { path: 'company', populate: { path: 'company', select: 'name' } },
           }],
         },
-        { query: 'populate', args: [{ path: 'trainer', select: 'identity.firstname identity.lastname' }] },
+        {
+          query: 'populate',
+          args: [{
+            path: 'trainer',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          }],
+        },
         { query: 'populate', args: [{ path: 'accessRules', select: 'name' }] },
         {
           query: 'populate',
