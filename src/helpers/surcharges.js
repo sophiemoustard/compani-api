@@ -15,7 +15,7 @@ exports.update = async (surcharge, payload) => Surcharge.updateOne({ _id: surcha
 exports.delete = async surcharge => Surcharge.deleteOne({ _id: surcharge._id });
 
 exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage, name) => {
-  if (!percentage || percentage <= 0) return null;
+  if (!percentage || percentage <= 0) return [];
 
   const formattedStart = moment(eventStart)
     .hour(surchargeStart.substring(0, 2))

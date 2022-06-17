@@ -84,57 +84,134 @@ describe('delete', () => {
 });
 
 describe('getCustomSurcharge', () => {
-  it('should return null if there is no surcharge', () => {
-    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T09:00:00', '05:00', '13:00');
+  it('should return [] if there is no surcharge', () => {
+    const eventStart = '2018-01-01T05:00:00';
+    const eventEnd = '2018-01-01T09:00:00';
+    const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '05:00', '13:00');
 
-    expect(res).toBe(null);
+    expect(res).toStrictEqual([]);
   });
 
-  it('should return null if the surcharge is 0', () => {
-    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T09:00:00', '05:00', '13:00', 0);
+  it('should return [] if the surcharge is 0', () => {
+    const eventStart = '2018-01-01T05:00:00';
+    const eventEnd = '2018-01-01T09:00:00';
 
-    expect(res).toBe(null);
+    const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '05:00', '13:00', 0);
+
+    expect(res).toStrictEqual([]);
   });
 
-  it('should return null if there is no intersection', () => {
-    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T09:00:00', '13:00', '17:00', 0);
+  describe('case end of surcharge is after start of surcharge', () => {
+    it('should return [] if there is no intersection', () => {
+      const eventStart = '2018-01-01T05:00:00';
+      const eventEnd = '2018-01-01T10:00:00';
 
-    expect(res).toBe(null);
-  });
+      const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '13:00', '17:00', 10, 'Aprem');
 
-  it('should return null if the intersection has a duration of 0', () => {
-    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T09:00:00', '09:00', '17:00', 25);
+      expect(res).toStrictEqual([]);
+    });
 
-    expect(res).toBe(null);
-  });
+    it('should return surcharge if there is an intersection with entire surcharge', () => {
+      const eventStart = '2018-01-01T10:00:00';
+      const eventEnd = '2018-01-01T20:00:00';
 
-  it('should return a surcharge if they intersect', () => {
-    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T05:00:00', '2018-01-01T13:00:00', '09:00', '17:00', 25);
+      const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '13:00', '17:00', 10, 'Aprem');
 
-    expect(res).toEqual({
-      startHour: moment('2018-01-01T09:00:00').toDate(),
-      endHour: moment('2018-01-01T13:00:00').toDate(),
-      percentage: 25,
+      expect(res).toStrictEqual([{
+        percentage: 10,
+        name: 'Aprem',
+        startHour: moment('2018-01-01T13:00:00').toDate(),
+        endHour: moment('2018-01-01T17:00:00').toDate(),
+      }]);
+    });
+
+    it('should return surcharge if there is an intersection with start of surcharge', () => {
+      const eventStart = '2018-01-01T10:00:00';
+      const eventEnd = '2018-01-01T15:00:00';
+
+      const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '13:00', '17:00', 10, 'Aprem');
+
+      expect(res).toStrictEqual([{
+        percentage: 10,
+        name: 'Aprem',
+        startHour: moment('2018-01-01T13:00:00').toDate(),
+        endHour: moment('2018-01-01T15:00:00').toDate(),
+      }]);
+    });
+
+    it('should return surcharge if there is an intersection with start of surcharge', () => {
+      const eventStart = '2018-01-01T16:00:00';
+      const eventEnd = '2018-01-01T20:00:00';
+
+      const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '13:00', '17:00', 10, 'Aprem');
+
+      expect(res).toStrictEqual([{
+        percentage: 10,
+        name: 'Aprem',
+        startHour: moment('2018-01-01T16:00:00').toDate(),
+        endHour: moment('2018-01-01T17:00:00').toDate(),
+      }]);
     });
   });
 
-  it('should return a surcharge if they intersect and surcharge start after end', () => {
-    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T23:00:00', '2018-01-02T01:00:00', '20:00', '06:00', 25);
+  describe('case end of surcharge is before start of surcharge (night surcharge)', () => {
+    it('should return [] if there is no intersection', () => {
+      const eventStart = '2018-01-01T07:00:00';
+      const eventEnd = '2018-01-01T12:00:00';
 
-    expect(res).toEqual({
-      startHour: moment('2018-01-01T23:00:00').toDate(),
-      endHour: moment('2018-01-02T01:00:00').toDate(),
-      percentage: 25,
+      const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '20:00', '07:00', 10, 'Soirée');
+
+      expect(res).toStrictEqual([]);
     });
-  });
 
-  it('should return a surcharge if the surcharge wraps the event', () => {
-    const res = SurchargesHelper.getCustomSurcharge('2018-01-01T17:00:00', '2018-01-01T21:00:00', '09:00', '21:00', 12);
+    it('should return a surcharge if intersect with beginning', () => {
+      const eventStart = '2018-01-01T07:00:00';
+      const eventEnd = '2018-01-01T23:00:00';
 
-    expect(res).toEqual({
-      startHour: moment('2018-01-01T17:00:00').toDate(),
-      endHour: moment('2018-01-01T21:00:00').toDate(),
-      percentage: 12,
+      const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '20:00', '07:00', 10, 'Soirée');
+
+      expect(res).toStrictEqual([{
+        percentage: 10,
+        name: 'Soirée',
+        startHour: moment('2018-01-01T20:00:00').toDate(),
+        endHour: moment('2018-01-01T23:00:00').toDate(),
+      }]);
+    });
+
+    it('should return a surcharge if intersect with end', () => {
+      const eventStart = '2018-01-01T05:00:00';
+      const eventEnd = '2018-01-01T12:00:00';
+
+      const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '20:00', '07:00', 10, 'Soirée');
+
+      expect(res).toStrictEqual([{
+        percentage: 10,
+        name: 'Soirée',
+        startHour: moment('2018-01-01T05:00:00').toDate(),
+        endHour: moment('2018-01-01T07:00:00').toDate(),
+      }]);
+    });
+
+    it('should return two surcharges if intersect with both', () => {
+      const eventStart = '2018-01-01T05:00:00';
+      const eventEnd = '2018-01-01T23:00:00';
+
+      const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '20:00', '07:00', 10, 'Soirée');
+
+      expect(res).toStrictEqual([
+        {
+          percentage: 10,
+          name: 'Soirée',
+          startHour: moment('2018-01-01T05:00:00').toDate(),
+          endHour: moment('2018-01-01T07:00:00').toDate(),
+        },
+        {
+          percentage: 10,
+          name: 'Soirée',
+          startHour: moment('2018-01-01T20:00:00').toDate(),
+          endHour: moment('2018-01-01T23:00:00').toDate(),
+        },
+      ]);
     });
   });
 });
