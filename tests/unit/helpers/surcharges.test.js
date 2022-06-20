@@ -84,7 +84,7 @@ describe('delete', () => {
 });
 
 describe('getCustomSurcharge', () => {
-  it('should return [] if there is no surcharge', () => {
+  it('should return [] if there is no percentage surcharge', () => {
     const eventStart = '2018-01-01T05:00:00';
     const eventEnd = '2018-01-01T09:00:00';
     const res = SurchargesHelper.getCustomSurcharge(eventStart, eventEnd, '05:00', '13:00');
@@ -139,7 +139,7 @@ describe('getCustomSurcharge', () => {
       }]);
     });
 
-    it('should return surcharge if there is an intersection with start of surcharge', () => {
+    it('should return surcharge if there is an intersection with end of surcharge', () => {
       const eventStart = '2018-01-01T16:00:00';
       const eventEnd = '2018-01-01T20:00:00';
 
@@ -240,9 +240,9 @@ describe('getHourlySurchargeList', () => {
       customEndTime: 14,
     };
 
-    const rep = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
+    const result = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
 
-    expect(rep).toStrictEqual([]);
+    expect(result).toStrictEqual([]);
     sinon.assert.calledWithExactly(getCustomSurcharge.getCall(0), start, end, 20, 23, 10, 'Soirée');
     sinon.assert.calledWithExactly(getCustomSurcharge.getCall(1), start, end, 12, 14, 25, 'Personnalisée');
   });
@@ -263,9 +263,9 @@ describe('getHourlySurchargeList', () => {
       customEndTime: 14,
     };
 
-    const rep = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
+    const result = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
 
-    expect(rep).toStrictEqual(
+    expect(result).toStrictEqual(
       [{ percentage: 10, startHour: '2022-06-01T20:00:00', endHour: '2022-06-01T22:00:00', name: 'Soirée' }]
     );
   });
@@ -286,9 +286,9 @@ describe('getHourlySurchargeList', () => {
       customEndTime: 14,
     };
 
-    const rep = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
+    const result = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
 
-    expect(rep).toStrictEqual(
+    expect(result).toStrictEqual(
       [{ percentage: 25, startHour: '2022-06-01T12:00:00', endHour: '2022-06-01T14:00:00', name: 'Personnalisée' }]
     );
   });
@@ -311,9 +311,9 @@ describe('getHourlySurchargeList', () => {
       customEndTime: 14,
     };
 
-    const rep = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
+    const result = SurchargesHelper.getHourlySurchargeList(start, end, surcharge);
 
-    expect(rep).toStrictEqual([
+    expect(result).toStrictEqual([
       { percentage: 10, startHour: '2022-06-01T20:00:00', endHour: '2022-06-01T22:00:00', name: 'Soirée' },
       { percentage: 25, startHour: '2022-06-01T12:00:00', endHour: '2022-06-01T14:00:00', name: 'Personnalisée' },
     ]);
@@ -335,18 +335,19 @@ describe('getDailySurcharge', () => {
     const start = moment('2022-06-17T12:00:00');
     const end = moment('2022-06-17T14:00:00');
 
-    const rep = SurchargesHelper.getDailySurcharge(start, end, surcharge);
+    const result = SurchargesHelper.getDailySurcharge(start, end, surcharge);
 
-    expect(rep).toBe(null);
+    expect(result).toBe(null);
   });
 
-  it('should return holiday surcharge if percentage is higher', () => {
-    const start = moment('2022-01-01T12:00:00');
+  it(`should return specific holiday surcharge (not public holiday surcharge) if percentage is higher than weekend
+    surcharge`, () => {
+    const start = moment('2022-01-01T12:00:00'); // it is a saturday
     const end = moment('2022-01-01T14:00:00');
 
-    const rep = SurchargesHelper.getDailySurcharge(start, end, surcharge);
+    const result = SurchargesHelper.getDailySurcharge(start, end, surcharge);
 
-    expect(rep).toStrictEqual({
+    expect(result).toStrictEqual({
       percentage: 90,
       name: '1er Janvier',
       startHour: start.toDate(),
@@ -354,7 +355,7 @@ describe('getDailySurcharge', () => {
     });
   });
 
-  it('should return weekend surcharge if percentage is higher', () => {
+  it('should return weekend surcharge if percentage is higher than public holiday surcharge', () => {
     const specificSurcharge = {
       name: 'Default',
       saturday: 100,
@@ -367,9 +368,9 @@ describe('getDailySurcharge', () => {
     const start = moment('2022-01-01T12:00:00');
     const end = moment('2022-01-01T14:00:00');
 
-    const rep = SurchargesHelper.getDailySurcharge(start, end, specificSurcharge);
+    const result = SurchargesHelper.getDailySurcharge(start, end, specificSurcharge);
 
-    expect(rep).toStrictEqual({
+    expect(result).toStrictEqual({
       percentage: 100,
       name: 'Samedi',
       startHour: start.toDate(),
@@ -390,9 +391,9 @@ describe('getDailySurcharge', () => {
     const start = moment('2021-01-01T12:00:00');
     const end = moment('2021-01-01T14:00:00');
 
-    const rep = SurchargesHelper.getDailySurcharge(start, end, specificSurcharge);
+    const result = SurchargesHelper.getDailySurcharge(start, end, specificSurcharge);
 
-    expect(rep).toStrictEqual({
+    expect(result).toStrictEqual({
       percentage: 0,
       name: '1er Janvier',
       startHour: start.toDate(),
@@ -404,7 +405,7 @@ describe('getDailySurcharge', () => {
     { key: 'twentyFifthOfDecember', date: '2019-12-25', label: '25th of december', name: '25 Décembre' },
     { key: 'firstOfMay', date: '2019-05-01', label: '1st of May', name: '1er Mai' },
     { key: 'firstOfJanuary', date: '2019-01-01', label: '1st of January', name: '1er Janvier' },
-    { key: 'publicHoliday', date: '2022-07-14', label: 'holiday', name: 'Jour férié' },
+    { key: 'publicHoliday', date: '2022-07-14', label: 'holiday', name: 'Jours fériés' },
     { key: 'saturday', date: '2019-08-17', label: 'saturday', name: 'Samedi' },
     { key: 'sunday', date: '2019-08-18', label: 'sunday', name: 'Dimanche' },
   ];
@@ -417,9 +418,9 @@ describe('getDailySurcharge', () => {
     };
 
     it(`should return one surcharge for ${dailySurcharge.label}`, () => {
-      const rep = SurchargesHelper.getDailySurcharge(event.startDate, event.endDate, specificSurcharge);
+      const result = SurchargesHelper.getDailySurcharge(event.startDate, event.endDate, specificSurcharge);
 
-      expect(rep).toEqual({
+      expect(result).toEqual({
         percentage: 35,
         name: dailySurcharge.name,
         startHour: event.startDate.toDate(),
@@ -436,9 +437,9 @@ describe('getDailySurcharge', () => {
     };
 
     it(`should return no surcharge for ${dailySurcharge.label}`, () => {
-      const rep = SurchargesHelper.getDailySurcharge(event.startDate, event.endDate, specificSurcharge);
+      const result = SurchargesHelper.getDailySurcharge(event.startDate, event.endDate, specificSurcharge);
 
-      expect(rep).toEqual(null);
+      expect(result).toEqual(null);
     });
   });
 });
@@ -478,9 +479,9 @@ describe('getEventSurcharges', () => {
     getHourlySurchargeList.returns([]);
     getDailySurcharge.returns(null);
 
-    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
+    const result = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
 
-    expect(rep).toStrictEqual([]);
+    expect(result).toStrictEqual([]);
   });
 
   it('should return hourlySurchargeList if no dailySurcharge but has hourlySurchargeList', () => {
@@ -488,9 +489,9 @@ describe('getEventSurcharges', () => {
     getHourlySurchargeList.returns([{ percentage: 10 }]);
     getDailySurcharge.returns(null);
 
-    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
+    const result = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
 
-    expect(rep).toStrictEqual([{ percentage: 10 }]);
+    expect(result).toStrictEqual([{ percentage: 10 }]);
   });
 
   it('should return surcharge info when daily is higher than hourly', () => {
@@ -498,9 +499,9 @@ describe('getEventSurcharges', () => {
     getHourlySurchargeList.returns([{ percentage: 10 }, { percentage: 15 }]);
     getDailySurcharge.returns({ percentage: 25 });
 
-    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
+    const result = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
 
-    expect(rep).toStrictEqual([{ percentage: 25 }]);
+    expect(result).toStrictEqual([{ percentage: 25 }]);
   });
 
   it('should return surcharge info with daily and hourly info', () => {
@@ -531,9 +532,9 @@ describe('getEventSurcharges', () => {
       }
     );
 
-    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
+    const result = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
 
-    expect(rep).toStrictEqual([
+    expect(result).toStrictEqual([
       {
         percentage: 25,
         startHour: moment('2022-06-06T10:00:00').toDate(),
@@ -572,8 +573,8 @@ describe('getEventSurcharges', () => {
     getHourlySurchargeList.returns([{ percentage: 0 }, { percentage: 0 }]);
     getDailySurcharge.returns({ percentage: 0, name: 'daily' });
 
-    const rep = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
+    const result = SurchargesHelper.getEventSurcharges(event, surchargeAllSet);
 
-    expect(rep).toStrictEqual([{ percentage: 0, name: 'daily' }]);
+    expect(result).toStrictEqual([{ percentage: 0, name: 'daily' }]);
   });
 });

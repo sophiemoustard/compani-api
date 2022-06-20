@@ -1,9 +1,17 @@
 const get = require('lodash/get');
-const momentRange = require('moment-range');
 const moment = require('../extensions/moment');
+const {
+  SURCHARGES,
+  EVENING,
+  CUSTOM,
+  TWENTY_FIFTH_OF_DECEMBER,
+  FIRST_OF_JANUARY,
+  FIRST_OF_MAY,
+  PUBLIC_HOLIDAY,
+  SATURDAY_LETTER,
+  SUNDAY_LETTER,
+} = require('./constants');
 const Surcharge = require('../models/Surcharge');
-
-momentRange.extendMoment(moment);
 
 exports.list = async credentials => Surcharge.find({ company: get(credentials, 'company._id') }).lean();
 
@@ -28,31 +36,32 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
   const eventRange = moment.range(eventStart, eventEnd);
 
   if (moment(formattedStart).isAfter(formattedEnd)) {
-    const firstSurchargeRange = moment.range(moment(eventStart).startOf('d'), formattedEnd);
-    const secondSurchargeRange = moment.range(formattedStart, moment(eventStart).endOf('d'));
-    const intersectionFirst = eventRange.intersect(firstSurchargeRange);
-    const intersectionSecond = eventRange.intersect(secondSurchargeRange);
+    const morningSurchargeRange = moment.range(moment(eventStart).startOf('d'), formattedEnd);
+    const eveningSurchargeRange = moment.range(formattedStart, moment(eventStart).endOf('d'));
+    const morningIntersection = eventRange.intersect(morningSurchargeRange);
+    const eveningIntersection = eventRange.intersect(eveningSurchargeRange);
 
-    const rep = [];
-    if (intersectionFirst) {
-      rep.push({
+    const intersectionList = [];
+    if (morningIntersection) {
+      intersectionList.push({
         percentage,
         name,
-        startHour: intersectionFirst.start.toDate(),
-        endHour: intersectionFirst.end.toDate(),
+        startHour: morningIntersection.start.toDate(),
+        endHour: morningIntersection.end.toDate(),
       });
     }
-    if (intersectionSecond) {
-      rep.push({
+    if (eveningIntersection) {
+      intersectionList.push({
         percentage,
         name,
-        startHour: intersectionSecond.start.toDate(),
-        endHour: intersectionSecond.end.toDate(),
+        startHour: eveningIntersection.start.toDate(),
+        endHour: eveningIntersection.end.toDate(),
       });
     }
 
-    return rep;
+    return intersectionList;
   }
+
   const surchargeRange = moment.range(formattedStart, formattedEnd);
   const intersection = eventRange.intersect(surchargeRange);
 
@@ -66,12 +75,12 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
 exports.getHourlySurchargeList = (start, end, surcharge) => {
   const { evening, eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime } = surcharge;
   const hourlySurchargeList = [];
-
-  const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening, 'Soirée');
+  const eveningSurcharge = exports
+    .getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening, SURCHARGES[EVENING]);
   if (eveningSurcharge.length) hourlySurchargeList.push(...eveningSurcharge);
 
   const customSurcharge =
-    exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom, 'Personnalisée');
+    exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom, SURCHARGES[CUSTOM]);
   if (customSurcharge.length) hourlySurchargeList.push(...customSurcharge);
 
   return hourlySurchargeList;
@@ -79,15 +88,23 @@ exports.getHourlySurchargeList = (start, end, surcharge) => {
 
 // Order matters : we stop to test condition as soon as we found one true
 const holidaySurchargeConditionList = [
-  { key: 'twentyFifthOfDecember', condition: start => start.format('DD/MM') === '25/12', name: '25 Décembre' },
-  { key: 'firstOfMay', condition: start => start.format('DD/MM') === '01/05', name: '1er Mai' },
-  { key: 'firstOfJanuary', condition: start => start.format('DD/MM') === '01/01', name: '1er Janvier' },
-  { key: 'publicHoliday', condition: start => moment(start).startOf('d').isHoliday(), name: 'Jour férié' },
+  {
+    key: 'twentyFifthOfDecember',
+    condition: start => start.format('DD/MM') === '25/12',
+    name: SURCHARGES[TWENTY_FIFTH_OF_DECEMBER],
+  },
+  { key: 'firstOfMay', condition: start => start.format('DD/MM') === '01/05', name: SURCHARGES[FIRST_OF_MAY] },
+  { key: 'firstOfJanuary', condition: start => start.format('DD/MM') === '01/01', name: SURCHARGES[FIRST_OF_JANUARY] },
+  {
+    key: 'publicHoliday',
+    condition: start => moment(start).startOf('d').isHoliday(),
+    name: SURCHARGES[PUBLIC_HOLIDAY],
+  },
 ];
 
 const weekEndSurchargeConditionList = [
-  { key: 'saturday', condition: start => start.isoWeekday() === 6, name: 'Samedi' },
-  { key: 'sunday', condition: start => start.isoWeekday() === 7, name: 'Dimanche' },
+  { key: 'saturday', condition: start => start.isoWeekday() === 6, name: SURCHARGES[SATURDAY_LETTER] },
+  { key: 'sunday', condition: start => start.isoWeekday() === 7, name: SURCHARGES[SUNDAY_LETTER] },
 ];
 
 exports.getDailySurcharge = (start, end, surcharge) => {
@@ -124,11 +141,11 @@ exports.getEventSurcharges = (event, surcharge) => {
   if (!dailySurcharge) return hourlySurchargeList;
 
   const surchargeList = [dailySurcharge];
-  const hourlySurchargeToAddList = [];
+  const relevantHourlySurchargeList = [];
   for (const hourlySurcharge of hourlySurchargeList) {
     if (hourlySurcharge.percentage <= dailySurcharge.percentage) continue;
 
-    const surchargePartToAdd = [];
+    const dailySurchargePartToAdd = [];
     for (const [index, dailySurchargePart] of surchargeList.entries()) {
       const hourlySurchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
       const dailySurchargeRange = moment.range(dailySurchargePart.startHour, dailySurchargePart.endHour);
@@ -140,20 +157,20 @@ exports.getEventSurcharges = (event, surcharge) => {
 
       if (dailySurchargeIntervalList.length) {
         surchargeList.splice(index, 1);
-        hourlySurchargeToAddList.push(hourlySurcharge);
+        relevantHourlySurchargeList.push(hourlySurcharge);
       }
 
       for (const dailySurchargeInterval of dailySurchargeIntervalList) {
-        surchargePartToAdd.push({
+        dailySurchargePartToAdd.push({
           ...dailySurchargePart,
           startHour: dailySurchargeInterval.start.toDate(),
           endHour: dailySurchargeInterval.end.toDate(),
         });
       }
     }
-    surchargeList.push(...surchargePartToAdd);
+    surchargeList.push(...dailySurchargePartToAdd);
   }
 
-  surchargeList.push(...hourlySurchargeToAddList);
+  surchargeList.push(...relevantHourlySurchargeList);
   return surchargeList;
 };
