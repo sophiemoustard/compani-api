@@ -74,37 +74,34 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
 
 exports.getHourlySurchargeList = (start, end, surcharge) => {
   const { evening, eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime } = surcharge;
-  const hourlySurchargeList = [];
   const eveningSurcharge = exports
     .getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening, SURCHARGES[EVENING]);
-  if (eveningSurcharge.length) hourlySurchargeList.push(...eveningSurcharge);
 
   const customSurcharge =
     exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom, SURCHARGES[CUSTOM]);
-  if (customSurcharge.length) hourlySurchargeList.push(...customSurcharge);
 
-  return hourlySurchargeList;
+  return [...eveningSurcharge, ...customSurcharge];
 };
 
 // Order matters : we stop to test condition as soon as we found one true
 const holidaySurchargeConditionList = [
   {
-    key: 'twentyFifthOfDecember',
+    key: TWENTY_FIFTH_OF_DECEMBER,
     condition: start => start.format('DD/MM') === '25/12',
     name: SURCHARGES[TWENTY_FIFTH_OF_DECEMBER],
   },
-  { key: 'firstOfMay', condition: start => start.format('DD/MM') === '01/05', name: SURCHARGES[FIRST_OF_MAY] },
-  { key: 'firstOfJanuary', condition: start => start.format('DD/MM') === '01/01', name: SURCHARGES[FIRST_OF_JANUARY] },
+  { key: FIRST_OF_MAY, condition: start => start.format('DD/MM') === '01/05', name: SURCHARGES[FIRST_OF_MAY] },
+  { key: FIRST_OF_JANUARY, condition: start => start.format('DD/MM') === '01/01', name: SURCHARGES[FIRST_OF_JANUARY] },
   {
-    key: 'publicHoliday',
+    key: PUBLIC_HOLIDAY,
     condition: start => moment(start).startOf('d').isHoliday(),
     name: SURCHARGES[PUBLIC_HOLIDAY],
   },
 ];
 
 const weekEndSurchargeConditionList = [
-  { key: 'saturday', condition: start => start.isoWeekday() === 6, name: SURCHARGES[SATURDAY_LETTER] },
-  { key: 'sunday', condition: start => start.isoWeekday() === 7, name: SURCHARGES[SUNDAY_LETTER] },
+  { key: SATURDAY_LETTER, condition: start => start.isoWeekday() === 6, name: SURCHARGES[SATURDAY_LETTER] },
+  { key: SUNDAY_LETTER, condition: start => start.isoWeekday() === 7, name: SURCHARGES[SUNDAY_LETTER] },
 ];
 
 exports.getDailySurcharge = (start, end, surcharge) => {
@@ -148,12 +145,12 @@ exports.getEventSurcharges = (event, surcharge) => {
     const dailySurchargePartToAdd = [];
     for (const [index, dailySurchargePart] of surchargeList.entries()) {
       const hourlySurchargeRange = moment.range(hourlySurcharge.startHour, hourlySurcharge.endHour);
-      const dailySurchargeRange = moment.range(dailySurchargePart.startHour, dailySurchargePart.endHour);
+      const dailySurchargePartRange = moment.range(dailySurchargePart.startHour, dailySurchargePart.endHour);
 
-      const intersection = dailySurchargeRange.intersect(hourlySurchargeRange);
+      const intersection = dailySurchargePartRange.intersect(hourlySurchargeRange);
       if (!intersection) continue;
 
-      const dailySurchargeIntervalList = dailySurchargeRange.subtract(hourlySurchargeRange);
+      const dailySurchargeIntervalList = dailySurchargePartRange.subtract(hourlySurchargeRange);
 
       if (dailySurchargeIntervalList.length) {
         surchargeList.splice(index, 1);
@@ -168,6 +165,7 @@ exports.getEventSurcharges = (event, surcharge) => {
         });
       }
     }
+
     surchargeList.push(...dailySurchargePartToAdd);
   }
 
