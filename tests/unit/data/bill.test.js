@@ -39,7 +39,10 @@ describe('getPdfContent', () => {
         startTime: '12:00',
         endTime: '14:00',
         service: 'Temps de qualité - autonomie',
-        surcharges: [{ _id: '608053dd562eab001560c2b6', percentage: 25, name: 'Dimanche' }],
+        surcharges: [
+          { _id: '608053dd562eab001560c2b6', percentage: 25, name: 'Dimanche' },
+          { _id: 'tuVasPayerPlusCher', percentage: 30, name: 'Midi' },
+        ],
       },
     ];
     const data = {
@@ -205,7 +208,7 @@ describe('getPdfContent', () => {
                 { text: '12:00' },
                 { text: '14:00' },
                 { text: 'Temps de qualité - autonomie' },
-                { stack: [{ text: '+ 25% (Dimanche)' }] },
+                { stack: [{ text: '+ 25% (Dimanche)' }, { text: '+ 30% (Midi)' }] },
               ],
             ],
             widths: ['auto', 'auto', 'auto', 'auto', '*', '*'],
