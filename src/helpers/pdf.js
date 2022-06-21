@@ -51,7 +51,9 @@ const fonts = {
 };
 
 exports.generatePdf = async (template) => {
+  console.log('before');
   const printer = new PdfPrinter(fonts);
+  console.log('after');
   const doc = printer.createPdfKitDocument(template);
   doc.end();
   const pdf = await getStream.buffer(doc);
