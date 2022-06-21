@@ -7,17 +7,25 @@ const CourseBillingItem = require('../../models/CourseBillingItem');
 const CourseFundingOrganisation = require('../../models/CourseFundingOrganisation');
 const UtilsHelper = require('../../helpers/utils');
 const translate = require('../../helpers/translate');
-const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, BALANCE } = require('../../helpers/constants');
+const { TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN, BALANCE, INTRA, INTER_B2B } = require('../../helpers/constants');
 
 const { language } = translate;
 
 exports.authorizeCourseBillCreation = async (req) => {
-  const { course, company: companyId, payer } = req.payload;
+  const { course: courseId, company: companyId, payer } = req.payload;
   const companyExists = await Company.countDocuments({ _id: companyId }, { limit: 1 });
   if (!companyExists) throw Boom.notFound();
 
-  const courseExists = await Course.countDocuments({ _id: course, company: companyId }, { limit: 1 });
-  if (!courseExists) throw Boom.notFound();
+  const course = await Course
+    .findOne({ _id: courseId })
+    .populate({ path: 'trainees', select: '_id company', populate: { path: 'company' } })
+    .lean();
+  if (!course) throw Boom.notFound();
+  if (course.type === INTRA && !UtilsHelper.areObjectIdsEquals(course.company, companyId)) throw Boom.notFound();
+  if (course.type === INTER_B2B &&
+    !course.trainees.find(trainee => UtilsHelper.areObjectIdsEquals(companyId, trainee.company))) {
+    throw Boom.notFound();
+  }
 
   if (payer) {
     if (payer.fundingOrganisation) {
