@@ -495,8 +495,8 @@ const formatLines = (surchargedPlanDetails, planName) => {
   if (surcharges.length === 0) return null;
 
   const lines = [planName];
-  for (const [surchageKey, surcharge] of surcharges) {
-    lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, `
+  for (const [surchargeKey, surcharge] of surcharges) {
+    lines.push(`${SURCHARGES[surchargeKey]}, ${surcharge.percentage}%, `
       + `${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
   }
 
