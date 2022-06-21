@@ -41,7 +41,7 @@ describe('getPdfContent', () => {
         service: 'Temps de qualité - autonomie',
         surcharges: [
           { _id: '608053dd562eab001560c2b6', percentage: 25, name: 'Dimanche' },
-          { _id: 'tuVasPayerPlusCher', percentage: 30, name: 'Midi' },
+          { _id: '9876543234567899876534j3', percentage: 30, name: 'Midi' },
         ],
       },
     ];
