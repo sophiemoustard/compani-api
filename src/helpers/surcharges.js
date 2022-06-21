@@ -150,13 +150,10 @@ exports.getEventSurcharges = (event, surcharge) => {
       const intersection = dailySurchargePartRange.intersect(hourlySurchargeRange);
       if (!intersection) continue;
 
+      surchargeList.splice(index, 1);
+      relevantHourlySurchargeList.push(hourlySurcharge);
+
       const dailySurchargeIntervalList = dailySurchargePartRange.subtract(hourlySurchargeRange);
-
-      if (dailySurchargeIntervalList.length) {
-        surchargeList.splice(index, 1);
-        relevantHourlySurchargeList.push(hourlySurcharge);
-      }
-
       for (const dailySurchargeInterval of dailySurchargeIntervalList) {
         dailySurchargePartToAdd.push({
           ...dailySurchargePart,
