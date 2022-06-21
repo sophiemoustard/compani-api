@@ -74,16 +74,17 @@ exports.getEventTableContent = (event, displaySurcharge) => {
   ];
 
   if (displaySurcharge) {
+    const surchargesText = [];
     if (get(event, 'surcharges.length')) {
       event.surcharges.forEach((surcharge) => {
         const { percentage, name, startHour, endHour } = surcharge;
-        row.push({ stack: [{ text: `+ ${percentage}% (${name}${startHour ? ` ${startHour} - ${endHour}` : ''})` }] });
+        surchargesText.push({ text: `+ ${percentage}% (${name}${startHour ? ` ${startHour} - ${endHour}` : ''})` });
       });
+      row.push({ stack: surchargesText });
     } else {
       row.push({ text: '' });
     }
   }
-
   return row;
 };
 

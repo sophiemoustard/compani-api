@@ -194,15 +194,26 @@ module.exports = {
       [this.REFUND]: 'Remboursement',
     };
   },
-  SURCHARGES: {
-    saturday: 'Samedi',
-    sunday: 'Dimanche',
-    publicHoliday: 'Jours fériés',
-    twentyFifthOfDecember: '25 décembre',
-    firstOfMay: '1er mai',
-    firstOfJanuary: '1er janvier',
-    evening: 'Soirée',
-    custom: 'Personnalisée',
+  // SURCHARGES
+  PUBLIC_HOLIDAY: 'publicHoliday',
+  TWENTY_FIFTH_OF_DECEMBER: 'twentyFifthOfDecember',
+  FIRST_OF_MAY: 'firstOfMay',
+  FIRST_OF_JANUARY: 'firstOfJanuary',
+  EVENING: 'evening',
+  CUSTOM: 'custom',
+  SATURDAY_LETTER: 'saturday',
+  SUNDAY_LETTER: 'sunday',
+  get SURCHARGES() {
+    return {
+      [this.SATURDAY_LETTER]: 'Samedi',
+      [this.SUNDAY_LETTER]: 'Dimanche',
+      [this.PUBLIC_HOLIDAY]: 'Jours fériés',
+      [this.TWENTY_FIFTH_OF_DECEMBER]: '25 Décembre',
+      [this.FIRST_OF_MAY]: '1er Mai',
+      [this.FIRST_OF_JANUARY]: '1er Janvier',
+      [this.EVENING]: 'Soirée',
+      [this.CUSTOM]: 'Personnalisée',
+    };
   },
   // CANCELLATION OPTIONS
   INVOICED_AND_PAID: 'invoiced_and_paid',
