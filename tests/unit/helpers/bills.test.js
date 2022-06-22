@@ -2196,7 +2196,7 @@ describe('formatAndCreateBill', () => {
         number: 'FACT-101092100001',
         date: '2021-09-01',
         customer: payload.customer,
-        netInclTaxes: '50',
+        netInclTaxes: 50,
         type: 'manual',
         billingItemList: [{ inclTaxes: '180' }, { inclTaxes: '150' }],
         company: companyId,

@@ -127,7 +127,7 @@ exports.getFullTitleFromIdentity = (identity) => {
 
 exports.formatFloatForExport = (number, decimals = 2) => {
   if (number == null || Number.isNaN(number) || number === '') return '';
-  return number.toFixed(decimals).replace('.', ',');
+  return parseFloat(number).toFixed(decimals).replace('.', ',');
 };
 
 exports.formatArrayOrStringQueryParam = (param, keyName) =>
