@@ -8,6 +8,7 @@ const Boom = require('@hapi/boom');
 const UtilsMock = require('../../utilsMock');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
+const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
 const User = require('../../../src/models/User');
 const CourseHistory = require('../../../src/models/CourseHistory');
@@ -23,7 +24,7 @@ const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
 const NotificationHelper = require('../../../src/helpers/notifications');
-const { COURSE_SMS, BLENDED, DRAFT, E_LEARNING, ON_SITE, MOBILE } = require('../../../src/helpers/constants');
+const { COURSE_SMS, BLENDED, DRAFT, E_LEARNING, ON_SITE, MOBILE, REMOTE } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
@@ -34,30 +35,55 @@ const CompletionCertificate = require('../../../src/data/pdf/completionCertifica
 
 describe('createCourse', () => {
   let save;
+  let findOneSubProgram;
+  let insertManyCourseSlot;
   beforeEach(() => {
     save = sinon.stub(Course.prototype, 'save').returnsThis();
+    findOneSubProgram = sinon.stub(SubProgram, 'findOne');
+    insertManyCourseSlot = sinon.stub(CourseSlot, 'insertMany');
   });
   afterEach(() => {
     save.restore();
+    findOneSubProgram.restore();
+    insertManyCourseSlot.restore();
   });
 
   it('should create an intra course', async () => {
-    const newCourse = {
+    const steps = [
+      { _id: new ObjectId(), type: ON_SITE },
+      { _id: new ObjectId(), type: REMOTE },
+      { _id: new ObjectId(), type: E_LEARNING },
+    ];
+    const subProgram = { _id: new ObjectId(), steps };
+    const payload = {
       misc: 'name',
       company: new ObjectId(),
-      subProgram: new ObjectId(),
+      subProgram: subProgram._id,
       type: 'intra',
       salesRepresentative: new ObjectId(),
     };
 
-    const result = await CourseHelper.createCourse(newCourse);
+    findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+
+    const result = await CourseHelper.createCourse(payload);
+
+    const slots = [{ course: result._id, step: steps[0]._id }, { course: result._id, step: steps[1]._id }];
 
     expect(result.misc).toEqual('name');
-    expect(result.subProgram).toEqual(newCourse.subProgram);
-    expect(result.company).toEqual(newCourse.company);
+    expect(result.subProgram).toEqual(payload.subProgram);
+    expect(result.company).toEqual(payload.company);
     expect(result.format).toEqual('blended');
     expect(result.type).toEqual('intra');
-    expect(result.salesRepresentative).toEqual(newCourse.salesRepresentative);
+    expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.calledOnceWithExactly(insertManyCourseSlot, slots);
+    SinonMongoose.calledOnceWithExactly(
+      findOneSubProgram,
+      [
+        { query: 'findOne', args: [{ _id: subProgram._id }, { steps: 1 }] },
+        { query: 'populate', args: [{ path: 'steps', select: '_id type' }] },
+        { query: 'lean' },
+      ]
+    );
   });
 });
 
