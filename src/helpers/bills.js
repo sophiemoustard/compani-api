@@ -309,7 +309,7 @@ exports.formatAndCreateBill = async (payload, credentials) => {
 
   const bill = {
     ...payload,
-    netInclTaxes,
+    netInclTaxes: NumbersHelper.toFixedToFloat(netInclTaxes),
     type: MANUAL,
     number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq),
     billingItemList: billingItemList.map(bi => exports.formatBillingItem(bi, bddBillingItemList)),
