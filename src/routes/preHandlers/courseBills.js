@@ -17,7 +17,7 @@ exports.authorizeCourseBillCreation = async (req) => {
   if (!companyExists) throw Boom.notFound();
 
   const course = await Course
-    .findOne({ _id: courseId })
+    .findOne({ _id: courseId }, { type: 1, trainees: 1, company: 1 })
     .populate({ path: 'trainees', select: '_id company', populate: { path: 'company' } })
     .lean();
   if (!course) throw Boom.notFound();

@@ -324,26 +324,12 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(count).toBe(courseBillsList.length + 1);
     });
 
-    it('should create a course bill with fundingOrganisation as payer (inter b2b)', async () => {
+    it('should create a course bill (inter b2b)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { ...payload, course: courseList[9]._id },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const count = await CourseBill.countDocuments();
-      expect(count).toBe(courseBillsList.length + 1);
-    });
-
-    it('should create a course bill with company as payer (inter b2b)', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: '/coursebills',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-        payload: { ...payload, course: courseList[9]._id, payer: { company: otherCompany._id } },
       });
 
       expect(response.statusCode).toBe(200);
