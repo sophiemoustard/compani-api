@@ -8,7 +8,7 @@ const CourseSlotSchema = mongoose.Schema({
   endDate: { type: Date, required() { return !!this.startDate; } },
   address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false, id: false }) },
   meetingLink: { type: String, trim: true },
-  step: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required() { return !!this.startDate; } },
+  step: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required: true },
 }, { timestamps: true });
 
 formatQueryMiddlewareList().map(middleware => CourseSlotSchema.pre(middleware, formatQuery));

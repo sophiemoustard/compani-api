@@ -10,6 +10,7 @@ const pick = require('lodash/pick');
 const get = require('lodash/get');
 const app = require('../../server');
 const Course = require('../../src/models/Course');
+const CourseSlot = require('../../src/models/CourseSlot');
 const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
@@ -240,7 +241,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(12);
+      expect(response.result.data.courses.length).toEqual(13);
     });
 
     it('should get strictly e-learning courses', async () => {
@@ -275,7 +276,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(6);
+      expect(response.result.data.courses.length).toEqual(7);
     });
 
     it('should get courses for a specific company', async () => {
@@ -1168,6 +1169,22 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       expect(courseCount).toBe(0);
     });
 
+    it('should delete course with slots to plan', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[16]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const courseCount = await Course.countDocuments({ _id: coursesList[16]._id });
+      expect(courseCount).toBe(0);
+      const slotsCount = await CourseSlot.countDocuments({ course: coursesList[16]._id });
+      expect(slotsCount).toBe(0);
+      const historiesCount = await CourseHistory.countDocuments({ course: coursesList[16]._id });
+      expect(historiesCount).toBe(0);
+    });
+
     it('should return 404 if course does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
@@ -1182,16 +1199,6 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${coursesList[4]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 as course has slots to plan', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[7]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
