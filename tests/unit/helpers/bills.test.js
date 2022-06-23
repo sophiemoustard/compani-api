@@ -2538,7 +2538,6 @@ describe('formatBillDetailsForPdf', () => {
 
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
   });
-
   it('should return formatted details if service.nature is fixed', () => {
     const bill = {
       netInclTaxes: 50,
@@ -2604,6 +2603,75 @@ describe('formatBillDetailsForPdf', () => {
 
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
     sinon.assert.notCalled(formatHour);
+  });
+  it('should return formatted details if service.nature is hourly and funding is fixed', () => {
+    const subscriptionId = new ObjectId();
+    const tppId = new ObjectId();
+    const bill = {
+      netInclTaxes: 50,
+      forTpp: true,
+      customer: {
+        _id: new ObjectId(),
+        identity: { title: 'mrs', firstname: 'Super', lastname: 'Test' },
+        fundings: [
+          {
+            nature: 'fixed',
+            subscription: subscriptionId,
+            thirdPartyPayer: tppId,
+            frequency: 'once',
+            _id: new ObjectId(),
+          },
+        ],
+      },
+      thirdPartyPayer: {
+        _id: tppId,
+        address: {
+          street: '21 Avenue du Général de Gaulle',
+          fullAddress: '21 Avenue du Général de Gaulle 94000 Créteil',
+          zipCode: '94000',
+          city: 'Créteil',
+        },
+        name: 'Conseil Départemental du Val de Marne - APA- Direction de l\'autonomie',
+        isUsedInFundings: true,
+      },
+      subscriptions: [{
+        _id: subscriptionId,
+        unitInclTaxes: 22,
+        vat: 5.5,
+        service: { name: 'Temps de qualité - autonomie ', nature: 'hourly' },
+        hours: 15,
+        exclTaxes: 312.8,
+        inclTaxes: 330,
+        discount: 0,
+        events: [{
+          _id: new ObjectId(),
+          startDate: '2019-09-15T05:00:00.000+00:00',
+          endDate: '2019-09-15T07:00:00.000+00:00',
+          surcharges: [{ _id: new ObjectId(), percentage: 25, name: 'Dimanche' }],
+        }],
+      }],
+    };
+
+    getUnitInclTaxes.returns('22');
+    formatHour.returns('15,00 h');
+    computeSurcharge.returns(0);
+    formatPrice.onCall(0).returns('50,00 €');
+    formatPrice.onCall(1).returns('2,61 €');
+    computeExclTaxesWithDiscount.returns(312.8);
+
+    const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
+
+    expect(formattedBillDetails).toEqual({
+      formattedDetails: [
+        { unitInclTaxes: '22', vat: 5.5, name: 'Temps de qualité - autonomie ', volume: '15,00 h', total: '50' },
+      ],
+      totalExclTaxes: '50,00 €',
+      totalVAT: '2,61 €',
+    });
+
+    sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
+    sinon.assert.calledOnceWithExactly(formatHour, 15);
+    sinon.assert.calledOnceWithExactly(computeExclTaxesWithDiscount, 312.8, 0, 5.5);
   });
 });
 
