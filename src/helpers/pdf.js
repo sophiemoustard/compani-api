@@ -1,5 +1,6 @@
 const moment = require('moment');
 const fs = require('fs');
+const path = require('path');
 const util = require('util');
 const PdfPrinter = require('pdfmake');
 const getStream = require('get-stream');
@@ -34,24 +35,28 @@ exports.formatTable = (items, options) => {
   return out;
 };
 
-const fonts = {
-  Avenir: {
-    normal: 'src/data/pdf/fonts/Avenir-Regular.otf',
-    bold: 'src/data/pdf/fonts/Avenir-Bold.otf',
-    italics: 'src/data/pdf/fonts/Avenir-Italic.otf',
-  },
-  Calibri: {
-    normal: 'src/data/pdf/fonts/Calibri-Regular.ttf',
-    bold: 'src/data/pdf/fonts/Calibri-Bold.TTF',
-    italics: 'src/data/pdf/fonts/Calibri-Italic.ttf',
-  },
-  icon: {
-    normal: 'src/data/pdf/fonts/icon.ttf',
-  },
+const fonts = () => {
+  const fontAbsolutePath = path.resolve(__dirname, '../data/pdf/fonts');
+
+  return {
+    Avenir: {
+      normal: `${fontAbsolutePath}/Avenir-Regular.otf`,
+      bold: `${fontAbsolutePath}/Avenir-Bold.otf`,
+      italics: `${fontAbsolutePath}/Avenir-Italic.otf`,
+    },
+    Calibri: {
+      normal: `${fontAbsolutePath}/Calibri-Regular.ttf`,
+      bold: `${fontAbsolutePath}/Calibri-Bold.TTF`,
+      italics: `${fontAbsolutePath}/Calibri-Italic.ttf`,
+    },
+    icon: {
+      normal: `${fontAbsolutePath}/icon.ttf`,
+    },
+  };
 };
 
 exports.generatePdf = async (template) => {
-  const printer = new PdfPrinter(fonts);
+  const printer = new PdfPrinter(fonts());
   const doc = printer.createPdfKitDocument(template);
   doc.end();
   const pdf = await getStream.buffer(doc);
