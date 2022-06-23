@@ -60,7 +60,7 @@ exports.createCourse = async (payload) => {
     .filter(step => [ON_SITE, REMOTE].includes(step.type))
     .map(step => ({ course: course._id, step: step._id }));
 
-  await CourseSlot.insertMany(slots);
+  if (slots.length) await CourseSlot.insertMany(slots);
 
   return course;
 };
