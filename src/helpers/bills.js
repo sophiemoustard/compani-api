@@ -14,9 +14,17 @@ const DatesHelper = require('./dates');
 const NumbersHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL, ROUNDING_ERROR, FIXED } = require('./constants');
+const {
+  HOURLY,
+  THIRD_PARTY,
+  CIVILITY_LIST,
+  COMPANI,
+  AUTOMATIC,
+  MANUAL,
+  ROUNDING_ERROR,
+  FIXED,
+} = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
-const { db } = require('../models/Event');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -380,7 +388,7 @@ exports.computeSurcharge = (subscription) => {
   return totalSurcharge;
 };
 
-exports.formatBillDetailsForPdf = async (bill) => {
+exports.formatBillDetailsForPdf = (bill) => {
   let totalExclTaxes = NumbersHelper.toString(0);
   let totalDiscount = NumbersHelper.toString(0);
   let totalSurcharge = NumbersHelper.toString(0);
@@ -394,33 +402,24 @@ exports.formatBillDetailsForPdf = async (bill) => {
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
 
     let total = 0;
-    const customerFundings = get(bill, 'customer.fundings');
+    const customerFundings = get(bill, 'customer.fundings') || [];
 
-    for (const customerFunding of customerFundings) {
-      console.log('customerFunding:', customerFunding);
-      if (customerFunding.nature === FIXED) {
-        const lastFundingHistory = await db.collection('fundinghistories').findOne({ fundingId: customerFunding._id });
-
-        console.log('last: ', lastFundingHistory);
-        console.log(NumbersHelper.isLessThan(bill.netInclTaxes, lastFundingHistory.amountTTC));
-        console.log('bils.net', bill.netInclTaxes);
-        console.log(lastFundingHistory.amountTTC);
-        if (NumbersHelper.isLessThan(bill.netInclTaxes, lastFundingHistory.amountTTC)) {
-          total = bill.netInclTaxes;
-        } else {
-          total = lastFundingHistory.amountTTC;
-        }
-      } else {
-        total = NumbersHelper.multiply(volume, unitInclTaxes);
+    if (customerFundings.length) {
+      for (const customerFunding of customerFundings) {
+        if (bill.thirdPartyPayer && customerFunding.nature === FIXED) total = NumbersHelper.toString(bill.netInclTaxes);
+        else total = NumbersHelper.multiply(volume, unitInclTaxes);
       }
-      formattedDetails.push({
-        unitInclTaxes,
-        vat: sub.vat || 0,
-        name: sub.service.name,
-        volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
-        total,
-      });
+    } else {
+      total = NumbersHelper.multiply(volume, unitInclTaxes);
     }
+
+    formattedDetails.push({
+      unitInclTaxes,
+      vat: sub.vat || 0,
+      name: sub.service.name,
+      volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
+      total,
+    });
 
     totalSubscription = NumbersHelper.add(totalSubscription, total);
     totalSurcharge = NumbersHelper.add(totalSurcharge, exports.computeSurcharge(sub));
@@ -456,8 +455,6 @@ exports.formatBillDetailsForPdf = async (bill) => {
     formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
   }
 
-  console.log('---- formattedDetails', formattedDetails);
-
   return {
     totalExclTaxes: UtilsHelper.formatPrice(totalExclTaxes),
     totalVAT: UtilsHelper.formatPrice(NumbersHelper.subtract(bill.netInclTaxes, totalExclTaxes)),
@@ -486,10 +483,7 @@ exports.formatEventsForPdf = (events, service) => {
   return formattedEvents;
 };
 
-exports.formatPdf = async (bill, company) => {
-  const res = await exports.formatBillDetailsForPdf(bill);
-  console.log('ici: ', res);
-
+exports.formatPdf = (bill, company) => {
   const computedData = {
     netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
     date: moment(bill.date).format('DD/MM/YYYY'),
@@ -503,15 +497,13 @@ exports.formatPdf = async (bill, company) => {
         : UtilsHelper.formatIdentity(bill.customer.identity, 'TFL'),
     },
     forTpp: !!bill.thirdPartyPayer,
-    ...res,
+    ...exports.formatBillDetailsForPdf(bill),
   };
 
   for (const sub of bill.subscriptions) {
     const formattedEvents = exports.formatEventsForPdf(sub.events, sub.service);
     computedData.formattedEvents.push(...formattedEvents);
   }
-
-  console.log('--------- computedData', computedData);
 
   return {
     bill: {
@@ -540,8 +532,7 @@ exports.generateBillPdf = async (params, credentials) => {
       { rcs: 1, rna: 1, address: 1, logo: 1, name: 1, 'customersConfig.billFooter': 1 }
     )
     .lean();
-  const data = await exports.formatPdf(bill, company);
-  console.log('data', data);
+  const data = exports.formatPdf(bill, company);
   const template = await BillPdf.getPdfContent(data);
   const pdf = await PdfHelper.generatePdf(template);
 
