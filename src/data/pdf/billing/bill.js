@@ -16,7 +16,6 @@ exports.getPdfContent = async (data) => {
     ],
   ];
 
-  console.log('------ bill ------', bill.formattedDetails);
   bill.formattedDetails.forEach((detail) => {
     billDetailsTableBody.push(
       [
