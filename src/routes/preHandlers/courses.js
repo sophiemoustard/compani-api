@@ -164,7 +164,7 @@ exports.authorizeCourseDeletion = async (req) => {
   if (!course) return Boom.notFound();
 
   if (course.trainees.length) return Boom.forbidden(translate[language].courseDeletionForbidden.trainees);
-  if (course.slots.length || course.slotsToPlan.length) {
+  if (course.slots.length) {
     return Boom.forbidden(translate[language].courseDeletionForbidden.slots);
   }
 

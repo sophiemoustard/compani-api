@@ -10,6 +10,8 @@ const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const Attendance = require('../../../src/models/Attendance');
 const User = require('../../../src/models/User');
+const CourseHistory = require('../../../src/models/CourseHistory');
+const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
 const Drive = require('../../../src/models/Google/Drive');
 const Questionnaire = require('../../../src/models/Questionnaire');
@@ -1614,15 +1616,21 @@ describe('deleteCourse', () => {
   let deleteCourse;
   let deleteCourseBill;
   let deleteCourseSmsHistory;
+  let deleteCourseHistory;
+  let deleteCourseSlot;
   beforeEach(() => {
     deleteCourse = sinon.stub(Course, 'deleteOne');
     deleteCourseBill = sinon.stub(CourseBill, 'deleteMany');
     deleteCourseSmsHistory = sinon.stub(CourseSmsHistory, 'deleteMany');
+    deleteCourseHistory = sinon.stub(CourseHistory, 'deleteMany');
+    deleteCourseSlot = sinon.stub(CourseSlot, 'deleteMany');
   });
   afterEach(() => {
     deleteCourse.restore();
     deleteCourseBill.restore();
     deleteCourseSmsHistory.restore();
+    deleteCourseHistory.restore();
+    deleteCourseSlot.restore();
   });
 
   it('should delete course and sms history', async () => {
@@ -1635,6 +1643,8 @@ describe('deleteCourse', () => {
       { course: courseId, $or: [{ billedAt: { $exists: false } }, { billedAt: { $not: { $type: 'date' } } }] }
     );
     sinon.assert.calledOnceWithExactly(deleteCourseSmsHistory, { course: courseId });
+    sinon.assert.calledOnceWithExactly(deleteCourseHistory, { course: courseId });
+    sinon.assert.calledOnceWithExactly(deleteCourseSlot, { course: courseId });
   });
 });
 
