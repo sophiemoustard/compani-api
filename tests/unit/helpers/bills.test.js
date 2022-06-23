@@ -2482,6 +2482,7 @@ describe('formatBillDetailsForPdf', () => {
 
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
   });
+
   it('should return formatted details if service.nature is fixed', () => {
     const bill = {
       netInclTaxes: 50,
@@ -2548,6 +2549,7 @@ describe('formatBillDetailsForPdf', () => {
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
     sinon.assert.notCalled(formatHour);
   });
+
   it('should return formatted details if service.nature is hourly and funding is fixed', () => {
     const subscriptionId = new ObjectId();
     const tppId = new ObjectId();
