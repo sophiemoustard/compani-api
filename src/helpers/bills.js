@@ -393,6 +393,7 @@ exports.formatBillDetailsForPdf = (bill) => {
   let totalDiscount = NumbersHelper.toString(0);
   let totalSurcharge = NumbersHelper.toString(0);
   let totalSubscription = NumbersHelper.toString(0);
+
   const formattedDetails = [];
   for (const sub of bill.subscriptions) {
     const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
