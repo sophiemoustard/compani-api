@@ -229,3 +229,14 @@ exports.formatEventBasedOnRepetition = async (repetition, date) => {
 
   return newEvent;
 };
+
+exports.list = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+
+  const repetitions = await Repetition
+    .find({ auxiliary: query.auxiliary, company: companyId })
+    .populate({ path: 'customer', select: 'identity' })
+    .lean();
+
+  return repetitions;
+};

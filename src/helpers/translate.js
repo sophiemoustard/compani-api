@@ -166,6 +166,8 @@ module.exports = {
     timeStampCancelledEvent: 'Can\'t timestamp a cancelled event.',
     /* Repetitions */
     invalidRepetition: 'Forbidden action : Invalid repetition.',
+    repetitionNotFound: 'Repetition not found.',
+    repetitionsFound: 'Repetitions found.',
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -551,6 +553,8 @@ module.exports = {
     timeStampCancelledEvent: 'Vous ne pouvez pas horodater un évènement annulé.',
     /* Repetitions */
     invalidRepetition: 'Action impossible : La répétition est invalide.',
+    repetitionNotFound: 'Répétition non trouvée.',
+    repetitionsFound: 'Répétitions trouvées.',
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',
