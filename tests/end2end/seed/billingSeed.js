@@ -105,7 +105,7 @@ const billAuthcustomer = {
         sundays: 1,
         saturdays: 3,
         weeklyCount: 0,
-        createdAt: '2020-01-01T23:00:00.000Z',
+        createdAt: '2020-01-01T12:00:00.000Z',
       },
       {
         unitTTCRate: 26,
@@ -114,7 +114,7 @@ const billAuthcustomer = {
         saturdays: 0,
         sundays: 2,
         weeklyCount: 0,
-        createdAt: '2019-06-01T23:00:00.000Z',
+        createdAt: '2019-06-01T12:00:00.000Z',
       },
     ],
   }],
