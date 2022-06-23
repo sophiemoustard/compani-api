@@ -85,6 +85,37 @@ describe('createCourse', () => {
       ]
     );
   });
+
+  it('should create an inter course without steps', async () => {
+    const subProgram = { _id: new ObjectId(), steps: [] };
+    const payload = {
+      misc: 'name',
+      company: new ObjectId(),
+      subProgram: subProgram._id,
+      type: 'inter_b2b',
+      salesRepresentative: new ObjectId(),
+    };
+
+    findOneSubProgram.returns(SinonMongoose.stubChainedQueries(subProgram));
+
+    const result = await CourseHelper.createCourse(payload);
+
+    expect(result.misc).toEqual('name');
+    expect(result.subProgram).toEqual(payload.subProgram);
+    expect(result.company).toEqual(payload.company);
+    expect(result.format).toEqual('blended');
+    expect(result.type).toEqual('inter_b2b');
+    expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
+    sinon.assert.notCalled(insertManyCourseSlot);
+    SinonMongoose.calledOnceWithExactly(
+      findOneSubProgram,
+      [
+        { query: 'findOne', args: [{ _id: subProgram._id }, { steps: 1 }] },
+        { query: 'populate', args: [{ path: 'steps', select: '_id type' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
 });
 
 describe('getTotalTheoreticalHours', () => {
