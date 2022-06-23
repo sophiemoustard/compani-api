@@ -11,18 +11,10 @@ const { authCompany, otherCompany, companyWithoutSubscription } = require('../..
 const { rolesList } = require('../../seed/authRolesSeed');
 const { userList, userCompaniesList } = require('../../seed/authUsersSeed');
 const { authCustomer, helperCustomer } = require('../../seed/authCustomers');
+const { deleteNonAuthenticationSeeds } = require('./authentication');
 
 before(async () => {
-  await Promise.all([
-    Company.deleteMany(),
-    Customer.deleteMany(),
-    Helper.deleteMany(),
-    Role.deleteMany(),
-    Sector.deleteMany(),
-    SectorHistory.deleteMany(),
-    User.deleteMany(),
-    UserCompany.deleteMany(),
-  ]);
+  await deleteNonAuthenticationSeeds();
 
   await Promise.all([
     Company.create([authCompany, otherCompany, companyWithoutSubscription]),

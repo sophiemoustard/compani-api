@@ -76,6 +76,9 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(200);
       const coursesCountAfter = await Course.countDocuments({});
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
+      const courseSlotsCount = await CourseSlot
+        .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
+      expect(courseSlotsCount).toEqual(1);
     });
 
     it('should create intra course', async () => {
@@ -98,6 +101,9 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(200);
       const coursesCountAfter = await Course.countDocuments({});
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
+      const courseSlotsCount = await CourseSlot
+        .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
+      expect(courseSlotsCount).toEqual(1);
     });
 
     it('should return 403 if invalid salesRepresentative', async () => {

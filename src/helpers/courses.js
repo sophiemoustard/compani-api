@@ -12,6 +12,7 @@ const User = require('../models/User');
 const Questionnaire = require('../models/Questionnaire');
 const CourseSmsHistory = require('../models/CourseSmsHistory');
 const Attendance = require('../models/Attendance');
+const SubProgram = require('../models/SubProgram');
 const CourseRepository = require('../repositories/CourseRepository');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
@@ -35,6 +36,7 @@ const {
   VENDOR_ADMIN,
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
+  REMOTE,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -46,7 +48,22 @@ const CourseBill = require('../models/CourseBill');
 const CourseSlot = require('../models/CourseSlot');
 const CourseHistory = require('../models/CourseHistory');
 
-exports.createCourse = payload => (new Course(payload)).save();
+exports.createCourse = async (payload) => {
+  const course = await (new Course(payload)).save();
+
+  const subProgram = await SubProgram
+    .findOne({ _id: course.subProgram }, { steps: 1 })
+    .populate({ path: 'steps', select: '_id type' })
+    .lean();
+
+  const slots = subProgram.steps
+    .filter(step => [ON_SITE, REMOTE].includes(step.type))
+    .map(step => ({ course: course._id, step: step._id }));
+
+  if (slots.length) await CourseSlot.insertMany(slots);
+
+  return course;
+};
 
 exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
   ? course.subProgram.steps.reduce((acc, value) => NumbersHelper.add(acc, value.theoreticalHours || 0), 0)
