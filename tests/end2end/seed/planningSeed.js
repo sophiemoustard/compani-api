@@ -163,8 +163,16 @@ const eventList = [
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
     repetition: { frequency: NEVER },
-    startDate: moment().subtract(1, 'week').set('hours', 18).set('minutes', 15).toISOString(),
-    endDate: moment().subtract(1, 'week').set('hours', 20).set('minutes', 30).toISOString(),
+    startDate: moment()
+      .subtract(1, 'week')
+      .set('hours', 18)
+      .set('minutes', 15)
+      .toISOString(),
+    endDate: moment()
+      .subtract(1, 'week')
+      .set('hours', 20)
+      .set('minutes', 30)
+      .toISOString(),
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },
@@ -175,8 +183,16 @@ const eventList = [
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
     repetition: { frequency: NEVER },
-    startDate: moment().subtract(1, 'week').set('hours', 11).set('minutes', 15).toISOString(),
-    endDate: moment().subtract(1, 'week').set('hours', 12).set('minutes', 30).toISOString(),
+    startDate: moment()
+      .subtract(1, 'week')
+      .set('hours', 11)
+      .set('minutes', 15)
+      .toISOString(),
+    endDate: moment()
+      .subtract(1, 'week')
+      .set('hours', 12)
+      .set('minutes', 30)
+      .toISOString(),
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },
@@ -187,8 +203,16 @@ const eventList = [
     company: authCompany._id,
     auxiliary: secondAuxiliary._id,
     repetition: { frequency: NEVER },
-    startDate: moment().subtract(1, 'week').set('hours', 13).set('minutes', 15).toISOString(),
-    endDate: moment().subtract(1, 'week').set('hours', 14).set('minutes', 30).toISOString(),
+    startDate: moment()
+      .subtract(1, 'week')
+      .set('hours', 13)
+      .set('minutes', 15)
+      .toISOString(),
+    endDate: moment()
+      .subtract(1, 'week')
+      .set('hours', 14)
+      .set('minutes', 30)
+      .toISOString(),
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },
