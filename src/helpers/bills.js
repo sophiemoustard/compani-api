@@ -14,7 +14,15 @@ const DatesHelper = require('./dates');
 const NumbersHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL, ROUNDING_ERROR } = require('./constants');
+const {
+  HOURLY,
+  THIRD_PARTY,
+  CIVILITY_LIST,
+  COMPANI,
+  AUTOMATIC,
+  MANUAL,
+  ROUNDING_ERROR,
+} = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
@@ -300,7 +308,7 @@ exports.formatAndCreateBill = async (payload, credentials) => {
 
   const bill = {
     ...payload,
-    netInclTaxes,
+    netInclTaxes: NumbersHelper.toFixedToFloat(netInclTaxes),
     type: MANUAL,
     number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq),
     billingItemList: billingItemList.map(bi => exports.formatBillingItem(bi, bddBillingItemList)),
@@ -375,15 +383,22 @@ exports.formatBillDetailsForPdf = (bill) => {
   let totalDiscount = NumbersHelper.toString(0);
   let totalSurcharge = NumbersHelper.toString(0);
   let totalSubscription = NumbersHelper.toString(0);
-  const formattedDetails = [];
 
+  const formattedDetails = [];
   for (const sub of bill.subscriptions) {
     const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
     totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
 
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
-    const total = NumbersHelper.multiply(volume, unitInclTaxes);
+
+    let total = 0;
+    const customerFundings = get(bill, 'customer.fundings') || [];
+    const matchingFunding = customerFundings
+      .find(funding => UtilsHelper.areObjectIdsEquals(funding.subscription, sub.subscription));
+
+    if (bill.thirdPartyPayer && matchingFunding) total = NumbersHelper.toString(sub.inclTaxes);
+    else total = NumbersHelper.multiply(volume, unitInclTaxes);
 
     formattedDetails.push({
       unitInclTaxes,
@@ -392,6 +407,7 @@ exports.formatBillDetailsForPdf = (bill) => {
       volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
       total,
     });
+
     totalSubscription = NumbersHelper.add(totalSubscription, total);
     totalSurcharge = NumbersHelper.add(totalSurcharge, exports.computeSurcharge(sub));
     totalDiscount = NumbersHelper.add(totalDiscount, sub.discount);
