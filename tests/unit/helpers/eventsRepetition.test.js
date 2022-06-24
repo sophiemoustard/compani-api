@@ -1416,7 +1416,7 @@ describe('formatEventBasedOnRepetition', () => {
             args: [{
               path: 'customer',
               select: 'identity subscriptions.service',
-              populate: { path: 'subscriptions.service subscriptions._id', select: 'versions.name versions.createdAt'},
+              populate: { path: 'subscriptions.service subscriptions._id', select: 'versions.name versions.createdAt' },
             }],
           },
           { query: 'populate', args: [{ path: 'internalHour', select: 'name' }] },
