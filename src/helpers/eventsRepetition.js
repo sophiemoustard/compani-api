@@ -235,7 +235,12 @@ exports.list = async (query, credentials) => {
 
   const repetitions = await Repetition
     .find({ auxiliary: query.auxiliary, company: companyId })
-    .populate({ path: 'customer', select: 'identity' })
+    .populate({
+      path: 'customer',
+      select: 'identity subscriptions.service',
+      populate: { path: 'subscriptions.service subscriptions._id', select: 'versions.name versions.createdAt' },
+    })
+    .populate({ path: 'internalHour', select: 'name' })
     .lean();
 
   return repetitions;
