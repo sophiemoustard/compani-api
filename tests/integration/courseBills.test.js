@@ -296,7 +296,7 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create a course bill with fundingOrganisation as payer', async () => {
+    it('should create a course bill with fundingOrganisation as payer (intra)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
@@ -310,12 +310,26 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       expect(count).toBe(courseBillsList.length + 1);
     });
 
-    it('should create a course bill with company as payer', async () => {
+    it('should create a course bill with company as payer (intra)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { ...payload, payer: { company: otherCompany._id } },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const count = await CourseBill.countDocuments();
+      expect(count).toBe(courseBillsList.length + 1);
+    });
+
+    it('should create a course bill (inter b2b)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { ...payload, course: courseList[9]._id },
       });
 
       expect(response.statusCode).toBe(200);
@@ -402,11 +416,22 @@ describe('COURSE BILL ROUTES - POST /coursebills', () => {
       });
     });
 
-    it('should return 404 as company is not registered to course', async () => {
+    it('should return 404 as company is not registered to course (intra)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/coursebills',
         payload: { ...payload, course: courseList[0]._id },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 404 as company is not registered to course (inter)', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/coursebills',
+        payload: { ...payload, course: courseList[9]._id, company: authCompany._id },
         headers: { 'x-access-token': authToken },
       });
 

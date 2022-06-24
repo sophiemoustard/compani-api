@@ -1,14 +1,18 @@
+const { v4: uuidv4 } = require('uuid');
 const { ObjectId } = require('mongodb');
-const { INTRA } = require('../../../src/helpers/constants');
+const { INTRA, INTER_B2B, WEBAPP } = require('../../../src/helpers/constants');
 const Company = require('../../../src/models/Company');
 const Course = require('../../../src/models/Course');
 const CourseBill = require('../../../src/models/CourseBill');
 const CourseBillingItem = require('../../../src/models/CourseBillingItem');
 const CourseBillsNumber = require('../../../src/models/CourseBillsNumber');
 const CourseFundingOrganisation = require('../../../src/models/CourseFundingOrganisation');
+const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const VendorCompany = require('../../../src/models/VendorCompany');
-const Program = require('../../../src/models/Program');
+const User = require('../../../src/models/User');
+const UserCompany = require('../../../src/models/UserCompany');
+const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
@@ -37,6 +41,33 @@ const companyWithoutAddress = {
   customersFolderId: 'asfdhljk',
   auxiliariesFolderId: 'erqutop',
 };
+
+const traineeFromAuthCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Fred', lastname: 'Astaire' },
+  local: { email: 'traineeAuthCompany@alenvi.io' },
+  role: { client: auxiliaryRoleId },
+  contact: { phone: '0734856751' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
+const traineeFromOtherCompany = {
+  _id: new ObjectId(),
+  identity: { firstname: 'Tom', lastname: 'de Savoie' },
+  local: { email: 'tomdesavoie@alenvi.io' },
+  role: { client: auxiliaryRoleId },
+  contact: { phone: '0734856752' },
+  refreshToken: uuidv4(),
+  origin: WEBAPP,
+};
+
+const userList = [traineeFromAuthCompany, traineeFromOtherCompany];
+
+const userCompanies = [
+  { _id: new ObjectId(), company: authCompany._id, user: traineeFromAuthCompany._id },
+  { _id: new ObjectId(), company: otherCompany._id, user: traineeFromOtherCompany._id },
+];
 
 const courseList = [
   { // 0 - linked to bill 0
@@ -139,6 +170,16 @@ const courseList = [
     salesRepresentative: new ObjectId(),
     contact: new ObjectId(),
     trainees: [],
+  },
+  { // 9 - inter without bill
+    _id: new ObjectId(),
+    type: INTER_B2B,
+    subProgram: subProgramList[0]._id,
+    misc: 'group 8',
+    trainer: new ObjectId(),
+    salesRepresentative: new ObjectId(),
+    contact: new ObjectId(),
+    trainees: [traineeFromOtherCompany._id],
   },
 ];
 const courseFundingOrganisationList = [
@@ -256,6 +297,8 @@ const populateDB = async () => {
     Program.create(programList),
     SubProgram.create(subProgramList),
     VendorCompany.create(vendorCompany),
+    User.create(userList),
+    UserCompany.create(userCompanies),
   ]);
 };
 
