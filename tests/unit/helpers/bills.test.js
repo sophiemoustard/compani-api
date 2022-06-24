@@ -2637,13 +2637,14 @@ describe('formatBillDetailsForPdf', () => {
         isUsedInFundings: true,
       },
       subscriptions: [{
-        _id: subscriptionId,
+        _id: new ObjectId(),
+        subscription: subscriptionId,
         unitInclTaxes: 22,
         vat: 5.5,
         service: { name: 'Temps de qualité - autonomie ', nature: 'hourly' },
         hours: 15,
-        exclTaxes: 312.8,
-        inclTaxes: 330,
+        exclTaxes: 47.39,
+        inclTaxes: 50,
         discount: 0,
         events: [{
           _id: new ObjectId(),
@@ -2659,7 +2660,7 @@ describe('formatBillDetailsForPdf', () => {
     computeSurcharge.returns(0);
     formatPrice.onCall(0).returns('50,00 €');
     formatPrice.onCall(1).returns('2,61 €');
-    computeExclTaxesWithDiscount.returns(312.8);
+    computeExclTaxesWithDiscount.returns(47.39);
 
     const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
 
@@ -2673,7 +2674,8 @@ describe('formatBillDetailsForPdf', () => {
 
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
     sinon.assert.calledOnceWithExactly(formatHour, 15);
-    sinon.assert.calledOnceWithExactly(computeExclTaxesWithDiscount, 312.8, 0, 5.5);
+    sinon.assert.calledOnceWithExactly(computeExclTaxesWithDiscount, 47.39, 0, 5.5);
+    sinon.assert.calledOnceWithExactly(getUnitInclTaxes, bill, bill.subscriptions[0]);
   });
 });
 

@@ -22,7 +22,6 @@ const {
   AUTOMATIC,
   MANUAL,
   ROUNDING_ERROR,
-  FIXED,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
@@ -404,15 +403,11 @@ exports.formatBillDetailsForPdf = (bill) => {
 
     let total = 0;
     const customerFundings = get(bill, 'customer.fundings') || [];
+    const matchingFunding = customerFundings
+      .find(funding => UtilsHelper.areObjectIdsEquals(funding.subscription, sub.subscription));
 
-    if (customerFundings.length) {
-      for (const customerFunding of customerFundings) {
-        if (bill.thirdPartyPayer && customerFunding.nature === FIXED) total = NumbersHelper.toString(bill.netInclTaxes);
-        else total = NumbersHelper.multiply(volume, unitInclTaxes);
-      }
-    } else {
-      total = NumbersHelper.multiply(volume, unitInclTaxes);
-    }
+    if (bill.thirdPartyPayer && matchingFunding) total = NumbersHelper.toString(sub.inclTaxes);
+    else total = NumbersHelper.multiply(volume, unitInclTaxes);
 
     formattedDetails.push({
       unitInclTaxes,
