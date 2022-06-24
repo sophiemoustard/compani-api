@@ -1455,6 +1455,7 @@ describe('getTraineeCourse', () => {
             select: 'identity.firstname identity.lastname contact.phone local.email',
           }],
         },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         { query: 'select', args: ['_id misc'] },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
@@ -1469,6 +1470,7 @@ describe('getTraineeCourse', () => {
     const lastSlotId = new ObjectId();
     const course = {
       _id: new ObjectId(),
+      company: { name: 'Alenvi' },
       subProgram: {
         isStrictlyELearning: false,
         steps: [{
@@ -1611,6 +1613,7 @@ describe('getTraineeCourse', () => {
             select: 'identity.firstname identity.lastname contact.phone local.email',
           }],
         },
+        { query: 'populate', args: [{ path: 'company', select: 'name' }] },
         { query: 'select', args: ['_id misc'] },
         { query: 'lean', args: [{ virtuals: true, autopopulate: true }] },
       ]
