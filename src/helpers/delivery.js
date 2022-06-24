@@ -22,6 +22,7 @@ const EDITED_BOTH_TIME_STAMP = 'CO2';
 const MISSING_BOTH_TIME_STAMP = 'CRE';
 const AUXILIARY_CONTACT = 'INT';
 const SPECIFIED_CI_TRADE_PRODUCT_NAME = 'Aide aux personnes âgées';
+const BADGE = 'BDG';
 
 const formatDate = date => date.toLocalISO().slice(0, 19);
 
@@ -147,13 +148,32 @@ const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
   if (startTimeStampList.length || endTimeStampList.length) {
     const lastStartTimeStamp = startTimeStampList[0];
     const lastEndTimeStamp = endTimeStampList[0];
+    const identificiationMethodContent = {
+      '@listID': 'ESPPADOM_TIMESTAMP_METHOD',
+      '@listAgencyName': 'EDESS',
+      '#text': BADGE,
+    };
+    const identificiationMethod = {
+      CustomerIdentificationMethod: identificiationMethodContent,
+      SupplierIdentificationMethod: identificiationMethodContent,
+    };
 
     applicableCIDDHSupplyChainTradeDelivery.AdditionalReferencedCIReferencedDocument = {
       EffectiveCISpecifiedPeriod: {
         ...(lastStartTimeStamp &&
-          { StartDateTime: { CertifiedDateTime: formatDate(CompaniDate(lastStartTimeStamp.event.startDate)) } }),
+          {
+            StartDateTime: {
+              CertifiedDateTime: formatDate(CompaniDate(lastStartTimeStamp.event.startDate)),
+              ...identificiationMethod,
+            },
+          }),
         ...(lastEndTimeStamp &&
-          { EndDateTime: { CertifiedDateTime: formatDate(CompaniDate(lastEndTimeStamp.event.endDate)) } }),
+          {
+            EndDateTime: {
+              CertifiedDateTime: formatDate(CompaniDate(lastEndTimeStamp.event.endDate)),
+              ...identificiationMethod,
+            },
+          }),
       },
     };
   }
