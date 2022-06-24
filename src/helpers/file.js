@@ -4,7 +4,7 @@ const path = require('path');
 const axios = require('axios');
 
 const fsPromises = fs.promises;
-const TMP_FILES_PATH = path.resolve(__dirname, '../data/pdf/tmp/');
+const TMP_FILES_PATH = `${path.resolve(__dirname, '../data/pdf/tmp')}/`;
 
 exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
   const tmpFile = fs.createWriteStream(outputPath);
