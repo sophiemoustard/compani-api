@@ -151,8 +151,8 @@ const eventList = [
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
     repetition: { frequency: NEVER },
-    startDate: moment().set('hours', 10).set('minutes', 0),
-    endDate: moment().set('hours', 12).set('minutes', 30),
+    startDate: moment().utc().set('hours', 10).set('minutes', 0),
+    endDate: moment().utc().set('hours', 12).set('minutes', 30),
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },
@@ -164,11 +164,13 @@ const eventList = [
     auxiliary: loggedAuxiliary._id,
     repetition: { frequency: NEVER },
     startDate: moment()
+      .utc()
       .subtract(1, 'week')
       .set('hours', 18)
       .set('minutes', 15)
       .toISOString(),
     endDate: moment()
+      .utc()
       .subtract(1, 'week')
       .set('hours', 20)
       .set('minutes', 30)
@@ -184,11 +186,13 @@ const eventList = [
     auxiliary: loggedAuxiliary._id,
     repetition: { frequency: NEVER },
     startDate: moment()
+      .utc()
       .subtract(1, 'week')
       .set('hours', 11)
       .set('minutes', 15)
       .toISOString(),
     endDate: moment()
+      .utc()
       .subtract(1, 'week')
       .set('hours', 12)
       .set('minutes', 30)
@@ -204,11 +208,13 @@ const eventList = [
     auxiliary: secondAuxiliary._id,
     repetition: { frequency: NEVER },
     startDate: moment()
+      .utc()
       .subtract(1, 'week')
       .set('hours', 13)
       .set('minutes', 15)
       .toISOString(),
     endDate: moment()
+      .utc()
       .subtract(1, 'week')
       .set('hours', 14)
       .set('minutes', 30)
