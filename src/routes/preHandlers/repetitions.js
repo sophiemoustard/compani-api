@@ -1,7 +1,7 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const UserCompany = require('../../models/UserCompany');
 const { AUXILIARY } = require('../../helpers/constants');
-const User = require('../../models/User');
 
 exports.authorizeRepetitionGet = async (req) => {
   const { credentials } = req.auth;
@@ -10,8 +10,8 @@ exports.authorizeRepetitionGet = async (req) => {
 
   if (isAuxiliary) throw Boom.forbidden();
 
-  const auxiliary = await User.countDocuments({ _id: req.query.auxiliary, company: companyId });
-  if (!auxiliary) throw Boom.notFound();
+  const user = await UserCompany.countDocuments(({ user: req.query.auxiliary, company: companyId }));
+  if (!user) throw Boom.notFound();
 
   return null;
 };

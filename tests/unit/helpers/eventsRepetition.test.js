@@ -1410,13 +1410,19 @@ describe('formatEventBasedOnRepetition', () => {
       SinonMongoose.calledOnceWithExactly(
         find,
         [
-          { query: 'find', args: [{ auxiliary: query.auxiliary, company: credentials.company._id }] },
+          {
+            query: 'find',
+            args: [
+              { auxiliary: query.auxiliary, company: credentials.company._id },
+              { attachement: 0, misc: 0, address: 0, sector: 0 },
+            ],
+          },
           {
             query: 'populate',
             args: [{
               path: 'customer',
-              select: 'identity subscriptions.service',
-              populate: { path: 'subscriptions.service subscriptions._id', select: 'versions.name versions.createdAt' },
+              select: 'identity subscriptions.service subscriptions._id',
+              populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
             }],
           },
           { query: 'populate', args: [{ path: 'internalHour', select: 'name' }] },

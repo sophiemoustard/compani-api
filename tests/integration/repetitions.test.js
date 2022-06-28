@@ -27,7 +27,18 @@ describe('EVENTS ROUTES - GET /repetitions', () => {
       expect(response.result.data.repetitions.length).toEqual(2);
     });
 
-    it('should return a 404 if auxiliary doesn;t exists', async () => {
+    it('should return an empty list if no repetition', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/repetitions?auxiliary=${auxiliariesIdList[1]}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.repetitions.length).toEqual(0);
+    });
+
+    it('should return a 404 if auxiliary doesn\'t exist', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/repetitions?auxiliary=${new ObjectId()}`,
@@ -56,7 +67,6 @@ describe('EVENTS ROUTES - GET /repetitions', () => {
       { name: 'auxiliary', expectedCode: 403, erp: true },
       { name: 'vendor_admin', expectedCode: 403, erp: true },
       { name: 'coach', expectedCode: 200, erp: true },
-      { name: 'client_admin', expectedCode: 200, erp: true },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {

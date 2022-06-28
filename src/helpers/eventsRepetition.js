@@ -234,11 +234,11 @@ exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
 
   const repetitions = await Repetition
-    .find({ auxiliary: query.auxiliary, company: companyId })
+    .find({ auxiliary: query.auxiliary, company: companyId }, { attachement: 0, misc: 0, address: 0, sector: 0 })
     .populate({
       path: 'customer',
-      select: 'identity subscriptions.service',
-      populate: { path: 'subscriptions.service subscriptions._id', select: 'versions.name versions.createdAt' },
+      select: 'identity subscriptions.service subscriptions._id',
+      populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
     })
     .populate({ path: 'internalHour', select: 'name' })
     .lean();

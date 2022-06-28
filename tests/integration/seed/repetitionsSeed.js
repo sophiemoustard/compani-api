@@ -6,9 +6,10 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
 const { WEBAPP } = require('../../../src/helpers/constants');
+const UserCompany = require('../../../src/models/UserCompany');
 
-const auxiliariesIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
-const customerIdList = [new ObjectId(), new ObjectId()];
+const auxiliariesIdList = [new ObjectId(), new ObjectId()];
+const customersIdList = [new ObjectId()];
 
 const auxiliaryList = [
   {
@@ -39,7 +40,7 @@ const repetitionList = [
     startDate: '2021-11-11T10:30:00.000Z',
     endDate: '2021-11-11T12:30:00.000Z',
     auxiliary: auxiliariesIdList[0],
-    customer: customerIdList[0],
+    customer: customersIdList[0],
     frequency: 'every_week',
     company: authCompany._id,
     address: {
@@ -58,20 +59,17 @@ const repetitionList = [
     frequency: 'every_week',
     company: authCompany._id,
   },
-  {
-    type: 'unavailability',
-    startDate: '2021-11-10T10:30:00.000Z',
-    endDate: '2021-11-10T12:30:00.000Z',
-    auxiliary: auxiliariesIdList[1],
-    frequency: 'every_week',
-    company: authCompany._id,
-  },
+];
+
+const userCompanies = [
+  { _id: new ObjectId(), user: auxiliariesIdList[0], company: authCompany._id },
+  { _id: new ObjectId(), user: auxiliariesIdList[1], company: authCompany._id },
 ];
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Promise.all([Repetition.create(repetitionList), User.create(auxiliaryList)]);
+  await Promise.all([Repetition.create(repetitionList), User.create(auxiliaryList), UserCompany.create(userCompanies)]);
 };
 
 module.exports = {
