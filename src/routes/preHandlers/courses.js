@@ -340,8 +340,7 @@ exports.authorizeSmsSending = async (req) => {
 
   const noSlotToCome = !course.slots || !course.slots.some(slot => moment().isBefore(slot.startDate));
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
-  if (noSlotToCome) throw Boom.forbidden();
-  if (noReceiver) throw Boom.forbidden();
+  if (noSlotToCome || noReceiver) throw Boom.forbidden();
 
   return null;
 };
