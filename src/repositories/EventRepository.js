@@ -444,7 +444,7 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
     {
       $group: {
         _id: { auxiliary: '$auxiliary', month: { $month: '$startDate' }, sub: '$subscription' },
-        duration: { $push: { startDate: '$startDate', endDate: '$endDate' } },
+        eventList: { $push: { startDate: '$startDate', endDate: '$endDate' } },
       },
     },
     { $lookup: { from: 'users', as: 'auxiliary', localField: '_id.auxiliary', foreignField: '_id' } },
@@ -460,7 +460,7 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
         auxiliary: { _id: 1, identity: 1, createdAt: 1, serialNumber: 1 },
         month: '$_id.month',
         subscription: 1,
-        duration: 1,
+        eventList: 1,
       },
     },
     { $sort: { month: 1 } },
@@ -468,10 +468,10 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
 
   const formattedEvents = events.map(ev => ({
     ...ev,
-    duration: parseFloat(ev.duration.reduce((acc, duration) =>
+    duration: parseFloat(ev.eventList.reduce((acc, event) =>
       NumbersHelper.add(
         acc,
-        CompaniDuration(CompaniDate(duration.endDate).diff(duration.startDate, 'minutes')).asHours()
+        CompaniDuration(CompaniDate(event.endDate).diff(event.startDate, 'minutes')).asHours()
       ), NumbersHelper.toString(0))),
   }));
 
