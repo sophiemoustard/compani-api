@@ -10,6 +10,7 @@ const TaxCertificate = require('../models/TaxCertificate');
 const EventRepository = require('../repositories/EventRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
 const TaxCertificatePdf = require('../data/pdf/taxCertificates');
+const NumbersHelper = require('./numbers');
 
 exports.list = async (customer, credentials) =>
   TaxCertificate.find({ customer, company: get(credentials, 'company._id') }).lean();
@@ -29,14 +30,15 @@ exports.formatInterventions = interventions => interventions.map((int) => {
 exports.formatPdf = (taxCertificate, company, interventions, payments) => {
   const formattedInterventions = exports.formatInterventions(interventions);
   const subscriptions = new Set(formattedInterventions.map(int => int.subscription));
-  const totalHours = interventions.reduce((acc, int) => acc + int.duration, 0);
-  const totalPaid = payments ? payments.paid + payments.cesu : 0;
+  const totalHours = interventions
+    .reduce((acc, int) => NumbersHelper.add(acc, int.duration), NumbersHelper.toString(0));
+  const totalPaid = payments ? NumbersHelper.add(payments.paid, payments.cesu) : 0;
 
   return {
     taxCertificate: {
-      totalHours: UtilsHelper.formatHour(totalHours),
-      totalPaid: UtilsHelper.formatPrice(totalPaid),
-      cesu: payments && payments.cesu ? UtilsHelper.formatPrice(payments.cesu) : 0,
+      totalHours: UtilsHelper.formatHour(NumbersHelper.toFixedToFloat(totalHours)),
+      totalPaid: UtilsHelper.formatPrice(NumbersHelper.toFixedToFloat(totalPaid)),
+      cesu: payments && payments.cesu ? UtilsHelper.formatPrice(NumbersHelper.toFixedToFloat(payments.cesu)) : 0,
       subscriptions: [...subscriptions].join(', '),
       interventions: formattedInterventions,
       company: {
