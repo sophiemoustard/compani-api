@@ -1,4 +1,5 @@
 const omit = require('lodash/omit');
+const get = require('lodash/get');
 const Repetition = require('../models/Repetition');
 const EventsHelper = require('./events');
 const { CompaniDate } = require('./dates/companiDates');
@@ -23,3 +24,19 @@ exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => ({
   company: companyId,
   repetition: { ...payload.repetition, parentId: event._id },
 });
+
+exports.list = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+
+  const repetitions = await Repetition
+    .find({ auxiliary: query.auxiliary, company: companyId }, { attachement: 0, misc: 0, address: 0, sector: 0 })
+    .populate({
+      path: 'customer',
+      select: 'identity subscriptions.service subscriptions._id',
+      populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+    })
+    .populate({ path: 'internalHour', select: 'name' })
+    .lean();
+
+  return repetitions;
+};
