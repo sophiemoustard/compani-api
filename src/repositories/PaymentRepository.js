@@ -2,8 +2,6 @@ const moment = require('../extensions/moment');
 const Payment = require('../models/Payment');
 const { PAYMENT, REFUND, CESU } = require('../helpers/constants');
 const NumbersHelper = require('../helpers/numbers');
-const { ObjectId } = require('bson');
-const { custom } = require('joi');
 
 exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = null) => {
   const rules = [{ customer: { $in: customersIds } }];
