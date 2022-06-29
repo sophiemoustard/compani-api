@@ -40,3 +40,12 @@ exports.list = async (query, credentials) => {
 
   return repetitions;
 };
+
+exports.remove = async (repetitionId, startDate, credentials) => {
+  const companyId = get(credentials, 'company._id');
+  const bddRepetition = await Repetition.findOne({ _id: repetitionId, company: companyId }, { parentId: 1 }).lean();
+
+  const query = { 'repetition.parentId': bddRepetition.parentId, startDate: { $gte: startDate }, company: companyId };
+
+  await EventsHelper.deleteEventsAndRepetition(query, true, credentials);
+};

@@ -1,8 +1,9 @@
 const expect = require('expect');
 const { ObjectId } = require('mongodb');
-const { auxiliariesIdList, populateDB } = require('./seed/repetitionsSeed');
-const { getToken } = require('./helpers/authentication');
 const app = require('../../server');
+const Repetition = require('../../src/models/Repetition');
+const { auxiliariesIdList, repetitionList, populateDB } = require('./seed/repetitionsSeed');
+const { getToken } = require('./helpers/authentication');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -10,7 +11,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('EVENTS ROUTES - GET /repetitions', () => {
+describe('REPETITIONS ROUTES - GET /repetitions', () => {
   let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
@@ -75,6 +76,71 @@ describe('EVENTS ROUTES - GET /repetitions', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/repetitions?auxiliary=${auxiliariesIdList[0]}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
+  let authToken;
+  describe('PLANNING_REFERENT', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => { authToken = await getToken('planning_referent'); });
+
+    it('should delete a repetition', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/repetitions/${repetitionList[0]._id}?startDate=${'2022-07-01T00:00:00.000Z'}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      const count = await Repetition.countDocuments();
+
+      expect(response.statusCode).toBe(200);
+      expect(count).toBe(repetitionList.length - 1);
+    });
+
+    it('should return a 404 if repetition doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/repetitions/${new ObjectId()}?startDate=${'2022-07-01T00:00:00.000Z'}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    it('should return a 400 if startDate is missing in query', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/repetitions/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+
+    const roles = [
+      { name: 'helper', expectedCode: 403, erp: true },
+      { name: 'auxiliary', expectedCode: 403, erp: true },
+      { name: 'vendor_admin', expectedCode: 403, erp: true },
+      { name: 'coach', expectedCode: 200, erp: true },
+    ];
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name, role.erp);
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/repetitions/${repetitionList[0]._id}?startDate=${'2022-07-01T00:00:00.000Z'}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 

@@ -2,8 +2,9 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { authorizeRepetitionGet } = require('./preHandlers/repetitions');
-const { list } = require('../controllers/repetitionController');
+const { authorizeRepetitionGet, authorizeRepetitionDeletion } = require('./preHandlers/repetitions');
+const { list, remove } = require('../controllers/repetitionController');
+const { requiredDateToISOString } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-repetition',
@@ -21,6 +22,19 @@ exports.plugin = {
         pre: [{ method: authorizeRepetitionGet }],
       },
       handler: list,
+    });
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        auth: { scope: ['events:edit'] },
+        validate: {
+          params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ startDate: requiredDateToISOString }),
+        },
+        pre: [{ method: authorizeRepetitionDeletion }],
+      },
+      handler: remove,
     });
   },
 };
