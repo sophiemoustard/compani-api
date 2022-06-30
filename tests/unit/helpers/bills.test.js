@@ -2032,10 +2032,10 @@ describe('list', () => {
 describe('formatBillingItem', () => {
   it('should format billing item', () => {
     const billingItemId = new ObjectId();
-    const billingItem = { billingItem: billingItemId, count: 3, unitInclTaxes: 60 };
+    const billingItem = { billingItem: billingItemId, count: 1.13, unitInclTaxes: 9.11 };
     const billingItemList = [
-      { _id: billingItemId, name: 'bonjour', vat: 20 },
-      { _id: new ObjectId(), name: 'au revoir', vat: 40 },
+      { _id: billingItemId, name: 'bonjour', vat: 5.5 },
+      { _id: new ObjectId(), name: 'au revoir', vat: 20 },
     ];
 
     const result = BillHelper.formatBillingItem(billingItem, billingItemList);
@@ -2043,11 +2043,11 @@ describe('formatBillingItem', () => {
     expect(result).toEqual({
       billingItem: billingItemId,
       name: 'bonjour',
-      unitInclTaxes: 60,
-      count: 3,
-      inclTaxes: 180,
-      exclTaxes: '150',
-      vat: 20,
+      unitInclTaxes: 9.11,
+      count: 1.13,
+      inclTaxes: 10.29,
+      exclTaxes: '9.75355450236966824645',
+      vat: 5.5,
     });
   });
 });
@@ -2674,7 +2674,7 @@ describe('formatBillDetailsForPdf', () => {
 
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
     sinon.assert.calledOnceWithExactly(formatHour, 15);
-    sinon.assert.calledOnceWithExactly(computeExclTaxesWithDiscount, 47.39, 0, 5.5);
+    sinon.assert.calledOnceWithExactly(computeExclTaxesWithDiscount, 50, 0, 5.5);
     sinon.assert.calledOnceWithExactly(getUnitInclTaxes, bill, bill.subscriptions[0]);
   });
 });
