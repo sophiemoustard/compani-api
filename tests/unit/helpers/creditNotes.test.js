@@ -873,7 +873,7 @@ describe('updateCreditNotes', () => {
           name: 'Frais de dossier',
           count: 2,
           inclTaxes: 60,
-          exclTaxes: '58.8235294117647',
+          exclTaxes: '58.82352941176470588235',
           vat: 2,
         },
         {
@@ -882,7 +882,7 @@ describe('updateCreditNotes', () => {
           name: 'sku',
           count: 1,
           inclTaxes: 10,
-          exclTaxes: '9.523809523809524',
+          exclTaxes: '9.52380952380952380952',
           vat: 5,
         },
       ],
@@ -909,7 +909,7 @@ describe('updateCreditNotes', () => {
           name: 'Frais de dossier',
           count: 2,
           inclTaxes: 60,
-          exclTaxes: '58.8235294117647',
+          exclTaxes: '58.82352941176470588235',
           vat: 2,
         },
         {
@@ -918,7 +918,7 @@ describe('updateCreditNotes', () => {
           name: 'sku',
           count: 1,
           inclTaxes: 10,
-          exclTaxes: '9.523809523809524',
+          exclTaxes: '9.52380952380952380952',
           vat: 5,
         },
       ],
@@ -935,7 +935,7 @@ describe('updateCreditNotes', () => {
               unitInclTaxes: 30,
               count: 2,
               inclTaxes: 60,
-              exclTaxes: '58.82352941176470588236',
+              exclTaxes: '58.82352941176470588235',
               vat: 2,
             },
             {
@@ -1050,7 +1050,7 @@ describe('formatPdf', () => {
     const result = CreditNoteHelper.formatPdf(creditNote, company);
 
     expect(result).toEqual(expectedResult);
-    sinon.assert.calledWithExactly(formatPrice.getCall(0), 13);
+    sinon.assert.calledWithExactly(formatPrice.getCall(0), '13');
     sinon.assert.calledWithExactly(formatPrice.getCall(1), 221);
     sinon.assert.calledWithExactly(formatPrice.getCall(2), 234);
     sinon.assert.calledOnceWithExactly(formatEventSurchargesForPdf, [{ percentage: 30 }]);
@@ -1127,7 +1127,7 @@ describe('formatPdf', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
-    sinon.assert.calledWithExactly(formatPrice.getCall(0), 13);
+    sinon.assert.calledWithExactly(formatPrice.getCall(0), '13');
     sinon.assert.calledWithExactly(formatPrice.getCall(1), 21);
     sinon.assert.calledWithExactly(formatPrice.getCall(2), 34);
     sinon.assert.notCalled(formatEventSurchargesForPdf);

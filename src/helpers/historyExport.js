@@ -330,7 +330,12 @@ const formatBillsForExport = (bills) => {
     let totalExclTaxes = 0;
     if (bill.subscriptions) {
       for (const sub of bill.subscriptions) {
-        const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
+        const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(
+          sub.inclTaxes,
+          sub.discount,
+          sub.vat
+        );
+
         totalExclTaxes = NumbersHelper.oldAdd(totalExclTaxes, subExclTaxesWithDiscount);
         hours = NumbersHelper.oldAdd(hours, sub.hours);
       }
@@ -338,7 +343,7 @@ const formatBillsForExport = (bills) => {
 
     if (bill.billingItemList) {
       for (const bi of bill.billingItemList) {
-        const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
+        const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.inclTaxes, bi.discount, bi.vat);
         totalExclTaxes = NumbersHelper.oldAdd(totalExclTaxes, biExclTaxesWithDiscount);
       }
     }

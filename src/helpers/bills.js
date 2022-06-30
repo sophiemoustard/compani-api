@@ -286,15 +286,15 @@ exports.list = async (query, credentials) => {
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
   const vatMultiplier = NumbersHelper.divide(bddBillingItem.vat, 100);
-  const unitExclTaxes = NumbersHelper.divide(bi.unitInclTaxes, NumbersHelper.add(vatMultiplier, '1'));
-  const exclTaxes = NumbersHelper.multiply(unitExclTaxes, bi.count);
+  const inclTaxes = parseFloat(parseFloat(NumbersHelper.multiply(bi.unitInclTaxes, bi.count)).toFixed(2));
+  const exclTaxes = NumbersHelper.divide(inclTaxes, NumbersHelper.add(vatMultiplier, '1'));
 
   return {
     billingItem: bi.billingItem,
     name: bddBillingItem.name,
     unitInclTaxes: bi.unitInclTaxes,
     count: bi.count,
-    inclTaxes: parseFloat(NumbersHelper.multiply(bi.unitInclTaxes, bi.count)),
+    inclTaxes,
     exclTaxes,
     vat: bddBillingItem.vat,
   };
@@ -395,7 +395,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   const formattedDetails = [];
   for (const sub of bill.subscriptions) {
-    const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
+    const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.inclTaxes, sub.discount, sub.vat);
     totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
 
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
@@ -429,7 +429,7 @@ exports.formatBillDetailsForPdf = (bill) => {
   let totalBillingItem = 0;
   if (bill.billingItemList) {
     for (const bi of bill.billingItemList) {
-      const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
+      const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.inclTaxes, bi.discount, bi.vat);
       totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
       totalBillingItem = NumbersHelper.add(totalBillingItem, bi.inclTaxes);
       totalDiscount = NumbersHelper.add(totalDiscount, bi.discount);
