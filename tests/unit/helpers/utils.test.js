@@ -408,7 +408,7 @@ describe('sumReduce', () => {
 describe('computeExclTaxesWithDiscount', () => {
   it('should return excluded taxes price with discount', () => {
     const result = UtilsHelper.computeExclTaxesWithDiscount(18, 1.2, 20);
-    expect(result).toEqual('17');
+    expect(result).toEqual('14');
   });
 });
 

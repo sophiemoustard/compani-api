@@ -208,12 +208,12 @@ exports.getExclTaxes = (inclTaxes, vat) => {
 
 exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.add(sum, (b[key] || 0)), 0);
 
-exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
-  if (!discount) return NumbersHelper.toString(exclTaxes);
+exports.computeExclTaxesWithDiscount = (inclTaxes, discount, vat) => {
+  if (!discount) return exports.getExclTaxes(inclTaxes, vat);
 
-  const discountExclTaxes = exports.getExclTaxes(discount, vat);
+  const inclTaxesWithDiscount = NumbersHelper.subtract(inclTaxes, discount);
 
-  return NumbersHelper.subtract(exclTaxes, discountExclTaxes);
+  return exports.getExclTaxes(inclTaxesWithDiscount, vat);
 };
 
 exports.getTotalDuration = (timePeriods) => {
