@@ -170,7 +170,7 @@ exports.listForCreditNotes = (payload, credentials, creditNote) => {
   else {
     query = {
       ...query,
-      'bills.inclTaxesCustomer': { $exists: true, $ne: '0' },
+      'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
       'bills.inclTaxesTpp': { $exists: false },
     };
   }
