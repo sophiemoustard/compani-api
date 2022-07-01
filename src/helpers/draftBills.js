@@ -289,11 +289,7 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
 };
 
 exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDate, unitTTCRate) => {
-  let customerPrices = {
-    inclTaxes: NumbersHelper.toString(0),
-    hours: NumbersHelper.toString(0),
-    eventsList: [],
-  };
+  let customerPrices = { inclTaxes: NumbersHelper.toString(0), hours: NumbersHelper.toString(0), eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(billingStartDate);
   const eventsByBillingItem = {};
@@ -405,6 +401,7 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
     const bddBillingItem = billingItems.find(bi => UtilsHelper.areObjectIdsEquals(bi._id, billingItemId));
     const unitExclTaxes = UtilsHelper.getExclTaxes(bddBillingItem.defaultUnitAmount, bddBillingItem.vat);
     const inclTaxes = NumbersHelper.multiply(bddBillingItem.defaultUnitAmount, eventsList.length);
+    const exclTaxes = UtilsHelper.getExclTaxes(inclTaxes, bddBillingItem.vat);
 
     formattedBillingItems.push({
       _id: new ObjectId(),
@@ -414,7 +411,7 @@ exports.formatBillingItems = (eventsByBillingItemBySubscriptions, billingItems, 
       unitInclTaxes: bddBillingItem.defaultUnitAmount,
       vat: bddBillingItem.vat,
       eventsList: eventsList.map(ev => ({ event: ev._id, ...pick(ev, ['startDate', 'endDate', 'auxiliary']) })),
-      exclTaxes: UtilsHelper.getExclTaxes(inclTaxes, bddBillingItem.vat),
+      exclTaxes,
       inclTaxes,
       startDate,
       endDate,

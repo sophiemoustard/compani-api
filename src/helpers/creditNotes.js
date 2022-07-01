@@ -249,9 +249,8 @@ exports.formatPdf = (creditNote, company) => {
   const totalExclTaxes = creditNote.exclTaxesTpp && !NumbersHelper.isEqualTo(creditNote.exclTaxesTpp, 0)
     ? parseFloat(creditNote.exclTaxesTpp)
     : parseFloat(creditNote.exclTaxesCustomer);
-  const netInclTaxes = creditNote.inclTaxesTpp
-    ? creditNote.inclTaxesTpp
-    : creditNote.inclTaxesCustomer;
+
+  const netInclTaxes = creditNote.inclTaxesTpp ? creditNote.inclTaxesTpp : creditNote.inclTaxesCustomer;
 
   computedData.totalVAT = UtilsHelper.formatPrice(NumbersHelper.subtract(netInclTaxes, totalExclTaxes));
 
