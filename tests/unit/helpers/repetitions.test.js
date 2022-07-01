@@ -159,7 +159,7 @@ describe('list', () => {
   });
 });
 
-describe('remove', () => {
+describe('delete', () => {
   let findOne;
   let deleteEventsAndRepetition;
   beforeEach(() => {
@@ -192,7 +192,7 @@ describe('remove', () => {
 
     findOne.returns(SinonMongoose.stubChainedQueries(repetition, ['lean']));
 
-    await RepetitionHelper.remove(repetitionId, startDate, credentials);
+    await RepetitionHelper.delete(repetitionId, startDate, credentials);
 
     SinonMongoose.calledOnceWithExactly(
       findOne,

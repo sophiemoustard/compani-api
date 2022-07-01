@@ -18,9 +18,9 @@ const list = async (req) => {
   }
 };
 
-const remove = async (req) => {
+const deleteRepetition = async (req) => {
   try {
-    await RepetitionHelper.remove(req.params._id, req.query.startDate, req.auth.credentials);
+    await RepetitionHelper.delete(req.params._id, req.query.startDate, req.auth.credentials);
 
     return {
       message: translate[language].repetitionDeleted,
@@ -31,4 +31,4 @@ const remove = async (req) => {
   }
 };
 
-module.exports = { list, remove };
+module.exports = { list, deleteRepetition };

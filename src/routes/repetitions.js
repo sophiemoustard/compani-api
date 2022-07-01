@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { authorizeRepetitionGet, authorizeRepetitionDeletion } = require('./preHandlers/repetitions');
-const { list, remove } = require('../controllers/repetitionController');
+const { list, deleteRepetition } = require('../controllers/repetitionController');
 const { requiredDateToISOString } = require('./validations/utils');
 
 exports.plugin = {
@@ -34,7 +34,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeRepetitionDeletion }],
       },
-      handler: remove,
+      handler: deleteRepetition,
     });
   },
 };
