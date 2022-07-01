@@ -331,7 +331,6 @@ exports.computeBillingInfoForEvents = (events, service, fundings, billingStartDa
   }
 
   const lastVersion = UtilsHelper.getLastVersion(service.versions, 'createdAt');
-  // Problème si le service change de tva
   customerPrices.exclTaxes = UtilsHelper.getExclTaxes(customerPrices.inclTaxes, lastVersion.vat);
 
   for (const tppId of Object.keys(thirdPartyPayerPrices)) {
