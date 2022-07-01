@@ -22,27 +22,31 @@ const EDITED_BOTH_TIME_STAMP = 'CO2';
 const MISSING_BOTH_TIME_STAMP = 'CRE';
 const AUXILIARY_CONTACT = 'INT';
 const SPECIFIED_CI_TRADE_PRODUCT_NAME = 'Aide aux personnes âgées';
+const BADGE = 'BDG';
 
 const formatDate = date => date.toLocalISO().slice(0, 19);
 
 // Identifiant de transaction du flux delivery
-const getCIDDHExchangedDocumentContext = transactionId => ({ VersionID: '1.4', SpecifiedTransactionID: transactionId });
+const getCIDDHExchangedDocumentContext = transactionId => ({
+  'ram:VersionID': '1.4',
+  'ram:SpecifiedTransactionID': transactionId,
+});
 
 // Description de l'entête de télégestion
 const getCIDDHExchangedDocument = (transactionId, issueDateTime) => ({
-  ID: transactionId,
-  IssueDateTime: issueDateTime,
+  'ram:ID': transactionId,
+  'ram:IssueDateTime': issueDateTime,
 });
 
 // Tiers payeurs
 const getApplicableCIDDHSupplyChainTradeAgreement = tpp => ({
-  BuyerOrderReferencedCIReferencedDocument: {
-    IssuerCITradeParty: {
+  'ram:BuyerOrderReferencedCIReferencedDocument': {
+    'ram:IssuerCITradeParty': {
       'pie:ID': { '#text': tpp.teletransmissionId, '@schemeAgencyName': 'token', '@schemeID': 'token' },
       'pie:Name': tpp.name,
     },
   },
-  ContractReferencedCIReferencedDocument: {
+  'ram:ContractReferencedCIReferencedDocument': {
     'qdt:GlobalID': { '#text': 'P', '@schemeAgencyName': 'token', '@schemeID': 'token' },
   },
 });
@@ -113,8 +117,8 @@ const getActualDespatchCISupplyChainEvent = (event, startTimeStampList, endTimeS
   const typeCode = exports.getTypeCode(startTimeStampList, endTimeStampList, hasTimeStamp);
 
   const actualDespatchCISupplyChainEvent = {
-    TypeCode: { '#text': typeCode, '@listAgencyName': 'EDESS', '@listID': 'ESPPADOM_EFFECTIVITY_AJUST' },
-    OccurrenceCISpecifiedPeriod: {
+    'ram:TypeCode': { '#text': typeCode, '@listAgencyName': 'EDESS', '@listID': 'ESPPADOM_EFFECTIVITY_AJUST' },
+    'ram:OccurrenceCISpecifiedPeriod': {
       'qdt:StartDateTime': formatDate(CompaniDate(event.startDate)),
       'qdt:EndDateTime': formatDate(CompaniDate(event.endDate)),
     },
@@ -138,22 +142,41 @@ const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
   const { startTimeStampList, endTimeStampList, hasTimeStamp } = exports.getTimeStampInfo(event);
 
   const applicableCIDDHSupplyChainTradeDelivery = {
-    ShipToCITradeParty: getShipToCITradeParty(customer),
-    ShipFromCITradeParty: getShipFromCITradeParty(event.auxiliary),
-    ActualDespatchCISupplyChainEvent:
+    'ram:ShipToCITradeParty': getShipToCITradeParty(customer),
+    'ram:ShipFromCITradeParty': getShipFromCITradeParty(event.auxiliary),
+    'ram:ActualDespatchCISupplyChainEvent':
       getActualDespatchCISupplyChainEvent(event, startTimeStampList, endTimeStampList, hasTimeStamp),
   };
 
   if (startTimeStampList.length || endTimeStampList.length) {
     const lastStartTimeStamp = startTimeStampList[0];
     const lastEndTimeStamp = endTimeStampList[0];
+    const identificiationMethodContent = {
+      '@listID': 'ESPPADOM_TIMESTAMP_METHOD',
+      '@listAgencyName': 'EDESS',
+      '#text': BADGE,
+    };
+    const identificiationMethod = {
+      'ram:CustomerIdentificationMethod': identificiationMethodContent,
+      'ram:SupplierIdentificationMethod': identificiationMethodContent,
+    };
 
-    applicableCIDDHSupplyChainTradeDelivery.AdditionalReferencedCIReferencedDocument = {
-      EffectiveCISpecifiedPeriod: {
+    applicableCIDDHSupplyChainTradeDelivery['ram:AdditionalReferencedCIReferencedDocument'] = {
+      'ram:EffectiveCISpecifiedPeriod': {
         ...(lastStartTimeStamp &&
-          { StartDateTime: { CertifiedDateTime: formatDate(CompaniDate(lastStartTimeStamp.event.startDate)) } }),
+          {
+            'ram:StartDateTime': {
+              'ram:CertifiedDateTime': formatDate(CompaniDate(lastStartTimeStamp.event.startDate)),
+              ...identificiationMethod,
+            },
+          }),
         ...(lastEndTimeStamp &&
-          { EndDateTime: { CertifiedDateTime: formatDate(CompaniDate(lastEndTimeStamp.event.endDate)) } }),
+          {
+            'ram:EndDateTime': {
+              'ram:CertifiedDateTime': formatDate(CompaniDate(lastEndTimeStamp.event.endDate)),
+              ...identificiationMethod,
+            },
+          }),
       },
     };
   }
@@ -178,17 +201,17 @@ const getIncludedCIDDLSupplyChainTradeLineItem = (event, funding, transactionId)
   const lastServiceVersion = subscription ? UtilsHelper.getLastVersion(subscription.service.versions, 'startDate') : {};
 
   return {
-    AssociatedCIDDLDocumentLineDocument: {
-      LineID: transactionId,
-      OrderLineID: funding.fundingPlanId,
+    'ram:AssociatedCIDDLDocumentLineDocument': {
+      'ram:LineID': transactionId,
+      'ram:OrderLineID': funding.fundingPlanId,
     },
-    SpecifiedCIDDLSupplyChainTradeDelivery: {
-      BilledQuantity: { '#text': computeBilledQuantity(event), '@unitCode': 'HUR' },
+    'ram:SpecifiedCIDDLSupplyChainTradeDelivery': {
+      'ram:BilledQuantity': { '#text': computeBilledQuantity(event), '@unitCode': 'HUR' },
     },
-    SpecifiedCIDDLSupplyChainTradeSettlement: {
-      CadreIntervention: { '@listID': 'ESPPADOM_CADRE', '@listAgencyName': 'EDESS', '#text': CADRE_PRESTATAIRE },
+    'ram:SpecifiedCIDDLSupplyChainTradeSettlement': {
+      'ram:CadreIntervention': { '@listID': 'ESPPADOM_CADRE', '@listAgencyName': 'EDESS', '#text': CADRE_PRESTATAIRE },
     },
-    SpecifiedCITradeProduct: {
+    'ram:SpecifiedCITradeProduct': {
       'qdt:ID': {
         '@listID': 'ESPPADOM_TYPE_AIDE',
         '@listAgencyName': 'EDESS',
@@ -201,10 +224,10 @@ const getIncludedCIDDLSupplyChainTradeLineItem = (event, funding, transactionId)
 
 // Contenu du document
 const getCIDDHSupplyChainTradeTransaction = (event, funding, transactionId) => ({
-  ApplicableCIDDHSupplyChainTradeAgreement: getApplicableCIDDHSupplyChainTradeAgreement(funding.thirdPartyPayer),
-  ApplicableCIDDHSupplyChainTradeDelivery: getApplicableCIDDHSupplyChainTradeDelivery(event, event.customer),
-  ApplicableCIDDHSupplyChainTradeSettlement: {},
-  IncludedCIDDLSupplyChainTradeLineItem: getIncludedCIDDLSupplyChainTradeLineItem(event, funding, transactionId),
+  'ram:ApplicableCIDDHSupplyChainTradeAgreement': getApplicableCIDDHSupplyChainTradeAgreement(funding.thirdPartyPayer),
+  'ram:ApplicableCIDDHSupplyChainTradeDelivery': getApplicableCIDDHSupplyChainTradeDelivery(event, event.customer),
+  'ram:ApplicableCIDDHSupplyChainTradeSettlement': {},
+  'ram:IncludedCIDDLSupplyChainTradeLineItem': getIncludedCIDDLSupplyChainTradeLineItem(event, funding, transactionId),
 });
 
 exports.formatCrossIndustryDespatchAdvice = (event, transactionId, issueDateTime, eventIndex) => {
@@ -353,7 +376,7 @@ exports.generateDeliveryXml = async (query, credentials) => {
   const data = {
     'ns:delivery': {
       '@versionID': '1.4',
-      '@xmlns': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:8',
+      '@xmlns:ram': 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:8',
       '@xmlns:pie': 'urn:un:unece:uncefact:data:standard:PersonInformationEntity:1',
       '@xmlns:qdt': 'urn:un:unece:uncefact:data:standard:QualifiedDataType:8',
       '@xmlns:ns': 'urn:un:unece:uncefact:data:standard:CrossIndustryDespatchAdvice:2',
