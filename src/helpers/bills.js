@@ -286,7 +286,7 @@ exports.list = async (query, credentials) => {
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
   const vatMultiplier = NumbersHelper.divide(bddBillingItem.vat, 100);
-  const inclTaxes = parseFloat(parseFloat(NumbersHelper.multiply(bi.unitInclTaxes, bi.count)).toFixed(2));
+  const inclTaxes = NumbersHelper.toFixedToFloat(NumbersHelper.multiply(bi.unitInclTaxes, bi.count));
   const exclTaxes = NumbersHelper.divide(inclTaxes, NumbersHelper.add(vatMultiplier, '1'));
 
   return {
