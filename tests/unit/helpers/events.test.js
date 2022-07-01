@@ -639,7 +639,7 @@ describe('listForCreditNotes', () => {
       isBilled: true,
       type: INTERVENTION,
       company: companyId,
-      'bills.inclTaxesCustomer': { $exists: true, $ne: '0' },
+      'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
       'bills.inclTaxesTpp': { $exists: false },
     };
 
@@ -703,7 +703,7 @@ describe('listForCreditNotes', () => {
       customer: payload.customer,
       type: INTERVENTION,
       company: companyId,
-      'bills.inclTaxesCustomer': { $exists: true, $ne: '0' },
+      'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
       'bills.inclTaxesTpp': { $exists: false },
       $or: [{ isBilled: true }, { _id: { $in: creditNote.events.map(event => event.eventId) } }],
     };
