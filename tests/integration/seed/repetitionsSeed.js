@@ -3,6 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 const Repetition = require('../../../src/models/Repetition');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
+const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const Customer = require('../../../src/models/Customer');
 const { WEBAPP } = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -12,6 +14,16 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 
 const auxiliariesIdList = [new ObjectId(), new ObjectId()];
 const customersIdList = [new ObjectId()];
+
+const sector = { _id: new ObjectId(), company: authCompany._id, name: 'Super equipe' };
+
+const sectorHistory = {
+  _id: new ObjectId(),
+  company: authCompany._id,
+  auxiliary: auxiliariesIdList[0],
+  startDate: '2021-11-11T10:30:00.000Z',
+  sector: sector._id,
+};
 
 const customer = {
   _id: customersIdList[0],
@@ -141,6 +153,8 @@ const populateDB = async () => {
     UserCompany.create(userCompanies),
     Event.create(eventList),
     Customer.create(customer),
+    Sector.create(sector),
+    SectorHistory.create(sectorHistory),
   ]);
 };
 

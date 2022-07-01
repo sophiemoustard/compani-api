@@ -93,7 +93,7 @@ exports.createEventHistory = async (payload, credentials, action) => {
     const aux = await User.findOne({ _id: payload.auxiliary })
       .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
       .lean({ autopopulate: true, virtuals: true });
-    if (aux.sector) eventHistory.sectors = [aux.sector.toHexString()];
+    eventHistory.sectors = [aux.sector.toHexString()];
   }
 
   await EventHistory.create(eventHistory);
