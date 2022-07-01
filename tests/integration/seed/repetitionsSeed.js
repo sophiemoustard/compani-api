@@ -160,6 +160,7 @@ const populateDB = async () => {
 
 module.exports = {
   repetitionList,
+  eventList,
   auxiliariesIdList,
   populateDB,
 };

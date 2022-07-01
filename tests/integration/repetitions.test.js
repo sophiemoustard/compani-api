@@ -2,7 +2,8 @@ const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Repetition = require('../../src/models/Repetition');
-const { auxiliariesIdList, repetitionList, populateDB } = require('./seed/repetitionsSeed');
+const Event = require('../../src/models/Event');
+const { auxiliariesIdList, repetitionList, populateDB, eventList } = require('./seed/repetitionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
@@ -88,23 +89,24 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
 
 describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
   let authToken;
+  const tomorrow = CompaniDate().add({ days: 1 }).toDate();
+
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
     beforeEach(async () => { authToken = await getToken('planning_referent'); });
-
     it('should delete a repetition', async () => {
-      const tomorrow = CompaniDate().add({ days: 1 }).toDate();
-
       const response = await app.inject({
         method: 'DELETE',
         url: `/repetitions/${repetitionList[0]._id}?startDate=${tomorrow}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const count = await Repetition.countDocuments();
+      const repetitionsCount = await Repetition.countDocuments();
+      const eventsCount = await Event.countDocuments();
 
       expect(response.statusCode).toBe(200);
-      expect(count).toBe(repetitionList.length - 1);
+      expect(repetitionsCount).toBe(repetitionList.length - 1);
+      expect(eventsCount).toBe(eventList.length - 1);
     });
 
     it('should return a 404 if repetition doesn\'t exist', async () => {
@@ -131,6 +133,17 @@ describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/repetitions/${repetitionList[0]._id}?startDate=${'2022-06-30T00:00:00.000Z'}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return a 400 if startDate is after today + 90 days', async () => {
+      const startDate = CompaniDate(tomorrow).add({ days: 93 }).toDate();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/repetitions/${repetitionList[0]._id}?startDate=${startDate}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
