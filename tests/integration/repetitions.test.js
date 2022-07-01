@@ -4,6 +4,7 @@ const app = require('../../server');
 const Repetition = require('../../src/models/Repetition');
 const { auxiliariesIdList, repetitionList, populateDB } = require('./seed/repetitionsSeed');
 const { getToken } = require('./helpers/authentication');
+const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -92,9 +93,11 @@ describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
     beforeEach(async () => { authToken = await getToken('planning_referent'); });
 
     it('should delete a repetition', async () => {
+      const tomorrow = CompaniDate().add({ days: 1 }).toDate();
+
       const response = await app.inject({
         method: 'DELETE',
-        url: `/repetitions/${repetitionList[0]._id}?startDate=${'2022-07-01T00:00:00.000Z'}`,
+        url: `/repetitions/${repetitionList[0]._id}?startDate=${tomorrow}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -117,7 +120,17 @@ describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
     it('should return a 400 if startDate is missing in query', async () => {
       const response = await app.inject({
         method: 'DELETE',
-        url: `/repetitions/${new ObjectId()}`,
+        url: `/repetitions/${repetitionList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return a 400 if startDate is before today', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/repetitions/${repetitionList[0]._id}?startDate=${'2022-06-30T00:00:00.000Z'}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
