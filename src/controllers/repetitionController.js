@@ -18,4 +18,17 @@ const list = async (req) => {
   }
 };
 
-module.exports = { list };
+const deleteRepetition = async (req) => {
+  try {
+    await RepetitionHelper.delete(req.params._id, req.query.startDate, req.auth.credentials);
+
+    return {
+      message: translate[language].repetitionDeleted,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+module.exports = { list, deleteRepetition };
