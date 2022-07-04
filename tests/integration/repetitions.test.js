@@ -168,7 +168,7 @@ describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
 
         const response = await app.inject({
           method: 'DELETE',
-          url: `/repetitions/${repetitionList[0]._id}?startDate=${'2022-07-01T00:00:00.000Z'}`,
+          url: `/repetitions/${repetitionList[0]._id}?startDate=${tomorrow}`,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
