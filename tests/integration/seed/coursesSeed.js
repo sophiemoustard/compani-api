@@ -6,6 +6,7 @@ const Program = require('../../../src/models/Program');
 const SubProgram = require('../../../src/models/SubProgram');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
+const CourseHistory = require('../../../src/models/CourseHistory');
 const User = require('../../../src/models/User');
 const Step = require('../../../src/models/Step');
 const UserCompany = require('../../../src/models/UserCompany');
@@ -28,7 +29,7 @@ const {
   trainer,
   trainerAndCoach,
 } = require('../../seed/authUsersSeed');
-const { VIDEO, WEBAPP } = require('../../../src/helpers/constants');
+const { VIDEO, WEBAPP, SLOT_CREATION, SLOT_DELETION } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 const CourseBill = require('../../../src/models/CourseBill');
 
@@ -311,6 +312,15 @@ const coursesList = [
     salesRepresentative: vendorAdmin._id,
     company: authCompany._id,
   },
+  { // 16 course without trainee and with slots to plan
+    _id: new ObjectId(),
+    subProgram: subProgramsList[0]._id,
+    misc: '',
+    type: 'inter_b2b',
+    format: 'blended',
+    trainer: trainer._id,
+    salesRepresentative: vendorAdmin._id,
+  },
 ];
 
 const courseBillsList = [
@@ -348,6 +358,21 @@ const courseSmsHistory = {
   sender: trainer._id,
 };
 
+const courseHistories = [
+  {
+    action: SLOT_CREATION,
+    course: coursesList[16]._id,
+    slot: { startDate: '2020-01-01T00:00:00.000Z', endDate: '2020-01-01T02:00:00.000Z' },
+    createdBy: trainerOrganisationManager._id,
+  },
+  {
+    action: SLOT_DELETION,
+    course: coursesList[16]._id,
+    slot: { startDate: '2020-01-01T00:00:00.000Z', endDate: '2020-01-01T02:00:00.000Z' },
+    createdBy: trainerOrganisationManager._id,
+  },
+];
+
 const slots = [
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
@@ -379,14 +404,14 @@ const slots = [
     course: coursesList[3],
     step: stepList[0]._id,
   },
-  { course: coursesList[3] },
+  { course: coursesList[3], step: stepList[0]._id },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
     course: coursesList[5],
     step: stepList[0]._id,
   },
-  { course: coursesList[7] },
+  { course: coursesList[7], step: stepList[0]._id },
   {
     startDate: moment('2020-03-20T09:00:00').toDate(),
     endDate: moment('2020-03-20T11:00:00').toDate(),
@@ -411,6 +436,7 @@ const slots = [
     course: coursesList[13],
     step: stepList[0]._id,
   },
+  { course: coursesList[16], step: stepList[0]._id },
 ];
 
 const populateDB = async () => {
@@ -424,6 +450,7 @@ const populateDB = async () => {
     CourseBill.create(courseBillsList),
     CourseSlot.create(slots),
     CourseSmsHistory.create(courseSmsHistory),
+    CourseHistory.create(courseHistories),
     Program.create(programsList),
     Questionnaire.create(questionnaire),
     QuestionnaireHistory.create(questionnaireHistory),

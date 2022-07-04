@@ -164,7 +164,7 @@ exports.authorizeCourseDeletion = async (req) => {
   if (!course) return Boom.notFound();
 
   if (course.trainees.length) return Boom.forbidden(translate[language].courseDeletionForbidden.trainees);
-  if (course.slots.length || course.slotsToPlan.length) {
+  if (course.slots.length) {
     return Boom.forbidden(translate[language].courseDeletionForbidden.slots);
   }
 
@@ -340,11 +340,7 @@ exports.authorizeSmsSending = async (req) => {
 
   const noSlotToCome = !course.slots || !course.slots.some(slot => moment().isBefore(slot.startDate));
   const noReceiver = !course.trainees || !course.trainees.some(trainee => get(trainee, 'contact.phone'));
-  if (noSlotToCome) throw Boom.forbidden();
-  if (noReceiver) throw Boom.forbidden();
-  if (!get(course, 'contact._id')) throw Boom.forbidden();
-  if (!get(course, 'contact.contact.phone')) throw Boom.forbidden();
-  if (!course.trainer) throw Boom.forbidden();
+  if (noSlotToCome || noReceiver) throw Boom.forbidden();
 
   return null;
 };

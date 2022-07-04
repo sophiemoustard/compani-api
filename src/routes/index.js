@@ -47,6 +47,7 @@ exports.routes = [
   { plugin: require('./programs'), routes: { prefix: '/programs' } },
   { plugin: require('./questionnaireHistories'), routes: { prefix: '/questionnairehistories' } },
   { plugin: require('./questionnaires'), routes: { prefix: '/questionnaires' } },
+  { plugin: require('./repetitions'), routes: { prefix: '/repetitions' } },
   { plugin: require('./roles'), routes: { prefix: '/roles' } },
   { plugin: require('./scripts'), routes: { prefix: '/scripts' } },
   { plugin: require('./sectors'), routes: { prefix: '/sectors' } },

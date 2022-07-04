@@ -10,6 +10,7 @@ const pick = require('lodash/pick');
 const get = require('lodash/get');
 const app = require('../../server');
 const Course = require('../../src/models/Course');
+const CourseSlot = require('../../src/models/CourseSlot');
 const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
@@ -75,6 +76,9 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(200);
       const coursesCountAfter = await Course.countDocuments({});
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
+      const courseSlotsCount = await CourseSlot
+        .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
+      expect(courseSlotsCount).toEqual(1);
     });
 
     it('should create intra course', async () => {
@@ -97,6 +101,9 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(200);
       const coursesCountAfter = await Course.countDocuments({});
       expect(coursesCountAfter).toEqual(coursesCountBefore + 1);
+      const courseSlotsCount = await CourseSlot
+        .countDocuments({ course: response.result.data.course._id, step: { $in: subProgramsList[0].steps } });
+      expect(courseSlotsCount).toEqual(1);
     });
 
     it('should return 403 if invalid salesRepresentative', async () => {
@@ -240,7 +247,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(12);
+      expect(response.result.data.courses.length).toEqual(13);
     });
 
     it('should get strictly e-learning courses', async () => {
@@ -275,7 +282,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.courses.length).toEqual(6);
+      expect(response.result.data.courses.length).toEqual(7);
     });
 
     it('should get courses for a specific company', async () => {
@@ -1168,6 +1175,22 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       expect(courseCount).toBe(0);
     });
 
+    it('should delete course with slots to plan', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/courses/${coursesList[16]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const courseCount = await Course.countDocuments({ _id: coursesList[16]._id });
+      expect(courseCount).toBe(0);
+      const slotsCount = await CourseSlot.countDocuments({ course: coursesList[16]._id });
+      expect(slotsCount).toBe(0);
+      const historiesCount = await CourseHistory.countDocuments({ course: coursesList[16]._id });
+      expect(historiesCount).toBe(0);
+    });
+
     it('should return 404 if course does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
@@ -1182,16 +1205,6 @@ describe('COURSES ROUTES - DELETE /courses/{_id}', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/courses/${coursesList[4]._id}`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-
-    it('should return 403 as course has slots to plan', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/courses/${coursesList[7]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -1249,9 +1262,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
   const courseIdFromOtherCompany = coursesList[1]._id;
   const archivedCourseId = coursesList[14]._id;
   const courseIdWithoutReceiver = coursesList[7]._id;
-  const courseIdWithoutContact = coursesList[9]._id;
-  const courseIdWithoutContactPhone = coursesList[1]._id;
-  const courseIdWithoutTrainer = coursesList[8]._id;
   let SmsHelperStub;
   let momentIsBefore;
   const payload = { content: 'Ceci est un test', type: CONVOCATION };
@@ -1361,90 +1371,6 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
       expect(get(course, 'contact._id')).toBeTruthy();
       expect(get(course, 'contact.contact.phone')).toBeTruthy();
       expect(course.trainer).toBeTruthy();
-
-      sinon.assert.notCalled(SmsHelperStub);
-    });
-
-    it('should return a 403 if course has no contact', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${courseIdWithoutContact}/sms`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(courseIdWithoutContact)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .populate({ path: 'trainees', select: 'contact.phone' })
-        .populate({ path: 'contact', select: 'contact.phone' })
-        .lean();
-
-      const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
-      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
-      expect(hasSlotToCome).toBeTruthy();
-      expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact._id')).toBeFalsy();
-      expect(get(course, 'contact.contact.phone')).toBeFalsy();
-      expect(course.trainer).toBeTruthy();
-
-      sinon.assert.notCalled(SmsHelperStub);
-    });
-
-    it('should return a 403 if course has no contact phone', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${courseIdWithoutContactPhone}/sms`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(courseIdWithoutContactPhone)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .populate({ path: 'trainees', select: 'contact.phone' })
-        .populate({ path: 'contact', select: 'contact.phone' })
-        .lean();
-
-      const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
-      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
-      expect(hasSlotToCome).toBeTruthy();
-      expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact._id')).toBeTruthy();
-      expect(get(course, 'contact.contact.phone')).toBe();
-      expect(course.trainer).toBeTruthy();
-
-      sinon.assert.notCalled(SmsHelperStub);
-    });
-
-    it('should return a 403 if course has no trainer', async () => {
-      const response = await app.inject({
-        method: 'POST',
-        url: `/courses/${courseIdWithoutTrainer}/sms`,
-        payload,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(403);
-
-      const course = await Course.findById(courseIdWithoutTrainer)
-        .populate({ path: 'slots', select: 'startDate endDate' })
-        .populate({ path: 'slotsToPlan' })
-        .populate({ path: 'trainees', select: 'contact.phone' })
-        .populate({ path: 'contact', select: 'contact.phone' })
-        .lean();
-
-      const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
-      const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
-      expect(hasSlotToCome).toBeTruthy();
-      expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact._id')).toBeTruthy();
-      expect(get(course, 'contact.contact.phone')).toBeTruthy();
-      expect(course.trainer).toBeFalsy();
 
       sinon.assert.notCalled(SmsHelperStub);
     });
