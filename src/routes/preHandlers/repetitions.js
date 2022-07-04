@@ -29,8 +29,9 @@ exports.authorizeRepetitionDeletion = async (req) => {
   if (!repetition) throw Boom.notFound();
 
   if (req.query.startDate) {
-    const invalidDate = CompaniDate(req.query.startDate).isBefore(CompaniDate().startOf('day')) ||
-      CompaniDate(req.query.startDate).isAfter(CompaniDate().startOf('day').add({ days: 90 }));
+    const today = CompaniDate().startOf('day');
+    const invalidDate = CompaniDate(req.query.startDate).isBefore(today) ||
+      CompaniDate(req.query.startDate).isAfter(today.add({ days: 90 }));
     if (invalidDate) throw Boom.badRequest();
   }
 

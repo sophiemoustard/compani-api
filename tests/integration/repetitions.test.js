@@ -3,7 +3,7 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
-const { auxiliariesIdList, repetitionList, populateDB, eventList } = require('./seed/repetitionsSeed');
+const { auxiliariesIdList, repetitionList, populateDB } = require('./seed/repetitionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
@@ -95,6 +95,7 @@ describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
     beforeEach(populateDB);
     beforeEach(async () => { authToken = await getToken('planning_referent'); });
     it('should delete a repetition', async () => {
+      const eventsCountBefore = await Event.countDocuments({ 'repetition.parentId': repetitionList[0].parentId });
       const response = await app.inject({
         method: 'DELETE',
         url: `/repetitions/${repetitionList[0]._id}?startDate=${tomorrow}`,
@@ -102,11 +103,12 @@ describe('REPETITIONS ROUTES - DELETE /{_id}', () => {
       });
 
       const repetitionsCount = await Repetition.countDocuments();
-      const eventsCount = await Event.countDocuments();
+      const eventsCountAfter = await Event.countDocuments({ 'repetition.parentId': repetitionList[0].parentId });
 
       expect(response.statusCode).toBe(200);
       expect(repetitionsCount).toBe(repetitionList.length - 1);
-      expect(eventsCount).toBe(eventList.length - 1);
+      expect(eventsCountBefore).toBe(1);
+      expect(eventsCountAfter).toBe(0);
     });
 
     it('should return a 404 if repetition doesn\'t exist', async () => {
