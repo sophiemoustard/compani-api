@@ -65,9 +65,8 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
   return null;
 };
 
-exports.checkInterlocutors = async (req, isRofOrAdmin, courseCompanyId) => {
+exports.checkInterlocutors = async (req, courseCompanyId) => {
   if (get(req, 'payload.trainer')) {
-    if (!isRofOrAdmin) throw Boom.forbidden();
     const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 })
       .lean({ autopopulate: true });
 
@@ -102,13 +101,14 @@ exports.authorizeCourseEdit = async (req) => {
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
-    if (get(req, 'payload.salesRepresentative')) {
-      if (!isRofOrAdmin) throw Boom.forbidden();
-      await this.checkSalesRepresentativeExists(req);
+    if ((get(req, 'payload.salesRepresentative') || get(req, 'payload.trainer')) && !isRofOrAdmin) {
+      return Boom.forbidden();
     }
 
+    if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
+
     if (get(req, 'payload.trainer') || get(req, 'payload.companyRepresentative')) {
-      await this.checkInterlocutors(req, isRofOrAdmin, courseCompanyId);
+      await this.checkInterlocutors(req, courseCompanyId);
     }
 
     const archivedAt = get(req, 'payload.archivedAt');
