@@ -235,6 +235,10 @@ exports.getCourse = async (course, loggedUser) => {
       path: 'salesRepresentative',
       select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
     })
+    .populate({
+      path: 'companyRepresentative',
+      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+    })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' })
     .lean();
 
