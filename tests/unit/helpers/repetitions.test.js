@@ -2,6 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const Repetition = require('../../../src/models/Repetition');
+const Event = require('../../../src/models/Event');
 const EventsHelper = require('../../../src/helpers/events');
 const RepetitionHelper = require('../../../src/helpers/repetitions');
 const SinonMongoose = require('../sinonMongoose');
@@ -159,19 +160,25 @@ describe('list', () => {
   });
 });
 
-describe('delete', () => {
+describe('delete #tag', () => {
   let findOne;
+  let eventCountDocuments;
   let deleteEventsAndRepetition;
+  let deleteOneRepetition;
   beforeEach(() => {
     findOne = sinon.stub(Repetition, 'findOne');
+    eventCountDocuments = sinon.stub(Event, 'countDocuments');
     deleteEventsAndRepetition = sinon.stub(EventsHelper, 'deleteEventsAndRepetition');
+    deleteOneRepetition = sinon.stub(Repetition, 'deleteOne');
   });
   afterEach(() => {
     findOne.restore();
+    eventCountDocuments.restore();
     deleteEventsAndRepetition.restore();
+    deleteOneRepetition.restore();
   });
 
-  it('should delete a repetition', async () => {
+  it('should delete a repetition with linked events', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const repetitionId = new ObjectId();
@@ -191,6 +198,7 @@ describe('delete', () => {
     };
 
     findOne.returns(SinonMongoose.stubChainedQueries(repetition, ['lean']));
+    eventCountDocuments.returns(1);
 
     await RepetitionHelper.delete(repetitionId, startDate, credentials);
 
@@ -198,11 +206,61 @@ describe('delete', () => {
       findOne,
       [{ query: 'findOne', args: [{ _id: repetitionId, company: companyId }, { parentId: 1 }] }, { query: 'lean' }]
     );
+    SinonMongoose.calledOnceWithExactly(
+      eventCountDocuments,
+      [
+        {
+          query: 'countDocuments',
+          args: [{ 'repetition.parentId': parentId, startDate: { $gte: startDate }, company: companyId }],
+        },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(
       deleteEventsAndRepetition,
       { 'repetition.parentId': parentId, startDate: { $gte: startDate }, company: companyId },
       true,
       credentials
     );
+    sinon.assert.notCalled(deleteOneRepetition);
+  });
+  it('should delete a repetition without linked events', async () => {
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId } };
+    const repetitionId = new ObjectId();
+    const parentId = new ObjectId();
+    const startDate = '2019-07-25T00:00:00.000Z';
+
+    const repetition = {
+      _id: repetitionId,
+      type: 'intervention',
+      startDate: '2019-07-16T20:00:00.000Z',
+      endDate: '2019-07-16T22:00:00.000Z',
+      frequency: 'every_two_weeks',
+      auxiliary: new ObjectId(),
+      customer: new ObjectId(),
+      parentId,
+      company: companyId,
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(repetition, ['lean']));
+    eventCountDocuments.returns(0);
+
+    await RepetitionHelper.delete(repetitionId, startDate, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: repetitionId, company: companyId }, { parentId: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      eventCountDocuments,
+      [
+        {
+          query: 'countDocuments',
+          args: [{ 'repetition.parentId': parentId, startDate: { $gte: startDate }, company: companyId }],
+        },
+      ]
+    );
+    sinon.assert.notCalled(deleteEventsAndRepetition);
+    sinon.assert.calledOnceWithExactly(deleteOneRepetition, { _id: repetitionId });
   });
 });
