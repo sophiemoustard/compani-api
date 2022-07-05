@@ -40,7 +40,7 @@ const {
   authorizeAndGetTrainee,
   authorizeGetCourse,
   authorizeGetFollowUp,
-  checkInterlocutorsExist,
+  checkSalesRepresentativeExists,
   authorizeGetQuestionnaires,
   authorizeAttendanceSheetsGetAndAssignCourse,
   authorizeSmsSending,
@@ -97,7 +97,7 @@ exports.plugin = {
           }),
         },
         auth: { scope: ['courses:create'] },
-        pre: [{ method: checkInterlocutorsExist }],
+        pre: [{ method: checkSalesRepresentativeExists }],
       },
       handler: create,
     });

@@ -40,16 +40,34 @@ exports.checkAuthorization = (credentials, courseTrainerId, courseCompanyId, tra
   if (!isAdminVendor && !isTOM && !isTrainerAndAuthorized && !isClientAndAuthorized) throw Boom.forbidden();
 };
 
-exports.checkInterlocutorsExist = async (req, courseCompanyId) => {
-  if (get(req, 'payload.salesRepresentative')) {
-    const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative }, { role: 1 })
-      .lean({ autopopulate: true });
+exports.checkSalesRepresentativeExists = async (req) => {
+  const salesRepresentative = await User.findOne({ _id: req.payload.salesRepresentative }, { role: 1 })
+    .lean({ autopopulate: true });
 
-    if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(salesRepresentative, 'role.vendor.name'))) {
-      throw Boom.forbidden();
-    }
+  if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER].includes(get(salesRepresentative, 'role.vendor.name'))) {
+    throw Boom.forbidden();
   }
+
+  return null;
+};
+
+exports.authorizeGetDocumentsAndSms = async (req) => {
+  const { credentials } = req.auth;
+  const { course } = req.pre;
+
+  const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), get(credentials, '_id'));
+  if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
+
+  const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
+  const courseCompanyId = course.company ? course.company.toHexString() : null;
+  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, course.trainees.map(t => t.company));
+
+  return null;
+};
+
+exports.checkInterlocutors = async (req, isRofOrAdmin, courseCompanyId) => {
   if (get(req, 'payload.trainer')) {
+    if (!isRofOrAdmin) throw Boom.forbidden();
     const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 })
       .lean({ autopopulate: true });
 
@@ -72,20 +90,6 @@ exports.checkInterlocutorsExist = async (req, courseCompanyId) => {
   return null;
 };
 
-exports.authorizeGetDocumentsAndSms = async (req) => {
-  const { credentials } = req.auth;
-  const { course } = req.pre;
-
-  const isTrainee = UtilsHelper.doesArrayIncludeId(course.trainees.map(t => t._id), get(credentials, '_id'));
-  if (isTrainee && get(req, 'query.origin') === MOBILE) return null;
-
-  const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
-  const courseCompanyId = course.company ? course.company.toHexString() : null;
-  this.checkAuthorization(credentials, courseTrainerId, courseCompanyId, course.trainees.map(t => t.company));
-
-  return null;
-};
-
 exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
@@ -98,12 +102,13 @@ exports.authorizeCourseEdit = async (req) => {
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
 
-    if ((get(req, 'payload.salesRepresentative') || get(req, 'payload.trainer')) && !isRofOrAdmin) {
-      return Boom.forbidden();
+    if (get(req, 'payload.salesRepresentative')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      await this.checkSalesRepresentativeExists(req);
     }
-    if (get(req, 'payload.salesRepresentative') || get(req, 'payload.trainer') ||
-      get(req, 'payload.companyRepresentative')) {
-      await this.checkInterlocutorsExist(req, courseCompanyId);
+
+    if (get(req, 'payload.trainer') || get(req, 'payload.companyRepresentative')) {
+      await this.checkInterlocutors(req, isRofOrAdmin, courseCompanyId);
     }
 
     const archivedAt = get(req, 'payload.archivedAt');
