@@ -71,17 +71,40 @@ const getAttendancesCountInfos = (course) => {
   };
 };
 
-const getBillsInfos = (bills) => {
-  const courseBillsWithoutCreditNote = bills.filter(bill => !bill.courseCreditNote);
-  const payer = courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')).toString();
-  const isBilled = courseBillsWithoutCreditNote.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
+const getBillsInfos = (course) => {
+  const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
+  const payer = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))].toString();
+  if (course.type === INTRA) {
+    const isBilled = courseBillsWithoutCreditNote.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
 
-  const validatedBill = courseBillsWithoutCreditNote.find(bill => bill.billedAt);
-  const { netInclTaxes, paid, total } = validatedBill
-    ? CourseBillHelper.computeAmounts(validatedBill)
-    : { netInclTaxes: '', paid: '', total: '' };
+    const validatedBill = courseBillsWithoutCreditNote.find(bill => bill.billedAt);
+    const { netInclTaxes, paid, total } = validatedBill
+      ? CourseBillHelper.computeAmounts(validatedBill)
+      : { netInclTaxes: '', paid: '', total: '' };
 
-  return { isBilled, payer, netInclTaxes, paid, total };
+    return { isBilled, payer, netInclTaxes, paid, total };
+  }
+
+  const mainFeesCount = courseBillsWithoutCreditNote
+    .map(bill => bill.mainFee.count)
+    .reduce((acc, value) => acc + value, 0);
+
+  const isBilled = `${mainFeesCount}/${course.trainees.length}`;
+
+  const validatedBills = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
+  if (validatedBills.length) {
+    const computedAmounts = validatedBills.map(bill => CourseBillHelper.computeAmounts(bill));
+
+    return {
+      isBilled,
+      payer,
+      netInclTaxes: computedAmounts.map(amount => amount.netInclTaxes).reduce((acc, value) => acc + value, 0),
+      paid: computedAmounts.map(amount => amount.paid).reduce((acc, value) => acc + value, 0),
+      total: computedAmounts.map(amount => amount.total).reduce((acc, value) => acc + value, 0),
+    };
+  }
+
+  return { isBilled, payer, netInclTaxes: '', paid: '', total: '' };
 };
 
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
@@ -131,7 +154,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
 
-    const { isBilled, payer, netInclTaxes, paid, total } = getBillsInfos(course.bills);
+    const { isBilled, payer, netInclTaxes, paid, total } = getBillsInfos(course);
 
     rows.push({
       Identifiant: course._id,
