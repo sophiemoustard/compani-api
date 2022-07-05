@@ -160,7 +160,7 @@ describe('list', () => {
   });
 });
 
-describe('delete #tag', () => {
+describe('delete', () => {
   let findOne;
   let eventCountDocuments;
   let deleteEventsAndRepetition;
