@@ -33,6 +33,7 @@ const EventsHelper = require('./events');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const CustomerQRCode = require('../data/pdf/customerQRCode/customerQRCode');
+const { CompaniDate } = require('./dates/companiDates');
 
 const { language } = translate;
 
@@ -80,10 +81,13 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
 };
 
 exports.getCustomers = async (credentials, query = null) => {
+  const today = CompaniDate().toDate();
   const findQuery = {
     company: get(credentials, 'company._id', null),
     ...(query && query.archived && { archivedAt: { $ne: null } }),
     ...(query && query.archived === false && { archivedAt: { $eq: null } }),
+    ...(query && query.stopped && { $or: [{ stoppedAt: { $ne: null } }, { stoppedAt: { $lte: today } }] }),
+    ...(query && !query.stopped && { $or: [{ stoppedAt: { $eq: null } }, { stoppedAt: { $gt: today } }] }),
   };
 
   const customers = await Customer.find(findQuery).populate({ path: 'subscriptions.service' }).lean();
