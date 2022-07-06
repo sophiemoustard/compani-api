@@ -851,7 +851,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     it('should update course', async () => {
       const payload = {
         misc: 'new name',
-        trainer: new ObjectId(),
+        trainer: trainerAndCoach._id,
         contact: new ObjectId(),
         estimatedStartDate: '2022-05-31T08:00:00',
       };
@@ -865,6 +865,21 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
 
       const course = await Course.countDocuments({ _id: coursesList[4]._id, ...payload }).lean();
+      expect(course).toEqual(1);
+    });
+
+    it('should update company representative', async () => {
+      const payload = { companyRepresentative: coach._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const course = await Course.countDocuments({ _id: coursesList[0]._id, ...payload }).lean();
       expect(course).toEqual(1);
     });
 
@@ -909,6 +924,43 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if invalid trainer', async () => {
+      const payload = { trainer: clientAdmin._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if invalid companyRepresentative', async () => {
+      const payload = { companyRepresentative: vendorAdmin._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 404 if companyRepresentative has wrong company', async () => {
+      const courseIdFromOtherCompany = coursesList[1]._id;
+      const payload = { companyRepresentative: coach._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromOtherCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 403 if trying to archive course without trainee', async () => {
@@ -1075,6 +1127,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
+    it('should return 403 as user is course trainer but try to update salesRepresentative', async () => {
+      const payload = { salesRepresentative: vendorAdmin._id };
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 as user is trainer if not one of his courses', async () => {
       const payload = { misc: 'new name' };
       authToken = await getToken('trainer');
@@ -1089,11 +1154,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should update course as user is coach in the company of the course', async () => {
-      const payload = {
-        misc: 'new name',
-        trainer: new ObjectId(),
-        contact: new ObjectId(),
-      };
+      const payload = { misc: 'new name', contact: new ObjectId() };
       authToken = await getToken('coach');
 
       const response = await app.inject({
@@ -1104,6 +1165,20 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should not update course as user is coach but try to update trainer', async () => {
+      const payload = { trainer: new ObjectId() };
+      authToken = await getToken('coach');
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 as user is client_admin and try to update estimated start date', async () => {

@@ -753,6 +753,13 @@ describe('getCourse', () => {
         },
         {
           query: 'populate',
+          args: [{
+            path: 'companyRepresentative',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          }],
+        },
+        {
+          query: 'populate',
           args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' }],
         },
         { query: 'lean' },
@@ -829,6 +836,13 @@ describe('getCourse', () => {
           query: 'populate',
           args: [{
             path: 'salesRepresentative',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'companyRepresentative',
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           }],
         },
