@@ -1408,16 +1408,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
-        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeFalsy();
       expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact._id')).toBeTruthy();
-      expect(get(course, 'contact.contact.phone')).toBeTruthy();
-      expect(course.trainer).toBeTruthy();
 
       sinon.assert.notCalled(SmsHelperStub);
     });
@@ -1436,16 +1432,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
-        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeTruthy();
       expect(hasReceiver).toBeFalsy();
-      expect(get(course, 'contact._id')).toBeTruthy();
-      expect(get(course, 'contact.contact.phone')).toBeTruthy();
-      expect(course.trainer).toBeTruthy();
 
       sinon.assert.notCalled(SmsHelperStub);
     });
