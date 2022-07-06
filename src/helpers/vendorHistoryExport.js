@@ -73,39 +73,40 @@ const getAttendancesCountInfos = (course) => {
 
 const getBillsInfos = (course) => {
   const courseBillsWithoutCreditNote = course.bills.filter(bill => !bill.courseCreditNote);
-  const payer = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))].toString();
+  const payerList = [...new Set(courseBillsWithoutCreditNote.map(bill => get(bill, 'payer.name')))].toString();
   if (course.type === INTRA) {
-    const isBilled = courseBillsWithoutCreditNote.map(bill => (bill.billedAt ? 'Oui' : 'Non')).toString();
-
     const validatedBill = courseBillsWithoutCreditNote.find(bill => bill.billedAt);
+    const isBilled = validatedBill ? 'Oui' : 'Non';
+
     const { netInclTaxes, paid, total } = validatedBill
       ? CourseBillHelper.computeAmounts(validatedBill)
       : { netInclTaxes: '', paid: '', total: '' };
 
-    return { isBilled, payer, netInclTaxes, paid, total };
+    return { isBilled, payerList, netInclTaxes, paid, total };
   }
 
-  const mainFeesCount = courseBillsWithoutCreditNote
-    .map(bill => bill.mainFee.count)
-    .reduce((acc, value) => acc + value, 0);
+  const validatedBills = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
+  const mainFeesCount = validatedBills.map(bill => bill.mainFee.count).reduce((acc, value) => acc + value, 0);
 
   const isBilled = `${mainFeesCount}/${course.trainees.length}`;
 
-  const validatedBills = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
   if (validatedBills.length) {
     const computedAmounts = validatedBills.map(bill => CourseBillHelper.computeAmounts(bill));
 
     return {
       isBilled,
-      payer,
+      payerList,
       netInclTaxes: computedAmounts.map(amount => amount.netInclTaxes).reduce((acc, value) => acc + value, 0),
       paid: computedAmounts.map(amount => amount.paid).reduce((acc, value) => acc + value, 0),
       total: computedAmounts.map(amount => amount.total).reduce((acc, value) => acc + value, 0),
     };
   }
 
-  return { isBilled, payer, netInclTaxes: '', paid: '', total: '' };
+  return { isBilled, payerList, netInclTaxes: '', paid: '', total: '' };
 };
+
+const getProgress = (pastSlots, course) =>
+  UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length));
 
 exports.exportCourseHistory = async (startDate, endDate, credentials) => {
   const courses = await CourseRepository.findCoursesForExport(startDate, endDate, credentials);
@@ -154,12 +155,12 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       .map(trainee => trainee.progress.eLearning);
     const combinedElearningProgress = traineeProgressList.reduce((acc, value) => acc + value, 0);
 
-    const { isBilled, payer, netInclTaxes, paid, total } = getBillsInfos(course);
+    const { isBilled, payerList, netInclTaxes, paid, total } = getBillsInfos(course);
 
     rows.push({
       Identifiant: course._id,
       Type: course.type,
-      Payeur: payer || '',
+      Payeur: payerList || '',
       Structure: course.type === INTRA ? get(course, 'company.name') : '',
       Programme: get(course, 'subProgram.program.name') || '',
       'Sous-Programme': get(course, 'subProgram.name') || '',
@@ -190,7 +191,7 @@ exports.exportCourseHistory = async (startDate, endDate, credentials) => {
       'Nombre d\'absences': absences,
       'Nombre de stagiaires non prévus': unsubscribedTrainees,
       'Nombre de présences non prévues': unsubscribedAttendances,
-      Avancement: UtilsHelper.formatFloatForExport(pastSlots / (course.slots.length + course.slotsToPlan.length)),
+      Avancement: getProgress(pastSlots, course),
       Facturée: isBilled,
       'Montant facturé': UtilsHelper.formatFloatForExport(netInclTaxes),
       'Montant réglé': UtilsHelper.formatFloatForExport(paid),
@@ -374,9 +375,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       Avoir: get(bill, 'courseCreditNote.number') || '',
       'Montant soldé': bill.courseCreditNote ? UtilsHelper.formatFloatForExport(netInclTaxes) : '',
       Solde: UtilsHelper.formatFloatForExport(total),
-      Avancement: UtilsHelper
-        .formatFloatForExport(pastSlots / (bill.course.slots.length + bill.course.slotsToPlan.length)),
-
+      Avancement: getProgress(pastSlots, bill.course),
     };
 
     rows.push(formattedBill);
