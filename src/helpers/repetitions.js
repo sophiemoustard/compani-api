@@ -46,6 +46,11 @@ exports.list = async (query, credentials) => {
   if (customer) {
     repetitions = await Repetition
       .find({ customer, company: companyId }, { attachement: 0, misc: 0, address: 0, sector: 0 })
+      .populate({
+        path: 'customer',
+        select: 'subscriptions.service subscriptions._id',
+        populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+      })
       .populate({ path: 'auxiliary', select: 'identity picture' })
       .populate({ path: 'sector', select: 'name' })
       .lean();

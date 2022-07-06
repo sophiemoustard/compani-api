@@ -17,13 +17,11 @@ exports.authorizeRepetitionGet = async (req) => {
 
   if (auxiliary) {
     const userExists = await UserCompany.countDocuments(({ user: new ObjectId(auxiliary), company: companyId }));
-    console.log('user', userExists);
     if (!userExists) throw Boom.notFound();
   }
 
   if (customer) {
     const customerExists = await Customer.countDocuments({ _id: new ObjectId(customer), company: companyId });
-    console.log(customerExists);
     if (!customerExists) throw Boom.notFound();
   }
   return null;
