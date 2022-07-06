@@ -1,4 +1,5 @@
 const Boom = require('@hapi/boom');
+const { ObjectId } = require('mongodb');
 const get = require('lodash/get');
 const UserCompany = require('../../models/UserCompany');
 const Repetition = require('../../models/Repetition');
@@ -15,12 +16,14 @@ exports.authorizeRepetitionGet = async (req) => {
   if (isAuxiliary) throw Boom.forbidden();
 
   if (auxiliary) {
-    const userExists = await UserCompany.countDocuments(({ user: auxiliary, company: companyId }));
+    const userExists = await UserCompany.countDocuments(({ user: new ObjectId(auxiliary), company: companyId }));
+    console.log('user', userExists);
     if (!userExists) throw Boom.notFound();
   }
 
   if (customer) {
-    const customerExists = await Customer.countDocuments({ _id: customer, company: companyId });
+    const customerExists = await Customer.countDocuments({ _id: new ObjectId(customer), company: companyId });
+    console.log(customerExists);
     if (!customerExists) throw Boom.notFound();
   }
   return null;
