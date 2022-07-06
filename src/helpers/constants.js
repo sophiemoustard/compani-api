@@ -503,8 +503,6 @@ module.exports = {
   DEATH: 'death',
   EPHAD_DEPARTURE: 'ephad_departure',
   CONDITION_IMPROVEMENT: 'condition_improvement',
-  // FILES
-  TMP_FILES_PATH: 'src/data/pdf/tmp/',
   // DOCUMENTS
   DOCUMENT_TYPE_LIST: [
     'contract',
