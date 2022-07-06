@@ -1167,7 +1167,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should update course as user is coach but try to update trainer', async () => {
+    it('should not update course as user is coach but try to update trainer', async () => {
       const payload = { trainer: new ObjectId() };
       authToken = await getToken('coach');
 

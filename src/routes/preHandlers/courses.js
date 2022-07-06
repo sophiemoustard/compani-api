@@ -66,6 +66,8 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
 };
 
 exports.checkInterlocutors = async (req, courseCompanyId) => {
+  if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
+
   if (get(req, 'payload.trainer')) {
     const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 })
       .lean({ autopopulate: true });
@@ -105,11 +107,7 @@ exports.authorizeCourseEdit = async (req) => {
       return Boom.forbidden();
     }
 
-    if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
-
-    if (get(req, 'payload.trainer') || get(req, 'payload.companyRepresentative')) {
-      await this.checkInterlocutors(req, courseCompanyId);
-    }
+    await this.checkInterlocutors(req, courseCompanyId);
 
     const archivedAt = get(req, 'payload.archivedAt');
     if (archivedAt) {
