@@ -334,7 +334,11 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       {
         path: 'course',
         select: 'subProgram misc',
-        populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+        populate: [
+          { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+          { path: 'slots', select: 'startDate' },
+          { path: 'slotsToPlan', select: '_id' },
+        ],
       }
     )
     .populate({ path: 'company', select: 'name' })
@@ -348,6 +352,9 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
   const rows = [];
   for (const bill of courseBills) {
     const { netInclTaxes, paid, total } = CourseBillHelper.computeAmounts(bill);
+    const upComingSlots = bill.course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
+    const pastSlots = bill.course.slots.length - upComingSlots;
+
     const commonInfos = {
       'Id formation': bill.course._id,
       Formation: `${bill.company.name} - ${bill.course.subProgram.program.name} - ${bill.course.misc}`,
@@ -367,6 +374,9 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
       Avoir: get(bill, 'courseCreditNote.number') || '',
       'Montant soldé': bill.courseCreditNote ? UtilsHelper.formatFloatForExport(netInclTaxes) : '',
       Solde: UtilsHelper.formatFloatForExport(total),
+      Avancement: UtilsHelper
+        .formatFloatForExport(pastSlots / (bill.course.slots.length + bill.course.slotsToPlan.length)),
+
     };
 
     rows.push(formattedBill);
