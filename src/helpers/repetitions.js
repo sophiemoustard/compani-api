@@ -1,6 +1,7 @@
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const Repetition = require('../models/Repetition');
+const Event = require('../models/Event');
 const EventsHelper = require('./events');
 const { CompaniDate } = require('./dates/companiDates');
 const { FIELDS_NOT_APPLICABLE_TO_REPETITION } = require('./constants');
@@ -47,5 +48,8 @@ exports.delete = async (repetitionId, startDate, credentials) => {
 
   const query = { 'repetition.parentId': bddRepetition.parentId, startDate: { $gte: startDate }, company: companyId };
 
-  await EventsHelper.deleteEventsAndRepetition(query, true, credentials);
+  const eventsLinkedToRepetition = await Event.countDocuments(query);
+
+  if (eventsLinkedToRepetition) await EventsHelper.deleteEventsAndRepetition(query, true, credentials);
+  else await Repetition.deleteOne({ _id: repetitionId });
 };
