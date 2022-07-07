@@ -151,10 +151,16 @@ exports.getTableFooter = (data) => {
   return {
     columns: [
       { text: '' },
-      { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
-      { text: netInclTaxes, alignment: 'right', width: 'auto' },
-      { text: 'Total TTC', alignment: 'right', marginRight: 22 },
-      { text: netInclTaxes, alignment: 'right', width: 'auto' },
+      { text: '' },
+      { text: '' },
+      [
+        { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
+        { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
+      ],
+      [
+        { text: netInclTaxes, alignment: 'right', width: 'auto' },
+        { text: netInclTaxes, alignment: 'right', width: 'auto', bold: true },
+      ],
     ],
   };
 };
