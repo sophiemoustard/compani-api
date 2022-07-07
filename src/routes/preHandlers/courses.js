@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const moment = require('moment');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
@@ -111,15 +112,11 @@ exports.authorizeCourseEdit = async (req) => {
 
     if (get(req, 'payload.contact')) {
       if (!isRofOrAdmin) throw Boom.forbidden();
-      const interlocutors = [];
-      if (get(req, 'payload.salesRepresentative')) interlocutors.push(req.payload.salesRepresentative);
-      else interlocutors.push(course.salesRepresentative);
-      if (get(req, 'payload.trainer')) interlocutors.push(req.payload.trainer);
-      else if (course.trainer) interlocutors.push(course.trainer);
-      if (get(req, 'payload.companyRepresentative')) interlocutors.push(req.payload.companyRepresentative);
-      else if (course.companyRepresentative) interlocutors.push(course.companyRepresentative);
+      const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+      const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+      const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
 
-      if (!UtilsHelper.doesArrayIncludeId(interlocutors, req.payload.contact)) throw Boom.forbidden();
+      if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
     }
 
     const archivedAt = get(req, 'payload.archivedAt');
