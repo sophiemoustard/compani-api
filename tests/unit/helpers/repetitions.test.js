@@ -185,7 +185,7 @@ describe('list', () => {
         startDate: '2019-07-24T08:00:00.000Z',
         endDate: '2019-07-13T09:00:00.000Z',
         frequency: 'every_day',
-        auxiliary: new ObjectId(),
+        auxiliary: auxiliaryId,
       },
     ];
 
@@ -200,8 +200,16 @@ describe('list', () => {
           query: 'find',
           args: [
             { customer: query.customer, company: credentials.company._id },
-            { attachement: 0, misc: 0, address: 0, sector: 0 },
+            { attachement: 0, misc: 0, address: 0 },
           ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'subscriptions.service subscriptions._id',
+            populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+          }],
         },
         {
           query: 'populate',
