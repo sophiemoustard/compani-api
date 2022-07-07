@@ -153,9 +153,9 @@ describe('getPdfContent', () => {
         {
           columns: [
             { text: '' },
-            { text: '' },
-            { text: '' },
-            { text: 'Sous-total', alignment: 'right', marginRight: 22 },
+            { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
+            { text: '1300,00 €', alignment: 'right', width: 'auto' },
+            { text: 'Total TTC', alignment: 'right', marginRight: 22 },
             { text: '1300,00 €', alignment: 'right', width: 'auto' },
           ],
         },
@@ -291,9 +291,9 @@ describe('getPdfContent', () => {
         {
           columns: [
             { text: '' },
-            { text: '' },
-            { text: '' },
-            { text: 'Sous-total', alignment: 'right', marginRight: 22 },
+            { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
+            { text: '1000,00 €', alignment: 'right', width: 'auto' },
+            { text: 'Total TTC', alignment: 'right', marginRight: 22 },
             { text: '1000,00 €', alignment: 'right', width: 'auto' },
           ],
         },
