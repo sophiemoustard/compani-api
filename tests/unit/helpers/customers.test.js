@@ -405,7 +405,7 @@ describe('getCustomers', () => {
     );
   });
 
-  it('should return only stopped customer', async () => {
+  it('should return only non-stopped customer', async () => {
     const companyId = new ObjectId();
     const today = CompaniDate().startOf('day').toDate();
     const credentials = { company: { _id: companyId } };
