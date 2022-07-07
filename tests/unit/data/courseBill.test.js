@@ -148,10 +148,16 @@ describe('getPdfContent', () => {
         {
           columns: [
             { text: '' },
-            { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
-            { text: '1300,00 €', alignment: 'right', width: 'auto' },
-            { text: 'Total TTC', alignment: 'right', marginRight: 22 },
-            { text: '1300,00 €', alignment: 'right', width: 'auto' },
+            { text: '' },
+            { text: '' },
+            [
+              { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
+              { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
+            ],
+            [
+              { text: '1300,00 €', alignment: 'right', width: 'auto' },
+              { text: '1300,00 €', alignment: 'right', width: 'auto', bold: true },
+            ],
           ],
         },
         {
@@ -286,10 +292,16 @@ describe('getPdfContent', () => {
         {
           columns: [
             { text: '' },
-            { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
-            { text: '1000,00 €', alignment: 'right', width: 'auto' },
-            { text: 'Total TTC', alignment: 'right', marginRight: 22 },
-            { text: '1000,00 €', alignment: 'right', width: 'auto' },
+            { text: '' },
+            { text: '' },
+            [
+              { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
+              { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
+            ],
+            [
+              { text: '1000,00 €', alignment: 'right', width: 'auto' },
+              { text: '1000,00 €', alignment: 'right', width: 'auto', bold: true },
+            ],
           ],
         },
         {
