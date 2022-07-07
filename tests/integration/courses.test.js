@@ -852,7 +852,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const payload = {
         misc: 'new name',
         trainer: trainerAndCoach._id,
-        contact: new ObjectId(),
+        contact: trainerAndCoach._id,
         estimatedStartDate: '2022-05-31T08:00:00',
       };
       const response = await app.inject({
@@ -961,6 +961,30 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if contact is not one of interlocutors', async () => {
+      const payload = { contact: new ObjectId() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if contact is one of interlocutors but interlocutor is changing', async () => {
+      const payload = { trainer: trainerAndCoach._id, contact: trainer._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if trying to archive course without trainee', async () => {
@@ -1154,7 +1178,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should update course as user is coach in the company of the course', async () => {
-      const payload = { misc: 'new name', contact: new ObjectId() };
+      const payload = { misc: 'new name', contact: vendorAdmin._id };
       authToken = await getToken('coach');
 
       const response = await app.inject({

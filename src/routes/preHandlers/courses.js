@@ -109,6 +109,18 @@ exports.authorizeCourseEdit = async (req) => {
 
     await this.checkInterlocutors(req, courseCompanyId);
 
+    if (get(req, 'payload.contact')) {
+      const interlocutors = [];
+      if (get(req, 'payload.salesRepresentative')) interlocutors.push(req.payload.salesRepresentative);
+      else interlocutors.push(course.salesRepresentative);
+      if (get(req, 'payload.trainer')) interlocutors.push(req.payload.trainer);
+      else if (course.trainer) interlocutors.push(course.trainer);
+      if (get(req, 'payload.companyRepresentative')) interlocutors.push(req.payload.companyRepresentative);
+      else if (course.companyRepresentative) interlocutors.push(course.companyRepresentative);
+
+      if (!UtilsHelper.doesArrayIncludeId(interlocutors, req.payload.contact)) throw Boom.forbidden();
+    }
+
     const archivedAt = get(req, 'payload.archivedAt');
     if (archivedAt) {
       if (!isRofOrAdmin) return Boom.forbidden();
