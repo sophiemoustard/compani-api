@@ -898,7 +898,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     const payloads = [
       { misc: 'new name' },
       { trainer: new ObjectId() },
-      { contact: new ObjectId() },
+      { contact: vendorAdmin._id },
       { salesRepresentative: new ObjectId() },
     ];
     payloads.forEach((payload) => {
@@ -1178,7 +1178,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should update course as user is coach in the company of the course', async () => {
-      const payload = { misc: 'new name', contact: vendorAdmin._id };
+      const payload = { misc: 'new name' };
       authToken = await getToken('coach');
 
       const response = await app.inject({
@@ -1237,13 +1237,26 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const payload = {
         misc: 'new name',
         trainer: new ObjectId(),
-        contact: new ObjectId(),
       };
       authToken = await getToken('client_admin');
 
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if coach try to update contact', async () => {
+      const payload = { misc: 'new name', contact: vendorAdmin._id };
+      authToken = await getToken('coach');
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });

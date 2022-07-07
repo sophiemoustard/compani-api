@@ -110,6 +110,7 @@ exports.authorizeCourseEdit = async (req) => {
     await this.checkInterlocutors(req, courseCompanyId);
 
     if (get(req, 'payload.contact')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
       const interlocutors = [];
       if (get(req, 'payload.salesRepresentative')) interlocutors.push(req.payload.salesRepresentative);
       else interlocutors.push(course.salesRepresentative);
