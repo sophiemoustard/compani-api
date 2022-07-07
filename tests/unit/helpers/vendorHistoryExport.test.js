@@ -133,6 +133,7 @@ describe('exportCourseHistory', () => {
     },
   ];
   const company = { _id: new ObjectId(), name: 'Test SAS' };
+  const otherCompany = { _id: new ObjectId(), name: 'Test SAS' };
   const courseList = [
     {
       _id: courseIdList[0],
@@ -181,7 +182,38 @@ describe('exportCourseHistory', () => {
       trainees: [traineeList[3], traineeList[4]],
       slotsToPlan: [courseSlotList[4]],
       slots: [courseSlotList[2], courseSlotList[3]],
-      bills: [],
+      bills: [
+        {
+          course: courseIdList[1],
+          mainFee: { price: 1200, count: 1 },
+          company,
+          payer: { name: 'APA Paris' },
+          billedAt: '2022-03-08T00:00:00.000Z',
+          number: 'FACT-00003',
+          courseCreditNote: { courseBill: new ObjectId() },
+          coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
+        },
+        {
+          course: courseIdList[1],
+          mainFee: { price: 120, count: 1 },
+          company,
+          payer: { name: 'APA Paris' },
+          billedAt: '2022-03-08T00:00:00.000Z',
+          number: 'FACT-00004',
+          courseCreditNote: null,
+          coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
+        },
+        {
+          course: courseIdList[1],
+          mainFee: { price: 120, count: 1 },
+          company: otherCompany,
+          payer: { name: 'APA Paris' },
+          billedAt: '2022-03-08T00:00:00.000Z',
+          number: 'FACT-00005',
+          courseCreditNote: null,
+          coursePayments: [{ netInclTaxes: 110, nature: PAYMENT }],
+        },
+      ],
     },
     {
       _id: courseIdList[2],
@@ -448,7 +480,7 @@ describe('exportCourseHistory', () => {
       [
         courseList[1]._id,
         'inter_b2b',
-        '',
+        'APA Paris',
         '',
         'Program 2',
         'subProgram 2',
@@ -475,10 +507,10 @@ describe('exportCourseHistory', () => {
         1,
         2,
         '0,67',
-        '',
-        '',
-        '',
-        '',
+        '2/2',
+        '240,00',
+        '120,00',
+        '-120,00',
       ],
       [
         courseList[2]._id,
@@ -510,7 +542,7 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '',
-        '',
+        '0/2',
         '',
         '',
         '',
@@ -1036,12 +1068,27 @@ describe('exportEndOfCourseQuestionnaireHistory', () => {
 
 describe('exportCourseBillAndCreditNoteHistory', () => {
   const subProgram = { _id: new ObjectId(), program: { name: 'Program 1' } };
-  const courseId = new ObjectId();
+  const courseIds = [new ObjectId(), new ObjectId()];
   const company = { _id: new ObjectId(), name: 'Test SAS' };
-  const course = { _id: courseId, subProgram, misc: 'group 1' };
+  const courseList = [
+    {
+      _id: courseIds[0],
+      subProgram,
+      misc: 'group 1',
+      slots: [{ startDate: '2021-01-13T12:00:00.000Z' }, { startDate: '2022-01-13T12:00:00.000Z' }],
+      slotsToPlan: [],
+    },
+    {
+      _id: courseIds[1],
+      subProgram,
+      misc: 'group 2',
+      slots: [],
+      slotsToPlan: [],
+    },
+  ];
   const courseBillList = [
     {
-      course,
+      course: courseList[0],
       mainFee: { price: 120, count: 1 },
       company,
       payer: { name: 'APA Paris' },
@@ -1051,7 +1098,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
       coursePayments: [{ netInclTaxes: 10, nature: PAYMENT }],
     },
     {
-      course,
+      course: courseList[1],
       mainFee: { price: 120, count: 1 },
       company,
       payer: { name: 'APA Paris' },
@@ -1092,7 +1139,11 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
           args: [{
             path: 'course',
             select: 'subProgram misc',
-            populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+            populate: [
+              { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+              { path: 'slots', select: 'startDate' },
+              { path: 'slotsToPlan', select: '_id' },
+            ],
           }],
         },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
@@ -1129,12 +1180,13 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         'Avoir',
         'Montant soldé',
         'Solde',
+        'Avancement',
       ],
       [
         'Facture',
         'FACT-00001',
         '08/03/2022',
-        course._id,
+        courseList[0]._id,
         'Test SAS - Program 1 - group 1',
         'Test SAS',
         'APA Paris',
@@ -1143,12 +1195,13 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         'AV-00001',
         '120,00',
         '10,00',
+        '1,00',
       ],
       [
         'Avoir',
         'AV-00001',
         '09/03/2022',
-        course._id,
+        courseList[0]._id,
         'Test SAS - Program 1 - group 1',
         'Test SAS',
         'APA Paris',
@@ -1162,8 +1215,8 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         'Facture',
         'FACT-00002',
         '08/03/2022',
-        course._id,
-        'Test SAS - Program 1 - group 1',
+        courseList[1]._id,
+        'Test SAS - Program 1 - group 2',
         'Test SAS',
         'APA Paris',
         '120,00',
@@ -1171,6 +1224,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         '',
         '',
         '-10,00',
+        '',
       ],
     ]);
     SinonMongoose.calledOnceWithExactly(
@@ -1185,7 +1239,11 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
           args: [{
             path: 'course',
             select: 'subProgram misc',
-            populate: { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+            populate: [
+              { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
+              { path: 'slots', select: 'startDate' },
+              { path: 'slotsToPlan', select: '_id' },
+            ],
           }],
         },
         { query: 'populate', args: [{ path: 'company', select: 'name' }] },
