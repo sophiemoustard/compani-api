@@ -112,7 +112,11 @@ exports.authorizeBillListCreation = async (req) => {
 exports.authorizeGetBill = async (req) => {
   const { startDate, endDate } = req.query;
 
-  if (startDate && endDate && CompaniDate(endDate).isBefore(CompaniDate(startDate))) throw Boom.badRequest();
+  if (startDate && endDate) {
+    if (CompaniDate(endDate).isBefore(CompaniDate(startDate))) throw Boom.badRequest();
+    const diff = CompaniDate(endDate).diff(CompaniDate(startDate), 'years');
+    if (get(diff, 'years') >= 1) throw Boom.forbidden(translate[language].periodMustBeLessThanOneYear);
+  }
 
   return null;
 };

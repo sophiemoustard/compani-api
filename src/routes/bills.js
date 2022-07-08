@@ -22,6 +22,7 @@ const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 const { BILL_TYPES } = require('../models/Bill');
 const { billingItemListValidations } = require('./validations/billingItem');
 const { dateToISOString } = require('./validations/utils');
+const { AUTOMATIC } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -159,7 +160,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({
             type: Joi.string().valid(...BILL_TYPES).required(),
-            startDate: dateToISOString,
+            startDate: dateToISOString.when('type', { is: AUTOMATIC, then: Joi.required() }),
             endDate: dateToISOString.when('startDate', { is: Joi.exist(), then: Joi.required() }),
           }),
         },

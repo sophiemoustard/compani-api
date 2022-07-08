@@ -763,17 +763,6 @@ describe('BILL ROUTES - GET /bills/', () => {
       expect(response.result.data.bills.length).toBe(1);
     });
 
-    it('should return all automatic bills from authCompany', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/bills?type=automatic',
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.bills.length).toBe(2);
-    });
-
     it('should return automatic bills from authCompany between two dates', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -785,10 +774,30 @@ describe('BILL ROUTES - GET /bills/', () => {
       expect(response.result.data.bills.length).toBe(1);
     });
 
+    it('should return a 403 if type is automatic and period is more than one year', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/bills?type=automatic&startDate=2019-05-20T10:00:00.000Z&endDate=2021-05-27T10:00:00.000Z',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 400 if wrong type in query', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/bills?type=wrongType',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 if type is automatic and dates are missing in query', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/bills?type=automatic',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
