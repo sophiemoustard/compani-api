@@ -396,7 +396,7 @@ describe('getCustomers', () => {
           query: 'find',
           args: [{
             company: companyId,
-            $or: [{ stoppedAt: { $ne: null } }, { stoppedAt: { $lte: today } }],
+            $and: [{ stoppedAt: { $ne: null } }, { stoppedAt: { $lte: today } }],
           }],
         },
         { query: 'populate', args: [{ path: 'subscriptions.service' }] },

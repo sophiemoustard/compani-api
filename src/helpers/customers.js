@@ -86,7 +86,7 @@ exports.getCustomers = async (credentials, query = null) => {
     company: get(credentials, 'company._id', null),
     ...(query && query.archived && { archivedAt: { $ne: null } }),
     ...(query && query.archived === false && { archivedAt: { $eq: null } }),
-    ...(query && query.stopped && { $or: [{ stoppedAt: { $ne: null } }, { stoppedAt: { $lte: today } }] }),
+    ...(query && query.stopped && { $and: [{ stoppedAt: { $ne: null } }, { stoppedAt: { $lte: today } }] }),
     ...(query && query.stopped === false && { $or: [{ stoppedAt: { $eq: null } }, { stoppedAt: { $gt: today } }] }),
   };
 
