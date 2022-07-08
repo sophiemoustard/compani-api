@@ -16,8 +16,9 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: Joi.object({
-            auxiliary: Joi.objectId().required(),
-          }),
+            auxiliary: Joi.objectId(),
+            customer: Joi.objectId(),
+          }).xor('auxiliary', 'customer'),
         },
         pre: [{ method: authorizeRepetitionGet }],
       },

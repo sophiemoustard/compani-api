@@ -3,7 +3,7 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
-const { auxiliariesIdList, repetitionList, populateDB } = require('./seed/repetitionsSeed');
+const { auxiliariesIdList, repetitionList, populateDB, customersIdList } = require('./seed/repetitionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
@@ -19,7 +19,7 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
     beforeEach(populateDB);
     beforeEach(async () => { authToken = await getToken('planning_referent'); });
 
-    it('should return a list of repetitions', async () => {
+    it('should return a list of auxiliary\'s repetitions', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/repetitions?auxiliary=${auxiliariesIdList[0]}`,
@@ -28,6 +28,17 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.repetitions.length).toEqual(2);
+    });
+
+    it('should return a list of customer\'s repetitions', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/repetitions?customer=${customersIdList[0]}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.repetitions.length).toEqual(1);
     });
 
     it('should return an empty list if no repetition', async () => {
@@ -51,7 +62,17 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
       expect(response.statusCode).toEqual(404);
     });
 
-    it('should returna 400 if auxiliary is missing in query', async () => {
+    it('should return a 404 if customer doesn\'t exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/repetitions?customer=${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toEqual(404);
+    });
+
+    it('should returna 400 if both auxiliary and customer are missing in query', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/repetitions',

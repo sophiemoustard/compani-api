@@ -162,5 +162,6 @@ module.exports = {
   repetitionList,
   eventList,
   auxiliariesIdList,
+  customersIdList,
   populateDB,
 };

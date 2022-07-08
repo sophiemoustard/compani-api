@@ -100,7 +100,7 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should list repetitions', async () => {
+  it('should list auxiliary\'s repetitions', async () => {
     const auxiliaryId = new ObjectId();
     const customerId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
@@ -157,6 +157,69 @@ describe('list', () => {
       ]
     );
     expect(result).toEqual([repetitions[0], repetitions[1]]);
+  });
+
+  it('should list customer\'s repetitions', async () => {
+    const auxiliaryId = new ObjectId();
+    const customerId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const query = { customer: customerId };
+    const repetitions = [
+      {
+        type: 'intervention',
+        startDate: '2019-07-13T20:00:00.000Z',
+        endDate: '2019-07-13T22:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'internal_hour',
+        startDate: '2019-07-29T14:00:00.000Z',
+        endDate: '2019-07-29T16:00:00.000Z',
+        frequency: 'every_week',
+        auxiliary: auxiliaryId,
+      },
+      {
+        type: 'unavailability',
+        startDate: '2019-07-24T08:00:00.000Z',
+        endDate: '2019-07-13T09:00:00.000Z',
+        frequency: 'every_day',
+        auxiliary: auxiliaryId,
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries([repetitions[0]]));
+
+    const result = await RepetitionHelper.list(query, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [
+            { customer: query.customer, company: credentials.company._id },
+            { attachement: 0, misc: 0, address: 0 },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'subscriptions.service subscriptions._id',
+            populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'auxiliary', select: 'identity picture' }],
+        },
+        { query: 'populate', args: [{ path: 'sector', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+    expect(result).toEqual([repetitions[0]]);
   });
 });
 

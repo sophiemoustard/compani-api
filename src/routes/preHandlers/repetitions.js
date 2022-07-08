@@ -1,20 +1,29 @@
 const Boom = require('@hapi/boom');
+const { ObjectId } = require('mongodb');
 const get = require('lodash/get');
 const UserCompany = require('../../models/UserCompany');
 const Repetition = require('../../models/Repetition');
+const Customer = require('../../models/Customer');
 const { AUXILIARY } = require('../../helpers/constants');
 const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 exports.authorizeRepetitionGet = async (req) => {
   const { credentials } = req.auth;
+  const { auxiliary, customer } = req.query;
   const companyId = get(credentials, 'company._id');
   const isAuxiliary = get(credentials, 'role.client.name') === AUXILIARY;
 
   if (isAuxiliary) throw Boom.forbidden();
 
-  const user = await UserCompany.countDocuments(({ user: req.query.auxiliary, company: companyId }));
-  if (!user) throw Boom.notFound();
+  if (auxiliary) {
+    const userExists = await UserCompany.countDocuments(({ user: new ObjectId(auxiliary), company: companyId }));
+    if (!userExists) throw Boom.notFound();
+  }
 
+  if (customer) {
+    const customerExists = await Customer.countDocuments({ _id: new ObjectId(customer), company: companyId });
+    if (!customerExists) throw Boom.notFound();
+  }
   return null;
 };
 
