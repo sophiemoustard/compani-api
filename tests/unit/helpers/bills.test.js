@@ -1858,6 +1858,62 @@ describe('list', () => {
         { query: 'find', args: [{ type: 'manual', company: authCompanyId }] },
         { query: 'populate', args: [{ path: 'customer', select: 'identity' }] },
         { query: 'populate', args: [{ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should get a list of automatic bills', async () => {
+    const authCompanyId = new ObjectId();
+    const query = { type: 'automatic' };
+    const credentials = { company: authCompanyId };
+    const bills = [
+      { _id: new ObjectId(), type: 'automatic', netInclTaxes: 125.98, date: '2022-07-01T10:00:00.000Z' },
+      { _id: new ObjectId(), type: 'manual', billingItemList: [] },
+    ];
+
+    findBill.returns(SinonMongoose.stubChainedQueries(bills[0]));
+
+    await BillHelper.list(query, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      findBill,
+      [
+        { query: 'find', args: [{ type: 'automatic', company: authCompanyId }] },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should get a list of automatic bills between two dates', async () => {
+    const authCompanyId = new ObjectId();
+    const query = { type: 'automatic', startDate: '2022-07-01T10:00:00.000Z', endDate: '2022-07-07T10:00:00.000Z' };
+    const credentials = { company: authCompanyId };
+    const bills = [
+      { _id: new ObjectId(), type: 'automatic', netInclTaxes: 125.98, date: '2022-07-01T10:00:00.000Z' },
+      { _id: new ObjectId(), type: 'automatic', netInclTaxes: 134, date: '2022-06-01T10:00:00.000Z' },
+      { _id: new ObjectId(), type: 'automatic', netInclTaxes: 134, date: '2022-07-06T10:00:00.000Z' },
+      { _id: new ObjectId(), type: 'manual', billingItemList: [] },
+    ];
+
+    findBill.returns(SinonMongoose.stubChainedQueries([bills[0], bills[3]]));
+
+    await BillHelper.list(query, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      findBill,
+      [
+        {
+          query: 'find',
+          args: [{ type: 'automatic', date: { $gte: query.startDate, $lte: query.endDate }, company: authCompanyId }],
+        },
+        { query: 'populate', args: [{ path: 'customer', select: 'identity' }] },
+        { query: 'populate', args: [{ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } }] },
+        { query: 'populate', args: [{ path: 'thirdPartyPayer', select: 'name' }] },
         { query: 'lean' },
       ]
     );
