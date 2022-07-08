@@ -852,7 +852,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const payload = {
         misc: 'new name',
         trainer: trainerAndCoach._id,
-        contact: new ObjectId(),
+        contact: trainerAndCoach._id,
         estimatedStartDate: '2022-05-31T08:00:00',
       };
       const response = await app.inject({
@@ -898,7 +898,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     const payloads = [
       { misc: 'new name' },
       { trainer: new ObjectId() },
-      { contact: new ObjectId() },
+      { contact: vendorAdmin._id },
       { salesRepresentative: new ObjectId() },
     ];
     payloads.forEach((payload) => {
@@ -961,6 +961,30 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if contact is not one of interlocutors', async () => {
+      const payload = { contact: new ObjectId() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if contact is one of interlocutors but interlocutor is changing', async () => {
+      const payload = { trainer: trainerAndCoach._id, contact: trainer._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[4]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if trying to archive course without trainee', async () => {
@@ -1154,7 +1178,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should update course as user is coach in the company of the course', async () => {
-      const payload = { misc: 'new name', contact: new ObjectId() };
+      const payload = { misc: 'new name' };
       authToken = await getToken('coach');
 
       const response = await app.inject({
@@ -1213,13 +1237,26 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       const payload = {
         misc: 'new name',
         trainer: new ObjectId(),
-        contact: new ObjectId(),
       };
       authToken = await getToken('client_admin');
 
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 if coach try to update contact', async () => {
+      const payload = { misc: 'new name', contact: vendorAdmin._id };
+      authToken = await getToken('coach');
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload,
       });
@@ -1408,16 +1445,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
-        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeFalsy();
       expect(hasReceiver).toBeTruthy();
-      expect(get(course, 'contact._id')).toBeTruthy();
-      expect(get(course, 'contact.contact.phone')).toBeTruthy();
-      expect(course.trainer).toBeTruthy();
 
       sinon.assert.notCalled(SmsHelperStub);
     });
@@ -1436,16 +1469,12 @@ describe('COURSES ROUTES - POST /courses/{_id}/sms', () => {
         .populate({ path: 'slots', select: 'startDate endDate' })
         .populate({ path: 'slotsToPlan' })
         .populate({ path: 'trainees', select: 'contact.phone' })
-        .populate({ path: 'contact', select: 'contact.phone' })
         .lean();
 
       const hasSlotToCome = course.slots && course.slots.some(slot => moment().isBefore(slot.startDate));
       const hasReceiver = course.trainees && course.trainees.some(trainee => get(trainee, 'contact.phone'));
       expect(hasSlotToCome).toBeTruthy();
       expect(hasReceiver).toBeFalsy();
-      expect(get(course, 'contact._id')).toBeTruthy();
-      expect(get(course, 'contact.contact.phone')).toBeTruthy();
-      expect(course.trainer).toBeTruthy();
 
       sinon.assert.notCalled(SmsHelperStub);
     });

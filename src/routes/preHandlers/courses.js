@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const moment = require('moment');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
@@ -108,6 +109,15 @@ exports.authorizeCourseEdit = async (req) => {
     }
 
     await this.checkInterlocutors(req, courseCompanyId);
+
+    if (get(req, 'payload.contact')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+      const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+      const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
+
+      if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
+    }
 
     const archivedAt = get(req, 'payload.archivedAt');
     if (archivedAt) {
