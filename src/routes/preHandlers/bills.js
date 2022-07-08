@@ -9,6 +9,7 @@ const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const translate = require('../../helpers/translate');
 const CustomerRepository = require('../../repositories/CustomerRepository');
 const { MANUAL } = require('../../helpers/constants');
+const { CompaniDate } = require('../../helpers/dates/companiDates');
 
 const { language } = translate;
 
@@ -24,7 +25,7 @@ exports.getBill = async (req) => {
   }
 };
 
-exports.authorizeGetBill = async (req) => {
+exports.authorizeGetDraftBill = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
 
   if (req.query.customer) {
@@ -104,6 +105,14 @@ exports.authorizeBillListCreation = async (req) => {
 
   const tppCount = await ThirdPartyPayer.countDocuments({ _id: { $in: [...ids.tppIds] }, company: companyId });
   if (tppCount !== ids.tppIds.size) throw Boom.forbidden();
+
+  return null;
+};
+
+exports.authorizeGetBill = async (req) => {
+  const { startDate, endDate } = req.query;
+
+  if (startDate && endDate && CompaniDate(endDate).isBefore(CompaniDate(startDate))) throw Boom.badRequest();
 
   return null;
 };

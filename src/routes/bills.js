@@ -12,15 +12,16 @@ const {
 } = require('../controllers/billsController');
 const {
   getBill,
-  authorizeGetBill,
+  authorizeGetDraftBill,
   authorizeGetBillPdf,
   authorizeBillListCreation,
   authorizeBillCreation,
+  authorizeGetBill,
 } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 const { BILL_TYPES } = require('../models/Bill');
 const { billingItemListValidations } = require('./validations/billingItem');
-const { dateToISOString, requiredDateToISOString } = require('./validations/utils');
+const { dateToISOString } = require('./validations/utils');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -46,7 +47,7 @@ exports.plugin = {
             customer: Joi.objectId(),
           }),
         },
-        pre: [{ method: authorizeGetBill }],
+        pre: [{ method: authorizeGetDraftBill }],
       },
       handler: draftBillsList,
     });
@@ -162,6 +163,7 @@ exports.plugin = {
             endDate: dateToISOString.when('startDate', { is: Joi.exist(), then: Joi.required() }),
           }),
         },
+        pre: [{ method: authorizeGetBill }],
       },
       handler: list,
     });
