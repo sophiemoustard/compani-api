@@ -248,12 +248,7 @@ exports.list = async (query, credentials) => {
   const { type, startDate, endDate } = query;
 
   let findQuery = { type, company: get(credentials, 'company._id') };
-  if (startDate && endDate) {
-    findQuery = {
-      ...findQuery,
-      date: { $gte: startDate, $lte: endDate },
-    };
-  }
+  if (startDate && endDate) findQuery = { ...findQuery, date: { $gte: startDate, $lte: endDate } };
 
   const bills = Bill.find(findQuery)
     .populate({ path: 'customer', select: 'identity' })
