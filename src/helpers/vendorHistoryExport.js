@@ -88,7 +88,7 @@ const getBillsInfos = (course) => {
   const validatedBills = courseBillsWithoutCreditNote.filter(bill => bill.billedAt);
   const mainFeesCount = validatedBills.map(bill => bill.mainFee.count).reduce((acc, value) => acc + value, 0);
 
-  const isBilled = `${mainFeesCount}/${course.trainees.length}`;
+  const isBilled = `${mainFeesCount} sur ${course.trainees.length}`;
 
   if (validatedBills.length) {
     const computedAmounts = validatedBills.map(bill => CourseBillHelper.computeAmounts(bill));
@@ -334,7 +334,7 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     .populate(
       {
         path: 'course',
-        select: 'subProgram misc',
+        select: 'subProgram misc type',
         populate: [
           { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
           { path: 'slots', select: 'startDate' },
@@ -355,10 +355,12 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
     const { netInclTaxes, paid, total } = CourseBillHelper.computeAmounts(bill);
     const upComingSlots = bill.course.slots.filter(slot => CompaniDate().isBefore(slot.startDate)).length;
     const pastSlots = bill.course.slots.length - upComingSlots;
-
+    const companyName = bill.course.type === INTRA ? `${bill.company.name} - ` : '';
+    const misc = bill.course.misc ? ` - ${bill.course.misc}` : '';
+    const courseName = `${companyName}${bill.course.subProgram.program.name}${misc}`;
     const commonInfos = {
       'Id formation': bill.course._id,
-      Formation: `${bill.company.name} - ${bill.course.subProgram.program.name} - ${bill.course.misc}`,
+      Formation: courseName,
       Structure: bill.company.name,
       Payeur: bill.payer.name,
       'Montant TTC': UtilsHelper.formatFloatForExport(netInclTaxes),
