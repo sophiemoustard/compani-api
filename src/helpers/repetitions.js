@@ -3,8 +3,22 @@ const get = require('lodash/get');
 const Repetition = require('../models/Repetition');
 const Event = require('../models/Event');
 const EventsHelper = require('./events');
+const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
-const { FIELDS_NOT_APPLICABLE_TO_REPETITION } = require('./constants');
+const {
+  FIELDS_NOT_APPLICABLE_TO_REPETITION,
+  EVERY_TWO_WEEKS,
+  EVERY_WEEK,
+  MONDAY,
+  TUESDAY,
+  WEDNESDAY,
+  THURSDAY,
+  FRIDAY,
+  SATURDAY,
+  SUNDAY,
+  EVERY_DAY,
+  EVERY_WEEK_DAY,
+} = require('./constants');
 
 exports.updateRepetitions = async (eventPayload, parentId) => {
   const repetition = await Repetition.findOne({ parentId }).lean();
@@ -56,7 +70,36 @@ exports.list = async (query, credentials) => {
       .lean();
   }
 
-  return repetitions;
+  const repetitionsGroupedByDay = {
+    [MONDAY]: [],
+    [TUESDAY]: [],
+    [WEDNESDAY]: [],
+    [THURSDAY]: [],
+    [FRIDAY]: [],
+    [SATURDAY]: [],
+    [SUNDAY]: [],
+  };
+
+  for (const day of Object.keys(repetitionsGroupedByDay)) {
+    for (const repetition of repetitions) {
+      switch (repetition.frequency) {
+        case EVERY_TWO_WEEKS: case EVERY_WEEK:
+          if ((CompaniDate(repetition.startDate).weekday()).toString() === day) {
+            repetitionsGroupedByDay[day].push(repetition);
+          }
+          break;
+        case EVERY_DAY:
+          repetitionsGroupedByDay[day].push(repetition);
+          break;
+        case EVERY_WEEK_DAY:
+          if (day !== SATURDAY && day !== SUNDAY) repetitionsGroupedByDay[day].push(repetition);
+          break;
+      }
+    }
+    repetitionsGroupedByDay[day].sort(DatesHelper.ascendingSort('startDate'));
+  }
+
+  return repetitionsGroupedByDay;
 };
 
 exports.delete = async (repetitionId, startDate, credentials) => {
