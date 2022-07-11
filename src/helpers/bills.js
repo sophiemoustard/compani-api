@@ -244,11 +244,20 @@ exports.formatAndCreateList = async (groupByCustomerBills, credentials) => {
   );
 };
 
-exports.list = async (query, credentials) => Bill
-  .find({ ...query, company: credentials.company._id })
-  .populate({ path: 'customer', select: 'identity' })
-  .populate({ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } })
-  .lean();
+exports.list = async (query, credentials) => {
+  const { type, startDate, endDate } = query;
+
+  let findQuery = { type, company: get(credentials, 'company._id') };
+  if (startDate && endDate) findQuery = { ...findQuery, date: { $gte: startDate, $lte: endDate } };
+
+  const bills = Bill.find(findQuery)
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'billingItemList', populate: { path: 'billingItem', select: 'name' } })
+    .populate({ path: 'thirdPartyPayer', select: 'name' })
+    .lean();
+
+  return bills;
+};
 
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
