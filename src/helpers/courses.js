@@ -418,7 +418,9 @@ exports.getTraineeCourse = async (courseId, credentials) => {
 };
 
 exports.updateCourse = async (courseId, payload) => {
-  const params = payload.contact === '' ? { $unset: { contact: '' } } : { $set: payload };
+  const params = payload.contact === ''
+    ? { $set: omit(payload, 'contact'), $unset: { contact: '' } }
+    : { $set: payload };
 
   return Course.findOneAndUpdate({ _id: courseId }, params).lean();
 };
