@@ -507,7 +507,7 @@ describe('exportCourseHistory', () => {
         1,
         2,
         '0,67',
-        '2/2',
+        '2 sur 2',
         '240,00',
         '120,00',
         '-120,00',
@@ -542,7 +542,7 @@ describe('exportCourseHistory', () => {
         0,
         0,
         '',
-        '0/2',
+        '0 sur 2',
         '',
         '',
         '',
@@ -1077,6 +1077,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
       misc: 'group 1',
       slots: [{ startDate: '2021-01-13T12:00:00.000Z' }, { startDate: '2022-01-13T12:00:00.000Z' }],
       slotsToPlan: [],
+      type: INTRA,
     },
     {
       _id: courseIds[1],
@@ -1084,6 +1085,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
       misc: 'group 2',
       slots: [],
       slotsToPlan: [],
+      type: INTER_B2B,
     },
   ];
   const courseBillList = [
@@ -1138,7 +1140,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'subProgram misc',
+            select: 'subProgram misc type',
             populate: [
               { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
               { path: 'slots', select: 'startDate' },
@@ -1216,7 +1218,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
         'FACT-00002',
         '08/03/2022',
         courseList[1]._id,
-        'Test SAS - Program 1 - group 2',
+        'Program 1 - group 2',
         'Test SAS',
         'APA Paris',
         '120,00',
@@ -1238,7 +1240,7 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
           query: 'populate',
           args: [{
             path: 'course',
-            select: 'subProgram misc',
+            select: 'subProgram misc type',
             populate: [
               { path: 'subProgram', select: 'program', populate: { path: 'program', select: 'name' } },
               { path: 'slots', select: 'startDate' },
