@@ -50,8 +50,6 @@ exports.getPdfContent = async (data) => {
       header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
       title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },
     },
-    footer() {
-      return UtilsPdfHelper.getFooter(signature);
-    },
+    footer: UtilsPdfHelper.getFooter(signature),
   };
 };

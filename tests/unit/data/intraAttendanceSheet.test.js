@@ -126,15 +126,15 @@ describe('getPdfContent', () => {
         header: { bold: true, fillColor: '#1D7C8F', color: 'white', alignment: 'center' },
         title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: '#1D7C8F' },
       },
-      footer() {
-        return {
-          columns: [
-            { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
-            { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
-          ],
-          unbreakable: true,
-        };
-      },
+      footer: [{
+        columns: [
+          { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
+          { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
+        ],
+        unbreakable: true,
+        marginLeft: 40,
+        marginRight: 40,
+      }],
     };
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
