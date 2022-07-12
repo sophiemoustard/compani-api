@@ -78,7 +78,7 @@ const repetitionList = [
     endDate: '2021-11-11T12:30:00.000Z',
     auxiliary: auxiliariesIdList[0],
     customer: customersIdList[0],
-    frequency: 'everey_day',
+    frequency: 'every_day',
     company: authCompany._id,
     address: {
       street: '37 rue de Ponthieu',
@@ -163,5 +163,7 @@ module.exports = {
   eventList,
   auxiliariesIdList,
   customersIdList,
+  customer,
+  authCompany,
   populateDB,
 };

@@ -3,7 +3,14 @@ const { ObjectId } = require('mongodb');
 const app = require('../../server');
 const Repetition = require('../../src/models/Repetition');
 const Event = require('../../src/models/Event');
-const { auxiliariesIdList, repetitionList, populateDB, customersIdList } = require('./seed/repetitionsSeed');
+const {
+  auxiliariesIdList,
+  repetitionList,
+  populateDB,
+  customersIdList,
+  customer,
+  authCompany,
+} = require('./seed/repetitionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
@@ -19,7 +26,7 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
     beforeEach(populateDB);
     beforeEach(async () => { authToken = await getToken('planning_referent'); });
 
-    it('should return a list of auxiliary\'s repetitions', async () => {
+    it('should return a list of auxiliary\'s repetitions grouped by day', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/repetitions?auxiliary=${auxiliariesIdList[0]}`,
@@ -27,10 +34,21 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.repetitions.length).toEqual(2);
+      expect(Object.values(response.result.data.repetitions).flat().length).toEqual(8);
+      expect(Object.values(response.result.data.repetitions)[0][0]).toMatchObject({
+        _id: repetitionList[0]._id,
+        type: 'intervention',
+        startDate: CompaniDate(repetitionList[0].startDate).toDate(),
+        endDate: CompaniDate(repetitionList[0].endDate).toDate(),
+        auxiliary: auxiliariesIdList[0],
+        subscription: customer.subscriptions[0]._id,
+        frequency: 'every_day',
+        parentId: repetitionList[0].parentId,
+        company: authCompany._id,
+      });
     });
 
-    it('should return a list of customer\'s repetitions', async () => {
+    it('should return a list of customer\'s repetitions grouped by day', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/repetitions?customer=${customersIdList[0]}`,
@@ -38,10 +56,21 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.repetitions.length).toEqual(1);
+      expect(Object.values(response.result.data.repetitions).flat().length).toEqual(7);
+      expect(Object.values(response.result.data.repetitions)[0][0]).toMatchObject({
+        _id: repetitionList[0]._id,
+        type: 'intervention',
+        startDate: CompaniDate(repetitionList[0].startDate).toDate(),
+        endDate: CompaniDate(repetitionList[0].endDate).toDate(),
+        auxiliary: auxiliariesIdList[0],
+        subscription: customer.subscriptions[0]._id,
+        frequency: 'every_day',
+        parentId: repetitionList[0].parentId,
+        company: authCompany._id,
+      });
     });
 
-    it('should return an empty list if no repetition', async () => {
+    it('should return an object with empty arrays if no repetition', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/repetitions?auxiliary=${auxiliariesIdList[1]}`,
@@ -49,7 +78,7 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(response.result.data.repetitions.length).toEqual(0);
+      expect(Object.values(response.result.data.repetitions).flat().length).toEqual(0);
     });
 
     it('should return a 404 if auxiliary doesn\'t exist', async () => {
