@@ -3,7 +3,6 @@ const get = require('lodash/get');
 const Repetition = require('../models/Repetition');
 const Event = require('../models/Event');
 const EventsHelper = require('./events');
-const DatesHelper = require('./dates');
 const { CompaniDate } = require('./dates/companiDates');
 const {
   FIELDS_NOT_APPLICABLE_TO_REPETITION,
@@ -92,7 +91,7 @@ exports.list = async (query, credentials) => {
           repetitionsGroupedByDay[day].push(repetition);
           break;
         case EVERY_WEEK_DAY:
-          if (day !== SATURDAY && day !== SUNDAY) repetitionsGroupedByDay[day].push(repetition);
+          if (day !== SATURDAY.toString() && day !== SUNDAY.toString()) repetitionsGroupedByDay[day].push(repetition);
           break;
       }
     }
