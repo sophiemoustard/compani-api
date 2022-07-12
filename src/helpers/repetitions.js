@@ -39,9 +39,45 @@ exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => ({
   repetition: { ...payload.repetition, parentId: event._id },
 });
 
+const groupRepetitionByDay = (day, repetition, repetitionsGroupedByDay) => {
+  switch (repetition.frequency) {
+    case EVERY_TWO_WEEKS:
+    case EVERY_WEEK:
+      if ((CompaniDate(repetition.startDate).weekday()).toString() === day) {
+        repetitionsGroupedByDay[day].push(repetition);
+      }
+      break;
+    case EVERY_DAY:
+      repetitionsGroupedByDay[day].push(repetition);
+      break;
+    case EVERY_WEEK_DAY:
+      if ([SATURDAY, SUNDAY].includes(parseInt(day, 10))) repetitionsGroupedByDay[day].push(repetition);
+      break;
+  }
+};
+
+const ascendingSortStartHour = (a, b) => {
+  const firstRepetitionHours = CompaniDate(a.startDate).getUnits(['hour', 'minute']);
+  const secondRepetitionHours = CompaniDate(b.startDate).getUnits(['hour', 'minute']);
+  const formattedFirstRepetitionHours = CompaniDate().set(firstRepetitionHours).toISO();
+  const formattedSecondRepetitionHours = CompaniDate().set(secondRepetitionHours).toISO();
+
+  if (CompaniDate(formattedFirstRepetitionHours).isSameOrBefore(formattedSecondRepetitionHours)) return -1;
+  return 1;
+};
+
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const { auxiliary, customer } = query;
+  const repetitionsGroupedByDay = {
+    [MONDAY]: [],
+    [TUESDAY]: [],
+    [WEDNESDAY]: [],
+    [THURSDAY]: [],
+    [FRIDAY]: [],
+    [SATURDAY]: [],
+    [SUNDAY]: [],
+  };
 
   let repetitions = [];
   if (auxiliary) {
@@ -69,41 +105,12 @@ exports.list = async (query, credentials) => {
       .lean();
   }
 
-  const repetitionsGroupedByDay = {
-    [MONDAY]: [],
-    [TUESDAY]: [],
-    [WEDNESDAY]: [],
-    [THURSDAY]: [],
-    [FRIDAY]: [],
-    [SATURDAY]: [],
-    [SUNDAY]: [],
-  };
-
   for (const day of Object.keys(repetitionsGroupedByDay)) {
     for (const repetition of repetitions) {
-      switch (repetition.frequency) {
-        case EVERY_TWO_WEEKS: case EVERY_WEEK:
-          if ((CompaniDate(repetition.startDate).weekday()).toString() === day) {
-            repetitionsGroupedByDay[day].push(repetition);
-          }
-          break;
-        case EVERY_DAY:
-          repetitionsGroupedByDay[day].push(repetition);
-          break;
-        case EVERY_WEEK_DAY:
-          if (day !== SATURDAY.toString() && day !== SUNDAY.toString()) repetitionsGroupedByDay[day].push(repetition);
-          break;
-      }
+      groupRepetitionByDay(day, repetition, repetitionsGroupedByDay);
     }
-    repetitionsGroupedByDay[day].sort((a, b) => {
-      const getFirstRepetitionHours = CompaniDate(a.startDate).getUnits(['hour', 'minute']);
-      const getSecondRepetitionHours = CompaniDate(b.startDate).getUnits(['hour', 'minute']);
-      const formattedFirstRepetitionHours = CompaniDate().set(getFirstRepetitionHours).toISO();
-      const formattedSecondRepetitionHours = CompaniDate().set(getSecondRepetitionHours).toISO();
 
-      if (CompaniDate(formattedFirstRepetitionHours).isSameOrBefore(formattedSecondRepetitionHours)) return -1;
-      return 1;
-    });
+    repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));
   }
 
   return repetitionsGroupedByDay;

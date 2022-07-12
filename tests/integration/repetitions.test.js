@@ -34,7 +34,7 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
       });
 
       expect(response.statusCode).toEqual(200);
-      expect(Object.values(response.result.data.repetitions).flat().length).toEqual(8);
+      expect(Object.values(response.result.data.repetitions).flat().length).toEqual(9);
       expect(Object.values(response.result.data.repetitions)[0][0]).toMatchObject({
         _id: repetitionList[0]._id,
         type: 'intervention',
