@@ -96,7 +96,15 @@ exports.list = async (query, credentials) => {
           break;
       }
     }
-    repetitionsGroupedByDay[day].sort(DatesHelper.ascendingSort('startDate'));
+    repetitionsGroupedByDay[day].sort((a, b) => {
+      const getFirstRepetitionHours = CompaniDate(a.startDate).getUnits(['hour', 'minute']);
+      const getSecondRepetitionHours = CompaniDate(b.startDate).getUnits(['hour', 'minute']);
+      const formattedFirstRepetitionHours = CompaniDate().set(getFirstRepetitionHours).toISO();
+      const formattedSecondRepetitionHours = CompaniDate().set(getSecondRepetitionHours).toISO();
+
+      if (CompaniDate(formattedFirstRepetitionHours).isSameOrBefore(formattedSecondRepetitionHours)) return -1;
+      return 1;
+    });
   }
 
   return repetitionsGroupedByDay;
