@@ -90,15 +90,7 @@ describe('getPdfContent', () => {
           ],
           margin: [16, 0, 24, 24],
         },
-        { table, marginBottom: 8 },
-        {
-          columns: [
-            { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
-            { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
-          ],
-          pageBreak: 'after',
-          unbreakable: true,
-        },
+        { table, marginBottom: 8, pageBreak: 'after' },
         {
           columns: [
             { image: paths[0], width: 64 },
@@ -126,21 +118,23 @@ describe('getPdfContent', () => {
           ],
           margin: [16, 0, 24, 24],
         },
-        { table, marginBottom: 8 },
-        {
-          columns: [
-            { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
-            { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
-          ],
-          pageBreak: 'none',
-          unbreakable: true,
-        },
+        { table, marginBottom: 8, pageBreak: 'none' },
       ],
       defaultStyle: { font: 'Avenir', fontSize: 10 },
+      pageMargins: [40, 40, 40, 128],
       styles: {
         header: { bold: true, fillColor: '#1D7C8F', color: 'white', alignment: 'center' },
         title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: '#1D7C8F' },
       },
+      footer: [{
+        columns: [
+          { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
+          { image: paths[3], width: 144, marginTop: 8, alignment: 'right' },
+        ],
+        unbreakable: true,
+        marginLeft: 40,
+        marginRight: 40,
+      }],
     };
     const imageList = [
       { url: 'https://storage.googleapis.com/compani-main/aux-conscience-eclairee.png', name: 'conscience.png' },
@@ -153,7 +147,7 @@ describe('getPdfContent', () => {
 
     const result = await IntraAttendanceSheet.getPdfContent(data);
 
-    expect(result).toMatchObject(pdf);
+    expect(JSON.stringify(result)).toEqual(JSON.stringify(pdf));
     sinon.assert.calledOnceWithExactly(downloadImages, imageList);
   });
 });

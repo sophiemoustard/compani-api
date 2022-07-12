@@ -154,11 +154,11 @@ exports.getTableFooter = (data) => {
       { text: '' },
       { text: '' },
       [
-        { text: 'Sous-total HT', alignment: 'right', marginRight: 22 },
+        { text: 'Sous-total HT', alignment: 'right', marginRight: 22, marginBottom: 8 },
         { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
       ],
       [
-        { text: netInclTaxes, alignment: 'right', width: 'auto' },
+        { text: netInclTaxes, alignment: 'right', width: 'auto', marginBottom: 8 },
         { text: netInclTaxes, alignment: 'right', width: 'auto', bold: true },
       ],
     ],

@@ -37,19 +37,23 @@ exports.getPdfContent = async (data) => {
     ];
     trainee.course.slots.forEach(slot => body.push(getSlotTableContent(slot)));
 
-    const table = [{ table: { body, widths: ['auto', 'auto', '*', '*'], dontBreakRows: true }, marginBottom: 8 }];
+    const table = [{
+      table: { body, widths: ['auto', 'auto', '*', '*'], dontBreakRows: true },
+      marginBottom: 8,
+      pageBreak: i === trainees.length - 1 ? 'none' : 'after',
+    }];
 
-    const footer = UtilsPdfHelper.getFooter(i === trainees.length - 1, signature);
-
-    content.push(header, table, footer);
+    content.push(header, table);
   });
 
   return {
     content: content.flat(),
     defaultStyle: { font: 'Avenir', fontSize: 10 },
+    pageMargins: [40, 40, 40, 128],
     styles: {
       header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
       title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },
     },
+    footer: UtilsPdfHelper.getFooter(signature),
   };
 };
