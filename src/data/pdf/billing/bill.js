@@ -2,6 +2,7 @@ const get = require('lodash/get');
 const { BILL, AUTOMATIC } = require('../../../helpers/constants');
 const UtilsPdfHelper = require('./utils');
 const UtilsHelper = require('../../../helpers/utils');
+const NumbersHelper = require('../../../helpers/numbers');
 
 exports.getPdfContent = async (data) => {
   const { bill } = data;
@@ -43,9 +44,22 @@ exports.getPdfContent = async (data) => {
     { text: get(bill, 'company.customersConfig.billFooter'), fontSize: 9, marginTop: 12, alignment: 'justify' },
   ];
 
+  const totalEventPrice = bill.formattedDetails
+    .reduce((acc, details) => NumbersHelper.add(acc, details.total), NumbersHelper.toString(0));
+
+  const netInclTaxes = parseFloat(bill.netInclTaxes.split('€')[0].replace(',', '.'));
+
+  const isMaxTppAmountReached = NumbersHelper.isGreaterThan(totalEventPrice, netInclTaxes) && bill.forTpp;
+
+  const maxTppAmountReachedText = {
+    width: 'auto',
+    text: `Le montant maximum de prise en charge par le tiers-payeur est de ${bill.netInclTaxes}.`,
+  };
+
   const content = [
     header,
     serviceTable,
+    ...(isMaxTppAmountReached ? [maxTppAmountReachedText] : []),
     priceTable,
     ...(bill.type === AUTOMATIC ? eventsTable : []),
     ...(get(bill, 'company.customersConfig.billFooter') ? footer : []),

@@ -52,17 +52,19 @@ exports.getPriceTableBody = item => [
   ],
 ];
 
-exports.getPriceTable = item => ({
-  columns: [
-    { width: '*', text: '' },
-    {
-      table: { body: exports.getPriceTableBody(item) },
-      width: 'auto',
-      margin: [0, 8, 0, 40],
-      layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
-    },
-  ],
-});
+exports.getPriceTable = item => [
+  {
+    columns: [
+      { width: '*', text: '' },
+      {
+        table: { body: exports.getPriceTableBody(item) },
+        width: 'auto',
+        margin: [0, 8, 0, 40],
+        layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5 },
+      },
+    ],
+  },
+];
 
 exports.getEventTableContent = (event, displaySurcharge) => {
   const row = [

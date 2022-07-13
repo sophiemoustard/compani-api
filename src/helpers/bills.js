@@ -450,7 +450,7 @@ exports.formatBillDetailsForPdf = (bill) => {
 
   const totalCustomer = NumbersHelper.add(totalSubscription, totalBillingItem, totalSurcharge);
   const totalTPP = NumbersHelper.add(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
-  if (NumbersHelper.isLessThan(totalTPP, -ROUNDING_ERROR)) {
+  if (NumbersHelper.isLessThan(totalTPP, -ROUNDING_ERROR) && !bill.thirdPartyPayer) {
     formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
   }
 
