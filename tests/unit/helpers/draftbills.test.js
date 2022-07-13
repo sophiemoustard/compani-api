@@ -965,7 +965,7 @@ describe('formatDraftBillsForTPP', () => {
     ]);
   });
 
-  it('should format bill for tpp with surcharges and Fixed funding', () => {
+  it('should format bill for tpp with surcharges and fixed funding', () => {
     const tppId = new ObjectId();
     const auxiliairyId = new ObjectId();
     const fundingId = new ObjectId();
