@@ -22,7 +22,6 @@ const {
   AUTOMATIC,
   MANUAL,
   ROUNDING_ERROR,
-  FIXED,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
