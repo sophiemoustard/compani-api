@@ -22,7 +22,7 @@ const {
 } = require('../data/bills');
 const BillPdf = require('../../../src/data/pdf/billing/bill');
 const SinonMongoose = require('../sinonMongoose');
-const { FIXED } = require('../../../src/helpers/constants');
+const { FIXED, HOURLY, ONCE, MONTHLY } = require('../../../src/helpers/constants');
 
 describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
@@ -2097,8 +2097,8 @@ describe('formatAndCreateBill', () => {
     findBillingItem.returns(
       SinonMongoose.stubChainedQueries([{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }], ['lean'])
     );
-    formatBillingItem.onCall(0).returns({ inclTaxes: '180' });
-    formatBillingItem.onCall(1).returns({ inclTaxes: '150' });
+    formatBillingItem.onCall(0).returns({ inclTaxes: 180 });
+    formatBillingItem.onCall(1).returns({ inclTaxes: 150 });
 
     await BillHelper.formatAndCreateBill(payload, credentials);
 
@@ -2198,7 +2198,7 @@ describe('formatAndCreateBill', () => {
         customer: payload.customer,
         netInclTaxes: 50,
         type: 'manual',
-        billingItemList: [{ inclTaxes: '180' }, { inclTaxes: '150' }],
+        billingItemList: [{ inclTaxes: 180 }, { inclTaxes: 150 }],
         company: companyId,
         shouldBeSent: false,
       }
@@ -2539,7 +2539,7 @@ describe('formatBillDetailsForPdf', () => {
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
   });
 
-  it('should return formatted details if service.nature is fixed', () => {
+  it('should return formatted details if service.nature is fixed with billing items', () => {
     const bill = {
       netInclTaxes: 50,
       subscriptions: [{
@@ -2606,21 +2606,21 @@ describe('formatBillDetailsForPdf', () => {
     sinon.assert.notCalled(formatHour);
   });
 
-  it('should return formatted details if service.nature is hourly and funding is fixed', () => {
+  it('should return formatted details if service.nature is hourly and funding is fixed (for Tpp)', () => {
     const subscriptionId = new ObjectId();
     const tppId = new ObjectId();
     const bill = {
-      netInclTaxes: 50,
+      netInclTaxes: 341,
       forTpp: true,
       customer: {
         _id: new ObjectId(),
         identity: { title: 'mrs', firstname: 'Super', lastname: 'Test' },
         fundings: [
           {
-            nature: 'fixed',
+            nature: FIXED,
             subscription: subscriptionId,
             thirdPartyPayer: tppId,
-            frequency: 'once',
+            frequency: ONCE,
             _id: new ObjectId(),
           },
         ],
@@ -2641,7 +2641,80 @@ describe('formatBillDetailsForPdf', () => {
         subscription: subscriptionId,
         unitInclTaxes: 22,
         vat: 5.5,
-        service: { name: 'Temps de qualité - autonomie ', nature: 'hourly' },
+        service: { name: 'Temps de qualité - autonomie ', nature: HOURLY },
+        hours: 15,
+        exclTaxes: 312.8,
+        inclTaxes: 330,
+        discount: 0,
+        events: [{
+          _id: new ObjectId(),
+          startDate: '2019-09-15T05:00:00.000+00:00',
+          endDate: '2019-09-15T07:00:00.000+00:00',
+          surcharges: [{ _id: new ObjectId(), percentage: 25, name: 'Dimanche' }],
+        }],
+      }],
+    };
+
+    getUnitInclTaxes.returns('22');
+    formatHour.returns('15,00 h');
+    computeSurcharge.returns(11);
+    formatPrice.onCall(0).returns('323,22 €');
+    formatPrice.onCall(1).returns('17,78 €');
+    computeExclTaxesWithDiscount.returns(312.8);
+
+    const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
+
+    expect(formattedBillDetails).toEqual({
+      formattedDetails: [
+        { unitInclTaxes: '22', vat: 5.5, name: 'Temps de qualité - autonomie ', volume: '15,00 h', total: '330' },
+        { name: 'Majorations', total: '11' },
+      ],
+      totalExclTaxes: '323,22 €',
+      totalVAT: '17,78 €',
+    });
+
+    sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
+    sinon.assert.calledOnceWithExactly(formatHour, 15);
+    sinon.assert.calledOnceWithExactly(computeExclTaxesWithDiscount, 330, 0, 5.5);
+    sinon.assert.calledOnceWithExactly(getUnitInclTaxes, bill, bill.subscriptions[0]);
+  });
+
+  it('should return formatted details if service.nature is hourly and funding is hourly (for Tpp)', () => {
+    const subscriptionId = new ObjectId();
+    const tppId = new ObjectId();
+    const bill = {
+      netInclTaxes: 50,
+      forTpp: true,
+      customer: {
+        _id: new ObjectId(),
+        identity: { title: 'mrs', firstname: 'Super', lastname: 'Test' },
+        fundings: [
+          {
+            nature: HOURLY,
+            subscription: subscriptionId,
+            thirdPartyPayer: tppId,
+            frequency: MONTHLY,
+            _id: new ObjectId(),
+          },
+        ],
+      },
+      thirdPartyPayer: {
+        _id: tppId,
+        address: {
+          street: '21 Avenue du Général de Gaulle',
+          fullAddress: '21 Avenue du Général de Gaulle 94000 Créteil',
+          zipCode: '94000',
+          city: 'Créteil',
+        },
+        name: 'Conseil Départemental du Val de Marne - APA- Direction de l\'autonomie',
+        isUsedInFundings: true,
+      },
+      subscriptions: [{
+        _id: new ObjectId(),
+        subscription: subscriptionId,
+        unitInclTaxes: 22,
+        vat: 5.5,
+        service: { name: 'Temps de qualité - autonomie ', nature: HOURLY },
         hours: 15,
         exclTaxes: 47.39,
         inclTaxes: 50,
@@ -2650,7 +2723,7 @@ describe('formatBillDetailsForPdf', () => {
           _id: new ObjectId(),
           startDate: '2019-09-15T05:00:00.000+00:00',
           endDate: '2019-09-15T07:00:00.000+00:00',
-          surcharges: [{ _id: new ObjectId(), percentage: 25, name: 'Dimanche' }],
+          surcharges: [],
         }],
       }],
     };
