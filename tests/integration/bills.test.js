@@ -200,6 +200,7 @@ describe('BILL ROUTES - POST /bills/list', () => {
                   history: { amountTTC: '24', fundingId: fundingHistory.fundingId, nature: 'fixed' },
                   fundingId: fundingHistory.fundingId,
                   nature: 'fixed',
+                  surcharges: [{ percentage: 25, name: 'Soirée', startHour: '2017-05-02T10:00:00.000Z' }],
                 },
               ],
               externalBilling: false,
