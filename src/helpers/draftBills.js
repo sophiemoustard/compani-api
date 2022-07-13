@@ -7,7 +7,7 @@ const BillingItem = require('../models/BillingItem');
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
-const { HOURLY, MONTHLY, ONCE, BILLING_DIRECT } = require('./constants');
+const { HOURLY, MONTHLY, ONCE, BILLING_DIRECT, FIXED } = require('./constants');
 const UtilsHelper = require('./utils');
 const SurchargesHelper = require('./surcharges');
 const DatesHelper = require('./dates');
@@ -277,6 +277,8 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
     fundingId: eventPrice.fundingId,
     nature: eventPrice.history.nature,
   };
+
+  if (eventPrice.surcharges && prices.nature === FIXED) prices.surcharges = eventPrice.surcharges;
 
   return {
     ...tppPrices,
