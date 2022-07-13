@@ -13,7 +13,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const SurchargesHelper = require('../../../src/helpers/surcharges');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const { BILLING_DIRECT, BILLING_INDIRECT } = require('../../../src/helpers/constants');
+const { BILLING_DIRECT, BILLING_INDIRECT, FIXED, HOURLY } = require('../../../src/helpers/constants');
 
 describe('populateAndFormatSubscription', () => {
   it('should populate surcharge and billing items and sort versions', async () => {
@@ -961,6 +961,105 @@ describe('formatDraftBillsForTPP', () => {
         thirdPartyPayer: tppId,
         inclTaxesCustomer: '21',
         exclTaxesCustomer: '17.5',
+      },
+    ]);
+  });
+
+  it('should format bill for tpp with surcharges and Fixed funding', () => {
+    const tppId = new ObjectId();
+    const auxiliairyId = new ObjectId();
+    const fundingId = new ObjectId();
+    const tpp = { _id: tppId };
+    const tppPrices = { [tppId]: { exclTaxes: '20', inclTaxes: '25', hours: '3', eventsList: [{ event: '123456' }] } };
+    const eventPrice = {
+      customerPrice: '21',
+      thirdPartyPayerPrice: '12.5',
+      thirdPartyPayer: tppId,
+      history: { nature: FIXED },
+      chargedTime: '120',
+      fundingId,
+      surcharges: [{ percentage: 25, name: 'Soirée', startHour: '2017-05-02T10:00:00.000Z' }],
+    };
+    const event = {
+      _id: 'abc',
+      startDate: '2019-02-12T08:00:00.000Z',
+      endDate: '2019-02-12T10:00:00.000Z',
+      auxiliary: auxiliairyId,
+    };
+    const service = { vat: 20 };
+
+    getExclTaxes.onCall(0).returns('10');
+    getExclTaxes.onCall(1).returns('17.5');
+
+    const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
+
+    expect(result[tppId].inclTaxes).toEqual('37.5');
+    expect(result[tppId].hours).toEqual('5');
+    expect(result[tppId].eventsList).toMatchObject([
+      { event: '123456' },
+      {
+        event: 'abc',
+        startDate: '2019-02-12T08:00:00.000Z',
+        endDate: '2019-02-12T10:00:00.000Z',
+        auxiliary: auxiliairyId,
+        exclTaxesTpp: '10',
+        inclTaxesTpp: '12.5',
+        thirdPartyPayer: tppId,
+        exclTaxesCustomer: '17.5',
+        inclTaxesCustomer: '21',
+        history: { nature: FIXED },
+        fundingId,
+        nature: FIXED,
+        surcharges: [{ percentage: 25, name: 'Soirée', startHour: '2017-05-02T10:00:00.000Z' }],
+      },
+    ]);
+  });
+
+  it('should format bill for tpp with hourly funding', () => {
+    const tppId = new ObjectId();
+    const auxiliairyId = new ObjectId();
+    const fundingId = new ObjectId();
+    const tpp = { _id: tppId };
+    const tppPrices = { [tppId]: { exclTaxes: '20', inclTaxes: '25', hours: '3', eventsList: [{ event: '123456' }] } };
+    const eventPrice = {
+      customerPrice: '21',
+      thirdPartyPayerPrice: '12.5',
+      thirdPartyPayer: tppId,
+      history: { nature: HOURLY },
+      chargedTime: '120',
+      fundingId,
+      surcharges: [{ percentage: 25, name: 'Soirée', startHour: '2017-05-02T10:00:00.000Z' }],
+    };
+    const event = {
+      _id: 'abc',
+      startDate: '2019-02-12T08:00:00.000Z',
+      endDate: '2019-02-12T10:00:00.000Z',
+      auxiliary: auxiliairyId,
+    };
+    const service = { vat: 20 };
+
+    getExclTaxes.onCall(0).returns('10');
+    getExclTaxes.onCall(1).returns('17.5');
+
+    const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
+
+    expect(result[tppId].inclTaxes).toEqual('37.5');
+    expect(result[tppId].hours).toEqual('5');
+    expect(result[tppId].eventsList).toMatchObject([
+      { event: '123456' },
+      {
+        event: 'abc',
+        startDate: '2019-02-12T08:00:00.000Z',
+        endDate: '2019-02-12T10:00:00.000Z',
+        auxiliary: auxiliairyId,
+        exclTaxesTpp: '10',
+        inclTaxesTpp: '12.5',
+        thirdPartyPayer: tppId,
+        exclTaxesCustomer: '17.5',
+        inclTaxesCustomer: '21',
+        history: { nature: HOURLY },
+        fundingId,
+        nature: HOURLY,
       },
     ]);
   });
