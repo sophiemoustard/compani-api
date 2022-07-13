@@ -134,6 +134,12 @@ exports.plugin = {
                     history: Joi.object().required(),
                     fundingId: Joi.objectId(),
                     nature: Joi.string(),
+                    surcharges: Joi.array().items(Joi.object({
+                      percentage: Joi.number().required(),
+                      name: Joi.string().required(),
+                      startHour: Joi.date(),
+                      endHour: Joi.date(),
+                    })),
                   })).required(),
                   hours: Joi.string().required(),
                   inclTaxes: Joi.string().required(),

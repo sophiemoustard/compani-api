@@ -36,7 +36,8 @@ exports.getPdfContent = async (data) => {
   ];
 
   const priceTable = UtilsPdfHelper.getPriceTable(bill);
-  const eventsTable = UtilsPdfHelper.getEventsTable(bill, !bill.forTpp);
+  const displaySurcharge = bill.formattedEvents.some(ev => ev.surcharges.length);
+  const eventsTable = UtilsPdfHelper.getEventsTable(bill, displaySurcharge);
 
   const footer = [
     { text: get(bill, 'company.customersConfig.billFooter'), fontSize: 9, marginTop: 12, alignment: 'justify' },
