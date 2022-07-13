@@ -13,6 +13,7 @@ const {
 } = require('./seed/repetitionsSeed');
 const { getToken } = require('./helpers/authentication');
 const { CompaniDate } = require('../../src/helpers/dates/companiDates');
+const { UNAVAILABILITY, EVERY_WEEK } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -35,16 +36,15 @@ describe('REPETITIONS ROUTES - GET /repetitions', () => {
 
       expect(response.statusCode).toEqual(200);
       expect(Object.values(response.result.data.repetitions).flat().length).toEqual(9);
-      expect(Object.values(response.result.data.repetitions)[0][0]).toMatchObject({
-        _id: repetitionList[0]._id,
-        type: 'intervention',
-        startDate: CompaniDate(repetitionList[0].startDate).toDate(),
-        endDate: CompaniDate(repetitionList[0].endDate).toDate(),
+      expect(Object.values(response.result.data.repetitions)[3][1]).toMatchObject({
+        _id: repetitionList[2]._id,
+        type: UNAVAILABILITY,
+        startDate: CompaniDate(repetitionList[2].startDate).toDate(),
+        endDate: CompaniDate(repetitionList[2].endDate).toDate(),
         auxiliary: auxiliariesIdList[0],
-        subscription: customer.subscriptions[0]._id,
-        frequency: 'every_day',
-        parentId: repetitionList[0].parentId,
+        frequency: EVERY_WEEK,
         company: authCompany._id,
+        parentId: repetitionList[2].parentId,
       });
     });
 

@@ -39,7 +39,7 @@ exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => ({
   repetition: { ...payload.repetition, parentId: event._id },
 });
 
-const groupRepetitionByDay = (day, repetition, repetitionsGroupedByDay) => {
+const addRepetitionToRelevantDay = (day, repetition, repetitionsGroupedByDay) => {
   switch (repetition.frequency) {
     case EVERY_TWO_WEEKS:
     case EVERY_WEEK:
@@ -51,7 +51,7 @@ const groupRepetitionByDay = (day, repetition, repetitionsGroupedByDay) => {
       repetitionsGroupedByDay[day].push(repetition);
       break;
     case EVERY_WEEK_DAY:
-      if ([SATURDAY, SUNDAY].includes(parseInt(day, 10))) repetitionsGroupedByDay[day].push(repetition);
+      if (![SATURDAY, SUNDAY].includes(parseInt(day, 10))) repetitionsGroupedByDay[day].push(repetition);
       break;
   }
 };
@@ -107,7 +107,7 @@ exports.list = async (query, credentials) => {
 
   for (const day of Object.keys(repetitionsGroupedByDay)) {
     for (const repetition of repetitions) {
-      groupRepetitionByDay(day, repetition, repetitionsGroupedByDay);
+      addRepetitionToRelevantDay(day, repetition, repetitionsGroupedByDay);
     }
 
     repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));

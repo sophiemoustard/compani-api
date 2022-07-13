@@ -110,7 +110,7 @@ const repetitionList = [
   {
     _id: new ObjectId(),
     type: UNAVAILABILITY,
-    startDate: '2021-11-11T16:30:00.000Z',
+    startDate: '2021-11-18T16:30:00.000Z',
     endDate: '2021-11-18T18:30:00.000Z',
     auxiliary: auxiliariesIdList[0],
     frequency: EVERY_WEEK,
