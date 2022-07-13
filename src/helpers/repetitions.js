@@ -1,5 +1,6 @@
 const omit = require('lodash/omit');
 const get = require('lodash/get');
+const cloneDeep = require('lodash/cloneDeep');
 const Repetition = require('../models/Repetition');
 const Event = require('../models/Event');
 const EventsHelper = require('./events');
@@ -40,20 +41,23 @@ exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => ({
 });
 
 const addRepetitionToRelevantDay = (day, repetition, repetitionsGroupedByDay) => {
+  const groupedRepetitions = cloneDeep(repetitionsGroupedByDay);
   switch (repetition.frequency) {
     case EVERY_TWO_WEEKS:
     case EVERY_WEEK:
       if ((CompaniDate(repetition.startDate).weekday()).toString() === day) {
-        repetitionsGroupedByDay[day].push(repetition);
+        groupedRepetitions[day].push(repetition);
       }
       break;
     case EVERY_DAY:
-      repetitionsGroupedByDay[day].push(repetition);
+      groupedRepetitions[day].push(repetition);
       break;
     case EVERY_WEEK_DAY:
-      if (![SATURDAY, SUNDAY].includes(parseInt(day, 10))) repetitionsGroupedByDay[day].push(repetition);
+      if (![SATURDAY, SUNDAY].includes(parseInt(day, 10))) groupedRepetitions[day].push(repetition);
       break;
   }
+
+  return groupedRepetitions;
 };
 
 const ascendingSortStartHour = (a, b) => {
@@ -69,7 +73,7 @@ const ascendingSortStartHour = (a, b) => {
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const { auxiliary, customer } = query;
-  const repetitionsGroupedByDay = {
+  let repetitionsGroupedByDay = {
     [MONDAY]: [],
     [TUESDAY]: [],
     [WEDNESDAY]: [],
@@ -107,7 +111,7 @@ exports.list = async (query, credentials) => {
 
   for (const day of Object.keys(repetitionsGroupedByDay)) {
     for (const repetition of repetitions) {
-      addRepetitionToRelevantDay(day, repetition, repetitionsGroupedByDay);
+      repetitionsGroupedByDay = addRepetitionToRelevantDay(day, repetition, repetitionsGroupedByDay);
     }
 
     repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));
