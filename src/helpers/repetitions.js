@@ -1,6 +1,5 @@
 const omit = require('lodash/omit');
 const get = require('lodash/get');
-const cloneDeep = require('lodash/cloneDeep');
 const Repetition = require('../models/Repetition');
 const Event = require('../models/Event');
 const EventsHelper = require('./events');
@@ -40,26 +39,6 @@ exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => ({
   repetition: { ...payload.repetition, parentId: event._id },
 });
 
-const addRepetitionToRelevantDay = (day, repetition, repetitionsGroupedByDay) => {
-  const groupedRepetitions = cloneDeep(repetitionsGroupedByDay);
-  switch (repetition.frequency) {
-    case EVERY_TWO_WEEKS:
-    case EVERY_WEEK:
-      if ((CompaniDate(repetition.startDate).weekday()).toString() === day) {
-        groupedRepetitions[day].push(repetition);
-      }
-      break;
-    case EVERY_DAY:
-      groupedRepetitions[day].push(repetition);
-      break;
-    case EVERY_WEEK_DAY:
-      if (![SATURDAY, SUNDAY].includes(parseInt(day, 10))) groupedRepetitions[day].push(repetition);
-      break;
-  }
-
-  return groupedRepetitions;
-};
-
 const ascendingSortStartHour = (a, b) => {
   const firstRepetitionHours = CompaniDate(a.startDate).getUnits(['hour', 'minute']);
   const secondRepetitionHours = CompaniDate(b.startDate).getUnits(['hour', 'minute']);
@@ -70,10 +49,8 @@ const ascendingSortStartHour = (a, b) => {
   return 1;
 };
 
-exports.list = async (query, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const { auxiliary, customer } = query;
-  let repetitionsGroupedByDay = {
+const groupRepetitionsByDay = (repetitions) => {
+  const repetitionsGroupedByDay = {
     [MONDAY]: [],
     [TUESDAY]: [],
     [WEDNESDAY]: [],
@@ -82,6 +59,34 @@ exports.list = async (query, credentials) => {
     [SATURDAY]: [],
     [SUNDAY]: [],
   };
+
+  for (const day of Object.keys(repetitionsGroupedByDay)) {
+    for (const repetition of repetitions) {
+      switch (repetition.frequency) {
+        case EVERY_TWO_WEEKS:
+        case EVERY_WEEK:
+          if ((CompaniDate(repetition.startDate).weekday()).toString() === day) {
+            repetitionsGroupedByDay[day].push(repetition);
+          }
+          break;
+        case EVERY_DAY:
+          repetitionsGroupedByDay[day].push(repetition);
+          break;
+        case EVERY_WEEK_DAY:
+          if (![SATURDAY, SUNDAY].includes(parseInt(day, 10))) repetitionsGroupedByDay[day].push(repetition);
+          break;
+      }
+    }
+
+    repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));
+  }
+
+  return repetitionsGroupedByDay;
+};
+
+exports.list = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const { auxiliary, customer } = query;
 
   let repetitions = [];
   if (auxiliary) {
@@ -109,15 +114,7 @@ exports.list = async (query, credentials) => {
       .lean();
   }
 
-  for (const day of Object.keys(repetitionsGroupedByDay)) {
-    for (const repetition of repetitions) {
-      repetitionsGroupedByDay = addRepetitionToRelevantDay(day, repetition, repetitionsGroupedByDay);
-    }
-
-    repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));
-  }
-
-  return repetitionsGroupedByDay;
+  return groupRepetitionsByDay(repetitions);
 };
 
 exports.delete = async (repetitionId, startDate, credentials) => {
