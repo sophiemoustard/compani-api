@@ -50,29 +50,30 @@ const ascendingSortStartHour = (a, b) => {
   return 1;
 };
 
-const getConflictsInfo = (repetitionsGroupedByDay) => {
+const getConflictsInfo = (query, repetitionsGroupedByDay) => {
   const repetitionsByDayWithConflictInfos = cloneDeep(repetitionsGroupedByDay);
+  if (get(query, 'auxiliary')) {
+    for (const repetitionList of Object.values(repetitionsByDayWithConflictInfos)) {
+      for (let i = 0, l = repetitionList.length; i < l; i++) {
+        if (repetitionList[i].hasConflicts) continue;
+        else {
+          for (let j = i + 1, m = repetitionList.length; j < m; j++) {
+            const firstRepetitionEnd = CompaniDate(repetitionList[i].endDate).getUnits(['hour', 'minute']);
+            const secondRepetitionStart = CompaniDate(repetitionList[j].startDate).getUnits(['hour', 'minute']);
+            const firstRepetitionEndHours = CompaniDate().set(firstRepetitionEnd).toISO();
+            const secondRepetitionStartHours = CompaniDate().set(secondRepetitionStart).toISO();
 
-  for (const repetitionList of Object.values(repetitionsByDayWithConflictInfos)) {
-    for (let i = 0, l = repetitionList.length; i < l; i++) {
-      if (repetitionList[i].hasConflicts) continue;
-      else {
-        for (let j = i + 1, m = repetitionList.length; j < m; j++) {
-          const firstRepetitionEnd = CompaniDate(repetitionList[i].endDate).getUnits(['hour', 'minute']);
-          const secondRepetitionStart = CompaniDate(repetitionList[j].startDate).getUnits(['hour', 'minute']);
-          const firstRepetitionEndHours = CompaniDate().set(firstRepetitionEnd).toISO();
-          const secondRepetitionStartHours = CompaniDate().set(secondRepetitionStart).toISO();
+            if (CompaniDate(firstRepetitionEndHours).isBefore(secondRepetitionStartHours)) break;
+            if (repetitionList[i].frequency === repetitionList[j].frequency === EVERY_TWO_WEEKS) {
+              const startDateDiff = CompaniDate(repetitionList[i].startDate)
+                .diff(CompaniDate(repetitionList[j].startDate), 'days');
+              if (get(startDateDiff, 'days') % 14 !== 0) continue;
+            }
 
-          if (CompaniDate(firstRepetitionEndHours).isBefore(secondRepetitionStartHours)) break;
-          if (repetitionList[i].frequency === repetitionList[j].frequency === EVERY_TWO_WEEKS) {
-            const startDateDiff = CompaniDate(repetitionList[i].startDate)
-              .diff(CompaniDate(repetitionList[j].startDate), 'days');
-            if (get(startDateDiff, 'days') % 14 !== 0) continue;
-          }
-
-          if (CompaniDate(firstRepetitionEndHours).isAfter(secondRepetitionStartHours)) {
-            repetitionList[i] = { ...repetitionList[i], hasConflicts: true };
-            repetitionList[j] = { ...repetitionList[j], hasConflicts: true };
+            if (CompaniDate(firstRepetitionEndHours).isAfter(secondRepetitionStartHours)) {
+              repetitionList[i] = { ...repetitionList[i], hasConflicts: true };
+              repetitionList[j] = { ...repetitionList[j], hasConflicts: true };
+            }
           }
         }
       }
@@ -82,7 +83,7 @@ const getConflictsInfo = (repetitionsGroupedByDay) => {
   return repetitionsByDayWithConflictInfos;
 };
 
-const groupRepetitionsByDay = (repetitions) => {
+const groupRepetitionsByDay = (query, repetitions) => {
   const repetitionsGroupedByDay = {
     [MONDAY]: [],
     [TUESDAY]: [],
@@ -114,7 +115,7 @@ const groupRepetitionsByDay = (repetitions) => {
     repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));
   }
 
-  return getConflictsInfo(repetitionsGroupedByDay);
+  return getConflictsInfo(query, repetitionsGroupedByDay);
 };
 
 exports.list = async (query, credentials) => {
@@ -147,7 +148,7 @@ exports.list = async (query, credentials) => {
       .lean();
   }
 
-  return groupRepetitionsByDay(repetitions);
+  return groupRepetitionsByDay(query, repetitions);
 };
 
 exports.delete = async (repetitionId, startDate, credentials) => {
