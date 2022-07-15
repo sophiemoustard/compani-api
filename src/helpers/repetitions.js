@@ -1,5 +1,6 @@
 const omit = require('lodash/omit');
 const get = require('lodash/get');
+const cloneDeep = require('lodash/cloneDeep');
 const Repetition = require('../models/Repetition');
 const Event = require('../models/Event');
 const EventsHelper = require('./events');
@@ -49,6 +50,38 @@ const ascendingSortStartHour = (a, b) => {
   return 1;
 };
 
+const getConflictsInfo = (repetitionsGroupedByDay) => {
+  const repetitionsByDayWithConflictInfos = cloneDeep(repetitionsGroupedByDay);
+
+  for (const repetitionList of Object.values(repetitionsByDayWithConflictInfos)) {
+    for (let i = 0, l = repetitionList.length; i < l; i++) {
+      if (repetitionList[i].hasConflicts) continue;
+      else {
+        for (let j = i + 1, m = repetitionList.length; j < m; j++) {
+          const firstRepetitionEnd = CompaniDate(repetitionList[i].endDate).getUnits(['hour', 'minute']);
+          const secondRepetitionStart = CompaniDate(repetitionList[j].startDate).getUnits(['hour', 'minute']);
+          const firstRepetitionEndHours = CompaniDate().set(firstRepetitionEnd).toISO();
+          const secondRepetitionStartHours = CompaniDate().set(secondRepetitionStart).toISO();
+
+          if (CompaniDate(firstRepetitionEndHours).isBefore(secondRepetitionStartHours)) break;
+          if (repetitionList[i].frequency === repetitionList[j].frequency === EVERY_TWO_WEEKS) {
+            const startDateDiff = CompaniDate(repetitionList[i].startDate)
+              .diff(CompaniDate(repetitionList[j].startDate), 'days');
+            if (get(startDateDiff, 'days') % 14 !== 0) continue;
+          }
+
+          if (CompaniDate(firstRepetitionEndHours).isAfter(secondRepetitionStartHours)) {
+            repetitionList[i] = { ...repetitionList[i], hasConflicts: true };
+            repetitionList[j] = { ...repetitionList[j], hasConflicts: true };
+          }
+        }
+      }
+    }
+  }
+
+  return repetitionsByDayWithConflictInfos;
+};
+
 const groupRepetitionsByDay = (repetitions) => {
   const repetitionsGroupedByDay = {
     [MONDAY]: [],
@@ -81,7 +114,7 @@ const groupRepetitionsByDay = (repetitions) => {
     repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));
   }
 
-  return repetitionsGroupedByDay;
+  return getConflictsInfo(repetitionsGroupedByDay);
 };
 
 exports.list = async (query, credentials) => {
