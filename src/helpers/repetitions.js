@@ -4,7 +4,20 @@ const Repetition = require('../models/Repetition');
 const Event = require('../models/Event');
 const EventsHelper = require('./events');
 const { CompaniDate } = require('./dates/companiDates');
-const { FIELDS_NOT_APPLICABLE_TO_REPETITION } = require('./constants');
+const {
+  FIELDS_NOT_APPLICABLE_TO_REPETITION,
+  EVERY_TWO_WEEKS,
+  EVERY_WEEK,
+  MONDAY,
+  TUESDAY,
+  WEDNESDAY,
+  THURSDAY,
+  FRIDAY,
+  SATURDAY,
+  SUNDAY,
+  EVERY_DAY,
+  EVERY_WEEK_DAY,
+} = require('./constants');
 
 exports.updateRepetitions = async (eventPayload, parentId) => {
   const repetition = await Repetition.findOne({ parentId }).lean();
@@ -25,6 +38,51 @@ exports.formatPayloadForRepetitionCreation = (event, payload, companyId) => ({
   company: companyId,
   repetition: { ...payload.repetition, parentId: event._id },
 });
+
+const ascendingSortStartHour = (a, b) => {
+  const firstRepetitionHours = CompaniDate(a.startDate).getUnits(['hour', 'minute']);
+  const secondRepetitionHours = CompaniDate(b.startDate).getUnits(['hour', 'minute']);
+  const formattedFirstRepetitionHours = CompaniDate().set(firstRepetitionHours).toISO();
+  const formattedSecondRepetitionHours = CompaniDate().set(secondRepetitionHours).toISO();
+
+  if (CompaniDate(formattedFirstRepetitionHours).isSameOrBefore(formattedSecondRepetitionHours)) return -1;
+  return 1;
+};
+
+const groupRepetitionsByDay = (repetitions) => {
+  const repetitionsGroupedByDay = {
+    [MONDAY]: [],
+    [TUESDAY]: [],
+    [WEDNESDAY]: [],
+    [THURSDAY]: [],
+    [FRIDAY]: [],
+    [SATURDAY]: [],
+    [SUNDAY]: [],
+  };
+
+  for (const day of Object.keys(repetitionsGroupedByDay)) {
+    for (const repetition of repetitions) {
+      switch (repetition.frequency) {
+        case EVERY_TWO_WEEKS:
+        case EVERY_WEEK:
+          if ((CompaniDate(repetition.startDate).weekday()).toString() === day) {
+            repetitionsGroupedByDay[day].push(repetition);
+          }
+          break;
+        case EVERY_DAY:
+          repetitionsGroupedByDay[day].push(repetition);
+          break;
+        case EVERY_WEEK_DAY:
+          if (![SATURDAY, SUNDAY].includes(parseInt(day, 10))) repetitionsGroupedByDay[day].push(repetition);
+          break;
+      }
+    }
+
+    repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));
+  }
+
+  return repetitionsGroupedByDay;
+};
 
 exports.list = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -56,7 +114,7 @@ exports.list = async (query, credentials) => {
       .lean();
   }
 
-  return repetitions;
+  return groupRepetitionsByDay(repetitions);
 };
 
 exports.delete = async (repetitionId, startDate, credentials) => {

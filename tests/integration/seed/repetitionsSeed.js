@@ -6,7 +6,14 @@ const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const SectorHistory = require('../../../src/models/SectorHistory');
 const Customer = require('../../../src/models/Customer');
-const { WEBAPP } = require('../../../src/helpers/constants');
+const {
+  WEBAPP,
+  EVERY_WEEK,
+  EVERY_DAY,
+  INTERNAL_HOUR,
+  INTERVENTION,
+  UNAVAILABILITY,
+} = require('../../../src/helpers/constants');
 const UserCompany = require('../../../src/models/UserCompany');
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { auxiliaryRoleId } = require('../../seed/authRolesSeed');
@@ -73,12 +80,12 @@ const auxiliaryList = [
 const repetitionList = [
   {
     _id: new ObjectId(),
-    type: 'intervention',
+    type: INTERVENTION,
     startDate: '2021-11-11T10:30:00.000Z',
     endDate: '2021-11-11T12:30:00.000Z',
     auxiliary: auxiliariesIdList[0],
     customer: customersIdList[0],
-    frequency: 'everey_day',
+    frequency: EVERY_DAY,
     company: authCompany._id,
     address: {
       street: '37 rue de Ponthieu',
@@ -92,11 +99,21 @@ const repetitionList = [
   },
   {
     _id: new ObjectId(),
-    type: 'internal_hour',
+    type: INTERNAL_HOUR,
     startDate: '2021-11-10T10:30:00.000Z',
     endDate: '2021-11-10T12:30:00.000Z',
     auxiliary: auxiliariesIdList[0],
-    frequency: 'every_week',
+    frequency: EVERY_WEEK,
+    company: authCompany._id,
+    parentId: new ObjectId(),
+  },
+  {
+    _id: new ObjectId(),
+    type: UNAVAILABILITY,
+    startDate: '2021-11-18T16:30:00.000Z',
+    endDate: '2021-11-18T18:30:00.000Z',
+    auxiliary: auxiliariesIdList[0],
+    frequency: EVERY_WEEK,
     company: authCompany._id,
     parentId: new ObjectId(),
   },
@@ -104,13 +121,13 @@ const repetitionList = [
 
 const eventList = [
   {
-    repetition: { frequency: 'every_day' },
+    repetition: { frequency: EVERY_DAY },
     startDate: '2021-11-11T10:30:00.000Z',
     endDate: '2021-11-11T12:30:00.000Z',
     company: authCompany._id,
     auxiliary: auxiliariesIdList[0],
     customer: customersIdList[0],
-    type: 'intervention',
+    type: INTERVENTION,
     address: {
       street: '37 rue de Ponthieu',
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -121,13 +138,13 @@ const eventList = [
     subscription: customer.subscriptions[0]._id,
   },
   {
-    repetition: { parentId: repetitionList[0].parentId, frequency: 'every_week' },
+    repetition: { parentId: repetitionList[0].parentId, frequency: EVERY_WEEK },
     startDate: '2022-07-28T10:30:00.000Z',
     endDate: '2022-07-28T12:30:00.000Z',
     company: authCompany._id,
     auxiliary: auxiliariesIdList[0],
     customer: customersIdList[0],
-    type: 'intervention',
+    type: INTERVENTION,
     address: {
       street: '37 rue de Ponthieu',
       fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -163,5 +180,7 @@ module.exports = {
   eventList,
   auxiliariesIdList,
   customersIdList,
+  customer,
+  authCompany,
   populateDB,
 };

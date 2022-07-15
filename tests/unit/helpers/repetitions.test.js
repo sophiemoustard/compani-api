@@ -100,7 +100,7 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should list auxiliary\'s repetitions', async () => {
+  it('should list auxiliary\'s repetitions grouped by day', async () => {
     const auxiliaryId = new ObjectId();
     const customerId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
@@ -110,6 +110,14 @@ describe('list', () => {
         type: 'intervention',
         startDate: '2019-07-13T20:00:00.000Z',
         endDate: '2019-07-13T22:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-20T09:00:00.000Z',
+        endDate: '2019-07-20T11:00:00.000Z',
         frequency: 'every_two_weeks',
         auxiliary: auxiliaryId,
         customer: customerId,
@@ -130,7 +138,7 @@ describe('list', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([repetitions[0], repetitions[1]]));
+    find.returns(SinonMongoose.stubChainedQueries([repetitions[0], repetitions[1], repetitions[2]]));
 
     const result = await RepetitionHelper.list(query, credentials);
 
@@ -156,10 +164,18 @@ describe('list', () => {
         { query: 'lean' },
       ]
     );
-    expect(result).toEqual([repetitions[0], repetitions[1]]);
+    expect(result).toEqual({
+      0: [repetitions[2]],
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [repetitions[1], repetitions[0]],
+      6: [],
+    });
   });
 
-  it('should list customer\'s repetitions', async () => {
+  it('should list customer\'s repetitions grouped by day', async () => {
     const auxiliaryId = new ObjectId();
     const customerId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
@@ -181,15 +197,24 @@ describe('list', () => {
         auxiliary: auxiliaryId,
       },
       {
-        type: 'unavailability',
-        startDate: '2019-07-24T08:00:00.000Z',
-        endDate: '2019-07-13T09:00:00.000Z',
-        frequency: 'every_day',
+        type: 'intervention',
+        startDate: '2019-07-20T08:00:00.000Z',
+        endDate: '2019-07-20T07:00:00.000Z',
+        frequency: 'every_two_weeks',
         auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-12T08:00:00.000Z',
+        endDate: '2019-07-12T07:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([repetitions[0]]));
+    find.returns(SinonMongoose.stubChainedQueries([repetitions[0], repetitions[2], repetitions[3]]));
 
     const result = await RepetitionHelper.list(query, credentials);
 
@@ -219,7 +244,15 @@ describe('list', () => {
         { query: 'lean' },
       ]
     );
-    expect(result).toEqual([repetitions[0]]);
+    expect(result).toEqual({
+      0: [],
+      1: [],
+      2: [],
+      3: [],
+      4: [repetitions[3]],
+      5: [repetitions[2], repetitions[0]],
+      6: [],
+    });
   });
 });
 
