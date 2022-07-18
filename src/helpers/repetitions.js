@@ -1,5 +1,6 @@
 const omit = require('lodash/omit');
 const get = require('lodash/get');
+const cloneDeep = require('lodash/cloneDeep');
 const Repetition = require('../models/Repetition');
 const Event = require('../models/Event');
 const EventsHelper = require('./events');
@@ -49,7 +50,45 @@ const ascendingSortStartHour = (a, b) => {
   return 1;
 };
 
-const groupRepetitionsByDay = (repetitions) => {
+const getConflictsInfo = (query, repetitionsGroupedByDay) => {
+  const repetitionsByDayWithConflictInfos = cloneDeep(repetitionsGroupedByDay);
+  if (get(query, 'auxiliary')) {
+    for (const repetitionList of Object.values(repetitionsByDayWithConflictInfos)) {
+      for (let i = 0; i < repetitionList.length; i++) {
+        if (repetitionList[i].hasConflicts) continue;
+        else {
+          for (let j = i + 1; j < repetitionList.length; j++) {
+            const firstRepetitionEnd = CompaniDate(repetitionList[i].endDate).getUnits(['hour', 'minute']);
+            const secondRepetitionStart = CompaniDate(repetitionList[j].startDate).getUnits(['hour', 'minute']);
+            const firstRepetitionEndHour = CompaniDate().set(firstRepetitionEnd).toISO();
+            const secondRepetitionStartHour = CompaniDate().set(secondRepetitionStart).toISO();
+            const areRepetitionsEveryTwoWeeks = repetitionList[i].frequency === repetitionList[j].frequency &&
+              repetitionList[j].frequency === EVERY_TWO_WEEKS;
+
+            if (CompaniDate(firstRepetitionEndHour).isBefore(secondRepetitionStartHour)) break;
+
+            if (areRepetitionsEveryTwoWeeks) {
+              const firstRepetitionDate = CompaniDate(repetitionList[i].startDate).startOf('day');
+              const secondRepetitionDate = CompaniDate(repetitionList[j].startDate).startOf('day');
+
+              const startDateDiff = firstRepetitionDate.diff(secondRepetitionDate, 'weeks');
+              if (get(startDateDiff, 'weeks') % 2 !== 0) continue;
+            }
+
+            if (CompaniDate(firstRepetitionEndHour).isAfter(secondRepetitionStartHour)) {
+              repetitionList[i] = { ...repetitionList[i], hasConflicts: true };
+              repetitionList[j] = { ...repetitionList[j], hasConflicts: true };
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return repetitionsByDayWithConflictInfos;
+};
+
+const groupRepetitionsByDay = (query, repetitions) => {
   const repetitionsGroupedByDay = {
     [MONDAY]: [],
     [TUESDAY]: [],
@@ -81,7 +120,7 @@ const groupRepetitionsByDay = (repetitions) => {
     repetitionsGroupedByDay[day].sort((a, b) => ascendingSortStartHour(a, b));
   }
 
-  return repetitionsGroupedByDay;
+  return getConflictsInfo(query, repetitionsGroupedByDay);
 };
 
 exports.list = async (query, credentials) => {
@@ -114,7 +153,7 @@ exports.list = async (query, credentials) => {
       .lean();
   }
 
-  return groupRepetitionsByDay(repetitions);
+  return groupRepetitionsByDay(query, repetitions);
 };
 
 exports.delete = async (repetitionId, startDate, credentials) => {

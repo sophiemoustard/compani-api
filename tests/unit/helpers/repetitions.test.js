@@ -254,6 +254,81 @@ describe('list', () => {
       6: [],
     });
   });
+
+  it('should list auxiliary\'s repetitions grouped by day with conflicts', async () => {
+    const auxiliaryId = new ObjectId();
+    const customerId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const query = { auxiliary: auxiliaryId };
+    const repetitions = [
+      {
+        type: 'intervention',
+        startDate: '2019-07-13T20:00:00.000Z',
+        endDate: '2019-07-13T22:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-27T19:30:00.000Z',
+        endDate: '2019-07-27T21:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'internal_hour',
+        startDate: '2019-07-29T14:00:00.000Z',
+        endDate: '2019-07-29T16:00:00.000Z',
+        frequency: 'every_week',
+        auxiliary: auxiliaryId,
+      },
+      {
+        type: 'unavailability',
+        startDate: '2019-07-24T12:00:00.000Z',
+        endDate: '2019-07-24T14:30:00.000Z',
+        frequency: 'every_day',
+        auxiliary: auxiliaryId,
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(repetitions));
+
+    const result = await RepetitionHelper.list(query, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [
+            { auxiliary: query.auxiliary, company: credentials.company._id },
+            { attachement: 0, misc: 0, address: 0, sector: 0 },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'identity subscriptions.service subscriptions._id',
+            populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'internalHour', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+    expect(result).toMatchObject({
+      0: [{ ...repetitions[3], hasConflicts: true }, { ...repetitions[2], hasConflicts: true }],
+      1: [repetitions[3]],
+      2: [repetitions[3]],
+      3: [repetitions[3]],
+      4: [repetitions[3]],
+      5: [repetitions[3], { ...repetitions[1], hasConflicts: true }, { ...repetitions[0], hasConflicts: true }],
+      6: [repetitions[3]],
+    });
+  });
 });
 
 describe('delete', () => {
