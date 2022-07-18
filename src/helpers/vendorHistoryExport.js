@@ -416,10 +416,10 @@ exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => 
     rows.push({
       Nature: PAYMENT_NATURE_LIST[payment.nature],
       Identifiant: payment.number,
-      'Date du règlement': CompaniDate(payment.date).format('dd/LL/yyyy'),
+      Date: CompaniDate(payment.date).format('dd/LL/yyyy'),
       'Facture associée': payment.courseBill.number,
       'Moyen de paiement': PAYMENT_TYPES_LIST[payment.type],
-      Montant: payment.netInclTaxes,
+      Montant: UtilsHelper.formatFloatForExport(payment.netInclTaxes),
     });
   }
 

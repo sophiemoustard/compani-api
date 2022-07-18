@@ -22,6 +22,7 @@ const {
   TRANSPORT,
   END_OF_COURSE,
   COURSE_BILL,
+  COURSE_PAYMENT,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -149,6 +150,17 @@ const vendorHistoryExportTypes = [
     ],
     query: 'startDate=2022-03-01T10:00:00.000Z&endDate=2022-04-20T10:00:00.000Z',
   },
+  {
+    exportType: COURSE_PAYMENT,
+    expectedRows: [
+      '\ufeff"Nature";"Identifiant";"Date";"Facture associée";"Moyen de paiement";"Montant"',
+      '"Paiement";"REG-00001";"09/03/2022";"FACT-00001";"Prélèvement";"1100,00"',
+      '"Paiement";"REG-00002";"09/03/2022";"FACT-00004";"Virement";"400,00"',
+      '"Paiement";"REG-00003";"09/03/2022";"FACT-00005";"Espèces";"300,00"',
+      '"Remboursement";"REG-00004";"11/03/2022";"FACT-00005";"Chèque";"200,00"',
+    ],
+    query: 'startDate=2022-03-01T10:00:00.000Z&endDate=2022-04-20T10:00:00.000Z',
+  },
 ];
 
 clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
@@ -201,7 +213,7 @@ clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
 });
 
 vendorHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
-  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history`, () => {
+  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history #tag`, () => {
     let authToken;
     before(populateDB);
 
