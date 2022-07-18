@@ -4,11 +4,7 @@ const has = require('lodash/has');
 const get = require('lodash/get');
 const expect = require('expect');
 const sinon = require('sinon');
-const CourseSlot = require('../../../src/models/CourseSlot');
-const Course = require('../../../src/models/Course');
-const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
-const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
-const Questionnaire = require('../../../src/models/Questionnaire');
+const SinonMongoose = require('../sinonMongoose');
 const CourseHelper = require('../../../src/helpers/courses');
 const ExportHelper = require('../../../src/helpers/vendorHistoryExport');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -26,10 +22,17 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   VENDOR_ADMIN,
   NO_DATA,
+  CHECK,
+  REFUND,
 } = require('../../../src/helpers/constants');
-const SinonMongoose = require('../sinonMongoose');
+const CourseSlot = require('../../../src/models/CourseSlot');
+const Course = require('../../../src/models/Course');
+const CourseSmsHistory = require('../../../src/models/CourseSmsHistory');
+const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory');
+const Questionnaire = require('../../../src/models/Questionnaire');
 const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const CourseBill = require('../../../src/models/CourseBill');
+const CoursePayment = require('../../../src/models/CoursePayment');
 
 describe('exportCourseHistory', () => {
   const traineeList = [
@@ -1257,6 +1260,75 @@ describe('exportCourseBillAndCreditNoteHistory', () => {
           args: [{ path: 'coursePayments', options: { isVendorUser }, select: 'netInclTaxes nature' }],
         },
         { query: 'setOptions', args: [{ isVendorUser }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+});
+
+describe('exportCoursePaymentHistory', () => {
+  let findCoursePayment;
+  const credentials = { role: { vendor: { name: 'training_organisation_manager' } } };
+
+  beforeEach(() => {
+    findCoursePayment = sinon.stub(CoursePayment, 'find');
+  });
+
+  afterEach(() => {
+    findCoursePayment.restore();
+  });
+
+  it('should return an empty array if no course', async () => {
+    findCoursePayment.returns(SinonMongoose.stubChainedQueries([], ['populate', 'setOptions', 'lean']));
+
+    const result = await ExportHelper.exportCoursePaymentHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
+
+    expect(result).toEqual([[NO_DATA]]);
+    SinonMongoose.calledOnceWithExactly(
+      findCoursePayment,
+      [
+        { query: 'find', args: [{ date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }] },
+        { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true } }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
+        { query: 'lean' },
+      ]
+    );
+  });
+
+  it('should return an array with the header and 3 rows', async () => {
+    const coursePaymentList = [
+      {
+        nature: PAYMENT,
+        number: 'REG-1',
+        date: '2022-01-02',
+        courseBill: { number: 'FACT-2' },
+        type: CHECK,
+        netInclTaxes: 100,
+      },
+      {
+        nature: REFUND,
+        number: 'REG-4',
+        date: '2022-01-02',
+        courseBill: { number: 'FACT-1' },
+        type: CHECK,
+        netInclTaxes: 200,
+      },
+    ];
+    findCoursePayment.returns(SinonMongoose.stubChainedQueries(coursePaymentList, ['populate', 'setOptions', 'lean']));
+
+    const result = await ExportHelper.exportCoursePaymentHistory('2021-01-14T23:00:00.000Z', '2022-01-20T22:59:59.000Z', credentials);
+
+    expect(result).toEqual([
+      ['Nature', 'Identifiant', 'Date', 'Facture associée', 'Moyen de paiement', 'Montant'],
+      ['Paiement', 'REG-1', '02/01/2022', 'FACT-2', 'Chèque', '100,00'],
+      ['Remboursement', 'REG-4', '02/01/2022', 'FACT-1', 'Chèque', '200,00'],
+    ]);
+    SinonMongoose.calledOnceWithExactly(
+      findCoursePayment,
+      [
+        { query: 'find', args: [{ date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }] },
+        { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true } }] },
+        { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
       ]
     );

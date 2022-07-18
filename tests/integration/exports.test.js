@@ -115,7 +115,7 @@ const vendorHistoryExportTypes = [
     expectedRows: [
       '\ufeff"Identifiant";"Type";"Payeur";"Structure";"Programme";"Sous-Programme";"Infos complémentaires";"Formateur";"Référent Compani";"Contact pour la formation";"Nombre d\'inscrits";"Nombre de dates";"Nombre de créneaux";"Nombre de créneaux à planifier";"Durée Totale";"Nombre de SMS envoyés";"Nombre de personnes connectées à l\'app";"Complétion eLearning moyenne";"Nombre de réponses au questionnaire de recueil des attentes";"Nombre de réponses au questionnaire de satisfaction";"Date de démarrage souhaitée";"Début de formation";"Fin de formation";"Nombre de feuilles d\'émargement chargées";"Nombre de présences";"Nombre d\'absences";"Nombre de stagiaires non prévus";"Nombre de présences non prévues";"Avancement";"Facturée";"Montant facturé";"Montant réglé";"Solde"',
       `${courseList[0]._id};"intra";"APA Paris";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;0;"4,00";2;2;;3;3;;"01/05/2021 10:00:00";"01/05/2021 18:00:00";1;3;3;0;0;"1,00";"Oui";"1200,00";"1100,00";"-100,00"`,
-      `${courseList[1]._id};"inter_b2b";"APA Paris";;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;1;"4,00";1;0;"0,67";1;2;"01/01/2019";"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;"0,67";"2 sur 2";"800,00";"700,00";"-100,00"`,
+      `${courseList[1]._id};"inter_b2b";"APA Paris";;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;1;"4,00";1;0;"0,67";1;2;"01/01/2019";"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;"0,67";"2 sur 2";"800,00";"300,00";"-500,00"`,
       `${courseList[2]._id};"inter_b2b";;;"Program 2";"subProgram 2";"group 3";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;0;0;0;"0,00";0;0;"0,67";0;0;"01/01/2022";;;0;0;0;0;0;;"0 sur 2";;;`,
     ],
     query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
@@ -213,7 +213,7 @@ clientHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
 });
 
 vendorHistoryExportTypes.forEach(({ exportType, expectedRows, query }) => {
-  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history #tag`, () => {
+  describe(`EXPORTS ROUTES - GET /exports/${exportType}/history`, () => {
     let authToken;
     before(populateDB);
 
