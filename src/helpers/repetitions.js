@@ -54,10 +54,10 @@ const getConflictsInfo = (query, repetitionsGroupedByDay) => {
   const repetitionsByDayWithConflictInfos = cloneDeep(repetitionsGroupedByDay);
   if (get(query, 'auxiliary')) {
     for (const repetitionList of Object.values(repetitionsByDayWithConflictInfos)) {
-      for (let i = 0, l = repetitionList.length; i < l; i++) {
+      for (let i = 0; i < repetitionList.length; i++) {
         if (repetitionList[i].hasConflicts) continue;
         else {
-          for (let j = i + 1, m = repetitionList.length; j < m; j++) {
+          for (let j = i + 1; j < repetitionList.length; j++) {
             const firstRepetitionEnd = CompaniDate(repetitionList[i].endDate).getUnits(['hour', 'minute']);
             const secondRepetitionStart = CompaniDate(repetitionList[j].startDate).getUnits(['hour', 'minute']);
             const firstRepetitionEndHour = CompaniDate().set(firstRepetitionEnd).toISO();
