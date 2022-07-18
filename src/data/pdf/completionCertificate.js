@@ -121,10 +121,9 @@ exports.getPdfContent = async (data) => {
       const style = { fontSize: 9, bold: true };
       return {
         stack: [
-          { text: `Fait à Paris, le ${date}`, marginBottom: 32 },
-          { text: 'Thibault de Saint Blancard,' },
-          { text: 'Directeur Compani', marginBottom: 32 },
-          { image: signature, width: 144, marginBottom: 24 },
+          { text: `Fait à Paris, le ${date}` },
+          { text: 'Thibault de Saint Blancard, Directeur Compani' },
+          { image: signature, width: 120, marginBottom: 24 },
           { text: 'Compani', style },
           { text: '24 avenue daumesnil, 75012 Paris', style },
           { text: 'Numéro SIRET : 90512399800015 | Numéro de déclaration d’activité : 11756363475', style },
