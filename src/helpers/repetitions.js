@@ -60,17 +60,20 @@ const getConflictsInfo = (query, repetitionsGroupedByDay) => {
           for (let j = i + 1, m = repetitionList.length; j < m; j++) {
             const firstRepetitionEnd = CompaniDate(repetitionList[i].endDate).getUnits(['hour', 'minute']);
             const secondRepetitionStart = CompaniDate(repetitionList[j].startDate).getUnits(['hour', 'minute']);
-            const firstRepetitionEndHours = CompaniDate().set(firstRepetitionEnd).toISO();
-            const secondRepetitionStartHours = CompaniDate().set(secondRepetitionStart).toISO();
+            const firstRepetitionEndHour = CompaniDate().set(firstRepetitionEnd).toISO();
+            const secondRepetitionStartHour = CompaniDate().set(secondRepetitionStart).toISO();
+            const areRepetitionsEveryTwoWeeks = repetitionList[i].frequency === repetitionList[j].frequency &&
+              repetitionList[j].frequency === EVERY_TWO_WEEKS;
 
-            if (CompaniDate(firstRepetitionEndHours).isBefore(secondRepetitionStartHours)) break;
-            if (repetitionList[i].frequency === repetitionList[j].frequency === EVERY_TWO_WEEKS) {
+            if (CompaniDate(firstRepetitionEndHour).isBefore(secondRepetitionStartHour)) break;
+
+            if (areRepetitionsEveryTwoWeeks) {
               const startDateDiff = CompaniDate(repetitionList[i].startDate)
-                .diff(CompaniDate(repetitionList[j].startDate), 'days');
-              if (get(startDateDiff, 'days') % 14 !== 0) continue;
+                .diff(CompaniDate(repetitionList[j].startDate), 'weeks');
+              if (get(startDateDiff, 'weeks') % 2 !== 0) continue;
             }
 
-            if (CompaniDate(firstRepetitionEndHours).isAfter(secondRepetitionStartHours)) {
+            if (CompaniDate(firstRepetitionEndHour).isAfter(secondRepetitionStartHour)) {
               repetitionList[i] = { ...repetitionList[i], hasConflicts: true };
               repetitionList[j] = { ...repetitionList[j], hasConflicts: true };
             }
