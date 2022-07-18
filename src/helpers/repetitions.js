@@ -68,8 +68,10 @@ const getConflictsInfo = (query, repetitionsGroupedByDay) => {
             if (CompaniDate(firstRepetitionEndHour).isBefore(secondRepetitionStartHour)) break;
 
             if (areRepetitionsEveryTwoWeeks) {
-              const startDateDiff = CompaniDate(repetitionList[i].startDate)
-                .diff(CompaniDate(repetitionList[j].startDate), 'weeks');
+              const firstRepetitionDate = CompaniDate(repetitionList[i].startDate).startOf('day');
+              const secondRepetitionDate = CompaniDate(repetitionList[j].startDate).startOf('day');
+
+              const startDateDiff = firstRepetitionDate.diff(secondRepetitionDate, 'weeks');
               if (get(startDateDiff, 'weeks') % 2 !== 0) continue;
             }
 
