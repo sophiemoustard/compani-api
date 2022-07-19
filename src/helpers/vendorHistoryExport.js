@@ -17,6 +17,8 @@ const {
   BILLING_DOCUMENTS,
   CREDIT_NOTE,
   BILL,
+  PAYMENT_TYPES_LIST,
+  PAYMENT_NATURE_LIST,
 } = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 const UtilsHelper = require('./utils');
@@ -30,6 +32,7 @@ const CourseBill = require('../models/CourseBill');
 const CourseRepository = require('../repositories/CourseRepository');
 const QuestionnaireHistory = require('../models/QuestionnaireHistory');
 const Questionnaire = require('../models/Questionnaire');
+const CoursePayment = require('../models/CoursePayment');
 
 const getEndOfCourse = (slotsGroupedByDate, slotsToPlan) => {
   if (slotsToPlan.length) return 'à planifier';
@@ -396,6 +399,31 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
 
       rows.push(formattedCreditNote);
     }
+  }
+
+  return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];
+};
+
+exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => {
+  const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
+  const paymentList = await CoursePayment.find(
+    { date: { $lte: endDate, $gte: startDate } },
+    { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 }
+  )
+    .populate({ path: 'courseBill', option: { isVendorUser }, select: 'number' })
+    .setOptions({ isVendorUser })
+    .lean();
+
+  const rows = [];
+  for (const payment of paymentList) {
+    rows.push({
+      Nature: PAYMENT_NATURE_LIST[payment.nature],
+      Identifiant: payment.number,
+      Date: CompaniDate(payment.date).format('dd/LL/yyyy'),
+      'Facture associée': payment.courseBill.number,
+      'Moyen de paiement': PAYMENT_TYPES_LIST[payment.type],
+      Montant: UtilsHelper.formatFloatForExport(payment.netInclTaxes),
+    });
   }
 
   return rows.length ? [Object.keys(rows[0]), ...rows.map(d => Object.values(d))] : [[NO_DATA]];

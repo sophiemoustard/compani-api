@@ -71,6 +71,9 @@ const {
   END_OF_COURSE,
   LESSON,
   DIRECT_DEBIT,
+  BANK_TRANSFER,
+  CASH,
+  CHECK,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -1186,7 +1189,7 @@ const courseBillList = [
     company: authCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-06-08T00:10:00.000Z',
-    number: 'FACT-0004',
+    number: 'FACT-00004',
   },
   {
     _id: new ObjectId(),
@@ -1195,7 +1198,7 @@ const courseBillList = [
     company: otherCompany._id,
     payer: { fundingOrganisation: courseFundingOrganisation._id },
     billedAt: '2022-06-08T00:10:00.000Z',
-    number: 'FACT-0005',
+    number: 'FACT-00005',
   },
 ];
 
@@ -1216,7 +1219,7 @@ const coursePaymentList = [
     courseBill: courseBillList[3]._id,
     netInclTaxes: 400,
     nature: PAYMENT,
-    type: DIRECT_DEBIT,
+    type: BANK_TRANSFER,
   },
   {
     number: 'REG-00003',
@@ -1225,7 +1228,25 @@ const coursePaymentList = [
     courseBill: courseBillList[4]._id,
     netInclTaxes: 300,
     nature: PAYMENT,
-    type: DIRECT_DEBIT,
+    type: CASH,
+  },
+  {
+    number: 'REG-00004',
+    date: '2022-03-11T00:00:00.000Z',
+    company: otherCompany._id,
+    courseBill: courseBillList[4]._id,
+    netInclTaxes: 200,
+    nature: REFUND,
+    type: CHECK,
+  },
+  {
+    number: 'REG-00005',
+    date: '2023-03-11T00:00:00.000Z',
+    company: otherCompany._id,
+    courseBill: courseBillList[4]._id,
+    netInclTaxes: 200,
+    nature: REFUND,
+    type: CHECK,
   },
 ];
 
