@@ -53,6 +53,7 @@ const ascendingSortStartHour = (a, b) => {
 const getConflictsInfo = (query, repetitionsGroupedByDay) => {
   const repetitionsByDayWithConflictInfos = cloneDeep(repetitionsGroupedByDay);
   let conflictsOrDuplicateKey;
+
   if (query.auxiliary) conflictsOrDuplicateKey = 'hasConflicts';
   else conflictsOrDuplicateKey = 'hasDuplicateKey';
 

@@ -329,6 +329,76 @@ describe('list', () => {
       6: [repetitions[3]],
     });
   });
+
+  it('should list customer\'s repetitions grouped by day with duplicates', async () => {
+    const auxiliaryId = new ObjectId();
+    const customerId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const query = { customer: customerId };
+    const repetitions = [
+      {
+        type: 'intervention',
+        startDate: '2019-07-13T20:00:00.000Z',
+        endDate: '2019-07-13T22:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-27T19:30:00.000Z',
+        endDate: '2019-07-27T21:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-30T19:30:00.000Z',
+        endDate: '2019-07-30T21:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: new ObjectId(),
+        customer: customerId,
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(repetitions));
+
+    const result = await RepetitionHelper.list(query, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [
+            { customer: query.customer, company: credentials.company._id },
+            { attachement: 0, misc: 0, address: 0 },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'subscriptions.service subscriptions._id',
+            populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'auxiliary', select: 'identity picture' }] },
+        { query: 'populate', args: [{ path: 'sector', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+    expect(result).toMatchObject({
+      0: [],
+      1: [repetitions[2]],
+      2: [],
+      3: [],
+      4: [],
+      5: [{ ...repetitions[1], hasDuplicateKey: true }, { ...repetitions[0], hasDuplicateKey: true }],
+      6: [],
+    });
+  });
 });
 
 describe('delete', () => {
