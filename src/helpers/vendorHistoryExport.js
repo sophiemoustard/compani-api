@@ -406,8 +406,11 @@ exports.exportCourseBillAndCreditNoteHistory = async (startDate, endDate, creden
 
 exports.exportCoursePaymentHistory = async (startDate, endDate, credentials) => {
   const isVendorUser = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(get(credentials, 'role.vendor.name'));
-  const paymentList = await CoursePayment.find({ date: { $lte: endDate, $gte: startDate } })
-    .populate({ path: 'courseBill', option: { isVendorUser } })
+  const paymentList = await CoursePayment.find(
+    { date: { $lte: endDate, $gte: startDate } },
+    { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 }
+  )
+    .populate({ path: 'courseBill', option: { isVendorUser }, select: 'number' })
     .setOptions({ isVendorUser })
     .lean();
 

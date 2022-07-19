@@ -1287,8 +1287,14 @@ describe('exportCoursePaymentHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findCoursePayment,
       [
-        { query: 'find', args: [{ date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }] },
-        { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true } }] },
+        {
+          query: 'find',
+          args: [
+            { date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
+            { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true }, select: 'number' }] },
         { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
       ]
@@ -1326,8 +1332,14 @@ describe('exportCoursePaymentHistory', () => {
     SinonMongoose.calledOnceWithExactly(
       findCoursePayment,
       [
-        { query: 'find', args: [{ date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } }] },
-        { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true } }] },
+        {
+          query: 'find',
+          args: [
+            { date: { $lte: '2022-01-20T22:59:59.000Z', $gte: '2021-01-14T23:00:00.000Z' } },
+            { nature: 1, number: 1, date: 1, courseBill: 1, type: 1, netInclTaxes: 1 },
+          ],
+        },
+        { query: 'populate', args: [{ path: 'courseBill', option: { isVendorUser: true }, select: 'number' }] },
         { query: 'setOptions', args: [{ isVendorUser: true }] },
         { query: 'lean' },
       ]
