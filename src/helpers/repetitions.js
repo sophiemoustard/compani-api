@@ -52,10 +52,7 @@ const ascendingSortStartHour = (a, b) => {
 
 const getConflictsInfo = (query, repetitionsGroupedByDay) => {
   const repetitionsByDayWithConflictInfos = cloneDeep(repetitionsGroupedByDay);
-  let conflictsOrDuplicateKey;
-
-  if (query.auxiliary) conflictsOrDuplicateKey = 'hasConflicts';
-  else conflictsOrDuplicateKey = 'hasDuplicateKey';
+  const conflictsOrDuplicateKey = query.auxiliary ? 'hasConflicts' : 'hasDuplicateKey';
 
   for (const repetitionList of Object.values(repetitionsByDayWithConflictInfos)) {
     for (let i = 0; i < repetitionList.length; i++) {
@@ -80,13 +77,8 @@ const getConflictsInfo = (query, repetitionsGroupedByDay) => {
           }
 
           if (CompaniDate(firstRepetitionEndHour).isAfter(secondRepetitionStartHour)) {
-            if (conflictsOrDuplicateKey === 'hasConflicts') {
-              repetitionList[i] = { ...repetitionList[i], hasConflicts: true };
-              repetitionList[j] = { ...repetitionList[j], hasConflicts: true };
-            } else {
-              repetitionList[i] = { ...repetitionList[i], hasDuplicateKey: true };
-              repetitionList[j] = { ...repetitionList[j], hasDuplicateKey: true };
-            }
+            repetitionList[i] = { ...repetitionList[i], [conflictsOrDuplicateKey]: true };
+            repetitionList[j] = { ...repetitionList[j], [conflictsOrDuplicateKey]: true };
           }
         }
       }
