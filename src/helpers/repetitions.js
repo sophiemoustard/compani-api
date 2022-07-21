@@ -52,33 +52,33 @@ const ascendingSortStartHour = (a, b) => {
 
 const getConflictsInfo = (query, repetitionsGroupedByDay) => {
   const repetitionsByDayWithConflictInfos = cloneDeep(repetitionsGroupedByDay);
-  if (get(query, 'auxiliary')) {
-    for (const repetitionList of Object.values(repetitionsByDayWithConflictInfos)) {
-      for (let i = 0; i < repetitionList.length; i++) {
-        if (repetitionList[i].hasConflicts) continue;
-        else {
-          for (let j = i + 1; j < repetitionList.length; j++) {
-            const firstRepetitionEnd = CompaniDate(repetitionList[i].endDate).getUnits(['hour', 'minute']);
-            const secondRepetitionStart = CompaniDate(repetitionList[j].startDate).getUnits(['hour', 'minute']);
-            const firstRepetitionEndHour = CompaniDate().set(firstRepetitionEnd).toISO();
-            const secondRepetitionStartHour = CompaniDate().set(secondRepetitionStart).toISO();
-            const areRepetitionsEveryTwoWeeks = repetitionList[i].frequency === repetitionList[j].frequency &&
-              repetitionList[j].frequency === EVERY_TWO_WEEKS;
+  const conflictsOrDuplicateKey = query.auxiliary ? 'hasConflicts' : 'hasDuplicateKey';
 
-            if (CompaniDate(firstRepetitionEndHour).isBefore(secondRepetitionStartHour)) break;
+  for (const repetitionList of Object.values(repetitionsByDayWithConflictInfos)) {
+    for (let i = 0; i < repetitionList.length; i++) {
+      if (repetitionList[i].hasConflicts) continue;
+      else {
+        for (let j = i + 1; j < repetitionList.length; j++) {
+          const firstRepetitionEnd = CompaniDate(repetitionList[i].endDate).getUnits(['hour', 'minute']);
+          const secondRepetitionStart = CompaniDate(repetitionList[j].startDate).getUnits(['hour', 'minute']);
+          const firstRepetitionEndHour = CompaniDate().set(firstRepetitionEnd).toISO();
+          const secondRepetitionStartHour = CompaniDate().set(secondRepetitionStart).toISO();
+          const areRepetitionsEveryTwoWeeks = repetitionList[i].frequency === repetitionList[j].frequency &&
+            repetitionList[j].frequency === EVERY_TWO_WEEKS;
 
-            if (areRepetitionsEveryTwoWeeks) {
-              const firstRepetitionDate = CompaniDate(repetitionList[i].startDate).startOf('day');
-              const secondRepetitionDate = CompaniDate(repetitionList[j].startDate).startOf('day');
+          if (CompaniDate(firstRepetitionEndHour).isBefore(secondRepetitionStartHour)) break;
 
-              const startDateDiff = firstRepetitionDate.diff(secondRepetitionDate, 'weeks');
-              if (get(startDateDiff, 'weeks') % 2 !== 0) continue;
-            }
+          if (areRepetitionsEveryTwoWeeks) {
+            const firstRepetitionDate = CompaniDate(repetitionList[i].startDate).startOf('day');
+            const secondRepetitionDate = CompaniDate(repetitionList[j].startDate).startOf('day');
 
-            if (CompaniDate(firstRepetitionEndHour).isAfter(secondRepetitionStartHour)) {
-              repetitionList[i] = { ...repetitionList[i], hasConflicts: true };
-              repetitionList[j] = { ...repetitionList[j], hasConflicts: true };
-            }
+            const startDateDiff = firstRepetitionDate.diff(secondRepetitionDate, 'weeks');
+            if (get(startDateDiff, 'weeks') % 2 !== 0) continue;
+          }
+
+          if (CompaniDate(firstRepetitionEndHour).isAfter(secondRepetitionStartHour)) {
+            repetitionList[i] = { ...repetitionList[i], [conflictsOrDuplicateKey]: true };
+            repetitionList[j] = { ...repetitionList[j], [conflictsOrDuplicateKey]: true };
           }
         }
       }
