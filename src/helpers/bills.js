@@ -312,7 +312,8 @@ exports.formatAndCreateBill = async (payload, credentials) => {
 
   let netInclTaxes = NumbersHelper.toString('0');
   for (const bi of billingItemList) {
-    netInclTaxes = NumbersHelper.add(netInclTaxes, NumbersHelper.multiply(bi.count, bi.unitInclTaxes));
+    const inclTaxes = NumbersHelper.toFixedToFloat(NumbersHelper.multiply(bi.count, bi.unitInclTaxes));
+    netInclTaxes = NumbersHelper.add(netInclTaxes, inclTaxes);
   }
 
   const bill = {
