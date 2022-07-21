@@ -2087,8 +2087,8 @@ describe('formatAndCreateBill', () => {
       date: '2021-09-01',
       shouldBeSent: true,
       billingItemList: [
-        { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
-        { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+        { billingItem: billingItemId1, unitInclTaxes: 34, count: 4.927 },
+        { billingItem: billingItemId2, unitInclTaxes: 65.45, count: 1.456 },
       ],
     };
 
@@ -2097,8 +2097,8 @@ describe('formatAndCreateBill', () => {
     findBillingItem.returns(
       SinonMongoose.stubChainedQueries([{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }], ['lean'])
     );
-    formatBillingItem.onCall(0).returns({ inclTaxes: 180 });
-    formatBillingItem.onCall(1).returns({ inclTaxes: 150 });
+    formatBillingItem.onCall(0).returns({ inclTaxes: 167.52 });
+    formatBillingItem.onCall(1).returns({ inclTaxes: 95.3 });
 
     await BillHelper.formatAndCreateBill(payload, credentials);
 
@@ -2118,12 +2118,12 @@ describe('formatAndCreateBill', () => {
     );
     sinon.assert.calledWithExactly(
       formatBillingItem.getCall(0),
-      { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
+      { billingItem: billingItemId1, unitInclTaxes: 34, count: 4.927 },
       [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
     );
     sinon.assert.calledWithExactly(
       formatBillingItem.getCall(1),
-      { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+      { billingItem: billingItemId2, unitInclTaxes: 65.45, count: 1.456 },
       [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
     );
     sinon.assert.calledOnceWithExactly(
@@ -2132,9 +2132,9 @@ describe('formatAndCreateBill', () => {
         number: 'FACT-101092100001',
         date: '2021-09-01',
         customer: payload.customer,
-        netInclTaxes: 50,
+        netInclTaxes: 262.82,
         type: 'manual',
-        billingItemList: [{ inclTaxes: 180 }, { inclTaxes: 150 }],
+        billingItemList: [{ inclTaxes: 167.52 }, { inclTaxes: 95.3 }],
         company: companyId,
         shouldBeSent: true,
       }
