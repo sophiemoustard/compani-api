@@ -71,6 +71,9 @@ const {
   END_OF_COURSE,
   LESSON,
   DIRECT_DEBIT,
+  BANK_TRANSFER,
+  CASH,
+  CHECK,
 } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, helperRoleId } = require('../../seed/authRolesSeed');
 
@@ -1179,17 +1182,73 @@ const courseBillList = [
     billedAt: '2022-06-08T00:00:00.000Z',
     number: 'FACT-00003',
   },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    mainFee: { price: 400, count: 1 },
+    company: authCompany._id,
+    payer: { fundingOrganisation: courseFundingOrganisation._id },
+    billedAt: '2022-06-08T00:10:00.000Z',
+    number: 'FACT-00004',
+  },
+  {
+    _id: new ObjectId(),
+    course: courseList[1]._id,
+    mainFee: { price: 400, count: 1 },
+    company: otherCompany._id,
+    payer: { fundingOrganisation: courseFundingOrganisation._id },
+    billedAt: '2022-06-08T00:10:00.000Z',
+    number: 'FACT-00005',
+  },
 ];
 
-const coursePayment = {
-  number: 'REG-00001',
-  date: '2022-03-09T00:00:00.000Z',
-  company: authCompany._id,
-  courseBill: courseBillList[0]._id,
-  netInclTaxes: 1100,
-  nature: PAYMENT,
-  type: DIRECT_DEBIT,
-};
+const coursePaymentList = [
+  {
+    number: 'REG-00001',
+    date: '2022-03-09T00:00:00.000Z',
+    company: authCompany._id,
+    courseBill: courseBillList[0]._id,
+    netInclTaxes: 1100,
+    nature: PAYMENT,
+    type: DIRECT_DEBIT,
+  },
+  {
+    number: 'REG-00002',
+    date: '2022-03-09T00:00:00.000Z',
+    company: authCompany._id,
+    courseBill: courseBillList[3]._id,
+    netInclTaxes: 400,
+    nature: PAYMENT,
+    type: BANK_TRANSFER,
+  },
+  {
+    number: 'REG-00003',
+    date: '2022-03-09T00:00:00.000Z',
+    company: otherCompany._id,
+    courseBill: courseBillList[4]._id,
+    netInclTaxes: 300,
+    nature: PAYMENT,
+    type: CASH,
+  },
+  {
+    number: 'REG-00004',
+    date: '2022-03-11T00:00:00.000Z',
+    company: otherCompany._id,
+    courseBill: courseBillList[4]._id,
+    netInclTaxes: 200,
+    nature: REFUND,
+    type: CHECK,
+  },
+  {
+    number: 'REG-00005',
+    date: '2023-03-11T00:00:00.000Z',
+    company: otherCompany._id,
+    courseBill: courseBillList[4]._id,
+    netInclTaxes: 200,
+    nature: REFUND,
+    type: CHECK,
+  },
+];
 
 const courseCreditNote = {
   _id: new ObjectId(),
@@ -1360,7 +1419,7 @@ const populateDB = async () => {
     CourseBill.create(courseBillList),
     CourseCreditNote.create(courseCreditNote),
     CourseFundingOrganisation.create(courseFundingOrganisation),
-    CoursePayment.create(coursePayment),
+    CoursePayment.create(coursePaymentList),
     CourseSlot.create(courseSlotList),
     CourseSmsHistory.create(smsList),
     CreditNote.create(creditNotesList),

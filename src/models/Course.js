@@ -21,6 +21,7 @@ const CourseSchema = mongoose.Schema({
     ref: 'User',
     required() { return this.format === BLENDED; },
   },
+  companyRepresentative: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   estimatedStartDate: { type: Date },
   archivedAt: { type: Date },
 }, { timestamps: true });

@@ -2,9 +2,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const axios = require('axios');
-const { TMP_FILES_PATH } = require('./constants');
 
 const fsPromises = fs.promises;
+const TMP_FILES_PATH = `${path.resolve(__dirname, '../data/pdf/tmp')}/`;
 
 exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
   const tmpFile = fs.createWriteStream(outputPath);
@@ -40,7 +40,9 @@ exports.downloadImages = async (imageList) => {
   return paths;
 };
 
-exports.deleteImages = () => fs.rmdirSync(TMP_FILES_PATH, { recursive: true });
+exports.deleteImages = () => {
+  if (fs.existsSync(TMP_FILES_PATH)) fs.rmdirSync(TMP_FILES_PATH, { recursive: true });
+};
 
 exports.exportToCsv = async (data) => {
   let csvContent = '\ufeff'; // UTF16LE BOM for Microsoft Excel

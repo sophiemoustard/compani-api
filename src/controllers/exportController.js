@@ -21,6 +21,7 @@ const {
   TRANSPORT,
   END_OF_COURSE,
   COURSE_BILL,
+  COURSE_PAYMENT,
 } = require('../helpers/constants');
 const { CompaniDate } = require('../helpers/dates/companiDates');
 const HistoryExportHelper = require('../helpers/historyExport');
@@ -123,6 +124,9 @@ const exportHistory = async (req, h) => {
       case COURSE_BILL:
         exportArray =
           await VendorHistoryExportHelper.exportCourseBillAndCreditNoteHistory(startDate, endDate, credentials);
+        break;
+      case COURSE_PAYMENT:
+        exportArray = await VendorHistoryExportHelper.exportCoursePaymentHistory(startDate, endDate, credentials);
         break;
     }
 

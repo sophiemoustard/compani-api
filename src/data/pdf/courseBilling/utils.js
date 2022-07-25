@@ -146,15 +146,21 @@ exports.getFeeTable = (data) => {
 };
 
 exports.getTableFooter = (data) => {
-  const netInclTaxes = CourseBillHelper.getNetInclTaxes(data);
+  const netInclTaxes = UtilsHelper.formatPrice(CourseBillHelper.getNetInclTaxes(data));
 
   return {
     columns: [
       { text: '' },
       { text: '' },
       { text: '' },
-      { text: 'Sous-total', alignment: 'right', marginRight: 22 },
-      { text: UtilsHelper.formatPrice(netInclTaxes), alignment: 'right', width: 'auto' },
+      [
+        { text: 'Sous-total HT', alignment: 'right', marginRight: 22, marginBottom: 8 },
+        { text: 'Total TTC', alignment: 'right', marginRight: 22, bold: true },
+      ],
+      [
+        { text: netInclTaxes, alignment: 'right', width: 'auto', marginBottom: 8 },
+        { text: netInclTaxes, alignment: 'right', width: 'auto', bold: true },
+      ],
     ],
   };
 };

@@ -33,7 +33,7 @@ exports.getHeader = (compani, conscience, title, columns) => [
   },
 ];
 
-exports.getFooter = (pageBreak, signature) => [
+exports.getFooter = signature => [
   {
     columns: [
       { text: 'Signature et tampon de l\'organisme de formation :', bold: true },
@@ -44,7 +44,8 @@ exports.getFooter = (pageBreak, signature) => [
         alignment: 'right',
       },
     ],
-    pageBreak: pageBreak ? 'none' : 'after',
     unbreakable: true,
+    marginLeft: 40,
+    marginRight: 40,
   },
 ];

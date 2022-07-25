@@ -2,6 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const Repetition = require('../../../src/models/Repetition');
+const Event = require('../../../src/models/Event');
 const EventsHelper = require('../../../src/helpers/events');
 const RepetitionHelper = require('../../../src/helpers/repetitions');
 const SinonMongoose = require('../sinonMongoose');
@@ -99,7 +100,7 @@ describe('list', () => {
     find.restore();
   });
 
-  it('should list repetitions', async () => {
+  it('should list auxiliary\'s repetitions grouped by day', async () => {
     const auxiliaryId = new ObjectId();
     const customerId = new ObjectId();
     const credentials = { company: { _id: new ObjectId() } };
@@ -109,6 +110,14 @@ describe('list', () => {
         type: 'intervention',
         startDate: '2019-07-13T20:00:00.000Z',
         endDate: '2019-07-13T22:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-20T09:00:00.000Z',
+        endDate: '2019-07-20T11:00:00.000Z',
         frequency: 'every_two_weeks',
         auxiliary: auxiliaryId,
         customer: customerId,
@@ -129,7 +138,7 @@ describe('list', () => {
       },
     ];
 
-    find.returns(SinonMongoose.stubChainedQueries([repetitions[0], repetitions[1]]));
+    find.returns(SinonMongoose.stubChainedQueries([repetitions[0], repetitions[1], repetitions[2]]));
 
     const result = await RepetitionHelper.list(query, credentials);
 
@@ -155,23 +164,262 @@ describe('list', () => {
         { query: 'lean' },
       ]
     );
-    expect(result).toEqual([repetitions[0], repetitions[1]]);
+    expect(result).toEqual({
+      0: [repetitions[2]],
+      1: [],
+      2: [],
+      3: [],
+      4: [],
+      5: [repetitions[1], repetitions[0]],
+      6: [],
+    });
+  });
+
+  it('should list customer\'s repetitions grouped by day', async () => {
+    const auxiliaryId = new ObjectId();
+    const customerId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const query = { customer: customerId };
+    const repetitions = [
+      {
+        type: 'intervention',
+        startDate: '2019-07-13T20:00:00.000Z',
+        endDate: '2019-07-13T22:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'internal_hour',
+        startDate: '2019-07-29T14:00:00.000Z',
+        endDate: '2019-07-29T16:00:00.000Z',
+        frequency: 'every_week',
+        auxiliary: auxiliaryId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-20T08:00:00.000Z',
+        endDate: '2019-07-20T07:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-12T08:00:00.000Z',
+        endDate: '2019-07-12T07:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries([repetitions[0], repetitions[2], repetitions[3]]));
+
+    const result = await RepetitionHelper.list(query, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [
+            { customer: query.customer, company: credentials.company._id },
+            { attachement: 0, misc: 0, address: 0 },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'subscriptions.service subscriptions._id',
+            populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{ path: 'auxiliary', select: 'identity picture' }],
+        },
+        { query: 'populate', args: [{ path: 'sector', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+    expect(result).toEqual({
+      0: [],
+      1: [],
+      2: [],
+      3: [],
+      4: [repetitions[3]],
+      5: [repetitions[2], repetitions[0]],
+      6: [],
+    });
+  });
+
+  it('should list auxiliary\'s repetitions grouped by day with conflicts', async () => {
+    const auxiliaryId = new ObjectId();
+    const customerId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const query = { auxiliary: auxiliaryId };
+    const repetitions = [
+      {
+        type: 'intervention',
+        startDate: '2019-07-13T20:00:00.000Z',
+        endDate: '2019-07-13T22:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-27T19:30:00.000Z',
+        endDate: '2019-07-27T21:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'internal_hour',
+        startDate: '2019-07-29T14:00:00.000Z',
+        endDate: '2019-07-29T16:00:00.000Z',
+        frequency: 'every_week',
+        auxiliary: auxiliaryId,
+      },
+      {
+        type: 'unavailability',
+        startDate: '2019-07-24T12:00:00.000Z',
+        endDate: '2019-07-24T14:30:00.000Z',
+        frequency: 'every_day',
+        auxiliary: auxiliaryId,
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(repetitions));
+
+    const result = await RepetitionHelper.list(query, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [
+            { auxiliary: query.auxiliary, company: credentials.company._id },
+            { attachement: 0, misc: 0, address: 0, sector: 0 },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'identity subscriptions.service subscriptions._id',
+            populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'internalHour', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+    expect(result).toMatchObject({
+      0: [{ ...repetitions[3], hasConflicts: true }, { ...repetitions[2], hasConflicts: true }],
+      1: [repetitions[3]],
+      2: [repetitions[3]],
+      3: [repetitions[3]],
+      4: [repetitions[3]],
+      5: [repetitions[3], { ...repetitions[1], hasConflicts: true }, { ...repetitions[0], hasConflicts: true }],
+      6: [repetitions[3]],
+    });
+  });
+
+  it('should list customer\'s repetitions grouped by day with duplicates', async () => {
+    const auxiliaryId = new ObjectId();
+    const customerId = new ObjectId();
+    const credentials = { company: { _id: new ObjectId() } };
+    const query = { customer: customerId };
+    const repetitions = [
+      {
+        type: 'intervention',
+        startDate: '2019-07-13T20:00:00.000Z',
+        endDate: '2019-07-13T22:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-27T19:30:00.000Z',
+        endDate: '2019-07-27T21:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: auxiliaryId,
+        customer: customerId,
+      },
+      {
+        type: 'intervention',
+        startDate: '2019-07-30T19:30:00.000Z',
+        endDate: '2019-07-30T21:00:00.000Z',
+        frequency: 'every_two_weeks',
+        auxiliary: new ObjectId(),
+        customer: customerId,
+      },
+    ];
+
+    find.returns(SinonMongoose.stubChainedQueries(repetitions));
+
+    const result = await RepetitionHelper.list(query, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      find,
+      [
+        {
+          query: 'find',
+          args: [
+            { customer: query.customer, company: credentials.company._id },
+            { attachement: 0, misc: 0, address: 0 },
+          ],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'customer',
+            select: 'subscriptions.service subscriptions._id',
+            populate: { path: 'subscriptions.service', select: 'versions.name versions.createdAt' },
+          }],
+        },
+        { query: 'populate', args: [{ path: 'auxiliary', select: 'identity picture' }] },
+        { query: 'populate', args: [{ path: 'sector', select: 'name' }] },
+        { query: 'lean' },
+      ]
+    );
+    expect(result).toMatchObject({
+      0: [],
+      1: [repetitions[2]],
+      2: [],
+      3: [],
+      4: [],
+      5: [{ ...repetitions[1], hasDuplicateKey: true }, { ...repetitions[0], hasDuplicateKey: true }],
+      6: [],
+    });
   });
 });
 
 describe('delete', () => {
   let findOne;
+  let eventCountDocuments;
   let deleteEventsAndRepetition;
+  let deleteOneRepetition;
   beforeEach(() => {
     findOne = sinon.stub(Repetition, 'findOne');
+    eventCountDocuments = sinon.stub(Event, 'countDocuments');
     deleteEventsAndRepetition = sinon.stub(EventsHelper, 'deleteEventsAndRepetition');
+    deleteOneRepetition = sinon.stub(Repetition, 'deleteOne');
   });
   afterEach(() => {
     findOne.restore();
+    eventCountDocuments.restore();
     deleteEventsAndRepetition.restore();
+    deleteOneRepetition.restore();
   });
 
-  it('should delete a repetition', async () => {
+  it('should delete a repetition with linked events', async () => {
     const companyId = new ObjectId();
     const credentials = { company: { _id: companyId } };
     const repetitionId = new ObjectId();
@@ -191,6 +439,7 @@ describe('delete', () => {
     };
 
     findOne.returns(SinonMongoose.stubChainedQueries(repetition, ['lean']));
+    eventCountDocuments.returns(1);
 
     await RepetitionHelper.delete(repetitionId, startDate, credentials);
 
@@ -198,11 +447,61 @@ describe('delete', () => {
       findOne,
       [{ query: 'findOne', args: [{ _id: repetitionId, company: companyId }, { parentId: 1 }] }, { query: 'lean' }]
     );
+    SinonMongoose.calledOnceWithExactly(
+      eventCountDocuments,
+      [
+        {
+          query: 'countDocuments',
+          args: [{ 'repetition.parentId': parentId, startDate: { $gte: startDate }, company: companyId }],
+        },
+      ]
+    );
     sinon.assert.calledOnceWithExactly(
       deleteEventsAndRepetition,
       { 'repetition.parentId': parentId, startDate: { $gte: startDate }, company: companyId },
       true,
       credentials
     );
+    sinon.assert.notCalled(deleteOneRepetition);
+  });
+  it('should delete a repetition without linked events', async () => {
+    const companyId = new ObjectId();
+    const credentials = { company: { _id: companyId } };
+    const repetitionId = new ObjectId();
+    const parentId = new ObjectId();
+    const startDate = '2019-07-25T00:00:00.000Z';
+
+    const repetition = {
+      _id: repetitionId,
+      type: 'intervention',
+      startDate: '2019-07-16T20:00:00.000Z',
+      endDate: '2019-07-16T22:00:00.000Z',
+      frequency: 'every_two_weeks',
+      auxiliary: new ObjectId(),
+      customer: new ObjectId(),
+      parentId,
+      company: companyId,
+    };
+
+    findOne.returns(SinonMongoose.stubChainedQueries(repetition, ['lean']));
+    eventCountDocuments.returns(0);
+
+    await RepetitionHelper.delete(repetitionId, startDate, credentials);
+
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [{ query: 'findOne', args: [{ _id: repetitionId, company: companyId }, { parentId: 1 }] }, { query: 'lean' }]
+    );
+    SinonMongoose.calledOnceWithExactly(
+      eventCountDocuments,
+      [
+        {
+          query: 'countDocuments',
+          args: [{ 'repetition.parentId': parentId, startDate: { $gte: startDate }, company: companyId }],
+        },
+      ]
+    );
+    sinon.assert.notCalled(deleteEventsAndRepetition);
+    sinon.assert.calledOnceWithExactly(deleteOneRepetition, { _id: repetitionId });
   });
 });

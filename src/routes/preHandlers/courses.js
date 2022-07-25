@@ -1,5 +1,6 @@
 const Boom = require('@hapi/boom');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const moment = require('moment');
 const Course = require('../../models/Course');
 const User = require('../../models/User');
@@ -65,6 +66,32 @@ exports.authorizeGetDocumentsAndSms = async (req) => {
   return null;
 };
 
+exports.checkInterlocutors = async (req, courseCompanyId) => {
+  if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
+
+  if (get(req, 'payload.trainer')) {
+    const trainer = await User.findOne({ _id: req.payload.trainer }, { role: 1 })
+      .lean({ autopopulate: true });
+
+    if (![VENDOR_ADMIN, TRAINING_ORGANISATION_MANAGER, TRAINER].includes(get(trainer, 'role.vendor.name'))) {
+      throw Boom.forbidden();
+    }
+  }
+  if (get(req, 'payload.companyRepresentative')) {
+    const companyRepresentative = await User
+      .findOne({ _id: req.payload.companyRepresentative }, { role: 1 })
+      .populate({ path: 'company' })
+      .lean({ autopopulate: true });
+
+    if (![COACH, CLIENT_ADMIN].includes(get(companyRepresentative, 'role.client.name'))) {
+      throw Boom.forbidden();
+    }
+    if (!UtilsHelper.areObjectIdsEquals(companyRepresentative.company, courseCompanyId)) throw Boom.notFound();
+  }
+
+  return null;
+};
+
 exports.authorizeCourseEdit = async (req) => {
   try {
     const { credentials } = req.auth;
@@ -74,12 +101,25 @@ exports.authorizeCourseEdit = async (req) => {
     const courseTrainerId = course.trainer ? course.trainer.toHexString() : null;
     const courseCompanyId = course.company ? course.company.toHexString() : null;
     this.checkAuthorization(credentials, courseTrainerId, courseCompanyId);
-
-    if (get(req, 'payload.salesRepresentative')) await this.checkSalesRepresentativeExists(req);
-
-    const archivedAt = get(req, 'payload.archivedAt');
     const userVendorRole = get(req, 'auth.credentials.role.vendor.name');
     const isRofOrAdmin = [TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN].includes(userVendorRole);
+
+    if ((get(req, 'payload.salesRepresentative') || get(req, 'payload.trainer')) && !isRofOrAdmin) {
+      return Boom.forbidden();
+    }
+
+    await this.checkInterlocutors(req, courseCompanyId);
+
+    if (get(req, 'payload.contact')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      const payloadInterlocutors = pick(req.payload, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+      const courseInterlocutors = pick(course, ['salesRepresentative', 'trainer', 'companyRepresentative']);
+      const interlocutors = { ...courseInterlocutors, ...payloadInterlocutors };
+
+      if (!UtilsHelper.doesArrayIncludeId(Object.values(interlocutors), req.payload.contact)) throw Boom.forbidden();
+    }
+
+    const archivedAt = get(req, 'payload.archivedAt');
     if (archivedAt) {
       if (!isRofOrAdmin) return Boom.forbidden();
 

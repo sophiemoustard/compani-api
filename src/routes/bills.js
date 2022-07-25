@@ -12,14 +12,17 @@ const {
 } = require('../controllers/billsController');
 const {
   getBill,
-  authorizeGetBill,
+  authorizeGetDraftBill,
   authorizeGetBillPdf,
   authorizeBillListCreation,
   authorizeBillCreation,
+  authorizeGetBill,
 } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 const { BILL_TYPES } = require('../models/Bill');
 const { billingItemListValidations } = require('./validations/billingItem');
+const { dateToISOString } = require('./validations/utils');
+const { AUTOMATIC } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -45,7 +48,7 @@ exports.plugin = {
             customer: Joi.objectId(),
           }),
         },
-        pre: [{ method: authorizeGetBill }],
+        pre: [{ method: authorizeGetDraftBill }],
       },
       handler: draftBillsList,
     });
@@ -155,8 +158,13 @@ exports.plugin = {
       options: {
         auth: { scope: ['bills:edit'] },
         validate: {
-          query: Joi.object({ type: Joi.string().valid(...BILL_TYPES).required() }),
+          query: Joi.object({
+            type: Joi.string().valid(...BILL_TYPES).required(),
+            startDate: dateToISOString.when('type', { is: AUTOMATIC, then: Joi.required() }),
+            endDate: dateToISOString.when('startDate', { is: Joi.exist(), then: Joi.required() }),
+          }),
         },
+        pre: [{ method: authorizeGetBill }],
       },
       handler: list,
     });

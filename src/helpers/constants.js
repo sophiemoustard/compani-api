@@ -503,8 +503,6 @@ module.exports = {
   DEATH: 'death',
   EPHAD_DEPARTURE: 'ephad_departure',
   CONDITION_IMPROVEMENT: 'condition_improvement',
-  // FILES
-  TMP_FILES_PATH: 'src/data/pdf/tmp/',
   // DOCUMENTS
   DOCUMENT_TYPE_LIST: [
     'contract',
@@ -547,6 +545,7 @@ module.exports = {
   COURSE: 'course',
   COURSE_SLOT: 'course_slot',
   COURSE_BILL: 'course_bill',
+  COURSE_PAYMENT: 'course_payment',
   get HISTORY_EXPORT_TYPES() {
     return [
       this.WORKING_EVENT,
@@ -560,6 +559,7 @@ module.exports = {
       this.TRANSPORT,
       this.END_OF_COURSE,
       this.COURSE_BILL,
+      this.COURSE_PAYMENT,
     ];
   },
   get CLIENT_EXPORT_TYPES() {
@@ -582,7 +582,9 @@ module.exports = {
       this.TRANSPORT,
     ];
   },
-  get VENDOR_EXPORT_TYPES() { return [this.COURSE, this.COURSE_SLOT, this.END_OF_COURSE, this.COURSE_BILL]; },
+  get VENDOR_EXPORT_TYPES() {
+    return [this.COURSE, this.COURSE_SLOT, this.END_OF_COURSE, this.COURSE_BILL, this.COURSE_PAYMENT];
+  },
   // COURSE BILLING
   LIST: 'list',
   BALANCE: 'balance',

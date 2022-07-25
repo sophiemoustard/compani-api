@@ -63,16 +63,6 @@ const traineeWithoutCompany = {
   origin: WEBAPP,
 };
 
-const contact = {
-  _id: new ObjectId(),
-  identity: { firstname: 'Roberto', lastname: 'Benigni' },
-  local: { email: 'contact@trainer.io' },
-  contact: { phone: '0123456789' },
-  role: { vendor: trainerRoleId },
-  refreshToken: uuidv4(),
-  origin: WEBAPP,
-};
-
 const contactWithoutPhone = {
   _id: new ObjectId(),
   identity: { firstname: 'Cathy', lastname: 'Palenne' },
@@ -86,7 +76,6 @@ const userList = [
   traineeFromOtherCompany,
   traineeFromAuthCompanyWithFormationExpoToken,
   traineeWithoutCompany,
-  contact,
   contactWithoutPhone,
 ];
 
@@ -159,7 +148,7 @@ const coursesList = [
   { // 1
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    contact: contactWithoutPhone._id,
+    contact: vendorAdmin._id,
     company: otherCompany._id,
     misc: 'team formation',
     trainer: new ObjectId(),
@@ -170,7 +159,7 @@ const coursesList = [
   { // 2
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    contact: contact._id,
+    contact: vendorAdmin._id,
     company: authCompany._id,
     misc: 'second session',
     trainer: trainer._id,
@@ -225,7 +214,7 @@ const coursesList = [
   { // 7 course with slots to plan
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    contact: contact._id,
+    contact: vendorAdmin._id,
     misc: 'inter b2b session NOT concerning auth company',
     type: 'inter_b2b',
     format: 'blended',
@@ -236,7 +225,7 @@ const coursesList = [
   { // 8 course with access rules
     _id: new ObjectId(),
     subProgram: subProgramsList[0]._id,
-    contact: contact._id,
+    contact: vendorAdmin._id,
     misc: 'inter_b2b with accessRules',
     type: 'inter_b2b',
     format: 'strictly_e_learning',
@@ -262,7 +251,7 @@ const coursesList = [
     misc: 'inter_b2b',
     type: 'inter_b2b',
     trainees: [traineeFromOtherCompany._id],
-    contact: contact._id,
+    contact: vendorAdmin._id,
     salesRepresentative: vendorAdmin._id,
   },
   { // 11 course without authCompany in access rules (11ème position)

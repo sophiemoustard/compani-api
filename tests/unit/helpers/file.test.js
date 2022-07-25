@@ -120,37 +120,51 @@ describe('downloadImages', () => {
 
     const result = await FileHelper.downloadImages(imageList);
 
-    expect(result).toEqual(['src/data/pdf/tmp/conscience.png', 'src/data/pdf/tmp/compani.png']);
+    sinon.assert.match(result[0], `src/data/pdf/tmp/${imageList[0].name}`);
+    sinon.assert.match(result[1], `src/data/pdf/tmp/${imageList[1].name}`);
     sinon.assert.calledWithExactly(get.getCall(0), imageList[0].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(get.getCall(1), imageList[1].url, { responseType: 'stream' });
     sinon.assert.calledWithExactly(
       createAndReadFile.getCall(0),
       response.data,
-      `src/data/pdf/tmp/${imageList[0].name}`
+      sinon.match(`src/data/pdf/tmp/${imageList[0].name}`)
     );
     sinon.assert.calledWithExactly(
       createAndReadFile.getCall(1),
       response.data,
-      `src/data/pdf/tmp/${imageList[1].name}`
+      sinon.match(`src/data/pdf/tmp/${imageList[1].name}`)
     );
   });
 });
 
 describe('deleteImages', () => {
   let rmdirSync;
+  let existsSync;
 
   beforeEach(() => {
     rmdirSync = sinon.stub(fs, 'rmdirSync');
+    existsSync = sinon.stub(fs, 'existsSync');
   });
 
   afterEach(() => {
     rmdirSync.restore();
+    existsSync.restore();
   });
 
   it('should remove images from local', async () => {
+    existsSync.returns(true);
+
     await FileHelper.deleteImages();
 
-    sinon.assert.calledOnceWithExactly(rmdirSync, 'src/data/pdf/tmp/', { recursive: true });
+    sinon.assert.calledOnceWithExactly(rmdirSync, sinon.match('src/data/pdf/tmp/'), { recursive: true });
+  });
+
+  it('should not remove images from local if folder does not exist', async () => {
+    existsSync.returns(false);
+
+    await FileHelper.deleteImages();
+
+    sinon.assert.notCalled(rmdirSync);
   });
 });
 

@@ -183,6 +183,7 @@ exports.plugin = {
             trainer: Joi.objectId(),
             contact: Joi.objectId().allow(''),
             salesRepresentative: Joi.objectId(),
+            companyRepresentative: Joi.objectId(),
             archivedAt: Joi.date(),
             estimatedStartDate: dateToISOString,
           }),

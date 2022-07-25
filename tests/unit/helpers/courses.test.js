@@ -753,6 +753,13 @@ describe('getCourse', () => {
         },
         {
           query: 'populate',
+          args: [{
+            path: 'companyRepresentative',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          }],
+        },
+        {
+          query: 'populate',
           args: [{ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' }],
         },
         { query: 'lean' },
@@ -829,6 +836,13 @@ describe('getCourse', () => {
           query: 'populate',
           args: [{
             path: 'salesRepresentative',
+            select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+          }],
+        },
+        {
+          query: 'populate',
+          args: [{
+            path: 'companyRepresentative',
             select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
           }],
         },
@@ -1650,7 +1664,8 @@ describe('updateCourse', () => {
 
   it('should remove contact field in intra course', async () => {
     const courseId = new ObjectId();
-    const payload = { contact: '' };
+    const salesRepresentativeId = new ObjectId();
+    const payload = { contact: '', salesRepresentative: salesRepresentativeId };
     const updatedCourse = { _id: courseId };
 
     courseFindOneAndUpdate.returns(SinonMongoose.stubChainedQueries(updatedCourse, ['lean']));
@@ -1662,7 +1677,10 @@ describe('updateCourse', () => {
     SinonMongoose.calledOnceWithExactly(
       courseFindOneAndUpdate,
       [
-        { query: 'findOneAndUpdate', args: [{ _id: courseId }, { $unset: payload }] },
+        {
+          query: 'findOneAndUpdate',
+          args: [{ _id: courseId }, { $set: { salesRepresentative: salesRepresentativeId }, $unset: { contact: '' } }],
+        },
         { query: 'lean' },
       ]
     );

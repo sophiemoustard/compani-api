@@ -235,6 +235,10 @@ exports.getCourse = async (course, loggedUser) => {
       path: 'salesRepresentative',
       select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
     })
+    .populate({
+      path: 'companyRepresentative',
+      select: 'identity.firstname identity.lastname contact.phone local.email picture.link',
+    })
     .populate({ path: 'contact', select: 'identity.firstname identity.lastname contact.phone' })
     .lean();
 
@@ -414,7 +418,9 @@ exports.getTraineeCourse = async (courseId, credentials) => {
 };
 
 exports.updateCourse = async (courseId, payload) => {
-  const params = payload.contact === '' ? { $unset: { contact: '' } } : { $set: payload };
+  const params = payload.contact === ''
+    ? { $set: omit(payload, 'contact'), $unset: { contact: '' } }
+    : { $set: payload };
 
   return Course.findOneAndUpdate({ _id: courseId }, params).lean();
 };

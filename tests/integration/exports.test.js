@@ -22,6 +22,7 @@ const {
   TRANSPORT,
   END_OF_COURSE,
   COURSE_BILL,
+  COURSE_PAYMENT,
 } = require('../../src/helpers/constants');
 const { getToken } = require('./helpers/authentication');
 const {
@@ -114,8 +115,8 @@ const vendorHistoryExportTypes = [
     expectedRows: [
       '\ufeff"Identifiant";"Type";"Payeur";"Structure";"Programme";"Sous-Programme";"Infos complémentaires";"Formateur";"Référent Compani";"Contact pour la formation";"Nombre d\'inscrits";"Nombre de dates";"Nombre de créneaux";"Nombre de créneaux à planifier";"Durée Totale";"Nombre de SMS envoyés";"Nombre de personnes connectées à l\'app";"Complétion eLearning moyenne";"Nombre de réponses au questionnaire de recueil des attentes";"Nombre de réponses au questionnaire de satisfaction";"Date de démarrage souhaitée";"Début de formation";"Fin de formation";"Nombre de feuilles d\'émargement chargées";"Nombre de présences";"Nombre d\'absences";"Nombre de stagiaires non prévus";"Nombre de présences non prévues";"Avancement";"Facturée";"Montant facturé";"Montant réglé";"Solde"',
       `${courseList[0]._id};"intra";"APA Paris";"Test SAS";"Program 1";"subProgram 1";"group 1";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";3;1;2;0;"4,00";2;2;;3;3;;"01/05/2021 10:00:00";"01/05/2021 18:00:00";1;3;3;0;0;"1,00";"Oui";"1200,00";"1100,00";"-100,00"`,
-      `${courseList[1]._id};"inter_b2b";;;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;1;"4,00";1;0;"0,67";1;2;"01/01/2019";"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;"0,67";;;;`,
-      `${courseList[2]._id};"inter_b2b";;;"Program 2";"subProgram 2";"group 3";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;0;0;0;"0,00";0;0;"0,67";0;0;"01/01/2022";;;0;0;0;0;0;;;;;`,
+      `${courseList[1]._id};"inter_b2b";"APA Paris";;"Program 2";"subProgram 2";"group 2";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;2;2;1;"4,00";1;0;"0,67";1;2;"01/01/2019";"01/02/2021 09:00:00";"à planifier";0;2;2;1;2;"0,67";"2 sur 2";"800,00";"300,00";"-500,00"`,
+      `${courseList[2]._id};"inter_b2b";;;"Program 2";"subProgram 2";"group 3";"Gilles FORMATEUR";"Aline CONTACT-COM";"Aline CONTACT-COM";2;0;0;0;"0,00";0;0;"0,67";0;0;"01/01/2022";;;0;0;0;0;0;;"0 sur 2";;;`,
     ],
     query: 'startDate=2021-01-15T10:00:00.000Z&endDate=2022-01-20T10:00:00.000Z',
   },
@@ -142,10 +143,21 @@ const vendorHistoryExportTypes = [
   {
     exportType: COURSE_BILL,
     expectedRows: [
-      '\ufeff"Nature";"Identifiant";"Date";"Id formation";"Formation";"Structure";"Payeur";"Montant TTC";"Montant réglé";"Avoir";"Montant soldé";"Solde"',
-      `"Facture";"FACT-00001";"08/03/2022";${courseList[0]._id};"Test SAS - Program 1 - group 1";"Test SAS";"APA Paris";"1200,00";"1100,00";;;"-100,00"`,
-      `"Facture";"FACT-00002";"08/03/2022";${courseList[3]._id};"Test SAS - Program 1 - group 4";"Test SAS";"APA Paris";"1200,00";"0,00";"AV-00001";"1200,00";"0,00"`,
+      '\ufeff"Nature";"Identifiant";"Date";"Id formation";"Formation";"Structure";"Payeur";"Montant TTC";"Montant réglé";"Avoir";"Montant soldé";"Solde";"Avancement"',
+      `"Facture";"FACT-00001";"08/03/2022";${courseList[0]._id};"Test SAS - Program 1 - group 1";"Test SAS";"APA Paris";"1200,00";"1100,00";;;"-100,00";"1,00"`,
+      `"Facture";"FACT-00002";"08/03/2022";${courseList[3]._id};"Test SAS - Program 1 - group 4";"Test SAS";"APA Paris";"1200,00";"0,00";"AV-00001";"1200,00";"0,00";`,
       `"Avoir";"AV-00001";"09/03/2022";${courseList[3]._id};"Test SAS - Program 1 - group 4";"Test SAS";"APA Paris";"1200,00";;;;`,
+    ],
+    query: 'startDate=2022-03-01T10:00:00.000Z&endDate=2022-04-20T10:00:00.000Z',
+  },
+  {
+    exportType: COURSE_PAYMENT,
+    expectedRows: [
+      '\ufeff"Nature";"Identifiant";"Date";"Facture associée";"Moyen de paiement";"Montant"',
+      '"Paiement";"REG-00001";"09/03/2022";"FACT-00001";"Prélèvement";"1100,00"',
+      '"Paiement";"REG-00002";"09/03/2022";"FACT-00004";"Virement";"400,00"',
+      '"Paiement";"REG-00003";"09/03/2022";"FACT-00005";"Espèces";"300,00"',
+      '"Remboursement";"REG-00004";"11/03/2022";"FACT-00005";"Chèque";"200,00"',
     ],
     query: 'startDate=2022-03-01T10:00:00.000Z&endDate=2022-04-20T10:00:00.000Z',
   },

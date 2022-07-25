@@ -201,6 +201,7 @@ module.exports = {
     draftBillsCreated: 'Draft bills created.',
     billsFound: 'Bills found.',
     billNotCompani: 'Bill\'s origin must be \'Compani\'.',
+    periodMustBeLessThanOneYear: 'Period must be less than a year.',
     /* Credit Notes */
     creditNotesFound: 'Credit notes found.',
     creditNoteCreated: 'Credit note found.',
@@ -588,6 +589,7 @@ module.exports = {
     draftBillsCreated: 'Brouillons de facture générés.',
     billsFound: 'Factures trouvés.',
     billNotCompani: 'L\'origine de la facture doit être \'Compani\'.',
+    periodMustBeLessThanOneYear: 'La période maximale est 1 an.',
     /* Credit Notes */
     creditNotesFound: 'Avoirs trouvés.',
     creditNoteCreated: 'Avoir créé.',

@@ -27,7 +27,7 @@ const service = {
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',
-    startDate: '2019-01-16T17:58:15',
+    startDate: '2019-01-16T17:58:15.000Z',
     vat: 12,
     exemptFromCharges: false,
   }],
@@ -51,7 +51,7 @@ const customer = {
     _id: subscriptionId,
     service: service._id,
     versions: [
-      { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00' },
+      { unitTTCRate: 10, weeklyHours: 8, evenings: 0, sundays: 2, createdAt: '2019-06-01T23:00:00.000Z' },
     ],
   }],
 };
@@ -113,14 +113,14 @@ const referentHistories = [
     customer: customer._id,
     auxiliary: loggedAuxiliary._id,
     company: customer.company,
-    startDate: '2017-05-13T00:00:00',
-    endDate: '2018-05-13T23:59:59',
+    startDate: '2017-05-13T00:00:00.000Z',
+    endDate: '2018-05-13T23:59:59.000Z',
   },
   {
     customer: customer._id,
     auxiliary: secondAuxiliary._id,
     company: customer.company,
-    startDate: '2018-05-14T00:00:00',
+    startDate: '2018-05-14T00:00:00.000Z',
   },
 ];
 
@@ -131,14 +131,14 @@ const sectorHistories = [
     _id: new ObjectId(),
     auxiliary: loggedAuxiliary._id,
     sector: sectors[0]._id,
-    startDate: '2020-03-20T00:00:00',
+    startDate: '2020-03-20T00:00:00.000Z',
     company: authCompany._id,
   },
   {
     _id: new ObjectId(),
     auxiliary: secondAuxiliary._id,
     sector: sectors[0]._id,
-    startDate: '2020-03-20T00:00:00',
+    startDate: '2020-03-20T00:00:00.000Z',
     company: authCompany._id,
   },
 ];
@@ -151,8 +151,8 @@ const eventList = [
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
     repetition: { frequency: NEVER },
-    startDate: moment().set('hours', 10).set('minutes', 0),
-    endDate: moment().set('hours', 12).set('minutes', 30),
+    startDate: moment().utc().set('hours', 10).set('minutes', 0),
+    endDate: moment().utc().set('hours', 12).set('minutes', 30),
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },
@@ -163,8 +163,18 @@ const eventList = [
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
     repetition: { frequency: NEVER },
-    startDate: moment().subtract(1, 'week').set('hours', 18).set('minutes', 15),
-    endDate: moment().subtract(1, 'week').set('hours', 20).set('minutes', 30),
+    startDate: moment()
+      .utc()
+      .subtract(1, 'week')
+      .set('hours', 18)
+      .set('minutes', 15)
+      .toISOString(),
+    endDate: moment()
+      .utc()
+      .subtract(1, 'week')
+      .set('hours', 20)
+      .set('minutes', 30)
+      .toISOString(),
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },
@@ -175,8 +185,18 @@ const eventList = [
     company: authCompany._id,
     auxiliary: loggedAuxiliary._id,
     repetition: { frequency: NEVER },
-    startDate: moment().subtract(1, 'week').set('hours', 11).set('minutes', 15),
-    endDate: moment().subtract(1, 'week').set('hours', 12).set('minutes', 30),
+    startDate: moment()
+      .utc()
+      .subtract(1, 'week')
+      .set('hours', 11)
+      .set('minutes', 15)
+      .toISOString(),
+    endDate: moment()
+      .utc()
+      .subtract(1, 'week')
+      .set('hours', 12)
+      .set('minutes', 30)
+      .toISOString(),
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },
@@ -187,8 +207,18 @@ const eventList = [
     company: authCompany._id,
     auxiliary: secondAuxiliary._id,
     repetition: { frequency: NEVER },
-    startDate: moment().subtract(1, 'week').set('hours', 13).set('minutes', 15),
-    endDate: moment().subtract(1, 'week').set('hours', 14).set('minutes', 30),
+    startDate: moment()
+      .utc()
+      .subtract(1, 'week')
+      .set('hours', 13)
+      .set('minutes', 15)
+      .toISOString(),
+    endDate: moment()
+      .utc()
+      .subtract(1, 'week')
+      .set('hours', 14)
+      .set('minutes', 30)
+      .toISOString(),
     address: customer.contact.primaryAddress,
     subscription: customer.subscriptions[0]._id,
   },

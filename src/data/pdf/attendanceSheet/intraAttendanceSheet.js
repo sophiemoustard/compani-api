@@ -36,19 +36,20 @@ exports.getPdfContent = async (data) => {
     const table = [{
       table: { body, widths: Array(body[0].length).fill('*'), heights },
       marginBottom: 8,
+      pageBreak: i === dates.length - 1 ? 'none' : 'after',
     }];
 
-    const footer = UtilsPdfHelper.getFooter(i === dates.length - 1, signature);
-
-    content.push(header, table, footer);
+    content.push(header, table);
   });
 
   return {
     content: content.flat(),
     defaultStyle: { font: 'Avenir', fontSize: 10 },
+    pageMargins: [40, 40, 40, 128],
     styles: {
       header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
       title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },
     },
+    footer: UtilsPdfHelper.getFooter(signature),
   };
 };
