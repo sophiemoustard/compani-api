@@ -184,15 +184,20 @@ describe('removeSpaces', () => {
 
 describe('formatPrice', () => {
   it('should format price', () => {
-    const res = UtilsHelper.formatPrice(5.5);
-    expect(res).toEqual('5,50\u00a0€');
+    const res = UtilsHelper.formatPrice('595.7549999999999838');
+    expect(res).toEqual('595,75\u00a0€');
   });
 });
 
 describe('roundFrenchNumber', () => {
   it('should round french number', () => {
-    const res = UtilsHelper.roundFrenchNumber(5.5);
-    expect(res).toEqual('5,5');
+    const res = UtilsHelper.roundFrenchNumber('595.7549999999999838', 2);
+    expect(res).toEqual('595,75');
+  });
+
+  it('should round french number with 5 digits', () => {
+    const res = UtilsHelper.roundFrenchNumber('12.256343213', 5);
+    expect(res).toEqual('12,25634');
   });
 });
 
