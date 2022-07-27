@@ -84,7 +84,9 @@ const roundFrenchPrice = (number) => {
     'fr-FR',
     { minimumFractionDigits: 2, style: 'currency', currency: 'EUR', currencyDisplay: 'symbol' }
   );
-  return nf.format(number);
+
+  const roundedNumber = NumbersHelper.toFixedToFloat(number);
+  return nf.format(roundedNumber);
 };
 
 exports.formatPrice = val => (val ? roundFrenchPrice(val) : roundFrenchPrice(0));
@@ -94,7 +96,9 @@ exports.roundFrenchNumber = (number, digits) => {
     'fr-FR',
     { minimumFractionDigits: digits, style: 'decimal', maximumFractionDigits: digits }
   );
-  return nf.format(number);
+
+  const roundedNumber = NumbersHelper.toFixedToFloat(number, digits);
+  return nf.format(roundedNumber);
 };
 
 exports.formatHour = val => (val ? `${exports.roundFrenchNumber(val, 2)}h` : `${exports.roundFrenchNumber(0, 2)}h`);
@@ -105,7 +109,9 @@ exports.formatHourWithMinutes = hour => (moment(hour).minutes()
 
 const roundFrenchPercentage = (number) => {
   const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'percent' });
-  return nf.format(number);
+
+  const roundedNumber = NumbersHelper.toFixedToFloat(number, 4);
+  return nf.format(roundedNumber);
 };
 
 exports.formatPercentage = val => (val ? roundFrenchPercentage(val) : roundFrenchPercentage(0));
