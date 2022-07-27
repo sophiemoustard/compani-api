@@ -109,7 +109,9 @@ exports.formatHourWithMinutes = hour => (moment(hour).minutes()
 
 const roundFrenchPercentage = (number) => {
   const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'percent' });
-  return nf.format(number);
+
+  const roundedNumber = NumbersHelper.toFixedToFloat(number, 4);
+  return nf.format(roundedNumber);
 };
 
 exports.formatPercentage = val => (val ? roundFrenchPercentage(val) : roundFrenchPercentage(0));

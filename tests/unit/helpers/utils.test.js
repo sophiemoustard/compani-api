@@ -187,6 +187,11 @@ describe('formatPrice', () => {
     const res = UtilsHelper.formatPrice('595.7549999999999838');
     expect(res).toEqual('595,75\u00a0€');
   });
+
+  it('should format price for 0', () => {
+    const res = UtilsHelper.formatPrice(0);
+    expect(res).toEqual('0,00\u00a0€');
+  });
 });
 
 describe('roundFrenchNumber', () => {
@@ -198,6 +203,18 @@ describe('roundFrenchNumber', () => {
   it('should round french number with 5 digits', () => {
     const res = UtilsHelper.roundFrenchNumber('12.256343213', 5);
     expect(res).toEqual('12,25634');
+  });
+});
+
+describe('formatPercentage', () => {
+  it('should format percentage', () => {
+    const res = UtilsHelper.formatPercentage('0.344449999999999999999');
+    expect(res).toEqual('34,44\u00a0%');
+  });
+
+  it('should format percentage for 0', () => {
+    const res = UtilsHelper.formatPercentage(0);
+    expect(res).toEqual('0,00\u00a0%');
   });
 });
 
