@@ -330,16 +330,21 @@ const formatBillsForExport = (bills) => {
     let totalExclTaxes = 0;
     if (bill.subscriptions) {
       for (const sub of bill.subscriptions) {
-        const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
-        totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
-        hours = NumbersHelper.add(hours, sub.hours);
+        const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(
+          sub.inclTaxes,
+          sub.discount,
+          sub.vat
+        );
+
+        totalExclTaxes = NumbersHelper.oldAdd(totalExclTaxes, subExclTaxesWithDiscount);
+        hours = NumbersHelper.oldAdd(hours, sub.hours);
       }
     }
 
     if (bill.billingItemList) {
       for (const bi of bill.billingItemList) {
-        const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
-        totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
+        const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.inclTaxes, bi.discount, bi.vat);
+        totalExclTaxes = NumbersHelper.oldAdd(totalExclTaxes, biExclTaxesWithDiscount);
       }
     }
 
@@ -366,16 +371,16 @@ const formatCreditNotesForExport = (creditNotes) => {
   const rows = [];
 
   for (const creditNote of creditNotes) {
-    const totalExclTaxes = (creditNote.exclTaxesCustomer || 0) + (creditNote.exclTaxesTpp || 0);
-    const totalInclTaxes = (creditNote.inclTaxesCustomer || 0) + (creditNote.inclTaxesTpp || 0);
-    const tppId = get(creditNote.thirdPartyPayer, '_id');
+    const { exclTaxesCustomer, exclTaxesTpp, inclTaxesCustomer, inclTaxesTpp, thirdPartyPayer, createdAt } = creditNote;
+    const totalExclTaxes = parseFloat(NumbersHelper.add(exclTaxesCustomer || 0, exclTaxesTpp || 0));
+    const totalInclTaxes = parseFloat(NumbersHelper.add(inclTaxesCustomer || 0, inclTaxesTpp || 0));
+    const tppId = get(thirdPartyPayer, '_id');
 
-    const createdAt = get(creditNote, 'createdAt', null);
     const cells = [
       'Avoir',
       ...formatRowCommonsForExport(creditNote),
       tppId ? tppId.toHexString() : '',
-      get(creditNote.thirdPartyPayer, 'name') || '',
+      get(thirdPartyPayer, 'name') || '',
       UtilsHelper.formatFloatForExport(totalExclTaxes),
       UtilsHelper.formatFloatForExport(totalInclTaxes),
       '',

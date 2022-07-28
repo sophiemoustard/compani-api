@@ -13,7 +13,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const SurchargesHelper = require('../../../src/helpers/surcharges');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const { BILLING_DIRECT, BILLING_INDIRECT } = require('../../../src/helpers/constants');
+const { BILLING_DIRECT, BILLING_INDIRECT, FIXED, HOURLY } = require('../../../src/helpers/constants');
 
 describe('populateAndFormatSubscription', () => {
   it('should populate surcharge and billing items and sort versions', async () => {
@@ -131,13 +131,13 @@ describe('populateFundings', () => {
     }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
-    const returnedHistory = { careHours: 4, fundingId };
+    const returnedHistory = { careHours: '4', fundingId };
     mergeLastVersionWithBaseObjectStub.returns(funding);
     findOneFundingHistory.returns(SinonMongoose.stubChainedQueries(returnedHistory, ['lean']));
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
-    expect(result[0].history).toMatchObject([{ careHours: 4, fundingId }]);
+    expect(result[0].history).toMatchObject([{ careHours: '4', fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledOnceWithExactly(findOneFundingHistory, [
       { query: 'findOne', args: [{ fundingId: fundings[0]._id }] },
@@ -162,7 +162,7 @@ describe('populateFundings', () => {
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
-    expect(result[0].history).toMatchObject([{ careHours: 0, amountTTC: 0, fundingId }]);
+    expect(result[0].history).toMatchObject([{ careHours: '0', amountTTC: '0', fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledOnceWithExactly(findOneFundingHistory, [
       { query: 'findOne', args: [{ fundingId: fundings[0]._id }] },
@@ -182,8 +182,8 @@ describe('populateFundings', () => {
     }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const returnedHistories = [
-      { careHours: 3, fundingId, month: '01/2019' },
-      { careHours: 5, fundingId, month: '02/2019' },
+      { careHours: '3', fundingId, month: '01/2019' },
+      { careHours: '5', fundingId, month: '02/2019' },
     ];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     mergeLastVersionWithBaseObjectStub.returns(funding);
@@ -193,7 +193,7 @@ describe('populateFundings', () => {
 
     expect(result[0].history.length).toEqual(3);
     const addedHistory = result[0].history.find(hist => hist.month === '03/2019');
-    expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
+    expect(addedHistory).toMatchObject({ careHours: '0', amountTTC: '0', fundingId, month: '03/2019' });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     SinonMongoose.calledOnceWithExactly(findFundingHistory, [
       { query: 'find', args: [{ fundingId: fundings[0]._id, company: companyId }] },
@@ -224,7 +224,7 @@ describe('getSurchargedPrice', () => {
 
     const result = DraftBillsHelper.getSurchargedPrice(event, [], 11);
 
-    expect(result).toBe(11);
+    expect(result).toBe('11');
   });
 
   it('should return the price if less than one minute', () => {
@@ -232,16 +232,15 @@ describe('getSurchargedPrice', () => {
 
     const result = DraftBillsHelper.getSurchargedPrice(event, [], 11);
 
-    expect(result).toBe(0);
+    expect(result).toBe('0');
   });
 
   it('should return the price surcharged globally', () => {
     const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
     const surcharges = [{ percentage: 25 }];
-
     const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 10);
 
-    expect(result).toBe(12.5);
+    expect(result).toBe('12.5');
   });
 
   it('should return the price surcharged once', () => {
@@ -251,40 +250,33 @@ describe('getSurchargedPrice', () => {
       startHour: moment(event.startDate).add(1, 'h'),
       endHour: moment(event.startDate).add(2, 'h'),
     }];
-
     const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 24);
 
-    expect(result).toBe(25);
+    expect(result).toBe('25');
   });
 
   it('should return the price surcharged twice', () => {
     const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
-    const surcharges = [{
-      percentage: 25,
-      startHour: moment(event.startDate).add(1, 'h'),
-      endHour: moment(event.startDate).add(2, 'h'),
-    }, {
-      percentage: 20,
-      startHour: moment(event.startDate).add(2, 'h'),
-      endHour: moment(event.startDate).add(4, 'h'),
-    }];
-
+    const surcharges = [
+      { percentage: 25, startHour: '2019-06-29T11:00:00', endHour: '2019-06-29T12:00:00' },
+      { percentage: 20, startHour: '2019-06-29T12:00:00', endHour: '2019-06-29T14:00:00' },
+    ];
     const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 24);
 
-    expect(result).toBe(26.6);
+    expect(result).toBe('26.6');
   });
 });
 
 describe('getThirdPartyPayerPrice', () => {
   it('should compute tpp price', () => {
-    expect(DraftBillsHelper.getThirdPartyPayerPrice(180, 10, 20)).toEqual(24);
+    expect(DraftBillsHelper.getThirdPartyPayerPrice(180, 10, 20)).toEqual('24');
   });
 });
 
 describe('getMatchingHistory', () => {
   it('should return history for once frequency', () => {
     const fundingId = new ObjectId();
-    const funding = { _id: fundingId, frequency: 'once', history: [{ fundingId, careHours: 2 }] };
+    const funding = { _id: fundingId, frequency: 'once', history: [{ fundingId, careHours: '2' }] };
 
     const result = DraftBillsHelper.getMatchingHistory({}, funding);
 
@@ -296,13 +288,13 @@ describe('getMatchingHistory', () => {
     const funding = {
       _id: fundingId,
       frequency: 'monthly',
-      history: [{ fundingId, careHours: 2, month: '03/2019' }, { fundingId, careHours: 4, month: '02/2019' }],
+      history: [{ fundingId, careHours: '2', month: '03/2019' }, { fundingId, careHours: '4', month: '02/2019' }],
     };
     const event = { startDate: new Date('2019/03/12') };
 
     const result = DraftBillsHelper.getMatchingHistory(event, funding);
 
-    expect(result).toMatchObject({ fundingId, careHours: 2, month: '03/2019' });
+    expect(result).toMatchObject({ fundingId, careHours: '2', month: '03/2019' });
   });
 
   it('should create history and add to list when missing for monthly frequency', () => {
@@ -310,168 +302,148 @@ describe('getMatchingHistory', () => {
     const funding = {
       _id: fundingId,
       frequency: 'monthly',
-      history: [{ fundingId, careHours: 2, month: '01/2019' }, { fundingId, careHours: 4, month: '02/2019' }],
+      history: [{ fundingId, careHours: '2', month: '01/2019' }, { fundingId, careHours: '4', month: '02/2019' }],
     };
     const event = { startDate: new Date('2019/03/12') };
 
     const result = DraftBillsHelper.getMatchingHistory(event, funding);
 
-    expect(result).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
+    expect(result).toMatchObject({ careHours: '0', amountTTC: '0', fundingId, month: '03/2019' });
   });
 });
 
 describe('getHourlyFundingSplit', () => {
-  const price = 50;
-  const event = {
-    startDate: (new Date('2019/03/12')).setHours(8),
-    endDate: (new Date('2019/03/12')).setHours(10),
-  };
-  const service = { vat: 20 };
-  let getExclTaxes;
+  const price = '50';
+  const event = { startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
   let getMatchingHistory;
   let getThirdPartyPayerPrice;
   beforeEach(() => {
-    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
     getMatchingHistory = sinon.stub(DraftBillsHelper, 'getMatchingHistory');
     getThirdPartyPayerPrice = sinon.stub(DraftBillsHelper, 'getThirdPartyPayerPrice');
   });
   afterEach(() => {
-    getExclTaxes.restore();
     getMatchingHistory.restore();
     getThirdPartyPayerPrice.restore();
   });
 
   it('case 1. Event fully invoiced to TPP', () => {
     const funding = {
+      _id: new ObjectId(),
       unitTTCRate: 21,
-      careHours: 4,
+      careHours: '4',
       frequency: 'once',
+      nature: 'hourly',
       customerParticipationRate: 20,
-      history: { careHours: 1 },
+      history: { careHours: '1' },
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
-    getExclTaxes.returns(17.5);
-    getMatchingHistory.returns({ careHours: 1 });
-    getThirdPartyPayerPrice.returns(28);
+    getMatchingHistory.returns({ careHours: '1' });
+    getThirdPartyPayerPrice.returns('28');
 
-    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, price);
 
-    expect(result.customerPrice).toEqual(22);
-    expect(result.thirdPartyPayerPrice).toEqual(28);
-    expect(result.history.careHours).toEqual(2);
-    sinon.assert.calledWithExactly(
-      getThirdPartyPayerPrice,
-      120,
-      17.5,
-      20
-    );
+    expect(result.customerPrice).toEqual('22');
+    expect(result.thirdPartyPayerPrice).toEqual('28');
+    expect(result.history.careHours).toEqual('2');
+    sinon.assert.calledWithExactly(getThirdPartyPayerPrice, '120', 21, 20);
   });
 
   it('case 2. Event partially invoiced to TPP', () => {
     const funding = {
+      _id: new ObjectId(),
       unitTTCRate: 21,
-      careHours: 4,
+      careHours: '4',
       frequency: 'once',
       customerParticipationRate: 20,
-      history: { careHours: 3 },
+      history: { careHours: '3' },
       thirdPartyPayer: { _id: new ObjectId() },
     };
 
-    getExclTaxes.returns(17.5);
-    getMatchingHistory.returns({ careHours: 3 });
-    getThirdPartyPayerPrice.returns(14);
+    getMatchingHistory.returns({ careHours: '3' });
+    getThirdPartyPayerPrice.returns('14');
 
-    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, price);
 
-    expect(result.customerPrice).toEqual(36);
-    expect(result.thirdPartyPayerPrice).toEqual(14);
-    expect(result.history.careHours).toEqual(1);
-    sinon.assert.calledWithExactly(getThirdPartyPayerPrice, 60, 17.5, 20);
+    expect(result.customerPrice).toEqual('36');
+    expect(result.thirdPartyPayerPrice).toEqual('14');
+    expect(result.history.careHours).toEqual('1');
+    sinon.assert.calledWithExactly(getThirdPartyPayerPrice, '60', 21, 20);
   });
 });
 
 describe('getFixedFundingSplit', () => {
-  const price = 50;
-  const event = {
-    startDate: (new Date('2019/03/12')).setHours(8),
-    endDate: (new Date('2019/03/12')).setHours(10),
-  };
-  const service = { vat: 20 };
-  let getExclTaxes;
-  beforeEach(() => {
-    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
-  });
-  afterEach(() => {
-    getExclTaxes.restore();
-  });
+  const price = '50';
+  const event = { startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
 
   it('Case 1. Event fully invoiced to TPP', () => {
     const funding = {
-      history: [{ amountTTC: 10 }],
-      amountTTC: 100,
+      history: [{ amountTTC: '10' }],
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(50);
 
-    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, price);
 
-    expect(result.customerPrice).toEqual(0);
-    expect(result.thirdPartyPayerPrice).toEqual(50);
-    expect(result.history.amountTTC).toEqual(60);
-    sinon.assert.notCalled(getExclTaxes);
+    expect(result.customerPrice).toEqual('0');
+    expect(result.thirdPartyPayerPrice).toEqual('50');
+    expect(result.history.amountTTC).toEqual('50');
   });
 
   it('Case 2. Event partially invoiced to TPP', () => {
     const funding = {
-      history: [{ amountTTC: 79 }],
-      amountTTC: 100,
+      history: [{ amountTTC: '79' }],
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(17.5);
 
-    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, price);
 
-    expect(result.customerPrice).toEqual(32.5);
-    expect(result.thirdPartyPayerPrice).toEqual(17.5);
-    expect(result.history.amountTTC).toEqual(21);
-    sinon.assert.calledWithExactly(getExclTaxes, 21, 20);
+    expect(result.customerPrice).toEqual('29');
+    expect(result.thirdPartyPayerPrice).toEqual('21');
+    expect(result.history.amountTTC).toEqual('21');
   });
 });
 
 describe('getEventBilling', () => {
   const unitTTCRate = 21;
-  const event = {
-    startDate: (new Date('2019/05/08')).setHours(8),
-    endDate: (new Date('2019/05/08')).setHours(10),
-  };
-  let getExclTaxes;
+  const event = { startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
+
   let getEventSurcharges;
   let getSurchargedPrice;
   let getHourlyFundingSplit;
   let getFixedFundingSplit;
   beforeEach(() => {
-    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
     getEventSurcharges = sinon.stub(SurchargesHelper, 'getEventSurcharges');
     getSurchargedPrice = sinon.stub(DraftBillsHelper, 'getSurchargedPrice');
     getHourlyFundingSplit = sinon.stub(DraftBillsHelper, 'getHourlyFundingSplit');
     getFixedFundingSplit = sinon.stub(DraftBillsHelper, 'getFixedFundingSplit');
   });
   afterEach(() => {
-    getExclTaxes.restore();
     getEventSurcharges.restore();
     getSurchargedPrice.restore();
     getHourlyFundingSplit.restore();
     getFixedFundingSplit.restore();
   });
 
-  it('should return event prices wihtout funding and without surcharge', () => {
-    const service = { vat: 20 };
-    getExclTaxes.returns(17.5);
+  it('should return event prices with fixed service wihtout funding and without surcharge', () => {
+    const service = { nature: 'fixed', vat: 20 };
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
 
-    expect(result).toEqual({ customerPrice: 35, thirdPartyPayerPrice: 0 });
+    expect(result).toEqual({ customerPrice: '21', thirdPartyPayerPrice: '0' });
+    sinon.assert.notCalled(getHourlyFundingSplit);
+    sinon.assert.notCalled(getFixedFundingSplit);
+    sinon.assert.notCalled(getEventSurcharges);
+    sinon.assert.notCalled(getSurchargedPrice);
+  });
+
+  it('should return event prices with hourly service wihtout funding and without surcharge', () => {
+    const service = { nature: 'hourly', vat: 20 };
+
+    const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
+
+    expect(result).toEqual({ customerPrice: '42', thirdPartyPayerPrice: '0' });
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
@@ -480,57 +452,54 @@ describe('getEventBilling', () => {
 
   it('should return event prices with surcharge', () => {
     const service = { vat: 20, nature: 'hourly', surcharge: { publicHoliday: 10 } };
-    getExclTaxes.returns(17.5);
-    getSurchargedPrice.returns(38.5);
+    getSurchargedPrice.returns('46.2');
     getEventSurcharges.returns([{ percentage: 10 }]);
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
 
-    expect(result).toEqual({ customerPrice: 38.5, thirdPartyPayerPrice: 0, surcharges: [{ percentage: 10 }] });
+    expect(result).toEqual({ customerPrice: '46.2', thirdPartyPayerPrice: '0', surcharges: [{ percentage: 10 }] });
     sinon.assert.calledOnce(getEventSurcharges);
-    sinon.assert.calledWithExactly(getSurchargedPrice, event, [{ percentage: 10 }], 35);
+    sinon.assert.calledWithExactly(getSurchargedPrice, event, [{ percentage: 10 }], '42');
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getFixedFundingSplit);
   });
 
   it('should return event prices with hourly funding', () => {
-    const service = { vat: 20 };
+    const service = { vat: 20, nature: 'fixed' };
     const funding = {
       nature: 'hourly',
       unitTTCRate: 15,
-      careHours: 4,
+      careHours: '4',
       frequency: 'once',
       customerParticipationRate: 0,
-      history: { careHours: 1 },
+      history: { careHours: '1' },
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(17.5);
-    getHourlyFundingSplit.returns({ customerPrice: 10, thirdPartyPayerPrice: 25 });
+    getHourlyFundingSplit.returns({ customerPrice: '0', thirdPartyPayerPrice: '42' });
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
 
-    expect(result).toEqual({ customerPrice: 10, thirdPartyPayerPrice: 25 });
-    sinon.assert.calledWithExactly(getHourlyFundingSplit, event, funding, service, 35);
+    expect(result).toEqual({ customerPrice: '0', thirdPartyPayerPrice: '42' });
+    sinon.assert.calledWithExactly(getHourlyFundingSplit, event, funding, '21');
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
     sinon.assert.notCalled(getSurchargedPrice);
   });
 
   it('should return event prices with fixed funding', () => {
-    const service = { vat: 20 };
+    const service = { vat: 20, nature: 'hourly' };
     const funding = {
       nature: 'fixed',
-      history: { amountTTC: 50 },
-      amountTTC: 100,
+      history: { amountTTC: '50' },
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(17.5);
-    getFixedFundingSplit.returns({ customerPrice: 0, thirdPartyPayerPrice: 35 });
+    getFixedFundingSplit.returns({ customerPrice: '0', thirdPartyPayerPrice: '42' });
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
 
-    expect(result).toEqual({ customerPrice: 0, thirdPartyPayerPrice: 35 });
-    sinon.assert.calledWithExactly(getFixedFundingSplit, event, funding, service, 35);
+    expect(result).toEqual({ customerPrice: '0', thirdPartyPayerPrice: '42' });
+    sinon.assert.calledWithExactly(getFixedFundingSplit, event, funding, '42');
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
     sinon.assert.notCalled(getSurchargedPrice);
@@ -541,21 +510,21 @@ describe('getEventBilling', () => {
     const funding = {
       nature: 'hourly',
       unitTTCRate: 15,
-      careHours: 4,
+      careHours: '4',
       frequency: 'once',
       customerParticipationRate: 0,
-      history: { careHours: 1 },
+      history: { careHours: '1' },
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(17.5);
-    getHourlyFundingSplit.returns({ customerPrice: 10, thirdPartyPayerPrice: 25 });
-    getSurchargedPrice.returns(38.5);
+
+    getHourlyFundingSplit.returns({ customerPrice: '21.2', thirdPartyPayerPrice: '25' });
+    getSurchargedPrice.returns('46.2');
     getEventSurcharges.returns([{ percentage: 10 }]);
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
 
-    expect(result).toEqual({ customerPrice: 10, thirdPartyPayerPrice: 25, surcharges: [{ percentage: 10 }] });
-    sinon.assert.calledWithExactly(getHourlyFundingSplit, event, funding, service, 38.5);
+    expect(result).toEqual({ customerPrice: '21.2', thirdPartyPayerPrice: '25', surcharges: [{ percentage: 10 }] });
+    sinon.assert.calledWithExactly(getHourlyFundingSplit, event, funding, '46.2');
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.calledOnce(getEventSurcharges);
     sinon.assert.calledOnce(getSurchargedPrice);
@@ -565,36 +534,22 @@ describe('getEventBilling', () => {
     const service = { vat: 20, nature: 'hourly', surcharge: { publicHoliday: 10 } };
     const funding = {
       nature: 'fixed',
-      history: { amountTTC: 50 },
-      amountTTC: 100,
+      history: { amountTTC: '50' },
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(17.5);
-    getFixedFundingSplit.returns({ customerPrice: 0, thirdPartyPayerPrice: 35 });
-    getSurchargedPrice.returns(38.5);
+
+    getFixedFundingSplit.returns({ customerPrice: '0', thirdPartyPayerPrice: '46.2' });
+    getSurchargedPrice.returns('46.2');
     getEventSurcharges.returns([{ percentage: 10 }]);
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
 
-    expect(result).toEqual({ customerPrice: 0, thirdPartyPayerPrice: 35, surcharges: [{ percentage: 10 }] });
-    sinon.assert.calledWithExactly(getFixedFundingSplit, event, funding, service, 38.5);
+    expect(result).toEqual({ customerPrice: '0', thirdPartyPayerPrice: '46.2', surcharges: [{ percentage: 10 }] });
+    sinon.assert.calledWithExactly(getFixedFundingSplit, event, funding, '46.2');
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.calledOnce(getEventSurcharges);
     sinon.assert.calledOnce(getSurchargedPrice);
-  });
-
-  it('should return event prices with fixed service', () => {
-    const service = { vat: 20, nature: 'fixed' };
-    getExclTaxes.returns(17.5);
-
-    const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
-
-    result.customerPrice = Number.parseFloat(result.customerPrice.toFixed(2));
-    expect(result).toEqual({ customerPrice: 17.5, thirdPartyPayerPrice: 0 });
-    sinon.assert.notCalled(getHourlyFundingSplit);
-    sinon.assert.notCalled(getFixedFundingSplit);
-    sinon.assert.notCalled(getEventSurcharges);
-    sinon.assert.notCalled(getSurchargedPrice);
   });
 
   it('should not bill third party payer if event is cancelled', () => {
@@ -602,14 +557,14 @@ describe('getEventBilling', () => {
     const service = { vat: 20, nature: 'hourly' };
     const funding = {
       nature: 'fixed',
-      history: { amountTTC: 50 },
-      amountTTC: 100,
+      history: { amountTTC: '50' },
+      amountTTC: '100',
       thirdPartyPayer: { _id: new ObjectId() },
     };
-    getExclTaxes.returns(17.5);
+
     const result = DraftBillsHelper.getEventBilling(cancelledEvent, unitTTCRate, service, funding);
 
-    expect(result).toEqual({ customerPrice: 35, thirdPartyPayerPrice: 0 });
+    expect(result).toEqual({ customerPrice: '42', thirdPartyPayerPrice: '0' });
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
@@ -618,79 +573,65 @@ describe('getEventBilling', () => {
 });
 
 describe('formatDraftBillsForCustomer', () => {
-  let getInclTaxes;
+  let getExclTaxes;
 
   beforeEach(() => {
-    getInclTaxes = sinon.stub(UtilsHelper, 'getInclTaxes');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
   });
 
   afterEach(() => {
-    getInclTaxes.restore();
+    getExclTaxes.restore();
   });
 
   it('should format bill for customer', () => {
     const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
-    const event = {
-      _id: 'abc',
-      startDate: (new Date('2019/05/08')).setHours(8),
-      endDate: (new Date('2019/05/08')).setHours(10),
-    };
+    const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const service = { vat: 20 };
-    const eventPrice = { customerPrice: 17.5 };
+    const eventPrice = { customerPrice: 21 };
 
-    getInclTaxes.returns(21);
+    getExclTaxes.returns('17.5');
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
     expect(result).toMatchObject({
       eventsList: [
         { event: '123456' },
-        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: 17.5 },
+        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: '17.5' },
       ],
-      hours: 5,
-      exclTaxes: 37.5,
-      inclTaxes: 46,
+      hours: '5',
+      inclTaxes: '46',
     });
-    sinon.assert.calledOnceWithExactly(getInclTaxes, 17.5, 20);
+    sinon.assert.calledOnceWithExactly(getExclTaxes, 21, 20);
   });
 
   it('should format bill for customer with surcharge', () => {
-    const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
-    const event = {
-      _id: 'abc',
-      startDate: (new Date('2019/05/08')).setHours(8),
-      endDate: (new Date('2019/05/08')).setHours(10),
-    };
+    const customerPrices = { exclTaxes: '20', inclTaxes: '25', hours: '3', eventsList: [{ event: '123456' }] };
+    const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const service = { vat: 20 };
-    const eventPrice = { customerPrice: 17.5, surcharges: [{ name: 'test' }] };
+    const eventPrice = { customerPrice: '21', thirdPartyPayerPrice: '0', surcharges: [{ name: 'test' }] };
 
-    getInclTaxes.returns(21);
+    getExclTaxes.returns('17.5');
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
     expect(result).toMatchObject({
       eventsList: [
         { event: '123456' },
-        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: 17.5, surcharges: [{ name: 'test' }] },
+        { event: 'abc', inclTaxesCustomer: '21', exclTaxesCustomer: '17.5', surcharges: [{ name: 'test' }] },
       ],
-      hours: 5,
-      exclTaxes: 37.5,
-      inclTaxes: 46,
+      hours: '5',
+      inclTaxes: '46',
     });
-    sinon.assert.calledOnceWithExactly(getInclTaxes, 17.5, 20);
+    sinon.assert.calledOnceWithExactly(getExclTaxes, '21', 20);
   });
 
   it('should format bill for customer with tpp info', () => {
     const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
-    const event = {
-      _id: 'abc',
-      startDate: (new Date('2019/05/08')).setHours(8),
-      endDate: (new Date('2019/05/08')).setHours(10),
-    };
+    const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const service = { vat: 20 };
-    const eventPrice = { customerPrice: 17.5, thirdPartyPayerPrice: 12.5, thirdPartyPayer: 'tpp' };
-    getInclTaxes.onCall(0).returns(21);
-    getInclTaxes.onCall(1).returns(15);
+    const eventPrice = { customerPrice: '21', thirdPartyPayerPrice: '15', thirdPartyPayer: 'tpp' };
+    getExclTaxes.onCall(0).returns('17.5');
+    getExclTaxes.onCall(1).returns('12.5');
 
     const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
 
@@ -699,19 +640,18 @@ describe('formatDraftBillsForCustomer', () => {
         { event: '123456' },
         {
           event: 'abc',
-          inclTaxesCustomer: 21,
-          exclTaxesCustomer: 17.5,
-          exclTaxesTpp: 12.5,
-          inclTaxesTpp: 15,
+          inclTaxesCustomer: '21',
+          exclTaxesCustomer: '17.5',
+          exclTaxesTpp: '12.5',
+          inclTaxesTpp: '15',
           thirdPartyPayer: 'tpp',
         },
       ],
-      hours: 5,
-      exclTaxes: 37.5,
-      inclTaxes: 46,
+      hours: '5',
+      inclTaxes: '46',
     });
-    sinon.assert.calledWithExactly(getInclTaxes.getCall(0), 17.5, 20);
-    sinon.assert.calledWithExactly(getInclTaxes.getCall(1), 12.5, 20);
+    sinon.assert.calledWithExactly(getExclTaxes.getCall(0), '21', 20);
+    sinon.assert.calledWithExactly(getExclTaxes.getCall(1), '15', 20);
   });
 });
 
@@ -751,8 +691,14 @@ describe('computeBillingInfoForEvents', () => {
             { _id: new ObjectId('d00000000000000000000000'), name: 'skusku' },
             { _id: new ObjectId('d00000000000000000000001'), name: 'skusku 2' },
           ],
+          createdAt: '2022-01-01T00:00:00.000Z',
+          vat: 60,
         },
-        { billingItems: [{ _id: new ObjectId('d00000000000000000000001'), name: 'skusku 3' }] },
+        {
+          billingItems: [{ _id: new ObjectId('d00000000000000000000001'), name: 'skusku 3' }],
+          createdAt: '2022-03-01T00:00:00.000Z',
+          vat: 60,
+        },
       ],
     };
     const fundings = [];
@@ -764,25 +710,37 @@ describe('computeBillingInfoForEvents', () => {
         { _id: new ObjectId('d00000000000000000000000'), name: 'skusku' },
         { _id: new ObjectId('d00000000000000000000001'), name: 'skusku 2' },
       ],
+      createdAt: '2022-01-01T00:00:00.000Z',
+      vat: 60,
     };
     const matchingService2 = {
       _id: service._id,
       name: 'test',
       billingItems: [{ _id: new ObjectId('d00000000000000000000001'), name: 'skusku 3' }],
+      createdAt: '2022-03-01T00:00:00.000Z',
+      vat: 60,
     };
 
     getMatchingVersion.onCall(0).returns(matchingService1);
     getMatchingVersion.onCall(1).returns(matchingService2);
-    getEventBilling.onCall(0).returns({ customerPrice: 20 });
-    getEventBilling.onCall(1).returns({ customerPrice: 15 });
-    formatDraftBillsForCustomer.onCall(0).returns({ exclTaxes: 12, inclTaxes: 15, hours: 2, eventsList: [events[0]] });
-    formatDraftBillsForCustomer.onCall(1).returns({ exclTaxes: 45, inclTaxes: 50, hours: 6, eventsList: events });
+    getEventBilling.onCall(0).returns({ customerPrice: '20', thirdPartyPayerPrice: '0' });
+    getEventBilling.onCall(1).returns({ customerPrice: '15', thirdPartyPayerPrice: '0' });
+    formatDraftBillsForCustomer.onCall(0).returns({
+      inclTaxes: '15',
+      hours: '2',
+      eventsList: [events[0]],
+    });
+    formatDraftBillsForCustomer.onCall(1).returns({
+      inclTaxes: '50',
+      hours: '6',
+      eventsList: events,
+    });
 
     const result = DraftBillsHelper.computeBillingInfoForEvents(events, service, fundings, startDate, 12);
 
     expect(result).toEqual({
       prices: {
-        customerPrices: { exclTaxes: 45, inclTaxes: 50, hours: 6, eventsList: events },
+        customerPrices: { exclTaxes: '31.25', inclTaxes: '50', hours: '6', eventsList: events },
         thirdPartyPayerPrices: {},
         startDate: moment('2021-02-04T12:00:00.000Z'),
       },
@@ -800,16 +758,16 @@ describe('computeBillingInfoForEvents', () => {
     sinon.assert.calledWithExactly(getEventBilling.getCall(1), events[1], 12, matchingService2, null);
     sinon.assert.calledWithExactly(
       formatDraftBillsForCustomer.getCall(0),
-      { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] },
+      { inclTaxes: '0', hours: '0', eventsList: [] },
       events[0],
-      { customerPrice: 20 },
+      { customerPrice: '20', thirdPartyPayerPrice: '0' },
       matchingService1
     );
     sinon.assert.calledWithExactly(
       formatDraftBillsForCustomer.getCall(1),
-      { exclTaxes: 12, inclTaxes: 15, hours: 2, eventsList: [events[0]] },
+      { inclTaxes: '15', hours: '2', eventsList: [events[0]] },
       events[1],
-      { customerPrice: 15 },
+      { customerPrice: '15', thirdPartyPayerPrice: '0' },
       matchingService2
     );
     sinon.assert.notCalled(getMatchingFunding);
@@ -826,6 +784,8 @@ describe('computeBillingInfoForEvents', () => {
       _id: new ObjectId(),
       versions: [{
         billingItems: [{ _id: new ObjectId('d00000000000000000000000'), name: 'skusku' }],
+        createdAt: '2022-01-01T00:00:00.000Z',
+        vat: 20,
       }],
     };
     const matchingService = {
@@ -841,31 +801,40 @@ describe('computeBillingInfoForEvents', () => {
     getMatchingFunding.onCall(0).returns(null);
     getMatchingFunding.onCall(1).returns(matchingFunding);
     getMatchingFunding.onCall(2).returns(matchingFunding);
-    getEventBilling.onCall(0).returns({ customerPrice: 20 });
-    getEventBilling.onCall(1).returns({ customerPrice: 15, thirdPartyPayerPrice: 12 });
-    getEventBilling.onCall(2).returns({ customerPrice: 17, thirdPartyPayerPrice: 15 });
-    formatDraftBillsForCustomer.onCall(0).returns({ exclTaxes: 12, inclTaxes: 15, hours: 2, eventsList: [events[0]] });
+    getEventBilling.onCall(0).returns({ customerPrice: '20' });
+    getEventBilling.onCall(1).returns({ customerPrice: '15', thirdPartyPayerPrice: '12' });
+    getEventBilling.onCall(2).returns({ customerPrice: '17', thirdPartyPayerPrice: '15' });
+    formatDraftBillsForCustomer.onCall(0).returns({
+      inclTaxes: '15',
+      hours: '2',
+      eventsList: [events[0]],
+    });
     formatDraftBillsForCustomer.onCall(1).returns({
-      exclTaxes: 45,
-      inclTaxes: 50,
-      hours: 6,
+      inclTaxes: '50',
+      hours: '6',
       eventsList: [events[0], events[1]],
     });
-    formatDraftBillsForCustomer.onCall(2).returns({ exclTaxes: 60, inclTaxes: 75, hours: 8, eventsList: events });
+    formatDraftBillsForCustomer.onCall(2).returns({
+      inclTaxes: '75',
+      hours: '8',
+      eventsList: events,
+    });
     formatDraftBillsForTPP.onCall(0).returns({
-      [fundings[0]._id]: { exclTaxes: 21, inclTaxes: 23, hours: 2, eventsList: [events[1]] },
+      [fundings[0]._id]: { exclTaxes: '21', inclTaxes: '23', hours: '2', eventsList: [events[1]] },
     });
     formatDraftBillsForTPP.onCall(1).returns({
-      [fundings[0]._id]: { exclTaxes: 42, inclTaxes: 46, hours: 4, eventsList: [events[1], events[2]] },
+      [fundings[0]._id]: { exclTaxes: '42', inclTaxes: '46', hours: '4', eventsList: [events[1], events[2]] },
     });
 
     const result = DraftBillsHelper.computeBillingInfoForEvents(events, service, fundings, startDate, 12);
 
     expect(result).toEqual({
       prices: {
-        customerPrices: { exclTaxes: 60, inclTaxes: 75, hours: 8, eventsList: events },
+        customerPrices: { exclTaxes: '62.5', inclTaxes: '75', hours: '8', eventsList: events },
         thirdPartyPayerPrices: {
-          [fundings[0]._id]: { exclTaxes: 42, inclTaxes: 46, hours: 4, eventsList: [events[1], events[2]] },
+          [fundings[0]._id]: {
+            exclTaxes: '38.33333333333333333333', inclTaxes: '46', hours: '4', eventsList: [events[1], events[2]],
+          },
         },
         startDate,
       },
@@ -888,23 +857,23 @@ describe('computeBillingInfoForEvents', () => {
     sinon.assert.calledWithExactly(getEventBilling.getCall(2), events[2], 12, matchingService, matchingFunding);
     sinon.assert.calledWithExactly(
       formatDraftBillsForCustomer.getCall(0),
-      { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] },
+      { inclTaxes: '0', hours: '0', eventsList: [] },
       events[0],
-      { customerPrice: 20 },
+      { customerPrice: '20' },
       matchingService
     );
     sinon.assert.calledWithExactly(
       formatDraftBillsForCustomer.getCall(1),
-      { exclTaxes: 12, inclTaxes: 15, hours: 2, eventsList: [events[0]] },
+      { inclTaxes: '15', hours: '2', eventsList: [events[0]] },
       events[1],
-      { customerPrice: 15, thirdPartyPayerPrice: 12 },
+      { customerPrice: '15', thirdPartyPayerPrice: '12' },
       matchingService
     );
     sinon.assert.calledWithExactly(
       formatDraftBillsForCustomer.getCall(2),
-      { exclTaxes: 45, inclTaxes: 50, hours: 6, eventsList: [events[0], events[1]] },
+      { inclTaxes: '50', hours: '6', eventsList: [events[0], events[1]] },
       events[2],
-      { customerPrice: 17, thirdPartyPayerPrice: 15 },
+      { customerPrice: '17', thirdPartyPayerPrice: '15' },
       matchingService
     );
     sinon.assert.calledWithExactly(
@@ -912,27 +881,35 @@ describe('computeBillingInfoForEvents', () => {
       {},
       'tpp',
       events[1],
-      { customerPrice: 15, thirdPartyPayerPrice: 12 },
+      { customerPrice: '15', thirdPartyPayerPrice: '12' },
       matchingService
     );
     sinon.assert.calledWithExactly(
       formatDraftBillsForTPP.getCall(1),
-      { [fundings[0]._id]: { exclTaxes: 21, inclTaxes: 23, hours: 2, eventsList: [events[1]] } },
+      { [fundings[0]._id]: { exclTaxes: '21', inclTaxes: '23', hours: '2', eventsList: [events[1]] } },
       'tpp',
       events[2],
-      { customerPrice: 17, thirdPartyPayerPrice: 15 },
+      { customerPrice: '17', thirdPartyPayerPrice: '15' },
       matchingService
     );
   });
 
   it('should return empty infos if no event', () => {
     const startDate = moment('2021/01/01', 'YYYY/MM/DD');
+    const service = {
+      _id: new ObjectId(),
+      versions: [{
+        billingItems: [{ _id: new ObjectId('d00000000000000000000000'), name: 'skusku' }],
+        createdAt: '2022-01-01T00:00:00.000Z',
+        vat: 20,
+      }],
+    };
 
-    const result = DraftBillsHelper.computeBillingInfoForEvents([], { _id: new ObjectId() }, [], startDate, 0);
+    const result = DraftBillsHelper.computeBillingInfoForEvents([], service, [], startDate, 0);
 
     expect(result).toEqual({
       prices: {
-        customerPrices: { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] },
+        customerPrices: { exclTaxes: '0', inclTaxes: '0', hours: '0', eventsList: [] },
         thirdPartyPayerPrices: {},
         startDate,
       },
@@ -947,49 +924,142 @@ describe('computeBillingInfoForEvents', () => {
 });
 
 describe('formatDraftBillsForTPP', () => {
-  let getInclTaxes;
+  let getExclTaxes;
   beforeEach(() => {
-    getInclTaxes = sinon.stub(UtilsHelper, 'getInclTaxes');
+    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
   });
   afterEach(() => {
-    getInclTaxes.restore();
+    getExclTaxes.restore();
   });
 
   it('should format bill for tpp', () => {
     const tppId = new ObjectId();
     const tpp = { _id: tppId };
-    const tppPrices = {
-      [tppId]: { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] },
-    };
-    const event = {
-      _id: 'abc',
-      startDate: (new Date('2019/05/08')).setHours(8),
-      endDate: (new Date('2019/05/08')).setHours(10),
-    };
+    const tppPrices = { [tppId]: { exclTaxes: '20', inclTaxes: '25', hours: '3', eventsList: [{ event: '123456' }] } };
+    const event = { _id: 'abc', startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
     const eventPrice = {
-      customerPrice: 17.5,
-      thirdPartyPayerPrice: 12.5,
+      customerPrice: '21',
+      thirdPartyPayerPrice: '12.5',
       thirdPartyPayer: tppId,
       history: {},
-      chargedTime: 120,
+      chargedTime: '120',
     };
     const service = { vat: 20 };
-    getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
+    getExclTaxes.onCall(0).returns('10');
+    getExclTaxes.onCall(1).returns('17.5');
 
     const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
 
-    expect(result[tppId].exclTaxes).toEqual(32.5);
-    expect(result[tppId].inclTaxes).toEqual(40);
-    expect(result[tppId].hours).toEqual(5);
+    expect(result[tppId].inclTaxes).toEqual('37.5');
+    expect(result[tppId].hours).toEqual('5');
     expect(result[tppId].eventsList).toMatchObject([
       { event: '123456' },
       {
         event: 'abc',
-        inclTaxesTpp: 15,
-        exclTaxesTpp: 12.5,
+        inclTaxesTpp: '12.5',
+        exclTaxesTpp: '10',
         thirdPartyPayer: tppId,
-        inclTaxesCustomer: 21,
-        exclTaxesCustomer: 17.5,
+        inclTaxesCustomer: '21',
+        exclTaxesCustomer: '17.5',
+      },
+    ]);
+  });
+
+  it('should format bill for tpp with surcharges and fixed funding', () => {
+    const tppId = new ObjectId();
+    const auxiliairyId = new ObjectId();
+    const fundingId = new ObjectId();
+    const tpp = { _id: tppId };
+    const tppPrices = { [tppId]: { exclTaxes: '20', inclTaxes: '25', hours: '3', eventsList: [{ event: '123456' }] } };
+    const eventPrice = {
+      customerPrice: '21',
+      thirdPartyPayerPrice: '12.5',
+      thirdPartyPayer: tppId,
+      history: { nature: FIXED },
+      chargedTime: '120',
+      fundingId,
+      surcharges: [{ percentage: 25, name: 'Soirée', startHour: '2017-05-02T10:00:00.000Z' }],
+    };
+    const event = {
+      _id: 'abc',
+      startDate: '2019-02-12T08:00:00.000Z',
+      endDate: '2019-02-12T10:00:00.000Z',
+      auxiliary: auxiliairyId,
+    };
+    const service = { vat: 20 };
+
+    getExclTaxes.onCall(0).returns('10');
+    getExclTaxes.onCall(1).returns('17.5');
+
+    const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
+
+    expect(result[tppId].inclTaxes).toEqual('37.5');
+    expect(result[tppId].hours).toEqual('5');
+    expect(result[tppId].eventsList).toMatchObject([
+      { event: '123456' },
+      {
+        event: 'abc',
+        startDate: '2019-02-12T08:00:00.000Z',
+        endDate: '2019-02-12T10:00:00.000Z',
+        auxiliary: auxiliairyId,
+        exclTaxesTpp: '10',
+        inclTaxesTpp: '12.5',
+        thirdPartyPayer: tppId,
+        exclTaxesCustomer: '17.5',
+        inclTaxesCustomer: '21',
+        history: { nature: FIXED },
+        fundingId,
+        nature: FIXED,
+        surcharges: [{ percentage: 25, name: 'Soirée', startHour: '2017-05-02T10:00:00.000Z' }],
+      },
+    ]);
+  });
+
+  it('should format bill for tpp with hourly funding', () => {
+    const tppId = new ObjectId();
+    const auxiliairyId = new ObjectId();
+    const fundingId = new ObjectId();
+    const tpp = { _id: tppId };
+    const tppPrices = { [tppId]: { exclTaxes: '20', inclTaxes: '25', hours: '3', eventsList: [{ event: '123456' }] } };
+    const eventPrice = {
+      customerPrice: '21',
+      thirdPartyPayerPrice: '12.5',
+      thirdPartyPayer: tppId,
+      history: { nature: HOURLY },
+      chargedTime: '120',
+      fundingId,
+      surcharges: [{ percentage: 25, name: 'Soirée', startHour: '2017-05-02T10:00:00.000Z' }],
+    };
+    const event = {
+      _id: 'abc',
+      startDate: '2019-02-12T08:00:00.000Z',
+      endDate: '2019-02-12T10:00:00.000Z',
+      auxiliary: auxiliairyId,
+    };
+    const service = { vat: 20 };
+
+    getExclTaxes.onCall(0).returns('10');
+    getExclTaxes.onCall(1).returns('17.5');
+
+    const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
+
+    expect(result[tppId].inclTaxes).toEqual('37.5');
+    expect(result[tppId].hours).toEqual('5');
+    expect(result[tppId].eventsList).toMatchObject([
+      { event: '123456' },
+      {
+        event: 'abc',
+        startDate: '2019-02-12T08:00:00.000Z',
+        endDate: '2019-02-12T10:00:00.000Z',
+        auxiliary: auxiliairyId,
+        exclTaxesTpp: '10',
+        inclTaxesTpp: '12.5',
+        thirdPartyPayer: tppId,
+        exclTaxesCustomer: '17.5',
+        inclTaxesCustomer: '21',
+        history: { nature: HOURLY },
+        fundingId,
+        nature: HOURLY,
       },
     ]);
   });
@@ -1030,11 +1100,11 @@ describe('getDraftBillsPerSubscription', () => {
 
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
-    getExclTaxes.returns(70);
+    getExclTaxes.returns('70');
     computeBillingInfoForEvents.returns({
       prices: {
-        customerPrices: { exclTaxes: 35 },
-        thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
+        customerPrices: { exclTaxes: '35' },
+        thirdPartyPayerPrices: { [tppId]: { hours: '3' } },
         startDate: moment('2019/02/01', 'YY/MM/DD'),
       },
       eventsByBillingItem: [{ d00000000000000000000001: [events[0]._id] }],
@@ -1043,10 +1113,10 @@ describe('getDraftBillsPerSubscription', () => {
     const result =
       DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, '2019/02/01', '2019/03/01');
 
-    expect(result.customer.exclTaxes).toEqual(35);
-    expect(result.customer.unitExclTaxes).toEqual(70);
+    expect(result.customer.exclTaxes).toEqual('35');
+    expect(result.customer.unitExclTaxes).toEqual('70');
     expect(result.customer.unitInclTaxes).toEqual(21);
-    expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
+    expect(result.thirdPartyPayer[tppId].hours).toEqual('3');
     expect(result.eventsByBillingItem).toEqual([{ d00000000000000000000001: [events[0]._id] }]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
@@ -1076,17 +1146,17 @@ describe('getDraftBillsPerSubscription', () => {
 
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
-    getExclTaxes.returns(70);
+    getExclTaxes.returns('70');
     computeBillingInfoForEvents.returns({
-      prices: { customerPrices: { exclTaxes: 35 }, startDate: moment('2019/02/01', 'YY/MM/DD') },
+      prices: { customerPrices: { exclTaxes: '35' }, startDate: moment('2019/02/01', 'YY/MM/DD') },
       eventsByBillingItem: [],
     });
 
     const result =
       DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, null, '2019/02/01', '2019/03/01');
 
-    expect(result.customer.exclTaxes).toEqual(35);
-    expect(result.customer.unitExclTaxes).toEqual(70);
+    expect(result.customer.exclTaxes).toEqual('35');
+    expect(result.customer.unitExclTaxes).toEqual('70');
     expect(result.customer.unitInclTaxes).toEqual(21);
     expect(result.eventsByBillingItem).toEqual([]);
     sinon.assert.calledOnceWithExactly(
@@ -1119,11 +1189,11 @@ describe('getDraftBillsPerSubscription', () => {
 
     getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
     getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
-    getExclTaxes.returns(70);
+    getExclTaxes.returns('70');
     computeBillingInfoForEvents.returns({
       prices: {
-        customerPrices: { exclTaxes: 0 },
-        thirdPartyPayerPrices: { [tppId]: { hours: 3 } },
+        customerPrices: { exclTaxes: '0' },
+        thirdPartyPayerPrices: { [tppId]: { hours: '3' } },
         startDate: moment('2019/02/01', 'YY/MM/DD'),
       },
       eventsByBillingItem: [],
@@ -1133,7 +1203,7 @@ describe('getDraftBillsPerSubscription', () => {
       DraftBillsHelper.getDraftBillsPerSubscription(events, subscription, fundings, '2019/02/01', '2019/03/01');
 
     expect(result.customer).toBeUndefined();
-    expect(result.thirdPartyPayer[tppId].hours).toEqual(3);
+    expect(result.thirdPartyPayer[tppId].hours).toEqual('3');
     expect(result.eventsByBillingItem).toEqual([]);
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
@@ -1170,7 +1240,7 @@ describe('formatBillingItems', () => {
     const eventsByBillingItemBySubscriptions = [
       {
         d00000000000000000000001: [{ _id: eventId1, fieldToOmit: 'test' }, { _id: eventId2 }],
-        d00000000000000000000002: [{ _id: eventId1 }, { _id: eventId2 }],
+        d00000000000000000000002: [{ _id: eventId1, auxiliary: '1234567' }, { _id: eventId2 }],
       },
       { d00000000000000000000001: [{ _id: eventId3 }] },
     ];
@@ -1208,24 +1278,24 @@ describe('formatBillingItems', () => {
       expect.objectContaining({
         billingItem: { _id: new ObjectId('d00000000000000000000001'), name: 'FI' },
         discount: 0,
-        unitExclTaxes: 0.9090909090909091,
+        unitExclTaxes: '0.90909090909090909091',
         unitInclTaxes: 1,
         vat: 10,
         eventsList: [{ event: eventId1 }, { event: eventId2 }, { event: eventId3 }],
-        exclTaxes: 2.727272727272727,
-        inclTaxes: 3,
+        exclTaxes: '2.72727272727272727273',
+        inclTaxes: '3',
         startDate: '2019-12-31T07:00:00',
         endDate: '2019-12-25T07:00:00',
       }),
       expect.objectContaining({
         billingItem: { _id: new ObjectId('d00000000000000000000002'), name: 'EPI' },
         discount: 0,
-        unitExclTaxes: 4.545454545454546,
+        unitExclTaxes: '4.54545454545454545455',
         unitInclTaxes: 5,
         vat: 10,
-        eventsList: [{ event: eventId1 }, { event: eventId2 }],
-        exclTaxes: 9.090909090909092,
-        inclTaxes: 10,
+        eventsList: [{ event: eventId1, auxiliary: '1234567' }, { event: eventId2 }],
+        exclTaxes: '9.09090909090909090909',
+        inclTaxes: '10',
         startDate: '2019-12-31T07:00:00',
         endDate: '2019-12-25T07:00:00',
       }),
@@ -1235,7 +1305,7 @@ describe('formatBillingItems', () => {
 
 describe('formatCustomerBills', () => {
   it('should format customer bills', () => {
-    const customerBills = [{ inclTaxes: 20 }, { inclTaxes: 21 }];
+    const customerBills = [{ inclTaxes: '20.127' }, { inclTaxes: '21' }];
     const tppBills = [];
     const query = { endDate: '2019-12-25T07:00:00' };
     const customer = { _id: 'ghjk', identity: { firstname: 'Toto' } };
@@ -1245,13 +1315,13 @@ describe('formatCustomerBills', () => {
     expect(result).toEqual({
       customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
       endDate: '2019-12-25T07:00:00',
-      customerBills: { bills: [{ inclTaxes: 20 }, { inclTaxes: 21 }], total: 41 },
+      customerBills: { bills: [{ inclTaxes: '20.127' }, { inclTaxes: '21' }], total: 41.13 },
     });
   });
 
   it('should format customer and tpp bills', () => {
-    const customerBills = [{ inclTaxes: 20 }, { inclTaxes: 21 }];
-    const tppBills = { tpp1: [{ inclTaxes: 13 }, { inclTaxes: 24 }], tpp2: [{ inclTaxes: 20 }] };
+    const customerBills = [{ inclTaxes: '20' }, { inclTaxes: '21' }];
+    const tppBills = { tpp1: [{ inclTaxes: '13' }, { inclTaxes: '24' }], tpp2: [{ inclTaxes: '20' }] };
     const query = { endDate: '2019-12-25T07:00:00' };
     const customer = { _id: 'ghjk', identity: { firstname: 'Toto' } };
 
@@ -1260,10 +1330,10 @@ describe('formatCustomerBills', () => {
     expect(result).toEqual({
       customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
       endDate: '2019-12-25T07:00:00',
-      customerBills: { bills: [{ inclTaxes: 20 }, { inclTaxes: 21 }], total: 41 },
+      customerBills: { bills: [{ inclTaxes: '20' }, { inclTaxes: '21' }], total: 41 },
       thirdPartyPayerBills: [
-        { bills: [{ inclTaxes: 13 }, { inclTaxes: 24 }], total: 37 },
-        { bills: [{ inclTaxes: 20 }], total: 20 },
+        { bills: [{ inclTaxes: '13' }, { inclTaxes: '24' }], total: 37 },
+        { bills: [{ inclTaxes: '20' }], total: 20 },
       ],
     });
   });
@@ -1369,13 +1439,13 @@ describe('getDraftBillsList', () => {
     populateAndFormatSubscription.returnsArg(0);
     populateFundings.returnsArg(0);
     getDraftBillsPerSubscription.onCall(0).returns({
-      customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 },
-      thirdPartyPayer: { tpp: { inclTaxes: 13 } },
+      customer: { identity: { firstname: 'Toto' }, inclTaxes: '20' },
+      thirdPartyPayer: { tpp: { inclTaxes: '13' } },
       billingItems: [],
     });
     getDraftBillsPerSubscription.onCall(1).returns({
-      customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 },
-      thirdPartyPayer: { tpp: { inclTaxes: 24 } },
+      customer: { identity: { firstname: 'Toto' }, inclTaxes: '21' },
+      thirdPartyPayer: { tpp: { inclTaxes: '24' } },
       billingItems: [],
     });
     formatBillingItems.returns([]);
@@ -1384,12 +1454,12 @@ describe('getDraftBillsList', () => {
       endDate: '2019-12-25T07:00:00',
       customerBills: {
         bills: [
-          { identity: { firstname: 'Toto' }, inclTaxes: 20 },
-          { identity: { firstname: 'Toto' }, inclTaxes: 21 },
+          { identity: { firstname: 'Toto' }, inclTaxes: '20' },
+          { identity: { firstname: 'Toto' }, inclTaxes: '21' },
         ],
         total: 41,
       },
-      thirdPartyPayerBills: [{ bills: [{ inclTaxes: 13 }, { inclTaxes: 24 }], total: 37 }],
+      thirdPartyPayerBills: [{ bills: [{ inclTaxes: '13' }, { inclTaxes: '24' }], total: 37 }],
     });
 
     const result = await DraftBillsHelper.getDraftBillsList(query, credentials, null);
@@ -1400,12 +1470,12 @@ describe('getDraftBillsList', () => {
         endDate: '2019-12-25T07:00:00',
         customerBills: {
           bills: [
-            { identity: { firstname: 'Toto' }, inclTaxes: 20 },
-            { identity: { firstname: 'Toto' }, inclTaxes: 21 },
+            { identity: { firstname: 'Toto' }, inclTaxes: '20' },
+            { identity: { firstname: 'Toto' }, inclTaxes: '21' },
           ],
           total: 41,
         },
-        thirdPartyPayerBills: [{ bills: [{ inclTaxes: 13 }, { inclTaxes: 24 }], total: 37 }],
+        thirdPartyPayerBills: [{ bills: [{ inclTaxes: '13' }, { inclTaxes: '24' }], total: 37 }],
       },
     ]);
     sinon.assert.calledWithExactly(getEventsToBill, query, credentials.company._id);
@@ -1453,8 +1523,8 @@ describe('getDraftBillsList', () => {
     );
     sinon.assert.calledOnceWithExactly(
       formatCustomerBills,
-      [{ identity: { firstname: 'Toto' }, inclTaxes: 20 }, { identity: { firstname: 'Toto' }, inclTaxes: 21 }],
-      { tpp: [{ inclTaxes: 13 }, { inclTaxes: 24 }] },
+      [{ identity: { firstname: 'Toto' }, inclTaxes: '20' }, { identity: { firstname: 'Toto' }, inclTaxes: '21' }],
+      { tpp: [{ inclTaxes: '13' }, { inclTaxes: '24' }] },
       query,
       { _id: 'ghjk', identity: { firstname: 'Toto' } }
     );
@@ -1505,20 +1575,20 @@ describe('getDraftBillsList', () => {
     ]);
     populateAndFormatSubscription.returnsArg(0);
     getDraftBillsPerSubscription.onCall(0).returns({
-      customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 },
+      customer: { identity: { firstname: 'Toto' }, inclTaxes: '20' },
       billingItems: { biId1: ['eventId1'] },
     });
     getDraftBillsPerSubscription.onCall(1).returns({
-      customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 },
+      customer: { identity: { firstname: 'Toto' }, inclTaxes: '21' },
       billingItems: { biId2: ['eventId2'] },
     });
     getDraftBillsPerSubscription.onCall(2).returns({
-      customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 },
+      customer: { identity: { firstname: 'Tata' }, inclTaxes: '23' },
       billingItems: [],
     });
     formatBillingItems.onCall(0).returns([
-      { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: 200 },
-      { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: 100 },
+      { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: '200' },
+      { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: '100' },
     ]);
     formatBillingItems.onCall(1).returns([]);
     formatCustomerBills.onCall(0).returns({
@@ -1526,10 +1596,10 @@ describe('getDraftBillsList', () => {
       endDate: '2019-12-25T07:00:00',
       customerBills: {
         bills: [
-          { identity: { firstname: 'Toto' }, inclTaxes: 20 },
-          { identity: { firstname: 'Toto' }, inclTaxes: 21 },
-          { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: 200 },
-          { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: 100 },
+          { identity: { firstname: 'Toto' }, inclTaxes: '20' },
+          { identity: { firstname: 'Toto' }, inclTaxes: '21' },
+          { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: '200' },
+          { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: '100' },
         ],
         total: 341,
       },
@@ -1537,12 +1607,7 @@ describe('getDraftBillsList', () => {
     formatCustomerBills.onCall(1).returns({
       endDate: '2019-12-25T07:00:00',
       customer: { _id: 'asdf', identity: { firstname: 'Tata' } },
-      customerBills: {
-        bills: [
-          { identity: { firstname: 'Tata' }, inclTaxes: 23 },
-        ],
-        total: 23,
-      },
+      customerBills: { bills: [{ identity: { firstname: 'Tata' }, inclTaxes: '23' }], total: 23 },
     });
 
     const result = await DraftBillsHelper.getDraftBillsList(query, credentials, null);
@@ -1553,10 +1618,10 @@ describe('getDraftBillsList', () => {
         endDate: '2019-12-25T07:00:00',
         customerBills: {
           bills: [
-            { identity: { firstname: 'Toto' }, inclTaxes: 20 },
-            { identity: { firstname: 'Toto' }, inclTaxes: 21 },
-            { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: 200 },
-            { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: 100 },
+            { identity: { firstname: 'Toto' }, inclTaxes: '20' },
+            { identity: { firstname: 'Toto' }, inclTaxes: '21' },
+            { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: '200' },
+            { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: '100' },
           ],
           total: 341,
         },
@@ -1566,7 +1631,7 @@ describe('getDraftBillsList', () => {
         customer: { _id: 'asdf', identity: { firstname: 'Tata' } },
         customerBills: {
           bills: [
-            { identity: { firstname: 'Tata' }, inclTaxes: 23 },
+            { identity: { firstname: 'Tata' }, inclTaxes: '23' },
           ],
           total: 23,
         },
@@ -1619,10 +1684,10 @@ describe('getDraftBillsList', () => {
     sinon.assert.calledWithExactly(
       formatCustomerBills.firstCall,
       [
-        { identity: { firstname: 'Toto' }, inclTaxes: 20 },
-        { identity: { firstname: 'Toto' }, inclTaxes: 21 },
-        { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: 200 },
-        { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: 100 },
+        { identity: { firstname: 'Toto' }, inclTaxes: '20' },
+        { identity: { firstname: 'Toto' }, inclTaxes: '21' },
+        { billingItem: { _id: 'biId1', name: 'FI' }, eventsList: [{ event: 'eventId1' }], inclTaxes: '200' },
+        { billingItem: { _id: 'biId2', name: 'EPI' }, eventsList: [{ event: 'eventId2' }], inclTaxes: '100' },
       ],
       {},
       query,
@@ -1630,7 +1695,7 @@ describe('getDraftBillsList', () => {
     );
     sinon.assert.calledWithExactly(
       formatCustomerBills.secondCall,
-      [{ identity: { firstname: 'Tata' }, inclTaxes: 23 }],
+      [{ identity: { firstname: 'Tata' }, inclTaxes: '23' }],
       {},
       query,
       { _id: 'asdf', identity: { firstname: 'Tata' } }

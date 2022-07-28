@@ -108,23 +108,23 @@ describe('canBeDirectDebited', () => {
   });
 });
 
-describe('computeTotal', () => {
+describe('computeTotalString', () => {
   it('should compute total with payment', () => {
-    expect(BalanceHelper.computeTotal('payment', 100, 50)).toEqual(150);
+    expect(BalanceHelper.computeTotalString('payment', 100, 50)).toEqual('150');
   });
 
   it('should compute total without payment', () => {
-    expect(BalanceHelper.computeTotal('toto', 100, 50)).toEqual(50);
+    expect(BalanceHelper.computeTotalString('toto', 100, 50)).toEqual('50');
   });
 });
 
 describe('computePayments', () => {
-  let computeTotal;
+  let computeTotalString;
   beforeEach(() => {
-    computeTotal = sinon.stub(BalanceHelper, 'computeTotal');
+    computeTotalString = sinon.stub(BalanceHelper, 'computeTotalString');
   });
   afterEach(() => {
-    computeTotal.restore();
+    computeTotalString.restore();
   });
 
   it('should return 0 as payment is undefined', () => {
@@ -148,9 +148,9 @@ describe('computePayments', () => {
       { netInclTaxes: 23, nature: 'payment' },
     ];
 
-    computeTotal.onCall(0).returns(14);
-    computeTotal.onCall(1).returns(2);
-    computeTotal.onCall(2).returns(25);
+    computeTotalString.onCall(0).returns('14');
+    computeTotalString.onCall(1).returns('2');
+    computeTotalString.onCall(2).returns('25');
 
     expect(BalanceHelper.computePayments(payments, ids)).toEqual(25);
   });

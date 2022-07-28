@@ -22,7 +22,7 @@ const {
 } = require('../data/bills');
 const BillPdf = require('../../../src/data/pdf/billing/bill');
 const SinonMongoose = require('../sinonMongoose');
-const { FIXED } = require('../../../src/helpers/constants');
+const { FIXED, HOURLY, ONCE, MONTHLY } = require('../../../src/helpers/constants');
 
 describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
@@ -121,7 +121,7 @@ describe('formatBilledEvents', () => {
           fundingId: 'fundingId',
           inclTaxesTpp: 5,
           exclTaxesTpp: 4,
-          history: { careHours: 0.5 },
+          history: { careHours: '0.5' },
         },
         {
           event: '456',
@@ -133,7 +133,7 @@ describe('formatBilledEvents', () => {
           fundingId: 'fundingId',
           inclTaxesTpp: 3,
           exclTaxesTpp: 2,
-          history: { careHours: 2 },
+          history: { careHours: '2' },
         },
       ],
     };
@@ -148,7 +148,7 @@ describe('formatBilledEvents', () => {
         fundingId: 'fundingId',
         inclTaxesTpp: 5,
         exclTaxesTpp: 4,
-        careHours: 0.5,
+        careHours: '0.5',
       },
       {
         eventId: '456',
@@ -158,7 +158,7 @@ describe('formatBilledEvents', () => {
         fundingId: 'fundingId',
         inclTaxesTpp: 3,
         exclTaxesTpp: 2,
-        careHours: 2,
+        careHours: '2',
       },
     ]);
   });
@@ -294,7 +294,7 @@ describe('formatSubscriptionData', () => {
       subscription: 'asd',
       service: { serviceId: '1234567890', nature: 'test', name: 'service' },
       exclTaxes: 13.649289099526067,
-      inclTaxes: 14.4,
+      inclTaxes: 14.40,
       vat: 12,
       startDate: '2019-06-28T10:06:55.374Z',
       hours: 1.5,
@@ -360,7 +360,7 @@ describe('formatSubscriptionData', () => {
       subscription: 'asd',
       service: { serviceId: '1234567890', nature: 'test', name: 'service' },
       exclTaxes: 13.649289099526067,
-      inclTaxes: 14.4,
+      inclTaxes: 14.40,
       vat: 12,
       startDate: '2019-06-28T10:06:55.374Z',
       hours: 1.5,
@@ -418,20 +418,17 @@ describe('formatBillingItemData', () => {
   });
 });
 
-describe('formatCustomerBills', () => {
+describe('formatCustomerBill', () => {
   let formatBillNumber;
-  let getFixedNumber;
   let formatSubscriptionData;
   let formatBillingItemData;
   beforeEach(() => {
     formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
-    getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
     formatSubscriptionData = sinon.stub(BillHelper, 'formatSubscriptionData');
     formatBillingItemData = sinon.stub(BillHelper, 'formatBillingItemData');
   });
   afterEach(() => {
     formatBillNumber.restore();
-    getFixedNumber.restore();
     formatSubscriptionData.restore();
     formatBillingItemData.restore();
   });
@@ -445,32 +442,31 @@ describe('formatCustomerBills', () => {
       bills: [{
         endDate: '2019-09-19T00:00:00',
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: '2019-05-30T10:00:55.374Z' }] } },
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
+        unitExclTaxes: '24.644549763033176',
+        exclTaxes: '13.649289099526067',
+        inclTaxes: '14.4',
         startDate: '2019-05-31T10:00:55',
-        hours: 1.5,
+        hours: '1.5',
         eventsList: [
           {
             event: '123',
             startDate: '2019-05-28T10:00:55',
             endDate: '2019-05-28T13:00:55',
             auxiliary: '34567890',
-            inclTaxesTpp: 14.4,
+            inclTaxesTpp: '14.4',
           },
           {
             event: '456',
             startDate: '2019-05-29T08:00:55',
             endDate: '2019-05-29T10:00:55',
             auxiliary: '34567890',
-            inclTaxesTpp: 12,
+            inclTaxesTpp: '12',
           },
         ],
       }],
       total: 14.4,
     };
     formatBillNumber.returns('FACT-1234Picsou00077');
-    getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
@@ -494,18 +490,17 @@ describe('formatCustomerBills', () => {
         startDate: '2019-05-28T10:00:55',
         endDate: '2019-05-28T13:00:55',
         auxiliary: '34567890',
-        inclTaxesTpp: 14.4,
+        inclTaxesTpp: '14.4',
       },
       456: {
         event: '456',
         startDate: '2019-05-29T08:00:55',
         endDate: '2019-05-29T10:00:55',
         auxiliary: '34567890',
-        inclTaxesTpp: 12,
+        inclTaxesTpp: '12',
       },
     });
     sinon.assert.calledOnceWithExactly(formatBillNumber, 1234, 'Picsou', 77);
-    sinon.assert.calledOnceWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.calledOnceWithExactly(formatSubscriptionData, customerBills.bills[0]);
     sinon.assert.notCalled(formatBillingItemData);
   });
@@ -519,20 +514,19 @@ describe('formatCustomerBills', () => {
       bills: [{
         billingItem: { _id: 'biid', name: 'depl' },
         endDate: '2019-09-19T00:00:00',
-        exclTaxes: 13,
+        exclTaxes: '13',
         eventsList: [
           { event: '123', startDate: '2019-05-28T10:00:55', endDate: '2019-05-28T13:00:55', auxiliary: '34567890' },
           { event: '456', startDate: '2019-05-29T08:00:55', endDate: '2019-05-29T10:00:55', auxiliary: '34567890' },
         ],
-        inclTaxes: 14.4,
+        inclTaxes: '14.4',
         startDate: '2019-05-31T10:00:55',
-        unitExclTaxes: 24,
-        unitInclTaxes: 30,
+        unitExclTaxes: '24',
+        unitInclTaxes: '30',
       }],
       total: 14.4,
     };
     formatBillNumber.returns('FACT-1234Picsou00077');
-    getFixedNumber.returns(14.40);
     formatBillingItemData.returns({ billingItem: 'billingItem' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
@@ -552,19 +546,18 @@ describe('formatCustomerBills', () => {
     expect(result.billedEvents).toEqual({
       123: {
         event: '123',
-        billingItems: [{ billingItem: 'biid', inclTaxes: 30, exclTaxes: 24 }],
-        exclTaxesCustomer: 24,
-        inclTaxesCustomer: 30,
+        billingItems: [{ billingItem: 'biid', inclTaxes: '30', exclTaxes: '24' }],
+        exclTaxesCustomer: '24',
+        inclTaxesCustomer: '30',
       },
       456: {
         event: '456',
-        billingItems: [{ billingItem: 'biid', inclTaxes: 30, exclTaxes: 24 }],
-        exclTaxesCustomer: 24,
-        inclTaxesCustomer: 30,
+        billingItems: [{ billingItem: 'biid', inclTaxes: '30', exclTaxes: '24' }],
+        exclTaxesCustomer: '24',
+        inclTaxesCustomer: '30',
       },
     });
     sinon.assert.calledOnceWithExactly(formatBillNumber, 1234, 'Picsou', 77);
-    sinon.assert.calledOnceWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.notCalled(formatSubscriptionData);
     sinon.assert.calledOnceWithExactly(formatBillingItemData, customerBills.bills[0]);
   });
@@ -580,10 +573,10 @@ describe('formatCustomerBills', () => {
         {
           endDate: '2019-09-19T00:00:00',
           subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: '2019-05-30T10:00:55.374Z' }] } },
-          unitExclTaxes: 24.644549763033176,
-          exclTaxes: 13.649289099526067,
-          inclTaxes: 14.4,
-          hours: 1.5,
+          unitExclTaxes: '24.644549763033176',
+          exclTaxes: '13.649289099526067',
+          inclTaxes: '14.4',
+          hours: '1.5',
           startDate: '2019-05-31T10:00:55.374Z',
           eventsList: [
             {
@@ -591,24 +584,24 @@ describe('formatCustomerBills', () => {
               startDate: '2019-05-28T10:00:55.374Z',
               endDate: '2019-05-28T13:00:55.374Z',
               auxiliary: '34567890',
-              inclTaxesTpp: 14.4,
+              inclTaxesTpp: '14.4',
             },
             {
               event: '456',
               startDate: '2019-05-29T08:00:55.374Z',
               endDate: '2019-05-29T10:00:55.374Z',
               auxiliary: '34567890',
-              inclTaxesTpp: 12,
+              inclTaxesTpp: '12',
             },
           ],
         },
         {
           endDate: '2019-09-19T00:00:00',
           subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: '2019-05-30T10:00:55.374Z' }] } },
-          unitExclTaxes: 34,
-          exclTaxes: 11,
-          inclTaxes: 15,
-          hours: 5,
+          unitExclTaxes: '34',
+          exclTaxes: '11',
+          inclTaxes: '15',
+          hours: '5',
           startDate: '2019-05-31T10:00:55.374Z',
           eventsList: [
             {
@@ -616,24 +609,24 @@ describe('formatCustomerBills', () => {
               startDate: '2019-05-29T10:00:55.374Z',
               endDate: '2019-05-29T13:00:55.374Z',
               auxiliary: '34567890',
-              inclTaxesTpp: 45,
+              inclTaxesTpp: '45',
             },
             {
               event: '736',
               startDate: '2019-05-30T08:00:55.374Z',
               endDate: '2019-05-30T10:00:55.374Z',
               auxiliary: '34567890',
-              inclTaxesTpp: 23,
+              inclTaxesTpp: '23',
             },
           ],
         },
         {
           endDate: '2019-09-19T00:00:00',
           billingItem: { _id: 'billingItemId', name: 'Billing Eilish' },
-          unitInclTaxes: 34,
-          unitExclTaxes: 32.12,
-          exclTaxes: 12,
-          inclTaxes: 17,
+          unitInclTaxes: '34',
+          unitExclTaxes: '32.12',
+          exclTaxes: '12',
+          inclTaxes: '17',
           vat: 5,
           startDate: '2019-05-31T10:00:55.374Z',
           eventsList: [
@@ -654,10 +647,10 @@ describe('formatCustomerBills', () => {
         {
           endDate: '2019-09-19T00:00:00',
           billingItem: { _id: 'billingItemId2', name: 'Billing Eilish' },
-          unitInclTaxes: 20,
-          unitExclTaxes: 10,
-          exclTaxes: 12,
-          inclTaxes: 17,
+          unitInclTaxes: '20',
+          unitExclTaxes: '10',
+          exclTaxes: '12',
+          inclTaxes: '17',
           vat: 5,
           startDate: '2019-05-31T10:00:55.374Z',
           eventsList: [
@@ -672,7 +665,6 @@ describe('formatCustomerBills', () => {
       ],
     };
     formatBillNumber.returns('FACT-1234Picsou00077');
-    getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
     formatBillingItemData.onCall(0).returns({ billingItem: 'billingItemId' });
     formatBillingItemData.onCall(1).returns({ billingItem: 'billingItemId2' });
@@ -698,42 +690,41 @@ describe('formatCustomerBills', () => {
         auxiliary: '34567890',
         endDate: '2019-05-28T13:00:55.374Z',
         event: '123',
-        inclTaxesTpp: 14.4,
+        inclTaxesTpp: '14.4',
         startDate: '2019-05-28T10:00:55.374Z',
       },
       456: {
         auxiliary: '34567890',
         endDate: '2019-05-29T10:00:55.374Z',
         event: '456',
-        inclTaxesTpp: 12,
+        inclTaxesTpp: '12',
         startDate: '2019-05-29T08:00:55.374Z',
       },
       736: {
         auxiliary: '34567890',
         billingItems: [
-          { billingItem: 'billingItemId', exclTaxes: 32.12, inclTaxes: 34 },
-          { billingItem: 'billingItemId2', exclTaxes: 10, inclTaxes: 20 },
+          { billingItem: 'billingItemId', exclTaxes: '32.12', inclTaxes: '34' },
+          { billingItem: 'billingItemId2', exclTaxes: '10', inclTaxes: '20' },
         ],
         endDate: '2019-05-30T10:00:55.374Z',
         event: '736',
-        exclTaxesCustomer: 42.12,
-        inclTaxesCustomer: 54,
-        inclTaxesTpp: 23,
+        exclTaxesCustomer: '42.12',
+        inclTaxesCustomer: '54',
+        inclTaxesTpp: '23',
         startDate: '2019-05-30T08:00:55.374Z',
       },
       890: {
         auxiliary: '34567890',
-        billingItems: [{ billingItem: 'billingItemId', exclTaxes: 32.12, inclTaxes: 34 }],
+        billingItems: [{ billingItem: 'billingItemId', exclTaxes: '32.12', inclTaxes: '34' }],
         endDate: '2019-05-29T13:00:55.374Z',
         event: '890',
-        exclTaxesCustomer: 32.12,
-        inclTaxesCustomer: 34,
-        inclTaxesTpp: 45,
+        exclTaxesCustomer: '32.12',
+        inclTaxesCustomer: '34',
+        inclTaxesTpp: '45',
         startDate: '2019-05-29T10:00:55.374Z',
       },
     });
     sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
-    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.calledWithExactly(formatSubscriptionData.getCall(0), customerBills.bills[0]);
     sinon.assert.calledWithExactly(formatSubscriptionData.getCall(1), customerBills.bills[1]);
     sinon.assert.calledWithExactly(formatBillingItemData.getCall(0), customerBills.bills[2]);
@@ -742,16 +733,13 @@ describe('formatCustomerBills', () => {
 });
 
 describe('formatThirdPartyPayerBills', () => {
-  let getFixedNumber;
   let formatBillNumber;
   let formatSubscriptionData;
   beforeEach(() => {
-    getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
     formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
     formatSubscriptionData = sinon.stub(BillHelper, 'formatSubscriptionData');
   });
   afterEach(() => {
-    getFixedNumber.restore();
     formatBillNumber.restore();
     formatSubscriptionData.restore();
   });
@@ -766,15 +754,15 @@ describe('formatThirdPartyPayerBills', () => {
         endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 24.644549763033176,
+        unitExclTaxes: '24.644549763033176',
         startDate: moment().add(1, 'd').toISOString(),
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
+        exclTaxes: '13.649289099526067',
+        inclTaxes: '14.4',
+        hours: '1.5',
         eventsList: [
           {
             event: '123',
-            inclTaxesTpp: 14.4,
+            inclTaxesTpp: '14.4',
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
             auxiliary: '34567890',
@@ -782,7 +770,7 @@ describe('formatThirdPartyPayerBills', () => {
           },
           {
             event: '456',
-            inclTaxesTpp: 12,
+            inclTaxesTpp: '12',
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
             auxiliary: '34567890',
@@ -792,7 +780,6 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
     formatBillNumber.returns('FACT-1234Picsou00077');
-    getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
@@ -809,8 +796,8 @@ describe('formatThirdPartyPayerBills', () => {
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
-      123: { event: '123', inclTaxesTpp: 14.4 },
-      456: { event: '456', inclTaxesTpp: 12 },
+      123: { event: '123', inclTaxesTpp: '14.4' },
+      456: { event: '456', inclTaxesTpp: '12' },
     });
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
@@ -819,7 +806,6 @@ describe('formatThirdPartyPayerBills', () => {
         '03/2019': { careHours: 2, fundingId: 'fund', month: '03/2019', nature: 'hourly' },
       },
     });
-    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
     sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
@@ -833,33 +819,32 @@ describe('formatThirdPartyPayerBills', () => {
         endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 24.644549763033176,
+        unitExclTaxes: '24.644549763033176',
         startDate: moment().add(1, 'd').toISOString(),
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
+        exclTaxes: '13.649289099526067',
+        inclTaxes: '14.4',
+        hours: '1.5',
         eventsList: [
           {
             event: '123',
-            inclTaxesTpp: 14.4,
+            inclTaxesTpp: '14.4',
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
             auxiliary: '34567890',
-            history: { fundingId: 'fund', careHours: 4, nature: 'hourly' },
+            history: { fundingId: 'fund', careHours: '4', nature: 'hourly' },
           },
           {
             event: '456',
-            inclTaxesTpp: 12,
+            inclTaxesTpp: '12',
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
             auxiliary: '34567890',
-            history: { fundingId: 'fund', careHours: 2, nature: 'hourly' },
+            history: { fundingId: 'fund', careHours: '2', nature: 'hourly' },
           },
         ],
       }],
     }];
     formatBillNumber.returns('FACT-1234Picsou00077');
-    getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
@@ -876,14 +861,13 @@ describe('formatThirdPartyPayerBills', () => {
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
-      123: { event: '123', inclTaxesTpp: 14.4 },
-      456: { event: '456', inclTaxesTpp: 12 },
+      123: { event: '123', inclTaxesTpp: '14.4' },
+      456: { event: '456', inclTaxesTpp: '12' },
     });
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
-      fund: { careHours: 6, fundingId: 'fund', nature: 'hourly' },
+      fund: { careHours: '6', fundingId: 'fund', nature: 'hourly' },
     });
-    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
     sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
@@ -897,33 +881,32 @@ describe('formatThirdPartyPayerBills', () => {
         endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 24.644549763033176,
+        unitExclTaxes: '24.644549763033176',
         startDate: moment().add(1, 'd').toISOString(),
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
+        exclTaxes: '13.649289099526067',
+        inclTaxes: '14.4',
+        hours: '1.5',
         eventsList: [
           {
             event: '123',
-            inclTaxesTpp: 14.4,
+            inclTaxesTpp: '14.4',
             auxiliary: '34567890',
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
-            history: { fundingId: 'fund', amountTTC: 40, nature: 'fixed' },
+            history: { fundingId: 'fund', amountTTC: '40', nature: 'fixed' },
           },
           {
             event: '456',
-            inclTaxesTpp: 12,
+            inclTaxesTpp: '12',
             auxiliary: '34567890',
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
-            history: { fundingId: 'fund', amountTTC: 20, nature: 'fixed' },
+            history: { fundingId: 'fund', amountTTC: '20', nature: 'fixed' },
           },
         ],
       }],
     }];
     formatBillNumber.returns('FACT-1234Picsou00077');
-    getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
@@ -940,14 +923,13 @@ describe('formatThirdPartyPayerBills', () => {
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
-      123: { event: '123', inclTaxesTpp: 14.4 },
-      456: { event: '456', inclTaxesTpp: 12 },
+      123: { event: '123', inclTaxesTpp: '14.4' },
+      456: { event: '456', inclTaxesTpp: '12' },
     });
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
-      fund: { amountTTC: 60, fundingId: 'fund', nature: 'fixed' },
+      fund: { amountTTC: '60', fundingId: 'fund', nature: 'fixed' },
     });
-    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
     sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
@@ -961,59 +943,58 @@ describe('formatThirdPartyPayerBills', () => {
         endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
+        unitExclTaxes: '24.644549763033176',
+        exclTaxes: '13.649289099526067',
         startDate: moment().add(1, 'd').toISOString(),
-        inclTaxes: 14.4,
-        hours: 1.5,
+        inclTaxes: '14.4',
+        hours: '1.5',
         eventsList: [
           {
             event: '123',
             auxiliary: '34567890',
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
-            inclTaxesTpp: 14.4,
-            history: { fundingId: 'fund', careHours: 2, month: '02/2019', nature: 'hourly' },
+            inclTaxesTpp: '14.4',
+            history: { fundingId: 'fund', careHours: '2', month: '02/2019', nature: 'hourly' },
           },
           {
             event: '456',
             auxiliary: '34567890',
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
-            inclTaxesTpp: 12,
-            history: { fundingId: 'lio', careHours: 4, month: '02/2019', nature: 'hourly' },
+            inclTaxesTpp: '12',
+            history: { fundingId: 'lio', careHours: '4', month: '02/2019', nature: 'hourly' },
           },
         ],
       }, {
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'fgh', service: { versions: [{ vat: 5.5, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 34,
-        exclTaxes: 15,
+        unitExclTaxes: '34',
+        exclTaxes: '15',
         startDate: moment().add(1, 'd').toISOString(),
-        inclTaxes: 11,
-        hours: 5,
+        inclTaxes: '11',
+        hours: '5',
         eventsList: [
           {
             event: '890',
             auxiliary: '34567890',
             startDate: '2019-02-17T08:00:55.374Z',
             endDate: '2019-02-17T10:00:55.374Z',
-            inclTaxesTpp: 45,
-            history: { fundingId: 'fund', careHours: 4.5, month: '02/2019', nature: 'hourly' },
+            inclTaxesTpp: '45',
+            history: { fundingId: 'fund', careHours: '4.5', month: '02/2019', nature: 'hourly' },
           },
           {
             event: '736',
             auxiliary: '34567890',
             startDate: '2019-02-18T08:00:55.374Z',
             endDate: '2019-02-18T10:00:55.374Z',
-            inclTaxesTpp: 23,
-            history: { fundingId: 'fund', careHours: 1, month: '03/2019', nature: 'hourly' },
+            inclTaxesTpp: '23',
+            history: { fundingId: 'fund', careHours: '1', month: '03/2019', nature: 'hourly' },
           },
         ],
       }],
     }];
     formatBillNumber.returns('FACT-1234Picsou00077');
-    getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
@@ -1030,20 +1011,19 @@ describe('formatThirdPartyPayerBills', () => {
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
-      123: { event: '123', inclTaxesTpp: 14.4 },
-      456: { event: '456', inclTaxesTpp: 12 },
-      890: { event: '890', inclTaxesTpp: 45 },
-      736: { event: '736', inclTaxesTpp: 23 },
+      123: { event: '123', inclTaxesTpp: '14.4' },
+      456: { event: '456', inclTaxesTpp: '12' },
+      890: { event: '890', inclTaxesTpp: '45' },
+      736: { event: '736', inclTaxesTpp: '23' },
     });
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
       fund: {
-        '02/2019': { careHours: 6.5, fundingId: 'fund', month: '02/2019', nature: 'hourly' },
-        '03/2019': { careHours: 1, fundingId: 'fund', month: '03/2019', nature: 'hourly' },
+        '02/2019': { careHours: '6.5', fundingId: 'fund', month: '02/2019', nature: 'hourly' },
+        '03/2019': { careHours: '1', fundingId: 'fund', month: '03/2019', nature: 'hourly' },
       },
-      lio: { '02/2019': { careHours: 4, fundingId: 'lio', month: '02/2019', nature: 'hourly' } },
+      lio: { '02/2019': { careHours: '4', fundingId: 'lio', month: '02/2019', nature: 'hourly' } },
     });
-    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
     sinon.assert.calledWithExactly(formatSubscriptionData.getCall(0), thirdPartyPayerBills[0].bills[0]);
     sinon.assert.calledWithExactly(formatSubscriptionData.getCall(1), thirdPartyPayerBills[0].bills[1]);
@@ -1058,14 +1038,14 @@ describe('formatThirdPartyPayerBills', () => {
         endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
+        unitExclTaxes: '24.644549763033176',
+        exclTaxes: '13.649289099526067',
         startDate: moment().add(1, 'd').toISOString(),
-        inclTaxes: 14.4,
-        hours: 1.5,
+        inclTaxes: '14.4',
+        hours: '1.5',
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 2 } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'lio', careHours: 4 } },
+          { event: '123', inclTaxesTpp: '14.4', history: { fundingId: 'fund', careHours: '2' } },
+          { event: '456', inclTaxesTpp: '12', history: { fundingId: 'lio', careHours: '4' } },
         ],
       }],
     }, {
@@ -1073,26 +1053,24 @@ describe('formatThirdPartyPayerBills', () => {
       bills: [{
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'fgh', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
-        unitExclTaxes: 34,
+        unitExclTaxes: '34',
         startDate: moment().add(1, 'd').toISOString(),
-        exclTaxes: 15,
-        inclTaxes: 11,
-        hours: 5,
+        exclTaxes: '15',
+        inclTaxes: '11',
+        hours: '5',
         eventsList: [
-          { event: '890', inclTaxesTpp: 45, history: { fundingId: 'fund', careHours: 4.5 } },
-          { event: '736', inclTaxesTpp: 23, history: { fundingId: 'fund', careHours: 1 } },
+          { event: '890', inclTaxesTpp: '45', history: { fundingId: 'fund', careHours: '4.5' } },
+          { event: '736', inclTaxesTpp: '23', history: { fundingId: 'fund', careHours: '1' } },
         ],
       }],
     }];
     formatBillNumber.returns('FACT-1234Picsou00077');
-    getFixedNumber.returns(14.40);
     formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills.length).toEqual(2);
-    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
     sinon.assert.calledWithExactly(formatBillNumber.getCall(0), 1234, 'Picsou', 77);
     sinon.assert.calledWithExactly(formatBillNumber.getCall(1), 1234, 'Picsou', 78);
     sinon.assert.calledWithExactly(formatSubscriptionData.getCall(0), thirdPartyPayerBills[0].bills[0]);
@@ -1142,11 +1120,14 @@ describe('updateEvents', () => {
 });
 
 describe('updateFundingHistories', () => {
+  let findOne;
   let updateOne;
   beforeEach(() => {
+    findOne = sinon.stub(FundingHistory, 'findOne');
     updateOne = sinon.stub(FundingHistory, 'updateOne');
   });
   afterEach(() => {
+    findOne.restore();
     updateOne.restore();
   });
 
@@ -1154,90 +1135,218 @@ describe('updateFundingHistories', () => {
     const companyId = new ObjectId();
     await BillHelper.updateFundingHistories([], companyId);
 
+    sinon.assert.notCalled(findOne);
     sinon.assert.notCalled(updateOne);
   });
   it('should update history of fixed funding', async () => {
     const companyId = new ObjectId();
     const fundingId = new ObjectId();
-    const histories = { [fundingId.toHexString()]: { amountTTC: 12 } };
+    const histories = { [fundingId.toHexString()]: { amountTTC: '12' } };
+    findOne.returns(SinonMongoose.stubChainedQueries({ _id: fundingId, careHours: '0', amountTTC: '2.34' }, ['lean']));
 
     await BillHelper.updateFundingHistories(histories, companyId);
 
-    sinon.assert.calledWithExactly(
-      updateOne,
-      { fundingId: fundingId.toHexString(), company: companyId },
-      { $inc: { amountTTC: 12 } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+    SinonMongoose.calledOnceWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ fundingId: fundingId.toHexString(), company: companyId }, { amountTTC: 1, careHours: 1 }],
+        },
+        { query: 'lean' },
+      ]
     );
-  });
-  it('should update history of hourly and once funding', async () => {
-    const companyId = new ObjectId();
-    const fundingId = new ObjectId();
-    const histories = { [fundingId.toHexString()]: { careHours: 12 } };
-
-    await BillHelper.updateFundingHistories(histories, companyId);
-
     sinon.assert.calledWithExactly(
       updateOne,
       { fundingId: fundingId.toHexString(), company: companyId },
-      { $inc: { careHours: 12 } },
+      { $set: { amountTTC: '14.34' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
   it('should update history of hourly and monthly funding', async () => {
     const companyId = new ObjectId();
     const fundingId = new ObjectId();
-    const histories = { [fundingId]: { 11: { careHours: 12 }, 12: { careHours: 18 } } };
+    const histories = { [fundingId]: { 11: { careHours: '12' }, 12: { careHours: '18' } } };
+    findOne.onCall(0).returns(SinonMongoose.stubChainedQueries(
+      { _id: fundingId, careHours: '4.33', amountTTC: '0' },
+      ['lean']
+    ));
+    findOne.onCall(1).returns(SinonMongoose.stubChainedQueries(
+      { _id: fundingId, careHours: '4.33', amountTTC: '0', month: '11' },
+      ['lean']
+    ));
+    findOne.onCall(2).returns(SinonMongoose.stubChainedQueries(
+      { _id: fundingId, careHours: '142', amountTTC: '0', month: '12' },
+      ['lean']
+    ));
 
     await BillHelper.updateFundingHistories(histories, companyId);
 
-    sinon.assert.calledTwice(updateOne);
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ fundingId: fundingId.toHexString(), company: companyId }, { amountTTC: 1, careHours: 1 }],
+        },
+        { query: 'lean' },
+      ],
+      0
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: fundingId.toHexString(), company: companyId, month: '11' },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      1
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: fundingId.toHexString(), company: companyId, month: '12' },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      2
+    );
     sinon.assert.calledWithExactly(
       updateOne.getCall(0),
       { fundingId: fundingId.toHexString(), company: companyId, month: '11' },
-      { $inc: { careHours: 12 } },
+      { $set: { careHours: '16.33' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(1),
       { fundingId: fundingId.toHexString(), company: companyId, month: '12' },
-      { $inc: { careHours: 18 } },
+      { $set: { careHours: '160' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
   it('should update list of histories', async () => {
     const companyId = new ObjectId();
     const histories = {
-      1: { amountTTC: 12 },
-      2: { careHours: 12 },
-      3: { 11: { careHours: 12 }, 12: { careHours: 18 } },
+      1: { careHours: '12' },
+      2: { amountTTC: '12' },
+      3: { 11: { careHours: '12' }, 12: { careHours: '59.33' } },
     };
+
+    findOne.onCall(0).returns(
+      SinonMongoose.stubChainedQueries({ _id: '1', careHours: '14', amountTTC: '0' }, ['lean'])
+    );
+    findOne.onCall(1).returns(
+      SinonMongoose.stubChainedQueries({ _id: '2', careHours: '0', amountTTC: '135.67' }, ['lean'])
+    );
+    findOne.onCall(2).returns(
+      SinonMongoose.stubChainedQueries({ _id: '3', careHours: '68', amountTTC: '0' }, ['lean'])
+    );
+    findOne.onCall(3).returns(
+      SinonMongoose.stubChainedQueries({ _id: '3', careHours: '68', amountTTC: '0', month: '11' }, ['lean'])
+    );
+    findOne.onCall(4).returns(
+      SinonMongoose.stubChainedQueries({ _id: '3', careHours: '40.67', amountTTC: '0', month: '12' }, ['lean'])
+    );
 
     await BillHelper.updateFundingHistories(histories, companyId);
 
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ fundingId: '1', company: companyId }, { amountTTC: 1, careHours: 1 }],
+        },
+        { query: 'lean' },
+      ],
+      0
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [{ fundingId: '2', company: companyId }, { amountTTC: 1, careHours: 1 }],
+        },
+        { query: 'lean' },
+      ],
+      1
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: '3', company: companyId },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      2
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: '3', company: companyId, month: '11' },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      3
+    );
+    SinonMongoose.calledWithExactly(
+      findOne,
+      [
+        {
+          query: 'findOne',
+          args: [
+            { fundingId: '3', company: companyId, month: '12' },
+            { amountTTC: 1, careHours: 1 },
+          ],
+        },
+        { query: 'lean' },
+      ],
+      4
+    );
     sinon.assert.callCount(updateOne, 4);
     sinon.assert.calledWithExactly(
       updateOne.getCall(0),
       { fundingId: '1', company: companyId },
-      { $inc: { amountTTC: 12 } },
+      { $set: { careHours: '26' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(1),
       { fundingId: '2', company: companyId },
-      { $inc: { careHours: 12 } },
+      { $set: { amountTTC: '147.67' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(2),
       { fundingId: '3', company: companyId, month: '11' },
-      { $inc: { careHours: 12 } },
+      { $set: { careHours: '80' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     sinon.assert.calledWithExactly(
       updateOne.getCall(3),
       { fundingId: '3', company: companyId, month: '12' },
-      { $inc: { careHours: 18 } },
+      { $set: { careHours: '100' } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
@@ -1923,22 +2032,22 @@ describe('list', () => {
 describe('formatBillingItem', () => {
   it('should format billing item', () => {
     const billingItemId = new ObjectId();
-    const billingItem = { billingItem: billingItemId, count: 3, unitInclTaxes: 60 };
-    const list = [
-      { _id: billingItemId, name: 'bonjour', vat: 20 },
-      { _id: new ObjectId(), name: 'au revoir', vat: 40 },
+    const billingItem = { billingItem: billingItemId, count: 1.13, unitInclTaxes: 9.11 };
+    const billingItemList = [
+      { _id: billingItemId, name: 'bonjour', vat: 5.5 },
+      { _id: new ObjectId(), name: 'au revoir', vat: 20 },
     ];
 
-    const result = BillHelper.formatBillingItem(billingItem, list);
+    const result = BillHelper.formatBillingItem(billingItem, billingItemList);
 
     expect(result).toEqual({
       billingItem: billingItemId,
       name: 'bonjour',
-      unitInclTaxes: 60,
-      count: 3,
-      inclTaxes: 180,
-      exclTaxes: 150,
-      vat: 20,
+      unitInclTaxes: 9.11,
+      count: 1.13,
+      inclTaxes: 10.29,
+      exclTaxes: '9.75355450236966824645',
+      vat: 5.5,
     });
   });
 });
@@ -1978,8 +2087,8 @@ describe('formatAndCreateBill', () => {
       date: '2021-09-01',
       shouldBeSent: true,
       billingItemList: [
-        { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
-        { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+        { billingItem: billingItemId1, unitInclTaxes: 34, count: 4.927 },
+        { billingItem: billingItemId2, unitInclTaxes: 65.45, count: 1.456 },
       ],
     };
 
@@ -1988,8 +2097,8 @@ describe('formatAndCreateBill', () => {
     findBillingItem.returns(
       SinonMongoose.stubChainedQueries([{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }], ['lean'])
     );
-    formatBillingItem.onCall(0).returns({ inclTaxes: 180 });
-    formatBillingItem.onCall(1).returns({ inclTaxes: 150 });
+    formatBillingItem.onCall(0).returns({ inclTaxes: 167.52 });
+    formatBillingItem.onCall(1).returns({ inclTaxes: 95.3 });
 
     await BillHelper.formatAndCreateBill(payload, credentials);
 
@@ -2009,12 +2118,12 @@ describe('formatAndCreateBill', () => {
     );
     sinon.assert.calledWithExactly(
       formatBillingItem.getCall(0),
-      { billingItem: billingItemId1, unitInclTaxes: 10, count: 2 },
+      { billingItem: billingItemId1, unitInclTaxes: 34, count: 4.927 },
       [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
     );
     sinon.assert.calledWithExactly(
       formatBillingItem.getCall(1),
-      { billingItem: billingItemId2, unitInclTaxes: 30, count: 1 },
+      { billingItem: billingItemId2, unitInclTaxes: 65.45, count: 1.456 },
       [{ _id: billingItemId1, vat: 10 }, { _id: billingItemId2, vat: 25 }]
     );
     sinon.assert.calledOnceWithExactly(
@@ -2023,9 +2132,9 @@ describe('formatAndCreateBill', () => {
         number: 'FACT-101092100001',
         date: '2021-09-01',
         customer: payload.customer,
-        netInclTaxes: 50,
+        netInclTaxes: 262.82,
         type: 'manual',
-        billingItemList: [{ inclTaxes: 180 }, { inclTaxes: 150 }],
+        billingItemList: [{ inclTaxes: 167.52 }, { inclTaxes: 95.3 }],
         company: companyId,
         shouldBeSent: true,
       }
@@ -2182,7 +2291,7 @@ describe('getUnitInclTaxes', () => {
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
-    expect(result).toBe(20);
+    expect(result).toBe('20');
     sinon.assert.notCalled(getLastVersion);
   });
 
@@ -2199,7 +2308,7 @@ describe('getUnitInclTaxes', () => {
 
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
-    expect(result).toBe(0);
+    expect(result).toBe('0');
     sinon.assert.calledOnceWithExactly(getLastVersion, [{ startDate: '2022-01-24T09:00:00' }], 'startDate');
     sinon.assert.calledOnceWithExactly(
       getMatchingVersion,
@@ -2229,7 +2338,8 @@ describe('getUnitInclTaxes', () => {
 
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
-    expect(result).toBe(12);
+    expect(result).toBeDefined();
+    expect(result).toBe('12');
     sinon.assert.calledOnceWithExactly(getLastVersion, [{ startDate: '2022-01-24T09:00:00' }], 'startDate');
     sinon.assert.calledOnceWithExactly(
       getMatchingVersion,
@@ -2285,8 +2395,7 @@ describe('getUnitInclTaxes', () => {
 
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
-    expect(result).toBeDefined();
-    expect(result).toBe(18);
+    expect(result).toBe('18');
     sinon.assert.calledOnceWithExactly(
       getLastVersion,
       [{ startDate: '2022-01-24T09:00:00' }, { startDate: '2022-01-25T09:00:00' }],
@@ -2326,7 +2435,7 @@ describe('computeSurcharge', () => {
 
     const totalSurcharge = BillHelper.computeSurcharge(subscription);
 
-    expect(totalSurcharge).toEqual(12.235);
+    expect(totalSurcharge).toEqual('12.235');
   });
 
   it('should compute surcharges on a part of an event', () => {
@@ -2350,7 +2459,7 @@ describe('computeSurcharge', () => {
 
     const totalSurcharge = BillHelper.computeSurcharge(subscription);
 
-    expect(totalSurcharge).toEqual(7.646875);
+    expect(totalSurcharge).toEqual('7.646875');
   });
 
   it('should not compute totalSurcharges if there is no surcharge in a subscription', () => {
@@ -2367,7 +2476,7 @@ describe('computeSurcharge', () => {
 
     const totalSurcharge = BillHelper.computeSurcharge(subscription);
 
-    expect(totalSurcharge).toEqual(0);
+    expect(totalSurcharge).toEqual('0');
   });
 });
 
@@ -2376,20 +2485,20 @@ describe('formatBillDetailsForPdf', () => {
   let computeSurcharge;
   let formatPrice;
   let formatHour;
-  let getExclTaxes;
+  let computeExclTaxesWithDiscount;
   beforeEach(() => {
     getUnitInclTaxes = sinon.stub(BillHelper, 'getUnitInclTaxes');
     computeSurcharge = sinon.stub(BillHelper, 'computeSurcharge');
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
     formatHour = sinon.stub(UtilsHelper, 'formatHour');
-    getExclTaxes = sinon.stub(UtilsHelper, 'getExclTaxes');
+    computeExclTaxesWithDiscount = sinon.stub(UtilsHelper, 'computeExclTaxesWithDiscount');
   });
   afterEach(() => {
     getUnitInclTaxes.restore();
     computeSurcharge.restore();
     formatPrice.restore();
     formatHour.restore();
-    getExclTaxes.restore();
+    computeExclTaxesWithDiscount.restore();
   });
 
   it('should return formatted details if service.nature is hourly', () => {
@@ -2406,22 +2515,22 @@ describe('formatBillDetailsForPdf', () => {
       }],
     };
 
-    getUnitInclTaxes.returns(24.47);
+    getUnitInclTaxes.returns('24.47');
     formatHour.onCall(0).returns('18,00 h');
     computeSurcharge.returns(0);
     formatPrice.onCall(0).returns('430,54 €');
     formatPrice.onCall(1).returns('23,68 €');
-    getExclTaxes.returns(0);
+    computeExclTaxesWithDiscount.returns('430.5444');
 
     const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
 
     expect(formattedBillDetails).toEqual({
       formattedDetails: [{
-        unitInclTaxes: 24.47,
+        unitInclTaxes: '24.47',
         vat: 5.5,
         name: 'Temps de qualité - autonomie',
         volume: '18,00 h',
-        total: 440.46,
+        total: '440.46',
       }],
       totalExclTaxes: '430,54 €',
       totalVAT: '23,68 €',
@@ -2430,7 +2539,7 @@ describe('formatBillDetailsForPdf', () => {
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
   });
 
-  it('should return formatted details if service.nature is fixed', () => {
+  it('should return formatted details if service.nature is fixed with billing items', () => {
     const bill = {
       netInclTaxes: 50,
       subscriptions: [{
@@ -2470,24 +2579,24 @@ describe('formatBillDetailsForPdf', () => {
       ],
     };
 
-    getUnitInclTaxes.returns(22);
-    computeSurcharge.returns(12.24);
+    getUnitInclTaxes.returns('22');
+    computeSurcharge.returns('12.24');
     formatPrice.onCall(0).returns('20,30 €');
     formatPrice.onCall(1).returns('1,70 €');
-    getExclTaxes.onCall(0).returns(4.739336);
-    getExclTaxes.onCall(1).returns(9.090909);
-    getExclTaxes.onCall(2).returns(0);
+    computeExclTaxesWithDiscount.onCall(0).returns('15.560664');
+    computeExclTaxesWithDiscount.onCall(1).returns('18.179091');
+    computeExclTaxesWithDiscount.onCall(2).returns('8.33');
 
     const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
 
     expect(formattedBillDetails).toEqual({
       formattedDetails: [
-        { unitInclTaxes: 22, vat: 5.5, name: 'Forfait nuit', volume: 1, total: 22 },
-        { name: 'Majorations', total: 12.24 },
-        { name: 'Frais de dossier', unitInclTaxes: 30, volume: 1, total: 30, vat: 10 },
-        { name: 'Equipement de protection individuel', unitInclTaxes: 2, volume: 5, total: 10, vat: 15 },
+        { unitInclTaxes: '22', vat: 5.5, name: 'Forfait nuit', volume: 1, total: '22' },
+        { name: 'Majorations', total: '12.24' },
+        { name: 'Frais de dossier', unitInclTaxes: '30', volume: '1', total: '30', vat: 10 },
+        { name: 'Equipement de protection individuel', unitInclTaxes: '2', volume: '5', total: '10', vat: 15 },
         { name: 'Remises', total: -15 },
-        { name: 'Prise en charge du/des tiers(s) payeur(s)', total: -9.24 },
+        { name: 'Prise en charge du/des tiers(s) payeur(s)', total: '-9.24' },
       ],
       totalExclTaxes: '20,30 €',
       totalVAT: '1,70 €',
@@ -2495,6 +2604,151 @@ describe('formatBillDetailsForPdf', () => {
 
     sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
     sinon.assert.notCalled(formatHour);
+  });
+
+  it('should return formatted details if service.nature is hourly and funding is fixed (for Tpp)', () => {
+    const subscriptionId = new ObjectId();
+    const tppId = new ObjectId();
+    const bill = {
+      netInclTaxes: 341,
+      forTpp: true,
+      customer: {
+        _id: new ObjectId(),
+        identity: { title: 'mrs', firstname: 'Super', lastname: 'Test' },
+        fundings: [
+          {
+            nature: FIXED,
+            subscription: subscriptionId,
+            thirdPartyPayer: tppId,
+            frequency: ONCE,
+            _id: new ObjectId(),
+          },
+        ],
+      },
+      thirdPartyPayer: {
+        _id: tppId,
+        address: {
+          street: '21 Avenue du Général de Gaulle',
+          fullAddress: '21 Avenue du Général de Gaulle 94000 Créteil',
+          zipCode: '94000',
+          city: 'Créteil',
+        },
+        name: 'Conseil Départemental du Val de Marne - APA- Direction de l\'autonomie',
+        isUsedInFundings: true,
+      },
+      subscriptions: [{
+        _id: new ObjectId(),
+        subscription: subscriptionId,
+        unitInclTaxes: 22,
+        vat: 5.5,
+        service: { name: 'Temps de qualité - autonomie ', nature: HOURLY },
+        hours: 15,
+        exclTaxes: 312.8,
+        inclTaxes: 330,
+        discount: 0,
+        events: [{
+          _id: new ObjectId(),
+          startDate: '2019-09-15T05:00:00.000+00:00',
+          endDate: '2019-09-15T07:00:00.000+00:00',
+          surcharges: [{ _id: new ObjectId(), percentage: 25, name: 'Dimanche' }],
+        }],
+      }],
+    };
+
+    getUnitInclTaxes.returns('22');
+    formatHour.returns('15,00 h');
+    computeSurcharge.returns(11);
+    formatPrice.onCall(0).returns('323,22 €');
+    formatPrice.onCall(1).returns('17,78 €');
+    computeExclTaxesWithDiscount.returns(312.8);
+
+    const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
+
+    expect(formattedBillDetails).toEqual({
+      formattedDetails: [
+        { unitInclTaxes: '22', vat: 5.5, name: 'Temps de qualité - autonomie ', volume: '15,00 h', total: '330' },
+        { name: 'Majorations', total: '11' },
+      ],
+      totalExclTaxes: '323,22 €',
+      totalVAT: '17,78 €',
+    });
+
+    sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
+    sinon.assert.calledOnceWithExactly(formatHour, 15);
+    sinon.assert.calledOnceWithExactly(computeExclTaxesWithDiscount, 330, 0, 5.5);
+    sinon.assert.calledOnceWithExactly(getUnitInclTaxes, bill, bill.subscriptions[0]);
+  });
+
+  it('should return formatted details if service.nature is hourly and funding is hourly (for Tpp)', () => {
+    const subscriptionId = new ObjectId();
+    const tppId = new ObjectId();
+    const bill = {
+      netInclTaxes: 50,
+      forTpp: true,
+      customer: {
+        _id: new ObjectId(),
+        identity: { title: 'mrs', firstname: 'Super', lastname: 'Test' },
+        fundings: [
+          {
+            nature: HOURLY,
+            subscription: subscriptionId,
+            thirdPartyPayer: tppId,
+            frequency: MONTHLY,
+            _id: new ObjectId(),
+          },
+        ],
+      },
+      thirdPartyPayer: {
+        _id: tppId,
+        address: {
+          street: '21 Avenue du Général de Gaulle',
+          fullAddress: '21 Avenue du Général de Gaulle 94000 Créteil',
+          zipCode: '94000',
+          city: 'Créteil',
+        },
+        name: 'Conseil Départemental du Val de Marne - APA- Direction de l\'autonomie',
+        isUsedInFundings: true,
+      },
+      subscriptions: [{
+        _id: new ObjectId(),
+        subscription: subscriptionId,
+        unitInclTaxes: 22,
+        vat: 5.5,
+        service: { name: 'Temps de qualité - autonomie ', nature: HOURLY },
+        hours: 15,
+        exclTaxes: 47.39,
+        inclTaxes: 50,
+        discount: 0,
+        events: [{
+          _id: new ObjectId(),
+          startDate: '2019-09-15T05:00:00.000+00:00',
+          endDate: '2019-09-15T07:00:00.000+00:00',
+          surcharges: [],
+        }],
+      }],
+    };
+
+    getUnitInclTaxes.returns('22');
+    formatHour.returns('15,00 h');
+    computeSurcharge.returns(0);
+    formatPrice.onCall(0).returns('50,00 €');
+    formatPrice.onCall(1).returns('2,61 €');
+    computeExclTaxesWithDiscount.returns(47.39);
+
+    const formattedBillDetails = BillHelper.formatBillDetailsForPdf(bill);
+
+    expect(formattedBillDetails).toEqual({
+      formattedDetails: [
+        { unitInclTaxes: '22', vat: 5.5, name: 'Temps de qualité - autonomie ', volume: '15,00 h', total: '50' },
+      ],
+      totalExclTaxes: '50,00 €',
+      totalVAT: '2,61 €',
+    });
+
+    sinon.assert.calledOnceWithExactly(computeSurcharge, bill.subscriptions[0]);
+    sinon.assert.calledOnceWithExactly(formatHour, 15);
+    sinon.assert.calledOnceWithExactly(computeExclTaxesWithDiscount, 50, 0, 5.5);
+    sinon.assert.calledOnceWithExactly(getUnitInclTaxes, bill, bill.subscriptions[0]);
   });
 });
 

@@ -14,7 +14,15 @@ const DatesHelper = require('./dates');
 const NumbersHelper = require('./numbers');
 const PdfHelper = require('./pdf');
 const BillPdf = require('../data/pdf/billing/bill');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI, AUTOMATIC, MANUAL, ROUNDING_ERROR } = require('./constants');
+const {
+  HOURLY,
+  THIRD_PARTY,
+  CIVILITY_LIST,
+  COMPANI,
+  AUTOMATIC,
+  MANUAL,
+  ROUNDING_ERROR,
+} = require('./constants');
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
@@ -25,7 +33,8 @@ exports.formatBilledEvents = (bill) => {
   if (bill.thirdPartyPayer) pickedFields.push('inclTaxesTpp', 'exclTaxesTpp', 'fundingId');
   else pickedFields.push('inclTaxesCustomer', 'exclTaxesCustomer');
 
-  return bill.eventsList.map(ev => (ev.history && ev.history.careHours
+  return bill.eventsList.map(ev => (ev.history && ev.history.careHours &&
+      !NumbersHelper.isEqualTo(ev.history.careHours, '0')
     ? { eventId: ev.event, ...pick(ev, pickedFields), careHours: ev.history.careHours }
     : { eventId: ev.event, ...pick(ev, pickedFields) }
   ));
@@ -35,20 +44,24 @@ exports.formatSubscriptionData = (bill) => {
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.endDate, bill.subscription.service, 'startDate');
 
   return {
-    ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'discount']),
+    ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'exclTaxes']),
+    inclTaxes: NumbersHelper.toFixedToFloat(bill.inclTaxes),
     subscription: bill.subscription._id,
     service: { serviceId: matchingServiceVersion._id, ...pick(matchingServiceVersion, ['name', 'nature']) },
     vat: matchingServiceVersion.vat,
     events: exports.formatBilledEvents(bill),
+    discount: NumbersHelper.toFixedToFloat(bill.discount),
   };
 };
 
 exports.formatBillingItemData = bill => ({
-  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'vat', 'discount']),
+  ...pick(bill, ['startDate', 'endDate', 'unitInclTaxes', 'exclTaxes', 'vat']),
+  inclTaxes: NumbersHelper.toFixedToFloat(bill.inclTaxes),
   billingItem: bill.billingItem._id,
   events: bill.eventsList.map(ev => ({ ...pick(ev, ['startDate', 'endDate', 'auxiliary']), eventId: ev.event })),
   name: bill.billingItem.name,
   count: bill.eventsList.length,
+  discount: NumbersHelper.toFixedToFloat(bill.discount),
 });
 
 exports.formatCustomerBills = (customerBills, customer, number, company) => {
@@ -57,7 +70,7 @@ exports.formatCustomerBills = (customerBills, customer, number, company) => {
     customer: customer._id,
     subscriptions: [],
     number: exports.formatBillNumber(company.prefixNumber, number.prefix, number.seq),
-    netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
+    netInclTaxes: customerBills.total,
     date: customerBills.bills[0].endDate,
     shouldBeSent: customerBills.shouldBeSent,
     type: AUTOMATIC,
@@ -111,7 +124,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
       customer: customer._id,
       thirdPartyPayer: get(tpp.bills[0], 'thirdPartyPayer._id', null),
       subscriptions: [],
-      netInclTaxes: UtilsHelper.getFixedNumber(tpp.total, 2),
+      netInclTaxes: tpp.total,
       date: tpp.bills[0].endDate,
       type: AUTOMATIC,
       company: company._id,
@@ -168,23 +181,34 @@ exports.updateEvents = async (eventsToUpdate) => {
 exports.updateFundingHistories = async (histories, companyId) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
-    if (histories[id].amountTTC) {
+    let fundingHistory = await FundingHistory
+      .findOne({ fundingId: id, company: companyId }, { amountTTC: 1, careHours: 1 })
+      .lean();
+
+    if (histories[id].amountTTC && !NumbersHelper.isEqualTo(histories[id].amountTTC, '0')) {
+      const newAmountTTC = NumbersHelper.add(get(fundingHistory, 'amountTTC') || 0, histories[id].amountTTC);
       promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
-        { $inc: { amountTTC: histories[id].amountTTC } },
+        { $set: { amountTTC: newAmountTTC } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
-    } else if (histories[id].careHours) {
+    } else if (histories[id].careHours && !NumbersHelper.isEqualTo(histories[id].careHours, '0')) {
+      const newCareHours = NumbersHelper.add(get(fundingHistory, 'careHours') || 0, histories[id].careHours);
       promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
-        { $inc: { careHours: histories[id].careHours } },
+        { $set: { careHours: newCareHours } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else {
       for (const month of Object.keys(histories[id])) {
+        fundingHistory = await FundingHistory
+          .findOne({ fundingId: id, company: companyId, month }, { amountTTC: 1, careHours: 1 })
+          .lean();
+        const newCareHours = NumbersHelper.add(get(fundingHistory, 'careHours') || 0, histories[id][month].careHours);
+
         promises.push(FundingHistory.updateOne(
           { fundingId: id, month, company: companyId },
-          { $inc: { careHours: histories[id][month].careHours } },
+          { $set: { careHours: newCareHours } },
           { new: true, upsert: true, setDefaultsOnInsert: true }
         ));
       }
@@ -262,15 +286,15 @@ exports.list = async (query, credentials) => {
 exports.formatBillingItem = (bi, bddBillingItemList) => {
   const bddBillingItem = bddBillingItemList.find(bddBI => UtilsHelper.areObjectIdsEquals(bddBI._id, bi.billingItem));
   const vatMultiplier = NumbersHelper.divide(bddBillingItem.vat, 100);
-  const unitExclTaxes = NumbersHelper.divide(bi.unitInclTaxes, vatMultiplier + 1);
-  const exclTaxes = NumbersHelper.multiply(unitExclTaxes, bi.count);
+  const inclTaxes = NumbersHelper.toFixedToFloat(NumbersHelper.multiply(bi.unitInclTaxes, bi.count));
+  const exclTaxes = NumbersHelper.divide(inclTaxes, NumbersHelper.add(vatMultiplier, '1'));
 
   return {
     billingItem: bi.billingItem,
     name: bddBillingItem.name,
     unitInclTaxes: bi.unitInclTaxes,
     count: bi.count,
-    inclTaxes: NumbersHelper.multiply(bi.unitInclTaxes, bi.count),
+    inclTaxes,
     exclTaxes,
     vat: bddBillingItem.vat,
   };
@@ -286,14 +310,15 @@ exports.formatAndCreateBill = async (payload, credentials) => {
     .find({ _id: { $in: billingItemList.map(bi => bi.billingItem) } }, { vat: 1, name: 1 })
     .lean();
 
-  let netInclTaxes = 0;
+  let netInclTaxes = NumbersHelper.toString('0');
   for (const bi of billingItemList) {
-    netInclTaxes = NumbersHelper.add(netInclTaxes, NumbersHelper.multiply(bi.count, bi.unitInclTaxes));
+    const inclTaxes = NumbersHelper.toFixedToFloat(NumbersHelper.multiply(bi.count, bi.unitInclTaxes));
+    netInclTaxes = NumbersHelper.add(netInclTaxes, inclTaxes);
   }
 
   const bill = {
     ...payload,
-    netInclTaxes,
+    netInclTaxes: NumbersHelper.toFixedToFloat(netInclTaxes),
     type: MANUAL,
     number: exports.formatBillNumber(company.prefixNumber, billNumber.prefix, billNumber.seq),
     billingItemList: billingItemList.map(bi => exports.formatBillingItem(bi, bddBillingItemList)),
@@ -324,11 +349,11 @@ const getMatchingFunding = (bill, event) => bill.customer.fundings
       (!fund.endDate || CompaniDate(fund.endDate).isSameOrAfter(event.startDate)));
 
 exports.getUnitInclTaxes = (bill, subscription) => {
-  if (!bill.thirdPartyPayer) return subscription.unitInclTaxes;
+  if (!bill.thirdPartyPayer) return NumbersHelper.toString(subscription.unitInclTaxes);
 
   const lastEvent = UtilsHelper.getLastVersion(subscription.events, 'startDate');
   const matchingFundingVersion = getMatchingFunding(bill, lastEvent);
-  if (!matchingFundingVersion) return 0;
+  if (!matchingFundingVersion) return NumbersHelper.toString(0);
 
   if (matchingFundingVersion.nature === HOURLY) {
     const customerParticipationRate = NumbersHelper.divide(matchingFundingVersion.customerParticipationRate, 100);
@@ -337,18 +362,18 @@ exports.getUnitInclTaxes = (bill, subscription) => {
     return NumbersHelper.multiply(matchingFundingVersion.unitTTCRate, tppParticipationRate);
   }
 
-  return subscription.unitInclTaxes;
+  return NumbersHelper.toString(subscription.unitInclTaxes);
 };
 
 exports.computeSurcharge = (subscription) => {
-  let totalSurcharge = 0;
+  let totalSurcharge = NumbersHelper.toString(0);
   for (const event of subscription.events) {
     if (!event.surcharges || event.surcharges.length === 0) continue;
 
     for (const surcharge of event.surcharges) {
       const duration = surcharge.startHour
-        ? moment(surcharge.endHour).diff(surcharge.startHour, 'm') / 60
-        : moment(event.endDate).diff(event.startDate, 'm') / 60;
+        ? NumbersHelper.divide(moment(surcharge.endHour).diff(surcharge.startHour, 'm'), 60)
+        : NumbersHelper.divide(moment(event.endDate).diff(event.startDate, 'm'), 60);
 
       const surchargePrice = NumbersHelper.multiply(
         duration,
@@ -364,19 +389,29 @@ exports.computeSurcharge = (subscription) => {
 };
 
 exports.formatBillDetailsForPdf = (bill) => {
-  let totalExclTaxes = 0;
-  let totalDiscount = 0;
-  let totalSurcharge = 0;
-  let totalSubscription = 0;
-  const formattedDetails = [];
+  let totalExclTaxes = NumbersHelper.toString(0);
+  let totalDiscount = NumbersHelper.toString(0);
+  let totalSurcharge = NumbersHelper.toString(0);
+  let totalSubscription = NumbersHelper.toString(0);
 
+  const formattedDetails = [];
   for (const sub of bill.subscriptions) {
-    const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.exclTaxes, sub.discount, sub.vat);
+    const subExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(sub.inclTaxes, sub.discount, sub.vat);
     totalExclTaxes = NumbersHelper.add(totalExclTaxes, subExclTaxesWithDiscount);
 
     const volume = sub.service.nature === HOURLY ? sub.hours : sub.events.length;
     const unitInclTaxes = exports.getUnitInclTaxes(bill, sub);
-    const total = NumbersHelper.multiply(volume, unitInclTaxes);
+
+    let total = 0;
+    const customerFundings = get(bill, 'customer.fundings') || [];
+    const matchingFunding = customerFundings
+      .find(funding => UtilsHelper.areObjectIdsEquals(funding.subscription, sub.subscription));
+
+    if (bill.thirdPartyPayer && matchingFunding && matchingFunding.nature === HOURLY) {
+      total = NumbersHelper.toString(sub.inclTaxes);
+    } else {
+      total = NumbersHelper.multiply(volume, unitInclTaxes);
+    }
 
     formattedDetails.push({
       unitInclTaxes,
@@ -385,30 +420,38 @@ exports.formatBillDetailsForPdf = (bill) => {
       volume: sub.service.nature === HOURLY ? UtilsHelper.formatHour(volume) : volume,
       total,
     });
+
     totalSubscription = NumbersHelper.add(totalSubscription, total);
     totalSurcharge = NumbersHelper.add(totalSurcharge, exports.computeSurcharge(sub));
     totalDiscount = NumbersHelper.add(totalDiscount, sub.discount);
   }
 
-  if (totalSurcharge) formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
+  if (!NumbersHelper.isEqualTo(totalSurcharge, '0')) {
+    formattedDetails.push({ name: 'Majorations', total: totalSurcharge });
+  }
 
   let totalBillingItem = 0;
   if (bill.billingItemList) {
     for (const bi of bill.billingItemList) {
-      const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.exclTaxes, bi.discount, bi.vat);
+      const biExclTaxesWithDiscount = UtilsHelper.computeExclTaxesWithDiscount(bi.inclTaxes, bi.discount, bi.vat);
       totalExclTaxes = NumbersHelper.add(totalExclTaxes, biExclTaxesWithDiscount);
       totalBillingItem = NumbersHelper.add(totalBillingItem, bi.inclTaxes);
       totalDiscount = NumbersHelper.add(totalDiscount, bi.discount);
 
-      formattedDetails.push({ ...pick(bi, ['name', 'unitInclTaxes', 'vat']), volume: bi.count, total: bi.inclTaxes });
+      formattedDetails.push({
+        ...pick(bi, ['name', 'vat']),
+        unitInclTaxes: NumbersHelper.toString(bi.unitInclTaxes),
+        volume: UtilsHelper.roundFrenchNumber(bi.count),
+        total: NumbersHelper.toString(bi.inclTaxes),
+      });
     }
   }
 
-  if (totalDiscount) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
+  if (!NumbersHelper.isEqualTo(totalDiscount, '0')) formattedDetails.push({ name: 'Remises', total: -totalDiscount });
 
   const totalCustomer = NumbersHelper.add(totalSubscription, totalBillingItem, totalSurcharge);
   const totalTPP = NumbersHelper.add(NumbersHelper.subtract(bill.netInclTaxes, totalCustomer), totalDiscount);
-  if (totalTPP < -ROUNDING_ERROR) {
+  if (NumbersHelper.isLessThan(totalTPP, -ROUNDING_ERROR) && !bill.thirdPartyPayer) {
     formattedDetails.push({ name: 'Prise en charge du/des tiers(s) payeur(s)', total: totalTPP });
   }
 
