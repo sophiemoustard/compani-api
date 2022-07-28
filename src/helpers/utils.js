@@ -74,7 +74,7 @@ exports.getDateQuery = (dates) => {
   return { $lt: dates.endDate };
 };
 
-exports.getFixedNumber = (number, toFixedNb) =>
+exports.getFixedNumber = (number, toFixedNb = 2) =>
   (Math.round(number * (10 ** toFixedNb)) / (10 ** toFixedNb)).toFixed(toFixedNb);
 
 exports.removeSpaces = str => (str ? str.split(' ').join('') : '');
@@ -84,17 +84,24 @@ const roundFrenchPrice = (number) => {
     'fr-FR',
     { minimumFractionDigits: 2, style: 'currency', currency: 'EUR', currencyDisplay: 'symbol' }
   );
-  return nf.format(number);
+
+  const roundedNumber = NumbersHelper.toFixedToFloat(number);
+  return nf.format(roundedNumber);
 };
 
 exports.formatPrice = val => (val ? roundFrenchPrice(val) : roundFrenchPrice(0));
 
-const roundFrenchNumber = (number) => {
-  const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'decimal' });
-  return nf.format(number);
+exports.roundFrenchNumber = (number, digits) => {
+  const nf = new Intl.NumberFormat(
+    'fr-FR',
+    { minimumFractionDigits: digits, style: 'decimal', maximumFractionDigits: digits }
+  );
+
+  const roundedNumber = NumbersHelper.toFixedToFloat(number, digits);
+  return nf.format(roundedNumber);
 };
 
-exports.formatHour = val => (val ? `${roundFrenchNumber(val)}h` : `${roundFrenchNumber(0)}h`);
+exports.formatHour = val => (val ? `${exports.roundFrenchNumber(val, 2)}h` : `${exports.roundFrenchNumber(0, 2)}h`);
 
 exports.formatHourWithMinutes = hour => (moment(hour).minutes()
   ? moment(hour).format('HH[h]mm')
@@ -102,7 +109,9 @@ exports.formatHourWithMinutes = hour => (moment(hour).minutes()
 
 const roundFrenchPercentage = (number) => {
   const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'percent' });
-  return nf.format(number);
+
+  const roundedNumber = NumbersHelper.toFixedToFloat(number, 4);
+  return nf.format(roundedNumber);
 };
 
 exports.formatPercentage = val => (val ? roundFrenchPercentage(val) : roundFrenchPercentage(0));
@@ -124,7 +133,7 @@ exports.getFullTitleFromIdentity = (identity) => {
 
 exports.formatFloatForExport = (number, decimals = 2) => {
   if (number == null || Number.isNaN(number) || number === '') return '';
-  return number.toFixed(decimals).replace('.', ',');
+  return parseFloat(number).toFixed(decimals).replace('.', ',');
 };
 
 exports.formatArrayOrStringQueryParam = (param, keyName) =>
@@ -194,30 +203,23 @@ exports.computeHoursWithDiff = (pay, key) => {
   return hours + diff;
 };
 
+// Returns a string
 exports.getExclTaxes = (inclTaxes, vat) => {
-  if (!vat) return inclTaxes;
+  if (!vat) return NumbersHelper.toString(inclTaxes);
 
   const decimalVat = NumbersHelper.add(1, NumbersHelper.divide(vat, 100));
 
   return NumbersHelper.divide(inclTaxes, decimalVat);
 };
 
-exports.getInclTaxes = (exclTaxes, vat) => {
-  if (!vat) return exclTaxes;
-
-  const decimalVat = NumbersHelper.add(1, NumbersHelper.divide(vat, 100));
-
-  return NumbersHelper.multiply(exclTaxes, decimalVat);
-};
-
 exports.sumReduce = (array, key) => array.reduce((sum, b) => NumbersHelper.add(sum, (b[key] || 0)), 0);
 
-exports.computeExclTaxesWithDiscount = (exclTaxes, discount, vat) => {
-  if (!discount) return exclTaxes;
+exports.computeExclTaxesWithDiscount = (inclTaxes, discount, vat) => {
+  if (!discount) return exports.getExclTaxes(inclTaxes, vat);
 
-  const discountExclTaxes = exports.getExclTaxes(discount, vat);
+  const inclTaxesWithDiscount = NumbersHelper.subtract(inclTaxes, discount);
 
-  return NumbersHelper.subtract(exclTaxes, discountExclTaxes);
+  return exports.getExclTaxes(inclTaxesWithDiscount, vat);
 };
 
 exports.getTotalDuration = (timePeriods) => {

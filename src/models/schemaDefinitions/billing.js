@@ -13,7 +13,7 @@ const billingItemsDefinition = {
   name: { type: String, required: true },
   count: { type: Number, required: true },
   inclTaxes: { type: Number, required: true },
-  exclTaxes: { type: Number, required: true },
+  exclTaxes: { type: String, required: true },
   vat: { type: Number, required: true },
 };
 
@@ -34,7 +34,7 @@ const billingItemsInBillDefinition = {
 
 const billingItemsInEventDefinition = [{
   billingItem: { type: mongoose.Schema.Types.ObjectId, ref: 'BillingItem', required: true },
-  exclTaxes: { type: Number, required: true },
+  exclTaxes: { type: String, required: true },
   inclTaxes: { type: Number, required: true },
 }];
 

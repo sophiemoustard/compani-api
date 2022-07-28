@@ -1,5 +1,6 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 const Repetition = require('../../../src/models/Repetition');
 const User = require('../../../src/models/User');
 const Event = require('../../../src/models/Event');
@@ -139,8 +140,8 @@ const eventList = [
   },
   {
     repetition: { parentId: repetitionList[0].parentId, frequency: EVERY_WEEK },
-    startDate: '2022-07-28T10:30:00.000Z',
-    endDate: '2022-07-28T12:30:00.000Z',
+    startDate: CompaniDate().add({ days: 3 }).set({ hours: 10, minutes: 30 }).toDate(),
+    endDate: CompaniDate().add({ days: 3 }).set({ hours: 12, minutes: 30 }).toDate(),
     company: authCompany._id,
     auxiliary: auxiliariesIdList[0],
     customer: customersIdList[0],

@@ -7,6 +7,7 @@ const groupBy = require('lodash/groupBy');
 const { cloneDeep } = require('lodash');
 const Event = require('../models/Event');
 const UtilsHelper = require('../helpers/utils');
+const NumbersHelper = require('../helpers/numbers');
 const SectorHistory = require('../models/SectorHistory');
 const {
   INTERNAL_HOUR,
@@ -16,6 +17,8 @@ const {
   NOT_INVOICED_AND_NOT_PAID,
   INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
+const { CompaniDuration } = require('../helpers/dates/companiDurations');
+const { CompaniDate } = require('../helpers/dates/companiDates');
 
 exports.formatEvent = (event) => {
   const formattedEvent = {
@@ -429,7 +432,7 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
   const endDate = moment(taxCertificate.year, 'YYYY').endOf('year').toDate();
   const { _id: customerId, subscriptions } = taxCertificate.customer;
 
-  return Event.aggregate([
+  const events = await Event.aggregate([
     {
       $match: {
         customer: customerId,
@@ -438,15 +441,10 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
         $or: [{ isCancelled: false }, { 'cancel.condition': { $in: [INVOICED_AND_PAID, INVOICED_AND_NOT_PAID] } }],
       },
     },
-    { $addFields: { duration: { $divide: [{ $subtract: ['$endDate', '$startDate'] }, 1000 * 60 * 60] } } },
     {
       $group: {
-        _id: {
-          auxiliary: '$auxiliary',
-          month: { $month: '$startDate' },
-          sub: '$subscription',
-        },
-        duration: { $sum: '$duration' },
+        _id: { auxiliary: '$auxiliary', month: { $month: '$startDate' }, sub: '$subscription' },
+        eventList: { $push: { startDate: '$startDate', endDate: '$endDate' } },
       },
     },
     { $lookup: { from: 'users', as: 'auxiliary', localField: '_id.auxiliary', foreignField: '_id' } },
@@ -462,11 +460,22 @@ exports.getTaxCertificateInterventions = async (taxCertificate, companyId) => {
         auxiliary: { _id: 1, identity: 1, createdAt: 1, serialNumber: 1 },
         month: '$_id.month',
         subscription: 1,
-        duration: 1,
+        eventList: 1,
       },
     },
     { $sort: { month: 1 } },
   ]).option({ company: companyId });
+
+  const formattedEvents = events.map(ev => ({
+    ...ev,
+    duration: parseFloat(ev.eventList.reduce((acc, event) =>
+      NumbersHelper.add(
+        acc,
+        CompaniDuration(CompaniDate(event.endDate).diff(event.startDate, 'minutes')).asHours()
+      ), NumbersHelper.toString(0))),
+  }));
+
+  return formattedEvents;
 };
 
 exports.getPaidTransportStatsBySector = async (sectors, month, companyId) => {

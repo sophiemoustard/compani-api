@@ -37,7 +37,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
     startDate: '2019-07-01T00:00:00',
     endDate: '2019-07-15T00:00:00',
     customer: creditNoteCustomer._id,
-    exclTaxesCustomer: 100,
+    exclTaxesCustomer: '100',
     inclTaxesCustomer: 112,
     events: [{
       eventId: creditNoteEvent._id,
@@ -46,9 +46,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
       bills: {
-        inclTaxesCustomer: 10,
-        exclTaxesCustomer: 8,
-        billingItems: [{ billingItem: billingItemList[0]._id, exclTaxes: 12, inclTaxes: 14 }],
+        inclTaxesCustomer: '10',
+        exclTaxesCustomer: '8',
+        careHours: '12',
+        billingItems: [{ billingItem: billingItemList[0]._id, exclTaxes: '12', inclTaxes: 14 }],
       },
     }],
     misc: 'Je suis un motif',
@@ -59,7 +60,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
     startDate: '2019-07-01T00:00:00',
     endDate: '2019-07-15T00:00:00',
     customer: creditNoteCustomer._id,
-    exclTaxesCustomer: 100,
+    exclTaxesCustomer: '100',
     inclTaxesCustomer: 112,
     subscription: {
       _id: creditNoteCustomer.subscriptions[0]._id,
@@ -72,10 +73,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
   const payloadWithBillingItems = {
     date: '2019-07-19T14:00:18',
     customer: creditNoteCustomer._id,
-    exclTaxesCustomer: 43.5,
+    exclTaxesCustomer: '43.5',
     inclTaxesCustomer: 50,
     misc: 'Je suis un motif',
-    billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 25, count: 1 }],
+    billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: '25', count: 1 }],
   };
 
   describe('CLIENT_ADMIN', () => {
@@ -91,7 +92,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
           ...payloadWithEvents,
-          exclTaxesTpp: 100,
+          exclTaxesTpp: '100',
           inclTaxesTpp: 100,
           thirdPartyPayer: creditNoteThirdPartyPayer._id,
         },
@@ -117,7 +118,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
           ...payloadWithSubscription,
-          exclTaxesTpp: 100,
+          exclTaxesTpp: '100',
           inclTaxesTpp: 100,
           thirdPartyPayer: creditNoteThirdPartyPayer._id,
         },
@@ -165,7 +166,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
           ...payloadWithBillingItems,
-          billingItemList: [{ billingItem: new ObjectId(), unitInclTaxes: 25, count: 1 }],
+          billingItemList: [{ billingItem: new ObjectId(), unitInclTaxes: '25', count: 1 }],
         },
       });
 
@@ -219,7 +220,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
           ...payloadWithSubscription,
-          exclTaxesTpp: 100,
+          exclTaxesTpp: '100',
           inclTaxesTpp: 100,
           thirdPartyPayer: otherCompanyThirdPartyPayer._id,
         },
@@ -242,9 +243,9 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
             endDate: creditNoteEvent.endDate,
             serviceName: 'toto',
             bills: {
-              billingItems: [{ billingItem: new ObjectId(), exclTaxes: 12, inclTaxes: 14 }],
-              inclTaxesCustomer: 10,
-              exclTaxesCustomer: 8,
+              billingItems: [{ billingItem: new ObjectId(), exclTaxes: '12', inclTaxes: 14 }],
+              inclTaxesCustomer: '10',
+              exclTaxesCustomer: '8',
             },
           }],
         },
@@ -266,7 +267,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
             startDate: creditNoteEvent.startDate,
             endDate: creditNoteEvent.endDate,
             serviceName: 'toto',
-            bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+            bills: { inclTaxesCustomer: '10', exclTaxesCustomer: '8' },
           },
           {
             eventId: otherCompanyEvent._id,
@@ -274,7 +275,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
             startDate: otherCompanyEvent.startDate,
             endDate: otherCompanyEvent.endDate,
             serviceName: 'tata',
-            bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+            bills: { inclTaxesCustomer: '10', exclTaxesCustomer: '8' },
           }],
         },
       });
@@ -307,7 +308,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
           ...payloadWithEvents,
-          billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 25, count: 1 }],
+          billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: '25', count: 1 }],
         },
       });
 
@@ -321,7 +322,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: {
           ...payloadWithSubscription,
-          billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 25, count: 1 }],
+          billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: '25', count: 1 }],
         },
       });
 
@@ -508,7 +509,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
     date: '2019-07-19T14:00:18',
     startDate: '2019-07-01T00:00:00',
     endDate: '2019-07-31T23:59:59',
-    exclTaxesCustomer: 200,
+    exclTaxesCustomer: '200',
     inclTaxesCustomer: 224,
     misc: 'Je suis un motif',
   };
@@ -527,8 +528,8 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.creditNote.inclTaxesCustomer).toEqual(payload.inclTaxesCustomer);
-      expect(response.result.data.creditNote.exclTaxesCustomer).toEqual(payload.exclTaxesCustomer);
+      expect(response.result.data.creditNote.inclTaxesCustomer).toEqual(224);
+      expect(response.result.data.creditNote.exclTaxesCustomer).toEqual('200');
     });
 
     it('should update a credit note with billing items', async () => {
@@ -539,14 +540,14 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload: {
           date: '2019-07-19T14:00:18',
           billingItemList: [{ billingItem: billingItemList[1]._id, unitInclTaxes: 25, count: 1 }],
-          exclTaxesCustomer: 20,
+          exclTaxesCustomer: '20',
           inclTaxesCustomer: 25,
         },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.creditNote.inclTaxesCustomer).toEqual(25);
-      expect(response.result.data.creditNote.exclTaxesCustomer).toEqual(20);
+      expect(response.result.data.creditNote.exclTaxesCustomer).toEqual('20');
     });
 
     it('should return a 400 error if date isn\'t in payload', async () => {
@@ -579,7 +580,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         payload: {
           date: '2019-07-19T14:00:18',
           billingItemList: [{ billingItem: new ObjectId(), unitInclTaxes: 25, count: 1 }],
-          exclTaxesCustomer: 20,
+          exclTaxesCustomer: '20',
           inclTaxesCustomer: 25,
         },
       });
@@ -618,8 +619,8 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
           endDate: otherCompanyEvent.endDate,
           serviceName: 'tata',
           bills: {
-            inclTaxesCustomer: 10,
-            exclTaxesCustomer: 8,
+            inclTaxesCustomer: '10',
+            exclTaxesCustomer: '8',
           },
         }],
         date: '2019-07-19T14:00:18',
@@ -659,7 +660,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         date: '2019-07-19T14:00:18',
         startDate: '2019-07-01T00:00:00',
         endDate: '2019-07-31T23:59:59',
-        exclTaxesCustomer: 200,
+        exclTaxesCustomer: '200',
         inclTaxesCustomer: 224,
       };
 

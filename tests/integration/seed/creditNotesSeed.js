@@ -14,6 +14,7 @@ const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { helperRoleId, auxiliaryRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
+const FundingHistory = require('../../../src/models/FundingHistory');
 
 const billingItemList = [
   {
@@ -55,6 +56,8 @@ const creditNoteService = {
   nature: HOURLY,
 };
 
+const subId = new ObjectId();
+const fundingId = new ObjectId();
 const creditNoteCustomer = {
   _id: new ObjectId(),
   company: authCompany._id,
@@ -77,7 +80,7 @@ const creditNoteCustomer = {
   },
   subscriptions: [
     {
-      _id: new ObjectId(),
+      _id: subId,
       service: creditNoteService._id,
       versions: [{
         unitTTCRate: 12,
@@ -85,6 +88,26 @@ const creditNoteCustomer = {
         evenings: 2,
         sundays: 1,
         startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    },
+  ],
+  fundings: [
+    {
+      _id: fundingId,
+      nature: 'hourly',
+      subscription: subId,
+      thirdPartyPayer: creditNoteThirdPartyPayer._id,
+      frequency: 'once',
+      versions: [{
+        amountTTC: 0,
+        unitTTCRate: 20,
+        careHours: 24,
+        careDays: [0, 1, 2, 3, 4, 5, 6, 7],
+        customerParticipationRate: 0.45,
+        folderNumber: 'poiuytre',
+        fundingPlanId: 'qwertyuiop',
+        startDate: '2018-01-01T10:00:00.000+01:00',
+        createdAt: '2018-01-01T10:00:00.000+01:00',
       }],
     },
   ],
@@ -161,13 +184,13 @@ const creditNoteEvent = {
   isBilled: true,
   bills: {
     thirdPartyPayer: creditNoteThirdPartyPayer._id,
-    inclTaxesCustomer: 20,
-    exclTaxesCustomer: 15,
-    inclTaxesTpp: 10,
-    exclTaxesTpp: 5,
-    fundingId: new ObjectId(),
+    inclTaxesCustomer: '20',
+    exclTaxesCustomer: '15',
+    inclTaxesTpp: '10',
+    exclTaxesTpp: '5',
+    fundingId,
     nature: 'hourly',
-    careHours: 2,
+    careHours: '2',
   },
   address: {
     fullAddress: '37 rue de ponthieu 75008 Paris',
@@ -186,7 +209,7 @@ const creditNotesList = [
     startDate: CompaniDate().startOf('month').toISO(),
     endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
     customer: creditNoteCustomer._id,
-    exclTaxesCustomer: 100,
+    exclTaxesCustomer: '100',
     inclTaxesCustomer: 112,
     events: [{
       eventId: creditNoteEvent._id,
@@ -194,7 +217,7 @@ const creditNotesList = [
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
-      bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+      bills: { inclTaxesCustomer: '10', exclTaxesCustomer: '8' },
     }],
     subscription: {
       _id: creditNoteCustomer.subscriptions[0]._id,
@@ -210,7 +233,7 @@ const creditNotesList = [
     startDate: CompaniDate().startOf('month').toISO(),
     endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
     customer: creditNoteCustomer._id,
-    exclTaxesCustomer: 100,
+    exclTaxesCustomer: '100',
     inclTaxesCustomer: 112,
     events: [{
       eventId: creditNoteEvent._id,
@@ -219,8 +242,8 @@ const creditNotesList = [
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
       bills: {
-        inclTaxesCustomer: 10,
-        exclTaxesCustomer: 8,
+        inclTaxesCustomer: '10',
+        exclTaxesCustomer: '8',
       },
     }],
     subscription: {
@@ -237,7 +260,7 @@ const creditNotesList = [
     startDate: '2020-01-01',
     endDate: '2020-01-12',
     customer: creditNoteCustomer._id,
-    exclTaxesCustomer: 100,
+    exclTaxesCustomer: '100',
     inclTaxesCustomer: 112,
     events: [{
       eventId: creditNoteEvent._id,
@@ -245,7 +268,7 @@ const creditNotesList = [
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
-      bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+      bills: { inclTaxesCustomer: '10', exclTaxesCustomer: '8' },
     }],
     subscription: {
       _id: creditNoteCustomer.subscriptions[0]._id,
@@ -262,7 +285,7 @@ const creditNotesList = [
     startDate: CompaniDate().startOf('month').toISO(),
     endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
     customer: archivedCustomer._id,
-    exclTaxesCustomer: 100,
+    exclTaxesCustomer: '100',
     inclTaxesCustomer: 112,
     events: [{
       eventId: creditNoteEvent._id,
@@ -270,7 +293,7 @@ const creditNotesList = [
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
       serviceName: 'toto',
-      bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+      bills: { inclTaxesCustomer: '10', exclTaxesCustomer: '8' },
     }],
     subscription: {
       _id: archivedCustomer.subscriptions[0]._id,
@@ -287,7 +310,7 @@ const creditNotesList = [
     startDate: CompaniDate().startOf('month').toISO(),
     endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
     customer: creditNoteCustomer._id,
-    exclTaxesCustomer: 100,
+    exclTaxesCustomer: '100',
     inclTaxesCustomer: 112,
     billingItemList: [{
       billingItem: billingItemList[1]._id,
@@ -296,7 +319,7 @@ const creditNotesList = [
       count: 2,
       vat: 10,
       inclTaxes: 30,
-      exclTaxes: 25,
+      exclTaxes: '25',
     }],
     origin: 'compani',
     company: authCompany._id,
@@ -405,7 +428,7 @@ const otherCompanyCreditNote = {
   startDate: CompaniDate().startOf('month').toISO(),
   endDate: CompaniDate().startOf('month').add({ days: 15 }).toISO(),
   customer: otherCompanyCustomer._id,
-  exclTaxesCustomer: 100,
+  exclTaxesCustomer: '100',
   inclTaxesCustomer: 112,
   events: [{
     eventId: otherCompanyEvent._id,
@@ -413,7 +436,7 @@ const otherCompanyCreditNote = {
     startDate: otherCompanyEvent.startDate,
     endDate: otherCompanyEvent.endDate,
     serviceName: 'titi',
-    bills: { inclTaxesCustomer: 10, exclTaxesCustomer: 8 },
+    bills: { inclTaxesCustomer: '10', exclTaxesCustomer: '8' },
   }],
   subscription: {
     _id: otherCompanyCustomer.subscriptions[0]._id,
@@ -437,6 +460,8 @@ const userCompanies = [
   { _id: new ObjectId(), user: otherCompanyUser._id, company: otherCompany._id },
 ];
 
+const fundingHistoryList = [{ company: authCompany._id, fundingId, amountTTC: 0, careHours: 12 }];
+
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
@@ -445,6 +470,7 @@ const populateDB = async () => {
     CreditNote.create([...creditNotesList, otherCompanyCreditNote]),
     Customer.create([creditNoteCustomer, otherCompanyCustomer, archivedCustomer]),
     Event.create([creditNoteEvent, otherCompanyEvent]),
+    FundingHistory.create(fundingHistoryList),
     Helper.create(helpersList),
     Service.create([creditNoteService, otherCompanyService]),
     ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]),

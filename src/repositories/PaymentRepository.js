@@ -1,6 +1,7 @@
 const moment = require('../extensions/moment');
 const Payment = require('../models/Payment');
 const { PAYMENT, REFUND, CESU } = require('../helpers/constants');
+const NumbersHelper = require('../helpers/numbers');
 
 exports.findAmountsGroupedByClient = async (companyId, customersIds, dateMax = null) => {
   const rules = [{ customer: { $in: customersIds } }];
@@ -77,27 +78,18 @@ exports.getTaxCertificatesPayments = async (taxCertificate, companyId) => {
         },
       },
     },
-    {
-      $addFields: {
-        payments: {
-          $reduce: { input: '$payments', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } },
-        },
-        refunds: { $reduce: { input: '$refunds', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } } },
-        cesuRefunds: {
-          $reduce: { input: '$cesuRefunds', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } },
-        },
-        cesuPayments: {
-          $reduce: { input: '$cesuPayments', initialValue: 0, in: { $add: ['$$value', '$$this.netInclTaxes'] } },
-        },
-      },
-    },
-    {
-      $project: {
-        paid: { $subtract: ['$payments', '$refunds'] },
-        cesu: { $subtract: ['$cesuPayments', '$cesuRefunds'] },
-      },
-    },
   ]).option({ company: companyId });
 
-  return paidPrice[0];
+  const payments = paidPrice[0].payments
+    .reduce((acc, p) => NumbersHelper.add(acc, p.netInclTaxes), NumbersHelper.toString(0));
+  const refunds = paidPrice[0].refunds
+    .reduce((acc, r) => NumbersHelper.add(acc, r.netInclTaxes), NumbersHelper.toString(0));
+  const cesuRefunds = paidPrice[0].cesuRefunds
+    .reduce((acc, cR) => NumbersHelper.add(acc, cR.netInclTaxes), NumbersHelper.toString(0));
+  const cesuPayments = paidPrice[0].cesuPayments
+    .reduce((acc, cP) => NumbersHelper.add(acc, cP.netInclTaxes), NumbersHelper.toString(0));
+  const paid = NumbersHelper.subtract(payments, refunds);
+  const cesu = NumbersHelper.subtract(cesuPayments, cesuRefunds);
+
+  return { _id: paidPrice[0]._id, paid, cesu };
 };

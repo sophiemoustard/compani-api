@@ -3,7 +3,6 @@ const sinon = require('sinon');
 const { ObjectId } = require('mongodb');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
-
 const UtilsHelper = require('../../../src/helpers/utils');
 
 describe('getLastVersion', () => {
@@ -185,8 +184,44 @@ describe('removeSpaces', () => {
 
 describe('formatPrice', () => {
   it('should format price', () => {
-    const res = UtilsHelper.formatPrice(5.5);
-    expect(res).toEqual('5,50\u00a0€');
+    const res = UtilsHelper.formatPrice('595.7549999999999838');
+    expect(res).toEqual('595,75\u00a0€');
+  });
+
+  it('should format price for 0', () => {
+    const res = UtilsHelper.formatPrice(0);
+    expect(res).toEqual('0,00\u00a0€');
+  });
+});
+
+describe('roundFrenchNumber', () => {
+  it('should round french number', () => {
+    const res = UtilsHelper.roundFrenchNumber('595.7549999999999838', 2);
+    expect(res).toEqual('595,75');
+  });
+
+  it('should round french number with 5 digits', () => {
+    const res = UtilsHelper.roundFrenchNumber('12.256343213', 5);
+    expect(res).toEqual('12,25634');
+  });
+});
+
+describe('formatPercentage', () => {
+  it('should format percentage', () => {
+    const res = UtilsHelper.formatPercentage('0.344449999999999999999');
+    expect(res).toEqual('34,44\u00a0%');
+  });
+
+  it('should format percentage for 0', () => {
+    const res = UtilsHelper.formatPercentage(0);
+    expect(res).toEqual('0,00\u00a0%');
+  });
+});
+
+describe('formatHour', () => {
+  it('should format hour', () => {
+    const res = UtilsHelper.formatHour(5.5);
+    expect(res).toEqual('5,50h');
   });
 });
 
@@ -378,26 +413,24 @@ describe('isStringedObjectId', () => {
 
 describe('getExclTaxes', () => {
   it('should return excluded taxes price', () => {
-    expect(Number.parseFloat(UtilsHelper.getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
-  });
-});
+    const result = UtilsHelper.getExclTaxes(20, 25);
 
-describe('getInclTaxes', () => {
-  it('should return excluded taxes price', () => {
-    expect(UtilsHelper.getInclTaxes(20, 2)).toEqual(20.4);
+    expect(result).toEqual('16');
   });
 });
 
 describe('sumReduce', () => {
   it('should sum element in array', () => {
-    expect(UtilsHelper.sumReduce([{ incl: 20 }, { incl: 12, excl: 23 }], 'incl')).toEqual(32);
+    const result = UtilsHelper.sumReduce([{ incl: 20 }, { incl: 12, excl: 23 }], 'incl');
+
+    expect(result).toEqual('32');
   });
 });
 
 describe('computeExclTaxesWithDiscount', () => {
   it('should return excluded taxes price with discount', () => {
     const result = UtilsHelper.computeExclTaxesWithDiscount(18, 1.2, 20);
-    expect(result).toEqual(17);
+    expect(result).toEqual('14');
   });
 });
 

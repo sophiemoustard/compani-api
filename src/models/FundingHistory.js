@@ -4,10 +4,9 @@ const { validateQuery, validateAggregation, formatQuery, formatQueryMiddlewareLi
 const FundingHistorySchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   fundingId: { type: mongoose.Schema.Types.ObjectId },
-  amountTTC: { type: Number, default: 0 },
-  careHours: { type: Number, default: 0 },
-  month: String,
-  nature: String,
+  amountTTC: { type: String, default: '0' },
+  careHours: { type: String, default: '0' },
+  month: { type: String },
 }, { timestamps: true });
 
 FundingHistorySchema.pre('aggregate', validateAggregation);

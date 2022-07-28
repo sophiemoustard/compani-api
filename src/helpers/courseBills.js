@@ -13,12 +13,12 @@ const { LIST, TRAINING_ORGANISATION_MANAGER, VENDOR_ADMIN } = require('./constan
 const { CompaniDate } = require('./dates/companiDates');
 
 exports.getNetInclTaxes = (bill) => {
-  const mainFeeTotal = NumbersHelper.multiply(bill.mainFee.price, bill.mainFee.count);
+  const mainFeeTotal = NumbersHelper.oldMultiply(bill.mainFee.price, bill.mainFee.count);
   const billingPurchaseTotal = bill.billingPurchaseList
-    ? bill.billingPurchaseList.map(p => NumbersHelper.multiply(p.price, p.count)).reduce((acc, val) => acc + val, 0)
+    ? bill.billingPurchaseList.map(p => NumbersHelper.oldMultiply(p.price, p.count)).reduce((acc, val) => acc + val, 0)
     : 0;
 
-  return NumbersHelper.add(mainFeeTotal, billingPurchaseTotal);
+  return NumbersHelper.oldAdd(mainFeeTotal, billingPurchaseTotal);
 };
 
 const getTimeProgress = (course) => {
