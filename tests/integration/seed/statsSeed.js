@@ -52,7 +52,7 @@ const userList = [
   {
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
-    local: { email: 'white@alenvi.io', password: '123456!eR' },
+    local: { email: 'white@alenvi.io' },
     role: { client: auxiliaryRoleId },
     contracts: [contractList[0]._id],
     refreshToken: uuidv4(),
@@ -61,7 +61,7 @@ const userList = [
   {
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Black' },
-    local: { email: 'black@alenvi.io', password: '123456!eR' },
+    local: { email: 'black@alenvi.io' },
     role: { client: auxiliaryRoleId },
     inactivityDate: '2019-01-01T23:59:59',
     refreshToken: uuidv4(),
@@ -70,7 +70,7 @@ const userList = [
   {
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Red' },
-    local: { email: 'blue@alenvi.io', password: '123456!eR' },
+    local: { email: 'blue@alenvi.io' },
     role: { client: auxiliaryRoleId },
     inactivityDate: '2019-01-01T23:59:59',
     refreshToken: uuidv4(),
@@ -84,56 +84,64 @@ const userCompanyList = [
   { _id: new ObjectId(), user: userList[2], company: otherCompany._id },
 ];
 
-const sectorHistoryList = [{
-  auxiliary: userList[0]._id,
-  sector: sectorList[0]._id,
-  company: authCompany._id,
-  startDate: '2019-05-12T23:00:00.000+00:00',
-  endDate: '2019-11-10T22:59:00.000+00:00',
-},
-{
-  auxiliary: userList[0]._id,
-  sector: sectorList[1]._id,
-  company: authCompany._id,
-  startDate: '2019-11-11T23:00:00.000+00:00',
-},
-{
-  auxiliary: userList[1]._id,
-  sector: sectorList[0]._id,
-  company: authCompany._id,
-  startDate: '2019-05-12T23:00:00.000+00:00',
-  endDate: '2020-02-12T22:59:00.000+00:00',
-},
-{
-  auxiliary: userList[1]._id,
-  sector: sectorList[1]._id,
-  company: authCompany._id,
-  startDate: '2020-02-12T23:00:00.000+00:00',
-}];
+const sectorHistoryList = [
+  {
+    auxiliary: userList[0]._id,
+    sector: sectorList[0]._id,
+    company: authCompany._id,
+    startDate: '2019-05-12T23:00:00.000+00:00',
+    endDate: '2019-11-10T22:59:00.000+00:00',
+  },
+  {
+    auxiliary: userList[0]._id,
+    sector: sectorList[1]._id,
+    company: authCompany._id,
+    startDate: '2019-11-11T23:00:00.000+00:00',
+  },
+  {
+    auxiliary: userList[1]._id,
+    sector: sectorList[0]._id,
+    company: authCompany._id,
+    startDate: '2019-05-12T23:00:00.000+00:00',
+    endDate: '2020-02-12T22:59:00.000+00:00',
+  },
+  {
+    auxiliary: userList[1]._id,
+    sector: sectorList[1]._id,
+    company: authCompany._id,
+    startDate: '2020-02-12T23:00:00.000+00:00',
+  },
+];
 
-const serviceList = [{
-  _id: new ObjectId(),
-  nature: 'hourly',
-  company: authCompany._id,
-  versions: [{
-    defaultUnitAmount: 150,
-    name: 'Service 3',
-    startDate: '2019-01-16 17:58:15.519',
-    exemptFromCharges: false,
-    vat: 12,
-  }],
-}];
+const serviceList = [
+  {
+    _id: new ObjectId(),
+    nature: 'hourly',
+    company: authCompany._id,
+    versions: [
+      {
+        defaultUnitAmount: 150,
+        name: 'Service 3',
+        startDate: '2019-01-16 17:58:15.519',
+        exemptFromCharges: false,
+        vat: 12,
+      },
+    ],
+  },
+];
 
 const subscriptionId = new ObjectId();
 
 const tppId = new ObjectId();
-const tppList = [{
-  _id: tppId,
-  name: 'tiers payeur',
-  company: authCompany._id,
-  isApa: true,
-  billingMode: 'direct',
-}];
+const tppList = [
+  {
+    _id: tppId,
+    name: 'tiers payeur',
+    company: authCompany._id,
+    isApa: true,
+    billingMode: 'direct',
+  },
+];
 
 const subscriptionWithEndedFundingId = new ObjectId();
 
@@ -142,51 +150,59 @@ const customerList = [
     _id: new ObjectId(),
     company: authCompany._id,
     subscriptions: [{ _id: subscriptionId, service: serviceList[0]._id }],
-    fundings: [{
-      nature: HOURLY,
-      frequency: MONTHLY,
-      subscription: subscriptionId,
-      thirdPartyPayer: tppId,
-      versions: [{
-        _id: new ObjectId(),
-        startDate: moment().startOf('month').subtract(2, 'months').toDate(),
-        createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
-        unitTTCRate: 20,
-        customerParticipationRate: 60,
-        careHours: 40,
-        careDays: [0, 1, 2, 3, 4],
-      }],
-    },
-    {
-      nature: HOURLY,
-      frequency: ONCE,
-      subscription: subscriptionId,
-      thirdPartyPayer: tppId,
-      versions: [{
-        _id: new ObjectId(),
-        startDate: moment().startOf('month').subtract(2, 'months').toDate(),
-        createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
-        unitTTCRate: 20,
-        customerParticipationRate: 60,
-        careHours: 40,
-        careDays: [0, 1, 2, 3, 4],
-      }],
-    },
-    {
-      nature: FIXED,
-      frequency: MONTHLY,
-      subscription: subscriptionId,
-      thirdPartyPayer: tppId,
-      versions: [{
-        _id: new ObjectId(),
-        startDate: moment().startOf('month').subtract(2, 'months').toDate(),
-        createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
-        unitTTCRate: 20,
-        customerParticipationRate: 60,
-        careHours: 40,
-        careDays: [0, 1, 2, 3, 4],
-      }],
-    }],
+    fundings: [
+      {
+        nature: HOURLY,
+        frequency: MONTHLY,
+        subscription: subscriptionId,
+        thirdPartyPayer: tppId,
+        versions: [
+          {
+            _id: new ObjectId(),
+            startDate: moment().startOf('month').subtract(2, 'months').toDate(),
+            createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
+            unitTTCRate: 20,
+            customerParticipationRate: 60,
+            careHours: 40,
+            careDays: [0, 1, 2, 3, 4],
+          },
+        ],
+      },
+      {
+        nature: HOURLY,
+        frequency: ONCE,
+        subscription: subscriptionId,
+        thirdPartyPayer: tppId,
+        versions: [
+          {
+            _id: new ObjectId(),
+            startDate: moment().startOf('month').subtract(2, 'months').toDate(),
+            createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
+            unitTTCRate: 20,
+            customerParticipationRate: 60,
+            careHours: 40,
+            careDays: [0, 1, 2, 3, 4],
+          },
+        ],
+      },
+      {
+        nature: FIXED,
+        frequency: MONTHLY,
+        subscription: subscriptionId,
+        thirdPartyPayer: tppId,
+        versions: [
+          {
+            _id: new ObjectId(),
+            startDate: moment().startOf('month').subtract(2, 'months').toDate(),
+            createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
+            unitTTCRate: 20,
+            customerParticipationRate: 60,
+            careHours: 40,
+            careDays: [0, 1, 2, 3, 4],
+          },
+        ],
+      },
+    ],
     identity: { lastname: 'Giscard d\'Estaing' },
     contact: {
       primaryAddress: {
@@ -202,10 +218,7 @@ const customerList = [
   {
     _id: new ObjectId(),
     company: authCompany._id,
-    subscriptions: [{
-      _id: subscriptionWithEndedFundingId,
-      service: serviceList[0]._id,
-    }],
+    subscriptions: [{ _id: subscriptionWithEndedFundingId, service: serviceList[0]._id }],
     identity: { lastname: 'test' },
     contact: {
       primaryAddress: {
@@ -217,22 +230,26 @@ const customerList = [
       },
       phone: '0612345678',
     },
-    fundings: [{
-      nature: HOURLY,
-      frequency: MONTHLY,
-      subscription: subscriptionWithEndedFundingId,
-      thirdPartyPayer: tppId,
-      versions: [{
-        _id: new ObjectId(),
-        startDate: '2019-07-01T08:00:00.000+00:00',
-        endDate: '2019-07-01T10:00:00.000+00:00',
-        createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
-        unitTTCRate: 20,
-        customerParticipationRate: 60,
-        careHours: 40,
-        careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      }],
-    }],
+    fundings: [
+      {
+        nature: HOURLY,
+        frequency: MONTHLY,
+        subscription: subscriptionWithEndedFundingId,
+        thirdPartyPayer: tppId,
+        versions: [
+          {
+            _id: new ObjectId(),
+            startDate: '2019-07-01T08:00:00.000+00:00',
+            endDate: '2019-07-01T10:00:00.000+00:00',
+            createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
+            unitTTCRate: 20,
+            customerParticipationRate: 60,
+            careHours: 40,
+            careDays: [0, 1, 2, 3, 4, 5, 6, 7],
+          },
+        ],
+      },
+    ],
   },
 ];
 
@@ -466,15 +483,10 @@ const eventListForFollowUp = [
 
 const dayOfCurrentMonth = (day) => {
   const startOfMonth = moment().startOf('month');
-  if (!moment(startOfMonth)
-    .add('7', 'days')
-    .day(day).startOf('d')
-    .isHoliday()) return moment(startOfMonth).add('7', 'days').day(day);
-  if (!moment(startOfMonth)
-    .add('14', 'days')
-    .day(day).startOf('d')
-    .isHoliday()) return moment(startOfMonth).add('14', 'days').day(day);
-  return moment(startOfMonth).add('21', 'days').day(day);
+
+  if (!startOfMonth.add('7', 'days').day(day).startOf('d').isHoliday()) return startOfMonth.add('7', 'days').day(day);
+  if (!startOfMonth.add('14', 'days').day(day).startOf('d').isHoliday()) return startOfMonth.add('14', 'days').day(day);
+  return startOfMonth.add('21', 'days').day(day);
 };
 
 const mondayOfCurrentMonth = dayOfCurrentMonth(1);
@@ -483,15 +495,10 @@ const sundayOfCurrentMonth = dayOfCurrentMonth(0);
 
 const dayOfPreviousMonth = (day) => {
   const startOfMonth = moment().subtract(1, 'month').startOf('month');
-  if (!moment(startOfMonth)
-    .add('7', 'days')
-    .day(day).startOf('d')
-    .isHoliday()) return moment(startOfMonth).add('7', 'days').day(day);
-  if (!moment(startOfMonth)
-    .add('14', 'days')
-    .day(day).startOf('d')
-    .isHoliday()) return moment(startOfMonth).add('14', 'days').day(day);
-  return moment(startOfMonth).add('21', 'days').day(day);
+
+  if (!startOfMonth.add('7', 'days').day(day).startOf('d').isHoliday()) return startOfMonth.add('7', 'days').day(day);
+  if (!startOfMonth.add('14', 'days').day(day).startOf('d').isHoliday()) return startOfMonth.add('14', 'days').day(day);
+  return startOfMonth.add('21', 'days').day(day);
 };
 
 const tuesdayOfPreviousMonth = dayOfPreviousMonth(2);
@@ -616,27 +623,33 @@ const eventListForFundingsMonitoring = [
 ];
 
 const populateDBWithEventsForFollowup = async () => {
-  await Event.deleteMany();
-  await Event.insertMany(eventListForFollowUp);
+  await Promise.all([
+    Event.deleteMany(),
+    Event.insertMany(eventListForFollowUp),
+  ]);
 };
 
 const populateDBWithEventsForFundingsMonitoring = async () => {
-  await Event.deleteMany();
-  await Event.insertMany(eventListForFundingsMonitoring);
+  await Promise.all([
+    Event.deleteMany(),
+    Event.insertMany(eventListForFundingsMonitoring),
+  ]);
 };
 
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await User.create(userList);
-  await Customer.insertMany(customerList.concat(customerFromOtherCompany));
-  await Service.insertMany(serviceList);
-  await Sector.insertMany(sectorList);
-  await SectorHistory.insertMany(sectorHistoryList);
-  await Contract.insertMany(contractList);
-  await ThirdPartyPayer.insertMany(tppList);
-  await ReferentHistory.insertMany(referentList);
-  await UserCompany.insertMany(userCompanyList);
+  await Promise.all([
+    User.create(userList),
+    Customer.create(customerList.concat(customerFromOtherCompany)),
+    Service.create(serviceList),
+    Sector.create(sectorList),
+    SectorHistory.create(sectorHistoryList),
+    Contract.create(contractList),
+    ThirdPartyPayer.create(tppList),
+    ReferentHistory.create(referentList),
+    UserCompany.create(userCompanyList),
+  ]);
 };
 
 module.exports = {
