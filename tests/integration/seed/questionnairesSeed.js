@@ -100,15 +100,15 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    User.insertMany(traineeList),
-    UserCompany.insertMany(traineeCompanyList),
-    Questionnaire.insertMany(questionnairesList),
-    Card.insertMany(cardsList),
-    Course.insertMany(coursesList),
-    CourseSlot.insertMany(slots),
-    SubProgram.insertMany(subProgramsList),
-    Program.insertMany(programsList),
-    QuestionnaireHistory.insertMany(questionnaireHistories),
+    User.create(traineeList),
+    UserCompany.create(traineeCompanyList),
+    Questionnaire.create(questionnairesList),
+    Card.create(cardsList),
+    Course.create(coursesList),
+    CourseSlot.create(slots),
+    SubProgram.create(subProgramsList),
+    Program.create(programsList),
+    QuestionnaireHistory.create(questionnaireHistories),
   ]);
 };
 
