@@ -623,17 +623,11 @@ const eventListForFundingsMonitoring = [
 ];
 
 const populateDBWithEventsForFollowup = async () => {
-  await Promise.all([
-    Event.deleteMany(),
-    Event.insertMany(eventListForFollowUp),
-  ]);
+  await Promise.all([Event.create(eventListForFollowUp)]);
 };
 
 const populateDBWithEventsForFundingsMonitoring = async () => {
-  await Promise.all([
-    Event.deleteMany(),
-    Event.insertMany(eventListForFundingsMonitoring),
-  ]);
+  await Promise.all([Event.create(eventListForFundingsMonitoring)]);
 };
 
 const populateDB = async () => {
