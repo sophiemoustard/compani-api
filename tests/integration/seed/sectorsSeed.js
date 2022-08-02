@@ -20,21 +20,21 @@ const historyList = [
     _id: new ObjectId(),
     auxiliary: new ObjectId(),
     sector: sectorsList[0]._id,
-    startDate: '2020-03-20T00:00:00',
+    startDate: '2020-03-20T00:00:00.000Z',
     company: otherCompany._id,
   },
   {
     _id: new ObjectId(),
     auxiliary: new ObjectId(),
     sector: sectorsList[0]._id,
-    startDate: '2020-03-20T00:00:00',
+    startDate: '2020-03-20T00:00:00.000Z',
     company: otherCompany._id,
   },
   {
     _id: new ObjectId(),
     auxiliary: new ObjectId(),
     sector: sectorsList[1]._id,
-    startDate: '2020-03-20T00:00:00',
+    startDate: '2020-03-20T00:00:00.000Z',
     company: otherCompany._id,
   },
 ];
@@ -54,10 +54,12 @@ const userCompany = { _id: new ObjectId(), user: userFromOtherCompany._id, compa
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Sector.insertMany(sectorsList);
-  await SectorHistory.insertMany(historyList);
-  await User.create(userFromOtherCompany);
-  await UserCompany.create(userCompany);
+  await Promise.all([
+    Sector.create(sectorsList),
+    SectorHistory.create(historyList),
+    User.create(userFromOtherCompany),
+    UserCompany.create(userCompany),
+  ]);
 };
 
 module.exports = { sectorsList, populateDB, userFromOtherCompany };

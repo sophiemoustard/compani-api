@@ -13,7 +13,7 @@ const rolePayload = { name: 'Test', interface: 'client' };
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Role.insertMany(rolesList);
+  await Promise.all([Role.create(rolesList)]);
 };
 
 module.exports = {
