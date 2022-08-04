@@ -734,7 +734,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 if contract has en endDate', async () => {
+    it('should return a 403 if contract has an endDate', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/contracts/${contractsList[1]._id}/versions/${contractsList[1].versions[0]._id}`,
