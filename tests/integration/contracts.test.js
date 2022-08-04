@@ -670,7 +670,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
       authToken = await getToken('coach');
     });
 
-    it('should delete a contract version by id', async () => {
+    it('should delete a contract if deleting last version', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/contracts/${contractsList[5]._id}/versions/${contractsList[5].versions[0]._id}`,
@@ -681,7 +681,27 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
 
       const sectorHistories = await SectorHistory
         .countDocuments({ company: authCompany._id, auxiliary: contractsList[5].user, startDate: { $exists: false } });
-      expect(sectorHistories).toEqual(1);
+      expect(sectorHistories).toBe(1);
+      const contrat = await Contract.countDocuments({ _id: contractsList[5]._id });
+      expect(contrat).toBe(0);
+    });
+
+    it('should delete a contract version by id', async () => {
+      const contractBefore = await Contract.findOne({ _id: contractsList[4]._id }).lean();
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/contracts/${contractsList[4]._id}/versions/${contractsList[4].versions[1]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const contrat = await Contract.findOne({ _id: contractsList[4]._id }).lean();
+      const { versions: versionsBefore } = contractBefore;
+      versionsBefore.splice(versionsBefore.length - 1, 1);
+      versionsBefore[versionsBefore.length - 1] = omit(versionsBefore[versionsBefore.length - 1], 'endDate');
+      expect(omit(contrat, 'updatedAt')).toEqual({ ...omit(contractBefore, 'updatedAt') });
     });
 
     it('should return a 404 as user and contract are not in the same company', async () => {
@@ -698,6 +718,26 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/contracts/${contractsList[0]._id}/versions/${new ObjectId()}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 404 as contract does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/contracts/${new ObjectId()}/versions/${contractsList[0].versions[0]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 if contract has an endDate', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/contracts/${contractsList[1]._id}/versions/${contractsList[1].versions[0]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
