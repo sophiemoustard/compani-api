@@ -308,14 +308,14 @@ exports.deleteVersion = async (contractId, versionId, credentials) => {
     .lean({ virtuals: true });
   if (!contract) return;
 
-  const isLastVersion = contract.versions[contract.versions.length - 1]._id.toHexString() === versionId;
+  const isLastVersion = UtilsHelper.areObjectIdsEquals(contract.versions[contract.versions.length - 1]._id, versionId);
   if (!isLastVersion) throw Boom.forbidden();
   const deletedVersion = contract.versions[contract.versions.length - 1];
 
   if (contract.versions.length > 1) {
     contract.versions[contract.versions.length - 2].endDate = undefined;
     contract.versions.pop();
-    contract.save();
+    await Contract.updateOne({ _id: contract._id }, { $set: { versions: contract.versions } });
   } else {
     const { user, startDate } = contract;
     const query = { auxiliary: user._id, startDate, company: companyId };
