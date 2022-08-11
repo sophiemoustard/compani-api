@@ -13,6 +13,9 @@ const SurchargesHelper = require('./surcharges');
 const DatesHelper = require('./dates');
 const NumbersHelper = require('./numbers');
 const FundingsHelper = require('./fundings');
+const { CompaniDate } = require('./dates/companiDates');
+
+exports.getDurationInMinutes = (startDate, endDate) => CompaniDate(endDate).diff(startDate, 'minute', true).minute;
 
 const populateSurchargeAndBillingItem = (serviceVersions, surcharges, billingItems) => serviceVersions
   .map(v => ({
@@ -79,13 +82,13 @@ exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
  * @returns string
  */
 exports.getSurchargedPrice = (event, eventSurcharges, price) => {
-  const eventDuration = moment(event.endDate).diff(event.startDate, 'm');
+  const eventDuration = exports.getDurationInMinutes(event.startDate, event.endDate);
   if (!eventDuration) return '0';
 
   let coeff = NumbersHelper.multiply(eventDuration, 100);
   for (const surcharge of eventSurcharges) {
     if (surcharge.startHour) {
-      const surchargedDuration = moment(surcharge.endHour).diff(surcharge.startHour, 'm');
+      const surchargedDuration = exports.getDurationInMinutes(surcharge.startHour, surcharge.endHour);
       coeff = NumbersHelper.add(coeff, NumbersHelper.multiply(surchargedDuration, surcharge.percentage));
     } else {
       coeff = NumbersHelper.add(coeff, NumbersHelper.multiply(surcharge.percentage, eventDuration));
@@ -134,7 +137,7 @@ exports.getMatchingHistory = (event, funding) => {
  */
 exports.getHourlyFundingSplit = (event, funding, price) => {
   let thirdPartyPayerPrice = NumbersHelper.toString(0);
-  const time = moment(event.endDate).diff(moment(event.startDate), 'm');
+  const time = exports.getDurationInMinutes(event.startDate, event.endDate);
   const history = exports.getMatchingHistory(event, funding);
 
   let chargedTime = NumbersHelper.toString(0);
@@ -188,7 +191,7 @@ exports.getFixedFundingSplit = (event, funding, price) => {
     }
   }
 
-  const chargedTime = moment(event.endDate).diff(moment(event.startDate), 'm');
+  const chargedTime = exports.getDurationInMinutes(event.startDate, event.endDate);
 
   return {
     customerPrice: NumbersHelper.subtract(price, thirdPartyPayerPrice),
@@ -202,7 +205,7 @@ exports.getFixedFundingSplit = (event, funding, price) => {
 
 exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   const billing = {};
-  const eventDuration = NumbersHelper.divide(moment(event.endDate).diff(moment(event.startDate), 'm'), 60);
+  const eventDuration = NumbersHelper.divide(exports.getDurationInMinutes(event.startDate, event.endDate), 60);
   let price = service.nature === HOURLY
     ? NumbersHelper.multiply(eventDuration, unitTTCRate)
     : NumbersHelper.toString(unitTTCRate);
@@ -245,7 +248,7 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
     prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
   }
 
-  const eventDuration = moment(endDate).diff(moment(startDate), 'm');
+  const eventDuration = exports.getDurationInMinutes(startDate, endDate);
 
   return {
     eventsList: [...customerPrices.eventsList, { ...prices }],

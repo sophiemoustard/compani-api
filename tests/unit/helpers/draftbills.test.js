@@ -15,6 +15,13 @@ const FundingsHelper = require('../../../src/helpers/fundings');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const { BILLING_DIRECT, BILLING_INDIRECT, FIXED, HOURLY } = require('../../../src/helpers/constants');
 
+describe('getDurationInMinutes', () => {
+  it('should return exact event duration', () => {
+    const result = DraftBillsHelper.getDurationInMinutes('2022-10-03T09:01:17', '2022-10-03T09:31:29');
+    expect(result).toEqual(30.2);
+  });
+});
+
 describe('populateAndFormatSubscription', () => {
   it('should populate surcharge and billing items and sort versions', async () => {
     const surchargeId = new ObjectId();
