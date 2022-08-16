@@ -227,48 +227,41 @@ describe('populateFundings', () => {
 
 describe('getSurchargedPrice', () => {
   it('should return the price if there is no surcharge', () => {
-    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
-
-    const result = DraftBillsHelper.getSurchargedPrice(event, [], 11);
+    const result = DraftBillsHelper.getSurchargedPrice(360, [], 11);
 
     expect(result).toBe('11');
   });
 
-  it('should return the price if less than one minute', () => {
-    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T10:00:02.000+02:00' };
-
-    const result = DraftBillsHelper.getSurchargedPrice(event, [], 11);
+  it('should return 0 if event duration is 0', () => {
+    const result = DraftBillsHelper.getSurchargedPrice(0, [], 11);
 
     expect(result).toBe('0');
   });
 
   it('should return the price surcharged globally', () => {
-    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
     const surcharges = [{ percentage: 25 }];
-    const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 10);
+    const result = DraftBillsHelper.getSurchargedPrice(360, surcharges, 10);
 
     expect(result).toBe('12.5');
   });
 
   it('should return the price surcharged once', () => {
-    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
     const surcharges = [{
       percentage: 25,
-      startHour: moment(event.startDate).add(1, 'h'),
-      endHour: moment(event.startDate).add(2, 'h'),
+      startHour: '2019-06-29T11:00:00.000+02:00',
+      endHour: '2019-06-29T12:00:00.000+02:00',
     }];
-    const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 24);
+    const result = DraftBillsHelper.getSurchargedPrice(360, surcharges, 24);
 
     expect(result).toBe('25');
   });
 
   it('should return the price surcharged twice', () => {
-    const event = { startDate: '2019-06-29T10:00:00.000+02:00', endDate: '2019-06-29T16:00:00.000+02:00' };
     const surcharges = [
       { percentage: 25, startHour: '2019-06-29T11:00:00', endHour: '2019-06-29T12:00:00' },
       { percentage: 20, startHour: '2019-06-29T12:00:00', endHour: '2019-06-29T14:00:00' },
     ];
-    const result = DraftBillsHelper.getSurchargedPrice(event, surcharges, 24);
+    const result = DraftBillsHelper.getSurchargedPrice(360, surcharges, 24);
 
     expect(result).toBe('26.6');
   });
@@ -321,6 +314,7 @@ describe('getMatchingHistory', () => {
 
 describe('getHourlyFundingSplit', () => {
   const price = '50';
+  const eventMinutes = 120;
   const event = { startDate: '2019-02-12T08:00:00.000Z', endDate: '2019-02-12T10:00:00.000Z' };
   let getMatchingHistory;
   let getThirdPartyPayerPrice;
@@ -348,7 +342,7 @@ describe('getHourlyFundingSplit', () => {
     getMatchingHistory.returns({ careHours: '1' });
     getThirdPartyPayerPrice.returns('28');
 
-    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, price);
+    const result = DraftBillsHelper.getHourlyFundingSplit(event, eventMinutes, funding, price);
 
     expect(result.customerPrice).toEqual('22');
     expect(result.thirdPartyPayerPrice).toEqual('28');
@@ -370,7 +364,7 @@ describe('getHourlyFundingSplit', () => {
     getMatchingHistory.returns({ careHours: '3' });
     getThirdPartyPayerPrice.returns('14');
 
-    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, price);
+    const result = DraftBillsHelper.getHourlyFundingSplit(event, eventMinutes, funding, price);
 
     expect(result.customerPrice).toEqual('36');
     expect(result.thirdPartyPayerPrice).toEqual('14');
@@ -466,7 +460,7 @@ describe('getEventBilling', () => {
 
     expect(result).toEqual({ customerPrice: '46.2', thirdPartyPayerPrice: '0', surcharges: [{ percentage: 10 }] });
     sinon.assert.calledOnce(getEventSurcharges);
-    sinon.assert.calledWithExactly(getSurchargedPrice, event, [{ percentage: 10 }], '42');
+    sinon.assert.calledWithExactly(getSurchargedPrice, 120, [{ percentage: 10 }], '42');
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getFixedFundingSplit);
   });
@@ -487,7 +481,7 @@ describe('getEventBilling', () => {
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
 
     expect(result).toEqual({ customerPrice: '0', thirdPartyPayerPrice: '42' });
-    sinon.assert.calledWithExactly(getHourlyFundingSplit, event, funding, '21');
+    sinon.assert.calledWithExactly(getHourlyFundingSplit, event, 120, funding, '21');
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
     sinon.assert.notCalled(getSurchargedPrice);
@@ -531,7 +525,7 @@ describe('getEventBilling', () => {
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
 
     expect(result).toEqual({ customerPrice: '21.2', thirdPartyPayerPrice: '25', surcharges: [{ percentage: 10 }] });
-    sinon.assert.calledWithExactly(getHourlyFundingSplit, event, funding, '46.2');
+    sinon.assert.calledWithExactly(getHourlyFundingSplit, event, 120, funding, '46.2');
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.calledOnce(getEventSurcharges);
     sinon.assert.calledOnce(getSurchargedPrice);
