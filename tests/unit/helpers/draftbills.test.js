@@ -17,7 +17,7 @@ const { BILLING_DIRECT, BILLING_INDIRECT, FIXED, HOURLY } = require('../../../sr
 
 describe('getDurationInMinutes', () => {
   it('should return exact event duration', () => {
-    const result = DraftBillsHelper.getDurationInMinutes('2022-10-03T09:01:17', '2022-10-03T09:31:29');
+    const result = DraftBillsHelper.getDurationInMinutes('2022-10-03T09:01:17.000Z', '2022-10-03T09:31:29.000Z');
     expect(result).toEqual(30.2);
   });
 });
