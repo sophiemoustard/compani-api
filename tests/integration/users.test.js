@@ -1290,7 +1290,7 @@ describe('PUT /users/:id', () => {
       const updatePayload = {
         identity: { firstname: 'Riri' },
         contact: { phone: '0102030405' },
-        local: { email: 'norole.no_company@alenvi.io' },
+        local: { email: 'norole.nocompany@userseed.fr' },
         company: otherCompany._id,
       };
 
@@ -1311,7 +1311,7 @@ describe('PUT /users/:id', () => {
       const payload = {
         identity: { firstname: 'No', lastname: 'Body', socialSecurityNumber: 133333131 },
         contact: { phone: '0344543932' },
-        local: { email: 'norole.nocompany@alenvi.io' },
+        local: { email: 'norole.nocompany@userseed.fr' },
       };
 
       const response = await app.inject({

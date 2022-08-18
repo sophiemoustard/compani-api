@@ -37,7 +37,7 @@ describe('POST /users/authenticate', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'norole.nocompany@alenvi.io', password: 'fdsf5P56D', origin: 'mobile' },
+      payload: { email: 'norole.nocompany@userseed.fr', password: 'fdsf5P56D', origin: 'mobile' },
     });
 
     expect(response.statusCode).toBe(200);

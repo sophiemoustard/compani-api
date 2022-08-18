@@ -228,7 +228,7 @@ const usersSeedList = [
     _id: new ObjectId(),
     identity: { firstname: 'norole', lastname: 'no_company' },
     refreshToken: uuidv4(),
-    local: { email: 'norole.no_company@alenvi.io', password: 'fdsf5P56D' },
+    local: { email: 'norole.nocompany@userseed.fr', password: 'fdsf5P56D' },
     contact: { phone: '0798640728' },
     picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
     origin: MOBILE,
