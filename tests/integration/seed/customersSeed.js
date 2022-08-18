@@ -255,7 +255,7 @@ const customersList = [
         },
       ],
       helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
-      approvalDate: '2018-01-01T10:00:00.000+01:00',
+      approvalDate: '2018-01-01T10:00:00.000Z',
     }],
     payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
     quotes: [{
@@ -784,110 +784,108 @@ const referentHistories = [
   },
 ];
 
-const otherCompanyCustomer = {
-  company: otherCompany._id,
-  _id: otherCompanyCustomerId,
-  name: 'notFromCompany',
-  prefixNumber: 103,
-  identity: {
-    title: 'mr',
-    firstname: 'test',
-    lastname: 'test',
-  },
-  driveFolder: { driveId: '09876543' },
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de Ponthieu 75018 Paris',
-      zipCode: '75018',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+const otherCompanyCustomers = [
+  {
+    company: otherCompany._id,
+    _id: otherCompanyCustomerId,
+    identity: {
+      title: 'mr',
+      firstname: 'test',
+      lastname: 'test',
     },
-    phone: '0698765432',
-  },
-  subscriptions: [
-    {
+    driveFolder: { driveId: '09876543' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de Ponthieu 75018 Paris',
+        zipCode: '75018',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0698765432',
+    },
+    subscriptions: [{
       _id: new ObjectId(),
       service: serviceIdList[0],
-      versions: [{
-        unitTTCRate: 12,
-        weeklyHours: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
-    },
-    {
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+    }, {
       _id: new ObjectId(),
       service: serviceIdList[1],
-      versions: [{
-        unitTTCRate: 12,
-        weeklyHours: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
-    },
-  ],
-  subscriptionsHistory: [{
-    subscriptions: [{
-      unitTTCRate: 12,
-      weeklyHours: 12,
-      evenings: 2,
-      sundays: 1,
-      service: 'Service 1',
-    }, {
-      unitTTCRate: 12,
-      weeklyHours: 12,
-      evenings: 2,
-      sundays: 1,
-      service: 'Service 2',
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
-    helper: {
-      firstname: 'Vladimir',
-      lastname: 'Poutine',
-      title: 'mr',
+    subscriptionsHistory: [{
+      subscriptions: [
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, service: 'Service 1' },
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, service: 'Service 2' },
+      ],
+      helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
+      approvalDate: '2018-01-01T10:00:00.000Z',
+    }],
+    payment: {
+      bankAccountOwner: 'David gaudu',
+      iban: '',
+      bic: '',
+      mandates: [{ _id: new ObjectId(), rum: 'R012345678903456789' }],
     },
-    approvalDate: '2018-01-01T10:00:00.000+01:00',
-  }],
-  payment: {
-    bankAccountOwner: 'David gaudu',
-    iban: '',
-    bic: '',
-    mandates: [
+    quotes: [{
+      _id: new ObjectId(),
+      subscriptions: [
+        { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+        { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
+      ],
+    }],
+    fundings: [
       {
         _id: new ObjectId(),
-        rum: 'R012345678903456789',
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
+        subscription: subIdList[2],
+        frequency: ONCE,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
+          endDate: moment.utc().add(6, 'months').toDate(),
+          effectiveDate: moment.utc().toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        }],
       },
     ],
   },
-  quotes: [{
+  {
+    company: otherCompany._id,
     _id: new ObjectId(),
-    subscriptions: [
-      { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
-      { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
-    ],
-  }],
-  fundings: [
-    {
-      _id: new ObjectId(),
-      nature: FIXED,
-      thirdPartyPayer: customerThirdPartyPayers[0]._id,
-      subscription: subIdList[2],
-      frequency: ONCE,
-      versions: [{
-        folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
-        endDate: moment.utc().add(6, 'months').toDate(),
-        effectiveDate: moment.utc().toDate(),
-        amountTTC: 120,
-        customerParticipationRate: 10,
-        careDays: [0, 1, 2, 3, 4, 5, 6],
-      }],
+    identity: { title: 'mr', firstname: 'akatest', lastname: 'test' },
+    driveFolder: { driveId: '09876543' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de Ponthieu 75018 Paris',
+        zipCode: '75018',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0698765432',
     },
-  ],
-};
+    subscriptions: [{
+      _id: new ObjectId(),
+      service: serviceIdList[0],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+    }],
+    subscriptionsHistory: [{
+      subscriptions: [
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, service: 'Service 1' },
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, service: 'Service 2' },
+      ],
+      helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
+      approvalDate: '2018-01-01T10:00:00.000Z',
+    }],
+  },
+];
 
 const userList = [
-  {
+  { // 0
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer', lastname: 'TheEtMoselle' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
@@ -895,7 +893,7 @@ const userList = [
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer2', lastname: 'Rtre' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
@@ -903,7 +901,7 @@ const userList = [
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
@@ -911,7 +909,7 @@ const userList = [
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Caragua' },
     local: { email: 'helper_for_customer_other_company@alenvi.io' },
@@ -919,7 +917,7 @@ const userList = [
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456!eR' },
@@ -927,7 +925,7 @@ const userList = [
     role: { client: clientAdminRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 5
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Devo' },
     local: { email: 'auxforevent@alenvi.io', password: '123456!eR' },
@@ -935,7 +933,7 @@ const userList = [
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 6
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Vé' },
     local: { email: 'auxforcustomer@alenvi.io', password: '123456!eR' },
@@ -943,7 +941,7 @@ const userList = [
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 7
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomerToDelete', lastname: 'TheEtMoselle' },
     local: { email: 'helper_for_customer_to_delete@alenvi.io', password: '123456!eR' },
@@ -956,6 +954,7 @@ const userList = [
 const sectorsList = [
   { _id: new ObjectId(), name: 'Super Equipe', company: authCompany._id },
   { _id: new ObjectId(), name: 'Equipe Genial', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Autre equipe Genial', company: otherCompany._id },
 ];
 
 const sectorHistoriesList = [
@@ -1221,6 +1220,24 @@ const eventList = [
       location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
+  { // 13
+    _id: new ObjectId(),
+    company: otherCompany._id,
+    isBilled: true,
+    customer: otherCompanyCustomers[0]._id,
+    type: 'intervention',
+    sector: sectorsList[2]._id,
+    subscription: otherCompanyCustomers[0].subscriptions[0]._id,
+    startDate: new Date().setDate(new Date().getDate() + 1, 0, 0),
+    endDate: new Date().setDate(new Date().getDate() + 1, 1, 0),
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
 ];
 
 const customerAbsenceList = [
@@ -1304,7 +1321,7 @@ const populateDB = async () => {
   await Promise.all([
     Bill.create(billList),
     CreditNote.create(creditNote),
-    Customer.create([...customersList, otherCompanyCustomer]),
+    Customer.create([...customersList, ...otherCompanyCustomers]),
     CustomerAbsence.create(customerAbsenceList),
     CustomerPartner.create(customerPartnersList),
     Event.create(eventList),
@@ -1331,6 +1348,6 @@ module.exports = {
   archivedService,
   serviceIdList,
   customerThirdPartyPayers,
-  otherCompanyCustomer,
+  otherCompanyCustomers,
   sectorsList,
 };
