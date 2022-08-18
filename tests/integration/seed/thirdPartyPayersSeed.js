@@ -29,7 +29,9 @@ const thirdPartyPayerFromOtherCompany = {
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await ThirdPartyPayer.insertMany([...thirdPartyPayersList, thirdPartyPayerFromOtherCompany]);
+  await Promise.all([
+    ThirdPartyPayer.create([...thirdPartyPayersList, thirdPartyPayerFromOtherCompany]),
+  ]);
 };
 
 module.exports = { thirdPartyPayersList, populateDB, thirdPartyPayerFromOtherCompany };

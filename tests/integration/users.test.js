@@ -1157,7 +1157,7 @@ describe('PUT /users/:id', () => {
       const role = await Role.findOne({ name: HELPER }).lean();
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${userList[6]._id}`,
+        url: `/users/${usersSeedList[10]._id}`,
         payload: { customer: customerFromOtherCompany._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1249,14 +1249,14 @@ describe('PUT /users/:id', () => {
     it('should update trainer', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${trainer._id.toHexString()}`,
+        url: `/users/${usersSeedList[11]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'trainerUpdate' }, biography: 'It\'s my life' },
       });
 
       expect(res.statusCode).toBe(200);
       const updatedTrainer = await User
-        .countDocuments({ _id: trainer._id, 'identity.firstname': 'trainerUpdate' });
+        .countDocuments({ _id: usersSeedList[11]._id, 'identity.firstname': 'trainerUpdate' });
       expect(updatedTrainer).toBeTruthy();
     });
 
@@ -1290,19 +1290,19 @@ describe('PUT /users/:id', () => {
       const updatePayload = {
         identity: { firstname: 'Riri' },
         contact: { phone: '0102030405' },
-        local: { email: 'norole.nocompany@alenvi.io' },
+        local: { email: 'norole.no_company@alenvi.io' },
         company: otherCompany._id,
       };
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${userList[11]._id.toHexString()}`,
+        url: `/users/${usersSeedList[12]._id.toHexString()}`,
         payload: updatePayload,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      const userUpdated = await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
+      const userUpdated = await User.countDocuments({ _id: usersSeedList[12]._id, 'identity.firstname': 'Riri' });
       expect(userUpdated).toBeTruthy();
     });
 
@@ -1345,32 +1345,30 @@ describe('PUT /users/:id', () => {
 
   describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      authToken = await getTokenByCredentials(usersSeedList[12].local);
     });
 
     it('should update user if it is me', async () => {
       const updatePayload = { identity: { firstname: 'Riri' }, local: { email: 'riri@alenvi.io' } };
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${userList[11]._id.toHexString()}`,
+        url: `/users/${usersSeedList[12]._id.toHexString()}`,
         payload: updatePayload,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      const userUpdated = await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
+      const userUpdated = await User.countDocuments({ _id: usersSeedList[12]._id, 'identity.firstname': 'Riri' });
       expect(userUpdated).toBeTruthy();
     });
 
     it('should not update another field than allowed ones', async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
-      const userId = noRoleNoCompany._id;
+      const userId = usersSeedList[12]._id;
       const payload = {
         identity: { firstname: 'No', lastname: 'Body' },
         contact: { phone: '0344543932' },
-        local: { email: noRoleNoCompany.local.email },
+        local: { email: usersSeedList[12].local.email },
         picture: { link: 'test' },
       };
 
@@ -1397,7 +1395,7 @@ describe('PUT /users/:id', () => {
 
         const response = await app.inject({
           method: 'PUT',
-          url: `/users/${userList[1]._id.toHexString()}`,
+          url: `/users/${usersSeedList[2]._id.toHexString()}`,
           payload: { identity: { firstname: 'Riri' } },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -1925,7 +1923,7 @@ describe('DELETE /users/:id/upload', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const user = userList[0];
+        const user = usersSeedList[6];
         const response = await app.inject({
           method: 'DELETE',
           url: `/users/${user._id}/upload`,

@@ -61,7 +61,9 @@ const surchargeFromOtherCompany = {
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Surcharge.create([...surchargesList, surchargeFromOtherCompany]);
+  await Promise.all([
+    Surcharge.create([...surchargesList, surchargeFromOtherCompany]),
+  ]);
 };
 
 module.exports = { surchargesList, populateDB, surchargeFromOtherCompany };
