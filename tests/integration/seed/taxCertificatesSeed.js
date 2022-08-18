@@ -106,12 +106,14 @@ const helpersList = [{ customer: customersList[0]._id, user: helper._id, company
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Customer.insertMany(customersList);
-  await TaxCertificate.insertMany(taxCertificatesList);
-  await User.create(helper);
-  await Payment.insertMany(paymentList);
-  await Helper.insertMany(helpersList);
-  await UserCompany.insertMany(userCompaniesList);
+  await Promise.all([
+    Customer.create(customersList),
+    TaxCertificate.create(taxCertificatesList),
+    User.create(helper),
+    Payment.create(paymentList),
+    Helper.create(helpersList),
+    UserCompany.create(userCompaniesList),
+  ]);
 };
 
 module.exports = {

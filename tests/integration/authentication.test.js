@@ -5,7 +5,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const { usersSeedList, populateDB, auxiliaryFromOtherCompany } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { userList, noRoleNoCompany } = require('../seed/authUsersSeed');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
 const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
@@ -23,7 +23,7 @@ describe('POST /users/authenticate', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '123456!eR', origin: 'webapp' },
+      payload: { email: 'carolyn@alenvi.io', password: '123456!eR', origin: 'webapp' },
     });
 
     expect(response.statusCode).toBe(200);
@@ -37,7 +37,7 @@ describe('POST /users/authenticate', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'norole.nocompany@alenvi.io', password: 'fdsf5P56D', origin: 'mobile' },
+      payload: { email: 'norole.nocompany@userseed.fr', password: 'fdsf5P56D', origin: 'mobile' },
     });
 
     expect(response.statusCode).toBe(200);
@@ -50,7 +50,7 @@ describe('POST /users/authenticate', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io' },
+      payload: { email: 'black@alenvi.io' },
     });
     expect(res.statusCode).toBe(400);
   });
@@ -68,7 +68,7 @@ describe('POST /users/authenticate', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '7890' },
+      payload: { email: 'black@alenvi.io', password: '7890' },
     });
     expect(res.statusCode).toBe(401);
   });
@@ -131,7 +131,7 @@ describe('POST /users/:id/passwordtoken', () => {
 
         const response = await app.inject({
           method: 'POST',
-          url: `/users/${userList[1]._id}/passwordtoken`,
+          url: `/users/${usersSeedList[6]._id}/passwordtoken`,
           payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });

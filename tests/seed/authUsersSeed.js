@@ -110,7 +110,7 @@ const userList = [
     _id: new ObjectId(),
     identity: { firstname: 'norole', lastname: 'nocompany' },
     refreshToken: uuidv4(),
-    local: { email: 'norole.nocompany@alenvi.io', password: 'fdsf5P56D' },
+    local: { email: 'norole.nocompany@authuserseed.fr', password: 'fdsf5P56D' },
     contact: { phone: '0798640728' },
     picture: { link: 'qwertyuio', pictureId: 'poiuytrew' },
     origin: MOBILE,
@@ -141,7 +141,7 @@ const userCompaniesList = [
 ];
 
 const trainer = userList.find(u => u.local.email === 'trainer@alenvi.io');
-const noRoleNoCompany = userList.find(u => u.local.email === 'norole.nocompany@alenvi.io');
+const noRoleNoCompany = userList.find(u => u.local.email === 'norole.nocompany@authuserseed.fr');
 const noRole = userList.find(u => u.local.email === 'norole@alenvi.io');
 const vendorAdmin = userList.find(u => u.local.email === 'vendor-admin@alenvi.io');
 const helper = userList.find(u => u.local.email === 'helper@alenvi.io');
