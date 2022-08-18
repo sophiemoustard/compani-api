@@ -50,7 +50,7 @@ describe('POST /users/authenticate', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io' },
+      payload: { email: 'black@alenvi.io' },
     });
     expect(res.statusCode).toBe(400);
   });
@@ -68,7 +68,7 @@ describe('POST /users/authenticate', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '7890' },
+      payload: { email: 'black@alenvi.io', password: '7890' },
     });
     expect(res.statusCode).toBe(401);
   });
