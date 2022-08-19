@@ -665,7 +665,7 @@ describe('CUSTOMERS ROUTES', () => {
         });
 
         expect(result.statusCode).toBe(200);
-        expect(Object.keys(result.result.data.customer.contact.secondaryAddress).length).toEqual(0);
+        expect(result.result.data.customer.contact.secondaryAddress).toEqual({});
       });
 
       it('should update status and delete customer\'s events and absences', async () => {
@@ -1619,7 +1619,7 @@ describe('CUSTOMERS MANDATES ROUTES', () => {
       });
 
       it('should update customer mandate', async () => {
-        const payload = { signedAt: '2019-09-09T00:00:00.00Z' };
+        const payload = { signedAt: '2019-09-09T00:00:00.000Z' };
 
         const result = await app.inject({
           method: 'PUT',
@@ -1634,7 +1634,7 @@ describe('CUSTOMERS MANDATES ROUTES', () => {
       });
 
       it('should return 404 if mandate not found', async () => {
-        const payload = { signedAt: '2019-09-09T00:00:00.00Z' };
+        const payload = { signedAt: '2019-09-09T00:00:00.000Z' };
 
         const result = await app.inject({
           method: 'PUT',
@@ -1647,7 +1647,7 @@ describe('CUSTOMERS MANDATES ROUTES', () => {
       });
 
       it('should return 404 if user not from same company', async () => {
-        const payload = { signedAt: '2019-09-09T00:00:00.00Z' };
+        const payload = { signedAt: '2019-09-09T00:00:00.000Z' };
         const customer = otherCompanyCustomers[0];
 
         const result = await app.inject({
@@ -1741,7 +1741,7 @@ describe('CUSTOMERS MANDATES ROUTES', () => {
       },
     };
 
-    describe('Helper', () => {
+    describe('HELPER', () => {
       it('should create a mandate signature request if I am its helper', async () => {
         authToken = await getTokenByCredentials(userList[1].local);
         const res = await app.inject({
@@ -2121,8 +2121,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           frequency: MONTHLY,
           versions: [{
             folderNumber: 'D123456',
-            startDate: '2021-01-01T00:00:00.00Z',
-            endDate: '2021-03-01T23:59:59.00Z',
+            startDate: '2021-01-01T00:00:00.000Z',
+            endDate: '2021-03-01T23:59:59.000Z',
             amountTTC: 120,
             customerParticipationRate: 10,
             careDays: [2, 5],
@@ -2149,7 +2149,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           frequency: MONTHLY,
           versions: [{
             folderNumber: 'D123456',
-            startDate: '2021-01-01T00:00:00.00Z',
+            startDate: '2021-01-01T00:00:00.000Z',
             amountTTC: 120,
             customerParticipationRate: 10,
             careDays: [2, 5],
@@ -2173,8 +2173,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           frequency: MONTHLY,
           versions: [{
             folderNumber: 'D123456',
-            startDate: '2021-01-01T00:00:00.00Z',
-            endDate: '2021-03-01T23:59:59.00Z',
+            startDate: '2021-01-01T00:00:00.000Z',
+            endDate: '2021-03-01T23:59:59.000Z',
             amountTTC: 120,
             customerParticipationRate: 10,
             careDays: [2, 5],
@@ -2199,8 +2199,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           frequency: MONTHLY,
           versions: [{
             folderNumber: 'D123456',
-            startDate: '2021-01-01T00:00:00.00Z',
-            endDate: '2020-03-01T23:59:59.00Z',
+            startDate: '2021-01-01T00:00:00.000Z',
+            endDate: '2020-03-01T23:59:59.000Z',
             amountTTC: 120,
             customerParticipationRate: 10,
             careDays: [2, 5],
@@ -2224,8 +2224,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           frequency: MONTHLY,
           versions: [{
             folderNumber: 'D123456',
-            startDate: '2021-01-01T00:00:00.00Z',
-            endDate: '2021-03-01T23:59:59.00Z',
+            startDate: '2021-01-01T00:00:00.000Z',
+            endDate: '2021-03-01T23:59:59.000Z',
             amountTTC: 120,
             customerParticipationRate: 10,
             careDays: [2, 5],
@@ -2250,8 +2250,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           frequency: MONTHLY,
           versions: [{
             folderNumber: 'D123456',
-            startDate: '2021-01-01T00:00:00.00Z',
-            endDate: '2021-03-01T23:59:59.00Z',
+            startDate: '2021-01-01T00:00:00.000Z',
+            endDate: '2021-03-01T23:59:59.000Z',
             amountTTC: 120,
             customerParticipationRate: 10,
             careDays: [2, 5],
@@ -2278,8 +2278,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
             frequency: MONTHLY,
             versions: [{
               folderNumber: 'D123456',
-              startDate: '2021-01-01T00:00:00.00Z',
-              endDate: '2021-03-01T23:59:59.00Z',
+              startDate: '2021-01-01T00:00:00.000Z',
+              endDate: '2021-03-01T23:59:59.000Z',
               amountTTC: 120,
               customerParticipationRate: 10,
               careDays: [2, 5],
@@ -2305,8 +2305,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           frequency: MONTHLY,
           versions: [{
             folderNumber: 'D123456',
-            startDate: '2021-01-01T00:00:00.00Z',
-            endDate: '2021-03-01T23:59:59.00Z',
+            startDate: '2021-01-01T00:00:00.000Z',
+            endDate: '2021-03-01T23:59:59.000Z',
             amountTTC: 120,
             customerParticipationRate: 10,
             careDays: [2, 5],
@@ -2334,8 +2334,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         frequency: MONTHLY,
         versions: [{
           folderNumber: 'D123456',
-          startDate: '2021-01-01T00:00:00.00Z',
-          endDate: '2021-03-01T23:59:59.00Z',
+          startDate: '2021-01-01T00:00:00.000Z',
+          endDate: '2021-03-01T23:59:59.000Z',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
@@ -2375,7 +2375,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           subscription: customer.subscriptions[0]._id,
           amountTTC: 90,
           customerParticipationRate: 20,
-          startDate: '2021-01-01T00:00:00.00Z',
+          startDate: '2021-01-01T00:00:00.000Z',
           endDate: '',
           careDays: [1, 3],
           fundingPlanId: '12345',
@@ -2401,8 +2401,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           subscription: customersList[0].subscriptions[0]._id,
           amountTTC: 90,
           customerParticipationRate: 20,
-          startDate: '2021-01-01T00:00:00.00Z',
-          endDate: '2020-03-01T23:59:59.00Z',
+          startDate: '2021-01-01T00:00:00.000Z',
+          endDate: '2020-03-01T23:59:59.000Z',
           careDays: [1, 3],
         };
 
@@ -2421,8 +2421,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           subscription: customersList[0].subscriptions[0]._id,
           amountTTC: 90,
           customerParticipationRate: 20,
-          startDate: '2021-01-01T00:00:00.00Z',
-          endDate: '2021-03-01T23:59:59.00Z',
+          startDate: '2021-01-01T00:00:00.000Z',
+          endDate: '2021-03-01T23:59:59.000Z',
           careDays: [1, 3],
           fundingPlanId: '',
         };
@@ -2442,8 +2442,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           subscription: customersList[0].subscriptions[0]._id,
           amountTTC: 90,
           customerParticipationRate: 20,
-          startDate: '2021-01-01T00:00:00.00Z',
-          endDate: '2021-03-01T23:59:59.00Z',
+          startDate: '2021-01-01T00:00:00.000Z',
+          endDate: '2021-03-01T23:59:59.000Z',
           careDays: [1, 3],
           fundingPlanId: 12345,
         };
@@ -2463,8 +2463,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           subscription: otherCompanyCustomers[0].subscriptions[0]._id,
           amountTTC: 90,
           customerParticipationRate: 20,
-          startDate: '2021-01-01T00:00:00.00Z',
-          endDate: '2021-03-01T23:59:59.00Z',
+          startDate: '2021-01-01T00:00:00.000Z',
+          endDate: '2021-03-01T23:59:59.000Z',
           careDays: [1, 3],
         };
 
@@ -2484,8 +2484,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         subscription: customersList[0].subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
-        startDate: '2021-01-01T00:00:00.00Z',
-        endDate: '2021-03-01T23:59:59.00Z',
+        startDate: '2021-01-01T00:00:00.000Z',
+        endDate: '2021-03-01T23:59:59.000Z',
         careDays: [1, 3],
       };
 
@@ -2527,7 +2527,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         expect(result.statusCode).toBe(200);
       });
 
-      it('should not delete customer funding if customer is not from same company', async () => {
+      it('should return 404 if customer is not from same company', async () => {
         const result = await app.inject({
           method: 'DELETE',
           url: `/customers/${otherCompanyCustomers[0]._id}/fundings/${otherCompanyCustomers[0].fundings[0]._id}`,
@@ -2537,7 +2537,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         expect(result.statusCode).toBe(404);
       });
 
-      it('should not delete customer funding if used in bill', async () => {
+      it('should not return 403 if customer funding is used in bill', async () => {
         const result = await app.inject({
           method: 'DELETE',
           url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[1]._id}`,
