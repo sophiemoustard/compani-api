@@ -2537,7 +2537,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         expect(result.statusCode).toBe(404);
       });
 
-      it('should not return 403 if customer funding is used in bill', async () => {
+      it('should return 403 if customer funding is used in bill', async () => {
         const result = await app.inject({
           method: 'DELETE',
           url: `/customers/${customersList[0]._id}/fundings/${customersList[0].fundings[1]._id}`,

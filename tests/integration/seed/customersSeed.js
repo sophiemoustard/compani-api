@@ -898,7 +898,7 @@ const userList = [
   { // 2
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
-    local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
+    local: { email: 'helper_for_customer_customer4@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
     origin: WEBAPP,
@@ -922,7 +922,7 @@ const userList = [
   { // 5
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Devo' },
-    local: { email: 'auxforevent@alenvi.io', password: '123456!eR' },
+    local: { email: 'auxforevent@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
@@ -930,7 +930,7 @@ const userList = [
   { // 6
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Vé' },
-    local: { email: 'auxforcustomer@alenvi.io', password: '123456!eR' },
+    local: { email: 'auxforcustomer@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
@@ -938,7 +938,7 @@ const userList = [
   { // 7
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomerToDelete', lastname: 'TheEtMoselle' },
-    local: { email: 'helper_for_customer_to_delete@alenvi.io', password: '123456!eR' },
+    local: { email: 'helper_for_customer_to_delete@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
     origin: WEBAPP,
