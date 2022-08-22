@@ -19,7 +19,7 @@ const TaxCertificate = require('../../models/TaxCertificate');
 const { language } = translate;
 
 exports.validateCustomerCompany = async (params, payload, companyId) => {
-  let query = { _id: params._id };
+  let query = { _id: params._id, company: companyId };
   if (params.subscriptionId) query = { ...query, 'subscriptions._id': params.subscriptionId };
   else if (params.mandateId) query = { ...query, 'payment.mandates._id': params.mandateId };
   else if (params.quoteId) query = { ...query, 'quotes._id': params.quoteId };
@@ -28,14 +28,14 @@ exports.validateCustomerCompany = async (params, payload, companyId) => {
     if (payload && payload.subscription) query = { ...query, 'subscriptions._id': payload.subscription };
   }
 
-  const customer = await Customer.findOne(query).lean();
+  const customer = await Customer.countDocuments(query);
   if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
-  if (!UtilsHelper.areObjectIdsEquals(customer.company, companyId)) throw Boom.forbidden();
+  return null;
 };
 
 exports.authorizeCustomerUpdate = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id', null);
+  const companyId = get(req, 'auth.credentials.company._id');
   await exports.validateCustomerCompany(req.params, req.payload, companyId);
   const { payload } = req;
 
@@ -70,9 +70,10 @@ exports.authorizeCustomerUpdate = async (req) => {
     }
 
     if (payload.stoppedAt) {
-      const customer = await Customer.countDocuments(
-        { _id: req.params._id, $or: [{ stoppedAt: { $exists: true } }, { createdAt: { $gt: payload.stoppedAt } }] }
-      );
+      const customer = await Customer.countDocuments({
+        _id: req.params._id,
+        $or: [{ stoppedAt: { $exists: true } }, { createdAt: { $gt: payload.stoppedAt } }],
+      });
       if (customer) return Boom.forbidden();
     }
 
