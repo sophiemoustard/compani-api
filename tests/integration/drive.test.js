@@ -65,12 +65,13 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
       sinon.assert.calledOnce(addFileStub);
     });
 
-    const missingParams = ['file', 'fileName'];
+    const missingParams = ['file', 'fileName', 'type'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' params is missing`, async () => {
         const payload = {
           file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           fileName: 'absence',
+          type: 'file',
         };
         const form = generateFormData(omit(payload, param));
         const response = await app.inject({
@@ -88,7 +89,7 @@ describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
   });
 });
 
-describe('DELETE /gdrive/file/:id', () => {
+describe(' GOOGLE DRIVE ROUTES - DELETE /gdrive/file/:id', () => {
   let authToken;
   describe('NO_ROLE_NO_COMPANY', () => {
     let deleteFileStub;
@@ -130,7 +131,7 @@ describe('DELETE /gdrive/file/:id', () => {
   });
 });
 
-describe('GET /gdrive/file/:id', () => {
+describe('GOOGLE DRIVE ROUTES - GET /gdrive/file/:id', () => {
   let authToken;
   describe('NO_ROLE_NO_COMPANY', () => {
     const userFileId = auxiliary.administrative.passport.driveId;
@@ -180,7 +181,7 @@ describe('GET /gdrive/file/:id', () => {
   });
 });
 
-describe('GET /gdrive/list', () => {
+describe('GOOGLE DRIVE ROUTES - GET /gdrive/list', () => {
   let authToken;
   describe('NO_ROLE_NO_COMPANY', () => {
     const userFolderId = auxiliary.administrative.driveFolder.driveId;
@@ -234,7 +235,7 @@ describe('GET /gdrive/list', () => {
   });
 });
 
-describe('POST /gdrive/generatedocx', () => {
+describe('GOOGLE DRIVE ROUTES - POST /gdrive/generatedocx', () => {
   let authToken;
   describe('NO_ROLE_NO_COMPANY', () => {
     let generateDocxStub;
@@ -267,7 +268,7 @@ describe('POST /gdrive/generatedocx', () => {
   });
 });
 
-describe('POST /gdrive/file/:id/download', () => {
+describe('GOOGLE DRIVE ROUTES - POST /gdrive/file/:id/download', () => {
   let authToken;
   describe('NO_ROLE_NO_COMPANY', () => {
     let downloadFileStub;

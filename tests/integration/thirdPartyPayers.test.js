@@ -121,7 +121,7 @@ describe('THIRD PARTY PAYERS ROUTES - POST /thirdpartypayers', () => {
   });
 });
 
-describe('GET /thirdpartypayers', () => {
+describe('THIRD PARTY PAYERS ROUTES - GET /thirdpartypayers', () => {
   let authToken;
 
   describe('COACH', () => {
@@ -138,7 +138,7 @@ describe('GET /thirdpartypayers', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const thirdPartyPayerCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id }).lean();
+      const thirdPartyPayerCount = await ThirdPartyPayer.countDocuments({ company: authCompany._id });
       expect(response.result.data.thirdPartyPayers.length).toEqual(thirdPartyPayerCount);
     });
   });
@@ -166,7 +166,7 @@ describe('GET /thirdpartypayers', () => {
   });
 });
 
-describe('PUT /thirdpartypayers/:id', () => {
+describe('THIRD PARTY PAYERS ROUTES - PUT /thirdpartypayers/:id', () => {
   let authToken;
   const payload = {
     name: 'SuperTest',
@@ -354,7 +354,7 @@ describe('PUT /thirdpartypayers/:id', () => {
   });
 });
 
-describe('DELETE /thirdpartypayers/:id', () => {
+describe('THIRD PARTY PAYERS ROUTES - DELETE /thirdpartypayers/:id', () => {
   let authToken;
 
   describe('CLIENT_ADMIN', () => {
@@ -363,16 +363,16 @@ describe('DELETE /thirdpartypayers/:id', () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should delete company thirdPartyPayer', async () => {
-      const thirdPartyPayerBefore = await ThirdPartyPayer.countDocuments({ company: authCompany._id }).lean();
+    it('should delete company thirdPartyPayer #tag', async () => {
+      const ttpLengthBefore = await ThirdPartyPayer.countDocuments({ company: authCompany._id });
       const response = await app.inject({
         method: 'DELETE',
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
       expect(response.statusCode).toBe(200);
-      const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
-      expect(thirdPartyPayers.length).toBe(thirdPartyPayerBefore - 1);
+      const ttpLengthAfter = await ThirdPartyPayer.countDocuments({ company: authCompany._id });
+      expect(ttpLengthAfter).toBe(ttpLengthBefore - 1);
     });
 
     it('should return a 404 error if ttp is not from the same company', async () => {

@@ -143,7 +143,7 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
   });
 });
 
-describe('TAX CERTIFICATES - POST /', () => {
+describe('TAX CERTIFICATES ROUTES - POST /', () => {
   let authToken;
   describe('COACH', () => {
     let addStub;
@@ -289,13 +289,13 @@ describe('TAX CERTIFICATES - POST /', () => {
     });
 
     const roles = [
-      { name: 'vendor_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403 },
       { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
         const docPayload = {
           taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
@@ -322,7 +322,7 @@ describe('TAX CERTIFICATES - POST /', () => {
   });
 });
 
-describe('TAX CERTIFICATES - DELETE /', () => {
+describe('TAX CERTIFICATES ROUTES - DELETE /', () => {
   let authToken;
   describe('COACH', () => {
     beforeEach(populateDB);

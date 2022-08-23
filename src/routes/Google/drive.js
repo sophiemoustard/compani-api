@@ -60,9 +60,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({ folderId: Joi.string(), nextPageToken: Joi.string() }),
         },
-        auth: {
-          strategy: 'jwt',
-        },
+        auth: { strategy: 'jwt', mode: 'required' },
       },
     });
 
