@@ -10,17 +10,18 @@ const DriveHelper = require('../../src/helpers/drive');
 const DocxHelper = require('../../src/helpers/docx');
 const Drive = require('../../src/models/Google/Drive');
 const { generateFormData } = require('./utils');
-const { getToken } = require('./helpers/authentication');
+const { getTokenByCredentials } = require('./helpers/authentication');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { auxiliary, populateDB } = require('./seed/driveSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
-  it('should be "test"', () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
 
-describe('POST /gdrive/:id/upload', () => {
+describe('DRIVE ROUTES - POST /gdrive/:id/upload', () => {
   let authToken;
   const userFolderId = auxiliary.administrative.driveFolder.driveId;
   let addFileStub;
@@ -36,10 +37,10 @@ describe('POST /gdrive/:id/upload', () => {
     uploadFileSpy.restore();
   });
 
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
 
     it('should add an absence document for an event', async () => {
@@ -89,13 +90,13 @@ describe('POST /gdrive/:id/upload', () => {
 
 describe('DELETE /gdrive/file/:id', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     const userFileId = auxiliary.administrative.passport.driveId;
     let deleteFileStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
     });
 
@@ -131,13 +132,13 @@ describe('DELETE /gdrive/file/:id', () => {
 
 describe('GET /gdrive/file/:id', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     const userFileId = auxiliary.administrative.passport.driveId;
     let getFileByIdStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       getFileByIdStub = sinon.stub(Drive, 'getFileById');
     });
 
@@ -181,13 +182,13 @@ describe('GET /gdrive/file/:id', () => {
 
 describe('GET /gdrive/list', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     const userFolderId = auxiliary.administrative.driveFolder.driveId;
     let listStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       listStub = sinon.stub(Drive, 'list');
     });
 
@@ -235,12 +236,12 @@ describe('GET /gdrive/list', () => {
 
 describe('POST /gdrive/generatedocx', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     let generateDocxStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       generateDocxStub = sinon.stub(DocxHelper, 'generateDocx');
     });
 
@@ -268,12 +269,12 @@ describe('POST /gdrive/generatedocx', () => {
 
 describe('POST /gdrive/file/:id/download', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     let downloadFileStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       downloadFileStub = sinon.stub(DriveHelper, 'downloadFile');
     });
 
