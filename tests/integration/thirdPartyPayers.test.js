@@ -318,7 +318,7 @@ describe('PUT /thirdpartypayers/:id', () => {
       });
     });
 
-    it('should return a 404 error if user is not from the same company', async () => {
+    it('should return a 404 error if ttp is not from the same company', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/thirdpartypayers/${thirdPartyPayerFromOtherCompany._id.toHexString()}`,
@@ -375,7 +375,7 @@ describe('DELETE /thirdpartypayers/:id', () => {
       expect(thirdPartyPayers.length).toBe(thirdPartyPayerBefore - 1);
     });
 
-    it('should return a 404 error if user is not from the same company', async () => {
+    it('should return a 404 error if ttp is not from the same company', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/thirdpartypayers/${thirdPartyPayerFromOtherCompany._id.toHexString()}`,

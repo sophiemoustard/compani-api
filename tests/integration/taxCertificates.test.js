@@ -226,7 +226,7 @@ describe('TAX CERTIFICATES - POST /', () => {
       });
     });
 
-    it('should not create a new tax certificate if customer is not from the same company', async () => {
+    it('should return 404 if customer is not from the same company', async () => {
       const docPayload = {
         taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         driveFolderId: '09876543211',
@@ -249,7 +249,7 @@ describe('TAX CERTIFICATES - POST /', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should not create a new tax certificate if year is invalid', async () => {
+    it('should return 400 if year is invalid', async () => {
       const docPayload = {
         taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         driveFolderId: '09876543211',
@@ -290,14 +290,13 @@ describe('TAX CERTIFICATES - POST /', () => {
 
     const roles = [
       { name: 'vendor_admin', expectedCode: 403, erp: false },
-      { name: 'client_admin', expectedCode: 403, erp: false },
-      { name: 'planning_referent', expectedCode: 403, erp: true },
-      { name: 'helper', expectedCode: 403, erp: true },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
-        authToken = await getToken(role.name, role.erp);
+        authToken = await getToken(role.name);
         const docPayload = {
           taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           driveFolderId: '09876543211',
@@ -345,7 +344,7 @@ describe('TAX CERTIFICATES - DELETE /', () => {
       expect(taxCertificatesCount).toBe(1);
     });
 
-    it('should throw an error if tax certificate does not exist', async () => {
+    it('should return 404 if tax certificate does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/taxcertificates/${new ObjectId()}`,

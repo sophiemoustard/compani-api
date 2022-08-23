@@ -21,7 +21,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('DRIVE ROUTES - POST /gdrive/:id/upload', () => {
+describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
   let authToken;
   const userFolderId = auxiliary.administrative.driveFolder.driveId;
   let addFileStub;
@@ -91,7 +91,6 @@ describe('DRIVE ROUTES - POST /gdrive/:id/upload', () => {
 describe('DELETE /gdrive/file/:id', () => {
   let authToken;
   describe('NO_ROLE_NO_COMPANY', () => {
-    const userFileId = auxiliary.administrative.passport.driveId;
     let deleteFileStub;
 
     beforeEach(populateDB);
@@ -105,6 +104,7 @@ describe('DELETE /gdrive/file/:id', () => {
     });
 
     it('should delete a document from google drive', async () => {
+      const userFileId = auxiliary.administrative.passport.driveId;
       const response = await app.inject({
         method: 'DELETE',
         url: `/gdrive/file/${userFileId}`,
