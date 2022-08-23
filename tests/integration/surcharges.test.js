@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /surcharges', () => {
+describe('SURCHARGES ROUTES - POST /surcharges', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -145,7 +145,7 @@ describe('POST /surcharges', () => {
   });
 });
 
-describe('GET /surcharges', () => {
+describe('SURCHARGES ROUTES - GET /surcharges', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -190,7 +190,7 @@ describe('GET /surcharges', () => {
   });
 });
 
-describe('PUT /surcharges/:id', () => {
+describe('SURCHARGES ROUTES - PUT /surcharges/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -264,7 +264,7 @@ describe('PUT /surcharges/:id', () => {
   });
 });
 
-describe('DELETE /surcharges/:id', () => {
+describe('SURCHARGES ROUTES - DELETE /surcharges/:id', () => {
   let authToken;
   beforeEach(populateDB);
 

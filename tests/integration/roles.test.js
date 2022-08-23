@@ -10,7 +10,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GET /roles', () => {
+describe('ROLES ROUTES - GET /roles', () => {
   let authToken;
   describe('COACH', () => {
     beforeEach(populateDB);

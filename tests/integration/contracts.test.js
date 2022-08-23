@@ -35,7 +35,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GET /contracts', () => {
+describe('CONTRACTS ROUTES - GET /contracts', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -103,7 +103,7 @@ describe('GET /contracts', () => {
   });
 });
 
-describe('POST /contracts', () => {
+describe('CONTRACTS ROUTES - POST /contracts', () => {
   let authToken;
   let generateSignatureRequestStub;
   beforeEach(populateDB);
@@ -244,7 +244,7 @@ describe('POST /contracts', () => {
   });
 });
 
-describe('PUT contract/:id', () => {
+describe('CONTRACTS ROUTES - PUT contract/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -367,7 +367,7 @@ describe('PUT contract/:id', () => {
   });
 });
 
-describe('GET contract/:id/dpae', () => {
+describe('CONTRACTS ROUTES - GET contract/:id/dpae', () => {
   let authToken;
   beforeEach(populateDB);
   describe('COACH', () => {
@@ -417,7 +417,7 @@ describe('GET contract/:id/dpae', () => {
   });
 });
 
-describe('POST contract/:id/versions', () => {
+describe('CONTRACTS ROUTES - POST contract/:id/versions', () => {
   let authToken;
   let generateSignatureRequest;
   beforeEach(populateDB);
@@ -535,7 +535,7 @@ describe('POST contract/:id/versions', () => {
   });
 });
 
-describe('PUT contract/:id/versions/:versionId', () => {
+describe('CONTRACTS ROUTES - PUT contract/:id/versions/:versionId', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -658,7 +658,7 @@ describe('PUT contract/:id/versions/:versionId', () => {
   });
 });
 
-describe('DELETE contracts/:id/versions/:versionId', () => {
+describe('CONTRACTS ROUTES - DELETE contracts/:id/versions/:versionId', () => {
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -767,7 +767,7 @@ describe('DELETE contracts/:id/versions/:versionId', () => {
   });
 });
 
-describe('GET contracts/staff-register', () => {
+describe('CONTRACTS ROUTES - GET contracts/staff-register', () => {
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {
@@ -821,7 +821,7 @@ describe('GET contracts/staff-register', () => {
   });
 });
 
-describe('GET /{_id}/gdrive/{driveId}/upload', () => {
+describe('CONTRACTS ROUTES - GET /{_id}/gdrive/{driveId}/upload', () => {
   const fakeDriveId = 'fakeDriveId';
   let addStub;
   let getFileByIdStub;

@@ -19,7 +19,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST emails/send-welcome', () => {
+describe('EMAIL ROUTES - POST emails/send-welcome', () => {
   const payload = { email: emailUser.local.email, type: 'helper' };
   beforeEach(populateDB);
   let sendinBlueTransporter;

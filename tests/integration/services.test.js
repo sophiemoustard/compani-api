@@ -13,7 +13,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /services', () => {
+describe('SERVICES ROUTES - POST /services', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
@@ -150,7 +150,7 @@ describe('POST /services', () => {
   });
 });
 
-describe('GET /services', () => {
+describe('SERVICES ROUTES - GET /services', () => {
   let authToken;
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -204,7 +204,7 @@ describe('GET /services', () => {
   });
 });
 
-describe('PUT /services/:id', () => {
+describe('SERVICES ROUTES - PUT /services/:id', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
@@ -378,7 +378,7 @@ describe('PUT /services/:id', () => {
   });
 });
 
-describe('DELETE /services/:id', () => {
+describe('SERVICES ROUTES - DELETE /services/:id', () => {
   let authToken;
   beforeEach(populateDB);
   beforeEach(async () => {

@@ -149,7 +149,7 @@ describe('COURSE CREDIT NOTES ROUTES - POST /coursecreditnotes', () => {
   });
 });
 
-describe('COURSE BILL ROUTES - GET /coursecreditnotes/{_id}/pdfs', () => {
+describe('COURSE CREDIT NOTES ROUTES - GET /coursecreditnotes/{_id}/pdfs', () => {
   let authToken;
   beforeEach(populateDB);
 

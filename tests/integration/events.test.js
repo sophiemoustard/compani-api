@@ -228,7 +228,7 @@ describe('EVENTS ROUTES - GET /events', () => {
   });
 });
 
-describe('GET /events/credit-notes', () => {
+describe('EVENTS ROUTES - GET /events/credit-notes', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
@@ -379,7 +379,7 @@ describe('GET /events/credit-notes', () => {
   });
 });
 
-describe('GET /events/working-stats', () => {
+describe('EVENTS ROUTES - GET /events/working-stats', () => {
   let authToken;
   const startDate = moment('2019-01-17').toDate();
   const endDate = moment('2019-01-20').toDate();
@@ -452,7 +452,7 @@ describe('GET /events/working-stats', () => {
   });
 });
 
-describe('GET /events/paid-transport', () => {
+describe('EVENTS ROUTES - GET /events/paid-transport', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
@@ -534,7 +534,7 @@ describe('GET /events/paid-transport', () => {
   });
 });
 
-describe('GET /events/unassigned-hours', () => {
+describe('EVENTS ROUTES - GET /events/unassigned-hours', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
@@ -627,7 +627,7 @@ describe('GET /events/unassigned-hours', () => {
   });
 });
 
-describe('POST /events', () => {
+describe('EVENTS ROUTES - POST /events', () => {
   let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
@@ -1269,7 +1269,7 @@ describe('POST /events', () => {
   });
 });
 
-describe('PUT /events/{_id}', () => {
+describe('EVENTS ROUTES - PUT /events/{_id}', () => {
   let authToken;
 
   describe('PLANNING_REFERENT', () => {
@@ -1787,7 +1787,7 @@ describe('PUT /events/{_id}', () => {
   });
 });
 
-describe('DELETE /events/{_id}', () => {
+describe('EVENTS ROUTES - DELETE /events/{_id}', () => {
   let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
@@ -1872,7 +1872,7 @@ describe('DELETE /events/{_id}', () => {
   });
 });
 
-describe('DELETE /events', () => {
+describe('EVENTS ROUTES - DELETE /events', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
@@ -2086,7 +2086,7 @@ describe('DELETE /events', () => {
   });
 });
 
-describe('DELETE /events/{_id}/repetition', () => {
+describe('EVENTS ROUTES - DELETE /events/{_id}/repetition', () => {
   let authToken;
   describe('PLANNING_REFERENT', () => {
     beforeEach(populateDB);
@@ -2185,7 +2185,7 @@ describe('DELETE /events/{_id}/repetition', () => {
   });
 });
 
-describe('PUT /events/{_id}/timestamping', () => {
+describe('EVENTS ROUTES - PUT /events/{_id}/timestamping', () => {
   let authToken;
   describe('AUXILIARY', () => {
     beforeEach(populateDB);
