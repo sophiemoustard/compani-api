@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('GET /scripts/bill-dispatch', () => {
+describe('SCRIPTS ROUTES - GET /scripts/bill-dispatch', () => {
   let authToken;
   let billAlertEmail;
   describe('VENDOR_ADMIN', () => {

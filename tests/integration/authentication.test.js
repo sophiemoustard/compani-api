@@ -16,7 +16,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /users/authenticate', () => {
+describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
   beforeEach(populateDB);
 
   it('should authenticate a user', async () => {
@@ -84,7 +84,7 @@ describe('POST /users/authenticate', () => {
   });
 });
 
-describe('POST /users/:id/passwordtoken', () => {
+describe('AUTHENTICATION ROUTES - POST /users/:id/passwordtoken', () => {
   let authToken;
   const payload = { email: 'aux@alenvi.io' };
 
@@ -142,7 +142,7 @@ describe('POST /users/:id/passwordtoken', () => {
   });
 });
 
-describe('PUT /users/:id/password', () => {
+describe('AUTHENTICATION ROUTES - PUT /users/:id/password', () => {
   let authToken;
   const updatePayload = { local: { password: '123456!eR' } };
 
@@ -200,7 +200,7 @@ describe('PUT /users/:id/password', () => {
   });
 });
 
-describe('POST /users/refreshToken', () => {
+describe('AUTHENTICATION ROUTES - POST /users/refreshToken', () => {
   beforeEach(populateDB);
   it('should return refresh token for webapp', async () => {
     const res = await app.inject({
@@ -235,7 +235,7 @@ describe('POST /users/refreshToken', () => {
   });
 });
 
-describe('GET /users/passwordtoken/:token', () => {
+describe('AUTHENTICATION ROUTES - GET /users/passwordtoken/:token', () => {
   beforeEach(populateDB);
   let fakeDate;
   beforeEach(() => {
@@ -296,7 +296,7 @@ describe('GET /users/passwordtoken/:token', () => {
   });
 });
 
-describe('POST /users/forgot-password', () => {
+describe('AUTHENTICATION ROUTES - POST /users/forgot-password', () => {
   let forgotPasswordEmail;
   let sendVerificationCodeEmail;
   let sendVerificationCodeSms;

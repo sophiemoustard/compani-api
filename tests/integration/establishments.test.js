@@ -197,7 +197,7 @@ describe('ESTABLISHMENTS ROUTES - POST /establishments', () => {
   });
 });
 
-describe('PUT /establishments/:id', () => {
+describe('ESTABLISHMENTS ROUTES - PUT /establishments/:id', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);
@@ -342,7 +342,7 @@ describe('PUT /establishments/:id', () => {
   });
 });
 
-describe('GET /establishments', () => {
+describe('ESTABLISHMENTS ROUTES - GET /establishments', () => {
   let authToken;
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -396,7 +396,7 @@ describe('GET /establishments', () => {
   });
 });
 
-describe('DELETE /etablishments/:id', () => {
+describe('ESTABLISHMENTS ROUTES - DELETE /etablishments/:id', () => {
   let authToken;
   describe('CLIENT_ADMIN', () => {
     beforeEach(populateDB);

@@ -50,7 +50,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /users', () => {
+describe('USERS ROUTES - POST /users', () => {
   let authToken;
   describe('NOT_CONNECTED', () => {
     beforeEach(populateDB);
@@ -418,7 +418,7 @@ describe('POST /users', () => {
   });
 });
 
-describe('GET /users', () => {
+describe('USERS ROUTES - GET /users', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -524,7 +524,7 @@ describe('GET /users', () => {
   });
 });
 
-describe('GET /users/exists', () => {
+describe('USERS ROUTES - GET /users/exists', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -601,7 +601,7 @@ describe('GET /users/exists', () => {
   });
 });
 
-describe('GET /users/sector-histories', () => {
+describe('USERS ROUTES - GET /users/sector-histories', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -656,7 +656,7 @@ describe('GET /users/sector-histories', () => {
   });
 });
 
-describe('GET /users/learners', () => {
+describe('USERS ROUTES - GET /users/learners', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -757,7 +757,7 @@ describe('GET /users/learners', () => {
   });
 });
 
-describe('GET /users/active', () => {
+describe('USERS ROUTES - GET /users/active', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -830,7 +830,7 @@ describe('GET /users/active', () => {
   });
 });
 
-describe('GET /users/:id', () => {
+describe('USERS ROUTES - GET /users/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -927,7 +927,7 @@ describe('GET /users/:id', () => {
   });
 });
 
-describe('PUT /users/:id', () => {
+describe('USERS ROUTES - PUT /users/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -1406,7 +1406,7 @@ describe('PUT /users/:id', () => {
   });
 });
 
-describe('DELETE /users/:id', () => {
+describe('USERS ROUTES - DELETE /users/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -1551,7 +1551,7 @@ describe('DELETE /users/:id', () => {
   });
 });
 
-describe('PUT /users/:id/certificates', () => {
+describe('USERS ROUTES - PUT /users/:id/certificates', () => {
   let authToken;
   const updatePayload = { certificates: { driveId: usersSeedList[0].administrative.certificates.driveId } };
   beforeEach(populateDB);
@@ -1631,7 +1631,7 @@ describe('PUT /users/:id/certificates', () => {
   });
 });
 
-describe('POST /users/:id/gdrive/:drive_id/upload', () => {
+describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
   let authToken;
   let docPayload;
   let form;
@@ -1744,7 +1744,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
   });
 });
 
-describe('POST /users/:id/upload', () => {
+describe('USERS ROUTES - POST /users/:id/upload', () => {
   let authToken;
   let uploadUserMediaStub;
   let momentFormat;
@@ -1848,7 +1848,7 @@ describe('POST /users/:id/upload', () => {
   });
 });
 
-describe('DELETE /users/:id/upload', () => {
+describe('USERS ROUTES - DELETE /users/:id/upload', () => {
   let authToken;
   let deleteUserMediaStub;
   beforeEach(() => {
@@ -1936,7 +1936,7 @@ describe('DELETE /users/:id/upload', () => {
   });
 });
 
-describe('POST /users/:id/drivefolder', () => {
+describe('USERS ROUTES - POST /users/:id/drivefolder', () => {
   let authToken;
   let createFolderStub;
   beforeEach(() => {
@@ -1997,7 +1997,7 @@ describe('POST /users/:id/drivefolder', () => {
   });
 });
 
-describe('POST /users/:id/expo-token', () => {
+describe('USERS ROUTES - POST /users/:id/expo-token', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -2079,7 +2079,7 @@ describe('POST /users/:id/expo-token', () => {
   });
 });
 
-describe('DELETE /users/:id/expo-token/:expoToken', () => {
+describe('USERS ROUTES - DELETE /users/:id/expo-token/:expoToken', () => {
   let authToken;
   beforeEach(populateDB);
 

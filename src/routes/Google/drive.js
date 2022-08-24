@@ -24,9 +24,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ id: Joi.string() }),
         },
-        auth: {
-          strategy: 'jwt',
-        },
+        auth: { strategy: 'jwt', mode: 'required' },
       },
     });
 
@@ -38,9 +36,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ id: Joi.string() }),
         },
-        auth: {
-          strategy: 'jwt',
-        },
+        auth: { strategy: 'jwt', mode: 'required' },
       },
     });
 
@@ -64,9 +60,7 @@ exports.plugin = {
         validate: {
           query: Joi.object({ folderId: Joi.string(), nextPageToken: Joi.string() }),
         },
-        auth: {
-          strategy: 'jwt',
-        },
+        auth: { strategy: 'jwt', mode: 'required' },
       },
     });
 
@@ -78,9 +72,7 @@ exports.plugin = {
         validate: {
           params: Joi.object({ id: Joi.string() }),
         },
-        auth: {
-          strategy: 'jwt',
-        },
+        auth: { strategy: 'jwt', mode: 'required' },
       },
     });
 
@@ -97,6 +89,7 @@ exports.plugin = {
             type: Joi.string().required(),
           }),
         },
+        auth: { strategy: 'jwt', mode: 'required' },
       },
     });
   },

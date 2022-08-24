@@ -10,17 +10,18 @@ const DriveHelper = require('../../src/helpers/drive');
 const DocxHelper = require('../../src/helpers/docx');
 const Drive = require('../../src/models/Google/Drive');
 const { generateFormData } = require('./utils');
-const { getToken } = require('./helpers/authentication');
+const { getTokenByCredentials } = require('./helpers/authentication');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const { auxiliary, populateDB } = require('./seed/driveSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
-  it('should be "test"', () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
 
-describe('POST /gdrive/:id/upload', () => {
+describe('GOOGLE DRIVE ROUTES - POST /gdrive/:id/upload', () => {
   let authToken;
   const userFolderId = auxiliary.administrative.driveFolder.driveId;
   let addFileStub;
@@ -36,10 +37,10 @@ describe('POST /gdrive/:id/upload', () => {
     uploadFileSpy.restore();
   });
 
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
     });
 
     it('should add an absence document for an event', async () => {
@@ -64,12 +65,13 @@ describe('POST /gdrive/:id/upload', () => {
       sinon.assert.calledOnce(addFileStub);
     });
 
-    const missingParams = ['file', 'fileName'];
+    const missingParams = ['file', 'fileName', 'type'];
     missingParams.forEach((param) => {
       it(`should return a 400 error if '${param}' params is missing`, async () => {
         const payload = {
           file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           fileName: 'absence',
+          type: 'file',
         };
         const form = generateFormData(omit(payload, param));
         const response = await app.inject({
@@ -87,15 +89,14 @@ describe('POST /gdrive/:id/upload', () => {
   });
 });
 
-describe('DELETE /gdrive/file/:id', () => {
+describe(' GOOGLE DRIVE ROUTES - DELETE /gdrive/file/:id', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
-    const userFileId = auxiliary.administrative.passport.driveId;
+  describe('NO_ROLE_NO_COMPANY', () => {
     let deleteFileStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       deleteFileStub = sinon.stub(GDriveStorageHelper, 'deleteFile');
     });
 
@@ -104,6 +105,7 @@ describe('DELETE /gdrive/file/:id', () => {
     });
 
     it('should delete a document from google drive', async () => {
+      const userFileId = auxiliary.administrative.passport.driveId;
       const response = await app.inject({
         method: 'DELETE',
         url: `/gdrive/file/${userFileId}`,
@@ -129,15 +131,15 @@ describe('DELETE /gdrive/file/:id', () => {
   });
 });
 
-describe('GET /gdrive/file/:id', () => {
+describe('GOOGLE DRIVE ROUTES - GET /gdrive/file/:id', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     const userFileId = auxiliary.administrative.passport.driveId;
     let getFileByIdStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       getFileByIdStub = sinon.stub(Drive, 'getFileById');
     });
 
@@ -179,15 +181,15 @@ describe('GET /gdrive/file/:id', () => {
   });
 });
 
-describe('GET /gdrive/list', () => {
+describe('GOOGLE DRIVE ROUTES - GET /gdrive/list', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     const userFolderId = auxiliary.administrative.driveFolder.driveId;
     let listStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       listStub = sinon.stub(Drive, 'list');
     });
 
@@ -233,14 +235,14 @@ describe('GET /gdrive/list', () => {
   });
 });
 
-describe('POST /gdrive/generatedocx', () => {
+describe('GOOGLE DRIVE ROUTES - POST /gdrive/generatedocx', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     let generateDocxStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       generateDocxStub = sinon.stub(DocxHelper, 'generateDocx');
     });
 
@@ -266,14 +268,14 @@ describe('POST /gdrive/generatedocx', () => {
   });
 });
 
-describe('POST /gdrive/file/:id/download', () => {
+describe('GOOGLE DRIVE ROUTES - POST /gdrive/file/:id/download', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('NO_ROLE_NO_COMPANY', () => {
     let downloadFileStub;
 
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getTokenByCredentials(noRoleNoCompany.local);
       downloadFileStub = sinon.stub(DriveHelper, 'downloadFile');
     });
 

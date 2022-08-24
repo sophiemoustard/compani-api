@@ -14,7 +14,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /sms', () => {
+describe('SMS ROUTES - POST /sms', () => {
   let authToken;
   let SmsHelperStub;
   describe('COACH', () => {

@@ -22,10 +22,10 @@ describe('NODE ENV', () => {
 
 describe('TAX CERTIFICATES ROUTES - GET /', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get tax certificates list', async () => {
@@ -41,14 +41,14 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
       expect(response.result.data.taxCertificates.length).toEqual(customerCertificates.length);
     });
 
-    it('should return 403 if customer from another organisation', async () => {
+    it('should return 404 if customer from another organisation', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/taxcertificates?customer=${customersList[1]._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -64,10 +64,9 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
     });
 
     const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -86,10 +85,10 @@ describe('TAX CERTIFICATES ROUTES - GET /', () => {
 
 describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should get tax certificates pdf', async () => {
@@ -111,16 +110,6 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
 
       expect(response.statusCode).toBe(404);
     });
-
-    it('should should return 404 if tax certificate does not exists', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/taxcertificates/${(new ObjectId()).toHexString()}/pdfs`,
-        headers: { Cookie: `alenvi_token=${authToken}` },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
   });
 
   describe('Other roles', () => {
@@ -135,10 +124,9 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
     });
 
     const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
     ];
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
@@ -155,14 +143,14 @@ describe('TAX CERTIFICATES ROUTES - GET /{_id}/pdf', () => {
   });
 });
 
-describe('TAX CERTIFICATES - POST /', () => {
+describe('TAX CERTIFICATES ROUTES - POST /', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     let addStub;
     let addFileStub;
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
       addStub = sinon.stub(Gdrive, 'add');
       addFileStub = sinon.stub(GDriveStorageHelper, 'addFile').returns({
         id: '1234567890',
@@ -179,7 +167,7 @@ describe('TAX CERTIFICATES - POST /', () => {
         taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         driveFolderId: '09876543211',
         fileName: 'tax-certificate',
-        date: new Date('2019-01-23').toISOString(),
+        date: '2019-01-23T00:00:00.000Z',
         year: '2019',
         customer: customersList[0]._id.toHexString(),
         mimeType: 'application/pdf',
@@ -221,7 +209,7 @@ describe('TAX CERTIFICATES - POST /', () => {
           taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           driveFolderId: '09876543211',
           fileName: 'tax-certificate',
-          date: new Date('2019-01-23').toISOString(),
+          date: '2019-01-23T00:00:00.000Z',
           year: '2019',
           customer: customersList[0]._id.toHexString(),
           mimeType: 'application/pdf',
@@ -238,12 +226,12 @@ describe('TAX CERTIFICATES - POST /', () => {
       });
     });
 
-    it('should not create a new tax certificate if customer is not from the same company', async () => {
+    it('should return 404 if customer is not from the same company', async () => {
       const docPayload = {
         taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         driveFolderId: '09876543211',
         fileName: 'tax-certificate',
-        date: new Date('2019-01-23').toISOString(),
+        date: '2019-01-23T00:00:00.000Z',
         year: '2019',
         customer: customersList[1]._id.toHexString(),
         mimeType: 'application/pdf',
@@ -258,15 +246,15 @@ describe('TAX CERTIFICATES - POST /', () => {
         headers: { ...form.getHeaders(), Cookie: `alenvi_token=${authToken}` },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
-    it('should not create a new tax certificate if year is invalid', async () => {
+    it('should return 400 if year is invalid', async () => {
       const docPayload = {
         taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         driveFolderId: '09876543211',
         fileName: 'tax-certificate',
-        date: new Date('2019-01-23').toISOString(),
+        date: '2019-01-23T00:00:00.000Z',
         year: '1988',
         customer: customersList[1]._id.toHexString(),
         mimeType: 'application/pdf',
@@ -301,21 +289,19 @@ describe('TAX CERTIFICATES - POST /', () => {
     });
 
     const roles = [
-      { name: 'helper', expectedCode: 403, erp: true },
-      { name: 'auxiliary', expectedCode: 403, erp: true },
-      { name: 'auxiliary_without_company', expectedCode: 403, erp: true },
-      { name: 'coach', expectedCode: 200, erp: true },
-      { name: 'client_admin', expectedCode: 403, erp: false },
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
     ];
 
     roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}${role.erp ? '' : ' without erp'}`, async () => {
-        authToken = await getToken(role.name, role.erp);
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
         const docPayload = {
           taxCertificate: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           driveFolderId: '09876543211',
           fileName: 'tax-certificates',
-          date: new Date('2019-01-23').toISOString(),
+          date: '2019-01-23T00:00:00.000Z',
           year: '2019',
           customer: customersList[0]._id.toHexString(),
           mimeType: 'application/pdf',
@@ -336,12 +322,12 @@ describe('TAX CERTIFICATES - POST /', () => {
   });
 });
 
-describe('TAX CERTIFICATES - DELETE /', () => {
+describe('TAX CERTIFICATES ROUTES - DELETE /', () => {
   let authToken;
-  describe('CLIENT_ADMIN', () => {
+  describe('COACH', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('client_admin');
+      authToken = await getToken('coach');
     });
 
     it('should delete new tax certificate', async () => {
@@ -358,7 +344,7 @@ describe('TAX CERTIFICATES - DELETE /', () => {
       expect(taxCertificatesCount).toBe(1);
     });
 
-    it('should throw an error if tax certificate does not exist', async () => {
+    it('should return 404 if tax certificate does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/taxcertificates/${new ObjectId()}`,
@@ -371,10 +357,9 @@ describe('TAX CERTIFICATES - DELETE /', () => {
 
   describe('Other roles', () => {
     const roles = [
+      { name: 'vendor_admin', expectedCode: 403 },
+      { name: 'planning_referent', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'auxiliary_without_company', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
