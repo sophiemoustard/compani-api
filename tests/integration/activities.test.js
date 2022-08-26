@@ -6,7 +6,7 @@ const Card = require('../../src/models/Card');
 const { populateDB, activitiesList, cardsList } = require('./seed/activitiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
-const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
+const { TITLE_TEXT_MEDIA, SURVEY } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -179,6 +179,24 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
 
       expect(response.statusCode).toBe(200);
       expect(activityUpdated.cards.length).toEqual(5);
+    });
+
+    it('should create survey card with valid form', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: `/activities/${activitiesList[0]._id}/cards`,
+        payload: { template: SURVEY },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      const activityUpdated = await Activity.findById(activitiesList[0]._id).lean();
+      const newCard = await Card.findById(activityUpdated.cards.slice(-1)[0]).lean();
+
+      expect(response.statusCode).toBe(200);
+      expect(newCard).toMatchObject({
+        template: 'survey',
+        label: { right: '', left: '' },
+      });
     });
 
     it('should return a 400 if invalid template', async () => {

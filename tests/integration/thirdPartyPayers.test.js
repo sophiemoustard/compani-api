@@ -363,7 +363,7 @@ describe('THIRD PARTY PAYERS ROUTES - DELETE /thirdpartypayers/:id', () => {
       authToken = await getToken('client_admin');
     });
 
-    it('should delete company thirdPartyPayer #tag', async () => {
+    it('should delete company thirdPartyPayer', async () => {
       const ttpLengthBefore = await ThirdPartyPayer.countDocuments({ company: authCompany._id });
       const response = await app.inject({
         method: 'DELETE',
