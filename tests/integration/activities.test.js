@@ -6,7 +6,7 @@ const Card = require('../../src/models/Card');
 const { populateDB, activitiesList, cardsList } = require('./seed/activitiesSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
 const { noRoleNoCompany } = require('../seed/authUsersSeed');
-const { TITLE_TEXT_MEDIA } = require('../../src/helpers/constants');
+const { TITLE_TEXT_MEDIA, SURVEY } = require('../../src/helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -167,18 +167,25 @@ describe('ACTIVITIES ROUTES - POST /activities/{_id}/card', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should create card', async () => {
+    it('should create card with valid form (testing template "survey" specifically)', async () => {
       const response = await app.inject({
         method: 'POST',
         url: `/activities/${activitiesList[0]._id}/cards`,
-        payload,
+        payload: { template: SURVEY },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
       const activityUpdated = await Activity.findById(activitiesList[0]._id).lean();
-
       expect(response.statusCode).toBe(200);
       expect(activityUpdated.cards.length).toEqual(5);
+
+      const newCardWithValidForm = await Card.countDocuments({
+        _id: activityUpdated.cards.slice(-1)[0],
+        template: 'survey',
+        'label.right': { $exists: true },
+        'label.left': { $exists: true },
+      });
+      expect(newCardWithValidForm).toEqual(1);
     });
 
     it('should return a 400 if invalid template', async () => {
