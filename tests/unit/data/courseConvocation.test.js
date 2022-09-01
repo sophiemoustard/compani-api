@@ -3,6 +3,7 @@ const expect = require('expect');
 const { ObjectId } = require('mongodb');
 const FileHelper = require('../../../src/helpers/file');
 const CourseConvocation = require('../../../src/data/pdf/courseConvocation');
+const { COPPER_GREY_200, COPPER_500 } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -46,7 +47,7 @@ describe('getPdfContent', () => {
           [
             { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
             { text: 'test - groupe 3', style: 'title' },
-            { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 450, y2: 10, lineWidth: 1.5, lineColor: '#E2ECF0' }] },
+            { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 450, y2: 10, lineWidth: 1.5, lineColor: COPPER_GREY_200 }] },
           ],
         ],
       },
@@ -97,7 +98,7 @@ describe('getPdfContent', () => {
           height: 24,
           widths: ['auto', '*', '*'],
         },
-        layout: { vLineWidth: () => 0, hLineWidth: () => 1, hLineColor: () => '#E2ECF0' },
+        layout: { vLineWidth: () => 0, hLineWidth: () => 1, hLineColor: () => COPPER_GREY_200 },
         marginTop: 24,
       },
       { text: 'Il reste 1 créneau(x) à planifier.', style: 'notes' },
@@ -143,7 +144,7 @@ describe('getPdfContent', () => {
       content: [header, table, programInfo, trainerAndContactInfo].flat(),
       defaultStyle: { font: 'Avenir', fontSize: 10 },
       styles: {
-        title: { fontSize: 20, bold: true, color: '#1D7C8F', marginLeft: 24 },
+        title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
         surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
         tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
         tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },
@@ -192,7 +193,7 @@ describe('getPdfContent', () => {
           [
             { text: 'Vous êtes convoqué(e) à la formation', style: 'surtitle' },
             { text: 'test', style: 'title' },
-            { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 450, y2: 10, lineWidth: 1.5, lineColor: '#E2ECF0' }] },
+            { canvas: [{ type: 'line', x1: 20, y1: 10, x2: 450, y2: 10, lineWidth: 1.5, lineColor: COPPER_GREY_200 }] },
           ],
         ],
       },
@@ -245,7 +246,7 @@ describe('getPdfContent', () => {
           height: 24,
           widths: ['auto', '*', '*'],
         },
-        layout: { vLineWidth: () => 0, hLineWidth: () => 1, hLineColor: () => '#E2ECF0' },
+        layout: { vLineWidth: () => 0, hLineWidth: () => 1, hLineColor: () => COPPER_GREY_200 },
         marginTop: 24,
       },
     ];
@@ -290,7 +291,7 @@ describe('getPdfContent', () => {
       content: [header, table, programInfo, trainerAndContactInfo].flat(),
       defaultStyle: { font: 'Avenir', fontSize: 10 },
       styles: {
-        title: { fontSize: 20, bold: true, color: '#1D7C8F', marginLeft: 24 },
+        title: { fontSize: 20, bold: true, color: COPPER_500, marginLeft: 24 },
         surtitle: { fontSize: 12, bold: true, marginTop: 24, marginLeft: 24 },
         tableHeader: { fontSize: 12, bold: true, alignment: 'center', marginTop: 4, marginBottom: 4 },
         tableContent: { fontSize: 12, alignment: 'center', marginTop: 4, marginBottom: 4 },

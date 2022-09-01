@@ -2,6 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const FileHelper = require('../../../src/helpers/file');
 const InterAttendanceSheet = require('../../../src/data/pdf/attendanceSheet/interAttendanceSheet');
+const { PEACH_100, COPPER_500 } = require('../../../src/helpers/constants');
 
 describe('getPdfContent', () => {
   let downloadImages;
@@ -87,7 +88,7 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: '#FFEDDA' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: PEACH_100 }],
           absolutePosition: { x: 40, y: 150 },
         },
         {
@@ -115,7 +116,7 @@ describe('getPdfContent', () => {
           marginBottom: 20,
         },
         {
-          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: '#FFEDDA' }],
+          canvas: [{ type: 'rect', x: 0, y: 0, w: 515, h: 108, r: 0, color: PEACH_100 }],
           absolutePosition: { x: 40, y: 150 },
         },
         {
@@ -136,8 +137,8 @@ describe('getPdfContent', () => {
       defaultStyle: { font: 'Avenir', fontSize: 10 },
       pageMargins: [40, 40, 40, 128],
       styles: {
-        header: { bold: true, fillColor: '#1D7C8F', color: 'white', alignment: 'center' },
-        title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: '#1D7C8F' },
+        header: { bold: true, fillColor: COPPER_500, color: 'white', alignment: 'center' },
+        title: { fontSize: 16, bold: true, margin: [8, 32, 0, 0], alignment: 'left', color: COPPER_500 },
       },
       footer: [{
         columns: [
