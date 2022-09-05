@@ -23,7 +23,7 @@ exports.getTaxCertificate = async (req) => {
 exports.authorizeTaxCertificatesRead = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const customer = await Customer.countDocuments({ _id: req.query.customer, company: companyId });
-  if (!customer) throw Boom.forbidden();
+  if (!customer) throw Boom.notFound();
 
   return null;
 };
@@ -37,7 +37,7 @@ exports.authorizeGetTaxCertificatePdf = async (req) => {
   if (!canRead && !isHelpersCustomer) throw Boom.forbidden();
 
   const customer = await Customer.countDocuments({ _id: taxCertificate.customer, company: credentials.company._id });
-  if (!customer) throw Boom.forbidden();
+  if (!customer) throw Boom.notFound();
 
   return null;
 };
@@ -45,7 +45,7 @@ exports.authorizeGetTaxCertificatePdf = async (req) => {
 exports.authorizeTaxCertificateCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   const customer = await Customer.countDocuments({ _id: req.payload.customer, company: companyId });
-  if (!customer) throw Boom.forbidden();
+  if (!customer) throw Boom.notFound();
 
   return null;
 };

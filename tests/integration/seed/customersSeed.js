@@ -1,6 +1,5 @@
 const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
-const moment = require('moment');
 const Customer = require('../../../src/models/Customer');
 const CustomerAbsence = require('../../../src/models/CustomerAbsence');
 const Service = require('../../../src/models/Service');
@@ -33,6 +32,7 @@ const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { auxiliaryRoleId, helperRoleId, clientAdminRoleId } = require('../../seed/authRolesSeed');
 const CustomerPartner = require('../../../src/models/CustomerPartner');
 const Partner = require('../../../src/models/Partner');
+const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const subIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
 const serviceIdList = [new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId(), new ObjectId()];
@@ -255,7 +255,7 @@ const customersList = [
         },
       ],
       helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
-      approvalDate: '2018-01-01T10:00:00.000+01:00',
+      approvalDate: '2018-01-01T10:00:00.000Z',
     }],
     payment: { bankAccountOwner: 'David gaudu', mandates: [{ rum: 'R012345678903456789' }] },
     quotes: [{
@@ -275,9 +275,8 @@ const customersList = [
         versions: [{
           fundingPlanId: '12345',
           folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months').toDate(),
-          effectiveDate: moment.utc().toDate(),
+          startDate: '2021-10-24T00:00:00.000Z',
+          endDate: '2022-04-10T23:59:59.000Z',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [0, 1, 2, 3, 4, 5, 6],
@@ -292,9 +291,8 @@ const customersList = [
         versions: [{
           fundingPlanId: '04124',
           folderNumber: 'D123457',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(5, 'months').toDate(),
-          effectiveDate: moment.utc().toDate(),
+          startDate: '2021-10-24T00:00:00.000Z',
+          endDate: '2022-04-10T23:59:59.000Z',
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [0, 1, 2, 3, 4, 5, 6],
@@ -321,7 +319,7 @@ const customersList = [
       bankAccountOwner: 'Lance Amstrong',
       iban: 'FR3514508000505917721779B12',
       bic: 'BNMDHISOBD',
-      mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: moment().toDate() }],
+      mandates: [{ rum: 'R09876543456765432', _id: new ObjectId(), signedAt: '2021-10-03T12:35:46.000Z' }],
     },
     subscriptions: [
       {
@@ -343,9 +341,8 @@ const customersList = [
       frequency: ONCE,
       versions: [{
         folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
-        endDate: moment.utc().add(6, 'months').toDate(),
-        effectiveDate: moment.utc().toDate(),
+        startDate: '2022-01-12T00:00:00.000Z',
+        endDate: '2022-07-12T23:59:59.000Z',
         amountTTC: 120,
         customerParticipationRate: 10,
         careDays: [0, 1, 2, 3, 4, 5, 6],
@@ -515,19 +512,17 @@ const customersList = [
         frequency: ONCE,
         versions: [{
           folderNumber: 'D123456',
-          startDate: new Date('2019-10-01'),
-          createdAt: new Date('2019-10-01'),
-          endDate: new Date('2020-02-01'),
-          effectiveDate: new Date('2019-10-01'),
+          startDate: '2019-10-01T00:00:00.000Z',
+          createdAt: '2019-10-01T00:00:00.000Z',
+          endDate: '2020-02-01T00:00:00.000Z',
           amountTTC: 1200,
           customerParticipationRate: 66,
           careDays: [0, 1, 2, 3, 4, 5, 6],
         },
         {
           folderNumber: 'D123456',
-          startDate: new Date('2020-02-02'),
-          createdAt: new Date('2020-02-02'),
-          effectiveDate: new Date('2020-02-02'),
+          startDate: '2020-02-02T00:00:00.000Z',
+          createdAt: '2020-02-02T00:00:00.000Z',
           amountTTC: 1600,
           customerParticipationRate: 66,
           careDays: [0, 1, 2, 3, 4, 5],
@@ -564,7 +559,7 @@ const customersList = [
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     },
-    createdAt: new Date('2021-05-24'),
+    createdAt: '2021-05-24T00:00:00.000Z',
   },
   { // 11
     _id: new ObjectId(),
@@ -579,9 +574,9 @@ const customersList = [
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     },
-    stoppedAt: new Date(),
+    stoppedAt: '2022-07-13T12:15:15.000Z',
     stopReason: DEATH,
-    archivedAt: new Date(),
+    archivedAt: '2022-08-13T12:15:15.000Z',
   },
   { // 12
     _id: new ObjectId(),
@@ -596,7 +591,7 @@ const customersList = [
         location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
     },
-    stoppedAt: new Date(),
+    stoppedAt: '2022-07-13T12:15:15.000Z',
     stopReason: DEATH,
   },
   { // 13 - stopped with non billed, to invoice events
@@ -784,110 +779,107 @@ const referentHistories = [
   },
 ];
 
-const otherCompanyCustomer = {
-  company: otherCompany._id,
-  _id: otherCompanyCustomerId,
-  name: 'notFromCompany',
-  prefixNumber: 103,
-  identity: {
-    title: 'mr',
-    firstname: 'test',
-    lastname: 'test',
-  },
-  driveFolder: { driveId: '09876543' },
-  contact: {
-    primaryAddress: {
-      fullAddress: '37 rue de Ponthieu 75018 Paris',
-      zipCode: '75018',
-      city: 'Paris',
-      street: '37 rue de Ponthieu',
-      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+const otherCompanyCustomers = [
+  {
+    company: otherCompany._id,
+    _id: otherCompanyCustomerId,
+    identity: {
+      title: 'mr',
+      firstname: 'test',
+      lastname: 'test',
     },
-    phone: '0698765432',
-  },
-  subscriptions: [
-    {
+    driveFolder: { driveId: '09876543' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de Ponthieu 75018 Paris',
+        zipCode: '75018',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0698765432',
+    },
+    subscriptions: [{
       _id: new ObjectId(),
       service: serviceIdList[0],
-      versions: [{
-        unitTTCRate: 12,
-        weeklyHours: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
-    },
-    {
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+    }, {
       _id: new ObjectId(),
       service: serviceIdList[1],
-      versions: [{
-        unitTTCRate: 12,
-        weeklyHours: 12,
-        evenings: 2,
-        sundays: 1,
-      }],
-    },
-  ],
-  subscriptionsHistory: [{
-    subscriptions: [{
-      unitTTCRate: 12,
-      weeklyHours: 12,
-      evenings: 2,
-      sundays: 1,
-      service: 'Service 1',
-    }, {
-      unitTTCRate: 12,
-      weeklyHours: 12,
-      evenings: 2,
-      sundays: 1,
-      service: 'Service 2',
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
     }],
-    helper: {
-      firstname: 'Vladimir',
-      lastname: 'Poutine',
-      title: 'mr',
+    subscriptionsHistory: [{
+      subscriptions: [
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, service: 'Service 1' },
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, service: 'Service 2' },
+      ],
+      helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
+      approvalDate: '2018-01-01T10:00:00.000Z',
+    }],
+    payment: {
+      bankAccountOwner: 'David gaudu',
+      iban: '',
+      bic: '',
+      mandates: [{ _id: new ObjectId(), rum: 'R012345678903456789' }],
     },
-    approvalDate: '2018-01-01T10:00:00.000+01:00',
-  }],
-  payment: {
-    bankAccountOwner: 'David gaudu',
-    iban: '',
-    bic: '',
-    mandates: [
+    quotes: [{
+      _id: new ObjectId(),
+      subscriptions: [
+        { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
+        { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
+      ],
+    }],
+    fundings: [
       {
         _id: new ObjectId(),
-        rum: 'R012345678903456789',
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayers[0]._id,
+        subscription: subIdList[2],
+        frequency: ONCE,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: '2022-01-17T00:00:00.000Z',
+          endDate: '2022-07-17T23:59:59.000Z',
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        }],
       },
     ],
   },
-  quotes: [{
+  {
+    company: otherCompany._id,
     _id: new ObjectId(),
-    subscriptions: [
-      { service: { name: 'Test', nature: 'hourly' }, unitTTCRate: 23, weeklyHours: 3 },
-      { service: { name: 'Test2', nature: 'hourly' }, unitTTCRate: 30, weeklyHours: 10 },
-    ],
-  }],
-  fundings: [
-    {
-      _id: new ObjectId(),
-      nature: FIXED,
-      thirdPartyPayer: customerThirdPartyPayers[0]._id,
-      subscription: subIdList[2],
-      frequency: ONCE,
-      versions: [{
-        folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
-        endDate: moment.utc().add(6, 'months').toDate(),
-        effectiveDate: moment.utc().toDate(),
-        amountTTC: 120,
-        customerParticipationRate: 10,
-        careDays: [0, 1, 2, 3, 4, 5, 6],
-      }],
+    identity: { title: 'mr', firstname: 'akatest', lastname: 'test' },
+    driveFolder: { driveId: '09876543' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de Ponthieu 75018 Paris',
+        zipCode: '75018',
+        city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+      },
+      phone: '0698765432',
     },
-  ],
-};
+    subscriptions: [{
+      _id: new ObjectId(),
+      service: serviceIdList[0],
+      versions: [{ unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1 }],
+    }],
+    subscriptionsHistory: [{
+      subscriptions: [
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, service: 'Service 1' },
+        { unitTTCRate: 12, weeklyHours: 12, evenings: 2, sundays: 1, service: 'Service 2' },
+      ],
+      helper: { firstname: 'Vladimir', lastname: 'Poutine', title: 'mr' },
+      approvalDate: '2018-01-01T10:00:00.000Z',
+    }],
+  },
+];
 
 const userList = [
-  {
+  { // 0
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer', lastname: 'TheEtMoselle' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456!eR' },
@@ -895,7 +887,7 @@ const userList = [
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 1
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer2', lastname: 'Rtre' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456!eR' },
@@ -903,15 +895,15 @@ const userList = [
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 2
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomer4', lastname: 'Life' },
-    local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456!eR' },
+    local: { email: 'helper_for_customer_customer4@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 3
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Caragua' },
     local: { email: 'helper_for_customer_other_company@alenvi.io' },
@@ -919,7 +911,7 @@ const userList = [
     role: { client: helperRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 4
     _id: new ObjectId(),
     identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
     local: { email: 'admin_for_other_company@alenvi.io', password: '123456!eR' },
@@ -927,26 +919,26 @@ const userList = [
     role: { client: clientAdminRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 5
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Devo' },
-    local: { email: 'auxforevent@alenvi.io', password: '123456!eR' },
+    local: { email: 'auxforevent@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 6
     _id: new ObjectId(),
     identity: { firstname: 'Auxiliary', lastname: 'Vé' },
-    local: { email: 'auxforcustomer@alenvi.io', password: '123456!eR' },
+    local: { email: 'auxforcustomer@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: auxiliaryRoleId },
     origin: WEBAPP,
   },
-  {
+  { // 7
     _id: new ObjectId(),
     identity: { firstname: 'HelperForCustomerToDelete', lastname: 'TheEtMoselle' },
-    local: { email: 'helper_for_customer_to_delete@alenvi.io', password: '123456!eR' },
+    local: { email: 'helper_for_customer_to_delete@alenvi.io' },
     refreshToken: uuidv4(),
     role: { client: helperRoleId },
     origin: WEBAPP,
@@ -956,6 +948,7 @@ const userList = [
 const sectorsList = [
   { _id: new ObjectId(), name: 'Super Equipe', company: authCompany._id },
   { _id: new ObjectId(), name: 'Equipe Genial', company: authCompany._id },
+  { _id: new ObjectId(), name: 'Autre equipe Genial', company: otherCompany._id },
 ];
 
 const sectorHistoriesList = [
@@ -1211,8 +1204,26 @@ const eventList = [
     type: 'intervention',
     sector: sectorsList[0]._id,
     subscription: subIdList[4],
-    startDate: new Date().setDate(new Date().getDate() + 1, 0, 0),
-    endDate: new Date().setDate(new Date().getDate() + 1, 1, 0),
+    startDate: CompaniDate().add({ days: 1 }).toISO(),
+    endDate: CompaniDate().add({ days: 1, hours: 1 }).toISO(),
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
+  },
+  { // 13
+    _id: new ObjectId(),
+    company: otherCompany._id,
+    isBilled: true,
+    customer: otherCompanyCustomers[0]._id,
+    type: 'intervention',
+    sector: sectorsList[2]._id,
+    subscription: otherCompanyCustomers[0].subscriptions[0]._id,
+    startDate: CompaniDate().add({ days: 1 }).toISO(),
+    endDate: CompaniDate().add({ days: 1, hours: 1 }).toISO(),
     address: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
@@ -1227,8 +1238,8 @@ const customerAbsenceList = [
   {
     company: authCompany._id,
     customer: customersList[0]._id,
-    startDate: new Date().setDate(new Date().getDate() + 1, 0, 0),
-    endDate: new Date().setDate(new Date().getDate() + 1, 1, 0),
+    startDate: CompaniDate().add({ days: 1 }).toISO(),
+    endDate: CompaniDate().add({ days: 1, hours: 1 }).toISO(),
     absenceType: HOSPITALIZATION,
   },
   {
@@ -1304,7 +1315,7 @@ const populateDB = async () => {
   await Promise.all([
     Bill.create(billList),
     CreditNote.create(creditNote),
-    Customer.create([...customersList, otherCompanyCustomer]),
+    Customer.create([...customersList, ...otherCompanyCustomers]),
     CustomerAbsence.create(customerAbsenceList),
     CustomerPartner.create(customerPartnersList),
     Event.create(eventList),
@@ -1331,6 +1342,6 @@ module.exports = {
   archivedService,
   serviceIdList,
   customerThirdPartyPayers,
-  otherCompanyCustomer,
+  otherCompanyCustomers,
   sectorsList,
 };

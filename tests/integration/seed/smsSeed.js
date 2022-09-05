@@ -47,7 +47,7 @@ const populateDB = async () => {
 
   await Promise.all([
     User.create(smsUser, smsUserFromOtherCompany, smsUserWithSameNumberAndNoCompany),
-    UserCompany.insertMany(userCompanies),
+    UserCompany.create(userCompanies),
   ]);
 };
 

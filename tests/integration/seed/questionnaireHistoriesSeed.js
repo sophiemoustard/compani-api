@@ -48,9 +48,11 @@ const coursesList = [
 const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
-  await Questionnaire.insertMany(questionnairesList);
-  await Course.insertMany(coursesList);
-  await Card.insertMany(cardsList);
+  await Promise.all([
+    Questionnaire.create(questionnairesList),
+    Course.create(coursesList),
+    Card.create(cardsList),
+  ]);
 };
 
 module.exports = {

@@ -50,7 +50,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /users', () => {
+describe('USERS ROUTES - POST /users', () => {
   let authToken;
   describe('NOT_CONNECTED', () => {
     beforeEach(populateDB);
@@ -418,7 +418,7 @@ describe('POST /users', () => {
   });
 });
 
-describe('GET /users', () => {
+describe('USERS ROUTES - GET /users', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -524,7 +524,7 @@ describe('GET /users', () => {
   });
 });
 
-describe('GET /users/exists', () => {
+describe('USERS ROUTES - GET /users/exists', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -601,7 +601,7 @@ describe('GET /users/exists', () => {
   });
 });
 
-describe('GET /users/sector-histories', () => {
+describe('USERS ROUTES - GET /users/sector-histories', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -656,7 +656,7 @@ describe('GET /users/sector-histories', () => {
   });
 });
 
-describe('GET /users/learners', () => {
+describe('USERS ROUTES - GET /users/learners', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -757,7 +757,7 @@ describe('GET /users/learners', () => {
   });
 });
 
-describe('GET /users/active', () => {
+describe('USERS ROUTES - GET /users/active', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -830,7 +830,7 @@ describe('GET /users/active', () => {
   });
 });
 
-describe('GET /users/:id', () => {
+describe('USERS ROUTES - GET /users/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -927,7 +927,7 @@ describe('GET /users/:id', () => {
   });
 });
 
-describe('PUT /users/:id', () => {
+describe('USERS ROUTES - PUT /users/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -1157,7 +1157,7 @@ describe('PUT /users/:id', () => {
       const role = await Role.findOne({ name: HELPER }).lean();
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${userList[6]._id}`,
+        url: `/users/${usersSeedList[10]._id}`,
         payload: { customer: customerFromOtherCompany._id, role: role._id },
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
@@ -1249,14 +1249,14 @@ describe('PUT /users/:id', () => {
     it('should update trainer', async () => {
       const res = await app.inject({
         method: 'PUT',
-        url: `/users/${trainer._id.toHexString()}`,
+        url: `/users/${usersSeedList[11]._id.toHexString()}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { identity: { firstname: 'trainerUpdate' }, biography: 'It\'s my life' },
       });
 
       expect(res.statusCode).toBe(200);
       const updatedTrainer = await User
-        .countDocuments({ _id: trainer._id, 'identity.firstname': 'trainerUpdate' });
+        .countDocuments({ _id: usersSeedList[11]._id, 'identity.firstname': 'trainerUpdate' });
       expect(updatedTrainer).toBeTruthy();
     });
 
@@ -1290,19 +1290,19 @@ describe('PUT /users/:id', () => {
       const updatePayload = {
         identity: { firstname: 'Riri' },
         contact: { phone: '0102030405' },
-        local: { email: 'norole.nocompany@alenvi.io' },
+        local: { email: 'norole.nocompany@userseed.fr' },
         company: otherCompany._id,
       };
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${userList[11]._id.toHexString()}`,
+        url: `/users/${usersSeedList[12]._id.toHexString()}`,
         payload: updatePayload,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      const userUpdated = await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
+      const userUpdated = await User.countDocuments({ _id: usersSeedList[12]._id, 'identity.firstname': 'Riri' });
       expect(userUpdated).toBeTruthy();
     });
 
@@ -1311,7 +1311,7 @@ describe('PUT /users/:id', () => {
       const payload = {
         identity: { firstname: 'No', lastname: 'Body', socialSecurityNumber: 133333131 },
         contact: { phone: '0344543932' },
-        local: { email: 'norole.nocompany@alenvi.io' },
+        local: { email: 'norole.nocompany@userseed.fr' },
       };
 
       const response = await app.inject({
@@ -1345,32 +1345,30 @@ describe('PUT /users/:id', () => {
 
   describe('NO_ROLE_NO_COMPANY', () => {
     beforeEach(async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
+      authToken = await getTokenByCredentials(usersSeedList[12].local);
     });
 
     it('should update user if it is me', async () => {
       const updatePayload = { identity: { firstname: 'Riri' }, local: { email: 'riri@alenvi.io' } };
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
 
       const response = await app.inject({
         method: 'PUT',
-        url: `/users/${userList[11]._id.toHexString()}`,
+        url: `/users/${usersSeedList[12]._id.toHexString()}`,
         payload: updatePayload,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      const userUpdated = await User.countDocuments({ _id: userList[11]._id, 'identity.firstname': 'Riri' });
+      const userUpdated = await User.countDocuments({ _id: usersSeedList[12]._id, 'identity.firstname': 'Riri' });
       expect(userUpdated).toBeTruthy();
     });
 
     it('should not update another field than allowed ones', async () => {
-      authToken = await getTokenByCredentials(noRoleNoCompany.local);
-      const userId = noRoleNoCompany._id;
+      const userId = usersSeedList[12]._id;
       const payload = {
         identity: { firstname: 'No', lastname: 'Body' },
         contact: { phone: '0344543932' },
-        local: { email: noRoleNoCompany.local.email },
+        local: { email: usersSeedList[12].local.email },
         picture: { link: 'test' },
       };
 
@@ -1397,7 +1395,7 @@ describe('PUT /users/:id', () => {
 
         const response = await app.inject({
           method: 'PUT',
-          url: `/users/${userList[1]._id.toHexString()}`,
+          url: `/users/${usersSeedList[2]._id.toHexString()}`,
           payload: { identity: { firstname: 'Riri' } },
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -1408,7 +1406,7 @@ describe('PUT /users/:id', () => {
   });
 });
 
-describe('DELETE /users/:id', () => {
+describe('USERS ROUTES - DELETE /users/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -1553,7 +1551,7 @@ describe('DELETE /users/:id', () => {
   });
 });
 
-describe('PUT /users/:id/certificates', () => {
+describe('USERS ROUTES - PUT /users/:id/certificates', () => {
   let authToken;
   const updatePayload = { certificates: { driveId: usersSeedList[0].administrative.certificates.driveId } };
   beforeEach(populateDB);
@@ -1633,7 +1631,7 @@ describe('PUT /users/:id/certificates', () => {
   });
 });
 
-describe('POST /users/:id/gdrive/:drive_id/upload', () => {
+describe('USERS ROUTES - POST /users/:id/gdrive/:drive_id/upload', () => {
   let authToken;
   let docPayload;
   let form;
@@ -1746,7 +1744,7 @@ describe('POST /users/:id/gdrive/:drive_id/upload', () => {
   });
 });
 
-describe('POST /users/:id/upload', () => {
+describe('USERS ROUTES - POST /users/:id/upload', () => {
   let authToken;
   let uploadUserMediaStub;
   let momentFormat;
@@ -1850,7 +1848,7 @@ describe('POST /users/:id/upload', () => {
   });
 });
 
-describe('DELETE /users/:id/upload', () => {
+describe('USERS ROUTES - DELETE /users/:id/upload', () => {
   let authToken;
   let deleteUserMediaStub;
   beforeEach(() => {
@@ -1925,7 +1923,7 @@ describe('DELETE /users/:id/upload', () => {
     roles.forEach((role) => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         authToken = await getToken(role.name);
-        const user = userList[0];
+        const user = usersSeedList[6];
         const response = await app.inject({
           method: 'DELETE',
           url: `/users/${user._id}/upload`,
@@ -1938,7 +1936,7 @@ describe('DELETE /users/:id/upload', () => {
   });
 });
 
-describe('POST /users/:id/drivefolder', () => {
+describe('USERS ROUTES - POST /users/:id/drivefolder', () => {
   let authToken;
   let createFolderStub;
   beforeEach(() => {
@@ -1999,7 +1997,7 @@ describe('POST /users/:id/drivefolder', () => {
   });
 });
 
-describe('POST /users/:id/expo-token', () => {
+describe('USERS ROUTES - POST /users/:id/expo-token', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -2081,7 +2079,7 @@ describe('POST /users/:id/expo-token', () => {
   });
 });
 
-describe('DELETE /users/:id/expo-token/:expoToken', () => {
+describe('USERS ROUTES - DELETE /users/:id/expo-token/:expoToken', () => {
   let authToken;
   beforeEach(populateDB);
 

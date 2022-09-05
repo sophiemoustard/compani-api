@@ -41,11 +41,11 @@ const populateDB = async () => {
   await deleteNonAuthenticationSeeds();
 
   await Promise.all([
-    Program.insertMany(programsList),
-    SubProgram.insertMany(subProgramList),
-    Step.insertMany(stepsList),
-    Activity.insertMany(activitiesList),
-    Card.insertMany(cardsList),
+    Program.create(programsList),
+    SubProgram.create(subProgramList),
+    Step.create(stepsList),
+    Activity.create(activitiesList),
+    Card.create(cardsList),
   ]);
 };
 

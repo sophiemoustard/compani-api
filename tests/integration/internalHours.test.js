@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /internalhours', () => {
+describe('INTERNAL HOURS ROUTES - POST /internalhours', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -91,7 +91,7 @@ describe('POST /internalhours', () => {
   });
 });
 
-describe('GET /internalhours', () => {
+describe('INTERNAL HOURS ROUTES - GET /internalhours', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -147,7 +147,7 @@ describe('GET /internalhours', () => {
   });
 });
 
-describe('DELETE /internalhours/:id', () => {
+describe('INTERNAL HOURS ROUTES - DELETE /internalhours/:id', () => {
   let authToken;
   beforeEach(populateDB);
 

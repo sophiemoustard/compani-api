@@ -189,9 +189,9 @@ const getApplicableCIDDHSupplyChainTradeDelivery = (event, customer) => {
  * à la minute près
 */
 const computeBilledQuantity = (event) => {
-  const minutes = (event.endDate - event.startDate) / (60 * 1000);
+  const minutes = DraftBillsHelper.getDurationInMinutes(event.startDate, event.endDate);
 
-  return Math.round((Math.round(minutes) * 100) / 60) / 100;
+  return minutes / 60;
 };
 
 // Prestation à effectuer

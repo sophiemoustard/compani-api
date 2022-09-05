@@ -11,7 +11,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /sectors', () => {
+describe('SECTORS ROUTES - POST /sectors', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -82,7 +82,7 @@ describe('POST /sectors', () => {
   });
 });
 
-describe('GET /sectors', () => {
+describe('SECTORS ROUTES - GET /sectors', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -127,7 +127,7 @@ describe('GET /sectors', () => {
   });
 });
 
-describe('PUT /sectors/:id', () => {
+describe('SECTORS ROUTES - PUT /sectors/:id', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -204,7 +204,7 @@ describe('PUT /sectors/:id', () => {
   });
 });
 
-describe('DELETE /sectors/:id', () => {
+describe('SECTORS ROUTES - DELETE /sectors/:id', () => {
   let authToken;
   beforeEach(populateDB);
 

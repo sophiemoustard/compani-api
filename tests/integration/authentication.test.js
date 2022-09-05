@@ -5,7 +5,7 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const { usersSeedList, populateDB, auxiliaryFromOtherCompany } = require('./seed/usersSeed');
 const { getToken, getTokenByCredentials } = require('./helpers/authentication');
-const { userList, noRoleNoCompany } = require('../seed/authUsersSeed');
+const { noRoleNoCompany } = require('../seed/authUsersSeed');
 const EmailHelper = require('../../src/helpers/email');
 const SmsHelper = require('../../src/helpers/sms');
 const { MOBILE, EMAIL, PHONE } = require('../../src/helpers/constants');
@@ -16,14 +16,14 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /users/authenticate', () => {
+describe('AUTHENTICATION ROUTES - POST /users/authenticate', () => {
   beforeEach(populateDB);
 
   it('should authenticate a user', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '123456!eR', origin: 'webapp' },
+      payload: { email: 'carolyn@alenvi.io', password: '123456!eR', origin: 'webapp' },
     });
 
     expect(response.statusCode).toBe(200);
@@ -37,7 +37,7 @@ describe('POST /users/authenticate', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'norole.nocompany@alenvi.io', password: 'fdsf5P56D', origin: 'mobile' },
+      payload: { email: 'norole.nocompany@userseed.fr', password: 'fdsf5P56D', origin: 'mobile' },
     });
 
     expect(response.statusCode).toBe(200);
@@ -50,7 +50,7 @@ describe('POST /users/authenticate', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io' },
+      payload: { email: 'black@alenvi.io' },
     });
     expect(res.statusCode).toBe(400);
   });
@@ -68,7 +68,7 @@ describe('POST /users/authenticate', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/users/authenticate',
-      payload: { email: 'kitty@alenvi.io', password: '7890' },
+      payload: { email: 'black@alenvi.io', password: '7890' },
     });
     expect(res.statusCode).toBe(401);
   });
@@ -84,7 +84,7 @@ describe('POST /users/authenticate', () => {
   });
 });
 
-describe('POST /users/:id/passwordtoken', () => {
+describe('AUTHENTICATION ROUTES - POST /users/:id/passwordtoken', () => {
   let authToken;
   const payload = { email: 'aux@alenvi.io' };
 
@@ -131,7 +131,7 @@ describe('POST /users/:id/passwordtoken', () => {
 
         const response = await app.inject({
           method: 'POST',
-          url: `/users/${userList[1]._id}/passwordtoken`,
+          url: `/users/${usersSeedList[6]._id}/passwordtoken`,
           payload,
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
@@ -142,7 +142,7 @@ describe('POST /users/:id/passwordtoken', () => {
   });
 });
 
-describe('PUT /users/:id/password', () => {
+describe('AUTHENTICATION ROUTES - PUT /users/:id/password', () => {
   let authToken;
   const updatePayload = { local: { password: '123456!eR' } };
 
@@ -200,7 +200,7 @@ describe('PUT /users/:id/password', () => {
   });
 });
 
-describe('POST /users/refreshToken', () => {
+describe('AUTHENTICATION ROUTES - POST /users/refreshToken', () => {
   beforeEach(populateDB);
   it('should return refresh token for webapp', async () => {
     const res = await app.inject({
@@ -235,7 +235,7 @@ describe('POST /users/refreshToken', () => {
   });
 });
 
-describe('GET /users/passwordtoken/:token', () => {
+describe('AUTHENTICATION ROUTES - GET /users/passwordtoken/:token', () => {
   beforeEach(populateDB);
   let fakeDate;
   beforeEach(() => {
@@ -296,7 +296,7 @@ describe('GET /users/passwordtoken/:token', () => {
   });
 });
 
-describe('POST /users/forgot-password', () => {
+describe('AUTHENTICATION ROUTES - POST /users/forgot-password', () => {
   let forgotPasswordEmail;
   let sendVerificationCodeEmail;
   let sendVerificationCodeSms;

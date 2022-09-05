@@ -16,7 +16,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('PAYMENTS ROUTES - POST /coursepayments', () => {
+describe('COURSE PAYMENTS ROUTES - POST /coursepayments', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = {
@@ -152,7 +152,7 @@ describe('PAYMENTS ROUTES - POST /coursepayments', () => {
   });
 });
 
-describe('PAYMENTS ROUTES - PUT /coursepayments/{_id}', () => {
+describe('COURSE PAYMENTS ROUTES - PUT /coursepayments/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
   const payload = {

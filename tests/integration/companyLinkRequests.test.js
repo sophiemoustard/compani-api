@@ -17,7 +17,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /companylinkrequests', () => {
+describe('COMPANY LINK REQUESTS ROUTES - POST /companylinkrequests', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -78,7 +78,7 @@ describe('POST /companylinkrequests', () => {
   });
 });
 
-describe('GET /companylinkrequests', () => {
+describe('COMPANY LINK REQUESTS ROUTES - GET /companylinkrequests', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -120,7 +120,7 @@ describe('GET /companylinkrequests', () => {
   });
 });
 
-describe('DELETE /companylinkrequests', () => {
+describe('COMPANY LINK REQUESTS ROUTES - DELETE /companylinkrequests', () => {
   let authToken;
   beforeEach(populateDB);
 

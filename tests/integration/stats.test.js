@@ -11,7 +11,7 @@ const {
 } = require('./seed/statsSeed');
 const { getToken } = require('./helpers/authentication');
 
-describe('GET /stats/customer-follow-up', () => {
+describe('STATS ROUTES - GET /stats/customer-follow-up', () => {
   let authToken;
 
   describe('COACH', () => {
@@ -77,7 +77,7 @@ describe('GET /stats/customer-follow-up', () => {
   });
 });
 
-describe('GET /stats/customer-fundings-monitoring', () => {
+describe('STATS ROUTES - GET /stats/customer-fundings-monitoring', () => {
   let authToken;
 
   describe('COACH', () => {
@@ -134,7 +134,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
   });
 });
 
-describe('GET /stats/all-customers-fundings-monitoring', () => {
+describe('STATS ROUTES - GET /stats/all-customers-fundings-monitoring', () => {
   let authToken;
 
   describe('COACH', () => {
@@ -188,7 +188,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
   });
 });
 
-describe('GET /stats/paid-intervention-stats', () => {
+describe('STATS ROUTES - GET /stats/paid-intervention-stats', () => {
   let authToken;
 
   describe('COACH', () => {
@@ -313,7 +313,7 @@ describe('GET /stats/paid-intervention-stats', () => {
   });
 });
 
-describe('GET /stats/customer-duration/sector', () => {
+describe('STATS ROUTES - GET /stats/customer-duration/sector', () => {
   let authToken;
 
   describe('COACH', () => {
@@ -444,7 +444,7 @@ describe('GET /stats/customer-duration/sector', () => {
   });
 });
 
-describe('GET /stats/internal-billed-hours', () => {
+describe('STATS ROUTES - GET /stats/internal-billed-hours', () => {
   let authToken;
 
   describe('COACH', () => {

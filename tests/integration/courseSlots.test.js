@@ -437,7 +437,7 @@ describe('COURSE SLOTS ROUTES - PUT /courseslots/{_id}', () => {
   });
 });
 
-describe('COURSES SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
+describe('COURSE SLOTS ROUTES - DELETE /courseslots/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 

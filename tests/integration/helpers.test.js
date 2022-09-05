@@ -69,7 +69,7 @@ describe('HELPERS ROUTES - GET /helpers', () => {
   });
 });
 
-describe('PUT /helpers/{_id}', () => {
+describe('HELPERS ROUTES - PUT /helpers/{_id}', () => {
   let authToken;
   beforeEach(populateDB);
 

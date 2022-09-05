@@ -98,7 +98,7 @@ function save(next) {
         if (!this.qcAnswers) this.qcAnswers = [{ text: '', correct: false }, { text: '', correct: false }];
         break;
       case SURVEY:
-        if (!this.label) this.label = {};
+        if (!this.label) this.label = { right: '', left: '' };
         if (!this.isMandatory) this.isMandatory = false;
         break;
       case TEXT_MEDIA:

@@ -18,7 +18,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('PUT /companies/:id', () => {
+describe('COMPANIES ROUTES - PUT /companies/:id', () => {
   let authToken;
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);
@@ -200,7 +200,7 @@ describe('PUT /companies/:id', () => {
   });
 });
 
-describe('POST /{_id}/gdrive/{driveId}/upload', () => {
+describe('COMPANIES ROUTES - POST /{_id}/gdrive/{driveId}/upload', () => {
   let authToken;
   const fakeDriveId = 'fakeDriveId';
   let addStub;
@@ -283,7 +283,7 @@ describe('POST /{_id}/gdrive/{driveId}/upload', () => {
   });
 });
 
-describe('POST /companies', () => {
+describe('COMPANIES ROUTES - POST /companies', () => {
   let authToken;
   let createFolderForCompany;
   let createFolder;
@@ -384,7 +384,7 @@ describe('POST /companies', () => {
   });
 });
 
-describe('GET /companies/first-intervention', () => {
+describe('COMPANIES ROUTES - GET /companies/first-intervention', () => {
   let authToken;
   describe('COACH', () => {
     beforeEach(populateDB);
@@ -425,7 +425,7 @@ describe('GET /companies/first-intervention', () => {
   });
 });
 
-describe('GET /companies', () => {
+describe('COMPANIES ROUTES - GET /companies', () => {
   let authToken;
   describe('LOGGED USER', () => {
     beforeEach(populateDB);
@@ -444,7 +444,7 @@ describe('GET /companies', () => {
   });
 });
 
-describe('GET /companies/:id', () => {
+describe('COMPANIES ROUTES - GET /companies/:id', () => {
   let authToken;
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(populateDB);

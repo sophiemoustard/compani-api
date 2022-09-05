@@ -26,7 +26,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('POST /paydocuments', () => {
+describe('PAY DOCUMENTS - POST /paydocuments', () => {
   let authToken;
   let addStub;
   let addFileStub;
@@ -163,7 +163,7 @@ describe('POST /paydocuments', () => {
   });
 });
 
-describe('GET /paydocuments', () => {
+describe('PAY DOCUMENTS - GET /paydocuments', () => {
   let authToken;
   beforeEach(populateDB);
 
@@ -229,7 +229,7 @@ describe('GET /paydocuments', () => {
   });
 });
 
-describe('DELETE /paydocuments', () => {
+describe('PAY DOCUMENTS - DELETE /paydocuments', () => {
   let authToken;
 
   describe('COACH', () => {
