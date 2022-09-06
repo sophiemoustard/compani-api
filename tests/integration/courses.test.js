@@ -85,6 +85,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       const payload = {
         misc: 'course',
         type: 'intra',
+        maxTrainees: 12,
         company: authCompany._id,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
@@ -140,14 +141,35 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if inter_b2b course and maxTrainees is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: 'inter_b2b',
+        maxTrainees: 10,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const payload = {
       misc: 'course',
       company: authCompany._id,
       subProgram: subProgramsList[0]._id,
       type: 'intra',
+      maxTrainees: 8,
       salesRepresentative: vendorAdmin._id,
     };
-    ['company', 'subProgram'].forEach((param) => {
+    ['company', 'subProgram', 'maxTrainees'].forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const response = await app.inject({
           method: 'POST',
