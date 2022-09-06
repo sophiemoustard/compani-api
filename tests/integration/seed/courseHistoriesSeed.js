@@ -4,7 +4,7 @@ const Course = require('../../../src/models/Course');
 const CourseHistory = require('../../../src/models/CourseHistory');
 const User = require('../../../src/models/User');
 const { authCompany } = require('../../seed/authCompaniesSeed');
-const { SLOT_CREATION, WEBAPP } = require('../../../src/helpers/constants');
+const { SLOT_CREATION, WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { vendorAdminRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 
@@ -34,7 +34,8 @@ const coursesList = [{
   subProgram: subProgramsList[0]._id,
   company: authCompany._id,
   misc: 'first session',
-  type: 'intra',
+  type: INTRA,
+  maxTrainees: 8,
   trainer: userList[0]._id,
   trainees: [],
   salesRepresentative: userList[1]._id,
@@ -44,7 +45,8 @@ const coursesList = [{
   subProgram: subProgramsList[0]._id,
   company: new ObjectId(),
   misc: 'first session',
-  type: 'intra',
+  type: INTRA,
+  maxTrainees: 8,
   trainer: new ObjectId(),
   trainees: [],
   salesRepresentative: userList[1]._id,
@@ -53,7 +55,7 @@ const coursesList = [{
   _id: new ObjectId(),
   subProgram: subProgramsList[0]._id,
   misc: 'inter b2b session',
-  type: 'inter_b2b',
+  type: INTER_B2B,
   format: 'blended',
   trainer: userList[0]._id,
   trainees: [],

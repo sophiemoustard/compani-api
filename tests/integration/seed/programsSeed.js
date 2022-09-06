@@ -9,6 +9,7 @@ const Card = require('../../../src/models/Card');
 const Course = require('../../../src/models/Course');
 const { userList, vendorAdmin, trainerOrganisationManager } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
+const { INTER_B2C } = require('../../../src/helpers/constants');
 
 const cards = [
   { _id: new ObjectId(), template: 'transition', title: 'skusku' },
@@ -106,7 +107,7 @@ const course = {
   _id: new ObjectId(),
   subProgram: subProgramsList[2]._id,
   misc: 'first session',
-  type: 'inter_b2c',
+  type: INTER_B2C,
   trainer: new ObjectId(),
   format: 'strictly_e_learning',
   trainees: [userList[0]._id],

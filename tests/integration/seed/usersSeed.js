@@ -18,7 +18,7 @@ const { vendorAdmin } = require('../../seed/authUsersSeed');
 const ActivityHistory = require('../../../src/models/ActivityHistory');
 const Course = require('../../../src/models/Course');
 const CompanyLinkRequest = require('../../../src/models/CompanyLinkRequest');
-const { WEBAPP, MOBILE, VIDEO } = require('../../../src/helpers/constants');
+const { WEBAPP, MOBILE, VIDEO, INTER_B2B, INTRA } = require('../../../src/helpers/constants');
 const Helper = require('../../../src/models/Helper');
 const {
   helperRoleId,
@@ -339,14 +339,15 @@ const courses = [
   {
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    type: 'inter_b2b',
+    type: INTER_B2B,
     trainees: [helperFromOtherCompany._id, usersSeedList[0]._id],
     salesRepresentative: vendorAdmin._id,
   },
   {
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     company: new ObjectId(),
     trainees: [usersSeedList[0]._id],
     salesRepresentative: vendorAdmin._id,
@@ -355,7 +356,7 @@ const courses = [
     _id: new ObjectId(),
     subProgram: subProgram._id,
     misc: 'elearning for all',
-    type: 'inter_b2c',
+    type: INTER_B2B,
     format: 'strictly_e_learning',
     trainees: [usersSeedList[12]._id],
   },

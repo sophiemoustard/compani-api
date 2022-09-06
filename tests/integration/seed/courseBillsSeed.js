@@ -73,6 +73,7 @@ const courseList = [
   { // 0 - linked to bill 0
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: authCompany._id,
     subProgram: new ObjectId(),
     misc: 'group 1',
@@ -85,6 +86,7 @@ const courseList = [
   { // 1 - linked to bill 1
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: authCompany._id,
     subProgram: new ObjectId(),
     misc: 'group 2',
@@ -97,6 +99,7 @@ const courseList = [
   { // 2 - without bill
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: otherCompany._id,
     subProgram: subProgramList[0]._id,
     misc: 'group 3',
@@ -108,6 +111,7 @@ const courseList = [
   { // 3 - linked to bill 2
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: authCompany._id,
     subProgram: subProgramList[0]._id,
     misc: 'group 4',
@@ -119,6 +123,7 @@ const courseList = [
   { // 4 - linked to bill 3
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: authCompany._id,
     subProgram: new ObjectId(),
     misc: 'group 5',
@@ -130,6 +135,7 @@ const courseList = [
   { // 5 - linked to bill 4
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: authCompany._id,
     subProgram: new ObjectId(),
     misc: 'group 6',
@@ -141,6 +147,7 @@ const courseList = [
   { // 6 - linked to bill 5
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: companyWithoutAddress._id,
     subProgram: new ObjectId(),
     misc: 'group 7',
@@ -152,6 +159,7 @@ const courseList = [
   { // 7 - linked to bill 6
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: otherCompany._id,
     subProgram: subProgramList[0]._id,
     misc: 'group 7',
@@ -163,6 +171,7 @@ const courseList = [
   { // 8 - linked to bill 7
     _id: new ObjectId(),
     type: INTRA,
+    maxTrainees: 8,
     company: otherCompany._id,
     subProgram: new ObjectId(),
     misc: 'group 7',
