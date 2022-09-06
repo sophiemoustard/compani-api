@@ -24,7 +24,7 @@ const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
 const NotificationHelper = require('../../../src/helpers/notifications');
-const { COURSE_SMS, BLENDED, DRAFT, E_LEARNING, ON_SITE, MOBILE, REMOTE } = require('../../../src/helpers/constants');
+const { COURSE_SMS, BLENDED, DRAFT, E_LEARNING, ON_SITE, MOBILE, REMOTE, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
@@ -59,7 +59,8 @@ describe('createCourse', () => {
       misc: 'name',
       company: new ObjectId(),
       subProgram: subProgram._id,
-      type: 'intra',
+      type: INTRA,
+      maxTrainees: 12,
       salesRepresentative: new ObjectId(),
     };
 
@@ -73,7 +74,7 @@ describe('createCourse', () => {
     expect(result.subProgram).toEqual(payload.subProgram);
     expect(result.company).toEqual(payload.company);
     expect(result.format).toEqual('blended');
-    expect(result.type).toEqual('intra');
+    expect(result.type).toEqual(INTRA);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
     sinon.assert.calledOnceWithExactly(insertManyCourseSlot, slots);
     SinonMongoose.calledOnceWithExactly(
@@ -92,7 +93,7 @@ describe('createCourse', () => {
       misc: 'name',
       company: new ObjectId(),
       subProgram: subProgram._id,
-      type: 'inter_b2b',
+      type: INTER_B2B,
       salesRepresentative: new ObjectId(),
     };
 
@@ -104,7 +105,7 @@ describe('createCourse', () => {
     expect(result.subProgram).toEqual(payload.subProgram);
     expect(result.company).toEqual(payload.company);
     expect(result.format).toEqual('blended');
-    expect(result.type).toEqual('inter_b2b');
+    expect(result.type).toEqual(INTER_B2B);
     expect(result.salesRepresentative).toEqual(payload.salesRepresentative);
     sinon.assert.notCalled(insertManyCourseSlot);
     SinonMongoose.calledOnceWithExactly(
@@ -195,18 +196,18 @@ describe('list', () => {
 
   it('should return company courses', async () => {
     const coursesList = [
-      { misc: 'name', type: 'intra' },
+      { misc: 'name', type: INTRA },
       {
         misc: 'program',
-        type: 'inter_b2b',
+        type: INTER_B2B,
         trainees: [{ identity: { firstname: 'Bonjour' }, company: { _id: authCompany } }],
       },
     ];
     const returnedList = [
-      { misc: 'name', type: 'intra' },
+      { misc: 'name', type: INTRA },
       {
         misc: 'program',
-        type: 'inter_b2b',
+        type: INTER_B2B,
         companies: ['1234567890abcdef12345678', authCompany.toHexString()],
         trainees: [
           { identity: { firstname: 'Bonjour' }, company: { _id: authCompany } },
@@ -228,11 +229,11 @@ describe('list', () => {
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(
       findCourseAndPopulate.getCall(0),
-      { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', type: 'intra', format: 'blended' }
+      { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', type: INTRA, format: 'blended' }
     );
     sinon.assert.calledWithExactly(
       findCourseAndPopulate.getCall(1),
-      { trainer: '1234567890abcdef12345678', type: 'inter_b2b', format: 'blended' },
+      { trainer: '1234567890abcdef12345678', type: INTER_B2B, format: 'blended' },
       true
     );
     sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
@@ -692,7 +693,7 @@ describe('getCourse', () => {
   it('should return inter b2b course without trainees filtering', async () => {
     const course = {
       _id: new ObjectId(),
-      type: 'inter_b2b',
+      type: INTER_B2B,
       trainees: [{ _id: new ObjectId(), company: new ObjectId() }, { _id: new ObjectId(), company: new ObjectId() }],
       subProgram: { steps: [{ theoreticalHours: 1 }, { theoreticalHours: 0.5 }] },
     };
@@ -773,17 +774,17 @@ describe('getCourse', () => {
     const loggedUser = { role: { client: { name: 'client_admin' } }, company: { _id: authCompanyId } };
     const course = {
       _id: new ObjectId(),
-      type: 'inter_b2b',
+      type: INTER_B2B,
       trainees: [{ _id: new ObjectId(), company: authCompanyId }, { _id: new ObjectId(), company: otherCompanyId }],
       subProgram: { steps: [] },
     };
     const courseWithAllTrainees = {
-      type: 'inter_b2b',
+      type: INTER_B2B,
       trainees: [{ company: authCompanyId }, { company: otherCompanyId }],
       subProgram: { steps: [] },
     };
     const courseWithFilteredTrainees = {
-      type: 'inter_b2b',
+      type: INTER_B2B,
       trainees: [{ company: authCompanyId }],
       totalTheoreticalHours: 0,
     };
@@ -2179,7 +2180,7 @@ describe('generateAttendanceSheets', () => {
 
   it('should download attendance sheet for inter b2b course', async () => {
     const courseId = new ObjectId();
-    const course = { misc: 'des infos en plus', type: 'inter_b2b' };
+    const course = { misc: 'des infos en plus', type: INTER_B2B };
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 
@@ -2220,7 +2221,7 @@ describe('generateAttendanceSheets', () => {
 
   it('should download attendance sheet for intra course', async () => {
     const courseId = new ObjectId();
-    const course = { misc: 'des infos en plus', type: 'intra' };
+    const course = { misc: 'des infos en plus', type: INTRA };
 
     courseFindOne.returns(SinonMongoose.stubChainedQueries(course));
 

@@ -148,7 +148,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         maxTrainees: 10,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
-        estimatedStartDate: '2022-05-31T08:00:00',
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
       };
 
       const response = await app.inject({
@@ -170,7 +170,7 @@ describe('COURSES ROUTES - POST /courses', () => {
       salesRepresentative: vendorAdmin._id,
     };
     ['company', 'subProgram', 'maxTrainees'].forEach((param) => {
-      it(`should return a 400 error if missing '${param}' parameter`, async () => {
+      it(`should return a 400 error if course is intra and '${param}' parameter is missing`, async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/courses',
@@ -195,6 +195,7 @@ describe('COURSES ROUTES - POST /courses', () => {
         const payload = {
           misc: 'course',
           type: 'intra',
+          maxTrainees: 8,
           company: authCompany._id,
           subProgram: subProgramsList[0]._id,
           salesRepresentative: vendorAdmin._id,
