@@ -152,7 +152,7 @@ describe('getTotalTheoreticalHours', () => {
   });
 });
 
-describe('list', () => {
+describe('listForOperation', () => {
   let findCourseAndPopulate;
   let getTotalTheoreticalHoursSpy;
   const authCompany = new ObjectId();
@@ -171,7 +171,7 @@ describe('list', () => {
 
     findCourseAndPopulate.returns(coursesList);
 
-    const result = await CourseHelper.list({ trainer: '1234567890abcdef12345678', format: 'blended' });
+    const result = await CourseHelper.listForOperation({ trainer: '1234567890abcdef12345678', format: 'blended' });
     expect(result).toMatchObject(coursesList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { trainer: '1234567890abcdef12345678', format: 'blended' });
     sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
@@ -198,7 +198,7 @@ describe('list', () => {
 
     findCourseAndPopulate.returns(coursesList);
 
-    const result = await CourseHelper.list({ format: 'strictly_e_learning' });
+    const result = await CourseHelper.listForOperation({ format: 'strictly_e_learning' });
     expect(result).toMatchObject(formattedCourseList);
     sinon.assert.calledWithExactly(findCourseAndPopulate, { format: 'strictly_e_learning' });
     sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
@@ -231,7 +231,7 @@ describe('list', () => {
       .onSecondCall()
       .returns([returnedList[1]]);
 
-    const result = await CourseHelper.list({
+    const result = await CourseHelper.listForOperation({
       company: authCompany.toHexString(),
       trainer: '1234567890abcdef12345678',
       format: 'blended',
@@ -285,7 +285,7 @@ describe('list', () => {
 
     findCourseAndPopulate.returns(coursesList);
 
-    const result = await CourseHelper.list({ company: companyId, format: 'strictly_e_learning' });
+    const result = await CourseHelper.listForOperation({ company: companyId, format: 'strictly_e_learning' });
     expect(result).toMatchObject(filteredCourseList);
 
     sinon.assert.calledOnceWithExactly(
