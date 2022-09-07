@@ -24,7 +24,7 @@ exports.getPdfContent = async (qrCode, customerName) => {
 
   return {
     content: content.flat(),
-    defaultStyle: { font: 'Avenir', fontSize: 20 },
+    defaultStyle: { font: 'SourceSans', fontSize: 20 },
     pageSize: 'LETTER',
     pageMargins: [0, 0, 0, 0],
     background: [{ image: fond, absolutePosition: { x: 48, y: 100 }, width: 320 }],
