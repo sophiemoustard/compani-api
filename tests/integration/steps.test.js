@@ -56,8 +56,8 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
       expect(updatedStepCount).toBe(1);
     });
 
-    it('should update activities', async () => {
-      const payload = { activities: [stepsList[1].activities[0]] };
+    it('should change activities order', async () => {
+      const payload = { activities: [stepsList[1].activities[1], stepsList[1].activities[0]] };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepsList[1]._id}`,
