@@ -193,7 +193,7 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
       expect(response.result.data.program.subPrograms[0].isStrictlyELearning).toBeFalsy();
       expect(response.result.data.program.subPrograms[0].steps).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          name: 'étape 3 - sans act',
+          name: 'étape 3',
           type: 'on_site',
           activities: [],
           areActivitiesValid: true,
@@ -211,67 +211,31 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
           ]),
         }),
         expect.objectContaining({
-          name: 'étape 4 - tout valide',
-          type: 'on_site',
-          activities: [],
-          areActivitiesValid: true,
-        }),
-        expect.objectContaining({
-          name: 'étape 5 - carte non valide',
-          type: 'on_site',
-          activities: [],
-          areActivitiesValid: true,
-        }),
-        expect.objectContaining({
-          name: 'étape 6 - sans carte',
-          type: 'on_site',
-          activities: [],
-          areActivitiesValid: true,
-        }),
-        expect.objectContaining({
-          name: 'étape 7 - sans act',
+          name: 'étape 4 - sans act',
           type: 'e_learning',
           activities: [],
           areActivitiesValid: false,
         }),
         expect.objectContaining({
-          name: 'étape 8 - tout valide',
+          name: 'étape 5 - tout valide',
           type: 'e_learning',
           activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 1', areCardsValid: true })]),
           areActivitiesValid: true,
         }),
         expect.objectContaining({
-          name: 'étape 9 - carte non valide',
+          name: 'étape 6 - carte non valide',
           type: 'e_learning',
           activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 2', areCardsValid: false })]),
           areActivitiesValid: false,
         }),
         expect.objectContaining({
-          name: 'étape 10 - sans carte',
+          name: 'étape 7 - sans carte',
           type: 'e_learning',
           activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 3', areCardsValid: false })]),
           areActivitiesValid: false,
         }),
         expect.objectContaining({
-          name: 'étape 11 - sans act',
-          type: 'remote',
-          activities: [],
-          areActivitiesValid: true,
-        }),
-        expect.objectContaining({
-          name: 'étape 12 - tout valide',
-          type: 'remote',
-          activities: [],
-          areActivitiesValid: true,
-        }),
-        expect.objectContaining({
-          name: 'étape 13 - carte non valide',
-          type: 'remote',
-          activities: [],
-          areActivitiesValid: true,
-        }),
-        expect.objectContaining({
-          name: 'étape 14 - sans carte',
+          name: 'étape 8',
           type: 'remote',
           activities: [],
           areActivitiesValid: true,

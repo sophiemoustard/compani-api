@@ -57,7 +57,6 @@ const stepsList = [
     name: 'rouge',
     activities: [activitiesList[0]._id, activitiesList[1]._id],
   },
-  { _id: new ObjectId(), type: 'on_site', name: 'bleu', activities: [] },
 ];
 
 const subProgramsList = [{ _id: new ObjectId(), name: '2_7_4124', steps: [stepsList[0]._id] }];
