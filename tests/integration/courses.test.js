@@ -233,7 +233,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     it('should get all courses', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses',
+        url: '/courses?action=operation&origin=webapp',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -248,14 +248,13 @@ describe('COURSES ROUTES - GET /courses', () => {
           program: {
             _id: programsList[0]._id,
             name: programsList[0].name,
-            image: programsList[0].image,
             subPrograms: [expect.any(ObjectId)],
           },
         }),
         trainer: pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname']),
         slots: [{
-          startDate: moment('2020-03-20T09:00:00').toDate(),
-          endDate: moment('2020-03-20T11:00:00').toDate(),
+          startDate: new Date('2020-03-20T08:00:00.000Z'),
+          endDate: new Date('2020-03-20T10:00:00.000Z'),
           course: coursesList[3]._id,
           _id: expect.any(ObjectId),
         }],
@@ -272,7 +271,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     it('should get blended courses', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?format=blended',
+        url: '/courses?action=operation&origin=webapp&format=blended',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -283,7 +282,7 @@ describe('COURSES ROUTES - GET /courses', () => {
     it('should get strictly e-learning courses', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?format=strictly_e_learning',
+        url: '/courses?action=operation&origin=webapp&format=strictly_e_learning',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -291,10 +290,10 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(4);
     });
 
-    it('should return 400 if bad format', async () => {
+    it('should return 400 if no action or origin', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?format=poiuytrewq',
+        url: '/courses',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -307,7 +306,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?trainer=${trainer._id}`,
+        url: `/courses?action=operation&origin=webapp&trainer=${trainer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -319,7 +318,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?company=${authCompany._id}`,
+        url: `/courses?action=operation&origin=webapp&company=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -338,7 +337,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/courses',
+          url: '/courses?action=operation&origin=webapp',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
