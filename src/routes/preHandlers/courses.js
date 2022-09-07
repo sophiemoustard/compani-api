@@ -176,8 +176,12 @@ exports.authorizeCourseGetByTrainee = async (req) => {
 exports.getCourseTrainee = async (req) => {
   try {
     const { payload } = req;
-    const course = await Course.findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1 }).lean();
+    const course = await Course
+      .findOne({ _id: req.params._id }, { type: 1, trainees: 1, company: 1, maxTrainees: 1 })
+      .lean();
     if (!course) throw Boom.notFound();
+
+    if (course.trainees.length + 1 > course.maxTrainees) throw Boom.forbidden(translate[language].maxTraineesReached);
 
     const traineeExist = await User.countDocuments({ _id: payload.trainee });
     if (!traineeExist) throw Boom.forbidden();
