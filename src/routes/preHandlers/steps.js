@@ -2,7 +2,7 @@ const Boom = require('@hapi/boom');
 const Step = require('../../models/Step');
 const Activity = require('../../models/Activity');
 const Program = require('../../models/Program');
-const { PUBLISHED } = require('../../helpers/constants');
+const { PUBLISHED, E_LEARNING } = require('../../helpers/constants');
 
 exports.authorizeStepUpdate = async (req) => {
   const step = await Step.findOne({ _id: req.params._id }, { activities: 1, status: 1 }).lean();
@@ -22,17 +22,17 @@ exports.authorizeStepUpdate = async (req) => {
 };
 
 exports.authorizeActivityAddition = async (req) => {
-  const step = await Step.findOne({ _id: req.params._id }, { status: 1 }).lean();
+  const step = await Step.findOne({ _id: req.params._id }, { status: 1, type: 1 }).lean();
   if (!step) throw Boom.notFound();
-  if (step.status === PUBLISHED) throw Boom.forbidden();
+  if (step.status === PUBLISHED || step.type !== E_LEARNING) throw Boom.forbidden();
 
   return null;
 };
 
 exports.authorizeActivityReuse = async (req) => {
-  const step = await Step.findOne({ _id: req.params._id }, { activities: 1, status: 1 }).lean();
+  const step = await Step.findOne({ _id: req.params._id }, { activities: 1, status: 1, type: 1 }).lean();
   if (!step) throw Boom.notFound();
-  if (step.status === PUBLISHED) throw Boom.forbidden();
+  if (step.status === PUBLISHED || step.type !== E_LEARNING) throw Boom.forbidden();
 
   const { activities } = req.payload;
   const existingActivity = await Activity.countDocuments({ _id: activities });

@@ -213,20 +213,20 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
         expect.objectContaining({
           name: 'étape 4 - tout valide',
           type: 'on_site',
-          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 1', areCardsValid: true })]),
+          activities: [],
           areActivitiesValid: true,
         }),
         expect.objectContaining({
           name: 'étape 5 - carte non valide',
           type: 'on_site',
-          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 2', areCardsValid: false })]),
-          areActivitiesValid: false,
+          activities: [],
+          areActivitiesValid: true,
         }),
         expect.objectContaining({
           name: 'étape 6 - sans carte',
           type: 'on_site',
-          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 3', areCardsValid: false })]),
-          areActivitiesValid: false,
+          activities: [],
+          areActivitiesValid: true,
         }),
         expect.objectContaining({
           name: 'étape 7 - sans act',
@@ -261,20 +261,20 @@ describe('PROGRAMS ROUTES - GET /programs/{_id}', () => {
         expect.objectContaining({
           name: 'étape 12 - tout valide',
           type: 'remote',
-          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 1', areCardsValid: true })]),
+          activities: [],
           areActivitiesValid: true,
         }),
         expect.objectContaining({
           name: 'étape 13 - carte non valide',
           type: 'remote',
-          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 2', areCardsValid: false })]),
-          areActivitiesValid: false,
+          activities: [],
+          areActivitiesValid: true,
         }),
         expect.objectContaining({
           name: 'étape 14 - sans carte',
           type: 'remote',
-          activities: expect.arrayContaining([expect.objectContaining({ name: 'activité 3', areCardsValid: false })]),
-          areActivitiesValid: false,
+          activities: [],
+          areActivitiesValid: true,
         }),
       ]));
     });

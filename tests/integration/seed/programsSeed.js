@@ -39,17 +39,17 @@ const stepsList = [
   },
   { _id: new ObjectId(), type: 'e_learning', name: 'étape 2', activities: [activitiesList[0]._id] },
   { _id: new ObjectId(), type: 'on_site', name: 'étape 3 - sans act', activities: [] },
-  { _id: new ObjectId(), type: 'on_site', name: 'étape 4 - tout valide', activities: [activitiesList[0]._id] },
-  { _id: new ObjectId(), type: 'on_site', name: 'étape 5 - carte non valide', activities: [activitiesList[1]._id] },
-  { _id: new ObjectId(), type: 'on_site', name: 'étape 6 - sans carte', activities: [activitiesList[2]._id] },
+  { _id: new ObjectId(), type: 'on_site', name: 'étape 4 - tout valide', activities: [] },
+  { _id: new ObjectId(), type: 'on_site', name: 'étape 5 - carte non valide', activities: [] },
+  { _id: new ObjectId(), type: 'on_site', name: 'étape 6 - sans carte', activities: [] },
   { _id: new ObjectId(), type: 'e_learning', name: 'étape 7 - sans act', activities: [] },
   { _id: new ObjectId(), type: 'e_learning', name: 'étape 8 - tout valide', activities: [activitiesList[0]._id] },
   { _id: new ObjectId(), type: 'e_learning', name: 'étape 9 - carte non valide', activities: [activitiesList[1]._id] },
   { _id: new ObjectId(), type: 'e_learning', name: 'étape 10 - sans carte', activities: [activitiesList[2]._id] },
   { _id: new ObjectId(), type: 'remote', name: 'étape 11 - sans act', activities: [] },
-  { _id: new ObjectId(), type: 'remote', name: 'étape 12 - tout valide', activities: [activitiesList[0]._id] },
-  { _id: new ObjectId(), type: 'remote', name: 'étape 13 - carte non valide', activities: [activitiesList[1]._id] },
-  { _id: new ObjectId(), type: 'remote', name: 'étape 14 - sans carte', activities: [activitiesList[2]._id] },
+  { _id: new ObjectId(), type: 'remote', name: 'étape 12 - tout valide', activities: [] },
+  { _id: new ObjectId(), type: 'remote', name: 'étape 13 - carte non valide', activities: [] },
+  { _id: new ObjectId(), type: 'remote', name: 'étape 14 - sans carte', activities: [] },
 ];
 
 const subProgramsList = [

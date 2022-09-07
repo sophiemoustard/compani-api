@@ -56,7 +56,7 @@ const activitiesList = [
 
 const stepsList = [{
   _id: new ObjectId(),
-  type: 'on_site',
+  type: 'e_learning',
   name: 'c\'est une étape',
   activities: [activitiesList[0]._id],
 }];

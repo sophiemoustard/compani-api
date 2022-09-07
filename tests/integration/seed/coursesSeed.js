@@ -112,13 +112,13 @@ const activitiesHistory = [
 ];
 
 const stepList = [
-  { _id: new ObjectId(), name: 'etape', type: 'on_site', activities: activitiesList.map(a => a._id) },
+  { _id: new ObjectId(), name: 'etape', type: 'on_site', activities: [] },
   { _id: new ObjectId(), name: 'etape', type: 'e_learning', activities: activitiesList.map(a => a._id) },
-  { _id: new ObjectId(), name: 'etape', type: 'remote', activities: activitiesList.map(a => a._id) },
+  { _id: new ObjectId(), name: 'etape', type: 'remote', activities: [] },
 ];
 
 const subProgramsList = [
-  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id] },
+  { _id: new ObjectId(), name: 'sous-programme 1', steps: [stepList[0]._id, stepList[1]._id] },
   { _id: new ObjectId(), name: 'sous-programme 2', steps: [stepList[1]._id, stepList[2]._id] },
 ];
 

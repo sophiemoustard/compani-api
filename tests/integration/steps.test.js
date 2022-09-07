@@ -57,18 +57,18 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     });
 
     it('should update activities', async () => {
-      const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]] };
+      const payload = { activities: [stepsList[1].activities[0]] };
       const response = await app.inject({
         method: 'PUT',
-        url: `/steps/${stepId}`,
+        url: `/steps/${stepsList[1]._id}`,
         payload,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
-      const stepUpdated = await Step.findById(stepId).lean();
+      const stepUpdated = await Step.findById(stepsList[1]._id).lean();
 
       expect(response.statusCode).toBe(200);
-      expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepId, activities: payload.activities }));
+      expect(stepUpdated).toEqual(expect.objectContaining({ _id: stepsList[1]._id, activities: payload.activities }));
     });
 
     it('should update theoreticalHours with positive float', async () => {
@@ -130,7 +130,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
     });
 
     it('should return a 403 if step is published and payload has activities', async () => {
-      const payload = { activities: [stepsList[0].activities[1], stepsList[0].activities[0]], name: 'skusku' };
+      const payload = { activities: [stepsList[1].activities[0]], name: 'skusku' };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepsList[3]._id}`,
@@ -216,7 +216,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}', () => {
 describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
   let authToken;
   beforeEach(populateDB);
-  const step = stepsList[0];
+  const step = stepsList[1];
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
@@ -287,8 +287,8 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       expect(response.statusCode).toBe(200);
       expect(stepUpdated).toEqual(expect.objectContaining({
         _id: step._id,
-        name: 'etape 1',
-        type: 'on_site',
+        name: 'etape 2',
+        type: 'e_learning',
         status: 'draft',
         activities: expect.arrayContaining([
           {
@@ -367,6 +367,18 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return a 403 if step is not elearning', async () => {
+      const duplicatedActivityId = activitiesList[0]._id;
+      const response = await app.inject({
+        method: 'POST',
+        url: `/steps/${stepsList[0]._id}/activities`,
+        payload: { activityId: duplicatedActivityId },
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return a 403 if step is published', async () => {
       const payload = { name: 'new activity', type: 'video' };
       const response = await app.inject({
@@ -408,7 +420,7 @@ describe('STEPS ROUTES - POST /steps/{_id}/activity', () => {
 describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
   let authToken;
   beforeEach(populateDB);
-  const stepId = stepsList[0]._id;
+  const stepId = stepsList[1]._id;
 
   describe('TRAINING_ORGANISATION_MANAGER', () => {
     beforeEach(async () => {
@@ -416,8 +428,8 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
     });
 
     it('should push a reused activity', async () => {
-      const payload = { activities: activitiesList[0]._id };
-      const reusedActivityId = activitiesList[0]._id;
+      const payload = { activities: activitiesList[1]._id };
+      const reusedActivityId = activitiesList[1]._id;
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}/activities`,
@@ -461,6 +473,18 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return a 403 if step is not elearning', async () => {
+      const payload = { activities: activitiesList[0]._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/steps/${stepsList[0]._id}/activities`,
+        payload,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return a 403 if step is published', async () => {
       const payload = { activities: activitiesList[0]._id };
       const response = await app.inject({
@@ -486,7 +510,7 @@ describe('STEPS ROUTES - PUT /steps/{_id}/activities', () => {
     });
 
     it('should return a 400 if reused activity is from the same step', async () => {
-      const payload = { activities: activitiesList[1]._id };
+      const payload = { activities: activitiesList[0]._id };
       const response = await app.inject({
         method: 'PUT',
         url: `/steps/${stepId}/activities`,
