@@ -143,7 +143,7 @@ exports.getPdfContent = async (data) => {
 
   return {
     content: content.flat(),
-    defaultStyle: { font: 'Avenir', fontSize: 10.5, alignment: 'justify' },
+    defaultStyle: { font: 'SourceSans', fontSize: 10.5, alignment: 'justify' },
     styles: { marginBottomMedium: { marginBottom: 24 } },
   };
 };
