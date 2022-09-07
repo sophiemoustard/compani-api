@@ -14,7 +14,14 @@ const CourseSlot = require('../../src/models/CourseSlot');
 const drive = require('../../src/models/Google/Drive');
 const CourseSmsHistory = require('../../src/models/CourseSmsHistory');
 const CourseHistory = require('../../src/models/CourseHistory');
-const { CONVOCATION, COURSE_SMS, TRAINEE_ADDITION, TRAINEE_DELETION } = require('../../src/helpers/constants');
+const {
+  CONVOCATION,
+  COURSE_SMS,
+  TRAINEE_ADDITION,
+  TRAINEE_DELETION,
+  INTRA,
+  INTER_B2B,
+} = require('../../src/helpers/constants');
 const {
   populateDB,
   coursesList,
@@ -59,7 +66,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     it('should create inter_b2b course', async () => {
       const payload = {
         misc: 'course',
-        type: 'inter_b2b',
+        type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
         estimatedStartDate: '2022-05-31T08:00:00',
@@ -84,7 +91,8 @@ describe('COURSES ROUTES - POST /courses', () => {
     it('should create intra course', async () => {
       const payload = {
         misc: 'course',
-        type: 'intra',
+        type: INTRA,
+        maxTrainees: 12,
         company: authCompany._id,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: vendorAdmin._id,
@@ -109,7 +117,7 @@ describe('COURSES ROUTES - POST /courses', () => {
     it('should return 403 if invalid salesRepresentative', async () => {
       const payload = {
         misc: 'course',
-        type: 'inter_b2b',
+        type: INTER_B2B,
         subProgram: subProgramsList[0]._id,
         salesRepresentative: clientAdmin._id,
       };
@@ -140,15 +148,36 @@ describe('COURSES ROUTES - POST /courses', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return 400 if inter_b2b course and maxTrainees is in payload', async () => {
+      const payload = {
+        misc: 'course',
+        type: INTER_B2B,
+        maxTrainees: 10,
+        subProgram: subProgramsList[0]._id,
+        salesRepresentative: vendorAdmin._id,
+        estimatedStartDate: '2022-05-31T08:00:00.000Z',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/courses',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     const payload = {
       misc: 'course',
       company: authCompany._id,
       subProgram: subProgramsList[0]._id,
-      type: 'intra',
+      type: INTRA,
+      maxTrainees: 8,
       salesRepresentative: vendorAdmin._id,
     };
-    ['company', 'subProgram'].forEach((param) => {
-      it(`should return a 400 error if missing '${param}' parameter`, async () => {
+    ['company', 'subProgram', 'maxTrainees'].forEach((param) => {
+      it(`should return a 400 error if course is intra and '${param}' parameter is missing`, async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/courses',
@@ -172,7 +201,8 @@ describe('COURSES ROUTES - POST /courses', () => {
       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
         const payload = {
           misc: 'course',
-          type: 'intra',
+          type: INTRA,
+          maxTrainees: 8,
           company: authCompany._id,
           subProgram: subProgramsList[0]._id,
           salesRepresentative: vendorAdmin._id,

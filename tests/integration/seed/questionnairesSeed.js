@@ -11,7 +11,7 @@ const QuestionnaireHistory = require('../../../src/models/QuestionnaireHistory')
 const { authCompany } = require('../../seed/authCompaniesSeed');
 const { userList } = require('../../seed/authUsersSeed');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
-const { TRANSITION, OPEN_QUESTION } = require('../../../src/helpers/constants');
+const { TRANSITION, OPEN_QUESTION, INTER_B2B } = require('../../../src/helpers/constants');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 
 const cardsList = [
@@ -49,7 +49,7 @@ const coursesList = [
     _id: new ObjectId(),
     format: 'blended',
     subProgram: subProgramsList[0]._id,
-    type: 'inter_b2b',
+    type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainer: courseTrainer._id,
     company: authCompany._id,
@@ -58,7 +58,7 @@ const coursesList = [
     _id: new ObjectId(),
     format: 'strictly_e_learning',
     subProgram: new ObjectId(),
-    type: 'inter_b2b',
+    type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainer: courseTrainer._id,
   },
@@ -66,7 +66,7 @@ const coursesList = [
     _id: new ObjectId(),
     format: 'blended',
     subProgram: new ObjectId(),
-    type: 'inter_b2b',
+    type: INTER_B2B,
     salesRepresentative: new ObjectId(),
     trainer: new ObjectId(),
   },

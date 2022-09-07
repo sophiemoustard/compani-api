@@ -10,7 +10,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const Attendance = require('../../../src/models/Attendance');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
 const { vendorAdmin } = require('../../seed/authUsersSeed');
-const { WEBAPP } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { trainerRoleId } = require('../../seed/authRolesSeed');
 
@@ -49,7 +49,8 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'first session',
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainer: new ObjectId(),
     salesRepresentative: vendorAdmin._id,
   },
@@ -58,7 +59,8 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     company: otherCompany._id,
     misc: 'team formation',
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
   },
@@ -67,7 +69,8 @@ const coursesList = [
     subProgram: subProgramsList[0]._id,
     company: authCompany._id,
     misc: 'old session',
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainer: trainer._id,
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-11-15T09:00:00',

@@ -94,6 +94,7 @@ exports.plugin = {
             company: Joi.objectId().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
             salesRepresentative: Joi.objectId().required(),
             estimatedStartDate: dateToISOString,
+            maxTrainees: Joi.number().when('type', { is: INTRA, then: Joi.required(), otherwise: Joi.forbidden() }),
           }),
         },
         auth: { scope: ['courses:create'] },

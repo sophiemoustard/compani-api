@@ -8,7 +8,7 @@ const SubProgram = require('../../../src/models/SubProgram');
 const User = require('../../../src/models/User');
 const UserCompany = require('../../../src/models/UserCompany');
 const { otherCompany, authCompany } = require('../../seed/authCompaniesSeed');
-const { WEBAPP } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const { trainerRoleId, vendorAdminRoleId } = require('../../seed/authRolesSeed');
 const { trainer } = require('../../seed/authUsersSeed');
@@ -125,7 +125,8 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramList[0]._id,
     company: authCompany._id,
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainees: [userList[2]._id, traineeList[0]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
@@ -134,7 +135,8 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: new ObjectId(),
     company: authCompany._id,
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainees: [new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
@@ -143,7 +145,8 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: subProgramList[1]._id,
     company: otherCompany._id,
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainees: [traineeList[9]._id, new ObjectId()],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
@@ -151,7 +154,7 @@ const coursesList = [
   { // 3 interb2b
     _id: new ObjectId(),
     subProgram: subProgramList[2]._id,
-    type: 'inter_b2b',
+    type: INTER_B2B,
     trainees: [traineeList[2]._id, traineeList[3]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
@@ -159,7 +162,7 @@ const coursesList = [
   { // 4 interb2b with only trainees from otherCompany
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    type: 'inter_b2b',
+    type: INTER_B2B,
     trainees: [traineeList[4]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
@@ -168,7 +171,8 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: new ObjectId(),
     company: authCompany._id,
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainees: [traineeList[7]._id, traineeList[8]._id],
     trainer: userList[0]._id,
     salesRepresentative: userList[2]._id,
@@ -177,7 +181,7 @@ const coursesList = [
   { // 6 trainer is authTrainer
     _id: new ObjectId(),
     subProgram: subProgramList[0],
-    type: 'inter_b2b',
+    type: INTER_B2B,
     trainees: [traineeList[5]._id, traineeList[6]._id],
     trainer,
     salesRepresentative: userList[2]._id,

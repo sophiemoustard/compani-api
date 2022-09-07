@@ -4,7 +4,7 @@ const AttendanceSheet = require('../../../src/models/AttendanceSheet');
 const Course = require('../../../src/models/Course');
 const CourseSlot = require('../../../src/models/CourseSlot');
 const { authCompany, otherCompany } = require('../../seed/authCompaniesSeed');
-const { WEBAPP } = require('../../../src/helpers/constants');
+const { WEBAPP, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { deleteNonAuthenticationSeeds } = require('../helpers/authentication');
 const UserCompany = require('../../../src/models/UserCompany');
 const User = require('../../../src/models/User');
@@ -45,7 +45,8 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: new ObjectId(),
     company: authCompany._id,
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
   },
@@ -53,14 +54,15 @@ const coursesList = [
     _id: new ObjectId(),
     subProgram: new ObjectId(),
     company: authCompany._id,
-    type: 'inter_b2b',
+    type: INTER_B2B,
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
   },
   { // 2
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    type: 'intra',
+    type: INTRA,
+    maxTrainees: 8,
     company: otherCompany._id,
     trainees: [userList[1]._id],
     salesRepresentative: userList[0]._id,
@@ -68,7 +70,7 @@ const coursesList = [
   { // 3 - archived
     _id: new ObjectId(),
     subProgram: new ObjectId(),
-    type: 'inter_b2b',
+    type: INTER_B2B,
     archivedAt: new Date(),
     company: otherCompany._id,
     trainees: [userList[1]._id],

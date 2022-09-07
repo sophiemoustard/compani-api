@@ -24,6 +24,7 @@ const CourseSchema = mongoose.Schema({
   companyRepresentative: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   estimatedStartDate: { type: Date },
   archivedAt: { type: Date },
+  maxTrainees: { type: Number, required() { return this.type === INTRA; } },
 }, { timestamps: true });
 
 // eslint-disable-next-line consistent-return
