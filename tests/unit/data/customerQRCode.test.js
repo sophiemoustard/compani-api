@@ -37,7 +37,7 @@ describe('getPdfContent', () => {
           absolutePosition: { x: 0, y: 16 },
         },
       ],
-      defaultStyle: { font: 'Avenir', fontSize: 20 },
+      defaultStyle: { font: 'SourceSans', fontSize: 20 },
       pageSize: 'LETTER',
       pageMargins: [0, 0, 0, 0],
       background: [{ image: paths[1], absolutePosition: { x: 48, y: 100 }, width: 320 }],
