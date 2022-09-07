@@ -24,7 +24,17 @@ const ZipHelper = require('../../../src/helpers/zip');
 const DocxHelper = require('../../../src/helpers/docx');
 const StepHelper = require('../../../src/helpers/steps');
 const NotificationHelper = require('../../../src/helpers/notifications');
-const { COURSE_SMS, BLENDED, DRAFT, E_LEARNING, ON_SITE, MOBILE, REMOTE, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
+const {
+  COURSE_SMS,
+  BLENDED,
+  DRAFT,
+  E_LEARNING,
+  ON_SITE,
+  MOBILE,
+  REMOTE,
+  INTRA,
+  INTER_B2B,
+} = require('../../../src/helpers/constants');
 const CourseRepository = require('../../../src/repositories/CourseRepository');
 const CourseHistoriesHelper = require('../../../src/helpers/courseHistories');
 const SinonMongoose = require('../sinonMongoose');
