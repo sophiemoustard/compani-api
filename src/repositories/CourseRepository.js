@@ -1,23 +1,31 @@
 const get = require('lodash/get');
 const Course = require('../models/Course');
 const CourseSlot = require('../models/CourseSlot');
+const { WEBAPP, STRICTLY_E_LEARNING } = require('../helpers/constants');
 
-exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(query)
-  .populate({ path: 'company', select: 'name' })
-  .populate({
-    path: 'subProgram',
-    select: 'program',
-    populate: [{ path: 'program', select: 'name image' }, { path: 'steps', select: 'theoreticalHours' }],
-  })
-  .populate({ path: 'slots', select: 'startDate endDate' })
-  .populate({ path: 'slotsToPlan', select: '_id' })
-  .populate({ path: 'trainer', select: 'identity.firstname identity.lastname' })
-  .populate({
-    path: 'trainees',
-    select: '_id',
-    populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-  })
-  .populate({ path: 'salesRepresentative', select: 'identity.firstname identity.lastname' })
+exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(query).populate([])
+  .populate([
+    { path: 'company', select: 'name' },
+    {
+      path: 'subProgram',
+      select: 'program',
+      populate: [
+        { path: 'program', select: query.origin === WEBAPP ? 'name' : 'name image description' },
+        ...(query.format === STRICTLY_E_LEARNING ? [{ path: 'steps', select: 'theoreticalHours' }] : []),
+      ],
+    },
+    { path: 'slots', select: 'startDate endDate' },
+    { path: 'slotsToPlan', select: '_id' },
+    ...(query.origin === WEBAPP && [
+      { path: 'trainer', select: 'identity.firstname identity.lastname' },
+      {
+        path: 'trainees',
+        select: '_id',
+        populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+      },
+      { path: 'salesRepresentative', select: 'identity.firstname identity.lastname' },
+    ]),
+  ])
   .lean({ virtuals: populateVirtual });
 
 exports.findCoursesForExport = async (startDate, endDate, credentials) => {
