@@ -72,7 +72,7 @@ exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
 
 const listStrictlyElearningForCompany = async (query) => {
   const courses = await CourseRepository.findCourseAndPopulate({
-    format: query.format,
+    ...omit(query, 'company'),
     accessRules: { $in: [query.company, []] },
   });
 
