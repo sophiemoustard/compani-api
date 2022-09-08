@@ -183,7 +183,7 @@ const coursesList = [
     company: otherCompany._id,
     misc: 'second team formation',
     type: INTRA,
-    maxTrainees: 8,
+    maxTrainees: 2,
     trainees: [coach._id, clientAdmin._id],
     salesRepresentative: vendorAdmin._id,
     trainer: trainerAndCoach._id,

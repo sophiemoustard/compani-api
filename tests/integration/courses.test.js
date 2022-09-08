@@ -1680,7 +1680,7 @@ describe('COURSES ROUTES - GET /courses/{_id}/sms', () => {
   });
 });
 
-describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
+describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
   let authToken;
   let sendNotificationToUser;
   const intraCourseIdFromAuthCompany = coursesList[0]._id;
@@ -1731,6 +1731,17 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainee', () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${archivedCourse}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 if course has already reached max trainees', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[3]._id}/trainees`,
         headers: { Cookie: `alenvi_token=${authToken}` },
         payload: { trainee: traineeFromAuthCompanyWithFormationExpoToken._id },
       });
