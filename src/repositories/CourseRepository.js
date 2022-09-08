@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const Course = require('../models/Course');
 const CourseSlot = require('../models/CourseSlot');
-const { WEBAPP, STRICTLY_E_LEARNING } = require('../helpers/constants');
+const { WEBAPP } = require('../helpers/constants');
 
 exports.findCourseAndPopulate = (query, populateVirtual = false) => Course
   .find(query, query.origin === WEBAPP ? 'misc type archivedAt estimatedStartDate' : 'misc')
@@ -12,7 +12,7 @@ exports.findCourseAndPopulate = (query, populateVirtual = false) => Course
       select: 'program',
       populate: [
         { path: 'program', select: query.origin === WEBAPP ? 'name' : 'name image description' },
-        ...(query.format === STRICTLY_E_LEARNING ? [{ path: 'steps', select: 'theoreticalHours' }] : []),
+        { path: 'steps', select: 'theoreticalHours' },
       ],
     },
     { path: 'slots', select: 'startDate endDate' },
