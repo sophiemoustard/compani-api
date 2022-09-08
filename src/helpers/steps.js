@@ -26,7 +26,7 @@ exports.getElearningStepProgress = (step) => {
   return maxProgress ? progress / maxProgress : 0;
 };
 
-exports.getLiveStepProgress = (step, slots) => {
+exports.getLiveStepProgress = (slots) => {
   const nextSlots = slots.filter(slot => CompaniDate().isSameOrBefore(slot.endDate));
   const liveProgress = slots.length ? 1 - nextSlots.length / slots.length : 0;
 
@@ -54,7 +54,7 @@ exports.getPresenceStepProgress = (slots) => {
 exports.getProgress = (step, slots = []) => (step.type === E_LEARNING
   ? { eLearning: exports.getElearningStepProgress(step) }
   : {
-    live: exports.getLiveStepProgress(step, slots),
+    live: exports.getLiveStepProgress(slots),
     presence: exports.getPresenceStepProgress(slots),
   });
 

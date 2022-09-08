@@ -124,30 +124,20 @@ describe('getElearningStepProgress', () => {
 describe('getLiveStepProgress', () => {
   it('should get live steps progress', async () => {
     const stepId = new ObjectId();
-    const step = {
-      _id: stepId,
-      activities: [],
-    };
 
     const slots = [
       { endDate: '2020-11-03T09:00:00.000Z', step: stepId },
       { endDate: '2020-11-04T16:01:00.000Z', step: stepId },
     ];
 
-    const result = await StepHelper.getLiveStepProgress(step, slots);
+    const result = await StepHelper.getLiveStepProgress(slots);
     expect(result).toBe(1);
   });
 
   it('should return 0 if no slots', async () => {
-    const stepId = new ObjectId();
-    const step = {
-      _id: stepId,
-      activities: [],
-    };
-
     const slots = [];
 
-    const result = await StepHelper.getLiveStepProgress(step, slots);
+    const result = await StepHelper.getLiveStepProgress(slots);
 
     expect(result).toBe(0);
   });
@@ -230,7 +220,7 @@ describe('getProgress', () => {
 
     const result = await StepHelper.getProgress(step, slots);
     expect(result).toEqual({ live: 1, presence: { attendanceDuration: 421, maxDuration: 601 } });
-    sinon.assert.calledOnceWithExactly(getLiveStepProgress, step, slots);
+    sinon.assert.calledOnceWithExactly(getLiveStepProgress, slots);
     sinon.assert.calledOnceWithExactly(getPresenceStepProgress, slots);
   });
 });
