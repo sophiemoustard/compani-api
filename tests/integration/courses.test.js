@@ -230,7 +230,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should get all courses', async () => {
+    it('should get all courses for operation on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?action=operation&origin=webapp',
@@ -241,7 +241,10 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(coursesList.length);
 
       const course = response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[3]._id, c._id));
+
       expect(course).toEqual(expect.objectContaining({
+        misc: 'second team formation',
+        type: INTRA,
         company: pick(otherCompany, ['_id', 'name']),
         subProgram: expect.objectContaining({
           _id: expect.any(ObjectId),
@@ -253,8 +256,8 @@ describe('COURSES ROUTES - GET /courses', () => {
         }),
         trainer: pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname']),
         slots: [{
-          startDate: new Date('2020-03-20T08:00:00.000Z'),
-          endDate: new Date('2020-03-20T10:00:00.000Z'),
+          startDate: new Date('2020-03-05T08:00:00.000Z'),
+          endDate: new Date('2020-03-05T10:00:00.000Z'),
           course: coursesList[3]._id,
           _id: expect.any(ObjectId),
         }],
@@ -266,9 +269,15 @@ describe('COURSES ROUTES - GET /courses', () => {
       }));
       expect(course.trainees[0].local).toBeUndefined();
       expect(course.trainees[0].refreshtoken).toBeUndefined();
+
+      const archivedCourse = response.result.data.courses
+        .find(c => UtilsHelper.areObjectIdsEquals(coursesList[14]._id, c._id));
+
+      expect(archivedCourse.archivedAt).toEqual(new Date('2021-01-01T00:00:00.000Z'));
+      expect(archivedCourse.estimatedStartDate).toEqual(new Date('2020-11-03T10:00:00.000Z'));
     });
 
-    it('should get blended courses', async () => {
+    it('should get blended courses for operation on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?action=operation&origin=webapp&format=blended',
@@ -279,7 +288,7 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(13);
     });
 
-    it('should get strictly e-learning courses', async () => {
+    it('should get strictly e-learning courses for operation on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/courses?action=operation&origin=webapp&format=strictly_e_learning',
@@ -302,7 +311,7 @@ describe('COURSES ROUTES - GET /courses', () => {
   });
 
   describe('Other roles', () => {
-    it('should get courses with a specific trainer', async () => {
+    it('should get courses with a specific trainer for operation on webapp', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
@@ -314,7 +323,48 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(7);
     });
 
-    it('should get courses for a specific company', async () => {
+    it('should get trainer\'s course for operation on mobile', async () => {
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operation&origin=mobile&trainer=${trainer._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(7);
+
+      const course = response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
+      expect(course).toEqual(expect.objectContaining({
+        misc: 'second session',
+        company: pick(authCompany, ['_id', 'name']),
+        subProgram: expect.objectContaining({
+          _id: expect.any(ObjectId),
+          program: {
+            _id: programsList[0]._id,
+            name: programsList[0].name,
+            image: programsList[0].image,
+            description: programsList[0].description,
+            subPrograms: [expect.any(ObjectId)],
+          },
+        }),
+        slots: [{
+          startDate: new Date('2020-03-04T08:00:00.000Z'),
+          endDate: new Date('2020-03-04T10:00:00.000Z'),
+          course: coursesList[2]._id,
+          _id: expect.any(ObjectId),
+        }],
+        slotsToPlan: [
+          { _id: expect.any(ObjectId), course: course._id },
+          { _id: expect.any(ObjectId), course: course._id },
+        ],
+      }));
+      expect(course.trainer).toBeUndefined();
+      expect(course.trainees).toBeUndefined();
+      expect(course.salesRepresentative).toBeUndefined();
+    });
+
+    it('should get courses for a specific company for operation on webapp', async () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
@@ -1109,7 +1159,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive a course in progress', async () => {
-      const payload = { archivedAt: new Date('2020-03-10T00:00:00') };
+      const payload = { archivedAt: new Date('2020-01-10T00:00:00.000Z') };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[5]._id}`,
@@ -2261,8 +2311,8 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
           duration: '2h',
           learningGoals: 'on est là',
           programName: 'PROGRAM',
-          startDate: '20/03/2020',
-          endDate: '20/03/2020',
+          startDate: '08/03/2020',
+          endDate: '08/03/2020',
           trainee: { identity: 'Coach CALIF', attendanceDuration: '0h' },
           date: '24/01/2019',
         }

@@ -3,7 +3,8 @@ const Course = require('../models/Course');
 const CourseSlot = require('../models/CourseSlot');
 const { WEBAPP, STRICTLY_E_LEARNING } = require('../helpers/constants');
 
-exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(query).populate([])
+exports.findCourseAndPopulate = (query, populateVirtual = false) => Course
+  .find(query, query.origin === WEBAPP ? 'misc type archivedAt estimatedStartDate' : 'misc')
   .populate([
     { path: 'company', select: 'name' },
     {
@@ -16,15 +17,18 @@ exports.findCourseAndPopulate = (query, populateVirtual = false) => Course.find(
     },
     { path: 'slots', select: 'startDate endDate' },
     { path: 'slotsToPlan', select: '_id' },
-    ...(query.origin === WEBAPP && [
-      { path: 'trainer', select: 'identity.firstname identity.lastname' },
-      {
-        path: 'trainees',
-        select: '_id',
-        populate: { path: 'company', populate: { path: 'company', select: 'name' } },
-      },
-      { path: 'salesRepresentative', select: 'identity.firstname identity.lastname' },
-    ]),
+    ...(query.origin === WEBAPP
+      ? [
+        { path: 'trainer', select: 'identity.firstname identity.lastname' },
+        {
+          path: 'trainees',
+          select: '_id',
+          populate: { path: 'company', populate: { path: 'company', select: 'name' } },
+        },
+        { path: 'salesRepresentative', select: 'identity.firstname identity.lastname' },
+      ]
+      : []
+    ),
   ])
   .lean({ virtuals: populateVirtual });
 
