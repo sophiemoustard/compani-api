@@ -242,7 +242,6 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(coursesList.length);
 
       const course = response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[3]._id, c._id));
-
       expect(course).toEqual(expect.objectContaining({
         misc: 'second team formation',
         type: INTRA,
@@ -273,7 +272,6 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       const archivedCourse = response.result.data.courses
         .find(c => UtilsHelper.areObjectIdsEquals(coursesList[14]._id, c._id));
-
       expect(archivedCourse.archivedAt).toEqual(CompaniDate('2021-01-01T00:00:00.000Z').toDate());
       expect(archivedCourse.estimatedStartDate).toEqual(CompaniDate('2020-11-03T10:00:00.000Z').toDate());
     });
