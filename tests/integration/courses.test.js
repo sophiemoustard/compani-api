@@ -230,10 +230,10 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should get all courses for operation on webapp', async () => {
+    it('should get all courses for operations on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?action=operation&origin=webapp',
+        url: '/courses?action=operations&origin=webapp',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -277,10 +277,10 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(archivedCourse.estimatedStartDate).toEqual(new Date('2020-11-03T10:00:00.000Z'));
     });
 
-    it('should get blended courses for operation on webapp', async () => {
+    it('should get blended courses for operations on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?action=operation&origin=webapp&format=blended',
+        url: '/courses?action=operations&origin=webapp&format=blended',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -288,10 +288,10 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(13);
     });
 
-    it('should get strictly e-learning courses for operation on webapp', async () => {
+    it('should get strictly e-learning courses for operations on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?action=operation&origin=webapp&format=strictly_e_learning',
+        url: '/courses?action=operations&origin=webapp&format=strictly_e_learning',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -311,11 +311,11 @@ describe('COURSES ROUTES - GET /courses', () => {
   });
 
   describe('Other roles', () => {
-    it('should get courses with a specific trainer for operation on webapp', async () => {
+    it('should get courses with a specific trainer for operations on webapp', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=operation&origin=webapp&trainer=${trainer._id}`,
+        url: `/courses?action=operations&origin=webapp&trainer=${trainer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -323,11 +323,11 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(7);
     });
 
-    it('should get trainer\'s course for operation on mobile', async () => {
+    it('should get trainer\'s course for operations on mobile', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=operation&origin=mobile&trainer=${trainer._id}`,
+        url: `/courses?action=operations&origin=mobile&trainer=${trainer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -364,11 +364,11 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(course.salesRepresentative).toBeUndefined();
     });
 
-    it('should get courses for a specific company for operation on webapp', async () => {
+    it('should get courses for a specific company for operations on webapp', async () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?action=operation&origin=webapp&company=${authCompany._id}`,
+        url: `/courses?action=operations&origin=webapp&company=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -387,7 +387,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/courses?action=operation&origin=webapp',
+          url: '/courses?action=operations&origin=webapp',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
