@@ -102,7 +102,7 @@ const listBlendedForCompany = async (query) => {
   ];
 };
 
-exports.listForOperation = async (query) => {
+exports._listForOperation = async (query) => {
   if (query.company && query.format === STRICTLY_E_LEARNING) return listStrictlyElearningForCompany(query);
   if (query.company) return listBlendedForCompany(query);
 
@@ -114,6 +114,8 @@ exports.listForOperation = async (query) => {
 
   return courses;
 };
+
+exports.list = async query => exports._listForOperation(query);
 
 const getStepProgress = (step) => {
   if (has(step, 'progress.live')) return step.progress.live;

@@ -11,7 +11,7 @@ const list = async (req) => {
     req.log('courseController - list - query', req.query);
     req.log('courseController - list - company', get(req, 'auth.credentials.company._id'));
 
-    const courses = await CoursesHelper.listForOperation(req.query);
+    const courses = await CoursesHelper.list(req.query);
 
     return {
       message: courses.length ? translate[language].coursesFound : translate[language].coursesNotFound,
