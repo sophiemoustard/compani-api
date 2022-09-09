@@ -108,8 +108,11 @@ exports.authorizeCourseEdit = async (req) => {
       return Boom.forbidden();
     }
 
-    if (get(req, 'payload.maxTrainees') && (!isRofOrAdmin || (req.payload.maxTrainees < course.trainees.length))) {
-      throw Boom.forbidden(translate[language].maxTraineesSmallerThanRegistered);
+    if (get(req, 'payload.maxTrainees')) {
+      if (!isRofOrAdmin) throw Boom.forbidden();
+      if ((req.payload.maxTrainees < course.trainees.length)) {
+        throw Boom.forbidden(translate[language].maxTraineesSmallerThanRegistered);
+      }
     }
 
     await this.checkInterlocutors(req, courseCompanyId);
