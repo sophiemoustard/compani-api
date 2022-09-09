@@ -4,7 +4,6 @@ const { ObjectId } = require('mongodb');
 const fs = require('fs');
 const os = require('os');
 const { PassThrough } = require('stream');
-const omit = require('lodash/omit');
 const Boom = require('@hapi/boom');
 const UtilsMock = require('../../utilsMock');
 const Course = require('../../../src/models/Course');
