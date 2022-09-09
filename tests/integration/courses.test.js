@@ -994,7 +994,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 403 if maxTrainees bigger than registered trainees', async () => {
+    it('should return 403 if maxTrainees smaller than registered trainees', async () => {
       const payload = { maxTrainees: 4 };
       const response = await app.inject({
         method: 'PUT',
