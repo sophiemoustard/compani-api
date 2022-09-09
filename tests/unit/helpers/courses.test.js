@@ -155,18 +155,15 @@ describe('getTotalTheoreticalHours', () => {
 describe('list', () => {
   let findCourseAndPopulate;
   let getTotalTheoreticalHoursSpy;
-  let listForOperationSpy;
   const authCompany = new ObjectId();
 
   beforeEach(() => {
     findCourseAndPopulate = sinon.stub(CourseRepository, 'findCourseAndPopulate');
     getTotalTheoreticalHoursSpy = sinon.spy(CourseHelper, 'getTotalTheoreticalHours');
-    listForOperationSpy = sinon.spy(CourseHelper, '_listForOperation');
   });
   afterEach(() => {
     findCourseAndPopulate.restore();
     getTotalTheoreticalHoursSpy.restore();
-    listForOperationSpy.restore();
   });
 
   describe('OPERATIONS', () => {
@@ -179,11 +176,6 @@ describe('list', () => {
       const result = await CourseHelper.list(query);
 
       expect(result).toMatchObject(coursesList);
-      sinon.assert.calledWithExactly(
-        listForOperationSpy,
-        { action: 'operations', origin: 'webapp' },
-        { trainer: '1234567890abcdef12345678', format: 'blended' }
-      );
       sinon.assert.calledWithExactly(
         findCourseAndPopulate,
         { action: 'operations', origin: 'webapp' },
@@ -217,11 +209,6 @@ describe('list', () => {
       const result = await CourseHelper.list(query);
 
       expect(result).toMatchObject(formattedCourseList);
-      sinon.assert.calledWithExactly(
-        listForOperationSpy,
-        { action: 'operations', origin: 'webapp' },
-        { format: 'strictly_e_learning' }
-      );
       sinon.assert.calledWithExactly(
         findCourseAndPopulate,
         { action: 'operations', origin: 'webapp' },
@@ -267,11 +254,6 @@ describe('list', () => {
       const result = await CourseHelper.list(query);
 
       expect(result).toMatchObject(coursesList);
-      sinon.assert.calledWithExactly(
-        listForOperationSpy,
-        { action: 'operations', origin: 'webapp' },
-        { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended' }
-      );
       sinon.assert.calledWithExactly(
         findCourseAndPopulate.getCall(0),
         { action: 'operations', origin: 'webapp' },
@@ -325,12 +307,6 @@ describe('list', () => {
       const query = { company: companyId, format: 'strictly_e_learning', action: 'operations', origin: 'webapp' };
       const result = await CourseHelper.list(query);
       expect(result).toMatchObject(filteredCourseList);
-
-      sinon.assert.calledWithExactly(
-        listForOperationSpy,
-        { action: 'operations', origin: 'webapp' },
-        { company: companyId, format: 'strictly_e_learning' }
-      );
       sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
         { action: 'operations', origin: 'webapp' },

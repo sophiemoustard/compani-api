@@ -103,7 +103,7 @@ const listBlendedForCompany = async (metaParams, filterParams) => {
   ];
 };
 
-exports._listForOperation = async (metaParams, filterParams) => {
+const listForOperation = async (metaParams, filterParams) => {
   if (filterParams.company && filterParams.format === STRICTLY_E_LEARNING) {
     return listStrictlyElearningForCompany(metaParams, filterParams);
   }
@@ -121,7 +121,7 @@ exports._listForOperation = async (metaParams, filterParams) => {
 exports.list = async (query) => {
   const metaParams = pick(query, ['origin', 'action']);
   const filterParams = pick(query, ['company', 'trainer', 'format']);
-  return exports._listForOperation(metaParams, filterParams);
+  return listForOperation(metaParams, filterParams);
 };
 
 const getStepProgress = (step) => {
