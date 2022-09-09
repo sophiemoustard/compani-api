@@ -47,6 +47,7 @@ const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
 const UtilsMock = require('../utilsMock');
+const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -256,8 +257,8 @@ describe('COURSES ROUTES - GET /courses', () => {
         }),
         trainer: pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname']),
         slots: [{
-          startDate: new Date('2020-03-05T08:00:00.000Z'),
-          endDate: new Date('2020-03-05T10:00:00.000Z'),
+          startDate: CompaniDate('2020-03-05T08:00:00.000Z').toDate(),
+          endDate: CompaniDate('2020-03-05T10:00:00.000Z').toDate(),
           course: coursesList[3]._id,
           _id: expect.any(ObjectId),
         }],
@@ -273,8 +274,8 @@ describe('COURSES ROUTES - GET /courses', () => {
       const archivedCourse = response.result.data.courses
         .find(c => UtilsHelper.areObjectIdsEquals(coursesList[14]._id, c._id));
 
-      expect(archivedCourse.archivedAt).toEqual(new Date('2021-01-01T00:00:00.000Z'));
-      expect(archivedCourse.estimatedStartDate).toEqual(new Date('2020-11-03T10:00:00.000Z'));
+      expect(archivedCourse.archivedAt).toEqual(CompaniDate('2021-01-01T00:00:00.000Z').toDate());
+      expect(archivedCourse.estimatedStartDate).toEqual(CompaniDate('2020-11-03T10:00:00.000Z').toDate());
     });
 
     it('should get blended courses for operations on webapp', async () => {
@@ -349,8 +350,8 @@ describe('COURSES ROUTES - GET /courses', () => {
           },
         }),
         slots: [{
-          startDate: new Date('2020-03-04T08:00:00.000Z'),
-          endDate: new Date('2020-03-04T10:00:00.000Z'),
+          startDate: CompaniDate('2020-03-04T08:00:00.000Z').toDate(),
+          endDate: CompaniDate('2020-03-04T10:00:00.000Z').toDate(),
           course: coursesList[2]._id,
           _id: expect.any(ObjectId),
         }],
@@ -1067,7 +1068,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive course without trainee', async () => {
-      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[13]._id}`,
@@ -1090,7 +1091,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive course without slot', async () => {
-      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[4]._id}`,
@@ -1113,7 +1114,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive course with slot to plan', async () => {
-      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[7]._id}`,
@@ -1136,7 +1137,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive a not blended course', async () => {
-      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[8]._id}`,
@@ -1159,7 +1160,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive a course in progress', async () => {
-      const payload = { archivedAt: new Date('2020-01-10T00:00:00.000Z') };
+      const payload = { archivedAt: CompaniDate('2020-01-10T00:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[5]._id}`,
