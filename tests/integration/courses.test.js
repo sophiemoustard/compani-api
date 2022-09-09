@@ -298,10 +298,20 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(4);
     });
 
-    it('should return 400 if no action or origin', async () => {
+    it('should return 400 if no action', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses',
+        url: '/courses?origin=mobile',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if no origin', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
