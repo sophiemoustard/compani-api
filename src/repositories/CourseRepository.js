@@ -3,21 +3,21 @@ const Course = require('../models/Course');
 const CourseSlot = require('../models/CourseSlot');
 const { WEBAPP } = require('../helpers/constants');
 
-exports.findCourseAndPopulate = (query, populateVirtual = false) => Course
-  .find(query, query.origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt' : 'misc')
+exports.findCourseAndPopulate = (metaParams, filterParams, populateVirtual = false) => Course
+  .find(filterParams, metaParams.origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt' : 'misc')
   .populate([
     { path: 'company', select: 'name' },
     {
       path: 'subProgram',
       select: 'program',
       populate: [
-        { path: 'program', select: query.origin === WEBAPP ? 'name' : 'name image description' },
+        { path: 'program', select: metaParams.origin === WEBAPP ? 'name' : 'name image description' },
         { path: 'steps', select: 'theoreticalHours' },
       ],
     },
     { path: 'slots', select: 'startDate endDate' },
     { path: 'slotsToPlan', select: '_id' },
-    ...(query.origin === WEBAPP
+    ...(metaParams.origin === WEBAPP
       ? [
         { path: 'trainer', select: 'identity.firstname identity.lastname' },
         {

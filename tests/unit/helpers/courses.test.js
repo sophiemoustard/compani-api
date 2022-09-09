@@ -180,8 +180,16 @@ describe('list', () => {
       const result = await CourseHelper.list(query);
 
       expect(result).toMatchObject(coursesList);
-      sinon.assert.calledWithExactly(listForOperationSpy, query);
-      sinon.assert.calledWithExactly(findCourseAndPopulate, query);
+      sinon.assert.calledWithExactly(
+        listForOperationSpy,
+        { action: 'operations', origin: 'webapp' },
+        { trainer: '1234567890abcdef12345678', format: 'blended' }
+      );
+      sinon.assert.calledWithExactly(
+        findCourseAndPopulate,
+        { action: 'operations', origin: 'webapp' },
+        { trainer: '1234567890abcdef12345678', format: 'blended' }
+      );
       sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
     });
 
@@ -206,16 +214,19 @@ describe('list', () => {
 
       findCourseAndPopulate.returns(coursesList);
 
-      const result = await CourseHelper.list({ format: 'strictly_e_learning', action: 'operations', origin: 'webapp' });
+      const query = { format: 'strictly_e_learning', action: 'operations', origin: 'webapp' };
+      const result = await CourseHelper.list(query);
 
       expect(result).toMatchObject(formattedCourseList);
       sinon.assert.calledWithExactly(
         listForOperationSpy,
-        { format: 'strictly_e_learning', action: 'operations', origin: 'webapp' }
+        { action: 'operations', origin: 'webapp' },
+        { format: 'strictly_e_learning' }
       );
       sinon.assert.calledWithExactly(
         findCourseAndPopulate,
-        { format: 'strictly_e_learning', action: 'operations', origin: 'webapp' }
+        { action: 'operations', origin: 'webapp' },
+        { format: 'strictly_e_learning' }
       );
       sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
     });
@@ -257,11 +268,20 @@ describe('list', () => {
       const result = await CourseHelper.list(query);
 
       expect(result).toMatchObject(coursesList);
-      sinon.assert.calledWithExactly(listForOperationSpy, query);
-      sinon.assert.calledWithExactly(findCourseAndPopulate.getCall(0), { ...query, type: INTRA });
+      sinon.assert.calledWithExactly(
+        listForOperationSpy,
+        { action: 'operations', origin: 'webapp' },
+        { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended' }
+      );
+      sinon.assert.calledWithExactly(
+        findCourseAndPopulate.getCall(0),
+        { action: 'operations', origin: 'webapp' },
+        { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA }
+      );
       sinon.assert.calledWithExactly(
         findCourseAndPopulate.getCall(1),
-        { ...omit(query, 'company'), type: INTER_B2B },
+        { action: 'operations', origin: 'webapp' },
+        { trainer: '1234567890abcdef12345678', format: 'blended', type: INTER_B2B },
         true
       );
       sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
@@ -307,10 +327,15 @@ describe('list', () => {
       const result = await CourseHelper.list(query);
       expect(result).toMatchObject(filteredCourseList);
 
-      sinon.assert.calledWithExactly(listForOperationSpy, query);
+      sinon.assert.calledWithExactly(
+        listForOperationSpy,
+        { action: 'operations', origin: 'webapp' },
+        { company: companyId, format: 'strictly_e_learning' }
+      );
       sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
-        { ...omit(query, 'company'), accessRules: { $in: [companyId, []] } }
+        { action: 'operations', origin: 'webapp' },
+        { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } }
       );
       sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
     });

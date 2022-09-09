@@ -2,6 +2,7 @@ const path = require('path');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const groupBy = require('lodash/groupBy');
 const fs = require('fs');
 const os = require('os');
@@ -70,52 +71,58 @@ exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
   : 0
 );
 
-const listStrictlyElearningForCompany = async (query) => {
-  const courses = await CourseRepository.findCourseAndPopulate({
-    ...omit(query, 'company'),
-    accessRules: { $in: [query.company, []] },
-  });
+const listStrictlyElearningForCompany = async (metaParams, filterParams) => {
+  const courses = await CourseRepository.findCourseAndPopulate(
+    metaParams,
+    { ...omit(filterParams, 'company'), accessRules: { $in: [filterParams.company, []] } });
 
   return courses.map(course => ({
     ...course,
     totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
     trainees: course.trainees.filter(t =>
-      (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
+      (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, filterParams.company) : false)),
   }));
 };
 
-const listBlendedForCompany = async (query) => {
-  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
+const listBlendedForCompany = async (metaParams, filterParams) => {
+  const intraCourse = await CourseRepository.findCourseAndPopulate(metaParams, { ...filterParams, type: INTRA });
   const interCourse = await CourseRepository.findCourseAndPopulate(
-    { ...omit(query, ['company']), type: INTER_B2B },
+    metaParams,
+    { ...omit(filterParams, ['company']), type: INTER_B2B },
     true
   );
 
   return [
     ...intraCourse,
-    ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
+    ...interCourse.filter(course => course.companies && course.companies.includes(filterParams.company))
       .map(course => ({
         ...omit(course, ['companies']),
         trainees: course.trainees.filter(t =>
-          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
+          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, filterParams.company) : false)),
       })),
   ];
 };
 
-exports._listForOperation = async (query) => {
-  if (query.company && query.format === STRICTLY_E_LEARNING) return listStrictlyElearningForCompany(query);
-  if (query.company) return listBlendedForCompany(query);
+exports._listForOperation = async (metaParams, filterParams) => {
+  if (filterParams.company && filterParams.format === STRICTLY_E_LEARNING) {
+    return listStrictlyElearningForCompany(metaParams, filterParams);
+  }
+  if (filterParams.company) return listBlendedForCompany(metaParams, filterParams);
 
-  const courses = await CourseRepository.findCourseAndPopulate(query);
+  const courses = await CourseRepository.findCourseAndPopulate(metaParams, filterParams);
 
-  if (query.format === STRICTLY_E_LEARNING) {
+  if (filterParams.format === STRICTLY_E_LEARNING) {
     return courses.map(course => ({ ...course, totalTheoreticalHours: exports.getTotalTheoreticalHours(course) }));
   }
 
   return courses;
 };
 
-exports.list = async query => exports._listForOperation(query);
+exports.list = async (query) => {
+  const metaParams = pick(query, ['origin', 'action']);
+  const filterParams = pick(query, ['company', 'trainer', 'format']);
+  return exports._listForOperation(metaParams, filterParams);
+};
 
 const getStepProgress = (step) => {
   if (has(step, 'progress.live')) return step.progress.live;
