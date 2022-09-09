@@ -31,7 +31,6 @@ const {
 const { VIDEO, WEBAPP, SLOT_CREATION, SLOT_DELETION, INTRA, INTER_B2B } = require('../../../src/helpers/constants');
 const { auxiliaryRoleId, trainerRoleId } = require('../../seed/authRolesSeed');
 const CourseBill = require('../../../src/models/CourseBill');
-const { CompaniDate } = require('../../../src/helpers/dates/companiDates');
 
 const traineeFromOtherCompany = {
   _id: new ObjectId(),
