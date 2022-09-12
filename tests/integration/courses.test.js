@@ -466,7 +466,7 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyInterB2b._id.toHexString());
     });
 
-    it('should return elearning course with no access rule #tag',
+    it('should return elearning course with no access rule',
       async () => {
         const response = await app.inject({
           method: 'GET',
