@@ -178,8 +178,8 @@ describe('list', () => {
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledWithExactly(
         findCourseAndPopulate,
-        { action: 'operations', origin: 'webapp' },
-        { trainer: '1234567890abcdef12345678', format: 'blended' }
+        { trainer: '1234567890abcdef12345678', format: 'blended' },
+        'webapp'
       );
       sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
     });
@@ -211,8 +211,8 @@ describe('list', () => {
       expect(result).toMatchObject(formattedCourseList);
       sinon.assert.calledWithExactly(
         findCourseAndPopulate,
-        { action: 'operations', origin: 'webapp' },
-        { format: 'strictly_e_learning' }
+        { format: 'strictly_e_learning' },
+        'webapp'
       );
       sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
     });
@@ -256,13 +256,13 @@ describe('list', () => {
       expect(result).toMatchObject(coursesList);
       sinon.assert.calledWithExactly(
         findCourseAndPopulate.getCall(0),
-        { action: 'operations', origin: 'webapp' },
-        { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA }
+        { company: authCompany.toHexString(), trainer: '1234567890abcdef12345678', format: 'blended', type: INTRA },
+        'webapp'
       );
       sinon.assert.calledWithExactly(
         findCourseAndPopulate.getCall(1),
-        { action: 'operations', origin: 'webapp' },
         { trainer: '1234567890abcdef12345678', format: 'blended', type: INTER_B2B },
+        'webapp',
         true
       );
       sinon.assert.notCalled(getTotalTheoreticalHoursSpy);
@@ -309,8 +309,8 @@ describe('list', () => {
       expect(result).toMatchObject(filteredCourseList);
       sinon.assert.calledOnceWithExactly(
         findCourseAndPopulate,
-        { action: 'operations', origin: 'webapp' },
-        { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } }
+        { format: 'strictly_e_learning', accessRules: { $in: [companyId, []] } },
+        'webapp'
       );
       sinon.assert.calledTwice(getTotalTheoreticalHoursSpy);
     });

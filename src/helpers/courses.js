@@ -71,47 +71,48 @@ exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
   : 0
 );
 
-const listStrictlyElearningForCompany = async (metaParams, filterParams) => {
+const listStrictlyElearningForCompany = async (query, origin) => {
   const courses = await CourseRepository.findCourseAndPopulate(
-    metaParams,
-    { ...omit(filterParams, 'company'), accessRules: { $in: [filterParams.company, []] } });
+    { ...omit(query, 'company'), accessRules: { $in: [query.company, []] } },
+    origin
+  );
 
   return courses.map(course => ({
     ...course,
     totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
     trainees: course.trainees.filter(t =>
-      (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, filterParams.company) : false)),
+      (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
   }));
 };
 
-const listBlendedForCompany = async (metaParams, filterParams) => {
-  const intraCourse = await CourseRepository.findCourseAndPopulate(metaParams, { ...filterParams, type: INTRA });
+const listBlendedForCompany = async (query, origin) => {
+  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA }, origin);
   const interCourse = await CourseRepository.findCourseAndPopulate(
-    metaParams,
-    { ...omit(filterParams, ['company']), type: INTER_B2B },
+    { ...omit(query, ['company']), type: INTER_B2B },
+    origin,
     true
   );
 
   return [
     ...intraCourse,
-    ...interCourse.filter(course => course.companies && course.companies.includes(filterParams.company))
+    ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
       .map(course => ({
         ...omit(course, ['companies']),
         trainees: course.trainees.filter(t =>
-          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, filterParams.company) : false)),
+          (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
       })),
   ];
 };
 
-const listForOperation = async (metaParams, filterParams) => {
-  if (filterParams.company && filterParams.format === STRICTLY_E_LEARNING) {
-    return listStrictlyElearningForCompany(metaParams, filterParams);
+const listForOperation = async (query, origin) => {
+  if (query.company && query.format === STRICTLY_E_LEARNING) {
+    return listStrictlyElearningForCompany(query, origin);
   }
-  if (filterParams.company) return listBlendedForCompany(metaParams, filterParams);
+  if (query.company) return listBlendedForCompany(query, origin);
 
-  const courses = await CourseRepository.findCourseAndPopulate(metaParams, filterParams);
+  const courses = await CourseRepository.findCourseAndPopulate(query, origin);
 
-  if (filterParams.format === STRICTLY_E_LEARNING) {
+  if (query.format === STRICTLY_E_LEARNING) {
     return courses.map(course => ({ ...course, totalTheoreticalHours: exports.getTotalTheoreticalHours(course) }));
   }
 
@@ -119,9 +120,8 @@ const listForOperation = async (metaParams, filterParams) => {
 };
 
 exports.list = async (query) => {
-  const metaParams = pick(query, ['origin', 'action']);
-  const filterParams = pick(query, ['company', 'trainer', 'format']);
-  return listForOperation(metaParams, filterParams);
+  const filterParams = omit(query, ['origin', 'action']);
+  return listForOperation(filterParams, query.origin);
 };
 
 const getStepProgress = (step) => {
