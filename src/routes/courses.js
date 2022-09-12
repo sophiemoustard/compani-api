@@ -45,7 +45,7 @@ const {
   authorizeAttendanceSheetsGetAndAssignCourse,
   authorizeSmsSending,
 } = require('./preHandlers/courses');
-const { INTRA, OPERATIONS, MOBILE, WEBAPP } = require('../helpers/constants');
+const { INTRA, OPERATIONS, MOBILE, WEBAPP, PEDAGOGY } = require('../helpers/constants');
 const { ORIGIN_OPTIONS } = require('../models/User');
 const { dateToISOString } = require('./validations/utils');
 
@@ -111,6 +111,7 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object({ _id: Joi.objectId().required() }),
+          query: Joi.object({ action: Joi.string().required().valid(OPERATIONS, PEDAGOGY) }),
         },
         auth: { scope: ['courses:read'] },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeGetCourse }],

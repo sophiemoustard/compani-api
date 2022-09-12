@@ -37,6 +37,7 @@ const {
   TRAINING_ORGANISATION_MANAGER,
   TRAINER,
   REMOTE,
+  OPERATIONS,
 } = require('./constants');
 const CourseHistoriesHelper = require('./courseHistories');
 const NotificationHelper = require('./notifications');
@@ -209,8 +210,8 @@ exports.listUserCourses = async (trainee) => {
   return courses.map(course => exports.formatCourseWithProgress(course));
 };
 
-exports.getCourse = async (course, loggedUser) => {
-  const fetchedCourse = await Course.findOne({ _id: course._id })
+const getCourseForOperations = async (courseId, loggedUser) => {
+  const fetchedCourse = await Course.findOne({ _id: courseId })
     .populate({ path: 'company', select: 'name' })
     .populate({
       path: 'subProgram',
@@ -263,6 +264,13 @@ exports.getCourse = async (course, loggedUser) => {
     trainees: fetchedCourse.trainees
       .filter(t => UtilsHelper.areObjectIdsEquals(get(t, 'company._id'), get(loggedUser, 'company._id'))),
   };
+};
+
+exports.getCourse = async (query, params, loggedUser) => {
+  if (query.action === OPERATIONS) {
+    return getCourseForOperations(params._id, loggedUser);
+  }
+  return exports.getCourseForPedagogy(params._id, loggedUser);
 };
 
 exports.selectUserHistory = (histories) => {
@@ -384,7 +392,7 @@ exports.getTraineeElearningProgress = (traineeId, steps) => {
   return { steps: formattedSteps, progress: exports.getCourseProgress(formattedSteps) };
 };
 
-exports.getTraineeCourse = async (courseId, credentials) => {
+exports.getCourseForPedagogy = async (courseId, credentials) => {
   const course = await Course.findOne({ _id: courseId })
     .populate({
       path: 'subProgram',
@@ -415,6 +423,18 @@ exports.getTraineeCourse = async (courseId, credentials) => {
     .select('_id misc')
     .lean({ autopopulate: true, virtuals: true });
 
+  if (course.trainer && UtilsHelper.areObjectIdsEquals(course.trainer._id, credentials._id)) {
+    return {
+      ...course,
+      subProgram: {
+        ...course.subProgram,
+        steps: course.subProgram.steps.map(step => ({
+          ...step,
+          activities: step.activities.map(activity => ({ ...omit(activity, 'activityHistories') })),
+        })),
+      },
+    };
+  }
   if (!course.subProgram.isStrictlyELearning) {
     const lastSlot = course.slots.sort(DatesHelper.descendingSort('startDate'))[0];
     const areLastSlotAttendancesValidated = !!(lastSlot &&
