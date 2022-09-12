@@ -47,6 +47,7 @@ const DocxHelper = require('../../src/helpers/docx');
 const NotificationHelper = require('../../src/helpers/notifications');
 const UtilsHelper = require('../../src/helpers/utils');
 const UtilsMock = require('../utilsMock');
+const { CompaniDate } = require('../../src/helpers/dates/companiDates');
 
 describe('NODE ENV', () => {
   it('should be \'test\'', () => {
@@ -230,10 +231,10 @@ describe('COURSES ROUTES - GET /courses', () => {
       authToken = await getToken('training_organisation_manager');
     });
 
-    it('should get all courses', async () => {
+    it('should get all courses for operations on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses',
+        url: '/courses?action=operations&origin=webapp',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -242,20 +243,21 @@ describe('COURSES ROUTES - GET /courses', () => {
 
       const course = response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[3]._id, c._id));
       expect(course).toEqual(expect.objectContaining({
+        misc: 'second team formation',
+        type: INTRA,
         company: pick(otherCompany, ['_id', 'name']),
         subProgram: expect.objectContaining({
           _id: expect.any(ObjectId),
           program: {
             _id: programsList[0]._id,
             name: programsList[0].name,
-            image: programsList[0].image,
             subPrograms: [expect.any(ObjectId)],
           },
         }),
         trainer: pick(trainerAndCoach, ['_id', 'identity.firstname', 'identity.lastname']),
         slots: [{
-          startDate: moment('2020-03-20T09:00:00').toDate(),
-          endDate: moment('2020-03-20T11:00:00').toDate(),
+          startDate: CompaniDate('2020-03-05T08:00:00.000Z').toDate(),
+          endDate: CompaniDate('2020-03-05T10:00:00.000Z').toDate(),
           course: coursesList[3]._id,
           _id: expect.any(ObjectId),
         }],
@@ -267,12 +269,17 @@ describe('COURSES ROUTES - GET /courses', () => {
       }));
       expect(course.trainees[0].local).toBeUndefined();
       expect(course.trainees[0].refreshtoken).toBeUndefined();
+
+      const archivedCourse = response.result.data.courses
+        .find(c => UtilsHelper.areObjectIdsEquals(coursesList[14]._id, c._id));
+      expect(archivedCourse.archivedAt).toEqual(CompaniDate('2021-01-01T00:00:00.000Z').toDate());
+      expect(archivedCourse.estimatedStartDate).toEqual(CompaniDate('2020-11-03T10:00:00.000Z').toDate());
     });
 
-    it('should get blended courses', async () => {
+    it('should get blended courses for operations on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?format=blended',
+        url: '/courses?action=operations&origin=webapp&format=blended',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -280,10 +287,10 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(13);
     });
 
-    it('should get strictly e-learning courses', async () => {
+    it('should get strictly e-learning courses for operations on webapp', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?format=strictly_e_learning',
+        url: '/courses?action=operations&origin=webapp&format=strictly_e_learning',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -291,10 +298,20 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(4);
     });
 
-    it('should return 400 if bad format', async () => {
+    it('should return 400 if no action', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/courses?format=poiuytrewq',
+        url: '/courses?origin=mobile',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 400 if no origin', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations',
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -303,11 +320,11 @@ describe('COURSES ROUTES - GET /courses', () => {
   });
 
   describe('Other roles', () => {
-    it('should get courses with a specific trainer', async () => {
+    it('should get courses with a specific trainer for operations on webapp', async () => {
       authToken = await getTokenByCredentials(trainer.local);
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?trainer=${trainer._id}`,
+        url: `/courses?action=operations&origin=webapp&trainer=${trainer._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -315,11 +332,62 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(response.result.data.courses.length).toEqual(7);
     });
 
-    it('should get courses for a specific company', async () => {
+    it('should get trainer\'s course for operations on mobile', async () => {
+      authToken = await getTokenByCredentials(trainer.local);
+      const response = await app.inject({
+        method: 'GET',
+        url: `/courses?action=operations&origin=mobile&trainer=${trainer._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.courses.length).toEqual(7);
+
+      const course = response.result.data.courses.find(c => UtilsHelper.areObjectIdsEquals(coursesList[2]._id, c._id));
+      expect(course).toEqual(expect.objectContaining({
+        misc: 'second session',
+        company: pick(authCompany, ['_id', 'name']),
+        subProgram: expect.objectContaining({
+          _id: expect.any(ObjectId),
+          program: {
+            _id: programsList[0]._id,
+            name: programsList[0].name,
+            image: programsList[0].image,
+            description: programsList[0].description,
+            subPrograms: [expect.any(ObjectId)],
+          },
+        }),
+        slots: [{
+          startDate: CompaniDate('2020-03-04T08:00:00.000Z').toDate(),
+          endDate: CompaniDate('2020-03-04T10:00:00.000Z').toDate(),
+          course: coursesList[2]._id,
+          _id: expect.any(ObjectId),
+        }],
+        slotsToPlan: [
+          { _id: expect.any(ObjectId), course: course._id },
+          { _id: expect.any(ObjectId), course: course._id },
+        ],
+      }));
+      expect(course.trainer).toBeUndefined();
+      expect(course.trainees).toBeUndefined();
+      expect(course.salesRepresentative).toBeUndefined();
+    });
+
+    it('should return 400 if no trainer on mobile', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=mobile',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should get courses for a specific company for operations on webapp', async () => {
       authToken = await getToken('coach');
       const response = await app.inject({
         method: 'GET',
-        url: `/courses?company=${authCompany._id}`,
+        url: `/courses?action=operations&origin=webapp&company=${authCompany._id}`,
         headers: { Cookie: `alenvi_token=${authToken}` },
       });
 
@@ -338,7 +406,7 @@ describe('COURSES ROUTES - GET /courses', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/courses',
+          url: '/courses?action=operations&origin=webapp',
           headers: { Cookie: `alenvi_token=${authToken}` },
         });
 
@@ -1031,7 +1099,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive course without trainee', async () => {
-      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[13]._id}`,
@@ -1054,7 +1122,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive course without slot', async () => {
-      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[4]._id}`,
@@ -1077,7 +1145,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive course with slot to plan', async () => {
-      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[7]._id}`,
@@ -1100,7 +1168,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive a not blended course', async () => {
-      const payload = { archivedAt: new Date('2020-03-25T09:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-03-25T09:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[8]._id}`,
@@ -1123,7 +1191,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
     });
 
     it('should return 403 if trying to archive a course in progress', async () => {
-      const payload = { archivedAt: new Date('2020-03-10T00:00:00') };
+      const payload = { archivedAt: CompaniDate('2020-01-10T00:00:00.000Z').toDate() };
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${coursesList[5]._id}`,
@@ -2299,8 +2367,8 @@ describe('COURSES ROUTES - GET /{_id}/completion-certificates', () => {
           duration: '2h',
           learningGoals: 'on est là',
           programName: 'PROGRAM',
-          startDate: '20/03/2020',
-          endDate: '20/03/2020',
+          startDate: '08/03/2020',
+          endDate: '08/03/2020',
           trainee: { identity: 'Coach CALIF', attendanceDuration: '0h' },
           date: '24/01/2019',
         }

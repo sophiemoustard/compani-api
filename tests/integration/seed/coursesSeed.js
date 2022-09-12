@@ -1,5 +1,4 @@
 const { v4: uuidv4 } = require('uuid');
-const moment = require('moment');
 const { ObjectId } = require('mongodb');
 const Course = require('../../../src/models/Course');
 const Program = require('../../../src/models/Program');
@@ -296,6 +295,7 @@ const coursesList = [
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,
     archivedAt: '2021-01-01T00:00:00.000Z',
+    estimatedStartDate: '2020-11-03T10:00:00.000Z',
   },
   { // 15 course billed INTRA without trainees and slots
     _id: new ObjectId(),
@@ -325,7 +325,7 @@ const courseBillsList = [
     mainFee: { price: 1000, count: 1, description: 'Bonjour' },
     company: authCompany._id,
     billingPurchaseList: [],
-    billedAt: '2022-04-12T09:00:00',
+    billedAt: '2022-04-12T09:00:00.000Z',
     number: 'F00001',
     payer: { company: authCompany._id },
   },
@@ -370,64 +370,66 @@ const courseHistories = [
 
 const slots = [
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-01T08:00:00.000Z',
+    endDate: '2020-03-01T10:00:00.000Z',
     course: coursesList[0],
     step: stepList[0]._id,
   },
   {
-    startDate: moment('2020-03-20T14:00:00').toDate(),
-    endDate: moment('2020-03-20T18:00:00').toDate(),
+    startDate: '2020-03-02T13:00:00.000Z',
+    endDate: '2020-03-02T17:00:00.000Z',
     course: coursesList[0],
     step: stepList[0]._id,
   },
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-03T08:00:00.000Z',
+    endDate: '2020-03-03T10:00:00.000Z',
     course: coursesList[1],
     step: stepList[0]._id,
   },
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-04T08:00:00.000Z',
+    endDate: '2020-03-04T10:00:00.000Z',
     course: coursesList[2],
     step: stepList[0]._id,
   },
+  { course: coursesList[2], step: stepList[0]._id },
+  { course: coursesList[2], step: stepList[0]._id },
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-05T08:00:00.000Z',
+    endDate: '2020-03-05T10:00:00.000Z',
     course: coursesList[3],
     step: stepList[0]._id,
   },
   { course: coursesList[3], step: stepList[0]._id },
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-06T08:00:00.000Z',
+    endDate: '2020-03-06T10:00:00.000Z',
     course: coursesList[5],
     step: stepList[0]._id,
   },
   { course: coursesList[7], step: stepList[0]._id },
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-07T08:00:00.000Z',
+    endDate: '2020-03-07T10:00:00.000Z',
     course: coursesList[7],
     step: stepList[0]._id,
   },
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-08T08:00:00.000Z',
+    endDate: '2020-03-08T10:00:00.000Z',
     course: coursesList[8],
     step: stepList[0]._id,
   },
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-09T08:00:00.000Z',
+    endDate: '2020-03-09T10:00:00.000Z',
     course: coursesList[9],
     step: stepList[0]._id,
   },
   {
-    startDate: moment('2020-03-20T09:00:00').toDate(),
-    endDate: moment('2020-03-20T11:00:00').toDate(),
+    startDate: '2020-03-10T08:00:00.000Z',
+    endDate: '2020-03-10T10:00:00.000Z',
     course: coursesList[13],
     step: stepList[0]._id,
   },

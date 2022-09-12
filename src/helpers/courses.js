@@ -70,48 +70,57 @@ exports.getTotalTheoreticalHours = course => (course.subProgram.steps.length
   : 0
 );
 
-exports.list = async (query) => {
-  if (query.company) {
-    if (query.format === STRICTLY_E_LEARNING) {
-      const courses = await CourseRepository.findCourseAndPopulate({
-        format: query.format,
-        accessRules: { $in: [query.company, []] },
-      });
+const listStrictlyElearningForCompany = async (query, origin) => {
+  const courses = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, 'company'), accessRules: { $in: [query.company, []] } },
+    origin
+  );
 
-      return courses.map(course => ({
-        ...course,
-        totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
+  return courses.map(course => ({
+    ...course,
+    totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
+    trainees: course.trainees.filter(t =>
+      (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
+  }));
+};
+
+const listBlendedForCompany = async (query, origin) => {
+  const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA }, origin);
+  const interCourse = await CourseRepository.findCourseAndPopulate(
+    { ...omit(query, ['company']), type: INTER_B2B },
+    origin,
+    true
+  );
+
+  return [
+    ...intraCourse,
+    ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
+      .map(course => ({
+        ...omit(course, ['companies']),
         trainees: course.trainees.filter(t =>
           (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
-      }));
-    }
-    const intraCourse = await CourseRepository.findCourseAndPopulate({ ...query, type: INTRA });
-    const interCourse = await CourseRepository.findCourseAndPopulate(
-      { ...omit(query, ['company']), type: INTER_B2B },
-      true
-    );
+      })),
+  ];
+};
 
-    return [
-      ...intraCourse,
-      ...interCourse.filter(course => course.companies && course.companies.includes(query.company))
-        .map(course => ({
-          ...omit(course, ['companies']),
-          trainees: course.trainees.filter(t =>
-            (t.company ? UtilsHelper.areObjectIdsEquals(t.company._id, query.company) : false)),
-        })),
-    ];
+const listForOperation = async (query, origin) => {
+  if (query.company && query.format === STRICTLY_E_LEARNING) {
+    return listStrictlyElearningForCompany(query, origin);
   }
+  if (query.company) return listBlendedForCompany(query, origin);
 
-  const courses = await CourseRepository.findCourseAndPopulate(query);
+  const courses = await CourseRepository.findCourseAndPopulate(query, origin);
 
   if (query.format === STRICTLY_E_LEARNING) {
-    return courses.map(course => ({
-      ...course,
-      totalTheoreticalHours: exports.getTotalTheoreticalHours(course),
-    }));
+    return courses.map(course => ({ ...course, totalTheoreticalHours: exports.getTotalTheoreticalHours(course) }));
   }
 
   return courses;
+};
+
+exports.list = async (query) => {
+  const filteredQuery = omit(query, ['origin', 'action']);
+  return listForOperation(filteredQuery, query.origin);
 };
 
 const getStepProgress = (step) => {
