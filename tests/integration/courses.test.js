@@ -373,6 +373,16 @@ describe('COURSES ROUTES - GET /courses', () => {
       expect(course.salesRepresentative).toBeUndefined();
     });
 
+    it('should return 400 if no trainer on mobile', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/courses?action=operations&origin=mobile',
+        headers: { Cookie: `alenvi_token=${authToken}` },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should get courses for a specific company for operations on webapp', async () => {
       authToken = await getToken('coach');
       const response = await app.inject({

@@ -12,7 +12,7 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
       select: 'program',
       populate: [
         { path: 'program', select: origin === WEBAPP ? 'name' : 'name image description' },
-        { path: 'steps', select: 'theoreticalHours' },
+        { path: 'steps', select: 'theoreticalHours type' },
       ],
     },
     { path: 'slots', select: 'startDate endDate' },
