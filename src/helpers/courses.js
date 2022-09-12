@@ -2,7 +2,6 @@ const path = require('path');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const omit = require('lodash/omit');
-const pick = require('lodash/pick');
 const groupBy = require('lodash/groupBy');
 const fs = require('fs');
 const os = require('os');
