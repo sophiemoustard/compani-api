@@ -119,8 +119,8 @@ const listForOperation = async (query, origin) => {
 };
 
 exports.list = async (query) => {
-  const filterParams = omit(query, ['origin', 'action']);
-  return listForOperation(filterParams, query.origin);
+  const filterQuery = omit(query, ['origin', 'action']);
+  return listForOperation(filterQuery, query.origin);
 };
 
 const getStepProgress = (step) => {
