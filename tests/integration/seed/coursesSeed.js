@@ -140,7 +140,7 @@ const coursesList = [
     company: authCompany._id,
     misc: 'first session',
     trainer: trainer._id,
-    trainees: [coach._id, helper._id, clientAdmin._id, trainer._id],
+    trainees: [coach._id, helper._id, clientAdmin._id, vendorAdmin._id],
     type: INTRA,
     maxTrainees: 8,
     salesRepresentative: vendorAdmin._id,

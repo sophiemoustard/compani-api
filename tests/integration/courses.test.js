@@ -1072,6 +1072,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it('should return 403 if trainer is trainee', async () => {
+      const payload = { trainer: vendorAdmin._id };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return 403 if invalid companyRepresentative', async () => {
       const payload = { companyRepresentative: vendorAdmin._id };
       const response = await app.inject({
@@ -1889,7 +1901,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}/trainees', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 409 if user is already registered to course ', async () => {
+    it('should return a 403 if user is already course trainer', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${intraCourseIdWithTrainee}/trainees`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload: { trainee: trainer._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 409 if user is already registered to course', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/courses/${intraCourseIdWithTrainee}/trainees`,
