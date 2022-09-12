@@ -280,7 +280,7 @@ exports.authorizeGetCourse = async (req) => {
       .lean();
     const someTraineesAreInCompany = courseWithTrainees.trainees
       .some(trainee => UtilsHelper.areObjectIdsEquals(trainee.company, userCompany));
-    if (!someTraineesAreInCompany) throw Boom.forbidden();
+    if (course.format === BLENDED && !someTraineesAreInCompany) throw Boom.forbidden();
 
     return null;
   } catch (e) {
