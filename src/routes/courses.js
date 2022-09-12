@@ -187,6 +187,7 @@ exports.plugin = {
             companyRepresentative: Joi.objectId(),
             archivedAt: Joi.date(),
             estimatedStartDate: dateToISOString,
+            maxTrainees: Joi.number().positive().integer(),
           }),
         },
         pre: [{ method: getCourse, assign: 'course' }, { method: authorizeCourseEdit }],

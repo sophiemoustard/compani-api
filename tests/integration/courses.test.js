@@ -884,6 +884,7 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
         trainer: trainerAndCoach._id,
         contact: trainerAndCoach._id,
         estimatedStartDate: '2022-05-31T08:00:00',
+        maxTrainees: 12,
       };
       const response = await app.inject({
         method: 'PUT',
@@ -991,6 +992,18 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 if maxTrainees smaller than registered trainees', async () => {
+      const payload = { maxTrainees: 4 };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${coursesList[2]._id}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 403 if contact is not one of interlocutors', async () => {
@@ -1183,6 +1196,19 @@ describe('COURSES ROUTES - PUT /courses/{_id}', () => {
 
     it('should return 403 as user is course trainer but try to update salesRepresentative', async () => {
       const payload = { salesRepresentative: vendorAdmin._id };
+      authToken = await getToken('trainer');
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/courses/${courseIdFromAuthCompany}`,
+        headers: { Cookie: `alenvi_token=${authToken}` },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 403 as user is course trainer but try to update maxTrainees', async () => {
+      const payload = { maxTrainees: 9 };
       authToken = await getToken('trainer');
       const response = await app.inject({
         method: 'PUT',
