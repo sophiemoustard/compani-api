@@ -86,12 +86,11 @@ const getMatchingSector = (histories, event) => histories
   .filter(sh => CompaniDate(sh.startDate).isBefore(event.startDate))
   .sort(DatesHelper.descendingSort('startDate'))[0];
 
-const displayDate = (path, timestamp = null, scheduledDate = null) => {
-  let date = '';
-  if (timestamp) date = CompaniDate(get(timestamp, path)).toLocalISO();
-  else if (scheduledDate) date = CompaniDate(scheduledDate).toLocalISO();
+const displayDate = (date) => {
+  if (!date) return '';
 
-  return date.replace(/-/g, '/').replace('T', ' ').slice(0, 19);
+  const dateToFormat = CompaniDate(date).toLocalISO();
+  return dateToFormat.replace(/-/g, '/').replace('T', ' ').slice(0, 19);
 };
 
 exports.EVENT_PROJECTION_FILEDS = {
@@ -171,13 +170,13 @@ exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => 
       EVENT_TYPE_LIST[event.type],
       get(event, 'internalHour.name', ''),
       event.subscription ? getServiceName(event.subscription.service) : '',
-      displayDate('update.startHour.from', startHourTimeStamping, event.startDate),
-      displayDate('update.startHour.to', startHourTimeStamping),
+      displayDate(startHourTimeStamping ? get(startHourTimeStamping, 'update.startHour.from') : event.startDate),
+      startHourTimeStamping ? displayDate(get(startHourTimeStamping, 'update.startHour.to')) : '',
       TIMESTAMPING_ACTION_TYPE_LIST[get(startHourTimeStamping, 'action')] || '',
       get(startHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(startHourTimeStamping, 'manualTimeStampingReason')] : '',
-      displayDate('update.endHour.from', endHourTimeStamping, event.endDate),
-      displayDate('update.endHour.to', endHourTimeStamping),
+      displayDate(endHourTimeStamping ? get(endHourTimeStamping, 'update.endHour.from') : event.endDate),
+      endHourTimeStamping ? displayDate(get(endHourTimeStamping, 'update.endHour.to')) : '',
       TIMESTAMPING_ACTION_TYPE_LIST[get(endHourTimeStamping, 'action')] || '',
       get(endHourTimeStamping, 'action') === MANUAL_TIME_STAMPING
         ? MANUAL_TIME_STAMPING_REASONS[get(endHourTimeStamping, 'manualTimeStampingReason')] : '',
