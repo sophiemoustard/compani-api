@@ -466,6 +466,17 @@ describe('COURSES ROUTES - GET /courses/{_id}', () => {
       expect(response.result.data.course._id.toHexString()).toBe(courseFromAuthCompanyInterB2b._id.toHexString());
     });
 
+    it('should return elearning course with no access rule',
+      async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/courses/${coursesList[6]._id}`,
+          headers: { Cookie: `alenvi_token=${authToken}` },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
     it('should return course if course is eLearning and has accessRules that contain user company',
       async () => {
         const response = await app.inject({
