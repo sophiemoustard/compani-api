@@ -1,7 +1,7 @@
 const get = require('lodash/get');
 const Course = require('../models/Course');
 const CourseSlot = require('../models/CourseSlot');
-const { WEBAPP } = require('../helpers/constants');
+const { WEBAPP, MOBILE } = require('../helpers/constants');
 
 exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Course
   .find(query, origin === WEBAPP ? 'misc type archivedAt estimatedStartDate createdAt' : 'misc')
@@ -17,8 +17,8 @@ exports.findCourseAndPopulate = (query, origin, populateVirtual = false) => Cour
     },
     {
       path: 'slots',
-      select: 'startDate endDate step',
-      populate: { path: 'step', select: 'type' },
+      select: origin === MOBILE ? 'startDate endDate step' : 'startDate endDate',
+      ...(origin === MOBILE && { populate: { path: 'step', select: 'type' } }),
     },
     { path: 'slotsToPlan', select: '_id' },
     ...(origin === WEBAPP
