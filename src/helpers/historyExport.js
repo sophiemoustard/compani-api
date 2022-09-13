@@ -89,7 +89,7 @@ const getMatchingSector = (histories, event) => histories
 const displayDate = (path, timestamp = null, scheduledDate = null) => {
   let date = '';
   if (timestamp) date = CompaniDate(get(timestamp, path)).toLocalISO();
-  if (scheduledDate) date = CompaniDate(scheduledDate).toLocalISO();
+  else if (scheduledDate) date = CompaniDate(scheduledDate).toLocalISO();
 
   return date.replace(/-/g, '/').replace('T', ' ').slice(0, 19);
 };
