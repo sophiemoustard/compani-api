@@ -361,6 +361,10 @@ describe('COURSES ROUTES - GET /courses', () => {
           startDate: CompaniDate('2020-03-04T08:00:00.000Z').toDate(),
           endDate: CompaniDate('2020-03-04T10:00:00.000Z').toDate(),
           course: coursesList[2]._id,
+          step: {
+            _id: expect.any(ObjectId),
+            type: 'on_site',
+          },
           _id: expect.any(ObjectId),
         }],
         slotsToPlan: [
